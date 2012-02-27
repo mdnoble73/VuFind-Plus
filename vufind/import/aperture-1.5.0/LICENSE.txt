@@ -1,0 +1,1 @@
+The aperture-runtime-onejar file is covered by the Aperture license.

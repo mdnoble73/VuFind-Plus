@@ -1,0 +1,6 @@
+LICENSE INFORMATION
+Copyright 2005-2007 by FZI (http://www.fzi.de).
+Licensed under a BSD license (http://www.opensource.org/licenses/bsd-license.php)
+<OWNER> = Max Voelkel
+<ORGANIZATION> = FZI Forschungszentrum Informatik Karlsruhe, Karlsruhe, Germany
+<YEAR> = 2007

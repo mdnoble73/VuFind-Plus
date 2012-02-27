@@ -1,0 +1,467 @@
+----------------------------------
+version 2005.1-alpha-1, 2005-11-10
+----------------------------------
+
+- First public release of the source code.
+
+----------------------------------
+version 2006.1-alpha-2, 2006-03-06
+----------------------------------
+
+This releases adds a lot of crucial implementations and fixes
+to the previous release, which was mainly focused on establishing a
+number of core APIs. The latest release can be seen as the first release
+for practical, real world use.
+
+Due to the large number of changes and additions, we only list the most
+important functional changes:
+
+- Revised the RDFContainer interface and implementation.
+
+- Extended the number of Extractor implementations from 4 to 17, which
+  adds support for the various MS Office file formats as well as a number of
+  other formats.
+
+- Added the DataSource API and utility classes for configuring them.
+
+- Added the DataAccessor API and associated DataObject interfaces for
+  accessing individual resources, with implementations for the "file",
+  "http", "imap" and "outlook" schemes.
+  
+- Added the Crawler API with implementations for file system crawling,
+  web crawling, IMAP crawling (all stable) and Outlook crawling (alpha).
+
+- added the LinkExtractor API with an implementation for HTML documents,
+  primarily meant to facilitate web crawling.
+
+- Added classes for dealing with non-validatable certificates when using
+  a SSL connection.
+
+- Considerably extended documentation and example code.
+
+----------------------------------
+version 2006.1-alpha-3, 2006-11-02
+----------------------------------
+
+The most notable feature of this release is the IcalCrawler. It can crawl
+files in the popular iCalendar format. Many calendaring applications use
+this format either natively, or via some export/import functionality. It
+uses the rdf-mapping developed by the w3c Rdf Calendaring group. (With some
+improvements - see javadoc). Additional improvements include: 
+
+- added MIME type detection for many formats:
+
+- improved MIME type detection of MHTML files (web archives)
+
+- introduced HtmlParserUtil, containing large parts of the HtmlExtractor
+  implementation, as HTML (fragments) may occur in other document types as
+  well (e.g. saved mails, see MimeExtractor)
+
+- the maximumSize property is now a long instead of an int
+
+- added ThreadedExtractorWrapper class, for catching and interrupting hanging
+  Extractors
+
+- added RepositoryAccessData, an AccessData implementation storing its
+  information in a Repository
+
+- added ability to specify a port number for an IMAP source
+
+- set target platform to Java 5
+
+updated dependencies:
+- HTMLParser 1.6
+- Ical (from trunk, not the official release)
+- JavaMail 1.4
+- POI 3.0 alpha 2
+- PDFBox 0.7.3 (+ added FontBox, bcmail and bcprov, now required by PDFBox)
+
+bug fixes:
+- [ 1444917 ] PlainTextExtractor ignores ByteOrderMarks
+- [ 1444926 ] MagicMimeTypeIdentifier cannot handle text files with BOMs
+- [ 1445519 ] mails in non-western languages
+- [ 1445641 ] MimeExtractors cannot process MHTML files
+- [ 1445658 ] MimeExtractor should process HTML body parts
+- [ 1476150 ] ImapCrawler.getDataObject attempts to access a closed folder
+- [ 1480416 ] IOExceptions using ImapCrawler.getDataObject output
+- [ 1481111 ] XmlExtractor needs improved DTD handling
+- [ 1481132 ] OpenDocumentExtractor unable to load DTDs from jar files
+- [ 1481759 ] Unable to use IMAP over SSL with JavaMail 1.4
+- [ 1558484 ] HttpAccessor should use timeouts on connection
+- [ 1567288 ] Incorrect link data by WebCrawler
+- many bugfixes in ImapCrawler's incremental crawling
+- same for WebCrawler and HttpAccessor
+- prevent NullPointerException in FileDataObjectBase.dispose
+- made sure ThreadedExtractorWrapper redirects all Exceptions of the wrapped Extractor
+
+----------------------------------
+version 2006.1-alpha-4 31.05.2007
+----------------------------------
+
+The entire Aperture Framework has been rewritten to utilize the RDF2Go framework.
+It is now completely independent from the underlying RDF store. Aperture registries
+and factories can now be used in an OSGi environment as services. The 
+infrastructure allows for on-the-fly deployment of new extraction components. 
+
+Additional improvements include:
+
+- the logging subsystem has been changed from Java Util Logging to SLF4J. This solves
+some classloading issues that were encountered when using Aperture in 
+web applications.
+
+- a set of OSGI BundleActivators have been added for embedding Aperture
+in an OSGi environment. Additional ant target creates two OSGI bundles from 
+Aperture source code. The OSGi setup has been tested extensively
+in the Nepomuk Social Semantic Desktop project.
+
+Updated dependencies
+- updated Sesame 2.0 from alpha-3 to beta-4
+- updated the applewrapper library to version 0.2
+- RDF2Go 4.4.1
+- Sesame 2.0-beta4 RDF2Go Adapter revision 2682
+- SLF4J 1.3.0
+- osgi.core-4.0.jar - The reference OSGI jar file, necessary to compile activators.
+- don't use apache commons-logging anymore, the RDF2Go depends on commons-logging
+  but this is now done with the jcl104-over-slf4j bridge
+- removed the original commons-codec.jar and replaced with an OSGI-friendly
+  bundle org.apache.commons.codec_1.2.0.jar
+- org.apache.httpclient_3.0.0.rc2.jar  
+
+----------------------------------
+version 1.0.1-beta   12.11.2007
+----------------------------------
+
+
+This release bears the mark of the Nepomuk Social Semantic
+Desktop - a major intiative combining research 
+institutes and commercial companies from around Europe. 
+Aperture is used as one of the pillars of a 
+next-generation  platform that changes the way 
+people can organize and use the data stored on their 
+computers. The input from the Nepomuk Community drove us to 
+implement a host of new features that make Aperture more 
+useful, more flexible and more powerful.
+
+New Features
+ 
+- Aperture has been migrated to use the newly developed
+  Nepomuk Information Element Ontology framework. This 
+  added a new level of precision and expressiveness to the
+  output of Aperture components. The ontology itself 
+  is endorsed by the Nepomuk Consortium, well documented 
+  and maintained.
+- The output is now thoroughly tested with an extensible 
+  rdf validator for compliance with the ontology. This 
+  allowed us to fix a number of bugs that made certain 
+  properties appear in places they didn't belong
+- the data source configuration API has been overhauled and 
+  is now much more easy to use
+- A new facility that allows clients to implement dynamic 
+  GUIs for data source configuration.
+- New JpgExtractor that extracts EXIF annotations from JPG 
+  files
+- four new experimental crawlers (Flickr, Bibsonomy, 
+  del.icio.us and Apple IPhoto).
+- host of small improvements and bug fixes
+
+Updated dependencies
+- Sesame 2.0 beta-6 (was beta-4)
+- RDF2Go 4.4.6
+- RDF2Go driver for sesame
+- A metadata-extractor-2.4.0-beta-1 library used by the  
+  JPGExtractor
+- POI has been update to 3.0-FINAL
+- flickrapi-1.0b4 used by the FlickrCrawler
+- DFKIUtils 2.0 some XML-related utilities are used by the 
+  website crawlers
+- nrlvalidator-0.1 the validator used by the unit tests
+- infsail-0.1 and unionsail-0.1 dependencies of the 
+  validator
+  
+----------------------------------
+version 1.1.0.beta 17.05.2008
+----------------------------------
+
+This release aims to reduce the memory footprint and increase the range of data
+sources explorable by Aperture. It adds support for MP3 files, vcards and mbox
+mailboxes. The Architecture has been extended with the concept of a SubCrawler,
+that can crawl DataObjects returned by other crawlers thus opening possibilities
+for the development of new, even better exploration components.
+
+New features
+- a redesigned AccessData interface which fulfils two goals
+  - correct handling of data objects embedded in other data objects (SubCrawlers)
+  - no need to store large sets in memory (deprecatedUrls and crawledUrls)
+- new SubCrawler interface, with associated infrastructure
+- the SubCrawler interface comes with a first implementation: the VcardSubCrawler
+  for crawling vcard files, each may potentially contain many vcards
+- the FileExtractor interface - extracts information from formats which are 
+  ill-suited for stream-based processing
+- the first implementation of FileExtractor - the MP3FileExtractor, does what
+  you think it does, extracts ID3 information from MP3 files supports both
+  ID3v1 and ID3v2 tags
+- added workaround to load UTF-7 charset when in OSGi in MailUtil
+- fixed Outlook nullpointerexceptions introduced in last release
+- host of smaller improvements and bugfixes
+
+Updated Dependencies
+- OSGi bundles now also use aperture version numbers
+- updated pdfbox to unreleased 0.7.4 version fixing parsing errors,
+  includes update for fontbox
+- flickrapi updated to 1.0 final
+- ical4j updated to 1.0-beta4
+- jacob updated to 1.10 final 
+- rdf2go and the sesame rdf2go driver updated to version 4.6.2
+- sesame updated to 2.1.1
+- poi updated to 3.0.2
+- commons-codec updated to 1.3
+- commons-httpclien updated to 3.1
+- added commons-lang, required by ical4j
+- added Java Imaging API - required by the new PDFBox
+- added jaudiotagger-1.0.8 - required by the MP3Extractor
+- added jpim-0.1 (with patches) - required by the VcardSubCrawler
+- added mstor-0.9.11 - required by the MboxCrawler
+
+
+----------------------------------
+version 1.2.0 27.10.2008
+----------------------------------
+
+After three years of development Aperture is stable enough to drop the
+.beta suffix from the release. 1.2.0 leverages architectural improvements
+made in 1.1.0.beta to bring support for compressed archives and to streamline
+email processing. A completely new service - the DataSourceDetector allows 
+applications to provide suggestions to users about the data sources on their
+desktops. A host of bugfixes and minor improvements rounds the image
+of the leanest and meanest version of Aperture ever made. Enjoy.
+
+What's new?
+- a completely new Aperture service - the DataSourceDetectors - can be used 
+  to provide advice to the user about the data sources on the desktop
+- new subcrawlers for .zip, .gzip, tar and bzip2 compressed files
+- unification of the email handling - now the ImapCrawler, MboxCrawler and the
+  MimeSubCrawler use the same code in the DataObjectFactory to convert emails
+  to RDF. The MimeExtractor has been deprecated, switch to MimeSubCrawler
+- some bugfixes in the email handling code, plain text, and xml attachments
+  are treated correctly, threads are reflected in the resulting rdf
+- the pdf extractor has some basic support for XMP metadata (thanks to JempBox)
+- a completely new XmlSafetyUtil class that helps to deal with characters that
+  are valid in RDF, but invalid in XML - thus breaking the serialization
+- the uris of subcrawled resources follow the pattern established by the
+  Apache Commons VFS project.
+- new Sesame 2.2.1 bundled with Aperture features dramatic performance 
+  optimizations, e.g. the aperture test suite is 2 times faster, this may also
+  be a boost for your application
+
+Bugs fixed:
+2181955   improve IMAPCrawler Performance
+2167006   MimeSubCrawler generates two DataObjects for .eml file
+2166909   Aperture generates unreadable FileAccessData files
+2166890   MagicMimeTypeIdentifier mixes up subcrawled uris
+2157232   FileSystemCrawler reverses semantics of hidden folder 
+2149106   Deprecate MimeExtractor
+2140058   DataObjectFactory converts too many text and html mail parts
+2138734   ImapCrawler does not dispose unused DataObjects
+2136722   XML attachments are processed incorrectly.
+2051959   Addressbook crawler - null accessdata and stop
+2017492   Fix license headers
+2017422   FileInspector starts slowly 
+2014817   Misleading logging statement in FileSystemCrawler
+2009501   improve MIME type detection based on magic strings
+1986714   Vocabulary classes throw errors when they are reloaded
+1986707   Tests are ran twice when generating a release
+1976336   Aperture extracts illegal unicode from PDFs
+1944758   exception in imapcrawler with folders that have only message
+1888018   MimeExtractor puts both plain and html in plainTextContent
+1650578   GZIP-related exception while accessing webpage
+1543874   PdfExtractor only returns first author 
+
+Feature requests:
+2149529   Implement commons-VFS-like uris for SubCrawlers
+2058144   implement proper threading support in DataObjectFactory
+2052009   CrawlerHandlerBase and the CrawlerHandlers in the test s
+2042093   Expand the CrawlReport in CLI apps
+2019478   Implement zip/gzip subcrawlers
+2012786   Create a test suite for the aperture.util package
+2009216   DataSourceDetectors architecture
+1986749   Update to Sesame 2.1.2
+1986696   Add waiting time between crawls in junit tests
+1986680   Evaluate and implement the HTMLExtractor patch by jm
+1868457   ThreadedExtractorWrapper: parametrizable timeout values
+1779556   Unify handling of emails
+1641723   Things to do for alpha-4
+
+----------------------------------
+version 1.3.0 11.08.2009
+----------------------------------
+
+This release bears the mark of Maven. We used it because the  users wanted 
+a way to cherry-pick the Aperture functionality and dependencies they need, 
+either because they wanted a smaller footprint (aperture 1.3 brings in 
+more than 18 MB of jars), or for legal reasons (e.g. some dependencies use 
+the LGPL license some people don't like). Now, thanks to Maven magic you
+can reap direct benefits from the modular architecture of Aperture and
+choose exactly the mix of classes you need.
+
+What's new
+- aperture has been split into more than 70 fine-grained modules
+- there is also a runtime-onejar module which contains everything from those
+  70 little ones convieniently packed in a single jar
+- both the little jars, the onejar and ALL dependencies are full-blown OSGI 
+  bundles, ready to place in your OSGI application
+- the OSGI users working with Eclipse may appreciate the new 'eclipse' package
+  whose contents is identical to the 'sdk' package, but all jars follow the
+  Eclipse naming convention (bundle.symbolic.name_bundle.version.jar)
+  Note that both the 'sdk' and 'eclipse' work in OSGI, the only difference is
+  the naming, this reflects the common usage pattern that arose among the
+  members of the Aperture community: unpack, rename, place in Eclipse target
+  platform. Now you can download the 'eclipse' assembly and spare yourself
+  the renaming. 
+- all modules and the onejar are available with maven from the newly-established
+  aperture maven repository
+- numerous bugfixes and minor improvements
+
+Bugs fixed:
+2820684   an osgi dependency cycle
+2812254   model access data bug with aggregated ids
+2812252   processing multiple occurences of the same mail in a folder
+2804833   build fails on some systems
+2804173   problems while turning off the osgi framework
+2797286   problems with aperture on a mac
+2794014   wrong isPartOf links in mime-subcrawled eml
+2791292   Mime not recognized for any archive subcrawler
+2787914   [maven build] default modules have way too many classes
+2786555   email received date is missing
+2786554   infinite loop in zip files
+2781669   [maven build] sesame jars don't have OSGI manifest entries
+2781654   [maven build] no platform-specific libs
+2781647   [maven build] no CLI scripts
+2631580   bug with faulty mbox files
+2527347   ImapStreamPool bug in IMAPCrawler
+2526476   Base64 bug in mbox files
+2476115   ICalCrawler tests fail in some timezones
+2475980   VCardSubcrawler invents new URIs on each crawl
+2475957   VCardSubcrawler ignores timezones
+2379409   OutOfMemoryError when extracting encrypted Word docs
+2371090   tests fail outside europe
+2352674   OpenDocumentExtractor omits parts of documents
+2351121   ImapDataAccessor closes connection
+2317168   DataSourceClassGenerator wrong helptext
+2278007   JPG attachments get a superflous charsetProperty
+2277966   Attachments get superfluous contentCreated property
+2208321   MailUtil should not 'invent' message dates
+2207260   Exception while retrieving DataObject from zip file
+2144382   base64-encoded .eml attachments don't work
+2093270   Find a way to make Web-crawler API keys configurable
+2093256   flickr crawler does not respect stop-requested
+1989505   incremental IMAP crawling broken 
+
+Feature requests:
+2827808   update rdf2go to 4.7.2
+2813890   update rdf2go to 4.7.0
+2798541   in-container test for pdf extractor
+2793285   restore compatibility with rdf2go 4.6.3
+2787803   Create a simple facade to the whole Aperture functionality
+2635213   evaluate ical4j-vcard and (possibly) remove jpim
+2537679   sort out all unrelease jars
+2416993   extractor 3rd party bundles
+2408069   remove DFKIUtil2 dependency
+2352504   move aperture to BSD
+2278000   DataObjectFactory shouldn't return DataObjectBase instances
+2207870   mavenize aperture
+2154832   DataAccessor-like functionality in SubCrawler
+2147921   Flexible processing of (Mime)Messages
+1989887   a suite of in-container osgi unit tests
+1989875   Daily build for Aperture 
+
+----------------------------------
+version 1.4.0 31.12.2009
+----------------------------------
+
+The 1.4.0 release is a proof that the codebase is really starting to mature. 
+Previous releases brought revolutions (RDF2Go, NIE, maven). This one reaps the 
+rewards of the work done in the past and concentrates on evolutionary 
+improvements and bugfixes.
+
+What's new
+- a new XMPExtractor (contributed by Ryan McDonough) that can extract XMP
+  metadata from arbitrary files
+- a new subcrawler for files compressed with the unix 'compress' tool
+- MSOffice extraction improvements including support for old Word versions,
+  save history
+- detection of encrypted content in documents, archives and emails
+- improvements in accessing emails, both mail crawlers have DataAccessor
+  implementations, It is also possible to obtain all parts of an email with one 
+  method call
+- The IMAPCrawler works much faster with IMAP servers backed by mh storage
+- a host of updated dependencies (POI 3.5, pdfbox 0.8.0 and more)
+- and numerous bugfixes
+
+Bugs fixed:
+2836241   broken mail body encoding by using java 1.6 VM
+2844099   Encoding error on some webpages
+2858662   Data Objects Not Always Properly Disposed
+2858669   URIs of Redirected Web Pages Not Correctly Returned
+2861442   Redirected Web Documents Removed From AccessData in Recrawls
+2869547   Maven Build Error Because of an Allegedly Missing Plugin
+2870204   get rid of the emailperson:Antoni+Mylka type uris
+2870833   textmining.org 1.0 + POI 3.5 + fastsaved word97 docs
+2879703   Potential Memory Leak in WebCrawler
+2881842   HtmlParserUtil May Throw an Exception If Encoding Changes
+2883040   Extract more properties from POI SummaryInformation
+2890341   OutlookResource.addRecipientsIfNotNull: COM exception
+2890717   can't open file:// uris with a fragment
+2891804   escaped HTML characters in NIE.keyword
+2892506   NPE in ImapCrawler
+2896533   Incorrect time zone in OpenXmlExtractor metadata
+2897293   Incremental IMAP crawling slow on MH-backed servers
+2897819   Hash conflicts in MailUtil.getMessageID
+2906999   apple crawlers don't work
+2910333   flickr crawler doesn't work
+2910404   emal crawling doesn't work in osgi
+
+Feature requests:
+2147955   Add Imap/AbstractJavaMailCrawler.getDataObjects method
+2150183   z subcrawler
+2473666   add support for nfo:EncryptionStatus
+2820745   mbox accessor
+2836084   Support Word6 and Word95
+2840003   XMP Metadata Support
+2843571   ThreadedSubcrawlerWrapper
+2850036   improved PlainTextExtractor
+2850072   extend extracted MS Office metadata
+2866718   update pdfbox dependency to 0.8.0
+2870205   updated POI to 3.5 FINAL
+2900416   CrawlReport.getFatalErrorCause()
+2907606   extend the nfo:EncryptionStatus support to emails
+
+----------------------------------
+version 1.5.0 ??.06.2010
+----------------------------------
+
+An evolutionary bugfix and improvement release. It brings new and
+improved functionality for getting data from OpenXML and mbox files,
+as well as initial support for direct crawling of remote Samba 
+without having to mount them first. Moreover, intensive usage has
+revealed some loopholes in our email processing code that resulted
+in loss of email content and attachments - all have been fixed.
+This rounds up as the best Aperture release since the last one.
+
+Bugs fixed
+3022302   Some attachments in multipart/related messages are lost
+3021445   some multipart/report emails are parsed incorrectly
+3020838   AJMC is missing attachments in multipart/signed message
+3020798   text/rfc822-headers attachments should be MessageDataObjects
+3020731   content of multipart/related emails gets lost
+2984033   Some RFC822 messages not recognized
+
+Feature requests:
+3008473   Support weird to and from mail header values
+3004082   Samba Crawler
+2989040   Clean up RDFContainerFactory mess
+2961856   reorganize the codebase
+2932901   MBox Subcrawler Support
+2925670   update unionsail and infsail to Sesame 2.3.0
+2850042   improve OpenXmlExtractor
+2093266   The bibsonomy crawler should use bibsonomy API
+2969249   WebCrawler encoding problems on youtube

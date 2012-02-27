@@ -1,0 +1,2 @@
+jcl-over-slf4j is part of the SLF4J distribution
+see slf4j-license.txt

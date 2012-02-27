@@ -1,0 +1,33 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.ControlField;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Subfield;
+
+/**
+ * Determine Record Format(s)
+ *
+ * @param  Record          record
+ * @return Set     format of record
+ */
+public Set getAllFields(Record record){
+  Set result = new LinkedHashSet();
+  StringBuffer allFieldData = new StringBuffer();
+  List controlFields = record.getControlFields();
+  for (Object field : controlFields){
+    ControlField dataField = (ControlField)field;
+    allFieldData.append(dataField.getData()).append(" ");
+  }
+  
+  List fields = record.getDataFields();
+  for (Object field : fields){
+    DataField dataField = (DataField)field;
+    List subfields = dataField.getSubfields();
+    for (Object subfieldObj : subfields){
+      Subfield subfield = (Subfield)subfieldObj;
+      allFieldData.append(subfield.getData()).append(" ");
+    }
+  }
+  result.add(allFieldData.toString());
+  
+  return result;
+}
