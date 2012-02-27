@@ -9,6 +9,7 @@ marc/
 solr-data/*
 !solr-data/default
 vufind/documentation/
+vufind/admin/sql/
 
 # Compiled source #
 ###################
@@ -41,6 +42,8 @@ vufind/documentation/
 #################
 .buildpath
 .project
+.classpath
+org.eclipse.*.prefs
 
 # OS generated files #
 ######################

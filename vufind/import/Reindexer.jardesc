@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="VuFind+ Import/Reindexer.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/VuFind+ Import/Reindexer.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" mainClassHandleIdentifier="=VuFind+ Import/src&lt;org.vufind{ReindexProcess.java[ReindexProcess" manifestLocation="/VuFind+ Import/Reindexer.manifest" manifestVersion="1.0" reuseManifest="false" saveManifest="true" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=VuFind+ Import/src"/>
+        <file path="/VuFind+ Import/lib/commons-logging-1.1.1.jar"/>
+        <file path="/VuFind+ Import/lib/ini4j-0.5.2-SNAPSHOT.jar"/>
+        <file path="/VuFind+ Import/lib/log4j-1.2.15.jar"/>
+    </selectedElements>
+</jardesc>
