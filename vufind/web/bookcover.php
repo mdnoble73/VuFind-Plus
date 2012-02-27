@@ -346,6 +346,17 @@ function dieWithFailImage($bookCoverPath, $size, $category, $id){
 			$localFile = 'images/covers/' . $_GET['size'] . '/' . $id . '.png';
 			header('Content-type: image/png');
 			$useDefaultNoCover = false;
+		}elseif (is_readable("interface/themes/default/images/{$category}_{$size}.png")){
+			$logger->log("Found category image {$category}_{$size} .", PEAR_LOG_INFO);
+			$nocoverurl = "interface/themes/default/images/{$category}_{$size}.png";
+			$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $id . '.png';
+			header('Content-type: image/png');
+			$useDefaultNoCover = false;
+		}elseif (is_readable("interface/themes/default/images/$category.png")){
+			$nocoverurl = "interface/themes/default/images/$category.png";
+			$localFile = 'images/covers/' . $_GET['size'] . '/' . $id . '.png';
+			header('Content-type: image/png');
+			$useDefaultNoCover = false;
 		}
 	}
 	

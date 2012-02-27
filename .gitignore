@@ -4,7 +4,7 @@ conf/*
 !conf/default
 covers/
 !covers/default
-econtent/
+/econtent/
 httpd-conf/
 logs/
 marc/
