@@ -1,3 +1,5 @@
+# Specific locations within VuFind #
+####################################
 conf/*
 !conf/default
 covers/
@@ -10,6 +12,9 @@ solr-data/*
 !solr-data/default
 vufind/documentation/
 vufind/admin/sql/
+vufind/web/images/charts/*
+vufind/web/interface/cache/
+vufind/web/interface/compile/
 
 # Compiled source #
 ###################
@@ -36,6 +41,11 @@ vufind/admin/sql/
 # Logs and databases #
 ######################
 *.log
+*.log.1
+*.log.2
+*.log.3
+*.log.4
+*.log.5
 *.sqlite
 
 # Eclipse Files #

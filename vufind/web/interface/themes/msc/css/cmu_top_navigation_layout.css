@@ -1,0 +1,175 @@
+<?php
+Header ("Content-type: text/css");
+$configArray = parse_ini_file('../../../../conf/config.ini', true);
+?>
+@CHARSET "ISO-8859-1";
+
+/* header contains top-level navigation links (mainNav) and search box */
+#header {
+	top:0px;	
+	position:relative;
+	z-index:999;
+}
+
+/* mainNav contains top-navigation links */
+#mainNav {
+	position:relative;
+	top:0px;
+	float:left;
+	overflow:visible;
+	padding:6px 0;
+}
+
+/* Main Nav Link Styles */
+ul#topNavLinks {
+	position:relative;	/* position:relative; needed for ie 6 peakaboo bug */
+	top:0px;	
+	margin:0;
+	padding:0;
+	text-indent:0px;
+}
+
+ul#topNavLinks li {	
+	position:relative;	/* position:relative; needed for ie 6 peakaboo bug */
+	float:left;
+	height:auto; 		/* height:20px */
+	color:#333333;
+	list-style-type: none;	
+	padding-right:20px;
+	margin:0 10px;
+}
+ul#topNavLinks li ul li{
+	float:none;
+}
+ul#topNavLinks li a {
+	font-size:12px;
+	font-weight: bold;
+	text-decoration: none;
+	margin: 0px 5px 0px 6px;
+}
+ul#topNavLinks li a:link, ul#topNavLinks li a:visited {
+	color: #FFF;
+}
+ul#topNavLinks li a:hover, ul#topNavLinks li a:active {
+	color: #FFF;
+}
+
+
+/* Sub Navigation Link Styles */
+ul#topNavLinks li ul.mm_subLinks {
+	position:relative;		/* position:relative; needed for ie 6 peakaboo bug */
+	overflow:hidden;	
+	width:180px;
+	list-style-type: none;
+	text-indent:0px;	
+}
+
+ul#topNavLinks li ul.mm_subLinks li {	
+	position:relative; 		/* position:relative; needed for ie 6 peakaboo bug */
+	margin-left:0px;
+	text-indent:0px;	
+	padding:2px 0px 0px 0px;
+	list-style-type: none;
+}
+
+ul#topNavLinks li ul.mm_subLinks li.mm_levelTwo {padding:12px 0px 0px 0px;}
+
+ul#topNavLinks li ul.mm_subLinks li.fourthLevelNav {
+	text-indent:5px;
+	padding:2px 0px 0px 8px;
+}
+
+ul#topNavLinks li ul.mm_subLinks li.mm_levelTwo a {
+	font-size: 12px;
+	font-weight: bold;
+	text-decoration: none;
+	display:block;
+	margin:0;
+}
+
+ul#topNavLinks li ul.mm_subLinks li.mm_levelTwo a:link, ul#topNavLinks li ul.mm_subLinks li.mm_levelTwo a:visited {color: #5D0022;}
+ul#topNavLinks li ul.mm_subLinks li.mm_levelTwo a:hover, ul#topNavLinks li ul.mm_subLinks li.mm_levelTwo a:active {color: #5D0022;}
+ul#topNavLinks li ul.mm_subLinks li.mm_levelThree a {
+	font-size: 11px;
+	font-weight: normal;
+	text-decoration: none;
+	display:block;
+	margin:0;
+}
+
+ul#topNavLinks li ul.mm_subLinks li.mm_levelThree a:link, ul#topNavLinks li ul.mm_subLinks li.mm_levelThree a:visited {color: #363636;}
+ul#topNavLinks li ul.mm_subLinks li.mm_levelThree a:hover, ul#topNavLinks li ul.mm_subLinks li.mm_levelThree a:active {color: #003663;}
+ul#topNavLinks li ul.mm_subLinks li.fourthLevelNav a {font-size: 11px;font-weight: normal;text-decoration: none;}
+ul#topNavLinks li ul.mm_subLinks li.fourthLevelNav a:link, ul#topNavLinks li ul.mm_subLinks li.fourthLevelNav a:visited {color: #363636;}
+ul#topNavLinks li ul.mm_subLinks li.fourthLevelNav a:hover, ul#topNavLinks li ul.mm_subLinks li.fourthLevelNav a:active {color: #003663;}
+
+/* fixed width menu style with variable height. (add the code below for fixed minimum height that works in ff and ie) */
+/* min-height:350px; 
+	height:auto !important;
+	height:350px; */
+.subNavMenu {
+	position:absolute;
+	visibility: hidden;
+	top:0px;
+	z-index: 9999; 
+	padding:0px 0px 20px 20px;	
+	height:380px;
+	width:1050px; 
+	overflow:visible;
+	background: url(http://www.coloradomesa.edu/css/images/megamenu_bg.png) repeat-y;
+	margin-top:24px;
+}
+#menu1.subNavMenu{left:-10px;}
+#menu2.subNavMenu{left:-99px;}
+#menu3.subNavMenu{left:-220px;}
+#menu4.subNavMenu{left:-345px;}
+#menu5.subNavMenu{left:-493px;}
+#menu6.subNavMenu{left:-592px;}
+#menu7.subNavMenu{left:0;}
+#menu8.subNavMenu{left:0;}
+
+.subNavArrow {
+	position:relative;
+	top:-10px;
+	height:10px;
+	width:20px;
+	background: url(http://www.coloradomesa.edu/css/images/mm_arrow.png) no-repeat;
+}
+
+
+#menu1 .subNavArrow {left:5px;}
+#menu2 .subNavArrow {left:111px;}
+#menu3 .subNavArrow {left:233px;}
+#menu4 .subNavArrow {left:372px;}
+#menu5 .subNavArrow {left:487px;}
+#menu6 .subNavArrow {left:597px;}
+#menu7 .subNavArrow {left:520px;}
+#menu8 .subNavArrow {left:580px;}
+#menu8 .subNavArrow {left:635px;}
+
+/* dictates the width and float for all all teaser and navigation columns (for 3+ horizontal columns) */
+/* (this style is also present in bottom-nav_layout.css) */
+.column {
+	position:relative;
+	float:left;
+	height:auto; 
+	width:auto;
+	overflow:visible;
+	padding-bottom:5px; /* ie cuts off bottom of text in really short containers - add padding to prevent */
+	margin-right:20px; 	/* ie doesn't calculate padding the same as firefox, so use margin here instead */
+	border:0;	
+}
+.column_feature {
+	position:relative;
+	float:left;
+	height:360; 
+	color:#6D5E51;
+	overflow:visible;
+	margin-top:12px;
+	padding-left:10px;
+	padding-bottom:5px; /* ie cuts off bottom of text in really short containers - add padding to prevent */
+	margin-right:20px; 	/* ie doesn't calculate padding the same as firefox, so use margin here instead */
+	border-left:1px #8C7F70 solid;	
+}
+
+#container { margin: 0 auto; position: relative;}

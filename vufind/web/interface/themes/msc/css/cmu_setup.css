@@ -1,0 +1,307 @@
+<?php
+Header ("Content-type: text/css");
+$configArray = parse_ini_file('../../../../conf/config.ini', true);
+?>
+@charset "utf-8";
+/* CSS Document */
+body {
+margin:0;
+font-size:12px;
+font-family:Verdana, Geneva, sans-serif;
+line-height:1.3em;
+background-color:#6D5E51;
+}
+img {
+border:0;
+}
+a {
+color:#5d0022;
+}
+a:hover {
+color:#333;
+text-decoration:none;
+}
+/*table styles*/
+table {
+border-collapse:collapse;
+border-color:#000000;
+}
+th {
+border-collapse:collapse;
+border-color:#000000;
+background-color:#FFFFFF;
+}
+td {
+border-collapse:collapse;
+border-color:#000000;
+background-color:#FFFFFF;
+}
+/*header styles*/
+#banner_span {
+width:100%;
+background-color:#FFF;
+}
+#banner_bg {
+width:1050px;
+height:150px;
+margin:auto;
+background-image:url(http://www.coloradomesa.edu/css/images/header_mesa_bg.png);
+background-repeat:no-repeat;
+}
+#banner_left {
+float:left;
+margin:30px 0 0 25px;
+}
+#banner_right {
+float:right;
+margin:90px 25px 0 0;
+}
+#banner_right a {
+text-transform:uppercase;
+text-decoration:none;
+font-weight:bold;
+font-size:11px;
+color:#5d0022;
+}
+#nav1_span {
+width:100%;
+background-color:#8C7F70;
+}
+#nav1_bg {
+width:1050px;
+height:30px;
+margin:auto;
+background-image:url(http://www.coloradomesa.edu/css/images/nav_mesa_bg.png);
+background-repeat:no-repeat;
+}
+#nav1_left {
+float:left;
+}
+#nav1_right {
+float:right;
+padding-top:2px;
+padding-right:25px;
+}
+#maroon_span {
+width:100%;
+background-color:#5d0022;
+}
+#maroon_slideshow {
+width:1050px;
+margin:auto;
+}
+#nav2_span {
+width:100%;
+background-color:#8C7F70;
+clear:both;
+}
+#nav2_bg {
+width:1050px;
+margin:auto;
+}
+#nav2 {
+padding:7px;
+text-align:center;
+}
+#nav2 a {
+color:#FFF;
+text-decoration:none;
+font-weight:bold;
+text-transform:uppercase;
+}
+/*home and landing page content styles*/
+#content_bg {
+background-image:url(http://www.coloradomesa.edu/css/images/content_bg.png);
+background-repeat:repeat-y;
+width:1000px;
+padding:0 20px 20px 20px;
+margin:auto;
+}
+#content_span {
+padding:20px 20px;
+}
+#content_box_left {
+float:left;
+margin-right:40px;
+}
+#content_box_right {
+float:right;
+}
+/*sub page content styles*/
+#sub_content_span {
+background-color:#B5A899;
+width:100%;
+}
+#sub_content_bg {
+background-image:url(http://www.coloradomesa.edu/css/images/sub_content_bg.png);
+background-repeat:repeat-y;
+width:1000px;
+padding:0 20px 20px 20px;
+margin:auto;
+}
+#left_nav {
+float:left;
+padding:20px;
+width:180px;
+}
+#sub_banner_pic {
+}
+#main_content {
+float:right;
+width:740px;
+padding:20px;
+}
+/* two column styles */
+#twocol_1 {
+width:460px;
+float:left;
+}
+#twocol_2 {
+width:240px;
+float:right;
+}
+/* one up two down */
+#halfcol_1 {
+width:350px;
+float:left;
+}
+#halfcol_2 {
+width:350px;
+float:right;
+}
+/* one up three down */
+#thirdcol_1 {
+width:220px;
+float:left;
+}
+#thirdcol_2 {
+width:220px;
+margin-left:40px;
+float:left;
+}
+#thirdcol_3 {
+width:220px;
+float:right;
+}
+/*footer styles*/
+#footer_span {
+width: 100%;
+background-color:#6D5E51;
+}
+#footer_content {
+width:1000px;
+margin:auto;
+padding:15px 20px;
+color:#FFF;
+text-align:center;
+}
+#copyright {
+float:left;
+padding-top:5px;
+letter-spacing: 0.5em;
+font-weight: bold;
+}
+#footer_content a {
+color:#FFF;
+text-decoration:none;
+}
+#footer_content a:visited{
+color:#FFF;
+text-decoration:none;
+}
+#footer_content a:hover{
+color:#CCC;
+text-decoration:none;
+}
+.footer_address {
+font-size:10px;
+}
+#buttons {
+float: right;
+margin: 0px;
+width:360px;
+display: block;
+overflow: hidden;
+}
+#buttons a {
+height: 40px;
+width: 100px;
+display: block;
+text-indent: -100em;
+background-repeat: no-repeat;
+margin-left:20px;
+}
+#buttons a:link {
+background-position: left top;
+}
+#buttons a:visited {
+background-position: left top;
+}
+#buttons a:hover {
+background-position: left bottom;
+}
+#buttons a:active {
+background-position: left bottom;
+}
+#btnApplyNow a {
+background-image:url(http://www.coloradomesa.edu/css/images/apply.png);
+float:right;
+}
+#btnRequestInfo a {
+background-image:url(http://www.coloradomesa.edu/css/images/info.png);
+float:right;
+}
+#btnVisit a {
+float:right;
+}
+/*popup styles*/
+#popupcontent {
+width:760px;
+background-color:#FFF;
+padding:10px;
+}
+#element_span {
+width:100%;
+clear:both;
+}
+#content {
+padding:10px 15px;
+}
+/*A-Z Index Styles */
+#index_link {
+margin-top:5px;
+}
+#index_link a:link {
+text-decoration:none;
+padding:3px;
+color:#660033;
+}
+#index_link a:visited {
+text-decoration:none;
+padding:3px;
+color:#660033;
+}
+#index_link a:hover {
+text-decoration:none;
+padding:3px;
+color:#FFFFFF;
+background-color:#660033;
+}
+#index_link a:active {
+text-decoration:none;
+padding:3px;
+color:#FFFFFF;
+background-color:#000000;
+}
+#index_list a:link {
+color:#333333;
+text-decoration:underline;
+}
+#index_list a:visited {
+color:#333333;
+text-decoration:underline;
+}
+#index_list a:hover {
+color:#333333;
+text-decoration:none;
+} 

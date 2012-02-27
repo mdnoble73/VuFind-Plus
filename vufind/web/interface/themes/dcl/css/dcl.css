@@ -1,0 +1,26 @@
+@CHARSET "ISO-8859-1";
+
+/* Local overrides of css */
+#book_bag #bag_open_button {
+	background-image: url(/interface/themes/dcl/images/bookbag-expand.png);
+	background-repeat: no-repeat;
+	background-position: 7px 7px;
+}
+
+#book_bag_header {
+	background-image: url(/interface/themes/dcl/images/bookbag-expand.png );
+	background-repeat: no-repeat;
+}
+
+#library-footer {
+	background: #949494 url('/interface/themes/dcl/images/library-footer-top.png') repeat-x left top;
+}
+
+#similarTitlesSidegroup{
+	display: none;
+}
+
+#searchbar {
+	background-image: url(/interface/themes/dcl/images/searchbar-gradient.png);
+	background-repeat: repeat-x;
+}

@@ -1,0 +1,1010 @@
+/**
+ * @file Anythink libraries theme for Vufind.
+ */
+
+/**
+ * Blue: #2F6EB6;
+ * Bright blue: #1C5FE7;
+ * Light blue: #E2F5F5;
+ * Dark red: #AD1D39;
+ */
+
+
+/**
+ * Resets.
+ */
+@import 'normalize.css';
+@import 'formalize.css';
+
+h1, h2, h3, h4, h5, h6,
+p, ul, ol, dl, dt, dd, li {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 2em;
+  line-height: 1em;
+  margin-bottom: 0;
+}
+
+h2 {
+  
+}
+
+h3 {
+  font-size: 1.333em;
+  line-height: 1em;
+  margin-bottom: .5em;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus {
+  color: #1C5FE7; /* Bright blue */
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+label {
+  font-weight: bold;
+}
+
+/**
+ * Utility classes.
+ */
+
+ul.inline {
+  list-style: none;
+  padding: 0;
+}
+
+ul.left {
+  float: left;
+}
+
+ul.right {
+  float: right;
+}
+
+ul.inline li {
+  display: inline-block;
+}
+
+ul.right li {
+  margin: 0 0 0 .75em;
+}
+
+ul.left li {
+  margin: 0 .75em 0 0;
+}
+
+.form-item {
+  margin-bottom: .667em;
+}
+
+.small {
+  font-size: .917em;
+}
+
+.fine-print {
+  color: #666;
+}
+
+/**
+ * @todo Refactor as sprite.
+ */
+.rss, .email,
+.icon-book,
+.remove-facet,
+.active-facet,
+.loading,
+.rate-this {
+  display: inline-block;
+  padding-left: 1.667em;
+  background-repeat: no-repeat;
+  background-position: left middle;
+  line-height: 18px;
+}
+
+.loading {
+  background-image: url(../images/loading.gif);
+  line-height: 2em;
+}
+
+/* Clearfix for modern browsers */
+.cf:before,
+.cf:after {
+    content:"";
+    display:table;
+}
+
+.cf:after {
+    clear:both;
+}
+
+/* Clearfix for IE 6/7 (trigger hasLayout) */
+.cf {
+    zoom:1;
+}
+
+/* Clearfix for modern browsers */
+.listWidget:before,
+.listWidget:after {
+    content:"";
+    display:table;
+}
+
+.listWidget:after {
+    clear:both;
+}
+
+/* Clearfix for IE 6/7 (trigger hasLayout) */
+.listWidget {
+    zoom:1;
+}
+
+/**
+ * Layout.
+ */
+
+body {
+  background-color: #2F6EB6; /* Blue */
+  font-size: 62.5%;
+  font-family: "Trebuchet MS", Tahoma, Verdana, Arial, Helvetica, "Bitstream Vera Sans", sans-serif;
+}
+
+#wrapper {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+#container {
+  background-color: #FFF;
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/squiggle.png);
+  background-repeat: no-repeat;
+  background-position: -60px -160px;
+  color: #333;
+  font-size: 1.2em;
+  line-height: 1.333333em;
+  margin: 0 10px;
+}
+
+#inner {
+  padding: 0 20px 0 10px;
+}
+
+#header {
+  min-height: 130px;
+}
+
+#branding {
+  width: 33%;
+  float: left;
+}
+
+#branding h1 {
+  margin: 0;
+}
+
+#branding p {
+  display: none;
+}
+
+#branding a {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/anythink-logo.png);
+  background-repeat: no-repeat;
+  display: block;
+  height: 53px;
+  overflow: hidden;
+  text-indent: -99em;
+  width: 211px;
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+#utility-wrapper {
+  float: left;
+  width: 67%;
+}
+
+#utility-links .selected {
+  font-weight: bold;
+}
+
+#utility-links-secondary-wrapper {
+  width: 50%;
+  float: left;
+}
+
+body.Search-Home #utility-links-secondary-wrapper {
+  width: 100%;
+}
+
+#help-link span {
+  color: #FFF;
+  background-color: #1C5FE7;
+  -webkit-border-radius: .5em;
+  -moz-border-radius: .5em;
+  border-radius: .5em;
+  display: inline-block;
+  line-height: 1em;
+  width: 1em;
+  margin: 0 .333em;
+  text-align: center;
+}
+
+#search {
+  float: right;
+  clear: both;
+}
+
+#search-input-wrapper {
+  font-weight: bold;
+  display: inline-block;
+}
+
+#search-input {
+  margin-bottom: .667em;
+}
+
+#searchForm {
+  margin-bottom: 1.333em;
+}
+
+#type {
+  font-size: 1.333em;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+#type-label {
+  color: #666;
+  display: inline-block;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 3px;
+  line-height: 1.444em;
+  vertical-align: top;
+}
+
+#lookfor {
+  font-size: 1.5em;
+  display: block;
+  float: left;
+}
+
+#submit-wrapper {
+  text-align: center;
+}
+
+#lookfor-submit {
+  -webkit-border-top-left-radius: 0;
+  -webkit-border-bottom-left-radius: 0;
+  -moz-border-radius-topleft: 0;
+  -moz-border-radius-bottomleft: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 0;
+  display: block;
+  font-size: 1.5em;
+  float: left;
+  height: 1.8em;
+}
+
+#shards label {
+  display: inline-block;
+  margin-right: .667em;
+}
+
+#flag {
+  background-color: #2F6EB6;
+  color: #FFF;
+  text-shadow: #333 0 1px 0;
+  text-transform: lowercase;
+  margin: 0;
+  font-size: 1.333em;
+  line-height: 1.5em;
+  padding-left: 20px;
+}
+
+#mini-nav {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+  float: left;
+  width: 50%;
+}
+
+#mini-nav li {
+  display: inline-block;
+  margin: 0;
+  -webkit-border-top-right-radius: 4px;
+  -webkit-border-top-left-radius: 4px;
+  -moz-border-radius-topleft: 4px;
+  -moz-border-radius-topright: 4px;
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+  border: 1px solid #999;
+  border-bottom: 0;
+  font-size: 1.333em;
+  margin-right: 20px;
+}
+
+#mini-nav a {
+  display: inline-block;
+  width: 220px;
+  text-transform: lowercase;
+}
+
+#mini-nav span {
+  display: inline-block;
+  padding: .5em 1em;
+}
+
+#mini-nav #mini-nav-home {
+  margin-left: 30px;
+}
+
+#mini-nav-home a {
+  background-color: #feadad;
+  color: #000;
+  opacity: .5;
+}
+
+#mini-nav-catalog a {
+  background-color: #E2F5F5;
+  color: #333;
+  opacity: .7;
+}
+
+body.Search-Home #mini-nav {
+  display: none;
+}
+
+#main {
+  background-color: #FFF;
+  border-left: 1px solid #999;
+  margin-left: 12px;
+  padding: 20px;
+}
+
+#main-wrapper {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/flag-shadow.png);
+  background-repeat: no-repeat;
+}
+
+#main-content {
+  margin-left: 240px;
+}
+
+#sidebar-wrapper {
+  width: 220px;
+  float: left;
+}
+
+#sidebar {
+  padding: 10px;
+  background-color: #E2F5F5;
+}
+
+#sidebar h2,
+#sidebar h3 {
+  font-weight: normal;
+}
+
+#sidebar h2 {
+  color: #666;
+}
+
+#loginForm label {
+  display: block;
+}
+
+#column-outer-wrapper {
+  float: left;
+  width: 200px;
+}
+
+.with-column-outer #column-central {
+  margin-left: 220px;
+}
+
+#results-header {
+  float: left;
+  width: 100%;
+  background-image: url(../images/gradient-white-gray.png);
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  padding-bottom: 1.333em;
+  margin-bottom: 1.333em;
+}
+
+#results-header h1 {
+  font-size: 1.5em;
+  font-weight: normal;
+  margin-bottom: .867em;
+}
+
+#results-actions {
+  float: left;
+  margin-right: 1.333em;
+}
+
+#results-actions label {
+  color: #666;
+  text-transform: uppercase;
+  font-weight: normal;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+#utility-links-results {
+  float: left;
+}
+
+.email {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/email.png);
+}
+
+.rss {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/feed.png);
+}
+
+#results-facets {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+#results-facets li {
+  margin: 0 2.66em;
+}
+
+#results-facets a span {
+  display: block;
+}
+
+.description,
+.byline {
+  color: #666;
+  margin-bottom: .667em;
+}
+
+.record {
+  float: left;
+  width: 100%;
+  background-image: url("http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif");
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.record .cover {
+  float: left;
+  width: 140px;
+  text-align: center;
+}
+
+.details {
+  margin-left: 160px;
+  margin-right: 160px;
+}
+
+.record .cover .button {
+  font-size: 1.333em;
+}
+
+.record h2 {
+  margin-bottom: .5em;
+}
+
+.icon-book {
+  background-image: url(/images/silk/book.png);
+}
+
+.actions {
+  float: right;
+  width: 140px;
+}
+
+.summary {
+  padding: .667em;
+  background-color: #EEE;
+  margin-bottom: .667em;
+}
+
+.cover-image {
+  border: 1px solid #999;
+  border-bottom: 1px solid #666;
+  border-top: 1px solid #CCC;
+  margin-bottom: 10px;
+}
+
+/**
+ * @todo: Refactor as sprite.
+ */
+.rating {
+  width: 90px;
+  height: 17px;
+  display: inline-block;
+  overflow: hidden;
+  text-indent: -99em;
+}
+
+.rating-0 {
+  background-image: url(../images/star/stars.png);
+  background-repeat: repeat-x;
+}
+
+.rating-1 {
+  background-image: url(../images/oneStar.png);
+}
+
+.rating-2 {
+  background-image: url(../images/twoStar.png);
+}
+
+.rating-3 {
+  background-image: url(../images/threeStar.png);
+}
+
+.rating-4 {
+  background-image: url(../images/fourStar.png);
+}
+
+.rating-5 {
+  background-image: url(../images/fiveStar.png);
+}
+
+.rate-this {
+  background-image: url(../images/star/stars.png);
+}
+
+.rate {
+  min-height: 22px;
+}
+
+.highlight {
+  font-weight: bold;
+  background-color: #FFB;
+}
+
+.read-description {
+  display: block;
+  line-height: 2em;
+}
+
+.read-description:hover {
+  background-color: #FFB;
+}
+
+.facet-group {
+  margin-bottom: 20px;
+}
+
+.facet-group ul {
+  margin-bottom: 0;
+}
+
+.facet-toggle {
+  font-weight: bold;
+  margin-left: 1em;
+}
+
+.facet-group label {
+  display: inline-block;
+  margin-top: 3px;
+}
+
+.remove-facet {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/delete.png);
+}
+
+.active-facet {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/tick.png);
+}
+
+#active-filters-wrapper {
+  background-color: #FFB;
+  padding: .5em;
+  margin-bottom: 20px;
+}
+
+#active-filters {
+  list-style: none;
+  padding: 0;
+}
+
+.holdings-summary {
+  margin-bottom: .667em;
+}
+
+.callnumber a,
+.availableAtList,
+.locations {
+  font-weight: bold;
+  color: #AD1D39;
+}
+
+.pagination {
+  text-align: center;
+  font-size: 1.333em;
+}
+
+.pagination span,
+.pagination a {
+  display: inline-block;
+  margin: 0 .5em;
+}
+
+#footer {
+  color: #999;
+  padding: 2.66em;
+  background-color: #444;
+  min-height: 10em;
+}
+
+/**
+ * Temporary outer-column styles. @todo Refactor.
+ */
+
+#column-outer .block {
+  margin-bottom: 20px;
+  color: #685C53;
+}
+
+#block-anythink_common-social_links .item-list ul {
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+#block-anythink_common-social_links .item-list ul li {
+  float: left;
+  list-style: none outside none;
+  margin-right: 11px;
+}
+#block-anythink_common-social_links .item-list ul li.last {
+  margin-right: 0;
+}
+#block-anythink_common-social_links .item-list ul li a {
+  background-image: url("http://www.anythinklibraries.org/sites/all/themes/anythink/images/sprite-2.png");
+  background-repeat: no-repeat;
+  display: block;
+  height: 24px;
+  overflow: hidden;
+  text-indent: -999em;
+  width: 24px;
+}
+.icon-facebook {
+  background-position: 0 0;
+}
+.icon-twitter {
+  background-position: -25px 0;
+}
+.icon-goodreads {
+  background-position: -50px 0;
+}
+.icon-youtube {
+  background-position: -75px 0;
+}
+.icon-flickr {
+  background-position: -100px 0;
+}
+.icon-wikipedia {
+  background-position: -125px 0;
+}
+
+#block-menu-primary-links {
+  background-color: #F7F5F4;
+}
+#block-menu-primary-links .content ul {
+  padding: 4px;
+  list-style: none;
+}
+#block-menu-primary-links .content ul ul {
+  padding: 0 0 1em 2em;
+}
+#block-menu-primary-links .content ul ul ul {
+  padding: 0 0 0 1em;
+}
+#block-menu-primary-links {
+  background-image: url("../images/squiggle.png");
+  background-repeat: no-repeat;
+  background-position: -70px -290px;
+}
+#block-menu-primary-links .content li {
+  background-image: url("http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif");
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  color: #634031;
+  font-size: 1.167em;
+  padding: 0 0 4px;
+  text-transform: lowercase;
+  width: auto;
+}
+#block-menu-primary-links .content li.last {
+  background-image: none;
+}
+#block-menu-primary-links .content li li {
+  background-image: none;
+  font-size: 0.857em;
+  padding: 0;
+}
+#block-menu-primary-links .content li li li {
+  background-image: none;
+  font-size: 1em;
+  list-style-type: square;
+  padding: 0;
+}
+#block-menu-primary-links .content li li a {
+  display: inline;
+  padding: 0;
+}
+#block-menu-primary-links .content li a {
+  color: #634031;
+  display: block;
+  padding: 6px 6px 6px 13px;
+  text-decoration: none;
+}
+#block-menu-primary-links .content li a.active {
+  color: #B31E3B;
+}
+#block-menu-primary-links .content li a:hover {
+  color: #B8ABA2;
+}
+#block-anythink_common-login {
+  position: absolute;
+  right: 0;
+  top: 13px;
+}
+#block-menu-menu-primary-sub ul {
+  padding: 0;
+  list-style: none;
+}
+#block-menu-menu-primary-sub li a {
+  color: #634031;
+  display: block;
+  font-size: 1.167em;
+  padding: 10px 17px;
+  text-decoration: none;
+  text-transform: lowercase;
+}
+#block-menu-menu-primary-sub {
+  background-color: #FFF1E4;
+}
+#block-block-2, #block-block-7 {
+  background-color: #F3F1EF;
+}
+#block-block-2 h2.title, #block-block-7 h2.title {
+  text-transform: lowercase;
+}
+#block-block-2 .block-inner, #block-block-7 .block-inner {
+  padding: 13px;
+}
+
+.ui-tabs.cf {
+  float: left;
+  width: 100%;
+}
+
+/**
+ * Lightbox styling
+ */
+#lightbox {
+    cursor: pointer;
+    background-color: #000;
+    display: none;
+    height: 100%;
+    width: 100%;
+    top: 0px;
+    left: 0px;
+    position: absolute;
+    z-index: 400;
+    opacity: .8;
+    filter: alpha(opacity=80);
+    -moz-opacity: .8;
+}
+
+.lightboxLoadingContents{
+	margin: 20px;
+	text-align: center;
+}
+.lightboxLoadingMessage{
+	font-size: 15px;
+}
+
+div.popupBox {
+    background-color: #ffffff;
+    display: none;
+    border-color: #011753;
+    border-style: solid;
+    border-width: 1px 2px 2px 1px;
+    box-shadow: 3px 3px 5px #333399;
+    position: absolute;
+    z-index: 1000;
+    left: 33%;
+    /*width: 33%;*/
+    font-size: 95%;
+    /*max-height: 80%; */
+    /* overflow:auto; No need for overflow here?, the content has overflow on.*/
+    -webkit-transition-property: height;
+    -webkit-transition-duration:0.25s;
+    -webkit-transition-delay:0.25s;
+}
+
+div.popupBox .header {
+    cursor: move;
+    background-color: #011753;
+    padding: 3px 6px 3px 10px;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    height: 24px;
+}
+
+div.popupBox .header a {
+    float: right;
+    text-decoration: none;
+    color: white;
+}
+
+div.popupBox .content {
+    padding: 5px 20px 20px 20px;
+    height: 85%;
+    overflow: auto;
+	-webkit-transition-property: height;
+    -webkit-transition-duration:0.25s;
+    -webkit-transition-delay:0.25s;
+    border-bottom: none;
+}
+
+
+div.popupBox a.close {
+    font-size: 8pt;
+    font-weight: bold;
+    padding: 2px;
+    color: #000000;
+    float: right;
+    border: outset 1px;
+}
+
+div.popupBox ul {
+    list-style: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+div.popupBox ul li {
+    border-bottom: solid 1px #CCCCCC;
+    padding: 4px;
+}
+
+div.popupBox ul li.selected {
+    background-color: #FFFFEE;
+}
+
+div.popupBox ul li a {
+    color: #000000;
+    text-decoration: none;
+}
+
+.lightboxLoading{
+	padding: 10px;
+}
+
+/* Materials Request */
+#materials_request_details{
+	font-size: 11px;
+	min-width: 250px;
+}
+.request_detail_field_label{
+	display: inline-block;
+	zoom: 1;
+	*display: inline;
+	font-weight: bold;
+	min-width: 60px;
+}
+.request_detail_field_value{
+	display: inline-block;
+	zoom: 1;
+	*display: inline;
+}
+.request_detail_field_value_long{
+	display:block;
+}
+.request_detail_field{
+	padding-bottom: 3px;
+}
+
+/* table sorting */
+table.tablesorter {
+	background-color: #CDCDCD;
+	font-family: arial;
+	font-size: 8pt;
+	margin: 10px 0 15px;
+	text-align: left;
+	width: 100%;
+}
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	background-color: #E6EEEE;
+	border: 1px solid #FFFFFF;
+	font-size: 8pt;
+	padding: 4px;
+}
+table.tablesorter thead tr .header {
+	background-image: url("bg.gif");
+	background-position: right center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+table.tablesorter tbody td {
+	background-color: #FFFFFF;
+	color: #3D3D3D;
+	padding: 4px;
+	vertical-align: top;
+}
+table.tablesorter tbody tr.odd td {
+	background-color: #F0F0F6;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url("asc.gif");
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url("desc.gif");
+}
+table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
+	background-color: #8DBDD8;
+}
+
+/**
+ * Responsive
+ */
+@media screen and (min-width: 1110px) {
+ body.Search-Home #branding a {
+   /**
+    * @todo Refactor as sprite.
+    */
+   background-image: url(../images/anythink-logo-large.png);
+   height: 89px;
+   width: 355px;
+ }
+ #utility-wrapper {
+   width: 50%;
+ }
+ #branding {
+   width: 50%;
+ }
+}
+
+.ui-rater-starsOff {
+  text-align: left;
+  width: 90px;
+  display: inline-block;
+}

@@ -1,0 +1,11 @@
+<?php
+Header ("Content-type: text/css");
+$configArray = parse_ini_file('../../../../conf/config.ini', true);
+?>
+
+/*****************Homepage*******************/
+.searchHomeForm {
+    background-color:#007A5A;
+    border-top:#006648 2px solid;
+}
+
