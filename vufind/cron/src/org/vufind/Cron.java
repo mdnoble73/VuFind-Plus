@@ -1,0 +1,205 @@
+package org.vufind;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+import org.ini4j.Ini;
+import org.ini4j.InvalidFileFormatException;
+import org.ini4j.Profile.Section;
+
+public class Cron {
+
+	private static Logger logger = Logger.getLogger(Cron.class);
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		Date currentTime = new Date();
+		File log4jFile = new File("./log4j.properties");
+		if (log4jFile.exists()){
+			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
+		}else{
+			System.out.println("Could not find log4j configuration " + log4jFile.toString());
+		}
+		logger.info(currentTime.toString() + ": Starting Cron");
+		// Setup the MySQL driver
+		try {
+			// The newInstance() call is a work around for some
+			// broken Java implementations
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+			logger.info("Loaded driver for MySQL");
+		} catch (Exception ex) {
+			logger.info("Could not load driver for MySQL, exiting.");
+			return;
+		}
+
+		// Read the INI file to detemine what processes should be run.
+		// INI File is in the conf directory (current directory/cron/config.ini)
+		Ini ini = new Ini();
+		File configFile = new File("conf/config.ini");
+		try {
+			ini.load(new FileReader(configFile));
+		} catch (InvalidFileFormatException e) {
+			logger.error("Configuration file is not valid.  Please check the syntax of the file.");
+		} catch (FileNotFoundException e) {
+			logger.error("Configuration file could not be found.  You must supply a configuration file in conf called config.ini.");
+		} catch (IOException e) {
+			logger.error("Configuration file could not be read.");
+		}
+		
+		
+		//Check to see if a specific task has been specified to be run
+		ArrayList<ProcessToRun> processesToRun = new ArrayList<ProcessToRun>();
+		// INI file has a main section for processes to be run
+		// The processes are in the format:
+		// name = handler class
+		boolean updateConfig = false;
+		Section processes = ini.get("Processes");
+		if (args.length >= 1){
+			logger.info("Found " + args.length + " arguments ");
+			String processName = args[0];
+			String processHandler = ini.get("Processes", processName);
+			if (processHandler == null){
+				processHandler = processName;
+			}
+			args = Arrays.copyOfRange(args, 1, args.length);
+			ProcessToRun process = new ProcessToRun(processName, processHandler);
+			if (args.length > 0){
+				process.setArguments(args);
+			}
+			processesToRun.add(process);
+		}else{
+			//Load processes to run
+			processesToRun = loadProcessesToRun(ini, processes);
+			updateConfig = true;
+		}
+		
+		Section generalSettings = ini.get("General");
+		
+		
+		for (ProcessToRun processToRun: processesToRun){
+			Section processSettings;
+			if (processToRun.getArguments() != null){
+				//Add arguments into the section
+				for (String argument : processToRun.getArguments() ){
+					String[] argumentOptions = argument.split("=");
+					logger.info("Adding section setting " + argumentOptions[0] + " = " + argumentOptions[1]);
+					ini.put("runtimeArguments", argumentOptions[0], argumentOptions[1]);
+				}
+				processSettings = ini.get("runtimeArguments");
+			}else{
+				processSettings = ini.get(processToRun.getProcessName());
+			}
+		
+			currentTime = new Date();
+			System.out.println(currentTime.toString() + ": Running Process " + processToRun.getProcessName());
+			if (processToRun.getProcessClass() == null){
+				logger.error("Could not run process " + processToRun.getProcessName() + " because there is not a class for the process.");
+				continue;
+			}
+			// Load the class for the process using reflection
+			try {
+				Class processHandlerClass = Class.forName(processToRun.getProcessClass());
+				Object processHandlerClassObject;
+				try {
+					processHandlerClassObject = processHandlerClass.newInstance();
+					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
+					
+					processHandlerInstance.doCronProcess(processSettings, generalSettings, logger);
+					//Log how long the process took
+					Date endTime = new Date();
+					long elapsedMillis = endTime.getTime() - currentTime.getTime();
+					float elapsedMinutes = (elapsedMillis) / 60000;
+					logger.info("Finished process " + processToRun.getProcessName() + " in " + elapsedMinutes + " minutes (" + elapsedMillis + " milliseconds)");
+					// Update that the process was run.
+					currentTime = new Date();
+					if (updateConfig){
+						ini.put(processToRun.getProcessName(), "lastRun", currentTime.getTime());
+						ini.put(processToRun.getProcessName(), "lastRunFormatted", currentTime.toString());
+					}
+				} catch (InstantiationException e) {
+					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
+				} catch (IllegalAccessException e) {
+					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " generated an Illegal Access Exception.");
+				}
+
+			} catch (ClassNotFoundException e) {
+				logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be found.");
+			}
+		}
+			
+		if (updateConfig){
+			try {
+				ini.store(configFile);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				logger.error("Unable to update configuration file.");
+			}
+		}
+	}
+
+	private static ArrayList<ProcessToRun> loadProcessesToRun(Ini ini, Section processes) {
+		ArrayList<ProcessToRun> processesToRun = new ArrayList<ProcessToRun>();
+		Date currentTime = new Date();
+		for (String processName : processes.keySet()) {
+			
+			String processHandler = ini.get("Processes", processName);
+			// Each process has its own configuration section which can include:
+			// - time last run
+			// - interval to run the process
+			// - additional configuration information for the process
+			// Check to see when the process was last run
+			String lastRun = ini.get(processName, "lastRun");
+			boolean runProcess = false;
+			if (lastRun == null || lastRun.length() == 0) {
+				runProcess = true;
+			} else {
+				// Check the interval to see if the process should be run
+				try {
+					long lastRunTime = Long.parseLong(lastRun);
+					
+					String frequencyHours = ini.get(processName, "frequencyHours");
+					if (frequencyHours == null || frequencyHours.length() == 0){
+						runProcess = true;
+					}else if (frequencyHours.trim().compareTo("0") == 0) {
+						// There should not be a delay between cron runs
+						runProcess = true;
+					}else if (frequencyHours.trim().compareTo("-1") == 0) {
+						// Process has to be run manually
+						runProcess = false;
+						logger.info("Skipping Process " + processName + " because it must be run manually.");
+					} else {
+						int frequencyHoursInt = Integer.parseInt(frequencyHours);
+						if ((double) (currentTime.getTime() - lastRunTime) / (double) (1000 * 60 * 60) >= frequencyHoursInt) {
+							// The elapsed time is greater than the frequency to run
+							runProcess = true;
+						}else{
+							logger.info("Skipping Process " + processName + " because it has already run in the specified interval.");
+						}
+
+					}
+				} catch (NumberFormatException e) {
+					logger.warn("Warning: the lastRun setting for " + processName + " was invalid. " + e.toString());
+
+				}
+
+			}
+			if (runProcess) {
+				processesToRun.add(new ProcessToRun(processName, processHandler));
+				
+			}
+
+		}
+		return processesToRun;
+	}
+
+}
