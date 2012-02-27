@@ -5,7 +5,6 @@
 {/if}
 <script type="text/javascript" src="{$path}/js/readingHistory.js" ></script>
 <script type="text/javascript" src="{$path}/services/MyResearch/ajax.js" ></script>
-<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.pager.js" ></script>
 <div id="page-content" class="content">
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}

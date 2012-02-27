@@ -39,7 +39,7 @@ public class Reindex implements IProcessHandler {
 				long startTime = new Date().getTime();
 				String econtentRecordId = eContentRecordRS.getString("id");
 				try {
-					URL updateIndexURL = new URL(vufindUrl + "EContentRecord/" + econtentRecordId + "/Reindex");
+					URL updateIndexURL = new URL(vufindUrl + "EcontentRecord/" + econtentRecordId + "/Reindex");
 					Object updateIndexDataRaw = updateIndexURL.getContent();
 					if (updateIndexDataRaw instanceof InputStream) {
 						String updateIndexResponse = Util.convertStreamToString((InputStream) updateIndexDataRaw);

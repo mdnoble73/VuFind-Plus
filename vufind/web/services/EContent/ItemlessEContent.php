@@ -106,8 +106,8 @@ class ItemlessEContent extends Admin
 		$objPHPExcel = new PHPExcel();
 
 		// Set properties
-		$objPHPExcel->getProperties()->setCreator("DCL")
-			->setLastModifiedBy("DCL")
+		$objPHPExcel->getProperties()->setCreator("VuFind")
+			->setLastModifiedBy("VuFind")
 			->setTitle("Office 2007 XLSX Document")
 			->setSubject("Office 2007 XLSX Document")
 			->setDescription("Office 2007 XLSX, generated using PHP.")

@@ -17,13 +17,20 @@ import org.ini4j.Profile.Section;
 public class Cron {
 
 	private static Logger logger = Logger.getLogger(Cron.class);
+	private static String libraryName;
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		if (args.length == 0){
+			System.out.println("The name of the library to run cron for must be provided as the first parameter.");
+		}
+		libraryName = args[0];
+		
+		args = Arrays.copyOfRange(args, 1, args.length);
 		Date currentTime = new Date();
-		File log4jFile = new File("./log4j.properties");
+		File log4jFile = new File("../../conf/" + libraryName + "/log4j.cron.properties");
 		if (log4jFile.exists()){
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		}else{
@@ -45,13 +52,13 @@ public class Cron {
 		// Read the INI file to detemine what processes should be run.
 		// INI File is in the conf directory (current directory/cron/config.ini)
 		Ini ini = new Ini();
-		File configFile = new File("conf/config.ini");
+		File configFile = new File("../../conf/" + libraryName + "/config.cron.ini");
 		try {
 			ini.load(new FileReader(configFile));
 		} catch (InvalidFileFormatException e) {
 			logger.error("Configuration file is not valid.  Please check the syntax of the file.");
 		} catch (FileNotFoundException e) {
-			logger.error("Configuration file could not be found.  You must supply a configuration file in conf called config.ini.");
+			logger.error("Configuration file (" + configFile.getPath() + ") could not be found.  You must supply a configuration file in conf called config.ini.");
 		} catch (IOException e) {
 			logger.error("Configuration file could not be read.");
 		}

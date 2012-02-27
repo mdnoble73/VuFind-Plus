@@ -39,16 +39,17 @@
 			{/if}
 		</div>
 		<div class="myAccountLink">Reports
-			<div class="myAccountLink{if $action == "EContentSummary"} active{/if}" style="float: none;"><a href="{$path}/Admin/EContentSummary">Collection Summary</a></div>
+			<div class="myAccountLink{if $action == "EContentSummary"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentSummary">Collection Summary</a></div>
+			<div class="myAccountLink{if $action == "EContentCollection"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentCollection">Collection Details</a></div>
 			{if $user->hasRole('epubAdmin')}
-			<div class="myAccountLink{if $action == "EContentUsage"} active{/if}" style="float: none;"><a href="{$path}/Admin/EContentUsage">Usage Statistics</a></div>
+			<div class="myAccountLink{if $action == "EContentUsage"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentUsage">Usage Statistics</a></div>
 			{/if}
-			<div class="myAccountLink{if $action == "ItemlessEContent"} active{/if}" style="float: none;"><a href="{$path}/Admin/ItemlessEContent">Itemless eContent</a></div>
-			<div class="myAccountLink{if $action == "EContentPurchaseAlert"} active{/if}" style="float: none;"><a href="{$path}/Admin/EContentPurchaseAlert">Purchase Alert</a></div>
-			<div class="myAccountLink{if $action == "EContentTrialRecords"} active{/if}" style="float: none;"><a href="{$path}/Admin/EContentTrialRecords">Trial Records</a></div>
-			<div class="myAccountLink{if $action == "EContentWishList"} active{/if}" style="float: none;"><a href="{$path}/Admin/EContentWishList">Wish List</a></div>
-			<div class="myAccountLink{if $action == "ArchivedEContent"} active{/if}" style="float: none;"><a href="{$path}/Admin/ArchivedEContent">Archived eContent</a></div>
-			<div class="myAccountLink{if $action == "DeletedEContent"} active{/if}" style="float: none;"><a href="{$path}/Admin/DeletedEContent">Deleted eContent</a></div>
+			<div class="myAccountLink{if $action == "ItemlessEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/ItemlessEContent">Itemless eContent</a></div>
+			<div class="myAccountLink{if $action == "EContentPurchaseAlert"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentPurchaseAlert">Purchase Alert</a></div>
+			<div class="myAccountLink{if $action == "EContentTrialRecords"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentTrialRecords">Trial Records</a></div>
+			<div class="myAccountLink{if $action == "EContentWishList"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentWishList">Wish List</a></div>
+			<div class="myAccountLink{if $action == "ArchivedEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/ArchivedEContent">Archived eContent</a></div>
+			<div class="myAccountLink{if $action == "DeletedEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/DeletedEContent">Deleted eContent</a></div>
 		</div>
 	</div>
 </div>
