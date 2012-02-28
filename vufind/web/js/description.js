@@ -8,7 +8,7 @@ function resultDescription(shortid,id, type){
 	if (type == 'VuFind'){
 		var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
 	}else{
-		var loadDescription = path + "/EContentRecord/" + id + "/AJAX/?method=getDescription";
+		var loadDescription = path + "/EcontentRecord/" + id + "/AJAX/?method=getDescription";
 	}
 	$(divId).tooltip({
 		  track: false,

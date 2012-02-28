@@ -63,7 +63,7 @@ $(function() {
 			{foreach from=$deletedRecords item=record}
 				<tr>
 				<td>{$record->id}</td>
-				<td><a href='{$path}/EContentRecord/{$record->id}/Home'>{$record->title}</a></td>
+				<td><a href='{$path}/EcontentRecord/{$record->id}/Home'>{$record->title}</a></td>
 				<td>{$record->author}</td>
 				<td>{$record->isbn}</td>
 				<td>{$record->ilsId}</td>

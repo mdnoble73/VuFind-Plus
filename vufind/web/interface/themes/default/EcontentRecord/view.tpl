@@ -149,7 +149,7 @@ function redrawSaveStatus() {literal}{{/literal}
       {/if}
       <div class="sidebarValue">
         <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddTag" class="tool add"
-           onclick="getLightbox('EContentRecord', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add Tag"}</a>
+           onclick="getLightbox('EcontentRecord', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add Tag"}</a>
       </div>
     </div>
     {/if}
@@ -310,7 +310,7 @@ function redrawSaveStatus() {literal}{{/literal}
         <script type="text/javascript">
         $(
          function() {literal} { {/literal}
-             $('#myrating').rater({literal}{ {/literal} module:'EContentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+             $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
          {literal} } {/literal}
 	    );
         </script>
@@ -489,9 +489,9 @@ function redrawSaveStatus() {literal}{{/literal}
             <span class ="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
             <div class='addReviewTitle'>Add your Review</div>
             {assign var=id value=$id}
-            {include file="EContentRecord/submit-comments.tpl"}
+            {include file="EcontentRecord/submit-comments.tpl"}
           </div>
-          {include file="EContentRecord/view-comments.tpl"}
+          {include file="EcontentRecord/view-comments.tpl"}
         </div>
       {/if}
       

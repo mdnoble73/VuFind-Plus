@@ -5,7 +5,7 @@
 <div id="popupboxContent" class="content">
   {if $message}<div class="error">You must be logged in first.</div>{/if}
   <div id='loginFormWrapper'>
-    <form method="post" action="{$url}/EcontentRecord/{$id}/Rate" name="loginForm" onSubmit="ratingLogin('{$id}', '{$rating}', 'EContentRecord'); return false;">
+    <form method="post" action="{$url}/EcontentRecord/{$id}/Rate" name="loginForm" onSubmit="ratingLogin('{$id}', '{$rating}', 'EcontentRecord'); return false;">
       <div>      
         <input type="hidden" name="rating" id="rating" value="{$rating}" />
         <div id='haveCardLabel' class='loginFormRow'>I have a Douglas County Library Card</div>

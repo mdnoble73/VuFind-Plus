@@ -97,25 +97,25 @@
     <div data-role="controlgroup">
     {* Place hold link *}
 	  <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
 	  </div>
 	  
 	  {* Checkout link *}
 	  <div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/checkout.png" alt="Checkout"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/checkout.png" alt="Checkout"/></a>
 	  </div>
 	  
 	  {* Access online link *}
 	  <div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/access_online.png" alt="Access Online"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/access_online.png" alt="Access Online"/></a>
 	  </div>
 	  
 	  {* Add to Wish List *}
 	  <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
 	  </div>
-	  	<a href="{$path}/EContentRecord/{$id}/Save" data-role="button" rel="external">{translate text="Add to favorites"}</a>
-    	<a href="{$path}/EContentRecord/{$id}/AddTag" data-role="button" rel="external">{translate text="Add Tag"}</a>
+	  	<a href="{$path}/EcontentRecord/{$id}/Save" data-role="button" rel="external">{translate text="Add to favorites"}</a>
+    	<a href="{$path}/EcontentRecord/{$id}/AddTag" data-role="button" rel="external">{translate text="Add Tag"}</a>
     </div>
     
     {if $subTemplate}

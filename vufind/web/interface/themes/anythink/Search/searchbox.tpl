@@ -5,9 +5,9 @@
   <a href="{$url}" class="small">{translate text="Start a new Basic Search"}</a>
   <br>{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
 {else}
-  <form method="get" action="{$path}/Search/Results" id="searchForm" class="search" onsubmit='startSearch();'>
-    <label id="type-label" for="type">{translate text='Search'}</label>
-    <select name="type" id="type">
+  <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
+    <label id="type-label" for="basicType">{translate text='Search'}</label>
+    <select name="basicType" id="basicType">
     {foreach from=$basicSearchTypes item=searchDesc key=searchVal}
       <option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
     {/foreach}

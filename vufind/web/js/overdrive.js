@@ -1,7 +1,7 @@
 function checkoutOverDriveItem(overdriveId, formatId){
 	if (loggedIn){
 		showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
-		var url = path + "/EContentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId + "&formatId=" + formatId;
+		var url = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId + "&formatId=" + formatId;
 		$.ajax({
 			url: url,
 			success: function(data){
@@ -28,7 +28,7 @@ function checkoutOverDriveItem(overdriveId, formatId){
 function placeOverDriveHold(overDriveId, formatId){
 	if (loggedIn){
 		showProcessingIndicator("Placing a hold on the title for you in OverDrive.  This may take a minute.");
-		var url = path + "/EContentRecord/AJAX?method=PlaceOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
+		var url = path + "/EcontentRecord/AJAX?method=PlaceOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
 		$.ajax({
 			url: url,
 			success: function(data){
@@ -55,7 +55,7 @@ function placeOverDriveHold(overDriveId, formatId){
 function addOverDriveRecordToWishList(recordId){
 	if (loggedIn){
 		showProcessingIndicator("Adding the title to your Wish List in OverDrive.  This may take a minute.");
-		var url = path + "/EContentRecord/AJAX?method=AddOverDriveRecordToWishList&recordId=" + recordId;
+		var url = path + "/EcontentRecord/AJAX?method=AddOverDriveRecordToWishList&recordId=" + recordId;
 		$.ajax({
 			url: url,
 			success: function(data){
@@ -82,7 +82,7 @@ function addOverDriveRecordToWishList(recordId){
 function removeOverDriveRecordFromWishList(overDriveId){
 	if (loggedIn){
 		showProcessingIndicator("Removing the title from your Wish List in OverDrive.  This may take a minute.");
-		var url = path + "/EContentRecord/AJAX?method=RemoveOverDriveRecordFromWishList&overDriveId=" + overDriveId;
+		var url = path + "/EcontentRecord/AJAX?method=RemoveOverDriveRecordFromWishList&overDriveId=" + overDriveId;
 		$.ajax({
 			url: url,
 			success: function(data){
@@ -109,7 +109,7 @@ function removeOverDriveRecordFromWishList(overDriveId){
 function cancelOverDriveHold(overDriveId, formatId){
 	if (loggedIn){
 		showProcessingIndicator("Cancelling your hold in OverDrive.  This may take a minute.");
-		var url = path + "/EContentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
+		var url = path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
 		$.ajax({
 			url: url,
 			success: function(data){

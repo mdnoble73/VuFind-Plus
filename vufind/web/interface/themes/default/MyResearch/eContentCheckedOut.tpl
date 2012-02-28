@@ -96,7 +96,7 @@
       				    <script type="text/javascript">
       				      $(
       				         function() {literal} { {/literal}
-      				             $('.rate{$record.recordId|escape}').rater({literal}{ {/literal}module: 'EContentRecord', recordId: '{$record.recordId}',  rating:0.0, postHref: '{$url}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+      				             $('.rate{$record.recordId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: '{$record.recordId}',  rating:0.0, postHref: '{$url}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
       				         {literal} } {/literal}
       				      );
       				    </script>

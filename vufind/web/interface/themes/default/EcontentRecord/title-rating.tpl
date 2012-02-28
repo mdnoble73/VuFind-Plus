@@ -8,7 +8,7 @@
     </div>
     {if $showFavorites == 1} 
     <div id="saveLink{$recordId|escape}">
-      <a href="{$path}/EcontentRecord/{$recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$recordId|escape}', '', '{translate text='Add to favorites'}', 'EContentRecord', 'Save', '{$recordId|escape}'); return false;">{translate text='Add to favorites'}</a>
+      <a href="{$path}/EcontentRecord/{$recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$recordId|escape}', '', '{translate text='Add to favorites'}', 'EcontentRecord', 'Save', '{$recordId|escape}'); return false;">{translate text='Add to favorites'}</a>
       {if $user}
       <script type="text/javascript">
         getSaveStatuses('{$recordId|escape:"javascript"}');
@@ -21,7 +21,7 @@
     $(
        function() {literal} { {/literal}
            addRatingId('{$recordId|escape}', 'eContent');
-           $('#econtentRate{$shortId|escape}{$starPostFixId}').rater({literal}{ {/literal}module: 'EContentRecord', recordId: {$shortId},  rating:0.0, postHref: '{$path}/EcontentRecord/{$recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+           $('#econtentRate{$shortId|escape}{$starPostFixId}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: {$shortId},  rating:0.0, postHref: '{$path}/EcontentRecord/{$recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
        {literal} } {/literal}
     );
   </script>    

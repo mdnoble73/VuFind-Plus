@@ -1290,6 +1290,92 @@ class UserAPI extends Action {
 	}
 	
 	/**
+	 * Downloads an eContent file to the user's hard drive for offline usage.  
+	 * 
+	 * Parameters:
+	 * <ul>
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>password - The pin number for the user. </li>
+	 * <li>recordId - The id of the record within the eContent database.</li>
+	 * <li>itemId   - The id of the item attached to the record that should be downloaded.</li>
+	 * </ul>
+	 * 
+	 * Returns:
+	 * false if the username or password were incorrect or the item cannot be downloaded
+	 * or the contents of the file that can be streamed directly to the client. 
+	 * 
+	 * @author Mark Noble <mnoble@turningleaftech.com>
+	 */
+	function downloadEContentFile(){
+		global $configArray;
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		$recordId = $_REQUEST['recordId'];
+		$itemId = $_REQUEST['itemId'];
+		global $user;
+		$user = UserAccount::validateAccount($username, $password);
+		if ($user && !PEAR::isError($user)){
+			require_once('Drivers/EContentDriver.php');
+			$driver = new EContentDriver();
+			$eContentRecord = new EContentRecord();
+			$eContentRecord->id = $recordId;
+			if (!$eContentRecord->find(true)){
+				return array('success'=>false, 'message'=>'Could not find the record in the database.');
+			}
+			if ($eContentRecord->accessType != 'free'){
+				//Check to see if the user has access to the title.
+				if (!$driver->isRecordCheckedOutToUser($recordId)){
+					return array('success'=>false, 'message'=>'The record is not checked out to you.');
+				}
+			}
+			
+			$eContentItem = new EContentItem();
+			$eContentItem->recordId = $recordId;
+			$eContentItem->id = $itemId;
+			if (!$eContentItem->find(true)){
+				return array('success'=>false, 'message'=>'Could not find the item in the database.');
+			}
+			$driver->recordEContentAction($recordId, 'Download', $eContentRecord->accessType);
+			$libraryPath = $configArray['EBooks']['library'];
+			if (isset($eContentItem->filename) && strlen($eContentItem->filename) > 0){
+				$bookFile = "{$libraryPath}/{$eContentItem->filename}";
+			}else{
+				$bookFile = "{$libraryPath}/{$eContentItem->folder}";
+			}
+			if (strcasecmp($eContentItem->item_type, 'epub') == 0){
+				require_once('sys/eReader/ebook.php');
+				$ebook = new ebook($bookFile);
+
+				//Return the contents of the epub file
+				header("Content-Type: application/epub+zip;\n");
+				header('Content-Length: ' . filesize($bookFile));
+				header('Content-Description: ' . $ebook->getTitle());
+				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
+				echo readfile($bookFile);
+				exit();
+			}else if (strcasecmp($eContentItem->item_type, 'pdf') == 0){
+				header("Content-Type: application/pdf;\n");
+				header('Content-Length: ' . filesize($bookFile));
+				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
+				echo readfile($bookFile);
+				exit();
+			}else if (strcasecmp($eContentItem->item_type, 'kindle') == 0){
+				header('Content-Length: ' . filesize($bookFile));
+				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
+				echo readfile($bookFile);
+				exit();
+			}else if (strcasecmp($eContentItem->item_type, 'plucker') == 0){
+				header('Content-Length: ' . filesize($bookFile));
+				header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
+				echo readfile($bookFile);
+				exit();
+			}
+		}else{
+			return array('success'=>false, 'message'=>'Login unsuccessful');
+		}
+	}
+	
+	/**
 	 * Place a hold within OverDrive.  
 	 * You should specify either the recordId of the title within VuFind or the overdrive id.  
 	 * The format is also required however when the user checks out the title they can override the format to checkout the version they want.  

@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$path}/services/EContentRecord/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
 <script type="text/javascript" src="{$path}/js/overdrive.js"></script>
 {if count($holdings) > 0}
 	{foreach from=$holdings item=eContentItem}

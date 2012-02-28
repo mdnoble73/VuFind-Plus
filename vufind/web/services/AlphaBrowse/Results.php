@@ -52,8 +52,10 @@ class Results extends Home {
 
 		// Process incoming parameters:
 		$source = isset($_GET['source']) ? $_GET['source'] : false;
-		if ($source == false & isset($_REQUEST['basicType'])){
-			$source = $_REQUEST['basicType'];
+		$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
+		
+		if ($source == false && $type){
+			$source = $type;
 			if (strpos($source, 'browse') === 0){
 				$source = substr($source, strlen('browse'));
 				$source = strtolower( substr($source,0,1) ) . substr($source,1);

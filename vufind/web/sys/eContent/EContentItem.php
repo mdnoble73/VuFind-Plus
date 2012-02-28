@@ -356,7 +356,11 @@ class EContentItem extends DB_DataObject {
 	function getSize(){
 		global $configArray;
 		if ($this->filename){
-			return filesize($configArray['EBooks']['library'] . '/'. $this->filename);
+			if (file_exists($configArray['EBooks']['library'] . '/'. $this->filename)){
+				return filesize($configArray['EBooks']['library'] . '/'. $this->filename);
+			}else{
+				return 0;
+			}
 		}else{
 			//Get the size of all files in the folder
 			$mainFolder = $configArray['EBooks']['library'] . '/'. $this->folder . '/';

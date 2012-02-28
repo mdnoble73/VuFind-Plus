@@ -3,33 +3,33 @@
 <div class="imageColumn"> 
     {if $user->disableCoverArt != 1}  
     <div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
-    <a href="{$url}/EContentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
+    <a href="{$url}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
     <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
     {/if}
     {* Place hold link *}
     <div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-      <a href="{$url}/EContentRecord/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+      <a href="{$url}/EcontentRecord/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
     </div>
     
     {* Checkout link *}
     <div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-      <a href="{$path}/EContentRecord/{$summId|escape:"url"}/Checkout"><img src="{$path}/interface/themes/anythink/images/checkout.png" alt="Checkout"/></a>
+      <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout"><img src="{$path}/interface/themes/anythink/images/checkout.png" alt="Checkout"/></a>
     </div>
     
     {* Access online link *}
     <div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
-      <a href="{$path}/EContentRecord/{$summId|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/anythink/images/access_online.png" alt="Access Online"/></a>
+      <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/anythink/images/access_online.png" alt="Access Online"/></a>
     </div>
     {* Add to Wish List *}
     <div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
-      <a href="{$path}/EContentRecord/{$summId|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/anythink/images/add_to_wishlist.png" alt="Access Online"/></a>
+      <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/anythink/images/add_to_wishlist.png" alt="Access Online"/></a>
     </div>
 </div>
 
 <div class="resultDetails">
   <div class="resultItemLine1">
-  <a href="{$url}/EContentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+  <a href="{$url}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
   {if $summTitleStatement}
     <div class="searchResultSectionInfo">
       {$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -87,15 +87,15 @@
         </script>
       {/if}
       {if $showFavorites == 1} 
-        <a href="{$url}/EContentRecord/{$summId|escape:"url"}/Save" onclick="getLightbox('EContentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$url}/EcontentRecord/{$summId|escape:"url"}/Save" onclick="getLightbox('EcontentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
-    {include file="EContentRecord/title-review.tpl" id=$summId}
+    {include file="EcontentRecord/title-review.tpl" id=$summId}
   </div>
   <script type="text/javascript">
     $(
        function() {literal} { {/literal}
-           $('.rateEContent{$summId|escape}').rater({literal}{ {/literal}recordId: {$summId},  rating:0.0, postHref: '{$url}/EContentRecord/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+           $('.rateEContent{$summId|escape}').rater({literal}{ {/literal}recordId: {$summId},  rating:0.0, postHref: '{$url}/EcontentRecord/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
        {literal} } {/literal}
     );
   </script>

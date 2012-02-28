@@ -7,19 +7,19 @@ function saveEContentRecord(id, formElem, strings) {
 }
 
 function SendEContentEmail(id, to, from, message, strings) {
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendEmail&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to) + "&" + "message=" + encodeURIComponent(message);
 	sendAJAXEmail(url, params, strings);
 }
 
 function SendEContentSMS(id, to, provider, strings) {
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
 	sendAJAXSMS(url, params, strings);
 }
 
 function GetEContentHoldingsInfo(id, type) {
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetHoldingsInfo";
 	var fullUrl = url + "?" + params;
 	$.ajax( {
@@ -68,7 +68,7 @@ function GetEContentHoldingsInfo(id, type) {
 function SaveEContentTag(id, formElem, strings) {
 	var tags = formElem.elements['tag'].value;
 
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SaveTag&tag=" + encodeURIComponent(tags);
 
 	var callback = {
@@ -99,7 +99,7 @@ function SaveEContentComment(id, strings) {
 	$('#userecontentreview' + id).slideUp();
 	var comment = $('#econtentcomment' + id).val();
 
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
 	var fullUrl = url + "?" + params;
 	$.ajax({
@@ -131,7 +131,7 @@ function SaveEContentComment(id, strings) {
 }
 
 function deleteEContentComment(id, commentId, strings) {
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX?method=DeleteComment&commentId=" + encodeURIComponent(commentId);
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX?method=DeleteComment&commentId=" + encodeURIComponent(commentId);
 	$.ajax( {
 		url : url,
 		success : function(data) {
@@ -143,7 +143,7 @@ function deleteEContentComment(id, commentId, strings) {
 function LoadEContentComments(id, strings) {
 	var output = '';
 
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetComments";
 	var output = '';
 
@@ -166,7 +166,7 @@ function LoadEContentComments(id, strings) {
 
 function deleteItem(id, itemId){
 	if (confirm("Are you sure you want to delete this item?")){
-		var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+		var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 		var params = "method=DeleteItem&itemId=" + encodeURIComponent(itemId);
 		$.getJSON(url+ "?" + params, function(data) {
 			var result = data.result;
@@ -182,13 +182,13 @@ function deleteItem(id, itemId){
 	return false;
 }
 function addItem(id){
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=AddItem";
 	ajaxLightbox(url+ "?" + params);
 	return false;
 }
 function editItem(id, itemId){
-	var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=EditItem&itemId=" + encodeURIComponent(itemId);
 	ajaxLightbox(url+ "?" + params);
 	return false;

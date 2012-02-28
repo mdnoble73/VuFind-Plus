@@ -117,7 +117,7 @@
       var type = 'VuFind';
     };
     if (type != 'VuFind'){
-      var loadDescription = path + "/EContentRecord/" + id + "/AJAX/?method=getDescription";
+      var loadDescription = path + "/EcontentRecord/" + id + "/AJAX/?method=getDescription";
     }
     else {
       var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
@@ -167,10 +167,10 @@
             // Load the rating for the title
             if (eContentRatings[id].user != null && eContentRatings[id].user > 0){
               $('.rateEContent' + id).each(function(index){
-                $(this).rater({'rating':eContentRatings[id].user, 'doBindings':false, module:'EContentRecord', recordId: id });
+                $(this).rater({'rating':eContentRatings[id].user, 'doBindings':false, module:'EcontentRecord', recordId: id });
               });
             }else{
-              $('.rateEContent' + id).each(function(index){$(this).rater({'rating':eContentRatings[id].average, 'doBindings':false, module:'EContentRecord', recordId: id});});
+              $('.rateEContent' + id).each(function(index){$(this).rater({'rating':eContentRatings[id].average, 'doBindings':false, module:'EcontentRecord', recordId: id});});
             }
             $('.rateEContent' + id + ' .ui-rater-rating-' + id).each(function(index){$(this).text( eContentRatings[id].average );});
             $('.rateEContent' + id + ' .ui-rater-rateCount-' + id).each(function(index){$(this).text( eContentRatings[id].count );});
