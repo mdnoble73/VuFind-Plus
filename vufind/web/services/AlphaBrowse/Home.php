@@ -54,7 +54,8 @@ class Home extends Action{
 			$types = array(
                 'topic' => 'By Topic',
                 'author' => 'By Author',
-                'title' => 'By Title'
+                'title' => 'By Title',
+                'dewey' => 'By Call Number'
                 );
 		}
 		$interface->assign('alphaBrowseTypes', $types);

@@ -5,9 +5,9 @@
     <a href="{$path}" class="small">{translate text="Start a new Basic Search"}</a>
     <br>{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
   {else}
-    <form method="GET" action="{$path}/Search/Results" name="searchForm" id="searchForm" class="search">
+    <form method="GET" action="{$path}/Union/Search" name="searchForm" id="searchForm" class="search">
       <input type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}">
-      <select name="type">
+      <select name="basicType" id="basicType">
       {foreach from=$basicSearchTypes item=searchDesc key=searchVal}
         <option value="{$searchVal}"{if $searchIndex == $searchVal} selected{/if}>{translate text=$searchDesc}</option>
       {/foreach}

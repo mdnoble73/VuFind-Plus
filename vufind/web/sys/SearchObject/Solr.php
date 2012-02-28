@@ -231,7 +231,7 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($_REQUEST['tag'] != '') {
 				$this->searchTerms[] = array(
                     'index'   => 'tag',
-                    'lookfor' => $_REQUEST['tag']
+                    'lookfor' => strip_tags($_REQUEST['tag'])
 				);
 			}
 		} else {
@@ -256,7 +256,7 @@ class SearchObject_Solr extends SearchObject_Base
 				// Prepare the search as a normal author search
 				$this->searchTerms[] = array(
                     'index'   => 'Author',
-                    'lookfor' => $_REQUEST['author']
+                    'lookfor' => strip_tags($_REQUEST['author'])
 				);
 			}
 
@@ -297,7 +297,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		// If a query override has been specified, log it here
 		if (isset($_REQUEST['q'])) {
-			$this->query = $_REQUEST['q'];
+			$this->query = strip_tags($_REQUEST['q']);
 		}
 
 		return true;
@@ -1681,4 +1681,17 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		return $this->indexEngine->getRecords($ids);
 	}
+	
+	/**
+	 * Retrieves a document specified by the item barcode.
+	 *
+	 * @param   string  $barcode    A barcode of an item in the document to retrieve from Solr
+	 * @access  public
+	 * @throws  object              PEAR Error
+	 * @return  string              The requested resource
+	 */
+	function getRecordByBarcode($barcode){
+		return $this->indexEngine->getRecords($ids);
+	}
+	
 }

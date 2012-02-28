@@ -396,7 +396,7 @@ abstract class SearchObject_Base
 		// to great lengths for compatibility.
 		if (is_array($_REQUEST['lookfor'])) {
 			if (count($_REQUEST['lookfor']) == 1) {
-				$_REQUEST['lookfor'] = $_REQUEST['lookfor'][0];
+				$_REQUEST['lookfor'] = strip_tags($_REQUEST['lookfor'][0]);
 			} else {
 				PEAR::RaiseError(new PEAR_Error("Unsupported search URL."));
 				die();
@@ -409,7 +409,9 @@ abstract class SearchObject_Base
 
 			// Flatten type arrays for backward compatibility:
 			if (is_array($type)) {
-				$type = $type[0];
+				$type = strip_tags($type[0]);
+			}else{
+				$type = strip_tags($type);
 			}
 		} else {
 			$type = $this->defaultIndex;
@@ -448,7 +450,7 @@ abstract class SearchObject_Base
 				if ($_REQUEST['lookfor'.$groupCount][$i] != '') {
 					// Use default fields if not set
 					if (isset($_REQUEST['type'.$groupCount][$i]) && $_REQUEST['type'.$groupCount][$i] != '') {
-						$type = $_REQUEST['type'.$groupCount][$i];
+						$type = strip_tags($_REQUEST['type'.$groupCount][$i]);
 					} else {
 						$type = $this->defaultIndex;
 					}
@@ -456,8 +458,8 @@ abstract class SearchObject_Base
 					// Add term to this group
 					$group[] = array(
                         'field'   => $type,
-                        'lookfor' => $_REQUEST['lookfor'.$groupCount][$i],
-                        'bool'    => $_REQUEST['bool'.$groupCount][0]
+                        'lookfor' => strip_tags($_REQUEST['lookfor'.$groupCount][$i]),
+                        'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
 					);
 				}
 			}
@@ -467,7 +469,7 @@ abstract class SearchObject_Base
 				// Add the completed group to the list
 				$this->searchTerms[] = array(
                     'group' => $group,
-                    'join'  => $_REQUEST['join']
+                    'join'  => strip_tags($_REQUEST['join'])
 				);
 			}
 
@@ -529,7 +531,7 @@ abstract class SearchObject_Base
 	protected function initPage()
 	{
 		if (isset($_REQUEST['page'])) {
-			$this->page = $_REQUEST['page'];
+			$this->page = strip_tags($_REQUEST['page']);
 		}
 		$this->page = intval($this->page);
 		if ($this->page < 1) {
@@ -588,10 +590,10 @@ abstract class SearchObject_Base
 		if (isset($_REQUEST['filter'])) {
 			if (is_array($_REQUEST['filter'])) {
 				foreach($_REQUEST['filter'] as $filter) {
-					$this->addFilter($filter);
+					$this->addFilter(strip_tags($filter));
 				}
 			} else {
-				$this->addFilter($_REQUEST['filter']);
+				$this->addFilter(strip_tags($_REQUEST['filter']));
 			}
 		}
 	}
@@ -643,7 +645,7 @@ abstract class SearchObject_Base
 		}
 
 		if (isset($_REQUEST['searchSource'])){
-			$params[] = "searchSource=" . urlencode($_REQUEST['searchSource']);
+			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
 		}
 		
 		// Join all parameters with an escaped ampersand,
@@ -1236,7 +1238,7 @@ abstract class SearchObject_Base
 		if (isset($_REQUEST['saved']) || $searchId != null) {
 			// Yes, retrieve it
 			$search = new SearchEntry();
-			$search->id = isset($_REQUEST['saved']) ? $_REQUEST['saved'] : $searchId;
+			$search->id = strip_tags(isset($_REQUEST['saved']) ? $_REQUEST['saved'] : $searchId);
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search

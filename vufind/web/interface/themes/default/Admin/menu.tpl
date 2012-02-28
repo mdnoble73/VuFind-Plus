@@ -30,7 +30,7 @@
 	<div id="epubMenu">
 		<div class="myAccountLink">Content Loading
 			<div class="myAccountLink{if $action == "ListEPub"} active{/if}" style="float: none;"><a href="{$path}/Search/Results?type=Keyword&shard[]=eContent&lookfor=">Search Existing eContent</a></div>
-			<div class="myAccountLink{if $action == "NewEPub"} active{/if}" style="float: none;"><a href="{$path}/EContentRecord/Edit">New eContent</a></div>
+			<div class="myAccountLink{if $action == "NewEPub"} active{/if}" style="float: none;"><a href="{$path}/EcontentRecord/Edit">New eContent</a></div>
 			<div class="myAccountLink{if $action == "ImportMarc"} active{/if}" style="float: none;"><a href="{$path}/Admin/ImportEContentMarc">Import Marc Records</a></div>
 			<div class="myAccountLink{if $action == "MarcImportLog"} active{/if}" style="float: none;"><a href="{$path}/Admin/MarcImportLog">Marc Record Import Log</a></div>
 			{if $user->hasRole('epubAdmin')}

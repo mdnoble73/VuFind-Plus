@@ -5,10 +5,10 @@
     <a href="{$url}" class="small">{translate text="Start a new Basic Search"}</a>
     <br />{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
   {else}
-    <form method="get" action="{$path}/Search/Results" id="searchForm" class="search" onsubmit='startSearch();'>
+    <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
       <div id="searchbar">
       <img src='{$path}/interface/themes/dcl/images/searchbar-left.png' alt='' />
-      <select name="type" id="type">
+      <select name="basicType" id="type">
       {foreach from=$basicSearchTypes item=searchDesc key=searchVal}
         <option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
       {/foreach}

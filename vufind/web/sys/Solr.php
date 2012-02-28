@@ -327,6 +327,21 @@ class Solr implements IndexEngine {
 
 		return $result['response']['docs'][0];
 	}
+	
+	function getRecordByBarcode($barcode){
+		if ($this->debug) {
+			echo "<pre>Get Record by Barcode: $barcode</pre>\n";
+		}
+
+		// Query String Parameters
+		$options = array('q' => "barcode:\"$barcode\"");
+		$result = $this->_select('GET', $options);
+		if (PEAR::isError($result)) {
+			PEAR::raiseError($result);
+		}
+
+		return $result['response']['docs'][0];
+	}
 
 	/**
 	 * Retrieves a document specified by the ID.

@@ -44,8 +44,8 @@ class Search extends Action {
 			//Reset to a local search source so the external search isn't remembered
 			$_SESSION['searchSource'] = 'local';
 			//Need to redirect to the appropriate search location with the new value for look for
-			$type = isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword';
-			$lookfor = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : 'Keyword';
+			$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
+			$lookfor = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : '';
 			$filters = isset($_REQUEST['filter']) ? $_REQUEST['filter'] : null;
 			$link = $searchSources->getExternalLink($searchSource, $type, $lookfor);
 			header('Location: ' . $link);
@@ -59,7 +59,7 @@ class Search extends Action {
 			$results = new Results();
 			return $results->launch();
 		}else{
-			$type = $_REQUEST['basicType'];
+			$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
 			if (strpos($type , 'browse') === 0){
 				require_once ('services/AlphaBrowse/Results.php');
 				$module = 'AlphaBrowse';
