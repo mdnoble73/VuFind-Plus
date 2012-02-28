@@ -5,7 +5,7 @@
         <div class="page">
       <h1>OAI Server</h1>
       <p>
-        This OAI server is OAI 2.0 compliant.<br>
+        This OAI server is OAI 2.0 compliant.<br />
         The OAI Server URL is: {$url}/OAI/Server
       </p>
 

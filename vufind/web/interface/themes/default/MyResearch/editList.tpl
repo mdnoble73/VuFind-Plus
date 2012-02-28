@@ -39,7 +39,7 @@
                     <label for="public0">{translate text="Private"}</label>
                   </td>
                 </tr>
-                <tr><td></td><td><br></td></tr>
+                <tr><td></td><td><br /></td></tr>
               <tr><td></td><td><input type="submit" name="submit" value="{translate text='Save'}"></td></tr>
             </table>
           {/if}

@@ -1,0 +1,113 @@
+@CHARSET "ISO-8859-1";
+
+#library-footer {
+	width: 100%;
+	color: #676769;
+}
+
+#library-footer a, #library-footer a:visited{
+	color: #676769;
+}
+
+#library-footer-main{
+  background-color: #1E398B;
+  background-image: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    color-stop(0.35, rgb(30,57,139)),
+    color-stop(0.68, rgb(30,57,139))
+  );
+  background-image: -moz-linear-gradient(
+      center bottom,
+      rgb(30,57,139) 35%,
+      rgb(30,57,139) 68%
+  );
+  padding: 20px 30px; 
+}
+#library-footer-links{
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-top: 1px solid #CCCCCC;
+}
+#library-footer-stay-connected{
+  width: 300px;
+  margin-right: 20px;
+}
+.stay-connected-link{
+  width: 138px;
+  padding-left: 10px;
+  display: inline-block;
+  
+	zoom: 1;
+	*display: inline;
+	vertical-align: middle;
+	font-size:11px;
+}
+.stay-connected-link-text{
+  position: relative;
+  top: -8px;
+}
+#library-footer-services{
+  width: 570px;
+}
+.services-row{
+  margin-bottom: 5px;
+}
+.footer-services-item{
+  width: 125px;
+  padding-left: 15px;
+  display: inline-block;
+  zoom: 1;
+	*display: inline;
+}
+.footer-services-item-important{
+  font-weight: bold;
+}
+#library-footer .footer-services-item-important a, #library-footer .footer-services-item-important a:visited{
+  color: #3B59B4;
+}
+.footer-column{
+	display: inline-block;
+	vertical-align: top;
+	text-align: left;
+	border: none;
+	
+	zoom: 1;
+	*display: inline;
+  background-color: white;
+  padding: 5px 10px 10px 10px;
+  height: 99px;
+  /*background: url('<?php echo $configArray['Site']['path']?>/interface/themes/<?php echo $configArray['Site']['theme']?>/images/footer-insert-background.png') top left repeat-x; */
+}
+.footer-menu-title{
+	font-size: 16px;
+	font-weight: bold;
+	margin: 0px 0px 5px; 
+	color: #3b59b4;
+	border-bottom: 2px solid #ADBDD4;
+}
+.footer-menu-item{
+	font-size: 11px;
+	font-weight: normal; 
+}
+.library-footer-link a{
+  color: #3F3967;
+  font-size: 11px;
+  text-decoration: none;
+}
+#footerSystemLists{
+	margin-bottom: 20px;
+	width: 915px;
+	
+}
+.footer-list-link{
+	display: inline-block;
+	text-align: left;
+	font-size:8pt;
+	
+	zoom: 1;
+	*display: inline;
+	width: 180px;
+	height:20px;
+}

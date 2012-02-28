@@ -108,7 +108,7 @@
           <a href="{$url}/Record/{$similar.id|escape:"url"}">{$similar.title|escape}</a>
           </span>
           <span style="font-size: 80%">
-          {if $similar.author}<br>{translate text='By'}: {$similar.author|escape}{/if}
+          {if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
           {if $similar.publishDate} {translate text='Published'}: ({$similar.publishDate.0|escape}){/if}
           </span>
         </li>

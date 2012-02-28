@@ -1,0 +1,220 @@
+#header{
+  position: relative; 
+}
+
+#account_div{
+	position:absolute;
+	top:50px;
+	right:0px;
+	width:200px;
+	height:20px;
+	border-style:solid;
+	border-width:thin;
+	border-color:#2f4790;
+	padding-top:5px;
+	padding-left:5px;
+	padding-bottom:5px;
+	padding-right:10px;
+	font-size:12pt;
+	font-weight:bold;
+	text-align:left;
+}
+
+#login_div{
+	position:absolute;
+	top:50px;
+	right:0px;
+	width:200px;
+	height:20px;
+	border-style:solid;
+	border-width:thin;
+	border-color:#2f4790;
+	padding:5px;
+	background-color:#ffffff;
+	font-size:12pt;
+	font-weight:bold;
+	text-align:center;
+}
+
+#logout_div{
+	position:absolute;
+	top:58px;
+	right:10px;
+	width:100px;
+	height:12px;
+	padding:2px;
+	font-size:9pt;
+	color:#88a9d1;
+	font-weight:bold;
+	text-align:right;
+}
+
+.logout_class{
+	color:#88a9d1;
+}
+
+#top-login-button, #top-logout-button{
+  position: absolute;
+  right: 0px;
+  top: 25px;
+}
+#myAccountHeaderLink{
+  position: absolute;
+  right: 110px;
+  top: 32px;
+  color: #2c489d;
+  font-size: 13px;
+  font-weight: bold;
+  
+}
+#myAccountHeaderLink a{
+  color: #2c489d;
+}
+#loggedInName{
+  position: absolute;
+  right: 10px;
+  top: 32px;
+  color: #999999;
+}
+#loggedInName a{
+  color: #999999;
+}
+#loggedInName a:hover{
+  color: #0B1D56;
+}
+#menu-header{
+	font-size: 11px;
+	/*width: 580px;*/
+	width: 670px;
+	color: #121741;
+	text-align: center;
+	font-weight: bold;
+	height: 12px;
+	z-index:745;
+	position:absolute;
+	top:59px;
+	left:73px;
+}
+#menu-header-links{
+	float: left;
+	display: table-row;
+}
+#menu-header .top-menu-item{
+    padding-top: 3px;
+	padding-bottom: 2px;
+	padding-left:3px;
+	padding-right:3px;
+    border: 1px solid #2f4790;
+    height: 12px;
+	width:180px;
+    display: table-cell;
+}
+#menu-header .top-menu-item a{
+	color: #121741;
+	margin-bottom: 0;
+}
+#menu-header .top-menu-item a:hover{
+	text-decoration: underline;
+}
+#header-gradient{
+  width: 100%;
+  height: 21px;
+  background: url(/interface/themes/wcpl/images/header-gradient.png) repeat-x top left;
+}
+#searchheader {
+	position:relative;
+	height:50px;
+	width:100%;
+  background-color:white;
+  text-align:left;
+  display: inline-block;
+  zoom: 1;
+	*display: inline;
+}
+
+#survey{
+
+ display: inline-block;
+ position:absolute;
+ border-style:solid;
+ border-width:thin;
+ border-color:#666666;
+ background-color:#C00;
+ color:#ffffff;
+ font-weight:bold;
+ right:35px;
+ bottom:5px;	
+ padding-top:5px;
+ padding-left:5px;
+ padding-bottom:5px;
+  padding-right:20px;
+ 	text-align:center;
+}
+
+#surv_arrow{
+ display: inline-block;	
+  position:absolute;
+   right:40px;
+ 	bottom:10px;
+  
+}
+
+.searchform {
+    margin-top:5px;
+    margin-left:185px;
+    width: 590px;
+    position: relative;
+}
+#searchbar{
+	background-image: url(/interface/themes/wcpl/images/searchbar-gradient.png);
+	background-repeat: repeat-x;
+	height:42px;
+}
+#searchbar #type, #searchbar #lookfor{
+	vertical-align: top;
+	padding-left: 5px;
+	margin-top: 11px;
+}
+#searchbar #lookfor{
+	width: 250px;
+}
+#searchbar-go{
+  position: absolute;
+  right:0px;
+  top: 0px;
+}
+#searchTools{
+	display: inline-block;
+	width: 300x;
+	vertical-align: top;
+	margin-top: 7px;
+}
+#searchTools a{
+	font-size: 12px;
+	margin-left: 15px;
+	color: #2f4790;
+}
+#mylang{
+  1px solid #cccccc;
+  font-size: 12px;
+  color: #2f4790;
+  text-align: right;
+  width:115px;
+}
+#searchHelpIcon{
+	position: relative;
+	top: 2px;
+}
+.searchTools-link{
+  /*display: inline-block;
+  zoom: 1;
+	*display: inline;*/
+	position:absolute;
+	right:-85px;
+	top:1px;
+  	width: 170px;
+  	font-size: 10px;
+  	text-align: left;
+
+}
+

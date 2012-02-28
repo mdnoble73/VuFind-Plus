@@ -13,7 +13,7 @@
 	width: 525px;
 	display: inline-block;
 	vertical-align: top;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }
@@ -25,7 +25,7 @@
 #recordTitleRight{
 	display: inline-block;
 	vertical-align: top;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 	position: absolute;
@@ -39,7 +39,7 @@
 #previousRecordLink, #nextRecordLink{
 	display: inline-block;
 	vertical-align: top;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 	margin: 5px 4px 0px 4px;
@@ -71,7 +71,7 @@
   text-align: center;
   display: inline-block;
   position: relative;
-  <?php //Hacks for IE 6 & 7 ?>
+  
   zoom: 1;
   *display: inline;
   max-width: 188px;
@@ -98,7 +98,7 @@
 	width: 210px;
 	vertical-align: top;
 	text-align: center;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }
@@ -106,7 +106,7 @@
 	display: inline-block;
 	width: 500px;
 	vertical-align: top;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }

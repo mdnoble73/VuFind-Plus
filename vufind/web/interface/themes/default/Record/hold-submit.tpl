@@ -16,7 +16,7 @@
       
       {if in_array("comments", $extraHoldFields)}
         <div>
-        <strong>{translate text="Comments"}:</strong><br>
+        <strong>{translate text="Comments"}:</strong><br />
         <textarea rows="3" cols="20" name="gatheredDetails[comment]">{$gatheredDetails.comment|escape}</textarea>
         </div>
       {/if}
@@ -38,7 +38,7 @@
           {else}
             {assign var='selected' value=$defaultPickUpLocation}
           {/if}
-          <strong>{translate text="pick_up_location"}:</strong><br>
+          <strong>{translate text="pick_up_location"}:</strong><br />
           <select name="gatheredDetails[pickUpLocation]">
           {foreach from=$pickup item=lib name=loop}
             <option value="{$lib.locationID|escape}" {if $selected == $lib.locationID}selected="selected"{/if}>{$lib.locationDisplay|escape}</option>

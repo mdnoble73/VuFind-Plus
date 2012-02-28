@@ -1,10 +1,3 @@
-<?php
-Header ("Content-type: text/css");
-//Add caching information with one day expiration
-$expires = 60*60*24*14; 
-header("Cache-Control: maxage=".$expires);
-header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
-?>
 /*!
 * jquery.fixedHeaderTable. The jQuery fixedHeaderTable plugin
 *

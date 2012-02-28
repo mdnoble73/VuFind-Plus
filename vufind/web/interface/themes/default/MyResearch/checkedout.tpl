@@ -18,19 +18,19 @@
                   <img src="{$path}/bookcover.php?isn={$resource.isbn|@formatISBN}&amp;size=small" class="alignleft">
 
                   <div class="resultitem">
-                    <a href="{$url}/Record/{$resource.id|escape:"url"}" class="title">{$resource.title|escape}</a><br>
+                    <a href="{$url}/Record/{$resource.id|escape:"url"}" class="title">{$resource.title|escape}</a><br />
                     {if $resource.author}
-                    {translate text='by'}: <a href="{$url}/Author/Home?author={$resource.author|escape:"url"}">{$resource.author|escape}</a><br>
+                    {translate text='by'}: <a href="{$url}/Author/Home?author={$resource.author|escape:"url"}">{$resource.author|escape}</a><br />
                     {/if}
                     {if $resource.tags}
                     {translate text='Your Tags'}:
                     {foreach from=$resource.tags item=tag name=tagLoop}
                       <a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape}</a>{if !$smarty.foreach.tagLoop.last},{/if}
                     {/foreach}
-                    <br>
+                    <br />
                     {/if}
                     {if $resource.notes}
-                    {translate text='Notes'}: {$resource.notes|escape}<br>
+                    {translate text='Notes'}: {$resource.notes|escape}<br />
                     {/if}
 
                     {if is_array($resource.format)}
@@ -41,7 +41,7 @@
                       <span class="iconlabel {$resource.format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$resource.format}</span>
                     {/if}
 
-                    <br>
+                    <br />
                     
                     <b>{translate text='Due'}: {$resource.duedate|escape}</b>
 

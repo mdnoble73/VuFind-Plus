@@ -3,7 +3,7 @@
     <a href="{$path}/Authority/Advanced?edit={$searchId}" class="small">{translate text="Edit this Advanced Search"}</a> |
     <a href="{$path}/Authority/Advanced" class="small">{translate text="Start a new Advanced Search"}</a> |
     <a href="{$path}/Authority/Home" class="small">{translate text="Start a new Basic Search"}</a>
-    <br>{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
+    <br />{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
   {else}
     <form method="GET" action="{$path}/Authority/Search" name="searchForm" id="searchForm" class="search">
       <div class="hiddenLabel"><label for="lookfor">{translate text="Search For"}:</label></div>

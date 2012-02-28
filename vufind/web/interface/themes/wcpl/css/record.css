@@ -1,0 +1,249 @@
+@CHARSET "ISO-8859-1";
+.full-result-content{
+	padding-left: 5px;
+}
+#record-header{
+	border-bottom: 1px solid #5D8EAC;
+	padding-bottom: 5px;
+	margin-bottom: 5px; 
+	position: relative;
+	min-height: 3em;
+}
+#recordTitleAuthorGroup{
+	width: 525px;
+	display: inline-block;
+	vertical-align: top;
+	zoom: 1;
+	*display: inline;
+}
+#recordTitle{
+	color: #111741;
+	font-size: 14px;
+	font-weight: bold;
+}
+#recordTitleRight{
+	display: inline-block;
+	vertical-align: top;
+	
+	zoom: 1;
+	*display: inline;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	text-align: right;
+}
+#returnToSearch{
+	
+}
+#previousRecordLink, #nextRecordLink{
+	display: inline-block;
+	vertical-align: top;
+	<?php //Hacks for IE 6 & 7 ?>
+	zoom: 1;
+	*display: inline;
+	margin: 5px 4px 0px 4px;
+}
+
+.resultitem {
+    margin-left:100px;
+    
+}
+.resulthead {
+    margin-bottom:.5em;
+    border-bottom: 1px #eee solid;
+}
+.searchResultSectionInfo{
+  color:  #003399;
+  font-size: 110%;
+}
+
+.recordcover { 
+  padding:3px;background-color:white;border:1px solid #cfcfcf;
+  max-width: 180px;
+}
+.recordcoverWrapper{
+  padding:3px;background-color:#eee;border:1px solid #cfcfcf;position:relative;
+  margin: auto;
+  text-align: center;
+  display: inline-block;
+  position: relative;
+  <?php //Hacks for IE 6 & 7 ?>
+  zoom: 1;
+  *display: inline;
+  max-width: 188px;
+}
+
+.holdingsSummaryRecord{
+	display: inline-block;
+	vertical-align: top;
+	border: 0px solid #000000;
+	width: 335px;
+	<?php //Hacks for IE 6 & 7 ?>
+	zoom: 1;
+	*display: inline;
+}
+
+#actionTools{
+	display: inline-block;
+	border: 0px solid #000000;
+	zoom: 1;
+	*display: inline;
+	width: 120px;
+	text-align: center;
+}
+
+.placeHoldButton{
+  margin: 0px auto;
+  text-align: center;
+}
+
+#record-details-header{
+	border-bottom: 1px solid #5D8EAC;
+}
+#image-column{
+	display: inline-block;
+	width: 210px;
+	vertical-align: top;
+	text-align: center;
+	<?php //Hacks for IE 6 & 7 ?>
+	zoom: 1;
+	*display: inline;
+}
+#record-details-column{
+	display: inline-block;
+	width: 460px;
+	vertical-align: top;
+	<?php //Hacks for IE 6 & 7 ?>
+	zoom: 1;
+	*display: inline;
+}
+.resultInformationLabel{
+	color: #111741;
+	font-size: 11px;
+	font-weight: bold;
+	padding-bottom: 5px;
+}
+.resultInformation{
+  display: inline-block;
+	vertical-align: top;
+	border: 0px solid #000000;
+	width: 330px;
+	padding-left: 8px;
+	<?php //Hacks for IE 6 & 7 ?>
+	zoom: 1;
+	font-size: 11px;    
+}
+.recordToolsLabel{
+	color: #256292;
+	font-size: 12px;
+	font-weight: bold;
+	padding-bottom: 5px;
+}
+.recordTools{
+  display: inline-block;
+	vertical-align: top;
+	padding-top:10px;
+	border: 0px solid #000000;
+	width: 480px;
+	<?php //Hacks for IE 6 & 7 ?>
+	zoom: 1;
+	*display: inline;     
+}
+#recordcover{
+	margin-bottom: 15px;
+}
+#myrating{
+	margin: 15px 0px;
+}
+/* Reviews */
+.reviewSource{
+	font-weight: bold;
+}
+.reviewProvider{
+	font-style: italic;
+	font-size: 11px;
+}
+.reviewCopyright{
+	font-size: 11px;
+}
+.reviewMoreLink{
+	font-weight: bold;
+	color: #003399;
+	cursor: pointer;
+}
+.reviewContent > p:last-of-type,
+.reviewTeaser > p:last-of-type{
+	margin-bottom: 2px;
+}
+
+#titleDetailsSidegroup h4{
+	background-color: #ffffff;
+}
+
+#tagsSidegroup h4{
+
+}
+#similarTitlesSidegroup{
+	display: none;
+}
+#similarTitlesSidegroup h4{
+
+}
+#similarAuthorsSidegroup{
+	display: none;
+}
+#similarAuthorsSidegroup h4{
+
+}
+#otherEditionsSidegroup h4{
+
+}
+#readertab{
+	position: relative;
+}
+.userreview{
+	position:absolute; 
+	border-radius: 5px; 
+	box-shadow: 5px 5px 7px #888; 
+	padding: 5px; 
+	display: none; 
+	border: 2px solid darkgrey; 
+	background-color: white; 
+	width: 400px; 
+	right: 7px;
+	top: 7px;
+	z-index: 10;
+}
+.userreviewlink{
+  cursor: pointer;
+}
+.deleteComment, .closeReview, #userreviewlink{
+	cursor: pointer;
+}
+.comment{
+	margin-bottom: 5px;
+	width: 100%;
+}
+.commentHeader{
+	width: 75%;
+}
+.commentDate{
+	float: right;
+}
+
+#seriesList{
+	border: 1px solid #A9A9A9;
+	border-top: 4px solid #00125E;
+	margin-bottom: 15px;
+}
+.seriesLink{
+  float: right;
+}
+
+.epubLink{
+  cursor: pointer;
+}
+.ltfl_reviews{
+	margin-bottom: 10px;
+	margin-left: 10px;
+}

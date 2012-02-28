@@ -323,7 +323,7 @@ div.monelem_controls_scrubber_trail {
 	margin-left: 30px;
 	vertical-align: top;
 	width: 200px;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }

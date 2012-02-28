@@ -168,14 +168,14 @@ color: #4A769A;
     font-family:  Verdana, Helvetica,arial,sans-serif;
     text-transform: uppercase;
     font-weight: bold;
-    <?php //Hacks for IE 6 & 7 ?>
+    
 	zoom: 1;
 	*display: inline;
           
 }
 #bag_add_to_my_list_button {
 	display: inline-block;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }

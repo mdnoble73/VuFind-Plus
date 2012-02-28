@@ -14,7 +14,7 @@
 	text-align: left;
 	width: 135px;
 	border: none;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }
@@ -40,7 +40,7 @@
 	vertical-align: top;
 	text-align: left;
 	margin-right: 30px;
-	<?php //Hacks for IE 6 & 7 ?>
+	
 	zoom: 1;
 	*display: inline;
 }

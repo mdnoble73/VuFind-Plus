@@ -3,7 +3,7 @@
   <a href="{$path}/Search/Advanced?edit={$searchId}">{translate text="Edit this Advanced Search"}</a> |
   <a href="{$path}/Search/Advanced">{translate text="Start a new Advanced Search"}</a> |
   <a href="{$url}" class="small">{translate text="Start a new Basic Search"}</a>
-  <br>{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
+  <br />{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
 {else}
   <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
     <label id="type-label" for="basicType">{translate text='Search'}</label>

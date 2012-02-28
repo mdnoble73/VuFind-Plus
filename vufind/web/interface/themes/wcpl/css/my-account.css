@@ -1,0 +1,227 @@
+
+.myAccountLink{
+	margin: 0 10px 0px 20px;
+	padding: 0.1em 0 0.1em 10px;
+	text-align: left;
+	text-indent: -10px;
+}
+
+#loginFormWrapper{
+	width: 42%;
+	border-right: 1px solid #5D8EAC;
+	padding: 10px 30px;
+	display: inline-block;
+	vertical-align: top;
+	zoom: 1;
+	*display: inline;
+}
+
+#holdFormWrapper{
+	width: 55%;
+	padding: 10px 30px;
+	display: inline-block;
+	vertical-align: top;
+	zoom: 1;
+	*display: inline;
+}
+
+#needACardWrapper{
+	width: 42%;
+	padding: 10px 30px;
+	display: inline-block;
+	vertical-align: top;
+	zoom: 1;
+	*display: inline;
+}
+#popupbox #needACardWrapper, #popupbox #loginFormWrapper{
+  width: 40%;
+}
+
+#haveCardLabel, #needCardLabel, #emailPinLabel{
+	text-align: center;
+	font-weight: bold;
+	color: #256292;
+}
+
+#loginSubmitButton{
+	text-align: center;
+}
+.loginLabel{
+	width: 235px;
+	display: inline-block;
+	text-align: left;
+	zoom: 1;
+	*display: inline;
+}
+.loginField{
+	display: inline-block;
+	zoom: 1;
+	*display: inline;
+	width: 155px;
+}
+
+.loginFormRow{
+	padding-top: 5px;
+	text-align:center;
+}
+#loginSubmitButtonRow{
+	text-align: right;
+}
+#loginButton{
+	margin: 3px 30px;
+}
+.holdSection{
+	border: 1px solid #949494;
+
+    margin: 0 0 20px;
+    padding-bottom: 10px;
+}
+.holdSectionBody{
+	padding: 10px;
+}
+.holdSectionTitle{
+
+    color: white;
+    font-weight: bold;
+    margin-top: 0;
+    padding: 0.5em 0;
+    text-align: center;
+    background-color: #011751;
+}
+
+.myAccountLink.active{
+	color: #011751;
+	font-weight: bold;
+}
+.libraryHours{
+	text-align: center;
+	font-style: italic;
+}
+.myAccountTitle{
+	color: #011751;
+	font-weight: bold;
+	font-size: 14px;
+	width: 100%;
+}
+.selectAllControls{
+  line-height: 22px; /* Increase line height so sorting controls fit on this line */
+
+}
+
+.overdueLabel{
+  font-weight: bold;
+  color: red;
+}
+
+.dueSoonLabel{
+  font-weight: bold;
+  color: #E58E29;
+}
+
+#resultsTableHeaderRow{
+  font-weight: bold;
+}
+.resultsCell{
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  vertical-align: top;
+}
+.resultsId{
+  width: 25px;
+}
+.resultsFilename{
+  width: 400px;
+}
+.resultsRecords{
+  width:200px;
+}
+#resultsTable{
+  margin-bottom: 20px;
+}
+.myAccountTitleDetails{
+  vertical-align: top;
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+}
+.myAccountCell{
+  vertical-align: top;
+}
+
+.myAccountTable{
+  border-radius: 6px;
+  border-collapse: collapse;
+  margin-top: 4px; 
+  margin-bottom: 4px;
+  width: 98%;
+}
+.myAccountTable td, .myAccountTable th{
+  padding: 2px 3px;
+}
+.myAccountTable th{
+  padding-right: 20px;
+  border-bottom: 1px solid #949494;
+}
+.myAccountTable thead{
+  border-bottom: 2px solid #949494;
+  text-align: center;
+  vertical-align: bottom;
+}
+.unsortedHeader{
+  background-image: url(/images/unsorted_icon.gif); 
+  cursor: pointer; 
+  font-weight: bold; 
+  background-repeat: no-repeat; 
+  background-position: center right; 
+  padding-right: 20px; 
+}
+.sortDescHeader{
+  background-image: url(/images/sort_desc_icon.gif);
+  background-color: #3399F;
+}
+.sortAscHeader{
+  background-image: url(/images/sort_asc_icon.gif);
+  background-color: #3399F;
+}
+
+#notice{
+  border: 1px solid #949494;;
+  border-radius: 5px;
+  margin: 5px 15px;
+  padding: 4px;
+  font-size: 11px;
+}
+.noticeTitle{
+  font-size: 13px;
+  font-weight: bold;
+}
+#availableListSelection{
+	float: right;
+}
+
+.getacardLabel, .emailPinLabel{
+	display: inline-block;
+	text-align: left;
+	zoom: 1;
+	*display: inline;
+	width: 150px;
+}
+
+.getacardInput, .emailPinInput{
+	display: inline-block;
+	text-align: left;
+	zoom: 1;
+	*display: inline;
+}
+
+.getacardRow{
+	margin-top: 3px;
+}
+#getacardSubmit{
+	position: relative;
+	left: 25px;
+}
+.selfRegTerms{
+	font-style: italic;
+}

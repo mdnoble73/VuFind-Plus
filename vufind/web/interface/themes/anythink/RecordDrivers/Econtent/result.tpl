@@ -54,7 +54,7 @@
   
   <div class="resultItemLine3">
     {if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
-    {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br>{/if}
+    {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
   </div>
 
   {if is_array($summFormats)}

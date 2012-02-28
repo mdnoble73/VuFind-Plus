@@ -1,0 +1,211 @@
+@CHARSET "ISO-8859-1";
+
+#catalogHome{
+	position:relative;
+	padding: 25px;
+}
+
+#homePageLists{
+  width: 100%;
+  display: inline-block;
+  
+  zoom: 1;
+  *display: inline;
+}
+
+#homeLoginForm{
+	display: inline-block;
+	margin-left: 30px;
+	vertical-align: top;
+	width: 200px;
+	
+	zoom: 1;
+	*display: inline;
+}
+#catalogHome #titleDetails{
+	display: inline-block;
+		margin-left: 150px;
+	zoom: 1;
+	*display: inline;
+	width: 525px;
+	min-height: 200px;
+}
+
+#brian_home{
+	position:absolute;
+	display: inline-block;
+	top:-20px;
+	left:20px;	
+}
+/* original inline  */
+/*#brian_home{
+	display: inline-block;
+	margin-left:15px;	
+}*/
+
+#selectedTitleImageCol{
+	width: 225px;
+	display: inline-block;
+  zoom: 1;
+  *display: inline;
+  text-align: center;
+  vertical-align: top;
+}
+#selectedTitleImage img{
+	max-width: 220px;
+}
+#selectedTitleDetailsCol{
+	width: 350px;
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  vertical-align: top;
+}
+#selectedTitleTitle{
+	color: #2f4790;
+	font-size: 14px;
+	font-weight: bold;
+}
+#selectedTitleAuthor{
+  color: #2f4790;
+  font-size: 12px;
+}
+hr.selctedTitleSeparator{
+	color: #2f4790;
+	background-color: #2f4790;
+	height: 2px;
+}
+#loginTitleHome{
+	font-weight: bold;
+	font-size: 14px;
+	color: #256292;
+	padding-bottom: 5px;
+}
+#loginButtonHome{
+	display: block;
+	margin: 8px 5px;
+}
+.loginLabelHome{
+	padding-top: 5px;
+}
+.loginFormInput{
+	width: 180px;
+}
+#catalogHome .sidegroup{
+	
+	display: inline-block;
+	margin-left: 25px;
+	vertical-align: top;
+	
+	zoom: 1;
+	*display: inline;
+}
+#catalogHome .sidegroup h4{
+	
+}
+
+.titleScrollerHeader{
+	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/breadcrumb-gradient.png) repeat-x top left;
+	padding: 2px;
+	color: #00125E;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+#listSelection{
+	border: none;
+	background: none;
+	color: #00125E;
+}
+
+.titleScrollerBody{
+	
+}
+
+.leftScrollerButton{
+	display: inline-block;
+	height: 150px;
+	width: 30px;
+	float: left;
+	cursor: pointer;
+	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-left.png) no-repeat left center;
+	
+	zoom: 1;
+	*display: inline;
+}
+.leftScrollerButton:hover{
+	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-left-hover.png) no-repeat left center;
+}
+
+.rightScrollerButton{
+	display: inline-block;
+	height: 150px;
+	width: 30px;
+	float: right;
+	cursor: pointer;
+	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-right.png) no-repeat left center;
+	z-index: 100;
+	
+	zoom: 1;
+	*display: inline;
+}
+.rightScrollerButton:hover{
+	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-right-hover.png) no-repeat left center;
+}
+.titleScrollerSelectedTitle{
+	width: 100%;
+	text-align: center;
+	font-weight: bold;
+	color: #00125E;
+}
+.titleScrollerSelectedAuthor{
+	width: 100%;
+	text-align: center;
+	font-weight: bold;
+	color: #A9A9A9;
+}
+.scrollerBodyContainer{
+	position: relative;
+	overflow: hidden;
+	margin: 5px 40px;
+}
+.scrollerBody{
+	padding: 7px;
+	margin: 0px 7px;
+	height: 140px;
+	position: relative;
+}
+.scrollerLoadingContainer{
+	width: 100%;
+	padding-top: 40px;
+	text-align: center;
+}
+.scrollerTitle{
+	display: inline-block;
+	margin: 2px;
+	vertical-align:middle;
+	padding: 3px;
+	max-width: 129px;
+	
+	zoom: 1;
+	*display: inline;
+}
+.scrollerTitleCover{
+	max-width: 125px;
+	max-height: 125px;
+	padding: 3px;
+}
+.scrollerTitle img{
+	opacity: .3;
+}
+.scrollerTitle:hover img{
+	opacity: .75;
+}
+.scrollerTitle.selected{
+	border: 3px solid #00125E;
+	border-radius: 3px;
+	padding: 0px;
+}
+.scrollerTitle.selected img{
+	opacity: 1;
+}

@@ -4,6 +4,7 @@
 	  {if $searchFilters}
 	    <div class="sidegroup" id="exploreMore">
 	      <h4>{translate text="adv_search_filters"}<br/><span>({translate text="adv_search_select_all"} <input type="checkbox" checked="checked" onclick="filterAll(this);" />)</span></h4>
+        <div class="sidegroupContents">
 	      {foreach from=$searchFilters item=data key=field}
 	      <div>
 	        <h4>{translate text=$field}</h4>
@@ -14,13 +15,18 @@
 	        </ul>
 	      </div>
 	      {/foreach}
+        </div>
 	    </div>
 	  {/if}
 	  <div class="sidegroup">
 	    <h4>{translate text="Search Tips"}</h4>
-	    <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=advsearch', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Advanced Search"}</a><br />
+      <div class="sidegroupContents">
+	    <div class="sideLinksAdv">
+      <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=advsearch', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Advanced Search"}</a><br />
 	    <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Search Operators"}</a>
 	  </div>
+    </div>
+    </div>
 	</div>
 	<div id="main-content" class="advSearchContent">
             <div class="resulthead"><h3>{translate text='Advanced Search'}</h3></div>
@@ -80,15 +86,15 @@
 	            {/if}
 	            {if $showPublicationDate}
                   <td>
-					<label for="yearfrom" class='yearboxlabel'>From:</label>
-					<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom" value="" />
-					<label for="yearto" class='yearboxlabel'>To:</label>
-					<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto" value="" />
+					<label for="publishDateyearfrom" class='yearboxlabel'>From:</label>
+					<input type="text" size="4" maxlength="4" class="yearbox" name="publishDateyearfrom" id="publishDateyearfrom" value="" />
+					<label for="publishDateyearto" class='yearboxlabel'>To:</label>
+					<input type="text" size="4" maxlength="4" class="yearbox" name="publishDateyearto" id="publishDateyearto" value="" />
 					<br/>
 					<div id='yearDefaultLinks'>
-					<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
-					&bull;<a onclick="$('#yearfrom').val('2000');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-					&bull;<a onclick="$('#yearfrom').val('1995');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
+					<a onclick="$('#publishDateyearfrom').val('2005');$('#publishDateyearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
+					&bull;<a onclick="$('#publishDateyearfrom').val('2000');$('#publishDateyearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
+					&bull;<a onclick="$('#publishDateyearfrom').val('1995');$('#publishDateyearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
 					</div>
                   </td>
 	            {/if}

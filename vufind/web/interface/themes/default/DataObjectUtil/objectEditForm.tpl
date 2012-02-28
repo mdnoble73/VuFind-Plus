@@ -141,6 +141,9 @@
 	    {elseif $property.type == 'hidden'}  
 	      <input type='hidden' name='{$propName}' value='{$propValue}' />
 	    {/if}
+	    {if $property.showDescription}
+	    	<div class='propertyDescription'>{$property.description}</div>
+	    {/if}
     {/foreach}
     <input type="submit" name="submit" value="Save Changes"/>
   </div>          

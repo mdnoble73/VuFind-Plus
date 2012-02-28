@@ -1,0 +1,339 @@
+.hide {
+    display: none;  
+}
+
+/* in search results */
+
+.save_export_checkboxes{
+    display:block;
+    margin-left:-60px;
+    margin-top:5px;
+    position:absolute;
+}
+
+
+/* GENERAL BOOK BAG */
+
+
+#book_bag {
+    display: none;
+}
+
+#existing_list_controls {
+    padding: 5px;
+}
+
+.bag_box {
+    padding: 5px;
+}
+
+#book_bag #bag_open_button {
+    background-color: #3b58b4;
+    color: #ffffff;
+    border-bottom-left-radius:10px;
+  	border-top-left-radius:10px;
+  		border: 2px solid #C00; 
+    font-family:verdana,helvetica,arial,sans-serif;
+    font-size:12px;
+    letter-spacing:-1px;
+    padding: 2px 0;
+    position:fixed;
+    top:143px;
+    right:0px;
+    width: 80px;
+    /* background-image:url(../../../../interface/themes/wcpl/images/bookbag-expand.png); */
+    background-repeat: no-repeat;
+    background-position: 7px 7px;
+    z-index: 21000; 
+}
+
+#book_bag #bag_open_button .plus {
+  padding-left: 20px;
+  padding: 8px 0px 8px 10px;
+  text-align: center;
+  z-index: 22000; 
+}
+
+#book_bag #bag_open_button #bag_summary, #bag_summary_holder {
+    cursor:pointer;   
+}
+
+#bag_summary {
+  font-weight: bold;
+    cursor:pointer;     
+}
+
+#book_bag .separator {
+    margin-top: 10px;
+}
+
+/* END GENERAL BOOK BAG */
+
+/* BOOK BAG CANVAS START */
+#book_bag #book_bag_canvas {
+    display: none;
+    position:fixed;
+    top: 143px;
+    right:90px;
+    position: fixed;    
+    background: white;
+    border: 1px solid #88a9d2;
+    width: 265px;
+    z-index: 20000;     
+    height: 250px;
+    border-bottom-left-radius: 8px;
+    border-top-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-right-radius: 8px;
+    -webkit-box-shadow: 5px 5px 5px #888888; /* Safari and Chrome */
+    box-shadow: 5px 5px 5px #888888;
+}
+#book_bag_header{
+	background-color: #e6eef9;
+	/*background-image:url(../../../../interface/themes/wcpl/images/bookbag-expand.png); */
+    background-repeat: no-repeat;
+    background-position: 4px 4px;
+    padding: 0px 0px 0px 25px;
+    margin-top: 8px;
+    border: 0px solid #DBDADA;	
+    color: #3b58b4;
+    line-height: 19px;
+    cursor: pointer;
+    height: 20px;
+}
+
+#close_book_cart{
+	position: absolute;
+	left: -10px;
+	top: -10px;
+}
+
+#bag_summary_header{
+    font-weight: bold;
+}
+
+
+#book_bag #book_bag_canvas #bag_items {
+    color: #2f4790; /* #A8FBC0; */
+    height: 150px;
+    padding-top: 10px;
+    padding-bottom: 3px;
+    overflow: auto;
+    text-align: left;
+    margin: 5px;
+}
+
+#book_bag #book_bag_canvas #bag_items .bag_book_title {
+    font-size:11px;
+    letter-spacing:1px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    margin-left: 45px;
+    text-indent: -25px;
+    width: 160px;
+    float:left;
+    
+
+}
+
+.deleteIcon {
+width: 16px;
+margin-left: 10px;
+float:left;
+}
+
+.bag_title_link {
+color: #2f4790;
+}
+
+.bag_title_link:hover {
+    color: lightGray;
+}
+
+#book_bag #book_bag_canvas h2 {
+    text-shadow: 0 -1px 0 rgba(35, 69, 90, 0.51);
+    text-transform: lowercase;
+    color: #FFFEFF;0
+    font-size: 22px;
+    font-family: Verdana, Helvetica,arial,sans-serif;
+    margin-bottom: 5px;
+}
+
+.empty_cart {
+	float:right;
+	margin-right:8px;
+	font-size:10px;
+  font-weight; normal;
+	/*background: #7D3030;
+	border:1px solid #8f3030;*/
+	color:#3b58b4;
+}
+
+.empty_cart:hover {
+	float:right;
+	margin-right:8px;
+	font-size:10px;
+  font-weight; normal;	 
+	/*background: #7D3030;
+	border:1px solid #8f3030;*/
+	color:red;
+}
+
+.empty_cart_tab {
+	float:right;
+	margin-right:8px;
+	font-size:10px;
+	font-weight; normal;
+	color:#ffffff;
+}
+
+.empty_cart_tab:hover {
+	float:right;
+	margin-right:8px;
+	font-size:10px;
+	font-weight; normal;
+	color:#d9d3d3;
+}
+
+#book_bag #book_bag_canvas #bag_empty_button_holder {
+    position:absolute;
+    right:10px;
+    top:10px;   
+}
+
+/* END BOOK BAG CANVAS */
+
+
+
+/* BOOK BAG BUTTONS */
+#book_bag .button {
+    background-color:#88a8cf;
+    display:inline-block;
+    height:18px;
+    line-height:18px;
+    margin-left:10px;
+    border-radius: 3px;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    font-family:  Verdana, Helvetica,arial,sans-serif;
+    text-transform: uppercase;
+    
+	zoom: 1;
+	*display: inline;
+          
+}
+#bag_add_to_my_list_button {
+	display: inline-block;
+	
+	zoom: 1;
+	*display: inline;
+}
+#book_bag .button a{
+	color: white;
+    font-size: 11px;
+    font-family:  Verdana, Helvetica,arial,sans-serif;
+    text-transform: uppercase;
+}
+#bag-links{
+	margin-left: 5px;
+}
+
+
+#book_bag .longer-button {
+    width: auto;    
+}
+
+/* END BOOK BAG BUTTONS */
+
+
+/* BOOK BAG ICONS */
+#book_bag .icon {
+  background-repeat:no-repeat;
+  background-position: left;
+  /*padding:.5em .5em .5em 20px;*/
+  margin-right:1em; 
+  padding-left: 20px;
+}
+
+
+#book_bag .empty_bin_bag:hover {
+	text-decoration: underline; 
+}
+
+
+/* END BOOK BAG ICONS */
+
+/* BOOK BAG ACTIONS */
+#bag_actions {
+    height: 220px;
+    padding-bottom: 3px;
+    overflow: auto;
+    color: #3e3e3e;
+    display: none;
+}
+
+#bag_actions h3 {
+    color: #001753;
+    font-weight: 500;
+    margin-top: 0px;
+    margin-bottom: 20xp
+    font-size: 13px;
+}
+
+#email_to_box, #save_to_my_list_tags {
+    padding-top: 4px; 
+}
+#save_to_my_list_tags #listTitle{
+	width: 95%;
+}
+#save_to_my_list_tags #listDesc{
+  width: 95%;
+}
+
+
+#bag_action_in_progress {
+    padding-top: 4px; 
+    display: none;
+}
+
+#bag_errors {
+    border:2px solid #FFFFFF;
+    color: #FF9;
+    font-size:14px;
+    font-weight:700;
+    padding:4px;
+    display:none;   
+}
+#bag_errors #bag_error_message {
+    font-weight: normal;    
+}
+
+#bag_actions .bag_hide_button {
+    background-color:#443636;
+    color:#FFFFFF;
+    top:1px;
+    width: auto;
+}
+
+#bag_actions .bag_hide_button:hover {
+    background-color: #d9d3d3;
+    text-decoration: none;
+}
+
+#bag_tags{
+	margin: 4px 0px 2px 0px;
+}
+#new_list_controls{
+	text-align: left;
+}
+#bag_login{
+	text-align: left;
+}
+#bag_login_submit{
+	text-align: center;
+}
+/* END BOOK BAG ACTIONS */
+#bookcart_login{
+	margin: 5px;
+}
