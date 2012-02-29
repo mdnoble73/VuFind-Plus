@@ -50,6 +50,7 @@ class EContentCollection extends Admin
 		$interface->assign('sourceFilter', $sources);
 		$selectedSource = isset($_REQUEST['source']) ? $_REQUEST['source'] : $sources[0];
 		$interface->assign('source', $selectedSource);
+		$interface->assign('showNumItems', strcasecmp($selectedSource, 'OverDrive') != 0);
 
 		//Set the end date to the end of the day
 		$endDate->setTime(24, 0, 0);
@@ -181,6 +182,10 @@ class EContentCollection extends Admin
 			->setCellValue('F3', 'Source')
 			->setCellValue('G3', 'Date Added');
 
+		$isOverDrive = strcasecmp($selectedSource, 'OverDrive') == 0;
+		if (!$isOverDrive){
+			$activeSheet->setCellValue('H3', 'Num Items');
+		}
 		$a=4;
 		//Loop Through The Report Data
 		foreach ($collectionDetails as $record) {
@@ -193,6 +198,9 @@ class EContentCollection extends Admin
 				->setCellValue('E'.$a, $record->publisher)
 				->setCellValue('F'.$a, $record->source)
 				->setCellValue('G'.$a, date('m/d/Y', $record->date_added));
+			if (!$isOverDrive){
+				$activeSheet->setCellValue('H'.$a, $record->getNumItems());
+			}
 			$a++;
 		}
 		$activeSheet->getColumnDimension('A')->setAutoSize(true);

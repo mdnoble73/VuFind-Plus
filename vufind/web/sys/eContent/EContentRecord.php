@@ -941,6 +941,22 @@ class EContentRecord extends SolrDataObject {
 		}
 		return $this->items;
 	}
+	
+	function getNumItems(){
+		if ($this->items == null){
+			$this->items = array();
+			if (strcasecmp($this->source, 'OverDrive') == 0){
+				return -1;
+			}else{
+				require_once 'sys/eContent/EContentItem.php';
+				$eContentItem = new EContentItem();
+				$eContentItem->recordId = $this->id;
+				$eContentItem->find();
+				return $eContentItem->N;
+			}
+		}
+		return count($this->items);
+	}
 
 	function validateEpub(){
 		//Setup validation return array

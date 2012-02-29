@@ -62,6 +62,9 @@
 							<th>Publisher</th>
 							<th>Source</th>
 							<th>Date Added</th>
+							{if $showNumItems}
+								<th>Num Items</th>
+							{/if}
 						</tr>
 					</thead>
 					<tbody>
@@ -74,6 +77,9 @@
 								<td>{$record->publisher}</td>
 								<td>{$record->source}</td>
 								<td>{$record->date_added|date_format}</td>
+								{if $showNumItems}
+									<td>{$record->getNumItems()}</td>
+								{/if}
 							</tr>
 						{/foreach}
 					</tbody>
@@ -89,6 +95,6 @@
 {literal}
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
-	$("#collectionDetails").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 8: {sorter : 'date'} } });
+	$("#collectionDetails").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 6: {sorter : 'date'} } });
 {/literal}
 </script>
