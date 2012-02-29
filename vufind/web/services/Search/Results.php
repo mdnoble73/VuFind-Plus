@@ -253,6 +253,19 @@ class Results extends Action {
 			$numProspectorTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
+		} else if ($searchObject->getResultTotal() == 1){
+			//Redirect to the home page for the record
+			$recordSet = $searchObject->getResultRecordSet();
+			$record = reset($recordSet);
+			if ($record['recordtype'] == 'list'){
+				$listId = substr($record['id'], 4);
+				header("Location: " . $configArray['Site']['url'] . "/MyResearch/MyList/{$listId}");
+			}elseif ($record['recordtype'] == 'econtentRecord'){
+				header("Location: " . $configArray['Site']['url'] . "/EcontentRecord/{$record['id']}/Home");
+			}else{
+				header("Location: " . $configArray['Site']['url'] . "/Record/{$record['id']}/Home");
+			}
+			
 		} else {
 			$timer->logTime('save search');
 

@@ -223,6 +223,10 @@
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="topic_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="author_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
@@ -293,6 +297,11 @@
 	<copyField source="genre" dest="genre_proper"/>
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="allfields" dest="allfields_proper"/>
+	<!-- CopyFields for Alphabetic Browse -->
+	<copyField source="topic"    dest="topic_browse"/>
+	<copyField source="author"    dest="author_browse"/>
+	<copyField source="author2"    dest="author_browse"/> 
+	<copyField source="callnumber"    dest="callnumber_browse"/>
 	<!-- Default Boolean Operator -->
 	<solrQueryParser defaultOperator="AND"/>
 </schema>

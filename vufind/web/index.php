@@ -420,8 +420,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	}
 	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();
 	if ($includeAlphaBrowse){
-		$basicSearchTypes['browseTitle'] = 'Title Browse';
-		$basicSearchTypes['browseAuthor'] = 'Author Browse';
+		$basicSearchTypes = array_merge($basicSearchTypes, $searchObject->getBrowseTypes());
 	}
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 

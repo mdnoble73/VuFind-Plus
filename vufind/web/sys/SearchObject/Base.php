@@ -79,6 +79,7 @@ abstract class SearchObject_Base
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
+	protected $browseTypes = array();
 	// Spelling
 	protected $spellcheck    = true;
 	protected $suggestions   = array();
@@ -816,6 +817,7 @@ abstract class SearchObject_Base
 	 */
 	public function getAdvancedTypes()  {return $this->advancedTypes;}
 	public function getBasicTypes()     {return $this->basicTypes;}
+	public function getBrowseTypes()    {return $this->browseTypes;}
 	public function getFilters()        {return $this->filterList;}
 	public function getPage()           {return $this->page;}
 	public function getLimit()          {return $this->limit;}
@@ -1726,6 +1728,8 @@ abstract class SearchObject_Base
 			return translate($this->basicTypes[$field]);
 		} else if (isset($this->advancedTypes[$field])) {
 			return translate($this->advancedTypes[$field]);
+		} else if (isset($this->browseTypes[$field])) {
+			return translate($this->browseTypes[$field]);
 		} else {
 			return $field;
 		}

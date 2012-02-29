@@ -1,0 +1,364 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.DataField;
+import java.util.regex.*;
+import java.io.*;
+import org.ini4j.Ini;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.sql.*;
+import java.util.zip.*;
+import org.apache.pdfbox.*;
+import org.apache.pdfbox.util.*;
+import org.apache.pdfbox.pdmodel.*;
+
+private boolean configLoaded = false;
+private Connection mysqlConnection = null;
+private Ini fullTextIni = null;
+private Ini configIni = null;
+private String aperturePath = null; //From fulltext.ini
+private String libraryPath = null;  //From web/conf/config.ini
+private String fullTextPath = null;  //From web/conf/config.ini
+
+/**
+ * Load EContent from VuFind and store the full content within the index.
+ *
+ * @param Record record
+ * @return String The full-text
+ */
+public String getEcontent(Record record, String recordIdSpec) {
+	StringBuffer result = new StringBuffer();
+
+	// Get the path to Aperture web crawler (and return no text if it is unavailable)
+	loadConfig();
+	
+	// Connect to the mysql database
+	connectToMySQL();
+	
+	//Get the record id for the record
+	Set fields = indexer.getFieldList(record, recordIdSpec);
+	Iterator fieldsIter = fields.iterator();
+	if (fields != null) {
+		while(fieldsIter.hasNext()) {
+			// Get the current string to work on:
+			String recordId = fieldsIter.next();
+			//Query the database to see if there is eContent for the recordId 
+			Statement getEContentStmt = mysqlConnection.createStatement();
+			ResultSet eContentResults = getEContentStmt.executeQuery("SELECT id, filename, type, source FROM epub_files where relatedRecords = " + recordId);
+			while (eContentResults.next()) {
+				String type = eContentResults.getString("type");
+				String filename = eContentResults.getString("filename");
+				String epubId = eContentResults.getString("id");
+				System.out.println("Found eContent for recordId " + recordId + " - " + type + " - " + filename);
+				File fullTextFile = new File(fullTextPath + "/" + epubId + ".txt");
+				if (fullTextFile.exists()){ //TODO: Check date to make sure the file hasn't changed
+					//Load text from the cached full text file
+					BufferedReader reader = new BufferedReader(new FileReader(fullTextFile));
+					StringBuffer fileText = new StringBuffer();
+					String curLine = reader.readLine();
+					while (curLine != null){
+						fileText.append(curLine + "\r\n");
+						curLine = reader.readLine();
+					}
+					result.append(fileText.toString());
+				}else{
+					//Get the text from the source
+					if (type.equalsIgnoreCase("pdf") || type.equalsIgnoreCase("epub")){
+						System.out.println("Attempting to extract content for file");
+						File eContentFile = new File(libraryPath + "/" + filename);
+						if (eContentFile.exists()){
+							String fileText;
+							if (type.equalsIgnoreCase("pdf")){
+								//Skip this for now because it is taking too long to process
+								fileText = getFulltextFromPdf(eContentFile);
+							}else{
+								fileText = getFulltextFromEpub(eContentFile);
+							}
+							//Write the file text to the file system so it can be used next time without reparsing the file.
+							FileWriter writer = new FileWriter(fullTextFile);
+							writer.write(fileText);
+							writer.close();
+							result.append(fileText);
+						}else{
+							System.out.println("Error: eContent file did not exist");
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// return string to SolrMarc
+	if (result.length() > 0){
+		//System.out.println(result.toString());
+	}
+	return result.toString();
+}
+
+/**
+ * Extract the Aperture path from fulltext.ini
+ *
+ * @return String          Path to Aperture executables
+ */
+public String getAperturePath() {
+	if (aperturePath == null){
+		aperturePath = fullTextIni.get("Aperture", "webcrawler");
+		if (aperturePath == null) {
+			return null;
+		}
+	
+		// Drop comments if necessary:
+		int pos = aperturePath.indexOf(';');
+		if (pos >= 0) {
+			aperturePath = aperturePath.substring(0, pos).trim();
+		}
+	
+		// Strip wrapping quotes if necessary (the ini reader won't do this for us):
+		if (aperturePath.startsWith("\"")) {
+			aperturePath = aperturePath.substring(1, aperturePath.length());
+		}
+		if (aperturePath.endsWith("\"")) {
+			aperturePath = aperturePath.substring(0, aperturePath.length() - 1);
+		}
+	}
+
+	return aperturePath;
+}
+
+/**
+ * Extract the Library path from fulltext.ini
+ *
+ * @return String          Path to Aperture executables
+ */
+public String getLibraryPath() {
+	if (libraryPath == null){
+		libraryPath = configIni.get("EBooks", "library");
+		if (libraryPath == null) {
+			return null;
+		}
+	
+		// Drop comments if necessary:
+		int pos = libraryPath.indexOf(';');
+		if (pos >= 0) {
+			libraryPath = libraryPath.substring(0, pos).trim();
+		}
+	
+		// Strip wrapping quotes if necessary (the ini reader won't do this for us):
+		if (libraryPath.startsWith("\"")) {
+			libraryPath = libraryPath.substring(1, libraryPath.length());
+		}
+		if (libraryPath.endsWith("\"")) {
+			libraryPath = libraryPath.substring(0, libraryPath.length() - 1);
+		}
+	}
+
+	return libraryPath;
+}
+
+public String getFullTextPath() {
+	if (fullTextPath == null){
+		fullTextPath = configIni.get("EBooks", "fullTextPath");
+		if (fullTextPath == null) {
+			dieWithError("Unable to load fullTextPath from " + configIniFile);
+		}
+	
+		// Drop comments if necessary:
+		int pos = fullTextPath.indexOf(';');
+		if (pos >= 0) {
+			fullTextPath = fullTextPath.substring(0, pos).trim();
+		}
+	
+		// Strip wrapping quotes if necessary (the ini reader won't do this for us):
+		if (fullTextPath.startsWith("\"")) {
+			fullTextPath = fullTextPath.substring(1, fullTextPath.length());
+		}
+		if (fullTextPath.endsWith("\"")) {
+			fullTextPath = fullTextPath.substring(0, fullTextPath.length() - 1);
+		}
+	}
+
+	return fullTextPath;
+}
+
+public void connectToMySQL(){
+	//Get the connection from the INI
+	if (mysqlConnection == null){
+		databaseConnectionInfo = getDatabaseConnectionInfo();
+		mysqlConnection = DriverManager.getConnection(databaseConnectionInfo);
+	}
+}
+
+public String getDatabaseConnectionInfo(){
+	parseFulltextIni();
+	String databaseConnection = fullTextIni.get("VuFind", "databaseConnection");
+	if (databaseConnection == null) {
+		dieWithError("Unable to load databaseConnection from fulltext.ini");
+	}
+	return databaseConnection;
+}
+
+public void loadConfig(){
+	if (configLoaded == false){
+		System.out.println("Loading configuration");
+		parseFulltextIni();
+		parseConfigIni();
+		aperturePath = getAperturePath();
+		libraryPath = getLibraryPath();
+		fullTextPath = getFullTextPath();
+		configLoaded = true;
+	}
+}
+
+public void parseFulltextIni(){
+	if (fullTextIni == null){
+		// Obtain path to Aperture from the fulltext.ini file:
+		fullTextIni = new Ini();
+		// Find VuFind's home directory in the environment; if it's not available,
+		// try using a relative path on the assumption that we are currently in
+		// VuFind's root directory:
+		String vufindHome = System.getenv("VUFIND_HOME");
+		if (vufindHome == null) {
+			vufindHome = "";
+		}
+
+		String fulltextIniFile = vufindHome + "/web/conf/fulltext.ini";
+		File file = new File(fulltextIniFile);
+		try {
+			fullTextIni.load(new FileReader(fulltextIniFile));
+		} catch (Throwable e) {
+			dieWithError("Unable to access " + fulltextIniFile);
+		}
+	}
+}
+
+public void parseConfigIni(){
+	if (configIni == null){
+		// Obtain path to Aperture from the fulltext.ini file:
+		configIni = new Ini();
+		// Find VuFind's home directory in the environment; if it's not available,
+		// try using a relative path on the assumption that we are currently in
+		// VuFind's root directory:
+		String vufindHome = System.getenv("VUFIND_HOME");
+		if (vufindHome == null) {
+			vufindHome = "";
+		}
+
+		String configIniFile = vufindHome + "/web/conf/config.ini";
+		File file = new File(configIniFile);
+		try {
+			configIni.load(new FileReader(configIniFile));
+		} catch (Throwable e) {
+			dieWithError("Unable to access " + configIniFile);
+		}
+	}
+}
+
+/**
+ * Harvest the contents of a document file (PDF, Word, etc.) using Aperture.
+ * This method will only work if Aperture is properly configured in the
+ * web/conf/fulltext.ini file.  Without proper configuration, this will
+ * simply return an empty string.
+ *
+ * @param String The url extracted from the MARC tag.
+ * @param String The path to Aperture
+ * @return String The full-text
+ */
+public String harvestWithAperture(url, aperturePath) {
+	System.out.println("Harvesting " + url);
+    String plainText = "";
+    // Create temp file.
+    File f = File.createTempFile("apt", ".txt");
+
+    // Delete temp file when program exits.
+    f.deleteOnExit();
+
+    // Construct the command to call Aperture
+    String cmd = aperturePath + " -o " + f.getAbsolutePath().toString()  + " -x " + url;
+
+    // Call Aperture
+    System.out.println("Loading fulltext from " + url + ". Please wait ...");
+    Process p = Runtime.getRuntime().exec(cmd);
+    BufferedReader stdInput = new BufferedReader(new
+        InputStreamReader(p.getInputStream()));
+    while ((s = stdInput.readLine()) != null) {
+        System.out.println(s);
+    }
+    // Wait for Aperture to finish
+    p.waitFor();
+
+    // Parse Aperture XML output
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document xmlDoc = db.parse(f);
+    NodeList nl = xmlDoc.getElementsByTagName("plainTextContent");
+    if(nl != null && nl.getLength() > 0) {
+        Node node = nl.item(0);
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            plainText = plainText + node.getTextContent();
+        }
+    }
+
+    String badChars = "[^\\x0009\\x000A\\x000D\\x0020-\\xD7FF\\xE000-\\xFFFD]";
+    plainText =  Pattern.compile(badChars).matcher(plainText).replaceAll(" ");
+
+    return plainText;
+}
+
+String getFulltextFromPdf(File pdfFile){
+	PDFTextStripper stripper = new PDFTextStripper("utf8");
+	PDDocument pdfDoc = PDDocument.load(pdfFile);
+	String pdfText = stripper.getText(pdfDoc);
+	pdfDoc.close();
+	//System.out.println(pdfText);
+	return pdfText;
+}
+
+String getFulltextFromEpub(File ePubFile){
+	//Open the zip file for the eContent
+	ZipFile zipfile = new ZipFile(ePubFile);
+	Enumeration e = zipfile.entries();
+	StringBuffer fullText = new StringBuffer();
+	while(e.hasMoreElements()) {
+		entry = (ZipEntry) e.nextElement();
+		//System.out.println("Extracting: " + entry.getName());
+		if (entry.getName().matches(".*\\.html|xml|xhtml")){
+			String entryContents = convertStreamToString(zipfile.getInputStream(entry));
+			//Strip out markup.  This is bute force, but good enough for a full text index 
+			entryContents = entryContents.replaceAll("\\<.*?>","");
+			fullText.append(entryContents + "\r\n");
+		}
+	}
+	if (fullText.length() == 0){
+		System.out.println("Warning, no text found in " + ePubFile);
+	}
+	return fullText.toString();
+}
+
+public String convertStreamToString(InputStream is) throws IOException {
+	/*
+	 * To convert the InputStream to String we use the Reader.read(char[]
+	 * buffer) method. We iterate until the Reader return -1 which means there's
+	 * no more data to read. We use the StringWriter class to produce the
+	 * string.
+	 */
+	if (is != null) {
+		Writer writer = new StringWriter();
+
+		char[] buffer = new char[1024];
+		try {
+			Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+			int n;
+			while ((n = reader.read(buffer)) != -1) {
+				writer.write(buffer, 0, n);
+			}
+		} finally {
+			is.close();
+		}
+		return writer.toString();
+	} else {
+		return "";
+	}
+}

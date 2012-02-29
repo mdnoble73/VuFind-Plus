@@ -43,11 +43,13 @@ if exist %index_dir% goto nomakeindexdir
 mkdir "%index_dir%"
 :nomakeindexdir
 
+echo "Building indexes for %LIBRARY%"
 call .\index-alphabetic-browse.bat %LIBRARY% build_browse title title_fullStr 1 "-Dbibleech=StoredFieldLeech -Dsortfield=title_sort -Dvaluefield=title_fullStr"
-call .\index-alphabetic-browse.bat %LIBRARY% build_browse topic topic_browse 1
-call .\index-alphabetic-browse.bat %LIBRARY% build_browse author author_browse 1
+call .\index-alphabetic-browse.bat %LIBRARY% build_browse topic topic_browse
+call .\index-alphabetic-browse.bat %LIBRARY% build_browse author author_browse
 call .\index-alphabetic-browse.bat %LIBRARY% build_browse lcc callnumber-a 1
 call .\index-alphabetic-browse.bat %LIBRARY% build_browse dewey dewey-raw 1 "-Dbibleech=StoredFieldLeech -Dsortfield=dewey-sort -Dvaluefield=dewey-raw"
+call .\index-alphabetic-browse.bat %LIBRARY% build_browse callnumber callnumber_brows
 goto end
 
 rem Function to process a single browse index:

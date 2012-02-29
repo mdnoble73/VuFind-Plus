@@ -47,9 +47,13 @@
                      doing searches for headings, but headings give shorter
                      queries and don't look as strange. *}
                   {if $item.count < 5}
-                    {$path}/Search/Results?basicType=ids&amp;lookfor={foreach from=$item.ids item=id}{$id}+{/foreach}
+                    {$path}/Search/Results?basicType=id&amp;lookfor={foreach from=$item.ids item=id}{$id}+{/foreach}
                   {else}
-                    {$path}/Search/Results?basicType={$source|capitalize|escape:"url"}Browse&amp;lookfor={$item.heading|escape:"url"}
+                  	{if $source=="author"}
+                  		{$path}/Author/Home?author={$item.heading|escape:"url"}
+                  	{else}
+                    	{$path}/Search/Results?basicType={$source|capitalize|escape:"url"}&amp;lookfor={$item.heading|escape:"url"}
+                    {/if}
                   {/if}
                 {/capture}
                 <a href="{$smarty.capture.searchLink|trim}">{$item.heading|escape:"html"}</a>
