@@ -135,6 +135,7 @@
 	<fields>
 		<!-- Core Fields  -->
 		<field name="id" type="string" indexed="true" stored="true"/>
+		<field name="id_sort" type="integer" indexed="true" stored="true"/>
 		<field name="fullrecord" type="string" indexed="false" stored="true"/>
 		<field name="marc_error" type="string" indexed="false" stored="true" multiValued="true"/>
 		<field name="allfields" type="text" indexed="true" stored="false"/>
@@ -238,8 +239,8 @@
 		<field name="illustrated" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="target_audience" type="string" indexed="true" stored="true" multiValued="false"/>
+		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="target_audience" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
 		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/> 
@@ -301,7 +302,6 @@
 	<copyField source="topic"    dest="topic_browse"/>
 	<copyField source="author"    dest="author_browse"/>
 	<copyField source="author2"    dest="author_browse"/> 
-	<copyField source="callnumber"    dest="callnumber_browse"/>
 	<!-- Default Boolean Operator -->
 	<solrQueryParser defaultOperator="AND"/>
 </schema>

@@ -322,6 +322,6 @@ function searchSubmit(){
 	// Stop auto complete since there is a search running already
 	$('#lookfor').autocomplete( "disable" );
 	
-	document.forms.searchForm.action='/Search/Results'
+	document.forms.searchForm.action='/Union/Search'
 	document.forms.searchForm.submit();
 }

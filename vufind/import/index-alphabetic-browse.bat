@@ -49,7 +49,7 @@ call .\index-alphabetic-browse.bat %LIBRARY% build_browse topic topic_browse
 call .\index-alphabetic-browse.bat %LIBRARY% build_browse author author_browse
 call .\index-alphabetic-browse.bat %LIBRARY% build_browse lcc callnumber-a 1
 call .\index-alphabetic-browse.bat %LIBRARY% build_browse dewey dewey-raw 1 "-Dbibleech=StoredFieldLeech -Dsortfield=dewey-sort -Dvaluefield=dewey-raw"
-call .\index-alphabetic-browse.bat %LIBRARY% build_browse callnumber callnumber_brows
+call .\index-alphabetic-browse.bat %LIBRARY% build_browse callnumber callnumber_browse
 goto end
 
 rem Function to process a single browse index:

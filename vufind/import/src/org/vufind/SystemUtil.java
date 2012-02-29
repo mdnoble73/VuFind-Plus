@@ -60,6 +60,11 @@ public class SystemUtil {
 	}
 	
 	public static String executeCommand(String[] cmdArray, Logger logger) throws IOException {
+		StringBuffer cmd = new StringBuffer();
+		for (String curCmd : cmdArray){
+			cmd.append(curCmd + " ");
+		}
+		logger.info("Running command \r\n" + cmd);
 		Process process = Runtime.getRuntime().exec(cmdArray);
 		return getResultsOfProcess(process, logger);
 	}
