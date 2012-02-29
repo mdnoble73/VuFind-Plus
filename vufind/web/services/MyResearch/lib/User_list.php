@@ -155,4 +155,3 @@ class User_list extends DB_DataObject
 	}
 
 }
-?>

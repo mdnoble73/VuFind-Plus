@@ -3,9 +3,9 @@ require_once 'Action.php';
 require_once 'CatalogConnection.php';
 
 /**
- * API methods related to getting User information from VuFind from external programs. 
- * Also handles account actions like placing holds, cancelling holds, etc. 
- * 
+ * API methods related to getting User information from VuFind from external programs.
+ * Also handles account actions like placing holds, cancelling holds, etc.
+ *
  * Copyright (C) Douglas County Libraries 2011.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,25 +20,25 @@ require_once 'CatalogConnection.php';
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @version 1.0
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class UserAPI extends Action {
-	
+
 	/*
 	 * Stores the connection to the ILS
-	 * 
+	 *
 	 * @internal
 	 * @access private
 	 */
 	private $catalog;
 
 	/**
-	 * Processes method to determine return type and calls the correct method.  
+	 * Processes method to determine return type and calls the correct method.
 	 * Should not be called directly.
-	 * 
+	 *
 	 * @see Action::launch()
 	 * @access private
 	 * @author Mark Noble <mnoble@turningleaftech.com>
@@ -64,26 +64,26 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * 
-	 * Returns whether or not a user is currently logged in based on session information. 
-	 * This method is only useful from VuFind itself or from files which can share cookies 
+	 *
+	 * Returns whether or not a user is currently logged in based on session information.
+	 * This method is only useful from VuFind itself or from files which can share cookies
 	 * with the VuFind server.
-	 * 
+	 *
 	 * Returns:
 	 * <code>
 	 * {result:[true|false]}
 	 * </code>
-	 * 
+	 *
 	 * Sample call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=isLoggedIn
 	 * </code>
-	 * 
+	 *
 	 * Sample response:
 	 * <code>
 	 * {"result":true}
 	 * </code>
-	 * 
+	 *
 	 * @access private
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
@@ -97,25 +97,25 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Logs in the user and sets a cookie indicating that the user is logged in.  
+	 * Logs in the user and sets a cookie indicating that the user is logged in.
 	 * Must be called by POSTing data to the API.
-	 * This method is only useful from VuFind itself or from files which can share cookies 
+	 * This method is only useful from VuFind itself or from files which can share cookies
 	 * with the VuFind server.
-	 * 
+	 *
 	 * Sample call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI
-	 * Post variables: 
+	 * Post variables:
 	 *   method=login
 	 *   username=23025003575917
 	 *   password=7604
 	 * </code>
-	 * 
-	 * Sample response: 
+	 *
+	 * Sample response:
 	 * <code>
 	 * {"result":true}
 	 * </code>
-	 * 
+	 *
 	 * @access private
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
@@ -139,21 +139,21 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Logs the user out of the system and clears cookies indicating that the user is logged in. 
-	 * This method is only useful from VuFind itself or from files which can share cookies 
+	 * Logs the user out of the system and clears cookies indicating that the user is logged in.
+	 * This method is only useful from VuFind itself or from files which can share cookies
 	 * with the VuFind server.
-	 * 
+	 *
 	 * Sample call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=logout
 	 * </code>
-	 * 
+	 *
 	 * Sample response:
 	 * <code>
 	 * {"result":true}
 	 * </code>
-	 * 
-	 * @access private 
+	 *
+	 * @access private
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function logout(){
@@ -162,14 +162,14 @@ class UserAPI extends Action {
 	}
 
 	/**
-	 * Validate whether or not an account is valid based on the barcode and pin number provided. 
-	 * 
+	 * Validate whether or not an account is valid based on the barcode and pin number provided.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
-	 * <li>password - The pin number for the user. 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
+	 * <li>password - The pin number for the user.
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success - false if the username or password could not be found, or the folowing user information if the account is valid.</li>
@@ -183,12 +183,12 @@ class UserAPI extends Action {
 	 * <li>homeLocationId – the id of the patron's home libarary within VuFind.</li>
 	 * <li>MyLocation1Id, myLocation2Id – not currently used</li>
 	 * </ul>
-	 * 
+	 *
 	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=validateAccount&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -210,12 +210,12 @@ class UserAPI extends Action {
 	 *   }
 	 * }
 	 * </code>
-	 * 
+	 *
 	 * Sample Response failed login:
 	 * <code>
 	 * {"result":{"success":false}}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function validateAccount(){
@@ -243,24 +243,24 @@ class UserAPI extends Action {
 			return array('success'=>false);
 		}
 	}
-	
+
 	/**
-	 * Load patron profile information for a user based on username and password.  
-	 * Includes information about print titles and eContent titles that the user has checked out.  
-	 * Does not include information about OverDrive titles since tat 
-	 * 
-	 * Usage: 
+	 * Load patron profile information for a user based on username and password.
+	 * Includes information about print titles and eContent titles that the user has checked out.
+	 * Does not include information about OverDrive titles since tat
+	 *
+	 * Usage:
 	 * <code>
 	 * {siteUrl}/API/UserAPI?method=getPatronProfile&username=patronBarcode&password=pin
 	 * </code>
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Returns JSON encoded data as follows: 
+	 *
+	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid, false if the username or password were incorrect</li>
 	 * <li>message – a reason why the method failed if success is false</li>
@@ -289,12 +289,12 @@ class UserAPI extends Action {
 	 * <li>numEContentUnavailableHolds - The number of unavailable eContent holds for the user.</li>
 	 * <li>numEContentWishList - The number of eContent titles the user has added to their wishlist.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronProfile&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response failed login:
 	 * <code>
 	 * {"result":{
@@ -302,8 +302,8 @@ class UserAPI extends Action {
 	 *   "message":"Login unsuccessful"
 	 * }}
 	 * </code>
-	 *  
-	 * Sample Response: 
+	 *
+	 * Sample Response:
 	 * <code>
 	 * { "result" : { "profile" : {
 	 *   "address1" : "P O BOX 283",
@@ -334,7 +334,7 @@ class UserAPI extends Action {
 	 * "success" : true
 	 * } }
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronProfile(){
@@ -349,18 +349,18 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get eContent and ILS holds for a user based on username and password. 
-	 * 
+	 * Get eContent and ILS holds for a user based on username and password.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>includeEContent - Optional flag for whether or not to include eContent holds. Set to false to only include print titles.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid, false if the username or password were incorrect</li>
 	 * <li>message – a reason why the method failed if success is false</li>
@@ -376,20 +376,20 @@ class UserAPI extends Action {
 	 * <li>available – whether or not the hold is available for pickup</li>
 	 * <li>position – the patron's position in the hold queue</li>
 	 * <li>frozen – whether or not the hold is frozen</li>
-	 * <li>itemId – the barcode of the item that filled the hold if the hold has been filled.</li> 
+	 * <li>itemId – the barcode of the item that filled the hold if the hold has been filled.</li>
 	 * <li>Status – a textual status of the item (Available, Suspended, Active, In Transit)</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronHolds&username=23025003575917&password=7604
 	 * </code>
-	 * 
-	 * Sample Response: 
+	 *
+	 * Sample Response:
 	 * <code>
-	 * { "result" : 
-	 *   { "holds" : 
-	 *     { "unavailable" : [ 
+	 * { "result" :
+	 *   { "holds" :
+	 *     { "unavailable" : [
 	 *       { "author" : "Bernhardt, Gale, 1958-",
 	 *            "available" : false,
 	 *            "availableTime" : null,
@@ -414,9 +414,9 @@ class UserAPI extends Action {
 	 *            "status" : "In Transit",
 	 *            "title" : "Training plans for multisport athletes /",
 	 *            "upc" : ""
-	 *       } ] 
+	 *       } ]
 	 *     },
-	 *     { "available" : [ 
+	 *     { "available" : [
 	 *       { "author" : "Hunter, Erin.",
 	 *            "available" : true,
 	 *            "availableTime" : null,
@@ -444,7 +444,7 @@ class UserAPI extends Action {
 	 *          } ]
 	 *     },
 	 *     "success" : true
-	 *  } 
+	 *  }
 	 * }
 	 * </code>
 	 *
@@ -457,8 +457,8 @@ class UserAPI extends Action {
 		if (isset($_REQUEST['includeEContent'])){
 			$includeEContent = $_REQUEST['includeEContent'];
 		}
-		
-		
+
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -476,21 +476,21 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get eContent holds for a user based on username and password. 
-	 * 
+	 * Get eContent holds for a user based on username and password.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
+	 *
 	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronHoldsEContent&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -537,7 +537,7 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronHoldsEContent(){
@@ -554,23 +554,23 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get a list of holds with details from OverDrive. 
-	 * Note: OverDrive can be very slow at times.  Proper precautions should be taken to ensure the calling application 
-	 * remains responsive.  VuFind does handle caching of OverDrive details so additional caching should not be needed. 
-	 * 
+	 * Get a list of holds with details from OverDrive.
+	 * Note: OverDrive can be very slow at times.  Proper precautions should be taken to ensure the calling application
+	 * remains responsive.  VuFind does handle caching of OverDrive details so additional caching should not be needed.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronHoldsOverDrive&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -615,7 +615,7 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 *  
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronHoldsOverDrive(){
@@ -632,28 +632,28 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get a list of items in the user's OverDrive cart. 
+	 * Get a list of items in the user's OverDrive cart.
 	 * For patrons tha use OverDrive exclusively with VuFind this method will never content because
-	 * the cart is always empty except during the checkout process.  
-	 * 
+	 * the cart is always empty except during the checkout process.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronCartOverDrive&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{"success":true,"items":[]}}
 	 * </code>
-	 *  
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCartOverDrive(){
@@ -670,21 +670,21 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get a list of items in the user's OverDrive wishlist. 
-	 * 
+	 * Get a list of items in the user's OverDrive wishlist.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronWishListOverDrive&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -707,7 +707,7 @@ class UserAPI extends Action {
 	 *   ]
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronWishListOverDrive(){
@@ -724,23 +724,23 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get a list of items that are currently checked out to the user within OverDrive.  
-	 * Note: VuFind takes care of caching the checked out items page appropriately.  The caling application should not 
-	 * do additional caching. 
-	 * 
+	 * Get a list of items that are currently checked out to the user within OverDrive.
+	 * Note: VuFind takes care of caching the checked out items page appropriately.  The caling application should not
+	 * do additional caching.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronCheckedOutItemsOverDrive&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -760,7 +760,7 @@ class UserAPI extends Action {
 	 *   ]
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItemsOverDrive(){
@@ -777,26 +777,26 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get a count of items in various lists within overdrive (holds, cart, wishlist, checked out). 
-	 * 
-	 * Usage: 
+	 * Get a count of items in various lists within overdrive (holds, cart, wishlist, checked out).
+	 *
+	 * Usage:
 	 * <code>
 	 * {siteUrl}/API/UserAPI?method=getPatronOverDriveSummary&username=patronBarcode&password=pin
 	 * </code>
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronOverDriveSummary&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -809,7 +809,7 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronOverDriveSummary(){
@@ -826,22 +826,22 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get fines from the ILS for a user based on username and password. 
-	 * 
+	 * Get fines from the ILS for a user based on username and password.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
-	 * <li>password - The pin number for the user.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
+	 * <li>password - The pin number for the user.</li>
 	 * <li>includeMessages - Whether or not messages to the user should be included within list of fines. (optional, defaults to false)</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronFines&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -860,7 +860,7 @@ class UserAPI extends Action {
 	 *   ]
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronFines(){
@@ -876,22 +876,22 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get eContent and ILS records that are checked out to a user based on username and password. 
-	 * 
+	 * Get eContent and ILS records that are checked out to a user based on username and password.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>includeEContent - Optional flag for whether or not to include checked out eContent. Set to false to only include print titles.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronCheckedOutItems&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -940,7 +940,7 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItems(){
@@ -954,12 +954,12 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
 			$checkedOutItems = $this->catalog->getMyTransactions($user);
-			
+				
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once('Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
 				$eContentTransactions = $eContentDriver->getMyTransactions($user);
-				
+
 				$allTransactions = array_merge($eContentTransactions['transactions'], $checkedOutItems['transactions']);
 			}else{
 				$allTransactions = $checkedOutItems['transactions'];
@@ -969,21 +969,21 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Get eContent records that are checked out to a user based on username and password. 
-	 * 
+	 * Get eContent records that are checked out to a user based on username and password.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronCheckedOutItems&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1012,7 +1012,7 @@ class UserAPI extends Action {
 	 *   }]
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutEContent(){
@@ -1030,22 +1030,22 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Renews an item that has been checked out within the ILS. 
-	 * 
+	 * Renews an item that has been checked out within the ILS.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>itemBarcode - The barcode of the item to be renewed.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=renewItem&username=23025003575917&password=7604&itemBarcode=33025021368319
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (failed renewal):
 	 * <code>
 	 * {"result":{
@@ -1057,7 +1057,7 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (successful renewal):
 	 * <code>
 	 * {"result":{
@@ -1069,7 +1069,7 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function renewItem(){
@@ -1085,22 +1085,22 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Renews all items that have been checked out to the user from the ILS.
-	 * Returns a count of the number of items that could be renewed.  
-	 * 
+	 * Returns a count of the number of items that could be renewed.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=renewAll&username=23025003575917&password=7604
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1108,7 +1108,7 @@ class UserAPI extends Action {
 	 *   "renewalMessage":"0006 of 8 items were renewed successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function renewAll(){
@@ -1123,30 +1123,30 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Places a hold on an item that is available within the ILS. The location where the user would like to pickup 
+	 * Places a hold on an item that is available within the ILS. The location where the user would like to pickup
 	 * the title must be specified as well als the record the user would like a hold placed on.
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>bibId    - The id of the record within the ILS.</li>
 	 * <li>campus   – the location where the patron would like to pickup the title (optional). If not provided, the patron's home location will be used.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false, or information about hold queue position if successful.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=renewAll&username=23025003575917&password=7604&bibId=1004012&campus=pa
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (successful hold):
 	 * <code>
 	 * {"result":{
@@ -1154,7 +1154,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Placement of hold request successful. You are number 1 in the queue."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (failed hold):
 	 * <code>
 	 * {"result":{
@@ -1162,7 +1162,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Unable to place a hold request. You have already requested this."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function placeHold(){
@@ -1178,28 +1178,28 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Places a hold on an eContent Record.  If the record is available for immediate usage, it will be checked out to the user. 
-	 * 
+	 * Places a hold on an eContent Record.  If the record is available for immediate usage, it will be checked out to the user.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false, or information about hold queue position if successful.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=placeEContentHold&username=23025003575917&password=1234&recordId=530
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (checkout):
 	 * <code>
 	 * {"result":{
@@ -1207,7 +1207,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"The title was checked out to you successfully. You may read it from the My eContent page within your account."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (checkout):
 	 * <code>
 	 * {"result":{
@@ -1215,7 +1215,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Your hold was successfully placed, you are number 1 in the queue."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function placeEContentHold(){
@@ -1233,28 +1233,28 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Checks out an eContent Record to a user.  The record must be available to the user for the checkout to succeed. 
-	 * 
+	 * Checks out an eContent Record to a user.  The record must be available to the user for the checkout to succeed.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the item could be checked out, false if the username or password were incorrect or the record could not be checked out.</li>
 	 * <li>message – a reason why the method failed if success is false, or information indicating success.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=checkoutEContentItem&username=23025003575917&password=1234&recordId=530
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (checkout):
 	 * <code>
 	 * {"result":{
@@ -1262,7 +1262,7 @@ class UserAPI extends Action {
 	 *   "message":"The title was checked out to you successfully.  You may read it from the My eContent page within your account."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (failed):
 	 * <code>
 	 * {"result":{
@@ -1270,7 +1270,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"There are no available copies of this title, please place a hold instead."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function checkoutEContentItem(){
@@ -1288,22 +1288,22 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Downloads an eContent file to the user's hard drive for offline usage.  
-	 * 
+	 * Downloads an eContent file to the user's hard drive for offline usage.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>itemId   - The id of the item attached to the record that should be downloaded.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns:
 	 * false if the username or password were incorrect or the item cannot be downloaded
-	 * or the contents of the file that can be streamed directly to the client. 
-	 * 
+	 * or the contents of the file that can be streamed directly to the client.
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function downloadEContentFile(){
@@ -1311,6 +1311,10 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$recordId = $_REQUEST['recordId'];
+		//Trim off econtentRecord from the front of the id if provided
+		if (preg_match('/econtentRecord\d+/i', $recordId)){
+			$recordId = substr($recordId, 14);
+		}
 		$itemId = $_REQUEST['itemId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
@@ -1328,7 +1332,7 @@ class UserAPI extends Action {
 					return array('success'=>false, 'message'=>'The record is not checked out to you.');
 				}
 			}
-			
+				
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $recordId;
 			$eContentItem->id = $itemId;
@@ -1374,32 +1378,32 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Place a hold within OverDrive.  
-	 * You should specify either the recordId of the title within VuFind or the overdrive id.  
-	 * The format is also required however when the user checks out the title they can override the format to checkout the version they want.  
-	 * 
+	 * Place a hold within OverDrive.
+	 * You should specify either the recordId of the title within VuFind or the overdrive id.
+	 * The format is also required however when the user checks out the title they can override the format to checkout the version they want.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * <li>format - The format of the item to place a hold on within OverDrive.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=placeOverDriveHold&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F&format=420
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1407,7 +1411,7 @@ class UserAPI extends Action {
 	 *   "message":"Your hold was placed successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function placeOverDriveHold(){
@@ -1425,7 +1429,7 @@ class UserAPI extends Action {
 			$overDriveId = $_REQUEST['overDriveId'];
 		}
 		$format = $_REQUEST['format'];
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1437,30 +1441,30 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Cancel a hold within OverDrive 
-	 * 
+	 * Cancel a hold within OverDrive
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * <li>format - The format of the record that was used when placing the hold.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be cancelled, false if the username or password were incorrect or the hold could not be cancelled.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=cancelOverDriveHold&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F&format=420
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1468,7 +1472,7 @@ class UserAPI extends Action {
 	 *   "message":"Your hold was cancelled successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function cancelOverDriveHold(){
@@ -1486,7 +1490,7 @@ class UserAPI extends Action {
 			$overDriveId = $_REQUEST['overDriveId'];
 		}
 		$format = $_REQUEST['format'];
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1498,29 +1502,29 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Remove an item from the OverDrive WishList 
-	 * 
+	 * Remove an item from the OverDrive WishList
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=removeOverDriveItemFromWishlist&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1528,7 +1532,7 @@ class UserAPI extends Action {
 	 *   "message":"The title was successfully removed from your wishlist."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function removeOverDriveItemFromWishlist(){
@@ -1545,7 +1549,7 @@ class UserAPI extends Action {
 		}else{
 			$overDriveId = $_REQUEST['overDriveId'];
 		}
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1557,32 +1561,32 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Add an item to the cart in OverDrive.
-	 * In general, this method should not be used.  Instead you should call checkoutOverDriveItem which will first 
-	 * add the title to the cart and then process the cart. 
-	 * 
+	 * In general, this method should not be used.  Instead you should call checkoutOverDriveItem which will first
+	 * add the title to the cart and then process the cart.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * <li>format - The format of the item to place a hold on within OverDrive.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=addItemToOverDriveCart&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F&format=420
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (fail):
 	 * <code>
 	 * {"result":{
@@ -1590,7 +1594,7 @@ class UserAPI extends Action {
 	 *   "message":"There are no copies available for checkout. You can place a hold on the item instead."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (pass):
 	 * <code>
 	 * {"result":{
@@ -1598,7 +1602,7 @@ class UserAPI extends Action {
 	 *   "message":"The title was added to your cart successfully. You have 30 minutes to check out the title before it is returned to the library's collection."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function addItemToOverDriveCart(){
@@ -1616,7 +1620,7 @@ class UserAPI extends Action {
 			$overDriveId = $_REQUEST['overDriveId'];
 		}
 		$format = $_REQUEST['format'];
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1628,29 +1632,29 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Add an item to the wishlist in OverDrive
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=addItemToOverDriveWishList&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1658,7 +1662,7 @@ class UserAPI extends Action {
 	 *   "message":"The title was added to your wishlist."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function addItemToOverDriveWishList(){
@@ -1675,7 +1679,7 @@ class UserAPI extends Action {
 		}else{
 			$overDriveId = $_REQUEST['overDriveId'];
 		}
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1687,30 +1691,30 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Checkout an item in OverDrive by first adding to the cart and then processing the cart. 
-	 * 
+	 * Checkout an item in OverDrive by first adding to the cart and then processing the cart.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * <li>format - The format of the item to place a hold on within OverDrive.</li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the account is valid and the title could be checked out, false if the username or password were incorrect or the hold could not be checked out.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=checkoutOverDriveItem&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F&format=420
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1718,7 +1722,7 @@ class UserAPI extends Action {
 	 *   "message":"Your titles were checked out successfully. You may now download the titles from your Account."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function checkoutOverDriveItem(){
@@ -1736,7 +1740,7 @@ class UserAPI extends Action {
 			$overDriveId = $_REQUEST['overDriveId'];
 		}
 		$format = $_REQUEST['format'];
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1750,24 +1754,24 @@ class UserAPI extends Action {
 	}
 	/**
 	 * Process the account to checkout any titles within the OverDrive cart
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
+	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success – true if the cart was processed, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
 	 * <li>message – information about the process for display to the user.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=processOverDriveCart&username=23025003575917&password=1234
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1775,14 +1779,14 @@ class UserAPI extends Action {
 	 *   "message":"Your titles were checked out successfully. You may now download the titles from your Account."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 * 
+	 *
 	 */
 	function processOverDriveCart(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1794,41 +1798,41 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Cancel a hold that was placed within the ILS. 
-	 * 
+	 * Cancel a hold that was placed within the ILS.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>availableholdselected[] – an array of holds that should be canceled.  Each item should be specfied as <bibId>:<itemId>. BibId and itemId can be retrieved as part of the getPatronHolds API</li>
 	 * <li>waitingholdselected[] - an array of holds that are not ready for pickup that should be canceled.  Each item should be specified as <bibId>:0.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=cancelHold&username=23025003575917&password=1234&waitingholdselected[]=1003198
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * </code>
-	 * 
-	 * Sample Response (failed): 
+	 *
+	 * Sample Response (failed):
 	 * <code>
 	 * {"result":{
 	 *   "success":false,
 	 *   "holdMessage":"Your hold could not be cancelled. Please try again later or see your librarian."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * Sample Response (succeeded):
 	 * <code>
 	 * {"result":{
@@ -1836,7 +1840,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Your hold was cancelled successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function cancelHold(){
@@ -1851,28 +1855,28 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Cancel a hold on an eContent record. 
-	 * 
+	 * Cancel a hold on an eContent record.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>recordId – The id of the record that should have it's hold cancelled.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=cancelEContentHold&username=23025003575917&password=1234&recordId=521
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1880,7 +1884,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Your hold was cancelled successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function cancelEContentHold(){
@@ -1898,31 +1902,31 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Freezes a hold that has been placed on a title within the ILS.  Only unavailable holds can be frozen.
-	 * Note:  Horizon implements suspending and activating holds as a toggle.  If a hold is suspended, it will be activated 
+	 * Note:  Horizon implements suspending and activating holds as a toggle.  If a hold is suspended, it will be activated
 	 * and if a hold is active it will be suspended.  Care should be taken when calling the method with holds that are in the wrong state.
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>waitingholdselected[] - an array of holds that are not ready for pickup that should be frozen. Each item should be specified as <bibId>:0.</li>
 	 * <li>suspendDate - The date that the hold should be automatically reactivated.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=freezeHold&username=23025003575917&password=1234&waitingholdselected[]=1004012:0&suspendDate=1/25/2012
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1930,7 +1934,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Your hold was updated successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function freezeHold(){
@@ -1945,29 +1949,29 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Freezes an eContent hold.
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>ids[] - an array of ids that should be frozen.</li>
 	 * <li>suspendDate - The date that the hold should be automatically reactivated.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
 	 * <li>freezeResults – a list of results for each id that was frozen.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=freezeEContentHold&username=23025003575917&password=1234&ids[]=532&suspendDate=1/25/2012
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -1986,11 +1990,11 @@ class UserAPI extends Action {
 	 *   }
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function freezeEContentHold(){
-	$username = $_REQUEST['username'];
+		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
@@ -2011,30 +2015,30 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Activates a hold that was previously suspended within the ILS.  Only unavailable holds can be activated.
-	 * Note:  Horizon implements suspending and activating holds as a toggle.  If a hold is suspended, it will be activated 
+	 * Note:  Horizon implements suspending and activating holds as a toggle.  If a hold is suspended, it will be activated
 	 * and if a hold is active it will be suspended.  Care should be taken when calling the method with holds that are in the wrong state.
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>waitingholdselected[] - an array of holds that are not ready for pickup that should be frozen. Each item should be specified as <bibId>:0.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be activated, false if the username or password were incorrect or the hold could not be activated.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=activateHold&username=23025003575917&password=1234&waitingholdselected[]=1004012:0
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -2042,7 +2046,7 @@ class UserAPI extends Action {
 	 *   "holdMessage":"Your hold was updated successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function activateHold(){
@@ -2057,29 +2061,29 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Activates a frozen eContent hold.
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>id - Theid of the eContent record to activate the hold for.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
 	 * <li>title – The title of the record.</li>
 	 * <li>message – More information about the reactivation process.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=activateEContentHold&username=23025003575917&password=1234&ids=532
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -2088,7 +2092,7 @@ class UserAPI extends Action {
 	 *   "message":"Your hold was activated successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function activateEContentHold(){
@@ -2106,28 +2110,28 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Returns an eContent record
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>id - The id of the record to return.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
 	 * <li>freezeResults – a list of results for each id that was frozen.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=returnEContentRecord&username=23025003575917&password=1234&id=531
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -2135,7 +2139,7 @@ class UserAPI extends Action {
 	 *   "message":"The title was returned successfully."
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function returnEContentRecord(){
@@ -2153,28 +2157,28 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Loads the reading history for the user.  Includes print, eContent, and OverDrive titles.
-	 * Note: The return of this method can be quite lengthy if the patron has a large number of items in their reading history. 
-	 * 
+	 * Note: The return of this method can be quite lengthy if the patron has a large number of items in their reading history.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
 	 * <li>holdMessage – a reason why the method failed if success is false</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronReadingHistory&username=23025003575917&password=1234
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{
@@ -2209,7 +2213,7 @@ class UserAPI extends Action {
 	 *   ]
 	 * }}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronReadingHistory(){
@@ -2225,32 +2229,32 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Allows reading history to be collected for the patron.  If this option is not selected, 
-	 * no reading history for the patron wil be stored. 
-	 * 
+	 * Allows reading history to be collected for the patron.  If this option is not selected,
+	 * no reading history for the patron wil be stored.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the reading history could be turned on, false if the username or password were incorrect or the reading history could not be turned on.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=optIntoReadingHistory&username=23025003575917&password=1234
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{"success":true}}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function optIntoReadingHistory(){
@@ -2266,31 +2270,31 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
 	 * Stops collecting reading history for the patron and removes any reading history entries that have been collected already.
-	 * 
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the reading history could be turned off, false if the username or password were incorrect or the reading history could not be turned off.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=optOutOfReadingHistory&username=23025003575917&password=1234
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{"success":true}}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function optOutOfReadingHistory(){
@@ -2306,31 +2310,31 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Clears the user's reading history, but does not stop the collection of new data.  If items are currently checked out 
-	 * to the user they will be added to the reading history the next time cron runs. 
-	 * 
+	 * Clears the user's reading history, but does not stop the collection of new data.  If items are currently checked out
+	 * to the user they will be added to the reading history the next time cron runs.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the reading history could cleared, false if the username or password were incorrect or the reading history could not be cleared.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=deleteAllFromReadingHistory&username=23025003575917&password=1234
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function deleteAllFromReadingHistory(){
@@ -2346,32 +2350,32 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Removes one or more titles from the user's reading history. 
-	 * 
+	 * Removes one or more titles from the user's reading history.
+	 *
 	 * Parameters:
 	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li> 
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>selected - A list of record ids to be deleted from the reading history.</li>
 	 * </ul>
-	 * 
-	 * Returns: 
+	 *
+	 * Returns:
 	 * <ul>
 	 * <li>success – true if the account is valid and the items could be removed from the reading history, false if the username or password were incorrect or the items could not be removed from the reading history.</li>
 	 * </ul>
-	 * 
-	 * Sample Call: 
+	 *
+	 * Sample Call:
 	 * <code>
 	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=deleteSelectedFromReadingHistory&username=23025003575917&password=1234&selected[]=25855
 	 * </code>
-	 * 
+	 *
 	 * Sample Response:
 	 * <code>
 	 * {"result":{"success":true}}
 	 * </code>
-	 * 
+	 *
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function deleteSelectedFromReadingHistory(){
@@ -2388,5 +2392,5 @@ class UserAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 }

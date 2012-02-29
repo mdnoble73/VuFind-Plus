@@ -40,74 +40,72 @@ require_once 'Home.php';
  */
 class EditList extends Action
 {
-    /**
-     * Save a user's changes.
-     *
-     * @param object $user Logged in user object
-     * @param object $list List to update
-     *
-     * @return boolean true / false
-     * @access private
-     */
-    private function _saveChanges($user, $list)
-    {
-        if ($list->user_id == $user->id) {
-            $title = $_POST['title'];
-            $desc = $_POST['desc'];
-            $public = $_POST['public'];
-            return $list->updateList($title, $desc, $public);
-        }
-        return false;
-    }
+	/**
+	 * Save a user's changes.
+	 *
+	 * @param object $user Logged in user object
+	 * @param object $list List to update
+	 *
+	 * @return boolean true / false
+	 * @access private
+	 */
+	private function _saveChanges($user, $list)
+	{
+		if ($list->user_id == $user->id) {
+			$title = $_POST['title'];
+			$desc = $_POST['desc'];
+			$public = $_POST['public'];
+			return $list->updateList($title, $desc, $public);
+		}
+		return false;
+	}
 
-    /**
-     * Process parameters and display the page.
-     *
-     * @return void
-     * @access public
-     */
-    public function launch()
-    {
-        global $interface;
-        global $configArray;
+	/**
+	 * Process parameters and display the page.
+	 *
+	 * @return void
+	 * @access public
+	 */
+	public function launch()
+	{
+		global $interface;
+		global $configArray;
 
-        if (!($user = UserAccount::isLoggedIn())) {
-            include_once 'Login.php';
-            Login::launch();
-            exit();
-        }
+		if (!($user = UserAccount::isLoggedIn())) {
+			include_once 'Login.php';
+			Login::launch();
+			exit();
+		}
 
-        // Fetch List object
-        $list = User_list::staticGet($_GET['id']);
+		// Fetch List object
+		$list = User_list::staticGet($_GET['id']);
 
-        // Ensure user have privs to view the list
-        if ($list->user_id != $user->id) {
-            PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
-        }
+		// Ensure user have privs to view the list
+		if ($list->user_id != $user->id) {
+			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
+		}
 
-        // Save Data
-        if (isset($_POST['submit'])) {
-            if (empty($_POST['title'])) {
-                $interface->assign('errorMsg', 'list_edit_name_required');
-            } else if ($this->_saveChanges($user, $list)) {
-                // After changes are saved, send the user back to an appropriate page
-                $nextAction = 'MyList/' . $list->id;
-                header(
+		// Save Data
+		if (isset($_POST['submit'])) {
+			if (empty($_POST['title'])) {
+				$interface->assign('errorMsg', 'list_edit_name_required');
+			} else if ($this->_saveChanges($user, $list)) {
+				// After changes are saved, send the user back to an appropriate page
+				$nextAction = 'MyList/' . $list->id;
+				header(
                     'Location: ' . $configArray['Site']['url'] . '/MyResearch/' .
-                    $nextAction
-                );
-                exit();
-            } else {
-                // List was not edited
-                $interface->assign('errorMsg', 'edit_list_fail');
-            }
-        }
+				$nextAction
+				);
+				exit();
+			} else {
+				// List was not edited
+				$interface->assign('errorMsg', 'edit_list_fail');
+			}
+		}
 
-        // Send list to template so title/description can be displayed:
-        $interface->assign('list', $list);
-        $interface->setTemplate('editList.tpl');
-        $interface->display('layout.tpl');
-    }
+		// Send list to template so title/description can be displayed:
+		$interface->assign('list', $list);
+		$interface->setTemplate('editList.tpl');
+		$interface->display('layout.tpl');
+	}
 }
-
-?>

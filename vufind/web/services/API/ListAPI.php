@@ -751,4 +751,156 @@ class ListAPI extends Action {
 		$listCache->insert();
 		return $titles;
 	}
+	
+	/**
+	 * Create a User list for the user. 
+	 * 
+	 * Parameters:
+	 * <ul>
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
+	 * <li>password - The pin number for the user. </li>
+	 * <li>title    - The title of the list to create.</li>
+	 * <li>description - A description for the list (optional).</li>
+	 * <li>public   - Set to true or 1 if the list should be public.  (optional, defaults to private).</li>
+	 * </ul>
+	 * 
+	 * Note: You may also provide the parameters to addTitlesToList and titles will be added to the list
+	 * after the list is created.
+	 *
+	 * Returns:
+	 * <ul>
+	 * <li>success – true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
+	 * <li>listId – te id of the new list that is created.</li>
+	 * </ul>
+	 *
+	 * Sample Call:
+	 * <code>
+	 * http://catalog.douglascountylibraries.org/API/ListAPI?method=createList&username=23025003575917&password=1234&title=Test+List&description=Test&public=0
+	 * </code>
+	 *
+	 * Sample Response:
+	 * <code>
+	 * {"result":{"success":true,"listId":"1688"}}
+	 * </code>
+	 */
+	function createList(){
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		if (!isset($_REQUEST['title'])){
+			return array('success'=>false, 'message'=>'You must provide the title of the list to be created.');
+		} 
+		global $user;
+		$user = UserAccount::validateAccount($username, $password);
+		if ($user && !PEAR::isError($user)){
+			$list = new User_list();
+			$list->title = $_REQUEST['title'];
+			$list->description = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
+			$list->public = isset($_REQUEST['public']) ? (($_REQUEST['public'] == true || $_REQUEST['public'] == 1)? 1 : 0) : 0;
+			$list->user_id = $user->id;
+			$list->insert();
+			$list->find();
+			if (!isset($_REQUEST['recordIds'])){
+				$result = $this->addTitlesToList();
+				return $result;
+			}
+			return array('success'=>true, 'listId'=>$list->id);
+		}else{
+			return array('success'=>false, 'message'=>'Login unsuccessful');
+		}
+	}
+	
+	/**
+	 * Add titles to a user list. 
+	 * 
+	 * Parameters:
+	 * <ul>
+	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
+	 * <li>password - The pin number for the user. </li>
+	 * <li>listId   - The id of the list to add items to.</li>
+	 * <li>recordIds - The id of the record(s) to add to the list.</li>
+	 * <li>tags   - A comma separated string of tags to apply to the titles within the list. (optional)</li>
+	 * <li>notes  - descriptive text to apply to the titles.  Can be viewed while on the list.  (optional)</li>
+	 * </ul>
+	 * 
+	 * Note: You may also provide the parameters to addTitlesToList and titles will be added to the list
+	 * after the list is created.
+	 *
+	 * Returns:
+	 * <ul>
+	 * <li>success – true if the account is valid and the titles could be added to the list, false if the username or password were incorrect or the list could not be created.</li>
+	 * <li>listId – the id of the list that titles were added to.</li>
+	 * <li>numAdded – the number of titles that were added to the list.</li>
+	 * </ul>
+	 *
+	 * Sample Call:
+	 * <code>
+	 * http://catalog.douglascountylibraries.org/API/ListAPI?method=createList&username=23025003575917&password=1234&title=Test+List&description=Test&public=0
+	 * </code>
+	 *
+	 * Sample Response:
+	 * <code>
+	 * {"result":{"success":true,"listId":"1688"}}
+	 * </code>
+	 */
+	function addTitlesToList(){
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		if (!isset($_REQUEST['listId'])){
+			return array('success'=>false, 'message'=>'You must provide the listId to add titles to.');
+		}
+		$recordIds = array();
+		if (!isset($_REQUEST['recordIds'])){
+			return array('success'=>false, 'message'=>'You must provide one or more records to add tot he list.');
+		}else if (!is_array($_REQUEST['recordIds'])){
+			$recordIds[] = $_REQUEST['recordIds'];
+		}else{
+			$recordIds = $_REQUEST['recordIds'];
+		}
+		global $user;
+		$user = UserAccount::validateAccount($username, $password);
+		if ($user && !PEAR::isError($user)){
+			$list = new User_list();
+			$list->id = $_REQUEST['listId'];
+			$list->user_id = $user->id;
+			if (!$list->find(true)){
+				return array('success'=>false, 'message'=>'Unable to find the list to add titles to.');
+			}else{
+				$recordIds = $_REQUEST['recordIds'];
+				$numAdded = 0;
+				foreach ($recordIds as $id){
+					$source = 'VuFind';
+					if (preg_match('/econtentRecord\d+/i', $id)){
+						$id = substr($id, 14);
+						$source = 'eContent';
+					}
+					$resource = new Resource();
+					$resource->record_id = $id;
+					$resource->source = $source;
+					if (!$resource->find(true)) {
+						$resource->insert();
+					}
+					
+					if (isset($_REQUEST['tags'])){
+						preg_match_all('/"[^"]*"|[^,]+/', $_REQUEST['tags'], $tagArray);
+						$tags = $tagArray[0];
+					}else{
+						$tags = array();
+					}
+					if (isset($_REQUEST['notes'])){
+						$notes = $_REQUEST['notes'];
+					}else{
+						$notes = '';
+					}
+					if ($user->addResource($resource, $list, $tags, $notes)){
+						$numAdded++;
+					}
+				}
+				return array('success'=>true, 'listId'=>$list->id, 'numAdded' => $numAdded);
+			}
+			
+			
+		}else{
+			return array('success'=>false, 'message'=>'Login unsuccessful');
+		}
+	}
 }
