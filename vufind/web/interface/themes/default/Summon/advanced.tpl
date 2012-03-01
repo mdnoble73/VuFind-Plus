@@ -79,7 +79,7 @@
 </div>
 
 {* Step 1: Define our search arrays so they are usuable in the javascript *}
-<script language="JavaScript" type="text/javascript">
+<script  type="text/javascript">
     var searchFields = new Array();
     {foreach from=$advSearchTypes item=searchDesc key=searchVal}
     searchFields["{$searchVal}"] = "{translate text=$searchDesc}";
@@ -96,9 +96,9 @@
     var searchFormId    = 'advSearchForm';
 </script>
 {* Step 2: Call the javascript to make use of the above *}
-<script language="JavaScript" type="text/javascript" src="{$path}/services/Search/advanced.js"></script>
+<script  type="text/javascript" src="{$path}/services/Search/advanced.js"></script>
 {* Step 3: Build the page *}
-<script language="JavaScript" type="text/javascript">
+<script  type="text/javascript">
   {if $searchDetails}
     {foreach from=$searchDetails item=searchGroup}
       {foreach from=$searchGroup.group item=search name=groupLoop}

@@ -91,7 +91,7 @@
    
    {if count($issueSummary.holdings) > 0}
    <span id='showHoldings-{$smarty.foreach.summaryLoop.iteration}' class='showIssuesLink'>Show Individual Issues</span>
-   <script language="JavaScript" type="text/javascript">
+   <script type="text/javascript">
      $('#showHoldings-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}
        if (!$('#showHoldings-{$smarty.foreach.summaryLoop.iteration}').hasClass('expanded')){literal} { {/literal}
 			   $('#issue-summary-holdings-{$smarty.foreach.summaryLoop.iteration}').slideDown();
@@ -107,7 +107,7 @@
    {if $issueSummary.checkInGridId}
    <span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='showCheckinGrid'>Show Check-in Grid</span>
    {/if}
-   <script language="JavaScript" type="text/javascript">
+   <script type="text/javascript">
      $('#showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}
     	 getLightbox('Record', 'CheckInGrid', '.b26935041', '{$issueSummary.checkInGridId}', 'Check-in Grid', undefined, undefined, undefined, '5%', '90%', 50, '85%');
      {literal} }); {/literal}

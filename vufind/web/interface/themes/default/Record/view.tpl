@@ -1,5 +1,5 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script language="JavaScript" type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
+<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 {if !empty($addThis)}
 <script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
 {/if}
@@ -29,7 +29,7 @@
             {/if}
           </ul>
         </div>
-        <script language="JavaScript" type="text/javascript">
+        <script type="text/javascript">
           function redrawSaveStatus() {literal}{{/literal}
               getSaveStatus('{$id|escape:"javascript"}', 'saveLink');
           {literal}}{/literal}

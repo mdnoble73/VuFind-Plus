@@ -1,0 +1,55 @@
+<?php
+Header ("Content-type: text/css");
+//Add caching information with one day expiration
+$expires = 60*60*24*14; 
+header("Cache-Control: maxage=".$expires);
+header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
+?>
+@CHARSET "ISO-8859-1";
+
+#prospectorSearchResultsHeader {
+	padding-top: 25px;
+}
+
+#prospectorSearchResultsTitle{
+	padding-top: 15px;
+	color: #000000;
+  font-size: 140%;
+  font-weight: normal;
+  
+}
+
+#prospectorSearchResultsNote{
+	color: #333333;
+  font-style: italic;
+  margin-bottom: 0.5em;
+  
+}
+#prospectorMan{
+	float: left;
+	margin-right: 7px;
+}
+#prospectorSidebarResults{
+	border-bottom: 2px solid #D5D5D5;
+}
+#prospectorAvailabilityTitle{
+	padding-top: 15px;
+  color: #000000;
+  font-size: 140%;
+  font-weight: normal;
+}
+.prospectorLibrary{
+	white-space:nowrap; 
+	width: 225px;
+	font-size: 11px;
+	display: inline-block;
+	
+	zoom: 1;
+	*display: inline;
+}
+.prospectorTitle.currentRecord{
+	font-weight: bold;
+}
+.prospectorRequest{
+	margin-left: 20px;
+}

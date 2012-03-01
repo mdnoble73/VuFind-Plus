@@ -1,4 +1,4 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <div id="bd">
   <div id="yui-main" class="content">
     <div class="yui-b first">

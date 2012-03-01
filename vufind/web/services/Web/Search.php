@@ -17,43 +17,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
- 
+
 require_once 'Action.php';
 
 class Search extends Action
 {
-    function launch()
-    {
-        global $configArray;
-        global $interface;
+	function launch()
+	{
+		global $configArray;
+		global $interface;
 
-        // Assign basic values
-        $interface->assign('googleKey', $configArray['GoogleSearch']['key']);
-        $interface->assign('domain', $configArray['GoogleSearch']['domain']);
-        $interface->assign('lookfor', strip_tags($_GET['lookfor']));
-        
-        // Use the recommendations interface to get related catalog hits
-        $recommendations = array();
-        $cat = RecommendationFactory::initRecommendation('CatalogResults', null, 'lookfor');
-        $cat->init();
-        $cat->process();
-        $recommendations[] = $cat->getTemplate();
+		// Assign basic values
+		$interface->assign('googleKey', $configArray['GoogleSearch']['key']);
+		$interface->assign('domain', $configArray['GoogleSearch']['domain']);
+		$interface->assign('lookfor', strip_tags($_GET['lookfor']));
 
-        /* Show Summon recommendations -- currently commented out; we should come up
-         * with a configuration mechanism for recommendations on this page.
-        $sum = RecommendationFactory::initRecommendation('SummonResults', null, 'lookfor');
-        $sum->init();
-        $sum->process();
-        $recommendations[] = $sum->getTemplate();
-         */
+		// Use the recommendations interface to get related catalog hits
+		$recommendations = array();
+		$cat = RecommendationFactory::initRecommendation('CatalogResults', null, 'lookfor');
+		$cat->init();
+		$cat->process();
+		$recommendations[] = $cat->getTemplate();
 
-        $interface->assign('recommendations', $recommendations);
-        
-        // Set up the page
-        $interface->setPageTitle('Library Web Search');
-        $interface->setTemplate('home.tpl');
-        $interface->display('layout.tpl');
-    }
+		$interface->assign('recommendations', $recommendations);
+
+		// Set up the page
+		$interface->setPageTitle('Library Web Search');
+		$interface->setTemplate('home.tpl');
+		$interface->display('layout.tpl');
+	}
 }
-
-?>

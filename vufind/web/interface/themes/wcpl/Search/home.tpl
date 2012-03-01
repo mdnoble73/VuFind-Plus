@@ -1,4 +1,4 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/js/title-scroller.js"></script>
+<script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
 <script type="text/javascript">
   {* Create callback for title scrollers to load information above the scroller rather than inline *}
   {literal}

@@ -7,7 +7,7 @@
 			name="viewport"
 			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
 		/>
-		<title>{$bookTitle} - {$libraryName} E-Book Reader</title>
+		<title>{$bookTitle} - {$libraryName} MP-3 Player</title>
 
 		<script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
 		<script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
@@ -163,7 +163,7 @@
 				
 				<div id="menu-header-links">
 					<div id="menu-account-links">
-					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></span>
+					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyResearch/EContentCheckedOut">{translate text="My Account"}</a></span>
 					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></span>
 					{if $showLoginButton == 1}
 					  <span class="menu-account-link loginOptions top-menu-item" {if $user} style="display: none;"{/if}><a href="{$path}/MyResearch/Home" class='loginLink'>{translate text="My Account"}</a></span>

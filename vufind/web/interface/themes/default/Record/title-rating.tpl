@@ -10,7 +10,7 @@
     <div id="saveLink{$recordId|escape}">
       <a href="{$path}/Record/{$recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$recordId|escape}'); return false;">{translate text='Add to favorites'}</a>
       {if $user}
-      <script language="JavaScript" type="text/javascript">
+      <script type="text/javascript">
         getSaveStatuses('{$recordId|escape:"javascript"}');
       </script>
       {/if}

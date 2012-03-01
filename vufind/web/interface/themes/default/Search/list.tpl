@@ -1,5 +1,5 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script language="JavaScript" type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
+<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
 
 {* Main Listing *}
 <div id="bd">

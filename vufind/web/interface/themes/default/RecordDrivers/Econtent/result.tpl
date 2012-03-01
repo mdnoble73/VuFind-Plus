@@ -4,7 +4,7 @@
 </div>
 
 <div class="imageColumn"> 
-    {if $user->disableCoverArt != 1}  
+    {if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}  
     <div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
     <a href="{$url}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
     <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>

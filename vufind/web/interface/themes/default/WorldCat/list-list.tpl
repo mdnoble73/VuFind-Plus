@@ -78,7 +78,7 @@
         <div id="saveLink{$record.id}">
           <a href="{$url}/WorldCat/Save?id={$record.id}" onclick="getLightbox('WorldCat', 'Save', '{$record.id}', null); return false;" class="fav tool">{translate text='Add to favorites'}</a>
           <ul id="lists{$record.id}"></ul>
-          <script language="JavaScript" type="text/javascript">
+          <script type="text/javascript">
             getSaveStatuses('{$record.id}');
           </script>
         </div>

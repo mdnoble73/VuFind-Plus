@@ -17,39 +17,39 @@
     {/if}
     {if $addHeader}{$addHeader}{/if}
     <link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" >
-    <script language="JavaScript" type="text/javascript">
+    <script type="text/javascript">
       path = '{$url}';
     </script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/scripts.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/rc4.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
+    <script type="text/javascript" src="{$path}/js/rc4.js"></script>
+    <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 
     
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.8.custom.min.js"></script>
+    <script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
+    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.8.custom.min.js"></script>
     <script src="http://www.coloradomesa.edu/js/megamenu.js" type="text/javascript"></script>
     
     {if $enableBookCart}
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/bookcart/jquery.blockUI.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/bookcart/jquery.cookie.js"></script>
-	  <script language="JavaScript" type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
+    <script type="text/javascript" src="{$path}/js/bookcart/jquery.blockUI.js"></script>
+    <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
+    <script type="text/javascript" src="{$path}/js/bookcart/jquery.cookie.js"></script>
+	  <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
 	  {/if}
     
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
+    <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
     <script language="Javascript" type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/tabs/tabcontent.js"></script>
+    <script type="text/javascript" src="{$path}/js/tabs/tabcontent.js"></script>
     {if false && !$productionServer}
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/errorHandler.js"></script>
+    <script type="text/javascript" src="{$path}/js/errorHandler.js"></script>
     {/if}
     {if $includeAutoLogoutCode == true}
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/jquery.idle-timer.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/autoLogout.js"></script>
+    <script type="text/javascript" src="{$path}/js/jquery.idle-timer.js"></script>
+    <script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
     {/if}
   
   <script type="text/javascript" src="{$path}/js/starrating/jquery.rater.js"></script>

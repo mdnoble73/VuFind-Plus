@@ -5,7 +5,7 @@
     {css media="screen" filename="styles.css"}
     {css media="print" filename="print.css"}
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-    <script language="JavaScript" type="text/javascript">
+    <script  type="text/javascript">
       path = '{$path}';
     </script>
   </head>

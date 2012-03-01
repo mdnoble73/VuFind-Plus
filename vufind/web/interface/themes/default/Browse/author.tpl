@@ -1,4 +1,4 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/services/Browse/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/Browse/ajax.js"></script>
 
 <div id="page-content" class="content">
     <div class="browseNav" style="margin: 0px;">

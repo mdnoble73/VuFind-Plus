@@ -1,5 +1,5 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script language="JavaScript" type="text/javascript" src="{$path}/services/WorldCat/ajax.js"></script>
+<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+<script type="text/javascript" src="{$path}/services/WorldCat/ajax.js"></script>
 
 <div id="bd">
   <div id="yui-main" class="content">
@@ -19,7 +19,7 @@
             *}
             {* TODO: WorldCat Save
             <li id="saveLink"><a href="{$url}/WorldCat/{$id}/Save" class="fav" onclick="getLightbox('Record', 'Save', '{$id}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
-            <script language="JavaScript" type="text/javascript">
+            <script type="text/javascript">
               getSaveStatus('{$id}', 'saveLink');
             </script>
              *}

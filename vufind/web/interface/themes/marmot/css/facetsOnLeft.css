@@ -1,0 +1,10 @@
+/* Changes to make facets appear on the left */
+.yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main{float:right; margin-right: -15em;}
+.yui-t4 .yui-b{float:left;}
+/* Revert a few pages back */
+body.Record .yui-t4 .yui-b, body.Browse .yui-t4 .yui-b{float:right;}
+body.Record .yui-t4 #yui-main,body.Record .yui-t5 #yui-main,body.Record .yui-t6 #yui-main{float:left; margin-right: -25em;}
+body.Browse .yui-t4 #yui-main,body.Browse .yui-t5 #yui-main,body.Browse .yui-t6 #yui-main{float:left; margin-right: -25em;}
+
+body.Person .yui-t4 .yui-b{float:right;}
+body.Person .yui-t4 #yui-main,body.Person .yui-t5 #yui-main,body.Person .yui-t6 #yui-main{float:left; margin-right: -25em;}

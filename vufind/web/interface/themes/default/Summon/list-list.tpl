@@ -62,7 +62,7 @@
           <a href="{$url}/Record/Save?id={$record.id.0}"
              onclick="getLightbox('Record', 'Save', 'Summon', '{$record.id.0}', null); return false;" class="fav tool">{translate text='Add to favorites'}</a>
           <ul id="lists{$record.id.0}"></ul>
-          <script language="JavaScript" type="text/javascript">
+          <script type="text/javascript">
             getSaveStatuses('{$record.id.0}');
           </script>
         </div>

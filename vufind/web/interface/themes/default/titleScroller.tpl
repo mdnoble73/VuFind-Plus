@@ -1,4 +1,4 @@
-<div id="list-{$wrapperId}">
+<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle || $fullListLink}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">

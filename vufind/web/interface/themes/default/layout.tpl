@@ -17,18 +17,18 @@
     {css media="screen" filename="styles.css"}
     {css media="print" filename="print.css"}
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-    <script language="JavaScript" type="text/javascript">
+    <script type="text/javascript">
       path = '{$url}';
     </script>
 
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/scripts.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/rc4.js"></script>
-    <script language="JavaScript" type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
+    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
+    <script type="text/javascript" src="{$path}/js/rc4.js"></script>
+    <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
   </head>
 
   <body>

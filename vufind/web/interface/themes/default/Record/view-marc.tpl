@@ -1,5 +1,5 @@
-<script language="JavaScript" type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script language="JavaScript" type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
+<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
     alert("{$title}");
@@ -25,7 +25,7 @@
           	<li id="Holdings"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
           </ul>
         </div>
-        <script language="JavaScript" type="text/javascript">
+        <script type="text/javascript">
           getSaveStatus('{$id|escape:"javascript"}', 'saveLink');
           {if $isbn || $upc}
           GetEnrichmentInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', '{$upc|escape:"url"}');

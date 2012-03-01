@@ -7,6 +7,7 @@
   {/foreach}
 {/if}]]></SimilarAuthors>
 <SeriesInfo><![CDATA[{$seriesInfo}]]></SeriesInfo>
+<SeriesDefaultIndex>{$enrichment.novelist.seriesDefaultIndex}</SeriesDefaultIndex>
 <SimilarTitles><![CDATA[{if $showSimilarTitles}
 <h4>{translate text="Similar Titles"}</h4>
   {foreach from=$enrichment.novelist.similarTitles item=similar}
