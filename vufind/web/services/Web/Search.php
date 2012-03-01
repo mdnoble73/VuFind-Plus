@@ -30,7 +30,7 @@ class Search extends Action
         // Assign basic values
         $interface->assign('googleKey', $configArray['GoogleSearch']['key']);
         $interface->assign('domain', $configArray['GoogleSearch']['domain']);
-        $interface->assign('lookfor', $_GET['lookfor']);
+        $interface->assign('lookfor', strip_tags($_GET['lookfor']));
         
         // Use the recommendations interface to get related catalog hits
         $recommendations = array();

@@ -176,6 +176,15 @@ class DBMaintenance extends Admin {
     	     ),
     	     ),
 
+    	 'list_cache_2_update_1' => array(
+         'title' => 'List cache 2 update 1',
+         'description' => 'Update List Cache 2 to add cache expiration time to allow various expiration times.',
+         'dependencies' => array(),
+         'sql' => array(
+    	     "ALTER TABLE `list_cache2` ADD cacheExpiration int(16) NOT NULL ;"
+    	   ),
+    	 ),
+
     	 'sip2_item_cache' => array(
          'title' => 'Create SIP2 Item cache',
          'description' => 'Initial creation of SIP 2 Item cache table to cache return values from SIP 2 related to barcodes',
@@ -189,7 +198,17 @@ class DBMaintenance extends Admin {
            ")",
     	     ),
     	     ),
-    	      
+    	
+    	 'sip2_item_cache_1' => array(
+         'title' => 'SIP2 Item cache Update 1',
+         'description' => 'Add caching of location',
+         'dependencies' => array(),
+         'sql' => array(
+           "ALTER TABLE sip2_item_cache ADD location varchar(10)",
+    	     ),
+    	     ),
+    	     
+
       'list_widgets' => array(
         'title' => 'Setup Configurable List Widgets',
         'description' => 'Create tables related to configurable list widgets',

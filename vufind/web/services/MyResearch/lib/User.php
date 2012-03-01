@@ -344,4 +344,17 @@ class User extends DB_DataObject
 		array('filter'=>'cat_username', 'type'=>'text', 'label'=>'Name'),
 		);
 	}
+	
+	function hasRatings(){
+		require_once 'Drivers/marmot_inc/UserRating.php';
+
+		$rating = new UserRating();
+		$rating->userid = $this->id;
+		$rating->find();
+		if ($rating->N > 0){
+			return true;
+		}else{
+			return false;
+		}
+	}
 }

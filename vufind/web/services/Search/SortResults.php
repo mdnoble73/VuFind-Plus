@@ -43,19 +43,17 @@ require_once 'Action.php';
  */
 class SortResults extends Action
 {
-    /**
-     * Process incoming parameters and perform a redirect if appropriate.
-     *
-     * @return void
-     * @access public
-     */
-    public function launch()
-    {
-        if (isset($_REQUEST['sort'])) {
-            header('Location: ' . $_REQUEST['sort']);
-            die();
-        }
-    }
+	/**
+	 * Process incoming parameters and perform a redirect if appropriate.
+	 *
+	 * @return void
+	 * @access public
+	 */
+	public function launch()
+	{
+		if (isset($_REQUEST['sort'])) {
+			header('Location: ' . $_REQUEST['sort']);
+			die();
+		}
+	}
 }
-
-?>

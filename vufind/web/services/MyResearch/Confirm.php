@@ -39,66 +39,66 @@ require_once 'MyResearch.php';
  */
 class Confirm extends MyResearch
 {
-    /**
-     * Process parameters and display the page.
-     *
-     * @return void
-     * @access public
-     */
-    public function launch()
-    {
-        global $interface;
-        global $configArray;
+	/**
+	 * Process parameters and display the page.
+	 *
+	 * @return void
+	 * @access public
+	 */
+	public function launch()
+	{
+		global $interface;
+		global $configArray;
 
-        // Delete List Confirmation
-        if (isset($_POST['deleteList']) && isset($_POST['listID'])) {
-            if ($_POST['confirm']) {
-                include_once 'services/MyResearch/MyList.php';
-                $myList = new MyList();
-                $myList->launch();
-            } else if ($_POST['cancel']) {
-                $followupUrl =  $configArray['Site']['url'] .
+		// Delete List Confirmation
+		if (isset($_POST['deleteList']) && isset($_POST['listID'])) {
+			if ($_POST['confirm']) {
+				include_once 'services/MyResearch/MyList.php';
+				$myList = new MyList();
+				$myList->launch();
+			} else if ($_POST['cancel']) {
+				$followupUrl =  $configArray['Site']['url'] .
                     "/MyResearch/MyList/" . urlencode($_POST['listID']);
-                header(
+				header(
                     "Location: " . $followupUrl . "?infoMsg=fav_list_delete_cancel"
-                );
-                exit();
-            } else {
-                $interface->assign('confirmAction', 'deleteList');
-                $interface->assign('listID', $_POST['listID']);
-                $interface->assign('listName', $_POST['listName']);
-                $interface->setpageTitle('delete_list');
-                $this->infoMsg = 'confirm_delete_list_text';
-                return $this->_display();
-            }
-        }
-        // If we get this far, we're missing some vital information
-    }
+                    );
+                    exit();
+			} else {
+				$interface->assign('confirmAction', 'deleteList');
+				$interface->assign('listID', $_POST['listID']);
+				$interface->assign('listName', $_POST['listName']);
+				$interface->setpageTitle('delete_list');
+				$this->infoMsg = 'confirm_delete_list_text';
+				return $this->_display();
+			}
+		}
+		// If we get this far, we're missing some vital information
+	}
 
-    /**
-     * Private support method -- display the confirmation dialog.
-     *
-     * @return void
-     * @access private
-     */
-    private function _display()
-    {
-        global $interface;
+	/**
+	 * Private support method -- display the confirmation dialog.
+	 *
+	 * @return void
+	 * @access private
+	 */
+	private function _display()
+	{
+		global $interface;
 
-        // Set Messages
-        $interface->assign('infoMsg', $this->infoMsg);
-        $interface->assign('errorMsg', $this->errorMsg);
+		// Set Messages
+		$interface->assign('infoMsg', $this->infoMsg);
+		$interface->assign('errorMsg', $this->errorMsg);
 
-        // Display Page
-        if (isset($_GET['lightbox'])) {
-            $interface->assign('title', $_GET['message']);
-            return $interface->fetch('MyResearch/confirm.tpl');
-        } else {
-            $interface->assign('subTemplate', 'confirm.tpl');
-            $interface->setTemplate('view-alt.tpl');
-            $interface->display('layout.tpl');
-        }
-    }
+		// Display Page
+		if (isset($_GET['lightbox'])) {
+			$interface->assign('title', $_GET['message']);
+			return $interface->fetch('MyResearch/confirm.tpl');
+		} else {
+			$interface->assign('subTemplate', 'confirm.tpl');
+			$interface->setTemplate('view-alt.tpl');
+			$interface->display('layout.tpl');
+		}
+	}
 }
 
 ?>

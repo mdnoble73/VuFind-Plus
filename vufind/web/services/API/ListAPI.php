@@ -60,6 +60,7 @@ class ListAPI extends Action {
 		if ($publicLists['success'] = true){
 			foreach ($publicLists['lists'] as $listInfo){
 				$allListNames[] = $listInfo['id'];
+				$allListNames[] = 'list:' . $listInfo['id'];
 			}
 		}
 		$systemLists = $this->getSystemLists();
@@ -399,7 +400,10 @@ class ListAPI extends Action {
 		}
 
 		$listId = $_REQUEST['id'];
-		if (is_numeric($listId)){
+		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
+			if (isset($listInfo)){
+				$listId = $listInfo[1];
+			}
 			//The list is a patron generated list
 			$list = new User_list();
 			$list->id = $listId;
@@ -422,7 +426,7 @@ class ListAPI extends Action {
 					$datesSaved[$resource->record_id] = $resource->saved;
 				}
 				$titles = $this->loadTitleInformationForIds($ids, array(), $datesSaved);
-				return array('success' => true, 'listName' => $list->title, 'listDescription' => $list->description, 'titles'=>$titles, 'cacheable'=>true);
+				return array('success' => true, 'listName' => $list->title, 'listDescription' => $list->description, 'titles'=>$titles, 'cacheLength'=>24);
 			}else{
 				return array('success'=>false, 'message'=>'The specified list could not be found.');
 			}
@@ -438,7 +442,7 @@ class ListAPI extends Action {
 				$ids[] = $recommendation->itemId;
 			}
 			$titles = $this->loadTitleInformationForIds($ids);
-			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'cacheable'=>false, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
+			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'cacheLength'=>0, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			require_once '/services/MyResearch/lib/Comments.php';
 			require_once '/services/MyResearch/lib/User_resource.php';
@@ -463,7 +467,7 @@ class ListAPI extends Action {
 				$datesSaved[$resource->record_id] = $comments->created;
 			}
 			$titles = $this->loadTitleInformationForIds($recordIds, $reviews, $datesSaved);
-			return array('success' => true, 'listName' => $reviewTag, 'listDescription' => 'Tagged reviews', 'titles'=>$titles, 'cacheable'=>false);
+			return array('success' => true, 'listName' => $reviewTag, 'listDescription' => 'Tagged reviews', 'titles'=>$titles, 'cacheLength'=>24);
 		}else{
 			$systemList = null;
 			$systemLists = $this->getSystemLists();
@@ -533,7 +537,7 @@ class ListAPI extends Action {
 						'dateSaved' => $eContentRecord->date_added,
 					);
 				}
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheable'=>true);
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'highestRated'){
 				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT 30";
 				$result = mysql_query($query);
@@ -542,7 +546,7 @@ class ListAPI extends Action {
 					$ids[] = $epubInfo['record_id'];
 				}
 				$titles = $this->loadTitleInformationForIds($ids);
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheable'=>true);
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'recentlyReviewed'){
 				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT 30";
 				$result = mysql_query($query);
@@ -551,7 +555,7 @@ class ListAPI extends Action {
 					$ids[] = $epubInfo['record_id'];
 				}
 				$titles = $this->loadTitleInformationForIds($ids);
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheable'=>false);
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'mostPopular'){
 				$query = "SELECT record_id, count(userId) from user_reading_history inner join resource on resourceId = resource.id GROUP BY resourceId order by count(userId) DESC LIMIT 30";
 				$result = mysql_query($query);
@@ -560,7 +564,7 @@ class ListAPI extends Action {
 					$ids[] = $epubInfo['record_id'];
 				}
 				$titles = $this->loadTitleInformationForIds($ids);
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheable'=>true);
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'recommendations'){
 				if (!$user){
 					return array('success'=>false, 'message'=>'A valid user must be provided to load recommendations.');
@@ -576,17 +580,24 @@ class ListAPI extends Action {
             'author' => $suggestion['titleInfo']['author']
 					);
 				}
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheable'=>false);
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>0);
 			}else{
 				$titles = $this->getRandomSystemListTitles($listId);
 				if (count($titles) > 0 ){
-					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "System Generated List", 'titles'=>$titles, 'cacheable'=>true);
+					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "System Generated List", 'titles'=>$titles, 'cacheLength'=>4);
 				}else{
 					return array('success'=>false, 'message'=>'The specified list could not be found.');
 				}
 			}
 		}
-
+	}
+	
+	function comparePublicationDates($a, $b){
+		if ($a['pubDate'] == $b['pubDate']){
+			return 0;
+		}else{
+			return $a['pubDate'] > $b['pubDate'] ? 1 : -1;
+		}
 	}
 
 	function loadTitleInformationForIds($ids, $descriptions = array(), $datesSaved = array()){
@@ -622,7 +633,20 @@ class ListAPI extends Action {
 				if (isset($descriptions) && isset($descriptions[$record['id']])){
 					$descriptiveInfo['description'] = $descriptions[$record['id']];
 				}
-
+				
+				$description = $descriptiveInfo['description'];
+				$numMatches = preg_match_all('/<\/p>|\\r|\\n|[.,:;]/', substr($description, 400, 50), $matches, PREG_OFFSET_CAPTURE);
+				if ($numMatches > 0){
+					$teaserBreakPoint = $matches[0][$numMatches - 1][1] + 400;
+				}else{
+					//Did not find a match at a paragraph or sentence boundary, just trim to the closest word.
+					if (strlen($description) > 450){
+						$teaserBreakPoint = strrpos(substr($description, 0, 450), ' ');
+					}else{
+						$teaserBreakPoint = strlen($description);
+					}
+				}
+				$teaser = substr($description, 0, $teaserBreakPoint);
 					
 				$titles[] = array(
             'id' => $record['id'],
@@ -630,7 +654,8 @@ class ListAPI extends Action {
             'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=large&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
             'title' => $record['title'],
             'author' => isset($record['author']) ? $record['author'] : '',
-				    'description' => $descriptiveInfo['description'],
+				    'description' => $description,
+						'teaser' => $teaser,
 	          'length' => $descriptiveInfo['length'],
 	          'publisher' => $descriptiveInfo['publisher'],
 						'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
@@ -653,7 +678,7 @@ class ListAPI extends Action {
 		global $configArray;
 		require_once('services/Record/Description.php');
 		//return a random selection of 30 titles from the list.
-		$scrollerName = $_GET['scrollerName'];
+		$scrollerName = strip_tags($_GET['scrollerName']);
 		$searchObj = SearchObjectFactory::initSearchObject();
 		$searchObj->init();
 		$searchObj->setBasicQuery("*:*");
@@ -709,7 +734,7 @@ class ListAPI extends Action {
 		global $configArray;
 		require_once('services/Record/Description.php');
 		//return a random selection of 30 titles from the list.
-		$scrollerName = $_GET['scrollerName'];
+		$scrollerName = strip_tags($_GET['scrollerName']);
 		$searchObj = SearchObjectFactory::initSearchObject();
 		$searchObj->init();
 		$searchObj->setBasicQuery("*:*");

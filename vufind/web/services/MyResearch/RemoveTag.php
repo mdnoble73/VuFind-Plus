@@ -24,39 +24,39 @@ require_once 'services/MyResearch/lib/Resource.php';
 
 class RemoveTag extends Action
 {
-    function launch($msg = null)
-    {
-        global $interface;
-        global $configArray;
-        global $user;
+	function launch($msg = null)
+	{
+		global $interface;
+		global $configArray;
+		global $user;
 
-        if (!($user = UserAccount::isLoggedIn())) {
-            require_once 'Login.php';
-            Login::launch();
-            exit();
-        }
-        
-        // Save Data
-        if (isset($_REQUEST['tagId'])) {
-            //Remove the tag for the user. 
-            $resource = new Resource();
-            if (isset($_REQUEST['resourceId'])){
-                $resource = $resource->staticGet('record_id', $_REQUEST['resourceId']);
-                $resource->removeTag($_REQUEST['tagId'], $user, false);
-                header('Location: ' . $configArray['Site']['url'] . '/Record/' . $_REQUEST['resourceId']);
-                exit();
-            }else{
-                $resource->removeTag($_REQUEST['tagId'], $user, true);
-                header('Location: ' . $configArray['Site']['url'] . '/MyResearch/Favorites');
-                exit();
-            }
-            
-        }else{
-            //No id provided to delete raise an error?
-            PEAR::raiseError(new PEAR_Error('Tag Id Missing'));
-        }
-        
-    }
+		if (!($user = UserAccount::isLoggedIn())) {
+			require_once 'Login.php';
+			Login::launch();
+			exit();
+		}
+
+		// Save Data
+		if (isset($_REQUEST['tagId'])) {
+			//Remove the tag for the user.
+			$resource = new Resource();
+			if (isset($_REQUEST['resourceId'])){
+				$resource = $resource->staticGet('record_id', $_REQUEST['resourceId']);
+				$resource->removeTag($_REQUEST['tagId'], $user, false);
+				header('Location: ' . $configArray['Site']['url'] . '/Record/' . $_REQUEST['resourceId']);
+				exit();
+			}else{
+				$resource->removeTag($_REQUEST['tagId'], $user, true);
+				header('Location: ' . $configArray['Site']['url'] . '/MyResearch/Favorites');
+				exit();
+			}
+
+		}else{
+			//No id provided to delete raise an error?
+			PEAR::raiseError(new PEAR_Error('Tag Id Missing'));
+		}
+
+	}
 }
 
 ?>

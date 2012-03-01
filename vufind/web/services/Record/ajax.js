@@ -345,7 +345,12 @@ function GetHoldingsInfo(id) {
 			var holdingsData = $(data).find("Holdings").text();
 			if (holdingsData) {
 				if (holdingsData.length > 0) {
-					$("#holdingsPlaceholder").html(holdingsData);
+					if (holdingsData.match(/No Copies Found/i)){
+						$("#moredetails-tabs").tabs("select", 1);
+						$("#moredetails-tabs").tabs("remove", 0);
+					}else{
+						$("#holdingsPlaceholder").html(holdingsData);
+					}
 				}
 			}
 			var holdingsSummary = $(data).find("HoldingsSummary").text();
@@ -358,6 +363,20 @@ function GetHoldingsInfo(id) {
 			if (showPlaceHold) {
 				if (showPlaceHold.length > 0 && showPlaceHold == 1) {
 					$(".requestThisLink").show();
+				}
+			}
+			var eAudioLink = $(data).find("EAudioLink").text();
+			if (eAudioLink) {
+				if (eAudioLink.length > 0) {
+					$("#eAudioLink" + id).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
+					$("#eAudioLink" + id).show();
+				}
+			}
+			var eBookLink = $(data).find("EBookLink").text();
+			if (eBookLink) {
+				if (eBookLink.length > 0) {
+					$("#eBookLink" + id).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
+					$("#eBookLink" + id).show();
 				}
 			}
 		}
@@ -427,14 +446,35 @@ function GetDescription(id) {
 		success : function(data) {
 			var descriptionData = $(data).find("description").text();
 			if (descriptionData) {
-
 				if (descriptionData.length > 0) {
 					// TODO: this will need to have the id attached to it so that the id
 					// is unique.
-		$(placeholder).html(descriptionData);
-	}
-}
+					$(placeholder).html(descriptionData);
+				}
+			}
+		}
+	});
 }
 
-	});
+libraryThingWidgetsLoaded = function(){
+	var ltfl_tagbrowse_content = $('#ltfl_tagbrowse').html();
+	if (!ltfl_tagbrowse_content.match(/loading_small\.gif/)){
+		 $("#ltfl_tagbrowse_button").show();
+	}
+	var ltfl_series_content = $('#ltfl_series').html();
+	if (!ltfl_series_content.match(/loading_small\.gif/)){
+		 $("#ltfl_series_button").show();
+	}
+	var ltfl_awards_content = $('#ltfl_awards').html();
+	if (!ltfl_awards_content.match(/loading_small\.gif/)){
+		 $("#ltfl_awards_button").show();
+	}
+	var ltfl_similars_content = $('#ltfl_similars').html();
+	if (!ltfl_similars_content.match(/loading_small\.gif/)){
+		 $("#ltfl_similars_button").show();
+	}
+	var ltfl_related_content = $('#ltfl_related').html();
+	if (!ltfl_related_content.match(/loading_small\.gif/)){
+		 $("#ltfl_related_button").show();
+	}
 }

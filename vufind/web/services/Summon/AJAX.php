@@ -24,208 +24,208 @@ require_once 'sys/Summon.php';
 
 class AJAX extends Action {
 
-    function launch()
-    {
-        header('Content-type: text/xml');
-        header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-        echo '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-        echo "<AJAXResponse>\n";
-        if (is_callable(array($this, $_GET['method']))) {
-            $method = $_GET['method']; 
-            $this->$method();
-        } else {
-            echo '<Error>Invalid Method</Error>';
-        }
-        echo '</AJAXResponse>';
-    }    
-    
-    // Saves a Record to User's Account
-    function SaveRecord()
-    {
-        global $configArray;
+	function launch()
+	{
+		header('Content-type: text/xml');
+		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+		echo '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
+		echo "<AJAXResponse>\n";
+		if (is_callable(array($this, $_GET['method']))) {
+			$method = $_GET['method'];
+			$this->$method();
+		} else {
+			echo '<Error>Invalid Method</Error>';
+		}
+		echo '</AJAXResponse>';
+	}
 
-        require_once 'services/MyResearch/lib/User.php';
-        require_once 'services/MyResearch/lib/Resource.php';
+	// Saves a Record to User's Account
+	function SaveRecord()
+	{
+		global $configArray;
 
-        // check if user is logged in
-        if (!($user = UserAccount::isLoggedIn())) {
-            echo "<result>Unauthorized</result>";
-            return;
-        }
+		require_once 'services/MyResearch/lib/User.php';
+		require_once 'services/MyResearch/lib/Resource.php';
 
-        $resource = new Resource();
-        $resource->record_id = $_GET['id'];
-        if (!$resource->find(true)) {
-            $resource->insert();
-        }
+		// check if user is logged in
+		if (!($user = UserAccount::isLoggedIn())) {
+			echo "<result>Unauthorized</result>";
+			return;
+		}
 
-        preg_match_all('/"[^"]*"|[^ ]+/', $_GET['tags'], $tagArray);
-        $user->addResource($resource, $tagArray[0], $_GET['notes']);
-        echo "<result>Done</result>";
-    }
-    
-    // Saves a search to User's Account
-    function SaveSearch()
-    {
-        require_once 'services/MyResearch/lib/User.php';
-        require_once 'services/MyResearch/lib/Search.php';
-        
-        //check if user is logged in
-        if (!($user = UserAccount::isLoggedIn())) {
-            echo "<result>Please Log in.</result>";
-            return;
-        }
+		$resource = new Resource();
+		$resource->record_id = $_GET['id'];
+		if (!$resource->find(true)) {
+			$resource->insert();
+		}
 
-        $lookfor = $_GET['lookfor'];
-        $limitto = urldecode($_GET['limit']);
-        $type = $_GET['type'];
-        
-        $search = new Search();
-        $search->user_id = $user->id;
-        $search->limitto = $limitto;
-        $search->lookfor = $lookfor;
-        $search->type = $type;
-        if(!$search->find()) {
-            $search = new Search();
-            $search->user_id = $user->id;
-            $search->lookfor = $lookfor;
-            $search->limitto = $limitto;
-            $search->type = $type;
-            $search->created = date('Y-m-d');
-            
-            $search->insert();
-        }
-        echo "<result>Done</result>";
-    }
-    
-    // Email Record
-    function SendEmail()
-    {
-        require_once 'services/Summon/Email.php';
+		preg_match_all('/"[^"]*"|[^ ]+/', $_GET['tags'], $tagArray);
+		$user->addResource($resource, $tagArray[0], $_GET['notes']);
+		echo "<result>Done</result>";
+	}
 
-        $emailService = new Email();
-        $result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
+	// Saves a search to User's Account
+	function SaveSearch()
+	{
+		require_once 'services/MyResearch/lib/User.php';
+		require_once 'services/MyResearch/lib/Search.php';
 
-        if (PEAR::isError($result)) {
-            echo '<result>Error</result><details>' . 
-                htmlspecialchars($result->getMessage()) . '</details>';
-        } else {
-            echo '<result>Done</result>';
-        }
-    }
+		//check if user is logged in
+		if (!($user = UserAccount::isLoggedIn())) {
+			echo "<result>Please Log in.</result>";
+			return;
+		}
 
-    function GetSaveStatus()
-    {
-        require_once 'services/MyResearch/lib/User.php';
-        require_once 'services/MyResearch/lib/Resource.php';
+		$lookfor = strip_tags($_GET['lookfor']);
+		$limitto = urldecode(strip_tags($_GET['limit']));
+		$type = $_GET['type'];
 
-        // check if user is logged in
-        if (!($user = UserAccount::isLoggedIn())) {
-            echo "<result>Unauthorized</result>";
-            return;
-        }
+		$search = new Search();
+		$search->user_id = $user->id;
+		$search->limitto = $limitto;
+		$search->lookfor = $lookfor;
+		$search->type = $type;
+		if(!$search->find()) {
+			$search = new Search();
+			$search->user_id = $user->id;
+			$search->lookfor = $lookfor;
+			$search->limitto = $limitto;
+			$search->type = $type;
+			$search->created = date('Y-m-d');
 
-        // Check if resource is saved to favorites
-        $resource = new Resource();
-        $resource->record_id = $_GET['id'];
-        if ($resource->find(true)) {
-            if ($user->hasResource($resource)) {
-                echo '<result>Saved</result>';
-            } else {
-                echo '<result>Not Saved</result>';
-            }
-        } else {
-            echo '<result>Not Saved</result>';
-        }
-    }
-    
-    /**
-     * Get Save Statuses
-     *
-     * This is responsible for printing the save status for a collection of
-     * records in XML format.
-     *
-     * @access  public
-     * @author  Chris Delis <cedelis@uillinois.edu>
-     */
-    function GetSaveStatuses()
-    {
-        require_once 'services/MyResearch/lib/User.php';
-        require_once 'services/MyResearch/lib/Resource.php';
+			$search->insert();
+		}
+		echo "<result>Done</result>";
+	}
 
-        // check if user is logged in
-        if (!($user = UserAccount::isLoggedIn())) {
-            echo "<result>Unauthorized</result>";
-            return;
-        }
+	// Email Record
+	function SendEmail()
+	{
+		require_once 'services/Summon/Email.php';
 
-        foreach ($_GET['id'] as $id) {
-            echo '<item id="' . $id . '">';
+		$emailService = new Email();
+		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
 
-            // Check if resource is saved to favorites
-            $resource = new Resource();
-            $resource->record_id = $id;
-            if ($resource->find(true)) {
-                $dataList = $user->getSavedData($id);
-                if ($dataList) {
-                    echo '<result>';
-                    foreach ($dataList as $data) {
-                        echo '{"id":"' . $data->list_id . '","title":"' . $data->list_title . '"}';
-                    }
-                    echo '</result>';
-                } else {
-                    echo '<result>False</result>';
-                }
-            } else {
-                echo '<result>False</result>';
-            }
+		if (PEAR::isError($result)) {
+			echo '<result>Error</result><details>' .
+			htmlspecialchars($result->getMessage()) . '</details>';
+		} else {
+			echo '<result>Done</result>';
+		}
+	}
 
-            echo '</item>';
-        }
-    }
-    
-    function GetSavedData()
-    {
-        require_once 'services/MyResearch/lib/User.php';
-        require_once 'services/MyResearch/lib/Resource.php';
+	function GetSaveStatus()
+	{
+		require_once 'services/MyResearch/lib/User.php';
+		require_once 'services/MyResearch/lib/Resource.php';
 
-        echo "<result>\n";
+		// check if user is logged in
+		if (!($user = UserAccount::isLoggedIn())) {
+			echo "<result>Unauthorized</result>";
+			return;
+		}
 
-        // check if user is logged in
-        if (!($user = UserAccount::isLoggedIn())) {
-            echo "<result>Unauthorized</result>";
-            return;
-        }
+		// Check if resource is saved to favorites
+		$resource = new Resource();
+		$resource->record_id = $_GET['id'];
+		if ($resource->find(true)) {
+			if ($user->hasResource($resource)) {
+				echo '<result>Saved</result>';
+			} else {
+				echo '<result>Not Saved</result>';
+			}
+		} else {
+			echo '<result>Not Saved</result>';
+		}
+	}
 
-        $saved = $user->getSavedData($_GET['id']);
-        if ($saved->notes) {
-            echo "  <Notes>$saved->notes</Notes>\n";
-        }
+	/**
+	 * Get Save Statuses
+	 *
+	 * This is responsible for printing the save status for a collection of
+	 * records in XML format.
+	 *
+	 * @access  public
+	 * @author  Chris Delis <cedelis@uillinois.edu>
+	 */
+	function GetSaveStatuses()
+	{
+		require_once 'services/MyResearch/lib/User.php';
+		require_once 'services/MyResearch/lib/Resource.php';
 
-        $myTagList = $user->getTags($_GET['id']);
-        if (count($myTagList)) {
-            foreach ($myTagList as $tag) {
-                echo "  <Tag>" . $tag->tag . "</Tag>\n";
-            }
-        }
+		// check if user is logged in
+		if (!($user = UserAccount::isLoggedIn())) {
+			echo "<result>Unauthorized</result>";
+			return;
+		}
 
-        echo '</result>';
-    }
+		foreach ($_GET['id'] as $id) {
+			echo '<item id="' . $id . '">';
 
-    // SMS Record
-    function SendSMS()
-    {
-        require_once 'services/Summon/SMS.php';
-        $sms = new SMS();
-        $result = $sms->sendSMS();
-        
-        if (PEAR::isError($result)) {
-            echo '<result>Error</result>';
-        } else {
-            echo '<result>Done</result>';
-        }
-    }
+			// Check if resource is saved to favorites
+			$resource = new Resource();
+			$resource->record_id = $id;
+			if ($resource->find(true)) {
+				$dataList = $user->getSavedData($id);
+				if ($dataList) {
+					echo '<result>';
+					foreach ($dataList as $data) {
+						echo '{"id":"' . $data->list_id . '","title":"' . $data->list_title . '"}';
+					}
+					echo '</result>';
+				} else {
+					echo '<result>False</result>';
+				}
+			} else {
+				echo '<result>False</result>';
+			}
+
+			echo '</item>';
+		}
+	}
+
+	function GetSavedData()
+	{
+		require_once 'services/MyResearch/lib/User.php';
+		require_once 'services/MyResearch/lib/Resource.php';
+
+		echo "<result>\n";
+
+		// check if user is logged in
+		if (!($user = UserAccount::isLoggedIn())) {
+			echo "<result>Unauthorized</result>";
+			return;
+		}
+
+		$saved = $user->getSavedData($_GET['id']);
+		if ($saved->notes) {
+			echo "  <Notes>$saved->notes</Notes>\n";
+		}
+
+		$myTagList = $user->getTags($_GET['id']);
+		if (count($myTagList)) {
+			foreach ($myTagList as $tag) {
+				echo "  <Tag>" . $tag->tag . "</Tag>\n";
+			}
+		}
+
+		echo '</result>';
+	}
+
+	// SMS Record
+	function SendSMS()
+	{
+		require_once 'services/Summon/SMS.php';
+		$sms = new SMS();
+		$result = $sms->sendSMS();
+
+		if (PEAR::isError($result)) {
+			echo '<result>Error</result>';
+		} else {
+			echo '<result>Done</result>';
+		}
+	}
 }
 
 ?>

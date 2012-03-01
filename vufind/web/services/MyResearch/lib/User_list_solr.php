@@ -38,6 +38,7 @@ class User_list_solr{
 		$timer->logTime('loaded resources so it can be saved to solr');
 		$doc = array();
 		$doc['id'] = 'list' . $fullList->id;
+		$doc['id_sort'] = -1;
 		$doc['recordtype'] = 'list';
 		$doc['title'] = $fullList->title;
 		$doc['title_proper'] = $fullList->title;
@@ -49,7 +50,7 @@ class User_list_solr{
 		$doc['num_titles'] = count($resources);
 		$doc['num_holdings'] = count($resources);
 		//Boosting to get towards the top of results
-		$doc['format_boost'] = 1000;
+		$doc['format_boost'] = 200;
 		$doc['language_boost'] = 500;
 		//Add the list of titles and authors to the content
 		$contents = '';

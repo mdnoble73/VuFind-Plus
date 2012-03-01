@@ -19,6 +19,7 @@
  */
 
 require_once 'Interface.php';
+require_once 'sys/SIP2.php';
 
 class Horizon implements DriverInterface{
 	protected $db;
@@ -91,6 +92,10 @@ private $holdings = array();
 
 		$sipInitialized = $mysip != null;
 
+		global $locationSingleton;
+		$homeLocation = $locationSingleton->getUserHomeLocation();
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
+		
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
@@ -123,20 +128,25 @@ private $holdings = array();
 				
 				//Get the item records from the 949 tag
 				$items = $marcRecord->getFields('949');
+				$barcodeSubfield    = $configArray['Catalog']['barcodeSubfield'];
+				$locationSubfield   = $configArray['Catalog']['locationSubfield'];
+				$itemSubfield       = $configArray['Catalog']['itemSubfield'];
+				$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
+				$statusSubfield     = $configArray['Catalog']['statusSubfield'];
 				foreach ($items as $itemIndex => $item){
 					$itemData = array();
-					$itemId = $item->getSubfield('n') != null ? $item->getSubfield('n')->getData() : '';
+					$itemId = $item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '';
 					//Get the barcode from the horizon database
-					$itemData['locationCode'] = strtolower( $item->getSubfield('m') != null ? $item->getSubfield('m')->getData() : '' );
+					$itemData['locationCode'] = strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' );
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
 					
 					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
 					}else{
-						$itemData['callnumber'] = ($item->getSubfield('d') != null ? $item->getSubfield('d')->getData() : '');
+						$itemData['callnumber'] = ($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
 					}
 					//Set default status
-					$itemData['status'] = $item->getSubfield('u') != null ? $item->getSubfield('u')->getData() : '';
+					$itemData['status'] = $item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '';
 					if ($this->useDb){
 						//Get updated status from database
 						//Query the database for realtime availability
@@ -148,11 +158,7 @@ private $holdings = array();
 							$timer->logTime("Got status from database item $itemIndex");
 						}
 					}
-					//Override online status to have an online location
-					if ($itemData['status'] == 'online'){
-						//$itemData['location'] = 'Online content';
-					}
-					$itemData['availability'] = ($itemData['status'] == 'i');
+					$itemData['availability'] = preg_match("/({$configArray['Catalog']['availableStatuses']})/i", $itemData['status']);
 					//Make the item holdable by default.  Then check rules to make it non-holdable.
 					$itemData['holdable'] = true;
 					//Make lucky day items not holdable
@@ -167,11 +173,10 @@ private $holdings = array();
 						}
 					}
 					//Online items are not holdable.
-					if (strcasecmp($itemData['status'], 'online') == 0){
+					if (!preg_match("/({$configArray['Catalog']['nonHoldableStatuses']})/i", $itemData['status'])){
 						$itemData['holdable'] = false;
 					}
 
-					$barcodeSubfield = $configArray['Catalog']['barcodeSubfield'];
 					$itemData['barcode'] = $item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '';
 					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
 					$itemData['holdQueueLength'] = 0;
@@ -179,8 +184,9 @@ private $holdings = array();
 						if ($forSummary && count($allItems) > 0){
 							//Shortcut if we are loading info for the holdings summary.  Just use the info
 							//from the first record since we aren't showing detailed information
-							$itemData['duedate'] = $allItems[0]['duedate'];
-							$itemData['holdQueueLength'] = intval($allItems[0]['holdQueueLength']);
+							$firstItem = reset($allItems);
+							$itemData['duedate'] = $firstItem['duedate'];
+							$itemData['holdQueueLength'] = intval($firstItem['holdQueueLength']);
 						}else{
 							//Check to see if the SIP2 information is already cached
 							$sip2ItemCache = new SIP2ItemCache();
@@ -236,6 +242,7 @@ private $holdings = array();
 										$sip2ItemCache->location = $itemData['locationCode'];
 									}
 									if (!$this->useDb){
+										//Override circulation status based on SIP
 										if ($result['fixed']['CirculationStatus'] == 4){
 											$itemData['status'] = 'o';
 											$itemData['availability'] = false;
@@ -255,9 +262,37 @@ private $holdings = array();
 
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
+					$suppressItem = false;
 					$statusesToSuppress = $configArray['Catalog']['statusesToSuppress'];
-					if (preg_match("/$statusesToSuppress/i", $itemData['status'])){
-						$allItems[] = $itemData;
+					if (strlen($statusesToSuppress) > 0 && preg_match("/^($statusesToSuppress)$/i", $itemData['status'])){
+						$suppressItem = true; 
+					}
+					//Suppress items based on location
+					$locationsToSuppress = $configArray['Catalog']['locationsToSuppress'];
+					if (strlen($locationsToSuppress) > 0 && preg_match("/^($locationsToSuppress)$/i", $itemData['locationCode'])){
+						//Make sure that the active branch is not the suppresed location
+						global $locationSingleton;
+						$branch = $locationSingleton->getBranchLocationCode();
+						if (!preg_match("/^($locationsToSuppress)$/i", $branch)){
+							$suppressItem = true; 
+						}
+					}
+					//Suppress staff items
+					$isStaff = false;
+					$subfieldO = $item->getSubfield('o');
+					if ($subfieldO->getData() == 1){
+						$isStaff = true;
+						$suppressItem = true; 
+					}
+					
+					if (!$suppressItem){
+						$sortString = $itemData['location'] . $itemData['callnumber'] . (count($allItems) + 1);
+						if ($physicalLocation != null && strcasecmp($physicalLocation->code, $itemData['locationCode']) == 0){
+							$sortString = "1" . $sortString;
+						}elseif ($homeLocation != null && strcasecmp($homeLocation->code, $itemData['locationCode']) == 0){
+							$sortString = "2" . $sortString;
+						}
+						$allItems[$sortString] = $itemData;
 					}
 				}
 			} else {
@@ -310,7 +345,7 @@ private $holdings = array();
                   'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
                   'cat_password' => $password,
                   'displayName' => $basicInfo->displayName,
-
+                  'homeLocationId' => $basicInfo->homeLocationId,
                   'email' => $basicInfo->email,
                   'major' => null,
                   'college' => null);   
@@ -452,6 +487,7 @@ private $holdings = array();
 	
 public function getMyHoldsViaHip($patron){
 		global $user;
+		global $configArray;
 		$logger = new Logger();
 
 		//Setup Curl
@@ -465,7 +501,7 @@ public function getMyHoldsViaHip($patron){
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Go to items out page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile=rem&menu=account&submenu=holds";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account&submenu=holds";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -497,7 +533,7 @@ public function getMyHoldsViaHip($patron){
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -524,6 +560,8 @@ public function getMyHoldsViaHip($patron){
 				$holdInfo['available'] = true;
 				//Get the rest of the details from the table contents
 				preg_match('/<td.*>.*?<a.*?>(.*?)<\/a>.*?<a class="normalBlackFont1">(.*?)<\/a>.*?<a class="normalBlackFont2">(?:by )?(.*?)<\/a>.*?<a class="normalBlackFont1">Date Placed: (.*?)<\/a>/s', $holdItemInfo[$matchi][4], $titleDetails);
+				$holdInfo['title'] = $titleDetails[1];
+				$holdInfo['author'] = $titleDetails[3];
 				$holdInfo['callNumber'] = $titleDetails[2];
 				$holdInfo['create'] = $titleDetails[4];
 				$holdInfo['createTime'] = strtotime($holdInfo['create']);
@@ -758,7 +796,10 @@ public function getMyHoldsViaDB($patron)
 		global $locationSingleton;
 		global $configArray;
 
-		$location = $locationSingleton->getActiveLocation();
+		$location = $locationSingleton->getPhysicalLocation();
+		if (!isset($location) && $location == null){
+			$location = $locationSingleton->getUserHomeLocation();
+		}
 		$canShowHoldButton = true;
 		if ($library && $library->showHoldButton == 0){
 			$canShowHoldButton = false;
@@ -828,6 +869,7 @@ public function getMyHoldsViaDB($patron)
 		//or null if the item statuses are inconsistent
 		$allItemStatus = '';
 		$firstAvailableBarcode = '';
+		$availableHere = false;
 		foreach ($holdings as $holdingKey => $holding){
 			if (is_null($allItemStatus)){
 				//Do nothing, the status is not distinct
@@ -837,6 +879,9 @@ public function getMyHoldsViaDB($patron)
 				$allItemStatus = null;
 			}
 			if ($holding['availability'] == true){
+				if ($location && strcasecmp($holding['locationCode'], $location->code) == 0){
+					$availableHere = true;
+				}
 				$numAvailableCopies++;
 				$addToAvailableLocation = false;
 				$addToAdditionalAvailableLocation = false;
@@ -856,7 +901,7 @@ public function getMyHoldsViaDB($patron)
 				}
 			}
 
-			if ($holding['holdable'] == 1){
+			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$numHoldableCopies++;
 			}
 			$numCopies++;
@@ -895,8 +940,6 @@ public function getMyHoldsViaDB($patron)
 		}
 		$timer->logTime('Processed copies');
 
-		$summaryInformation['hasEpub'] = false;
-		
 		//If all items are checked out the status will still be blank
 		$summaryInformation['availableCopies'] = $numAvailableCopies;
 		$summaryInformation['holdableCopies'] = $numHoldableCopies;
@@ -962,7 +1005,7 @@ public function getMyHoldsViaDB($patron)
 			//If there is a link, add that status information.
 			if (isset($linkURL) ) {
 				$isImageLink = preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/i' , $linkURL);
-				$isInternalLink = preg_match('/vufind\.douglascountylibraries\.org|catalog\.douglascountylibraries\.org/i', $linkURL);
+				$isInternalLink = preg_match('/vufind|catalog/i', $linkURL);
 				$isPurchaseLink = preg_match('/amazon|barnesandnoble/i', $linkURL);
 				if ($isImageLink == 0 && $isInternalLink == 0 && $isPurchaseLink == 0){
 					$linkTestText = $linkText . ' ' . $linkURL;
@@ -983,6 +1026,10 @@ public function getMyHoldsViaDB($patron)
 					}elseif(preg_match('/gutenberg/i', $linkURL)){
 						$isDownload = true;
 						$linkText = 'Gutenberg Project';
+					}elseif(preg_match('/ezproxy/i', $linkURL)){
+						$isDownload = true;
+					}elseif(preg_match('/.*\.[pdf]/', $linkURL)){
+						$isDownload = true;
 					}
 					if ($isDownload){
 						$summaryInformation['status'] = "Available for Download";
@@ -990,13 +1037,28 @@ public function getMyHoldsViaDB($patron)
 						$summaryInformation['isDownloadable'] = true;
 						$summaryInformation['downloadLink'] = $linkURL;
 						$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
+						//Check to see if this is an eBook or eAudio book.  We can get this from the 245h tag
+						$isEBook = true;
+						$formatCategory = isset($record['format_category'])? $record['format_category'][0] : '';
+						if (strcasecmp($formatCategory, 'eBooks') === 0){
+							$summaryInformation['eBookLink'] = $linkURL;
+						}elseif (strcasecmp($formatCategory, 'eAudio') === 0){
+							$summaryInformation['eAudioLink'] = $linkURL;
+						}
 					}
 				}
 			}
 			$timer->logTime('Checked for downloadable link in 856 tag');
 		}
 
-		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
+		if ($availableHere){
+			$summaryInformation['status'] = "It's Here";
+			$summaryInformation['class'] = 'here';
+			unset($availableLocations[$location->code]);
+			$summaryInformation['currentLocation'] = $location->displayName;
+			$summaryInformation['availableAt'] = join(', ', $availableLocations);
+			$summaryInformation['numAvailableOther'] = count($availableLocations);
+		}else{
 			//Replace all spaces in the name of a location with no break spaces
 			$summaryInformation['availableAt'] = join(', ', $availableLocations);
 			$summaryInformation['numAvailableOther'] = count($availableLocations);
@@ -1117,6 +1179,7 @@ public function getMyHoldsViaDB($patron)
 
 	public function getMyFinesViaHIP($patron, $includeMessages){
 		global $user;
+		global $configArray;
 		$logger = new Logger();
 
 		//Setup Curl
@@ -1130,7 +1193,7 @@ public function getMyHoldsViaDB($patron)
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Go to items out page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile=rem&menu=account&submenu=blocks";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account&submenu=blocks";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -1162,7 +1225,7 @@ public function getMyHoldsViaDB($patron)
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -1260,7 +1323,7 @@ public function getMyHoldsViaDB($patron)
                                     'reason' => $this->translateFineMessageType($row['FINE']),
                                     'balance' => $balance,
                                     'checkout' => $checkout,
-                                    'date' => $duedate);
+                                    'date' => date('M j, Y', strtotime($duedate)));
 			}
 			return $fineList;
 		} catch (PDOException $e) {
@@ -1463,7 +1526,7 @@ private $patronProfiles = array();
             'city' => trim($addressParts[1]),
             'state' => trim($addressParts[2]),
             'zip' => isset($addressParts[3]) ? trim($addressParts[3]) : '',
-            'phone' => $result['variable']['BF'][0],
+            'phone' => isset($result['variable']['BF'][0]) ? $result['variable']['BF'][0] : '',
             'email' => $result['variable']['BE'][0],
             'homeLocationId' => isset($homeLocationId) ? $homeLocationId : -1,
             'homeLocationName' => $this->translateLocation($result['variable']['AQ'][0]),
@@ -1595,7 +1658,7 @@ private $transactions = array();
 					// Make sure the response is 18 as expected
 					if (preg_match("/^18/", $msg_result)) {
 						$result = $mysip->parseItemInfoResponse( $msg_result );
-						if (isset($result['variable']['AH'])){
+						if (isset($result['variable']['AH']) && $itemData['status'] != 'i'){
 							$duedate = $result['variable']['AH'][0];
 						}else{
 							$duedate = '';
@@ -1658,6 +1721,7 @@ private $transactions = array();
 	}
 	public function getMyTransactionsViaHIP($patron){
 		global $user;
+		global $configArray;
 		$logger = new Logger();
 
 		//Setup Curl
@@ -1671,7 +1735,7 @@ private $transactions = array();
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Go to items out page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile=rem&menu=account&submenu=itemsout";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account&submenu=itemsout";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -1703,7 +1767,7 @@ private $transactions = array();
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -1732,6 +1796,8 @@ private $transactions = array();
         'barcode' => $checkedOutItemInfo[$matchi][1],
         'renewCount' => $checkedOutItemInfo[$matchi][7],
         'request' => null,
+        'title' => $checkedOutItemInfo[$matchi][3],
+        'author' => $checkedOutItemInfo[$matchi][4],
         'overdue' => $overdue,
         'daysUntilDue' => $daysUntilDue,
 			);
@@ -1804,6 +1870,7 @@ public function renewItem($patronId, $itemId){
 
 	public function renewItemViaHIP($patronId, $itemId){
 		global $user;
+		global $configArray;
 
 		$logger = new Logger();
 
@@ -1820,7 +1887,7 @@ public function renewItem($patronId, $itemId){
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Start at My Account Page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile=rem&menu=account";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -1852,7 +1919,7 @@ public function renewItem($patronId, $itemId){
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -1870,7 +1937,7 @@ public function renewItem($patronId, $itemId){
 		//Renew the item
 		$post_data = array(
       'menu' => 'account',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'renewitems' => 'Renew',
       'renewitemkeys' => $itemId, //(array of barcodes)
       'session' => $sessionId,
@@ -1908,14 +1975,18 @@ public function renewItem($patronId, $itemId){
                     'message' => $message);
 	}
 
-	public function renewItemViaSIP($patronId, $itemId){
+	public function renewItemViaSIP($patronId, $itemId, $useAlternateSIP = false){
 		global $configArray;
 		global $user;
 
 		//renew the item via SIP 2
 		$mysip = new sip2();
 		$mysip->hostname = $configArray['SIP2']['host'];
-		$mysip->port = $configArray['SIP2']['port'];
+		if ($useAlternateSIP){
+			$mysip->port = $configArray['SIP2']['alternate_port'];
+		}else{
+			$mysip->port = $configArray['SIP2']['port'];
+		}
 
 		$hold_result['itemId'] = $itemId;
 		$hold_result['title'] = $itemId;
@@ -1947,12 +2018,38 @@ public function renewItem($patronId, $itemId){
 					//print_r($result);
 					$hold_result['result'] = ($result['fixed']['Ok'] == 1);
 					$hold_result['message'] = $result['variable']['AF'][0];
+					
+					//If the renew fails, check to see if we need to override the SIP port
+					if ($hold_result['result'] == false && $useAlternateSIP == false){
+						//Can override the SIP port if there are sufficient copies on the shelf to cover any holds
+						
+						//Get the id for the item 
+						$searchObject = SearchObjectFactory::initSearchObject();
+						$class = $configArray['Index']['engine'];
+						$url = $configArray['Index']['url'];
+						$index = new $class($url);
+						if ($configArray['System']['debugSolr']) {
+							$index->debug = true;
+						}
+						
+						$record = $index->getRecordByBarcode($itemId);
+						
+						if ($record){
+							//Get holdings summary
+							$statusSummary = $this->getStatusSummary($record['id'], $record, $mysip);
+							
+							//If # of available copies >= waitlist change sip port and renew
+							if ($statusSummary['availableCopies'] >= $statusSummary['holdQueueLength']){
+								$hold_result = $this->renewItemViaSIP($patronId, $itemId, true);
+							}
+						}
+					}
 				}
 			}
+		}else{
+			$hold_result['message'] = "Could not connect to circulation server, please try again later.";
 		}
-
-
-
+		
 		return $hold_result;
 	}
 
@@ -2065,7 +2162,7 @@ public function renewItem($patronId, $itemId){
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Start at My Account Page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile=rem&menu=account";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -2100,7 +2197,7 @@ public function renewItem($patronId, $itemId){
       'login_prompt' => 'true',
       'menu' => 'account',
 		//'npp' => '10',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -2124,7 +2221,7 @@ public function renewItem($patronId, $itemId){
         'newemailtext' => $_REQUEST['email'],
         'newpin' => '', 
         'oldpin' => '', 
-        'profile' => 'rem',
+        'profile' => $configArray['Catalog']['hipProfile'],
         'renewpin' => '', 
         'session' => $sessionId,
         'submenu' => 'info',
@@ -2157,7 +2254,7 @@ public function renewItem($patronId, $itemId){
         'newemailtext' => $_REQUEST['email'],
         'newpin' => $_REQUEST['newPin'],  
         'oldpin' => $_REQUEST['oldPin'],  
-        'profile' => 'rem',
+        'profile' => $configArray['Catalog']['hipProfile'],
         'renewpin' => $_REQUEST['verifyPin'],
         'session' => $sessionId,
         'submenu' => 'info',
@@ -2204,8 +2301,9 @@ public function renewItem($patronId, $itemId){
 	}
 
 	public function placeHold($recordId, $patronId, $comment, $type){
-		if (false){
-			$result =  $this->placeHoldViaHIP($recordId, $patronId, $comment, $type);
+		//Self registered cards need to use HIP to place holds 
+		if (preg_match('/^\\d{12}-\\d$/', $patronId)){
+			$result = $this->placeHoldViaHIP($recordId, $patronId, $comment, $type);
 		}else{
 			$result = $this->placeHoldViaSIP($recordId, $patronId, $comment, $type);
 		}
@@ -2228,6 +2326,7 @@ public function renewItem($patronId, $itemId){
 	public function placeHoldViaHIP($recordId, $patronId, $comment, $type)
 	{
 		global $user;
+		global $configArray;
 		$logger = new Logger();
 		$profile = $this->getMyProfile($user);
 
@@ -2244,7 +2343,7 @@ public function renewItem($patronId, $itemId){
 		//Go to full record in HIP
 		//http://hip.douglascountylibraries.org/ipac20/ipac.jsp?full=3100001~!973657~!0
 		//http://hip.douglascountylibraries.org/ipac20/ipac.jsp?full=<<hardcoded value>>~!<<record id>>~!<<index>>
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?full=3100001~!$recordId~!0";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?full=3100001~!$recordId~!0&profile={$configArray['Catalog']['selfRegProfile']}";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -2272,7 +2371,7 @@ public function renewItem($patronId, $itemId){
 		//Go to the request copy page (login)
 		//http://hip.douglascountylibraries.org/ipac20/ipac.jsp?session=<<sessionId>>&profile=rem&bibkey=<<record id>>&aspect=subtab54&lang=eng&menu=request&submenu=none&source=~!horizon&uri=&time=<<ms since 1970>>
 		$curTime = time();
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?session=$sessionId&profile=rem&bibkey=$recordId&aspect=subtab54&lang=eng&menu=request&submenu=none&source=~!horizon&uri=&time=$curTime";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?session=$sessionId&profile={$configArray['Catalog']['selfRegProfile']}&bibkey=$recordId&aspect=subtab54&lang=eng&menu=request&submenu=none&source=~!horizon&uri=&time=$curTime";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		$sresult = curl_exec($curl_connection);
 
@@ -2315,7 +2414,10 @@ public function renewItem($patronId, $itemId){
 		//Parse the results page to get hold queue position and effective date
 		//Set pickup location and confirm the hold by calling GET to
 		//http://hip.douglascountylibraries.org/ipac20/ipac.jsp
-		if (preg_match('/name="notifyby" value="(.*?)"/', $sresult, $matches)) {
+		$notifyBy = null;
+		if (preg_match('/Request Confirmation/', $sresult)) {
+			//The request is successful
+		} elseif (preg_match('/name="notifyby" value="(.*?)"/', $sresult, $matches)) {
 			$notifyBy = $matches[1];
 		} else {
 			//May have faile to place the hold
@@ -2340,11 +2442,29 @@ public function renewItem($patronId, $itemId){
 					$campus = $locationLookup->code;
 				}
 			}
-			$pickupLocation = $this->translateLocation($campus);
-			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?session=$sessionId&notifyby=$notifyBy&aspect=none&cl=PlaceRequestjsp&profile=rem&pickuplocation=$pickupLocation&request_finish=Request";
+			$post_data = array();
+			$post_data['aspect'] = 'none';
+			$post_data['cl'] = 'PlaceRequestjsp';
+			$post_data['notifyby'] = (isset($notifyBy) && !is_null($notifyBy)) ? $notifyBy : 'phone';
+			$post_data['pickuplocation'] = $pickupLocation;
+			$post_data['profile'] = $this->selfRegProfile;
+			$post_data['session'] = $sessionId;
+			$post_data['request_finish'] = 'Request';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . urlencode($value);
+			}
+			$post_string = implode ('&', $post_items);
+			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
+			curl_setopt($curl_connection, CURLOPT_POST, true);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$sresult = curl_exec($curl_connection);
+			
+			if (preg_match('/Must specify a valid pickup location/', $sresult)){
+				$failureReason = "Sorry the pickup location could not be recognized.";
+			}
+			
 		}
 
 		$hold_result = array();
@@ -2537,7 +2657,7 @@ public function renewItem($patronId, $itemId){
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Start at My Account Page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile=rem&menu=account";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -2569,7 +2689,7 @@ public function renewItem($patronId, $itemId){
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => 'rem',
+      'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -2589,7 +2709,7 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'cancelhold' => 'Cancel Request',
         'menu' => 'account',
-        'profile' => 'rem',
+        'profile' => $configArray['Catalog']['hipProfile'],
         'session' => $sessionId,
         'submenu' => 'holds',
         'suspend_date' => '',
@@ -2635,7 +2755,7 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'changestatus' => 'Change Status',
         'menu' => 'account',
-        'profile' => 'rem',
+        'profile' => $configArray['Catalog']['hipProfile'],
         'select1' => $dateParts['month'],
         'select2' => $dateParts['day'],
         'select3' => $dateParts['year'] ,

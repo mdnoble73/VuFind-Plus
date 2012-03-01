@@ -18,15 +18,19 @@
  *
  */
 
-require_once 'Action.php';
+require_once "Action.php";
 
-class Logout extends Action {
+class PayFines extends Action
+{
+	function __construct()
+	{
+	}
 
-	public function launch() {
-		global $configArray;
+	function launch($msg = null)
+	{
+		global $interface;
 
-		UserAccount::logout();
-
-		header('Location: ' . $configArray['Site']['url']);
+		$interface->setTemplate('payfines.tpl');
+		$interface->display('layout.tpl');
 	}
 }

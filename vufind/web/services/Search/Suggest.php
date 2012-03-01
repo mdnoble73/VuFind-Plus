@@ -22,22 +22,21 @@ require_once 'Action.php';
 
 class Suggest extends Action {
 
-    function launch()
-    {
-        global $configArray;
+	function launch()
+	{
+		global $configArray;
 
-        //header('Content-type: application/x-suggestions+json');
-        header('Content-type: application/json');
+		//header('Content-type: application/x-suggestions+json');
+		header('Content-type: application/json');
 
-        // Setup Search Engine Connection
-        $class = $configArray['Index']['engine'];
-        $db = new $class($configArray['Index']['url']);
-        if ($configArray['System']['debugSolr']) {
-            $db->debug = true;
-        }
-        
-        $results = $db->getSuggestion(strtolower($_GET['lookfor']), 'title_sort', 10);
-        echo json_encode($results);
-    }
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$db = new $class($configArray['Index']['url']);
+		if ($configArray['System']['debugSolr']) {
+			$db->debug = true;
+		}
+
+		$results = $db->getSuggestion(strtolower(strip_tags($_GET['lookfor'])), 'title_sort', 10);
+		echo json_encode($results);
+	}
 }
-?>

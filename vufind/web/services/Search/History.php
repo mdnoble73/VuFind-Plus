@@ -21,43 +21,43 @@
 require_once 'Action.php';
 
 class History extends Action {
-    var $catalog;
-    
-    function launch()
-    {
-        global $interface;
-        global $user;
+	var $catalog;
 
-        // In some contexts, we want to require a login before showing search
-        // history:
-        if (isset($_REQUEST['require_login']) && !UserAccount::isLoggedIn()) {
-            require_once 'services/MyResearch/Login.php';
-            Login::launch();
-            exit();
-        }
+	function launch()
+	{
+		global $interface;
+		global $user;
 
-        $interface->setPageTitle('Search History');
+		// In some contexts, we want to require a login before showing search
+		// history:
+		if (isset($_REQUEST['require_login']) && !UserAccount::isLoggedIn()) {
+			require_once 'services/MyResearch/Login.php';
+			Login::launch();
+			exit();
+		}
 
-        // Retrieve search history
-        $s = new SearchEntry();
-        $searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
+		$interface->setPageTitle('Search History');
 
-        if (count($searchHistory) > 0) {
-            // Build an array of history entries
-            $links = array();
-            $saved = array();
+		// Retrieve search history
+		$s = new SearchEntry();
+		$searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
 
-            // Loop through the history
-            foreach($searchHistory as $search) {
-                $size = strlen($search->search_object);
-                $minSO = unserialize($search->search_object);
-                $searchObject = SearchObjectFactory::deminify($minSO);
-                
-                // Make sure all facets are active so we get appropriate
-                // descriptions in the filter box.
-                $searchObject->activateAllFacets();
+		if (count($searchHistory) > 0) {
+			// Build an array of history entries
+			$links = array();
+			$saved = array();
 
-                $newItem = array(
+			// Loop through the history
+			foreach($searchHistory as $search) {
+				$size = strlen($search->search_object);
+				$minSO = unserialize($search->search_object);
+				$searchObject = SearchObjectFactory::deminify($minSO);
+
+				// Make sure all facets are active so we get appropriate
+				// descriptions in the filter box.
+				$searchObject->activateAllFacets();
+
+				$newItem = array(
                     'time'        => date("g:ia, jS M y", $searchObject->getStartTime()),
                     'url'         => $searchObject->renderSearchUrl(),
                     'searchId'    => $searchObject->getSearchId(),
@@ -65,79 +65,79 @@ class History extends Action {
                     'filters'     => $searchObject->getFilterList(),
                     'hits'        => number_format($searchObject->getResultTotal()),
                     'speed'       => round($searchObject->getQuerySpeed(), 2)."s",
-                    // Size is purely for debugging. Not currently displayed in the template.
-                    // It's the size of the serialized, minified search in the database.
+				// Size is purely for debugging. Not currently displayed in the template.
+				// It's the size of the serialized, minified search in the database.
                     'size'        => round($size/1024, 3)."kb"
-                );
+                    );
 
-                // Saved searches
-                if ($search->saved == 1) {
-                    $saved[] = $newItem;
+                    // Saved searches
+                    if ($search->saved == 1) {
+                    	$saved[] = $newItem;
 
-                // All the others
-                } else {
-                    // If this was a purge request we don't need this
-                    if (isset($_REQUEST['purge']) && $_REQUEST['purge'] == 'true') {
-                        $search->delete();
-                        
-                        // We don't want to remember the last search after a purge:
-                        unset($_SESSION['lastSearchURL']);
-                    // Otherwise add to the list
+                    	// All the others
                     } else {
-                        $links[] = $newItem;
-                    }
-                }
-            }
+                    	// If this was a purge request we don't need this
+                    	if (isset($_REQUEST['purge']) && $_REQUEST['purge'] == 'true') {
+                    		$search->delete();
 
-            // One final check, after a purge make sure we still have a history
-            if (count($links) > 0 || count($saved) > 0) {
-                $interface->assign('links', array_reverse($links));
-                $interface->assign('saved', array_reverse($saved));
-                $interface->assign('noHistory', false);
-            // Nothing left in history
-            } else {
-                $interface->assign('noHistory', true);
-            }
-        // No history
-        } else {
-            $interface->assign('noHistory', true);
-        }
-        
-        //Load profile inforamtion for display in My Account menu
-        //This code is also in MyResearch.php
-        if ($user !== false){
-            global $configArray;
-            $this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
-            // Get My Profile
-            if ($this->catalog->status) {
-                if ($user->cat_username) {
-                    $patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-                    if (PEAR::isError($patron)){
-                        PEAR::raiseError($patron);
+                    		// We don't want to remember the last search after a purge:
+                    		unset($_SESSION['lastSearchURL']);
+                    		// Otherwise add to the list
+                    	} else {
+                    		$links[] = $newItem;
+                    	}
                     }
-                    
-                    $result = $this->catalog->getMyProfile($patron);
-                    if (!PEAR::isError($result)) {
-                        $interface->assign('profile', $result);
-                    }
-                }
-            }
-            
-            //Figure out if we should show a link to classic opac to pay holds.
-            global $librarySingleton;
-            $homeLibrary = $librarySingleton->getLibraryForLocation($user->homeLocationId);
-            if ($homeLibrary->showEcommerceLink == 1){
-                $interface->assign('showEcommerceLink', true);
-                $interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-            }else{
-                $interface->assign('showEcommerceLink', false);
-                $interface->assign('minimumFineAmount', 0);
-            }
-        }
+			}
 
-        $interface->setTemplate('history.tpl');
-        $interface->display('layout.tpl');
-    }
+			// One final check, after a purge make sure we still have a history
+			if (count($links) > 0 || count($saved) > 0) {
+				$interface->assign('links', array_reverse($links));
+				$interface->assign('saved', array_reverse($saved));
+				$interface->assign('noHistory', false);
+				// Nothing left in history
+			} else {
+				$interface->assign('noHistory', true);
+			}
+			// No history
+		} else {
+			$interface->assign('noHistory', true);
+		}
+
+		//Load profile inforamtion for display in My Account menu
+		//This code is also in MyResearch.php
+		if ($user !== false){
+			global $configArray;
+			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			// Get My Profile
+			if ($this->catalog->status) {
+				if ($user->cat_username) {
+					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
+					if (PEAR::isError($patron)){
+						PEAR::raiseError($patron);
+					}
+
+					$result = $this->catalog->getMyProfile($patron);
+					if (!PEAR::isError($result)) {
+						$interface->assign('profile', $result);
+					}
+				}
+			}
+
+			//Figure out if we should show a link to classic opac to pay holds.
+			global $librarySingleton;
+			$homeLibrary = $librarySingleton->getLibraryForLocation($user->homeLocationId);
+			if ($homeLibrary->showEcommerceLink == 1){
+				$interface->assign('showEcommerceLink', true);
+				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
+			}else{
+				$interface->assign('showEcommerceLink', false);
+				$interface->assign('minimumFineAmount', 0);
+			}
+		}
+
+		$interface->setTemplate('history.tpl');
+		$interface->display('layout.tpl');
+	}
 }
 
 ?>

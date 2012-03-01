@@ -43,19 +43,17 @@ require_once 'Action.php';
  */
 class LimitResults extends Action
 {
-    /**
-     * Process incoming parameters and perform a redirect if appropriate.
-     *
-     * @return void
-     * @access public
-     */
-    public function launch()
-    {
-        if (isset($_REQUEST['limit'])) {
-            header('Location: ' . $_REQUEST['limit']);
-            die();
-        }
-    }
+	/**
+	 * Process incoming parameters and perform a redirect if appropriate.
+	 *
+	 * @return void
+	 * @access public
+	 */
+	public function launch()
+	{
+		if (isset($_REQUEST['limit'])) {
+			header('Location: ' . $_REQUEST['limit']);
+			die();
+		}
+	}
 }
-
-?>

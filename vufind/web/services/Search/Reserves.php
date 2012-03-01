@@ -25,101 +25,101 @@ require_once 'CatalogConnection.php';
 require_once 'sys/Pager.php';
 
 class Reserves extends Action {
-    
-    function launch()
-    {
-        global $interface;
-        global $configArray;
 
-        $catalog = new CatalogConnection($configArray['Catalog']['driver']);
-        if (!$catalog->status) {
-            PEAR::raiseError(new PEAR_Error('Cannot Load Catalog Driver'));
-        }
+	function launch()
+	{
+		global $interface;
+		global $configArray;
 
-        if (count($_GET) > 2) {
-            // Initialise from the current search globals
-            $searchObject = SearchObjectFactory::initSearchObject();
-            $searchObject->init();
+		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		if (!$catalog->status) {
+			PEAR::raiseError(new PEAR_Error('Cannot Load Catalog Driver'));
+		}
 
-            // Must have atleast Action and Module set to continue
-            $interface->setPageTitle('Reserves Search Results');
-            $interface->assign('subpage', 'Search/list-list.tpl');
-            $interface->setTemplate('reserves-list.tpl');
-            $interface->assign('sortList', $searchObject->getSortList());
-            $interface->assign('rssLink', $searchObject->getRSSUrl());
+		if (count($_GET) > 2) {
+			// Initialise from the current search globals
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
 
-            // Get reserve info from the catalog and catch any fatal errors:
-            $result = $catalog->findReserves($_GET['course'], $_GET['inst'], $_GET['dept']);
-            if (PEAR::isError($result)) {
-                PEAR::raiseError($result);
-            }
+			// Must have atleast Action and Module set to continue
+			$interface->setPageTitle('Reserves Search Results');
+			$interface->assign('subpage', 'Search/list-list.tpl');
+			$interface->setTemplate('reserves-list.tpl');
+			$interface->assign('sortList', $searchObject->getSortList());
+			$interface->assign('rssLink', $searchObject->getRSSUrl());
 
-            // Perform a Solr query to get details on the reserve items, assuming
-            // we found at least one.
-            if (count($result) > 0) {
-                $bibIDs = array();
-                foreach ($result as $record) {
-                    // Avoid duplicate IDs (necessary for Voyager ILS driver):
-                    if (!in_array($record['BIB_ID'], $bibIDs)) {
-                        $bibIDs[] = $record['BIB_ID'];
-                    }
-                }
-                $searchObject->setQueryIDs($bibIDs);
+			// Get reserve info from the catalog and catch any fatal errors:
+			$result = $catalog->findReserves($_GET['course'], $_GET['inst'], $_GET['dept']);
+			if (PEAR::isError($result)) {
+				PEAR::raiseError($result);
+			}
 
-                // Build RSS Feed for Results (if requested)
-                if ($searchObject->getView() == 'rss') {
-                    // Throw the XML to screen
-                    echo $searchObject->buildRSS();
-                    // And we're done
-                    exit();
-                }
+			// Perform a Solr query to get details on the reserve items, assuming
+			// we found at least one.
+			if (count($result) > 0) {
+				$bibIDs = array();
+				foreach ($result as $record) {
+					// Avoid duplicate IDs (necessary for Voyager ILS driver):
+					if (!in_array($record['BIB_ID'], $bibIDs)) {
+						$bibIDs[] = $record['BIB_ID'];
+					}
+				}
+				$searchObject->setQueryIDs($bibIDs);
 
-                // Process Search
-                $result = $searchObject->processSearch(false, true);
-                if (PEAR::isError($result)) {
-                    PEAR::raiseError($result->getMessage());
-                }
-                
-                // Store recommendations (facets, etc.)
-                $interface->assign('topRecommendations',
-                    $searchObject->getRecommendationsTemplates('top'));
-                $interface->assign('sideRecommendations',
-                    $searchObject->getRecommendationsTemplates('side'));
-            // Special case -- empty RSS feed:
-            } else if ($searchObject->getView() == 'rss') {
-                // Throw the XML to screen
-                echo $searchObject->buildRSS(array(
+				// Build RSS Feed for Results (if requested)
+				if ($searchObject->getView() == 'rss') {
+					// Throw the XML to screen
+					echo $searchObject->buildRSS();
+					// And we're done
+					exit();
+				}
+
+				// Process Search
+				$result = $searchObject->processSearch(false, true);
+				if (PEAR::isError($result)) {
+					PEAR::raiseError($result->getMessage());
+				}
+
+				// Store recommendations (facets, etc.)
+				$interface->assign('topRecommendations',
+				$searchObject->getRecommendationsTemplates('top'));
+				$interface->assign('sideRecommendations',
+				$searchObject->getRecommendationsTemplates('side'));
+				// Special case -- empty RSS feed:
+			} else if ($searchObject->getView() == 'rss') {
+				// Throw the XML to screen
+				echo $searchObject->buildRSS(array(
                     'response' => array('numFound' => 0),
                     'responseHeader' => array('params' => array('rows' => 0)),
-                    ));
-                // And we're done
-                exit();
-            }
+				));
+				// And we're done
+				exit();
+			}
 
-            $interface->assign('recordSet', $searchObject->getResultRecordHTML());
-            $summary = $searchObject->getResultSummary();
-            $interface->assign('recordCount', $summary['resultTotal']);
-            $interface->assign('recordStart', $summary['startRecord']);
-            $interface->assign('recordEnd',   $summary['endRecord']);
+			$interface->assign('recordSet', $searchObject->getResultRecordHTML());
+			$summary = $searchObject->getResultSummary();
+			$interface->assign('recordCount', $summary['resultTotal']);
+			$interface->assign('recordStart', $summary['startRecord']);
+			$interface->assign('recordEnd',   $summary['endRecord']);
 
-            $link = $searchObject->renderLinkPageTemplate();
-            $options = array('totalItems' => $result['response']['numFound'],
+			$link = $searchObject->renderLinkPageTemplate();
+			$options = array('totalItems' => $result['response']['numFound'],
                              'perPage' => $summary['perPage'],
                              'fileName' => $link);
-            $pager = new VuFindPager($options);
-            $interface->assign('pageLinks', $pager->getLinks());
+			$pager = new VuFindPager($options);
+			$interface->assign('pageLinks', $pager->getLinks());
 
-            // Save the URL of this search to the session so we can return to it easily:
-            $_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
-        } else {
-            $interface->setPageTitle('Reserves Search');
-            if ($catalog->status) {
-                $interface->assign('deptList', $catalog->getDepartments());
-                $interface->assign('instList', $catalog->getInstructors());
-                $interface->assign('courseList', $catalog->getCourses());
-            }
-            $interface->setTemplate('reserves.tpl');
-        }
-        $interface->display('layout.tpl');
-    }
+			// Save the URL of this search to the session so we can return to it easily:
+			$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
+		} else {
+			$interface->setPageTitle('Reserves Search');
+			if ($catalog->status) {
+				$interface->assign('deptList', $catalog->getDepartments());
+				$interface->assign('instList', $catalog->getInstructors());
+				$interface->assign('courseList', $catalog->getCourses());
+			}
+			$interface->setTemplate('reserves.tpl');
+		}
+		$interface->display('layout.tpl');
+	}
 }

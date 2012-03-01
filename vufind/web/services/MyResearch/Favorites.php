@@ -32,55 +32,58 @@ require_once 'services/MyResearch/lib/Suggestions.php';
 class Favorites extends MyResearch
 {
 
-    function launch()
-    {
-        global $configArray;
-        global $interface;
-        global $user;
-        
-        if (isset($_REQUEST['followup'])) {
-          $followupUrl =  $configArray['Site']['url'] . "/". $_REQUEST['followupModule'];
-          if (!empty($_REQUEST['recordId'])) {
-              $followupUrl .= "/" . $_REQUEST['recordId'];
-          }
-          $followupUrl .= "/" . $_REQUEST['followupAction'];
-          if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
-          header("Location: " . $followupUrl);
-        }
-        
-        if (isset($_REQUEST['returnUrl'])) {
-            $followupUrl =  $_REQUEST['returnUrl'];
-            header("Location: " . $followupUrl);
-        }
+	function launch()
+	{
+		global $configArray;
+		global $interface;
+		global $user;
 
-        // Delete Resource
-        if (isset($_GET['delete'])) {
-            $resource = Resource::staticGet('record_id', $_GET['delete']);
-            $user->removeResource($resource);
-        }
-        
-        // Narrow by Tag
-        if (isset($_GET['tag'])) {
-            $interface->assign('tags', $_GET['tag']);
-        }
-        
-        global $library;
-        if (isset($library)){
-            $interface->assign('showRatings', $library->showRatings);
-        }else{
-            $interface->assign('showRatings', 1);
-        }
-        
-        // Get My Lists
-        $listList = $user->getLists();
-        $interface->assign('listList', $listList);
+		if (isset($_REQUEST['followup'])) {
+			$followupUrl =  $configArray['Site']['url'] . "/". strip_tags($_REQUEST['followupModule']);
+			if (!empty($_REQUEST['recordId'])) {
+				$followupUrl .= "/" . strip_tags($_REQUEST['recordId']);
+			}
+			$followupUrl .= "/" . strip_tags($_REQUEST['followupAction']);
+			if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
+			header("Location: " . $followupUrl);
+		}
 
-        // Get My Tags
-        $tagList = $user->getTags();
-        $interface->assign('tagList', $tagList);
-        $interface->setPageTitle('Favorites');
-        $interface->setTemplate('favorites.tpl');
-        $interface->display('layout.tpl');
-    }
-    
+		if (isset($_REQUEST['returnUrl'])) {
+			$followupUrl =  $_REQUEST['returnUrl'];
+			header("Location: " . $followupUrl);
+		}
+
+		// Delete Resource
+		if (isset($_GET['delete'])) {
+			$resource = Resource::staticGet('record_id', strip_tags($_GET['delete']));
+			$user->removeResource($resource);
+		}
+
+		// Narrow by Tag
+		if (isset($_GET['tag'])) {
+			$interface->assign('tags', strip_tags($_GET['tag']));
+		}
+
+		global $library;
+		if (isset($library)){
+			$interface->assign('showRatings', $library->showRatings);
+		}else{
+			$interface->assign('showRatings', 1);
+		}
+
+		//Check to see if the user has rated any titles
+		$interface->assign('hasRatings', $user->hasRatings());
+
+		// Get My Lists
+		$listList = $user->getLists();
+		$interface->assign('listList', $listList);
+
+		// Get My Tags
+		$tagList = $user->getTags();
+		$interface->assign('tagList', $tagList);
+		$interface->setPageTitle('Favorites');
+		$interface->setTemplate('favorites.tpl');
+		$interface->display('layout.tpl');
+	}
+
 }

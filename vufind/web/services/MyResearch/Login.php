@@ -51,13 +51,12 @@ class Login extends Action
 		// Assign the followup task to come back to after they login -- note that
 		//     we need to check for a pre-existing followup task in case we've
 		//     looped back here due to an error (bad username/password, etc.).
-		$followup = isset($_REQUEST['followup']) ? $_REQUEST['followup'] : $action;
+		$followup = isset($_REQUEST['followup']) ?  strip_tags($_REQUEST['followup']) : $action;
 
 		// Don't go to the trouble if we're just logging in to the Home action
 		if ($followup != 'Home') {
 			$interface->assign('followup', $followup);
-			$interface->assign('followupModule', isset($_REQUEST['followupModule']) ?
-			$_REQUEST['followupModule'] : $module);
+			$interface->assign('followupModule', isset($_REQUEST['followupModule']) ? strip_tags($_REQUEST['followupModule']) : $module);
 
 			// Special case -- if user is trying to view a private list, we need to
 			// attach the list ID to the action:

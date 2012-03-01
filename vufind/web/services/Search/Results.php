@@ -333,7 +333,7 @@ class Results extends Action {
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
 			require_once('Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
-			$searchStat->saveSearch( $_GET['lookfor'],  isset($_GET['type']) ? $_GET['type'] : $_GET['basicType'], $searchObject->getResultTotal());
+			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : $_GET['basicType']), $searchObject->getResultTotal());
 		}
 
 		// Save the ID of this search to the session so we can return to it easily:

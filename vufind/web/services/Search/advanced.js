@@ -83,7 +83,7 @@ function addGroup(firstTerm, firstField, join)
     newGroup += "</div>";
 
     // Set to 0 so adding searches knows
-    //   which one is first.
+    // which one is first.
     groupSearches[nextGroupNumber] = 0;
 
     // Add the new group into the page
@@ -102,7 +102,7 @@ function deleteGroup(group)
 {
     // Find the group
     var group = getElem('group' + group);
-    //  And it's parent node
+    // And it's parent node
     var parent = group.parentNode;
     // Remove it from the DOM
     parent.removeChild(group);
@@ -137,7 +137,7 @@ function reSortGroups()
         // We only want nodes with an ID
         if (searchHolder.childNodes[i].id != undefined) {
             // If the number of this group doesn't
-            //   match our running count
+            // match our running count
             if (searchHolder.childNodes[i].id != "group"+groups) {
                 // Re-number this group
                 reNumGroup(searchHolder.childNodes[i], groups);
@@ -226,7 +226,7 @@ function getChildByClass(node, childClass)
 }
 
 // Only IE will keep the form values in tact
-//  after modifying innerHTML unless you run this
+// after modifying innerHTML unless you run this
 function protectForm()
 {
     var e = getElem(searchFormId).elements;
@@ -257,7 +257,7 @@ function filterAll(element)
     var e = getElem(searchFormId).elements;
     var len = e.length;
     for (var i = 0; i < len; i++) {
-        //  Look for filters (specifically checkbox filters)
+        // Look for filters (specifically checkbox filters)
         if (e[i].name == 'filter[]' && e[i].checked != undefined) {
             e[i].checked = element.checked;
         }

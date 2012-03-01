@@ -33,7 +33,6 @@ vufind/web/interface/compile/
 *.dmg
 *.gz
 *.iso
-*.jar
 *.rar
 *.tar
 *.zip

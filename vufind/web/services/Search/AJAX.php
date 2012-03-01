@@ -231,6 +231,12 @@ class AJAX extends Action {
 			echo '  <availableAt>' . htmlspecialchars($record['availableAt']) . '</availableAt>';
 			echo '  <numAvailableOther>' . $record['numAvailableOther'] . '</numAvailableOther>';
 			echo '  <formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
+			if (isset($record['eAudioLink'])){
+				echo '  <eAudioLink>' . htmlspecialchars($record['eAudioLink']) . '</eAudioLink>';
+			}
+			if (isset($record['eBookLink'])){
+				echo '  <eBookLink>' . htmlspecialchars($record['eBookLink']) . '</eBookLink>';
+			}
 			echo ' </item>';
 
 		}
@@ -382,8 +388,8 @@ class AJAX extends Action {
 			return;
 		}
 
-		$lookfor = $_GET['lookfor'];
-		$limitto = urldecode($_GET['limit']);
+		$lookfor = strip_tags($_GET['lookfor']);
+		$limitto = strip_tags(urldecode($_GET['limit']));
 		$type = $_GET['type'];
 
 		$search = new SearchEntry();
@@ -586,7 +592,7 @@ class AJAX extends Action {
 		global $timer;
 		require_once('sys/Cache/ListCache2.php');
 		$listName = $_GET['name'];
-		$scrollerName = $_GET['scrollerName'];
+		$scrollerName = strip_tags($_GET['scrollerName']);
 
 		//Check to see if the list has been cached and is recent
 		$listCache = new ListCache2();
@@ -630,6 +636,7 @@ class AJAX extends Action {
 		$json_data = json_encode($return);
 		$listCache->jsonData = $json_data;
 		$listCache->cacheDate = time();
+		$listCache->cacheExpiration = time() + (60 * 60 * 6); 
 		$listCache->insert();
 		$timer->logTime("Updated listcache2 for $listName");
 		echo ($json_data);
@@ -644,10 +651,11 @@ class AJAX extends Action {
 		}
 		return GetListTitles();
 	}
+	
 	function GetListTitles(){
 		require_once('sys/Cache/ListCache2.php');
-		$listName = isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id'];
-		$scrollerName = $_GET['scrollerName'];
+		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
+		$scrollerName = strip_tags($_GET['scrollerName']);
 		//Check to see if the list has been cached and is recent
 		$listCache = new ListCache2();
 		$listCache->listName = $listName;
@@ -704,6 +712,7 @@ class AJAX extends Action {
 		if (isset($return['cacheable']) && $return['cacheable'] == true){
 			$listCache->jsonData = $json_data;
 			$listCache->cacheDate = time();
+			$listCache->cacheExpiration = time() + (60 * 60 * $titles['cacheLength']); 
 			$listCache->insert();
 		}
 		echo ($json_data);

@@ -29,39 +29,41 @@ require_once 'services/MyResearch/lib/User_list_solr.php';
  * allow public lists to work properly).
  * @version  $Revision$
  */
-class MyList extends Action {
+class MyLists extends Action
+{
 	private $db;
 	var $catalog;
 
-	function launch() {
+	function launch()
+	{
 		global $configArray;
 		global $interface;
 		global $user;
+		$logger = new Logger();
 
 		//Get all lists for the user
-		if ($user){
-			$tmpList = new User_list();
-			$tmpList->user_id = $user->id;
-			$tmpList->orderBy("title ASC");
-			$tmpList->find();
-			$allLists = array();
-			if ($tmpList->N > 0){
-				while ($tmpList->fetch()){
-					$allLists[$tmpList->id] = $tmpList->title;
-				}
-			}else{
-				$allList["-1"] = "My Favorites";
+		$tmpList = new User_list();
+		$tmpList->user_id = $user->id;
+		$tmpList->orderBy("title ASC");
+		$tmpList->find();
+		$allLists = array();
+		if ($tmpList->N > 0){
+			while ($tmpList->fetch()){
+				$allLists[$tmpList->id] = $tmpList->title;
 			}
-			$interface->assign('allLists', $allLists);
+		}else{
+			$allLists[-1] = "My Favorites";
 		}
-		
+		$interface->assign('allLists', $allLists);
+
 		// Fetch List object
 		if (isset($_GET['id'])){
 			$list = User_list::staticGet($_GET['id']);
 		}else{
 			//Use the first list.
 			$firstListId = reset(array_keys($allLists));
-			if ($firstListId == false || $firstListId == -1){
+			$logger->log("No list set, first list is $firstListId", PEAR_LOG_INFO);
+			if (!isset($firstListId) || $firstListId == -1){
 				$list = new User_list();
 				$list->user_id = $user->id;
 				$list->public = false;
@@ -147,21 +149,17 @@ class MyList extends Action {
 		$favorites = $list->getResources(isset($_GET['tag']) ? $_GET['tag'] : null);
 
 		// Load the User object for the owner of the list (if necessary):
-		if ($user && ($user->id == $list->user_id)) {
+		if ($user && $user->id == $list->user_id) {
 			$listUser = $user;
 		} else if ($list->user_id != 0){
-			$listUser = new User();
-			$listUser->id = $list->user_id;
-			if (!$listUser->fetch(true)){
-				$listUser = false;
-			}
+			$listUser = User::staticGet($list->user_id);
 		}else{
 			$listUser = false;
 		}
 
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
-		$allowEdit = (($user != false) && ($user->id == $list->user_id));
+		$allowEdit = ($user != false && $user->id == $list->user_id);
 		$interface->assign('allowEdit', $allowEdit);
 		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $allowEdit);
 		$favList->assign();
@@ -187,7 +185,7 @@ class MyList extends Action {
 
 			//Figure out if we should show a link to classic opac to pay holds.
 			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-			if (isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
+			if ($homeLibrary->showEcommerceLink == 1){
 				$interface->assign('showEcommerceLink', true);
 				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
 			}else{

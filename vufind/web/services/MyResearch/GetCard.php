@@ -35,7 +35,6 @@ class GetCard extends Action
 		global $configArray;
 		
 		if (isset($_REQUEST['submit'])){
-			require_once 'Drivers/Anythink.php';
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 			$driver = $this->catalog->driver;
 			

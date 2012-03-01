@@ -6,36 +6,34 @@ var GetEContentStatusList = new Array();
 var GetOverDriveStatusList = new Array();
 
 function createRequestObject() {  
-    // find the correct xmlHTTP, works with IE, FF and Opera
-    var xmlhttp;
-    try {
-        xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-    } catch(e) {
-        try {
-            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        } catch(e) {
-            xmlhttp = null;
-        }
-    }
-    
-    if (!xmlhttp && typeof XMLHttpRequest!="undefined") {
-        xmlhttp = new XMLHttpRequest();
-    }
-    
-    return xmlhttp;
+	// find the correct xmlHTTP, works with IE, FF and Opera
+	var xmlhttp;
+	try {
+		xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+	} catch(e) {
+		try {
+			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+		} catch(e) {
+			xmlhttp = null;
+		}
+	}
+
+	if (!xmlhttp && typeof XMLHttpRequest!="undefined") {
+		xmlhttp = new XMLHttpRequest();
+	}
+
+	return xmlhttp;
 }
 
-function getElem(id)
-{
-    if (document.getElementById) {
-        return document.getElementById(id);
-    } else if (document.all) {
-        return document.all[id];
-    }
+function getElem(id) {
+	if (document.getElementById) {
+		return document.getElementById(id);
+	} else if (document.all) {
+		return document.all[id];
+	}
 }
 
-function getThumbnail(id, imgname)
-{
+function getThumbnail(id, imgname) {
     var http = createRequestObject();
     http.open("GET", path + "/Search/AJAX?method=GetThumbnail&isn="+id+"&size=small", true);
     http.onreadystatechange = function()
@@ -95,60 +93,75 @@ function doGetStatusSummaries()
 	http.open("GET", url, true);
 	http.onreadystatechange = function(){
 		if ((http.readyState == 4) && (http.status == 200)) {
-        	if (http.responseXML == null){
-        		return;
-        	}
-            var response = http.responseXML.documentElement;
-            var items = response.getElementsByTagName('item');
-            var elemId;
-            var statusDiv;
-            var status;
-            var reserves;
-            var showPlaceHold;
-            var placeHoldLink;
-            var numHoldable = 0;
+			if (http.responseXML == null){
+				return;
+			}
+			var response = http.responseXML.documentElement;
+			var items = response.getElementsByTagName('item');
+			var elemId;
+			var statusDiv;
+			var status;
+			var reserves;
+			var showPlaceHold;
+			var placeHoldLink;
+			var numHoldable = 0;
 
-            for (var i=0; i<items.length; i++) {
-            	try{
-	                elemId = items[i].getAttribute('id');
-	                
-	                // Place hold link
-	                if (items[i].getElementsByTagName('showplacehold').item(0) == null || items[i].getElementsByTagName('showplacehold').item(0).firstChild == null){
-	                	showPlaceHold = 0;
-	                }else{	
-	                	showPlaceHold = items[i].getElementsByTagName('showplacehold').item(0).firstChild.data;
-	                }
-	                
-	                // Multi select place hold options
-	                if (showPlaceHold == '1'){
-	                	numHoldable++;
-	                	// show the place hold button
-		                var placeHoldButton = $('#placeHold' + elemId );
-		                if (placeHoldButton.length > 0){
-		                	placeHoldButton.show();
-		                }
-	                }
-	                
-	                // Change outside border class.
-	                var holdingSum= $('#holdingsSummary' + elemId);
-	                if (holdingSum.length > 0){
-	                	divClass= items[i].getElementsByTagName('class').item(0).firstChild.data;
-	                	holdingSum.addClass(divClass);
-	                	
-	                	var formattedHoldingsSummary = items[i].getElementsByTagName('formattedHoldingsSummary').item(0).firstChild.data;
-		                holdingSum.replaceWith(formattedHoldingsSummary);
-	                }
-	                
-	                
-            	}catch (err){
-            		alert("Unexpected error " + err);
-            	}
-            }
-            // Check to see if the Request selected button should show
-            if (numHoldable > 0){
-            	$('.requestSelectedItems').show();
-            }	
-        }
+			for (var i=0; i<items.length; i++) {
+				try{
+					elemId = items[i].getAttribute('id');
+
+					// Place hold link
+					if (items[i].getElementsByTagName('showplacehold').item(0) == null || items[i].getElementsByTagName('showplacehold').item(0).firstChild == null){
+						showPlaceHold = 0;
+					}else{	
+						showPlaceHold = items[i].getElementsByTagName('showplacehold').item(0).firstChild.data;
+					}
+
+					// Multi select place hold options
+					if (showPlaceHold == '1'){
+						numHoldable++;
+						// show the place hold button
+						var placeHoldButton = $('#placeHold' + elemId );
+						if (placeHoldButton.length > 0){
+							placeHoldButton.show();
+						}
+					}
+
+					// Change outside border class.
+					var holdingSum= $('#holdingsSummary' + elemId);
+					if (holdingSum.length > 0){
+						divClass= items[i].getElementsByTagName('class').item(0).firstChild.data;
+						holdingSum.addClass(divClass);
+						var formattedHoldingsSummary = items[i].getElementsByTagName('formattedHoldingsSummary').item(0).firstChild.data;
+						holdingSum.replaceWith(formattedHoldingsSummary);
+					}
+					if (items[i].getElementsByTagName("eAudioLink") != null && items[i].getElementsByTagName("eAudioLink").item(0) != null){
+						var eAudioLink = items[i].getElementsByTagName("eAudioLink").item(0).firstChild.data;
+						if (eAudioLink) {
+							if (eAudioLink.length > 0) {
+								$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
+								$("#eAudioLink" + elemId).show();
+							}
+						}
+					}
+					if (items[i].getElementsByTagName("eBookLink") != null && items[i].getElementsByTagName("eBookLink").item(0) != null){
+						var eBookLink = items[i].getElementsByTagName("eBookLink").item(0).firstChild.data;
+						if (eBookLink) {
+							if (eBookLink.length > 0) {
+								$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
+								$("#eBookLink" + elemId).show();
+							}
+						}
+					}
+				}catch (err){
+					alert("Unexpected error " + err);
+				}
+			}
+			// Check to see if the Request selected button should show
+			if (numHoldable > 0){
+				$('.requestSelectedItems').show();
+			}	
+		}
 	};
 	http.send(null);
     
@@ -172,7 +185,8 @@ function doGetStatusSummaries()
 		}
 	});
 	
-	//Get OverDrive status summaries one at a time since they take several seconds to load
+	// Get OverDrive status summaries one at a time since they take several
+	// seconds to load
 	for (var j=0; j<GetOverDriveStatusList.length; j++) {
 		var overDriveUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
 		overDriveUrl += "&id[]=" + encodeURIComponent(GetOverDriveStatusList[j]);
@@ -541,8 +555,8 @@ function getStatusSummaryMSC(id){
 	var now = new Date();
 	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
 
-	//Modify this to return status summaries one at a time to improve 
-	//the perceived performance
+	// Modify this to return status summaries one at a time to improve
+	// the perceived performance
   var http = createRequestObject();
 	var url = path + "/Search/AJAX?method=GetStatusSummaries";
 	url += "&id[]=" + encodeURIComponent(id);
@@ -570,7 +584,7 @@ function getStatusSummaryMSC(id){
           	try{
                 elemId = curItem.getAttribute('id');
                 
-                //Load call number
+                // Load call number
                 var callNumberSpan= $('#callNumberValue' + elemId);
                 var callNumberElement = curItem.getElementsByTagName('callnumber');
                 if (callNumberElement == null || callNumberElement.item(0).firstChild == null){
@@ -580,7 +594,7 @@ function getStatusSummaryMSC(id){
 	                callNumberSpan.html(callNumber);
                 }
                 
-              	//Load location
+              	// Load location
                 var locationSpan= $('#locationValue' + elemId);
                 var locationElement = curItem.getElementsByTagName('availableAt');
                 if (locationElement == null || locationElement.item(0).firstChild == null){
@@ -590,7 +604,7 @@ function getStatusSummaryMSC(id){
 	                locationSpan.html(availableAt);
                 }
                 
-                //Load status
+                // Load status
                 var statusSpan= $('#statusValue' + elemId);
                 var statusElement = curItem.getElementsByTagName('status');
                 if (statusElement == null || statusElement.item(0).firstChild == null){
@@ -603,11 +617,11 @@ function getStatusSummaryMSC(id){
 	                statusSpan.html(status);
                 }
                 
-                //Load Download Link
+                // Load Download Link
                 var downloadLinkSpan= $('#downloadLinkValue' + elemId);
                 var isDownloadableElement = curItem.getElementsByTagName('isDownloadable');
                 if (isDownloadableElement == null || isDownloadableElement.item(0).firstChild == null){
-                	//Do nothing
+                	// Do nothing
                 }else{
                 	var isDownloadable = isDownloadableElement.item(0).firstChild.data;
                 	if (isDownloadable == 1){
@@ -623,7 +637,7 @@ function getStatusSummaryMSC(id){
           		alert("Unexpected error " + err);
           	}
           }
-          //Check to see if the Request selected button should show
+          // Check to see if the Request selected button should show
           if (numHoldable > 0){
           	$('.requestSelectedItems').show();
           }	

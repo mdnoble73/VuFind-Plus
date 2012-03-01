@@ -24,112 +24,112 @@ require_once 'Home.php';
 
 class Edit extends Action
 {
-    function __construct()
-    {
-    }
+	function __construct()
+	{
+	}
 
-    private function getTags($user, $listId)
-    {
-        $tagStr = '';
-        $myTagList = $user->getTags($_GET['id'], $listId);
-        if (is_array($myTagList) && count($myTagList) > 0) {
-            foreach($myTagList as $myTag) {
-                if (strstr($myTag->tag, ' ')) {
-                    $tagStr .= "\"$myTag->tag\" ";
-                } else {
-                    $tagStr .= "$myTag->tag ";
-                }
-            }
-        }
-        return $tagStr;
-    }
-    
-    private function saveChanges($user)
-    {
-        $resource = Resource::staticGet('record_id', $_GET['id']);
-        
-        // Loop through the list of lists on the edit screen:
-        foreach($_POST['lists'] as $listId) {
-            // Create a list object for the current list:
-            $list = new User_list();
-            if ($listId != '') {
-                $list->id = $listId;
-            } else {
-                PEAR::raiseError(new PEAR_Error('List ID Missing'));
-            }
-            
-            // Extract tags from the user input:
-            preg_match_all('/"[^"]*"|[^ ]+/', $_POST['tags' . $listId], $tagArray);
-            
-            // Save extracted tags and notes:
-            $user->addResource($resource, $list, $tagArray[0], $_POST['notes' . $listId]);
-        }
-    }
-    
-    function launch($msg = null)
-    {
-        global $interface;
-        global $configArray;
+	private function getTags($user, $listId)
+	{
+		$tagStr = '';
+		$myTagList = $user->getTags($_GET['id'], $listId);
+		if (is_array($myTagList) && count($myTagList) > 0) {
+			foreach($myTagList as $myTag) {
+				if (strstr($myTag->tag, ' ')) {
+					$tagStr .= "\"$myTag->tag\" ";
+				} else {
+					$tagStr .= "$myTag->tag ";
+				}
+			}
+		}
+		return $tagStr;
+	}
 
-        if (!($user = UserAccount::isLoggedIn())) {
-            require_once 'Login.php';
-            Login::launch();
-            exit();
-        }
-        
-        // Save Data
-        if (isset($_POST['submit'])) {
-            $this->saveChanges($user);
-            
-            // After changes are saved, send the user back to an appropriate page;
-            // either the list they were viewing when they started editing, or the
-            // overall favorites list.
-            if (isset($_GET['list_id'])) {
-                $nextAction = 'MyList/' . $_GET['list_id'];
-            } else {
-                $nextAction = 'Home';
-            }
-            header('Location: ' . $configArray['Site']['url'] . '/MyResearch/' . $nextAction);
-            exit();
-        }
+	private function saveChanges($user)
+	{
+		$resource = Resource::staticGet('record_id', $_GET['id']);
 
-        // Setup Search Engine Connection
-        $class = $configArray['Index']['engine'];
-        $db = new $class($configArray['Index']['url']);
-        if ($configArray['System']['debugSolr']) {
-            $db->debug = true;
-        }
+		// Loop through the list of lists on the edit screen:
+		foreach($_POST['lists'] as $listId) {
+			// Create a list object for the current list:
+			$list = new User_list();
+			if ($listId != '') {
+				$list->id = $listId;
+			} else {
+				PEAR::raiseError(new PEAR_Error('List ID Missing'));
+			}
 
-        // Get Record Information
-        $details = $db->getRecord($_GET['id']);
-        $interface->assign('record', $details);
-        
-        // Record ID
-        $interface->assign('recordId', $_GET['id']);
+			// Extract tags from the user input:
+			preg_match_all('/"[^"]*"|[^ ]+/', $_POST['tags' . $listId], $tagArray);
 
-        // Retrieve saved information about record
-        $saved = $user->getSavedData($_GET['id']);
-        
-        // Add tag information
-        $savedData = array();
-        foreach($saved as $current) {
-            // If we're filtering to a specific list, skip any other lists:
-            if (isset($_GET['list_id']) && $current->list_id != $_GET['list_id']) {
-                continue;
-            }
-            $savedData[] = array(
+			// Save extracted tags and notes:
+			$user->addResource($resource, $list, $tagArray[0], $_POST['notes' . $listId]);
+		}
+	}
+
+	function launch($msg = null)
+	{
+		global $interface;
+		global $configArray;
+
+		if (!($user = UserAccount::isLoggedIn())) {
+			require_once 'Login.php';
+			Login::launch();
+			exit();
+		}
+
+		// Save Data
+		if (isset($_POST['submit'])) {
+			$this->saveChanges($user);
+
+			// After changes are saved, send the user back to an appropriate page;
+			// either the list they were viewing when they started editing, or the
+			// overall favorites list.
+			if (isset($_GET['list_id'])) {
+				$nextAction = 'MyList/' . $_GET['list_id'];
+			} else {
+				$nextAction = 'Home';
+			}
+			header('Location: ' . $configArray['Site']['url'] . '/MyResearch/' . $nextAction);
+			exit();
+		}
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$db = new $class($configArray['Index']['url']);
+		if ($configArray['System']['debugSolr']) {
+			$db->debug = true;
+		}
+
+		// Get Record Information
+		$details = $db->getRecord($_GET['id']);
+		$interface->assign('record', $details);
+
+		// Record ID
+		$interface->assign('recordId', $_GET['id']);
+
+		// Retrieve saved information about record
+		$saved = $user->getSavedData($_GET['id']);
+
+		// Add tag information
+		$savedData = array();
+		foreach($saved as $current) {
+			// If we're filtering to a specific list, skip any other lists:
+			if (isset($_GET['list_id']) && $current->list_id != $_GET['list_id']) {
+				continue;
+			}
+			$savedData[] = array(
                 'listId' => $current->list_id,
                 'listTitle' => $current->list_title,
                 'notes' => $current->notes,
                 'tags' => $this->getTags($user, $current->list_id));
-        }
+		}
 
-        $interface->assign('savedData', $savedData);
-        $interface->assign('listFilter', $_GET['list_id']);
+		$interface->assign('savedData', $savedData);
+		$interface->assign('listFilter', $_GET['list_id']);
 
-        $interface->setTemplate('edit.tpl');
-        $interface->display('layout.tpl');
-    }
+		$interface->setTemplate('edit.tpl');
+		$interface->display('layout.tpl');
+	}
 }
 
 ?>

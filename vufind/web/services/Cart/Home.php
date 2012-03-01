@@ -50,11 +50,11 @@ class Home extends Cart
 	{
 		global $interface;
 
-		if ($_REQUEST['empty']) {
+		if (isset($_REQUEST['empty'])) {
 			$this->cart->emptyCart();
-		} else if ($_REQUEST['add']) {
+		} else if (isset($_REQUEST['add'])) {
 			$this->cart->addItems($_REQUEST['id']);
-		} else if ($_REQUEST['delete']) {
+		} else if (isset($_REQUEST['delete'])) {
 			$this->cart->removeItem($_REQUEST['delete']);
 		}
 

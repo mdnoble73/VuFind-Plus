@@ -22,53 +22,53 @@ require_once 'Action.php';
 
 class OpenSearch extends Action {
 
-    function launch()
-    {
-        header('Content-type: text/xml');
-        
-        if (isset($_GET['method'])) {
-            if (is_callable(array($this, $_GET['method']))) {
-                $this->$_GET['method']();
-            } else {
-                //echo '<Error>Invalid Method. Use either "describe" or "search"</Error>';
-                echo '<Error>Invalid Method. Only "describe" is supported</Error>';
-            }
-        } else {
-            $this->describe();
-        }
-    }
-    
-    function describe()
-    {
-        global $interface;
-        global $configArray;
-        
-        $interface->assign('site', $configArray['Site']);
+	function launch()
+	{
+		header('Content-type: text/xml');
 
-        $interface->display('Search/opensearch-describe.tpl');
-    }
-    
-    /* Unused, incomplete method -- commented out 10/9/09 to prevent confusion:
-    function search()
-    {
-        global $configArray;
+		if (isset($_GET['method'])) {
+			if (is_callable(array($this, $_GET['method']))) {
+				$this->$_GET['method']();
+			} else {
+				//echo '<Error>Invalid Method. Use either "describe" or "search"</Error>';
+				echo '<Error>Invalid Method. Only "describe" is supported</Error>';
+			}
+		} else {
+			$this->describe();
+		}
+	}
 
-        // Setup Search Engine Connection
-        $class = $configArray['Index']['engine'];
-        $db = new $class($configArray['Index']['url']);
-        if ($configArray['System']['debugSolr']) {
-            $db->debug = true;
-        }
+	function describe()
+	{
+		global $interface;
+		global $configArray;
 
-        $search = array();
-        $search[] = array('lookfor' => $_GET['lookfor'],
-                          'type' => $_GET['type']);
-        $query = $db->buildQuery($search);
-        $results = $db->search($query['query']);
-        $interface->assign('results', $results);
-        
-        $interface->display('Search/opensearch-search.tpl');
-    }
-     */
+		$interface->assign('site', $configArray['Site']);
+
+		$interface->display('Search/opensearch-describe.tpl');
+	}
+
+	/* Unused, incomplete method -- commented out 10/9/09 to prevent confusion:
+	 function search()
+	 {
+	 global $configArray;
+
+	 // Setup Search Engine Connection
+	 $class = $configArray['Index']['engine'];
+	 $db = new $class($configArray['Index']['url']);
+	 if ($configArray['System']['debugSolr']) {
+	 $db->debug = true;
+	 }
+
+	 $search = array();
+	 $search[] = array('lookfor' => $_GET['lookfor'],
+	 'type' => $_GET['type']);
+	 $query = $db->buildQuery($search);
+	 $results = $db->search($query['query']);
+	 $interface->assign('results', $results);
+
+	 $interface->display('Search/opensearch-search.tpl');
+	 }
+	 */
 }
 ?>

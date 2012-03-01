@@ -38,11 +38,11 @@ class Home extends MyResearch
 		global $user;
 
 		if (isset($_REQUEST['followup'])) {
-			$followupUrl =  $configArray['Site']['url'] . "/". $_REQUEST['followupModule'];
+			$followupUrl =  $configArray['Site']['url'] . "/".  strip_tags($_REQUEST['followupModule']);
 			if (!empty($_REQUEST['recordId'])) {
-				$followupUrl .= "/" . $_REQUEST['recordId'];
+				$followupUrl .= "/" .  strip_tags($_REQUEST['recordId']);
 			}
-			$followupUrl .= "/" . $_REQUEST['followupAction'];
+			$followupUrl .= "/" .  strip_tags($_REQUEST['followupAction']);
 			if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
 			header("Location: " . $followupUrl);
 		}
@@ -55,18 +55,18 @@ class Home extends MyResearch
 
 		// Delete Resource
 		if (isset($_GET['delete'])) {
-			$resource = Resource::staticGet('record_id', $_GET['delete']);
+			$resource = Resource::staticGet('record_id',  strip_tags($_GET['delete']));
 			$user->removeResource($resource);
 		}
 
 		// Narrow by Tag
 		if (isset($_GET['tag'])) {
-			$interface->assign('tags', $_GET['tag']);
+			$interface->assign('tags',  strip_tags($_GET['tag']));
 		}
 
 		if (!$interface->isMobile()){
 			// Build Favorites List
-			$favorites = $user->getResources(isset($_GET['tag']) ? $_GET['tag'] : null);
+			$favorites = $user->getResources(isset($_GET['tag']) ?  strip_tags($_GET['tag']) : null);
 			$favList = new FavoriteHandler($favorites, $user);
 			$favList->assign();
 	

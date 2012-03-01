@@ -59,7 +59,8 @@ class Record extends Action
 		global $timer;
 
 		$interface->assign('page_body_style', 'sidebar_left');
-
+		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);
+		
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
 			$this->id = $_GET['id'];
@@ -348,6 +349,7 @@ class Record extends Action
           '321' => 'Former Publication Frequency',
           '351' => 'Organization & arrangement of materials',
           '362' => 'Dates of publication and/or sequential designation',
+		      '590' => 'Local note',
 
 		);
 		foreach ($additionalNotesFields as $tag => $label){
@@ -656,15 +658,52 @@ class Record extends Action
 		}
 	}
 
-	function getEditions()
-	{
+	function getEditions() {
+		global $configArray;
 		if ($this->isbn) {
-			return $this->getXISBN($this->isbn);
+			if ($configArray['Content']['otherEditions'] = 'LibraryThing'){
+				return $this->getLibraryThingRelatedRecords($this->isbn);
+			}else{
+				return $this->getXISBN($this->isbn);
+			}
 		} else if (isset($this->record['issn'])) {
 			return $this->getXISSN($this->record['issn']);
 		}
 
 		return null;
+	}
+
+	private function getLibraryThingRelatedRecords($isbn){
+		$url = "http://www.librarything.com/api/thingISBN/$isbn" ;
+
+		//Load data from xml file
+		$xml = simplexml_load_file($url);
+		$query = '';
+		foreach ($xml->isbn as $isbn){
+			if ($query != '') {
+				$query .= ' OR isbn:' . $isbn;
+			} else {
+				$query = 'isbn:' . $isbn;
+			}
+		}
+
+		if (isset($query) && ($query != '')) {
+			// Filter out current record
+			$query .= ' NOT id:' . $this->id;
+
+			$result = $this->db->search($query, null, null, 0, 5);
+			if (!PEAR::isError($result)) {
+				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
+					return $result['response']['docs'];
+				} else {
+					return null;
+				}
+			} else {
+				return $result;
+			}
+		} else {
+			return null;
+		}
 	}
 
 	private function getXISBN($isbn)

@@ -191,7 +191,7 @@ class SearchAPI extends Action {
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
 			require_once('Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
-			$searchStat->saveSearch( $_GET['lookfor'], $_GET['type'], $searchObject->getResultTotal());
+			$searchStat->saveSearch( strip_tags($_GET['lookfor']), strip_tags($_GET['type']), $searchObject->getResultTotal());
 		}
 
 		// Save the ID of this search to the session so we can return to it easily:
@@ -255,7 +255,7 @@ class SearchAPI extends Action {
 	}
 
 	function getRecordIdForTitle(){
-		$title = $_REQUEST['title'];
+		$title = strip_tags($_REQUEST['title']);
 		$_REQUEST['lookfor'] = $title;
 		$_REQUEST['type'] = 'Keyword';
 

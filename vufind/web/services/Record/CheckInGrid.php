@@ -17,23 +17,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
- 
+
 require_once 'Action.php';
 
 global $configArray;
 
 class CheckInGrid extends Action {
-    function launch()
-    {
-        global $interface;
-        
-        if (isset($_GET['lightbox'])) {
-            require_once('Drivers/Marmot.php');
-            $driver = new Marmot();
-            $checkInGrid = $driver->getCheckInGrid($_REQUEST['id'], $_REQUEST['lookfor']);
-            $interface->assign('checkInGrid', $checkInGrid);
-            // Use for lightbox
-            return $interface->fetch('Record/checkInGrid.tpl');
-        }
-    }
+	function launch()
+	{
+		global $interface;
+
+		if (isset($_GET['lightbox'])) {
+			require_once('Drivers/Marmot.php');
+			$driver = new Marmot();
+			$checkInGrid = $driver->getCheckInGrid(strip_tags($_REQUEST['id']), strip_tags($_REQUEST['lookfor']));
+			$interface->assign('checkInGrid', $checkInGrid);
+			// Use for lightbox
+			return $interface->fetch('Record/checkInGrid.tpl');
+		}
+	}
 }

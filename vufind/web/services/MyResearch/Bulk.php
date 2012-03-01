@@ -41,69 +41,69 @@ require_once 'services/MyResearch/MyResearch.php';
  */
 class Bulk extends Action
 {
-    /**
-     * Process parameters and display the page.
-     *
-     * @return void
-     * @access public
-     */
-    public function launch()
-    {
-        global $configArray;
-        global $interface;
-        global $user;
+	/**
+	 * Process parameters and display the page.
+	 *
+	 * @return void
+	 * @access public
+	 */
+	public function launch()
+	{
+		global $configArray;
+		global $interface;
+		global $user;
 
-        // Set FollowUp URL
-        if (isset($_REQUEST['followup'])) {
-            $this->followupUrl =  $configArray['Site']['url'] . "/".
-                $_REQUEST['followupModule'];
-            $this->followupUrl .= "/" . $_REQUEST['followupAction'];
-        } else if (isset($_REQUEST['listID']) && !empty($_REQUEST['listID'])) {
-            $this->followupUrl = $configArray['Site']['url'] .
+		// Set FollowUp URL
+		if (isset($_REQUEST['followup'])) {
+			$this->followupUrl =  $configArray['Site']['url'] . "/".
+			$_REQUEST['followupModule'];
+			$this->followupUrl .= "/" . $_REQUEST['followupAction'];
+		} else if (isset($_REQUEST['listID']) && !empty($_REQUEST['listID'])) {
+			$this->followupUrl = $configArray['Site']['url'] .
                 "/MyResearch/MyList/" . urlencode($_REQUEST['listID']);
-        } else {
-            $this->followupUrl = $configArray['Site']['url'] .
+		} else {
+			$this->followupUrl = $configArray['Site']['url'] .
                 "/MyResearch/Favorites";
-        }
+		}
 
-        // Export
-        if (isset($_REQUEST['export']) || isset($_REQUEST['exportInit'])) {
-            include_once 'services/MyResearch/Export.php';
-            $export = new Export();
-            $export->launch();
-        } else if (isset($_REQUEST['email'])) {
-            // Email
-            include_once 'services/MyResearch/Email.php';
-            $email = new Email();
-            $email->launch();
-        } else if (isset($_REQUEST['delete'])) {
-            // Delete
-            include_once 'services/MyResearch/Delete.php';
-            $delete = new Delete();
-            $delete->launch();
-        } else if (isset($_REQUEST['deleteList'])) {
-            // Delete List
-            include_once 'services/MyResearch/Confirm.php';
-            $confirm = new Confirm();
-            $confirm->launch();
-        } else if (isset($_REQUEST['editList']) && isset($_POST['listID'])) {
-            // Edit List
-            $this->followupUrl = $configArray['Site']['url'] .
+		// Export
+		if (isset($_REQUEST['export']) || isset($_REQUEST['exportInit'])) {
+			include_once 'services/MyResearch/Export.php';
+			$export = new Export();
+			$export->launch();
+		} else if (isset($_REQUEST['email'])) {
+			// Email
+			include_once 'services/MyResearch/Email.php';
+			$email = new Email();
+			$email->launch();
+		} else if (isset($_REQUEST['delete'])) {
+			// Delete
+			include_once 'services/MyResearch/Delete.php';
+			$delete = new Delete();
+			$delete->launch();
+		} else if (isset($_REQUEST['deleteList'])) {
+			// Delete List
+			include_once 'services/MyResearch/Confirm.php';
+			$confirm = new Confirm();
+			$confirm->launch();
+		} else if (isset($_REQUEST['editList']) && isset($_POST['listID'])) {
+			// Edit List
+			$this->followupUrl = $configArray['Site']['url'] .
                 "/MyResearch/EditList/" . $_POST['listID'];
-            header("Location: " . $this->followupUrl);
-            exit();
-        } else if (isset($_REQUEST['sortResults'])) {
-            // Sort with Javascript disabled
-            include_once 'services/Search/SortResults.php';
-            $sort = new SortResults();
-            $sort->launch();
-        } else {
-            // If we get this far, no export has been matched or we have errors
-            $this->followupUrl .= "?errorMsg=bulk_fail";
-            header("Location: " . $this->followupUrl);
-            exit();
-        }
-    }
+			header("Location: " . $this->followupUrl);
+			exit();
+		} else if (isset($_REQUEST['sortResults'])) {
+			// Sort with Javascript disabled
+			include_once 'services/Search/SortResults.php';
+			$sort = new SortResults();
+			$sort->launch();
+		} else {
+			// If we get this far, no export has been matched or we have errors
+			$this->followupUrl .= "?errorMsg=bulk_fail";
+			header("Location: " . $this->followupUrl);
+			exit();
+		}
+	}
 
 }
 ?>
