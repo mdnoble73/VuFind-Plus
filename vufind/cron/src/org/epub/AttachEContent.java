@@ -1,6 +1,7 @@
 package org.epub;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -101,6 +102,16 @@ public class AttachEContent implements IProcessHandler {
 	}
 
 	private void processFolder(File folder) {
+		//Check to see if there are subfolders within this folder
+		File[] subFolders = folder.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File pathname) {
+				return pathname.isDirectory();
+			}
+		});
+		for (File subFolder : subFolders){
+			processFolder(subFolder); 
+		}
 		Pattern nameRegex = Pattern.compile("([\\d-]+)\\.(pdf|epub)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 		File[] files = folder.listFiles();
 		for (File file : files) {

@@ -21,6 +21,8 @@
 require_once 'Action.php';
 require_once 'services/Admin/Admin.php';
 require_once 'sys/Pager.php';
+require_once 'sys/eContent/EContentRecord.php';
+require_once 'sys/eContent/EContentAttachmentLogEntry.php';
 
 class AttachEContent extends Admin
 {
@@ -32,7 +34,7 @@ class AttachEContent extends Admin
 		$interface->setPageTitle('Attach eContent files to records.');
 		
 		
-		if (isset($_REQUEST['submit'])){
+		if (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Attach eContent'){
 			$errors = array();
 			//Get the source folder to process
 			$source = $_REQUEST['sourcePath'];
@@ -46,13 +48,62 @@ class AttachEContent extends Admin
 				//$commandToRun .= " > process.out 2> process.err < /dev/null &";
 				$handle = popen($commandToRun, 'r');
 				pclose($handle);
-				header("Location: {$configArray['Site']['path']}/Admin/AttachEContentLog");
+				header("Location: {$configArray['Site']['path']}/EContent/AttachEContentLog");
 				exit();
 			}
+		}elseif (isset($_REQUEST['submit']) && $_REQUEST['submit'] == 'Process External Links'){
+			$source = $_REQUEST['source'];
+			$this->processExternalLinks($source);
+			header("Location: {$configArray['Site']['path']}/EContent/AttachEContentLog");
+			exit();
 		}
+		
+		//Load source filter
+		$sourceFilter = array();
+		$sources = $this->loadEContentSources();
+		$interface->assign('sourceFilter', $sources);
 
 		$interface->setTemplate('attachEContent.tpl');
 		$interface->display('layout.tpl');
+	}
+	
+	function processExternalLinks($source){
+		$eContentAttachmentLogEntry = new EContentAttachmentLogEntry();
+		$eContentAttachmentLogEntry->dateStarted = time();
+		$eContentAttachmentLogEntry->sourcePath = 'Attaching External links to ' . $source;
+		$eContentAttachmentLogEntry->recordsProcessed = 0;
+		$eContentAttachmentLogEntry->insert();
+		//Get a list of all records that do not have items for the source
+		$econtentRecord = new EContentRecord();
+		$econtentRecord->source = $source;
+		$econtentRecord->find();
+		while ($econtentRecord->fetch()){
+			if ($econtentRecord->getNumItems() == 0 && $econtentRecord->sourceUrl != null && strlen($econtentRecord->sourceUrl) > 0){
+				$sourceUrl = $econtentRecord->sourceUrl;
+				$econtentItem = new EContentItem();
+				$econtentItem->recordId = $econtentRecord->id;
+				$econtentItem->item_type = 'externalLink';
+				$econtentItem->addedBy = 1;
+				$econtentItem->date_added = time();
+				$econtentItem->date_updated = time();
+				$econtentItem->link = $sourceUrl;
+				$econtentItem->insert();
+				$eContentAttachmentLogEntry->recordsProcessed++;
+			}
+		}
+		$eContentAttachmentLogEntry->dateFinished = time();
+		$eContentAttachmentLogEntry->status = 'finished';
+		$eContentAttachmentLogEntry->update();
+	}
+	
+	function loadEContentSources(){
+		$sources = array();
+		$econtentRecord = new EContentRecord();
+		$econtentRecord->query("SELECT DISTINCT source FROM econtent_record ORDER BY source");
+		while ($econtentRecord->fetch()){
+			$sources[] =  $econtentRecord->source;
+		}
+		return $sources;
 	}
 
 	function getAllowableRoles(){

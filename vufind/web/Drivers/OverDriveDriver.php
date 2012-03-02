@@ -822,7 +822,7 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 			$postParams = array(
 				'x' => 'y', 
 			);
-			preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">.*?<option value="(.*?)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
+			preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">.*?<option value="([^"]*)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
 			for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
 				$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriodInfo[$matchi][2];
 			}

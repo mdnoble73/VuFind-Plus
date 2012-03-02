@@ -13,7 +13,7 @@ class EContentAttachmentLogEntry extends DB_DataObject
 	public $dateStarted;
 	public $dateFinished;
 	public $status;
-	public $filesProcessed;
+	public $recordsProcessed;
 	
 	/* Static get */
   function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentAttachmentLogEntry',$k,$v); }
