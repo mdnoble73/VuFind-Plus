@@ -62,7 +62,7 @@ class Viewer extends Action
 				$eContentItem->id = $_REQUEST['item'];
 				if ($eContentItem->find(true)){
 					$bookFile = null;
-					$libraryPath = $configArray['EBooks']['library'];
+					$libraryPath = $configArray['EContent']['library'];
 					if ($eContentItem->item_type == 'mp3'){
 						$bookFile = "{$libraryPath}/{$eContentItem->folder}";
 					}else{

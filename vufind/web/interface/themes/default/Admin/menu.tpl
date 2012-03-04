@@ -31,11 +31,11 @@
 		<div class="myAccountLink">Content Loading
 			<div class="myAccountLink{if $action == "ListEPub"} active{/if}" style="float: none;"><a href="{$path}/Search/Results?type=Keyword&shard[]=eContent&lookfor=">Search Existing eContent</a></div>
 			<div class="myAccountLink{if $action == "NewEPub"} active{/if}" style="float: none;"><a href="{$path}/EcontentRecord/Edit">New eContent</a></div>
-			<div class="myAccountLink{if $action == "ImportMarc"} active{/if}" style="float: none;"><a href="{$path}/Admin/ImportEContentMarc">Import Marc Records</a></div>
-			<div class="myAccountLink{if $action == "MarcImportLog"} active{/if}" style="float: none;"><a href="{$path}/Admin/MarcImportLog">Marc Record Import Log</a></div>
+			<div class="myAccountLink{if $action == "ImportMarc"} active{/if}" style="float: none;"><a href="{$path}/EContent/ImportEContentMarc">Import Marc Records</a></div>
+			<div class="myAccountLink{if $action == "MarcImportLog"} active{/if}" style="float: none;"><a href="{$path}/EContent/MarcImportLog">Marc Record Import Log</a></div>
 			{if $user->hasRole('epubAdmin')}
-			<div class="myAccountLink{if $action == "AttachEContent"} active{/if}" style="float: none;"><a href="{$path}/Admin/AttachEContent">Attach EContent To Records</a></div>
-			<div class="myAccountLink{if $action == "AttachEContentLog"} active{/if}" style="float: none;"><a href="{$path}/Admin/AttachEContentLog">EContent Attachment Log</a></div>
+			<div class="myAccountLink{if $action == "AttachEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/AttachEContent">Attach EContent To Records</a></div>
+			<div class="myAccountLink{if $action == "AttachEContentLog"} active{/if}" style="float: none;"><a href="{$path}/EContent/AttachEContentLog">EContent Attachment Log</a></div>
 			{/if}
 		</div>
 		<div class="myAccountLink">Reports

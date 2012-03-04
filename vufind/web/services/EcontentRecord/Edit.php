@@ -57,7 +57,7 @@ class Edit extends Action {
 				$_REQUEST['id'] = $$eContentRecord->id;
 			}else{
 				//Show the new tip that was created
-				header('Location:' . $configArray['Site']['path'] . "/EContentRecord/{$eContentRecord->id}/Home");
+				header('Location:' . $configArray['Site']['path'] . "/EcontentRecord/{$eContentRecord->id}/Home");
 				exit();
 			}
 		}
@@ -79,7 +79,7 @@ class Edit extends Action {
 		}
 
 		$interface->assign('isNew', $isNew);
-		$interface->assign('submitUrl', $configArray['Site']['path'] . '/EContentRecord/Edit');
+		$interface->assign('submitUrl', $configArray['Site']['path'] . '/EcontentRecord/Edit');
 		$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
 		
 		$interface->setTemplate('edit.tpl');

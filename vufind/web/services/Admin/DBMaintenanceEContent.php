@@ -91,8 +91,7 @@ class DBMaintenanceEContent extends Admin {
       	'title' => 'Setup eContent Database',
       	'description' => 'Sets up eContent database',
       	'dependencies' => array(),
-        'database' => 'dclecontent',
-      	'sql' => array(
+        'sql' => array(
       		"DROP TABLE IF EXISTS econtent_item",
 					"DROP TABLE IF EXISTS econtent_record",
 					"CREATE TABLE IF NOT EXISTS  econtent_item(" .
@@ -158,18 +157,11 @@ class DBMaintenanceEContent extends Admin {
 		),
 
 		),
-		/*'convertOldEContent' => array(
-		 'title' => 'Convert old eContent data',
-		 'description' => 'Converts eContent from old table structure to the new table structure',
-		 'dependencies' => array('initial_setup'),
-		 'database' => 'dclecontent',
-		 'sql' => array('convertOldEContent'),
-		 ),*/
+
 			'eContentHolds'  => array(
 				'title' => 'eContent Holds table creation',
 				'description' => 'Sets up tables for handling eContent holds',
 				'dependencies' => array(),
-				'database' => 'dclecontent',
 				'sql' => array(
 					"DROP TABLE IF EXISTS econtent_hold",
 					"CREATE TABLE IF NOT EXISTS  econtent_hold(" .
@@ -188,7 +180,6 @@ class DBMaintenanceEContent extends Admin {
 				'title' => 'eContent Checkout table',
 				'description' => 'Sets up tables for handling eContent checked out items',
 				'dependencies' => array(),
-				'database' => 'dclecontent',
 				'sql' => array(
 					"DROP TABLE IF EXISTS econtent_checkout",
 					"CREATE TABLE IF NOT EXISTS  econtent_checkout(" .
@@ -209,7 +200,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Checkout Update 1',
 			'description' => 'Updates to checkout to include additional information related to ACS downloads.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER TABLE econtent_checkout ADD downloadedToReader TINYINT NOT NULL DEFAULT 0",
 				"ALTER TABLE econtent_checkout ADD acsTransactionId VARCHAR(50) NULL",
@@ -221,7 +211,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent History table',
 			'description' => 'Sets up tables for handling history of eContent',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 					"DROP TABLE IF EXISTS econtent_history;",
 					"CREATE TABLE IF NOT EXISTS  econtent_history(".
@@ -238,7 +227,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Rating',
 			'description' => 'Sets up tables for handling rating of eContent',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 					"DROP TABLE IF EXISTS econtent_rating;",
 					"CREATE TABLE IF NOT EXISTS  econtent_rating(".
@@ -267,7 +255,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Record Update 2',
 			'description' => 'Adds status to allow ',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER TABLE econtent_record ADD status ENUM('active', 'deleted', 'archived') DEFAULT 'active'",
 		),
@@ -277,7 +264,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Notices Update 1',
 			'description' => 'Adds notices fields so each notice is tracked explicitly',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER TABLE econtent_hold DROP noticeSent",
 				"ALTER TABLE econtent_hold ADD holdAvailableNoticeSent TINYINT NOT NULL DEFAULT 0",
@@ -292,7 +278,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Item Update 1',
 			'description' => 'Updates to allow external links to be added to the system',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER TABLE econtent_item ADD link VARCHAR(500) NULL",
 				"ALTER TABLE `econtent_item` CHANGE `type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook' ) NOT NULL",
@@ -303,7 +288,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Wishlist',
 			'description' => 'Create table to allow econtent to be added to a user\'s wishlist if no items exits for the record.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_wishlist;",
 				"CREATE TABLE IF NOT EXISTS  econtent_wishlist(".
@@ -320,7 +304,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'ACS Log',
 			'description' => 'Create table to store  log of ACS transactions that have been returned by the server.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DROP TABLE IF EXISTS acs_log;",
 				"CREATE TABLE IF NOT EXISTS  acs_log(".
@@ -338,7 +321,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'EContent Marc Import Log',
 			'description' => 'Create table to store log of Marc File Imports.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_marc_import;",
 				"CREATE TABLE IF NOT EXISTS  econtent_marc_import(".
@@ -356,7 +338,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'EContent Marc Import Update 1',
 			'description' => 'Updates Log to include number of records that had errors with any error messages.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER TABLE econtent_marc_import ADD COLUMN recordsWithErrors INT(11) NOT NULL DEFAULT 0",
 				"ALTER TABLE econtent_marc_import ADD COLUMN errors LONGTEXT",
@@ -367,7 +348,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'EContent Attachment Log',
 			'description' => 'Create table to store log of attaching eContent to records.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_attach;",
 				"CREATE TABLE IF NOT EXISTS  econtent_attach(".
@@ -385,7 +365,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'OverDrive Record Cache',
 			'description' => 'Create table to cache page information from OverDrive.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DROP TABLE IF EXISTS overdrive_record_cache;",
 				"CREATE TABLE IF NOT EXISTS  overdrive_record_cache(".
@@ -401,7 +380,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'OverDrive Account Cache',
 			'description' => 'Create table to cache account pages from OverDrive.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DROP TABLE IF EXISTS overdrive_account_cache;",
 				"CREATE TABLE IF NOT EXISTS  overdrive_account_cache(".
@@ -444,7 +422,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Update to UTF-8',
 			'description' => 'Update database to use UTF-8 encoding',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER DATABASE " . $configArray['Database']['database_econtent_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE acs_log CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",

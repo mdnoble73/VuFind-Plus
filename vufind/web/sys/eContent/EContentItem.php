@@ -77,7 +77,7 @@ class EContentItem extends DB_DataObject {
 			'property'=>'filename', 
 			'type'=>'file', 
 			'label'=>'Source File', 
-			'path'=>$configArray['EBooks']['library'], 
+			'path'=>$configArray['EContent']['library'], 
 			'description'=>'The source file for display or download within VuFind.',
 			'serverValidation' => 'validateEpub',
 			'required'=> false,
@@ -91,7 +91,7 @@ class EContentItem extends DB_DataObject {
 			'size' => 100,
 			'maxLength'=>100, 
 			'label'=>'Folder of MP3 Files (must exist already)', 
-			'path'=>$configArray['EBooks']['library'], 
+			'path'=>$configArray['EContent']['library'], 
 			'description'=>'The directory containing the MP3 files.  Must already exist on the econtent server.',
 			'serverValidation' => 'validateEpub',
 			'required'=> false,
@@ -228,7 +228,7 @@ class EContentItem extends DB_DataObject {
 		$this->date_updated = time();
 		
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
-			$uploadResults = AdobeContentServer::packageFile($configArray['EBooks']['library'] . '/' . $this->filename, false, $this->getAvailableCopies());
+			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, false, $this->getAvailableCopies());
 			if ($uploadResults['success']){
 				$this->acsId = $uploadResults['acsId'];
 				$fileUploaded  = true;
@@ -257,7 +257,7 @@ class EContentItem extends DB_DataObject {
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
 			require_once 'sys/AdobeContentServer.php';
 			global $configArray;
-			$uploadResults = AdobeContentServer::packageFile($configArray['EBooks']['library'] . '/' . $this->filename, $this->acsId, $this->getAvailableCopies());
+			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->acsId, $this->getAvailableCopies());
 			if ($uploadResults['success']){
 				$oldAcs = $this->acsId;
 				$this->acsId = $uploadResults['acsId'];
@@ -283,7 +283,7 @@ class EContentItem extends DB_DataObject {
 		global $configArray;
 		//Check to see if the text has already been extracted
 		$fullText = "";
-		$fullTextPath = $configArray['EBooks']['fullTextPath'];
+		$fullTextPath = $configArray['EContent']['fullTextPath'];
 		$textFile = "{$fullTextPath}/{$this->recordId}.txt";
 		if (file_exists($textFile)){
 			return file_get_contents($textFile);
@@ -292,7 +292,7 @@ class EContentItem extends DB_DataObject {
 				return file_get_contents($textFile);
 			}elseif ($this->item_type == 'epub'){
 				require_once('sys/eReader/ebook.php');
-				$epubFile = $configArray['EBooks']['library'] . '/'. $this->filename;
+				$epubFile = $configArray['EContent']['library'] . '/'. $this->filename;
 				$ebook = new ebook($epubFile);
 				if (!$ebook->readErrorOccurred()){
 					$fhnd = fopen($textFile, 'w');
@@ -318,9 +318,9 @@ class EContentItem extends DB_DataObject {
 				}
 			}elseif ($this->item_type == 'pdf'){
 				/* This takes too long for large files */
-				/*$pdfboxJar = $configArray['EBooks']['pdfbox'];
-				$pdfFile = $configArray['EBooks']['library'] . '/'. $this->filename;
-				$textFile = $configArray['EBooks']['fullTextPath'] . '/'. $this->filename;
+				/*$pdfboxJar = $configArray['EContent']['pdfbox'];
+				$pdfFile = $configArray['EContent']['library'] . '/'. $this->filename;
+				$textFile = $configArray['EContent']['fullTextPath'] . '/'. $this->filename;
 				shell_exec('java -jar $pdfboxJar ExtractText $pdfFile $textFile');
 				return file_get_contents($textFile);*/
 				return "";
@@ -356,14 +356,14 @@ class EContentItem extends DB_DataObject {
 	function getSize(){
 		global $configArray;
 		if ($this->filename){
-			if (file_exists($configArray['EBooks']['library'] . '/'. $this->filename)){
-				return filesize($configArray['EBooks']['library'] . '/'. $this->filename);
+			if (file_exists($configArray['EContent']['library'] . '/'. $this->filename)){
+				return filesize($configArray['EContent']['library'] . '/'. $this->filename);
 			}else{
 				return 0;
 			}
-		}else{
+		}else if ($this->folder){
 			//Get the size of all files in the folder
-			$mainFolder = $configArray['EBooks']['library'] . '/'. $this->folder . '/';
+			$mainFolder = $configArray['EContent']['library'] . '/'. $this->folder . '/';
 			$size = 0;
 			$dh = opendir($mainFolder);
 			while (($file = readdir($dh)) !== false) {
@@ -371,6 +371,8 @@ class EContentItem extends DB_DataObject {
 			}
 			closedir($dh);
 			return $size;
+		}else{
+			return 0;
 		}
 	}
 }

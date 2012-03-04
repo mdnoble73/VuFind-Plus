@@ -39,7 +39,7 @@ class ImportEContentMarc extends Admin
 			if ($_FILES['marcFile']["error"] > 0){
 				$errors[] = "Error reading marc file, please upload a valid marc file.";
 			}else{
-				$destFolder = $configArray['EBooks']['marcPath'];
+				$destFolder = $configArray['EContent']['marcPath'];
 				$destFile = $_FILES['marcFile']["name"];
 				$destFullPath = $destFolder . '/' . $destFile;
 				$uniqueNumber = 1;
@@ -61,7 +61,7 @@ class ImportEContentMarc extends Admin
 			}else if ($_FILES['suplementalCSV']["error"] > 0){
 				$errors[] = "Error reading supplemental CSV file, please upload a valid supplemental CSV file.";
 			}else{
-				$destFolder = $configArray['EBooks']['marcPath'];
+				$destFolder = $configArray['EContent']['marcPath'];
 				$destSupplementalFile = $_FILES['suplementalCSV']["name"];
 				$supplementalFullPath = $destFolder . '/' . $destSupplementalFile;
 				$uniqueNumber = 1;

@@ -153,7 +153,7 @@ if (preg_match('/econtentRecord\d+/', $id)){
 	$id = substr($id, strlen('econtentRecord'));
 	$logger->log("Record is eContent short id is $id", PEAR_LOG_INFO);
 }
-if ($configArray['EBooks']['library'] && isset($_GET['econtent']) && isset($id) && is_numeric($id)){
+if ($configArray['EContent']['library'] && isset($_GET['econtent']) && isset($id) && is_numeric($id)){
 	$logger->log("Checking eContent database to see if there is a record for $id", PEAR_LOG_INFO);
 	//Check the database to see if there is an existing title
 	require_once('sys/eContent/EContentRecord.php');

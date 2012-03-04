@@ -46,7 +46,7 @@ class JSON extends Action
 		$bookFile = null;
 		if ($epubFile->find(true)){
 			if (preg_match("/{$epubFile->recordId}/", $id)){
-				$libraryPath = $configArray['EBooks']['library'];
+				$libraryPath = $configArray['EContent']['library'];
 				$bookFile = "{$libraryPath}/{$epubFile->filename}";
 				if (!file_exists($bookFile)){
 					$bookFile = null;

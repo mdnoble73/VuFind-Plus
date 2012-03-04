@@ -84,6 +84,8 @@ class DBMaintenance extends Admin {
 	}
 
 	private function getSQLUpdates() {
+		global $configArray;
+		
 		return array(
 			'roles_1' => array(
 				'title' => 'Roles 1',
@@ -393,6 +395,17 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `resource` CHANGE `title_sort` `title_sort` VARCHAR( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci",
 				),
 			),
+			
+			'resource_update3' => array(
+				'title' => 'Update resource table 3',
+				'description' => 'Update resource table to include the checksum of the marc record so we can skip updating records that haven\'t changed',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `resource` ADD marc_checksum BIGINT",
+					"ALTER TABLE `resource` ADD date_updated INT(11)",
+				),
+			),
+			
 
 			'readingHistory' => array(
         'title' => 'Reading History Creation',
@@ -507,6 +520,63 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `usageTracking` ADD INDEX `IP_DATE` ( `ipId` , `trackingDate` )",
 				), 
 			),
+			
+			'utf8_update' => array(
+			'title' => 'Update to UTF-8',
+			'description' => 'Update database to use UTF-8 encoding',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER DATABASE " . $configArray['Database']['database_vufind_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE administrators CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE bad_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE circulationstatus CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE comments CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE db_update CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE editorial_reviews CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE externallinktracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE ip_lookup CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE library CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE list_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE list_cache2 CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE list_widgets CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE list_widget_lists CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE location CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE millennium_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE nonholdablelocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE novelist_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE ptyperestrictedlocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE purchaselinktracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE resource_tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE reviews_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE roles CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE search CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE search_stats CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE session CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE sip2_item_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE spelling_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE usagetracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user_list CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user_rating CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user_reading_history CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user_resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user_roles CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				"ALTER TABLE user_suggestions CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+		),
+		),
+		
+		'index_resources' => array(
+			'title' => 'Index resources',
+			'description' => 'Add a new index to resources table to make record id and source unique',
+			'dependencies' => array(),
+			'sql' => array(
+				//Update resource table indexes
+				"ALTER TABLE `resource` ADD UNIQUE `records_by_source` (`record_id`, `source`)" 
+			),
+		),
+		
 		);
 	}
 

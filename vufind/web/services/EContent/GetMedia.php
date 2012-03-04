@@ -62,7 +62,7 @@ class GetMedia extends Action {
 				$eContentRecord->id = $econtentItem->recordId;
 				$eContentRecord->find(true);
 				
-				$libraryPath = $configArray['EBooks']['library'];
+				$libraryPath = $configArray['EContent']['library'];
 				if ($econtentItem->item_type == 'mp3'){
 						
 					//Load the correct segment

@@ -125,6 +125,11 @@ function readConfig()
 	}else{
 		$mainArray = parse_ini_file('../../conf/config.ini', true);
 	}
+	
+	if ($mainArray == false){
+		echo("Unable to parse configuration file, please check syntax");
+	}
+	
 	if (isset($mainArray['Extra_Config']) &&
 	isset($mainArray['Extra_Config']['local_overrides'])) {
 		$file = trim('../../conf/' . $mainArray['Extra_Config']['local_overrides']);

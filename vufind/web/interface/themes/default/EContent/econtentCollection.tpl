@@ -14,8 +14,8 @@
 				<form id="filters" action="{$path}/EContent/EContentCollection" method="get">
 					<div>
 						<div>
-							Source to Show: 
-							<select name="source">
+							<label for="source">Source to Show:</label> 
+							<select name="source" id="source">
 								{foreach from=$sourceFilter item="sourceItem"}
 									<option value="{$sourceItem}" {if $sourceItem == $source}selected="selected"{/if}>{$sourceItem}</option>
 								{/foreach}

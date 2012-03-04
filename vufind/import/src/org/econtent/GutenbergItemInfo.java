@@ -1,4 +1,4 @@
-package org.epub;
+package org.econtent;
 
 public class GutenbergItemInfo {
 	private String sourceUrl;

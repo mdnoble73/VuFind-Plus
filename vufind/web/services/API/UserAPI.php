@@ -1340,7 +1340,7 @@ class UserAPI extends Action {
 				return array('success'=>false, 'message'=>'Could not find the item in the database.');
 			}
 			$driver->recordEContentAction($recordId, 'Download', $eContentRecord->accessType);
-			$libraryPath = $configArray['EBooks']['library'];
+			$libraryPath = $configArray['EContent']['library'];
 			if (isset($eContentItem->filename) && strlen($eContentItem->filename) > 0){
 				$bookFile = "{$libraryPath}/{$eContentItem->filename}";
 			}else{

@@ -1,7 +1,5 @@
-package org.epub;
+package org.econtent;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
@@ -12,17 +10,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Profile.Section;
+import org.econtent.GutenbergItemInfo;
+import org.ini4j.Ini;
 import org.vufind.BasicMarcInfo;
-import org.vufind.IProcessHandler;
-import org.vufind.MarcProcessorBase;
+import org.vufind.IMarcRecordProcessor;
+import org.vufind.ISupplementalProcessor;
+import org.vufind.MarcProcessor;
 import org.vufind.Util;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -34,7 +29,8 @@ import au.com.bytecode.opencsv.CSVReader;
  *
  */
 
-public class ProcessFullExport extends MarcProcessorBase implements IProcessHandler{
+public class ExtractEContentFromMarc implements IMarcRecordProcessor, ISupplementalProcessor{
+	private Logger logger;
 	private String econtentDBConnectionInfo;
 	private Connection econtentConn = null;
 	private String overdriveUrl;
@@ -45,20 +41,20 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 	private PreparedStatement doesControlNumberExist;
 	private PreparedStatement createEContentRecord;
 	private PreparedStatement updateEContentRecord;
-	private PreparedStatement createLogEntry;
-	private PreparedStatement markLogEntryFinished = null;
-	private PreparedStatement updateRecordsProcessed;
+	//private PreparedStatement createLogEntry;
+	//private PreparedStatement markLogEntryFinished = null;
+	//private PreparedStatement updateRecordsProcessed;
 	private PreparedStatement doesGutenbergItemExist;
 	private PreparedStatement addGutenbergItem;
 	private PreparedStatement updateGutenbergItem;
 	
-	private long logEntryId = -1;
+	//private long logEntryId = -1;
 	
-	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
+	public boolean init(Ini configIni, Logger logger) {
+		this.logger = logger;
 		//Import a marc record into the eContent core. 
-		if (!loadConfig(processSettings, generalSettings, logger)){
-			return;
+		if (!loadConfig(configIni, logger)){
+			return false;
 		}
 		
 		try {
@@ -67,33 +63,28 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 			doesControlNumberExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE marcControlField = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
-			createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_marc_import (filename, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
-			markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_marc_import SET dateFinished = ?, recordsProcessed = ?, status = 'finished' WHERE id = ?");
-			updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_marc_import SET recordsProcessed = ? WHERE id = ?");
+			//createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_marc_import (filename, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
+			//markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_marc_import SET dateFinished = ?, recordsProcessed = ?, status = 'finished' WHERE id = ?");
+			//updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_marc_import SET recordsProcessed = ? WHERE id = ?");
 			doesGutenbergItemExist = econtentConn.prepareStatement("SELECT id from econtent_item WHERE recordId = ? AND item_type = ? and notes = ?");
 			addGutenbergItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, link, notes, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			updateGutenbergItem = econtentConn.prepareStatement("UPDATE econtent_item SET filename = ?, folder = ?, link = ?, date_updated =? WHERE recordId = ? AND item_type = ? AND notes = ?");
 			
 			//Add a log entry to indicate that the marc file is being imported
-			createLogEntry.setString(1, this.marcRecordPath);
+			/*createLogEntry.setString(1, this.marcRecordPath);
 			createLogEntry.setLong(2, new Date().getTime() / 1000);
 			createLogEntry.executeUpdate();
 			ResultSet logResult = createLogEntry.getGeneratedKeys();
 			if (logResult.next()){
 				logEntryId = logResult.getLong(1);
-			}
+			}*/
 			
-			//Process the reords
-			if (!processMarcFiles(logger)) {
-				logger.error("Unable to process marc files");
-				return;
-			}
 		} catch (Exception ex) {
 			// handle any errors
-			logger.error("Error importing marc file ", ex);
-			return;
+			logger.error("Error initializing econtent extraction ", ex);
+			return false;
 		}finally{
-			logger.info("Marking log entry finished");
+			/*logger.info("Marking log entry finished");
 			try {
 				markLogEntryFinished.setLong(1, new Date().getTime() / 1000);
 				markLogEntryFinished.setLong(2, this.recordsProcessed);
@@ -101,12 +92,13 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 				markLogEntryFinished.executeUpdate();
 			} catch (SQLException e) {
 				logger.error("Error importing marking log as finished ", e);
-			}
+			}*/
 		}
+		return true;
 	}
 	
 	@Override
-	protected boolean processMarcRecord(BasicMarcInfo recordInfo, Logger logger) {
+	public boolean processMarcRecord(MarcProcessor marcProcessor, BasicMarcInfo recordInfo, Logger logger) {
 		try {
 			//Check the 856 tag to see if this is a source that we can handle. 
 			String sourceUrl = recordInfo.getSourceUrl();
@@ -114,7 +106,7 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 			String accessType = null;
 			boolean addRecordToEContent = false;
 			if (sourceUrl == null){
-				logger.debug("Title does not appear to be econtent");
+				//logger.debug("Title does not appear to be econtent");
 			}else{
 				//logger.info("Checking source url " + sourceUrl);
 				if (sourceUrl.matches("(?i).*gutenberg.*")){
@@ -128,7 +120,7 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 					accessType = "free";
 					addRecordToEContent = true;
 				}else{
-					logger.info("Title does not appear to be econtent " + sourceUrl);
+					//logger.info("Title does not appear to be econtent " + sourceUrl);
 				}
 			}
 			
@@ -156,7 +148,6 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 					}
 				}
 				
-				//TODO: Look for cover file 
 				boolean recordAdded = false;
 				if (importRecordIntoDatabase){
 					
@@ -183,7 +174,7 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 					createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getAllGenres()));
 					createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getRegions()));
 					createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getEra()));
-					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getTargetAudienceTranslated(targetAudienceMap)));
+					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getTargetAudienceTranslated(marcProcessor.getTargetAudienceMap())));
 					createEContentRecord.setString(23, recordInfo.getSourceUrl());
 					createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
 					createEContentRecord.setString(25, recordInfo.getPublishDate());
@@ -225,7 +216,7 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 					updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getAllGenres()));
 					updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getRegions()));
 					updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getEra()));
-					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getTargetAudienceTranslated(targetAudienceMap)));
+					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getTargetAudienceTranslated(marcProcessor.getTargetAudienceMap())));
 					updateEContentRecord.setString(23, recordInfo.getSourceUrl());
 					updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
 					updateEContentRecord.setString(25, recordInfo.getPublishDate());
@@ -254,9 +245,9 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 					logger.info("Record NOT processed successfully.");
 				}
 				
-				updateRecordsProcessed.setLong(1, this.recordsProcessed + 1);
+				/*updateRecordsProcessed.setLong(1, this.recordsProcessed + 1);
 				updateRecordsProcessed.setLong(2, logEntryId);
-				updateRecordsProcessed.executeUpdate();
+				updateRecordsProcessed.executeUpdate();*/
 				return true;
 			}else{
 				return false;
@@ -301,7 +292,7 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 						addGutenbergItem.setLong(7, new Date().getTime());
 						addGutenbergItem.setInt(8, -1);
 						addGutenbergItem.setLong(9, new Date().getTime());
-						int rowsInserted = addGutenbergItem.executeUpdate();
+						addGutenbergItem.executeUpdate();
 					}
 				}
 			}
@@ -326,38 +317,28 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 		}
 	}
 
-	protected boolean loadConfig(Section processSettings, Section generalSettings, Logger logger) {
-		if (!super.loadConfig(processSettings, generalSettings, logger)){
-			return false;
-		}
+	protected boolean loadConfig(Ini configIni, Logger logger) {
 		
-		econtentDBConnectionInfo = generalSettings.get("econtentDatabase");
+		econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
 			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
 			return false;
 		}
 		
-		vufindUrl = generalSettings.get("vufindUrl");
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;
 		}
 		
-		//Get the file to import (overrides the base class)
-		marcRecordPath = processSettings.get("marcRecordPath");
-		if (marcRecordPath == null || marcRecordPath.length() == 0) {
-			logger.error("Unable to get Marc File to import in Process settings.  Please add a marcFile key.");
-			return false;
-		}
-		
 		//Load link to overdrive if any
-		overdriveUrl = processSettings.get("overdriveUrl");
+		overdriveUrl = configIni.get("OverDrive", "marcIndicator");
 		if (overdriveUrl == null || overdriveUrl.length() == 0) {
 			logger.warn("Unable to get OverDrive Url in Process settings.  Please add a overdriveUrl key.");
 		}
 		
 		//Get a list of information about Gutenberg items
-		String gutenbergItemFile = processSettings.get("gutenbergItemFile");
+		String gutenbergItemFile = configIni.get("Reindex", "gutenbergItemFile");
 		if (gutenbergItemFile == null || gutenbergItemFile.length() == 0){
 			logger.warn("Unable to get Gutenberg Item File in Process settings.  Please add a gutenbergItemFile key.");
 		}else{
@@ -365,7 +346,8 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 			gutenbergItemInfo = new ArrayList<GutenbergItemInfo>();
 			try {
 				CSVReader gutenbergReader = new CSVReader(new FileReader(gutenbergItemFile));
-				String[] headers = gutenbergReader.readNext();
+				//Read headers
+				gutenbergReader.readNext();
 				String[] curItemInfo = gutenbergReader.readNext();
 				while (curItemInfo != null){
 					GutenbergItemInfo itemInfo = new GutenbergItemInfo(curItemInfo[1], curItemInfo[2], curItemInfo[3], curItemInfo[4], curItemInfo[5]);
@@ -380,5 +362,14 @@ public class ProcessFullExport extends MarcProcessorBase implements IProcessHand
 		
 		return true;
 		
+	}
+
+	@Override
+	public void finish() {
+		try {
+			econtentConn.close();
+		} catch (SQLException e) {
+			logger.error("Unable to close connection", e);
+		}
 	}
 }

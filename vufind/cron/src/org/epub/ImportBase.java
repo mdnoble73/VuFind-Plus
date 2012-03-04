@@ -111,7 +111,7 @@ public abstract class ImportBase {
 	
 		libraryDirectory = processSettings.get("library");
 		if (libraryDirectory == null || libraryDirectory.length() == 0) {
-			logger.error("Library not found in process Settings.  Please specify the path to the EBooks library as the library key.");
+			logger.error("Library not found in process Settings.  Please specify the path to the EContent library as the library key.");
 			return false;
 		}
 		if (!libraryDirectory.endsWith("\\") & !libraryDirectory.endsWith("/")) {

@@ -31,7 +31,7 @@ class EContentPurchaseAlert extends Admin
 		global $interface;
 		global $configArray;
 		
-		$purchaseRatio = $configArray['EBooks']['holdRatioForPurchase'];
+		$purchaseRatio = $configArray['EContent']['holdRatioForPurchase'];
 
 		$interface->setPageTitle('eContent Purchase Alert');
 

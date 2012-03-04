@@ -11,9 +11,13 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=VuFind+ Import/src"/>
+        <file path="/VuFind+ Import/lib/marc4j.jar"/>
         <file path="/VuFind+ Import/lib/commons-logging-1.1.1.jar"/>
-        <file path="/VuFind+ Import/lib/ini4j-0.5.2-SNAPSHOT.jar"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src"/>
+        <file path="/VuFind+ Import/lib/normalizer.jar"/>
+        <file path="/VuFind+ Import/lib/mysql-connector-java-5.1.15-bin.jar"/>
         <file path="/VuFind+ Import/lib/log4j-1.2.15.jar"/>
+        <file path="/VuFind+ Import/lib/opencsv-2.2.jar"/>
+        <file path="/VuFind+ Import/lib/ini4j-0.5.2-SNAPSHOT.jar"/>
     </selectedElements>
 </jardesc>

@@ -794,7 +794,7 @@ class EContentDriver implements DriverInterface{
 				$checkout->recordId = $id;
 				$checkout->status = 'out';
 				$checkout->dateCheckedOut = time();
-				$loanTerm = $configArray['EBooks']['loanTerm'];
+				$loanTerm = $configArray['EContent']['loanTerm'];
 				$checkout->dateDue = time() + $loanTerm * 24 * 60 * 60; //Allow titles to be checked our for 3 weeks
 
 				if ($checkout->insert()){

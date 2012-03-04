@@ -37,7 +37,7 @@ class AdobeContentServer
 	function __construct() {
 		global $configArray;
 		//Connect to the database
-		/*$this->acsConnection = mysql_connect($configArray['EBooks']['dbHost'] , $configArray['EBooks']['dbUser'], $configArray['EBooks']['dbPassword'], true);
+		/*$this->acsConnection = mysql_connect($configArray['EContent']['dbHost'] , $configArray['EContent']['dbUser'], $configArray['EContent']['dbPassword'], true);
 		 if (!$this->acsConnection) {
 		 die('Could not connect: (' . mysql_errno($this->acsConnection) . ') '. mysql_error($this->acsConnection));
 		 }
@@ -123,7 +123,7 @@ class AdobeContentServer
 			$rights = "";
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
-			    "&ordersource=".urlencode($configArray['EBooks']['orderSource']).
+			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
 			    "&orderid=".urlencode($transactionId).
 			    "&resid=".urlencode($eContentItem->acsId).
 			    $rights.
@@ -131,8 +131,8 @@ class AdobeContentServer
 			    "&dateval=".urlencode($dateval).
 			    "&gblver=4";
 	
-			$linkURL = $configArray['EBooks']['linkURL'];
-			$sharedSecret = $configArray['EBooks']['distributorSecret'];
+			$linkURL = $configArray['EContent']['linkURL'];
+			$sharedSecret = $configArray['EContent']['distributorSecret'];
 			$sharedSecret = base64_decode($sharedSecret);
 			$bookDownloadURL = $linkURL."?".$bookDownloadURL."&auth=".hash_hmac("sha1", $bookDownloadURL, $sharedSecret );
 		
@@ -192,11 +192,11 @@ class AdobeContentServer
 		$packageElem->appendChild($packageDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
 		global $configArray;
-		$serverPassword = hash("sha1",$configArray['EBooks']['acsPassword'], true);
+		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($packageDoc, $packageElem, $serverPassword);
 
-		$packagingURL = $configArray['EBooks']['packagingURL'];
+		$packagingURL = $configArray['EContent']['packagingURL'];
 		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
 		$response = AdobeContentServer::sendRequest($packageDoc->saveXML(),$packagingURL);
 
@@ -208,7 +208,7 @@ class AdobeContentServer
 			$acsId = (string)$responseData->resource;
 
 			//Setup distribution rights
-			$distributorId = $configArray['EBooks']['distributorId'];
+			$distributorId = $configArray['EContent']['distributorId'];
 			$distributionResult = AdobeContentServer::addDistributionRights($acsId, $distributorId, $numAvailable);
 			if ($distributionResult['success'] == false){
 				return $distributionResult;
@@ -242,11 +242,11 @@ class AdobeContentServer
 		$distributionElem->appendChild($distributionDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
 		global $configArray;
-		$serverPassword = hash("sha1",$configArray['EBooks']['acsPassword'], true);
+		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($distributionDoc, $distributionElem, $serverPassword);
 
-		$distributionURL = $configArray['EBooks']['operatorURL'] . '/ManageDistributionRights';
+		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
 		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
 
@@ -275,11 +275,11 @@ class AdobeContentServer
 		$distributionElem->appendChild($distributionDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
 		global $configArray;
-		$serverPassword = hash("sha1",$configArray['EBooks']['acsPassword'], true);
+		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($distributionDoc, $distributionElem, $serverPassword);
 
-		$distributionURL = $configArray['EBooks']['operatorURL'] . '/ManageDistributionRights';
+		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
 		$request = $distributionDoc->saveXML();
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
 
@@ -360,11 +360,11 @@ class AdobeContentServer
 				$loanReturnElem->appendChild($loanReturnDoc->createElement("signature", base64_encode($trans->userAcsId)));
 				//Calculate hmac
 				global $configArray;
-				$serverPassword = hash("sha1",$configArray['EBooks']['acsPassword'], true);
+				$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 				//AdobeContentServer::signNode($loanReturnDoc, $loanReturnElem, $serverPassword);
 
-				$linkURL = $configArray['EBooks']['operatorURL'] . "/ManageLicense";
+				$linkURL = $configArray['EContent']['operatorURL'] . "/ManageLicense";
 
 				//echo("Request:<br/>" . $loanReturnDoc->saveXML() . "<br/>");
 				$response = AdobeContentServer::sendRequest($loanReturnDoc->saveXML(),$linkURL);
@@ -387,7 +387,7 @@ class AdobeContentServer
 
 	static function deleteResource($acsId){
 		global $configArray;
-		$distributorId = $configArray['EBooks']['distributorId'];
+		$distributorId = $configArray['EContent']['distributorId'];
 		AdobeContentServer::removeDistributionRights($acsId, $distributorId);
 		
 		$deleteResourceDoc = new DOMDocument('1.0', 'UTF-8');
@@ -403,11 +403,11 @@ class AdobeContentServer
 		$deleteResourceElem->appendChild($deleteResourceDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
 		global $configArray;
-		$serverPassword = hash("sha1",$configArray['EBooks']['acsPassword'], true);
+		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($deleteResourceDoc, $deleteResourceElem, $serverPassword);
 
-		$distributionURL = $configArray['EBooks']['operatorURL'] . '/ManageResourceKey';
+		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageResourceKey';
 		//echo("Request:<br/>" . htmlentities($deleteResourceDoc->saveXML()) . "<br/>");
 		$response = AdobeContentServer::sendRequest($deleteResourceDoc->saveXML(),$distributionURL);
 

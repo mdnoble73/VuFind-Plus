@@ -62,7 +62,7 @@ class Download extends Action {
 				$eContentRecord->id = $epubFile->recordId;
 				$eContentRecord->find(true);
 
-				$libraryPath = $configArray['EBooks']['library'];
+				$libraryPath = $configArray['EContent']['library'];
 				if (isset($epubFile->filename) && strlen($epubFile->filename) > 0){
 					$bookFile = "{$libraryPath}/{$epubFile->filename}";
 				}else{

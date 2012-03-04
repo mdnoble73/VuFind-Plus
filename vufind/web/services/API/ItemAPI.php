@@ -98,7 +98,7 @@ class ItemAPI extends Action {
 			return array('error' => 'Filename parameter was not provided.  Please provide the filename in the library to add to the ACS server.');
 		}
 		$filename = $_REQUEST['filename'];
-		$fullFilename = $configArray['EBooks']['library'] . '/' . $filename;
+		$fullFilename = $configArray['EContent']['library'] . '/' . $filename;
 		if (!file_exists($fullFilename)){
 			return array('error' => 'Filename does not exist in the library.  Unable to add to the ACS server.');
 		}

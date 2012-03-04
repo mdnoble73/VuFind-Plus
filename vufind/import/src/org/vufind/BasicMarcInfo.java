@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
 import org.marc4j.marc.ControlField;
@@ -35,13 +36,14 @@ public class BasicMarcInfo {
 	
 	private Logger logger;
 	
-	public boolean load(Record record, Logger logger){
+	@SuppressWarnings("unchecked")
+	public boolean load(MarcProcessor marcProcessor, Record record, Logger logger){
 		//Preload basic information that nearly everything will need
 		this.record = record;
 		this.logger = logger;
 		//System.out.println(record);
 		
-		String id = getFieldValue(record, "950", new char[] { 'a' });
+		String id = getFieldValue(record, marcProcessor.getIdField(), new char[] { 'a' });
 		if (id == null || id.length() == 0 ) {
 			logger.error("Could not find id for record");
 			return false;
@@ -51,6 +53,11 @@ public class BasicMarcInfo {
 		}
 		// Get the title
 		title = getFieldValue(record, "245", new char[] { 'a', 'b', 'n' });
+		//Remove trailing puntuation from the title 
+		if (title.endsWith(" /")){
+			title = title.substring(0, title.length() - 2);
+		}
+		
 		//Get number of non-filing characters for the title
 		VariableField field = record.getVariableField("245");
 		sortTitle = "";
@@ -65,6 +72,7 @@ public class BasicMarcInfo {
 			}
 			sortTitle += (dataField.getSubfield('b') == null) ? "" : " " + dataField.getSubfield('b').getData();
 			sortTitle += (dataField.getSubfield('n') == null) ? "" : " " + dataField.getSubfield('n').getData();
+			sortTitle = sortTitle.replaceAll("\\s+/\\s*$", "");
 			sortTitle = sortTitle.toLowerCase();
 		}
 		
@@ -254,8 +262,10 @@ public class BasicMarcInfo {
 	public ArrayList<String> getSubjects() {
 		if (subjects == null){
 			subjects = new ArrayList<String>();
+			@SuppressWarnings("unchecked")
 			List<DataField> subjectFields = (List<DataField>) record.getVariableFields(new String[] { "600", "610", "630", "650", "651", "655" });
 			for (DataField subject : subjectFields) {
+				@SuppressWarnings("rawtypes")
 				List subFields = subject.getSubfields();
 				StringBuffer subjectTitle = new StringBuffer();
 				for (Object subFieldObj : subFields) {
@@ -442,6 +452,7 @@ public class BasicMarcInfo {
 	}
 	public void loadUrls(){
 		if (urlsLoaded) return;
+		@SuppressWarnings("unchecked")
 		List<VariableField> eightFiftySixFields = record.getVariableFields("856");
 		for (VariableField eightFiftySixField : eightFiftySixFields){
 			DataField eightFiftySixDataField = (DataField)eightFiftySixField;
@@ -481,5 +492,16 @@ public class BasicMarcInfo {
 	}
 	public String getPublishDate(){
 		return getFieldValue(record, "260", new char[]{'c'});
+	}
+	
+	private long checksum = -1;
+	public long getChecksum(){
+		if (checksum == -1){
+			CRC32 crc32 = new CRC32();
+			crc32.update(this.toString().getBytes());
+			//System.out.println("CRC32: " + crc32.getValue());
+			checksum = crc32.getValue();
+		}
+		return checksum;
 	}
 }
