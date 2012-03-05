@@ -455,7 +455,7 @@ public class ReindexProcess {
 						curFile.toString()}
 						, logger);
 				}else{
-					SystemUtil.executeCommand(new String[]{"java", "-jar", "SolrMarc.jar" , 
+					SystemUtil.executeCommand(new String[]{"exec", "java", "-jar", "SolrMarc.jar" , 
 							"../../conf/" + libraryAbbrev + "/import.properties\" " ,
 							curFile.toString()}
 							, logger);
