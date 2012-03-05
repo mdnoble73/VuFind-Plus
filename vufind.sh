@@ -107,7 +107,10 @@ findDirectory()
 # Set Performance options for JETTY
 ##################################################
 #JAVA_OPTIONS="-server -Xms1048576k -Xmx1048576k -XX:+UseParallelGC -XX:NewRatio=5"
-JAVA_OPTIONS="-server -Xms1024m -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
+if [ -z "$VUFIND_HOME" ]
+then
+  JAVA_OPTIONS="-server -Xms1024m -Xmx1024m -XX:+UseParallelGC -XX:NewRatio=5"
+fi
 
 ##################################################
 # Set VUFIND_HOME
