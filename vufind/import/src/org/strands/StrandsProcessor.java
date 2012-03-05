@@ -70,7 +70,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			return false;
 		}
 		
-		String translationMapPath = configIni.get("Import", "translationMapPath");
+		String translationMapPath = configIni.get("Reindex", "translationMapPath");
 		// Read the format map
 		String formatMapFileString = translationMapPath + "/format_map.properties";
 		File formatMapFile = null;

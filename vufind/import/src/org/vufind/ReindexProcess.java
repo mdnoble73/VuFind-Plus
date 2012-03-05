@@ -491,7 +491,7 @@ public class ReindexProcess {
 		if (log4jFile.exists()) {
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		} else {
-			System.out.println("Could not find log4j configuration " + log4jFile.toString());
+			System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
 		}
 
 		logger.info("Starting Reindex for " + serverName);

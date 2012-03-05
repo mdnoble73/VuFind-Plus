@@ -155,6 +155,9 @@ public class Util {
 	}
 	
 	public static String cleanIniValue(String value){
+		if (value == null){
+			return null;
+		}
 		value = value.trim();
 		if (value.startsWith("\"")){
 			value = value.substring(1);

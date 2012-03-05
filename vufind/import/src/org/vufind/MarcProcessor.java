@@ -26,13 +26,13 @@ public class MarcProcessor {
 	
 	public boolean init(Ini configIni, Logger logger){
 		// Get the directory where the marc records are stored.
-		marcRecordPath = configIni.get("Import", "marcPath");
+		marcRecordPath = configIni.get("Reindex", "marcPath");
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
 			logger.error("Marc Record Path not found in General Settings.  Please specify the path as the marcRecordPath key.");
 			return false;
 		}
 		
-		String translationMapPath = configIni.get("Import", "translationMapPath");
+		String translationMapPath = configIni.get("Reindex", "translationMapPath");
 		// Read the format map
 		String formatMapFileString = translationMapPath + "/format_map.properties";
 		File formatMapFile = null;
@@ -90,9 +90,9 @@ public class MarcProcessor {
 		}
 		
 		//Get the idField 
-		this.idField = configIni.get("Import", "idField");
+		this.idField = configIni.get("Reindex", "idField");
 		if (idField == null){
-			logger.error("Unable to get the idField for the record, please provide the idField in the import section");
+			logger.error("Unable to get the idField for the record, please provide the idField in the Reindex section");
 			return false;
 		}
 		return true;
