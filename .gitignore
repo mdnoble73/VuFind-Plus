@@ -1,6 +1,6 @@
 # Specific locations within VuFind #
 ####################################
-conf/*
+conf/**/*
 !conf/default
 covers/
 !covers/default
