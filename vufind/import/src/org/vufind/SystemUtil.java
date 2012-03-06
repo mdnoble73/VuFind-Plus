@@ -42,15 +42,22 @@ public class SystemUtil {
 	}
 
 	public static String getResultsOfProcess(Process process, Logger logger) throws IOException {
-		BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-		// Read and print the output
-		String results = "";
-		String line = null;
-		while ((line = in.readLine()) != null) {
-			results += (line + "\r\n");
-			if (logger != null) logger.info(line);
+		StreamGobbler errorGobbler = new StreamGobbler(process.getErrorStream(), "ERROR", logger);
+		StreamGobbler outputGobbler = new StreamGobbler(process.getInputStream(), "OUTPUT", logger);
+		errorGobbler.start();
+		outputGobbler.start();
+		
+		try {
+			int exitVal = process.waitFor();
+			if (exitVal == 0) {
+				logger.debug("Process ended with exit value of 0");
+			} else {
+				logger.error("Process errored with exit value of " + exitVal);
+			}
+		} catch (InterruptedException e) {
+			logger.error("Process was interruped", e);
 		}
-		return results;
+		return "";
 	}
 
 	public static String executeCommand(String cmd, Logger logger) throws IOException {
@@ -58,10 +65,10 @@ public class SystemUtil {
 		Process process = Runtime.getRuntime().exec(cmd);
 		return getResultsOfProcess(process, logger);
 	}
-	
+
 	public static String executeCommand(String[] cmdArray, Logger logger) throws IOException {
 		StringBuffer cmd = new StringBuffer();
-		for (String curCmd : cmdArray){
+		for (String curCmd : cmdArray) {
 			cmd.append(curCmd + " ");
 		}
 		logger.info("Running command \r\n" + cmd);
@@ -117,6 +124,31 @@ public class SystemUtil {
 			return "command";
 		} else {
 			return "cmd";
+		}
+	}
+
+}
+
+class StreamGobbler extends Thread {
+	InputStream is;
+	String      type;
+	Logger      logger;
+
+	StreamGobbler(InputStream is, String type, Logger logger) {
+		this.is = is;
+		this.type = type;
+		this.logger = logger;
+	}
+
+	public void run() {
+		try {
+			InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);
+			String line = null;
+			while ((line = br.readLine()) != null)
+				logger.info(type + ">" + line);
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
 		}
 	}
 }

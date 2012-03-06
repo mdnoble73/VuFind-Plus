@@ -3,7 +3,7 @@
 conf/**/*
 !conf/default
 covers/
-!covers/default
+!covers/default/*
 /econtent/
 httpd-conf/
 logs/
@@ -20,8 +20,6 @@ vufind/web/interface/compile/
 ###################
 *.com
 *.class
-*.dll
-*.exe
 *.o
 *.so
 

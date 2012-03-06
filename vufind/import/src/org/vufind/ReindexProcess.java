@@ -450,13 +450,13 @@ public class ReindexProcess {
 			logger.info("Processing marc file " + curFile);
 			try {
 				if (SystemUtil.isWindowsPlatform()){
-					SystemUtil.executeCommand(new String[]{"cmd", "/C", "start", "java", "-jar", "SolrMarc.jar" , 
-						"../../conf/" + libraryAbbrev + "/import.properties\" " ,
+					SystemUtil.executeCommand(new String[]{"cmd", "/C", "java", "-jar", "SolrMarc.jar" , 
+						"\"../../conf/" + serverName + "/import.properties\"" ,
 						curFile.toString()}
 						, logger);
 				}else{
 					SystemUtil.executeCommand(new String[]{"java", "-jar", "SolrMarc.jar" , 
-							"../../conf/" + libraryAbbrev + "/import.properties\" " ,
+							"../../conf/" + serverName + "/import.properties" ,
 							curFile.toString()}
 							, logger);
 				}

@@ -15,12 +15,12 @@ econtent   - contains eContent files that are served wthin VuFind for each libra
              - fulltext - stores full text versions extracted from epubs or pdfs for loading into the index
 httpd-conf - configuration files for loading the sites into apache for each server at each library.  
            - Should  not be checked into public version control. 
-jetty      - contains runtime for Solr
-marc       - contains marc files for each library base on the daily export.  
-           - Should not be checked into git. 
 logs       - contains debug log files for each library. Will not be checked into version control
            - should not be checked in to git
+marc       - contains marc files for each library base on the daily export.  
+           - Should not be checked into git. 
 solr-data  - contains solr index data for each library.  Will not be checked into version control. 
            - default contains files to help setup a new instance.  Should be copied to new instance directory
-vufind     - contains shared vufind code (website, cron, and load tester).  Will be checked in to version control.
+startup    - contains startup scripts to start vufind customized by library domain.
+vufind     - contains all vufind code (website, cron, and load tester).  Checked in to version control.
 
