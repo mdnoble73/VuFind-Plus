@@ -50,8 +50,10 @@
 								<th>Title</th>
 								<th>Author</th>
 								<th>Format</th>
-								<th>ISBN/UPC</th>
+								<th>ISBN</th>
+								<th>UPC</th>
 								<th>OCLC Number</th>
+								<th>ISSN</th>
 								<th>Status</th>
 								<th>Created</th>
 								<th>&nbsp;</th>
@@ -64,13 +66,15 @@
 									<td>{$request->title}</td>
 									<td>{$request->author}</td>
 									<td>{$request->format}</td>
-									<td>{$request->isbn_upc}</td>
+									<td>{$request->isbn}</td>
+									<td>{$request->upc}</td>
 									<td>{$request->oclcNumber}</td>
+									<td>{$request->issn}</td>
 									<td>{$request->status|translate}</td>
 									<td>{$request->dateCreated|date_format}</td>
 									<td>
 										<a href="#" onclick='showMaterialsRequestDetails("{$request->id}")' class="button">Details</a>
-										<a href="#" onclick='updateMaterialsRequest("{$request->id}")' class="button">Update Request</a>
+										<a href="#" onclick='updateMaterialsRequest("{$request->id}")' class="button">Update&nbsp;Request</a>
 									</td>
 								</tr>
 							{/foreach}

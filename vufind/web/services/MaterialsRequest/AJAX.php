@@ -187,12 +187,11 @@ class AJAX extends Action{
 				$worldCatUrl .= '+' . urlencode($_REQUEST['author']);
 			} 
 			if (isset($_REQUEST['format'])){
-				if (in_array($_REQUEST['format'],array('book', 'dvd', 'cassette', 'vhs', 'playaway'))){
+				if (in_array($_REQUEST['format'],array('dvd', 'cassette', 'vhs', 'playaway'))){
 					$worldCatUrl .= '+' . urlencode($_REQUEST['format']);
 				}elseif (in_array($_REQUEST['format'],array('cdAudio', 'cdMusic'))){
 					$worldCatUrl .= '+' . urlencode('cd');
 				}
-				
 			}
 			$worldCatUrl .= "&wskey=" . $configArray['WorldCat']['apiKey'];
 			$worldCatUrl .= "&format=rss";

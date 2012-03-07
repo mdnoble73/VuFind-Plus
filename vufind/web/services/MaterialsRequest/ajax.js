@@ -83,7 +83,7 @@ function getSelectedRequests(){
 }
 
 function setIsbnAndOclcNumber(isbn, oclcNumber){
-	$("#isbn_upc").val(isbn);
+	$("#isbn").val(isbn);
 	$("#oclcNumber").val(oclcNumber);
 	$("#suggestedIdentifiers").slideUp();
 }
@@ -108,10 +108,12 @@ function setFieldVisibility(){
 		$("#magazineDate").addClass('required');
 		$("#magazineVolume").addClass('required');
 		$("#magazinePageNumbers").addClass('required');
+		$("#supplementalDetails").hide();
 	}else{
 		$("#magazineTitle").removeClass('required');
 		$("#magazineDate").removeClass('required');
 		$("#magazineVolume").removeClass('required');
 		$("#magazinePageNumbers").removeClass('required');
+		$("#supplementalDetails").show();
 	}
 }

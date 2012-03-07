@@ -33,7 +33,7 @@ function ajaxLightbox(urlToLoad){
 	var new_top =  document.body.scrollTop;
 
 	// Get the height of the document
-	var documentHeight = $('document').height();
+	var documentHeight = $(document).height();
 
 	$('#lightbox').show();
 	$('#lightbox').css('height', documentHeight + 'px');
@@ -54,7 +54,7 @@ function showElementInLightbox(title, elementSelector){
 	var new_top =  document.body.scrollTop;
 
 	// Get the height of the document
-	var documentHeight = $('document').height();
+	var documentHeight = $(document).height();
 
 	$('#lightbox').show();
 	$('#lightbox').css('height', documentHeight + 'px');
