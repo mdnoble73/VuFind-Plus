@@ -621,8 +621,14 @@ class AJAX extends Action {
 			$interface->assign('publisher', $rawData['publisher']);
 			$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
 				
-			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">" .
-    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
+			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+			if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+				$recordId = substr($rawData['id'], 14);
+				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . '" id="descriptionTrigger' . $rawData['id'] . '">';
+			}else{
+				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+			}
+    	$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
     			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
     			"</a></div>" . 
     			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
@@ -695,12 +701,17 @@ class AJAX extends Action {
 			$interface->assign('publisher', $rawData['publisher']);
 			$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
 			 
-			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">" .
-          '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-          "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
+			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+			if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+				$recordId = substr($rawData['id'], 14);
+				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+			}else{
+				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+			}
+      $formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
           "</a></div>" . 
           "<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
-			$descriptionInfo .
+			      $descriptionInfo .
           "</div>";
 			$rawData['formattedTitle'] = $formattedTitle;
 			$titles[$key] = $rawData;

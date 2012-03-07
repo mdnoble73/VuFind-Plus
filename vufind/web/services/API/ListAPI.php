@@ -526,7 +526,7 @@ class ListAPI extends Action {
 				$titles = array();
 				while($eContentRecord->fetch()){
 					$titles[] = array(
-            'id' => $eContentRecord->id,
+            'id' => 'econtentRecord' . $eContentRecord->id,
             'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=medium&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
             'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=large&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
             'title' => $eContentRecord->title,
