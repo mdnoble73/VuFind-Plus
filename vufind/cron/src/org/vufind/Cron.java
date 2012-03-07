@@ -28,8 +28,8 @@ public class Cron {
 			System.exit(1);
 		}
 		serverName = args[0];
-		
 		args = Arrays.copyOfRange(args, 1, args.length);
+		
 		Date currentTime = new Date();
 		File log4jFile = new File("../../conf/" + serverName + "/log4j.cron.properties");
 		if (log4jFile.exists()){
@@ -53,7 +53,7 @@ public class Cron {
 		// Read the INI file to detemine what processes should be run.
 		// INI File is in the conf directory (current directory/cron/config.ini)
 		Ini ini = new Ini();
-		File configFile = new File("../../conf/" + serverName + "/config.cron.ini");
+		File configFile = new File("../../conf/" + serverName + "/config.ini");
 		try {
 			ini.load(new FileReader(configFile));
 		} catch (InvalidFileFormatException e) {
@@ -71,16 +71,16 @@ public class Cron {
 		// The processes are in the format:
 		// name = handler class
 		boolean updateConfig = false;
-		Section processes = ini.get("Cron Processes");
+		Section processes = ini.get("CronHandlers");
 		if (args.length >= 1){
 			logger.info("Found " + args.length + " arguments ");
 			String processName = args[0];
-			String processHandler = ini.get("Cron Processes", processName);
+			String processHandler = ini.get("CronHandlers", processName);
 			if (processHandler == null){
 				processHandler = processName;
 			}
-			args = Arrays.copyOfRange(args, 1, args.length);
 			ProcessToRun process = new ProcessToRun(processName, processHandler);
+			args = Arrays.copyOfRange(args, 1, args.length);
 			if (args.length > 0){
 				process.setArguments(args);
 			}
@@ -90,9 +90,6 @@ public class Cron {
 			processesToRun = loadProcessesToRun(ini, processes);
 			updateConfig = true;
 		}
-		
-		Section generalSettings = ini.get("General");
-		
 		
 		for (ProcessToRun processToRun: processesToRun){
 			Section processSettings;
@@ -122,7 +119,7 @@ public class Cron {
 					processHandlerClassObject = processHandlerClass.newInstance();
 					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
 					
-					processHandlerInstance.doCronProcess(processSettings, generalSettings, logger);
+					processHandlerInstance.doCronProcess(ini, logger);
 					//Log how long the process took
 					Date endTime = new Date();
 					long elapsedMillis = endTime.getTime() - currentTime.getTime();

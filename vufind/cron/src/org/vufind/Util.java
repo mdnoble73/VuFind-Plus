@@ -14,14 +14,7 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -140,22 +133,17 @@ public class Util {
 		}
 	}
 	
-	public static String encodeString(String originalString){
-		//System.out.println(originalString);
-		return originalString;
-		/*Charset charset = Charset.forName("US-ASCII");
-		CharsetEncoder encoder = charset.newEncoder();
-		ByteBuffer bb = null;
-
-		encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
-		try {
-			CharBuffer cb = CharBuffer.wrap(originalString);
-			bb = encoder.encode(cb);
-		} catch (CharacterCodingException e) {
-			e.printStackTrace();
+	public static String cleanIniValue(String value){
+		if (value == null){
+			return null;
 		}
-
-		CharBuffer cbb = bb.asCharBuffer();
-		return cbb.toString();*/
+		value = value.trim();
+		if (value.startsWith("\"")){
+			value = value.substring(1);
+		}
+		if (value.endsWith("\"")){
+			value = value.substring(0, value.length() -1);
+		}
+		return value;
 	}
 }

@@ -153,11 +153,12 @@
 	<legend>Holds</legend>
 	<div>
 		Place a hold for me when the item is available: 
-		<input type="radio" name="placeHoldYes" value="0" id="placeHoldYes" checked="checked"/><label for="placeHoldYes">Yes</label> <input type="radio" name="placeHold" value="0" id="placeHoldNo"/><label for="placeHoldNo">No</label>
+		<input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked"/><label for="placeHoldYes">Yes</label> 
+		<input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo"/><label for="placeHoldNo">No</label>
 	</div>
 	<div>
 		<label for="pickupLocation">Pickup Location: </label>
-		<select name="pickupLocation" id="pickupLocation">
+		<select name="holdPickupLocation" id="pickupLocation">
 			{foreach from=$pickupLocations item=location}
 				<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
 			{/foreach}

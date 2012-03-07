@@ -1222,6 +1222,10 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$recordId = $_REQUEST['recordId'];
+		//Trim off econtentRecord from the front of the id if provided
+		if (preg_match('/econtentRecord\d+/i', $recordId)){
+			$recordId = substr($recordId, 14);
+		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){

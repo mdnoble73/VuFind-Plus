@@ -529,7 +529,7 @@ class DBMaintenance extends Admin {
 					'ALTER TABLE `materials_request` ADD `magazineVolume` VARCHAR(20)',
 					'ALTER TABLE `materials_request` ADD `magazinePageNumbers` VARCHAR(20)',
 					'ALTER TABLE `materials_request` ADD `placeHoldWhenAvailable` TINYINT',
-					'ALTER TABLE `materials_request` ADD `holdPickupLocation` INT(11)',
+					'ALTER TABLE `materials_request` ADD `holdPickupLocation` VARCHAR(10)',
 					'ALTER TABLE `materials_request` ADD `bookmobileStop` VARCHAR(50)',
 				),
 			),

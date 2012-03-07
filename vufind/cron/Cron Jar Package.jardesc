@@ -11,67 +11,27 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="false" exportJavaFiles="false" exportOutputFolder="true">
-        <file path="/VuFind+ Cron/lib/httpcore-4.1.2.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{MarcProcessorBase.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{CDL.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{ProcessFullExport.java"/>
-        <file path="/VuFind+ Cron/lib/pop3.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONString.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{Base64Coder.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONException.java"/>
+        <file path="/VuFind+ Cron/lib/marc4j.jar"/>
         <file path="/VuFind+ Cron/lib/dsn.jar"/>
-        <file path="/VuFind+ Cron/lib/log4j-1.2.15.jar"/>
-        <file path="/VuFind+ Cron/lib/httpmime-4.1.2.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONStringer.java"/>
-        <file path="/VuFind+ Cron/lib/normalizer.jar"/>
-        <file path="/VuFind+ Cron/lib/pdfbox-1.6.0.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{MaterialsRequest.java"/>
-        <file path="/VuFind+ Cron/lib/mysql-connector-java-5.1.15-bin.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{EContentConversion.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{CirculationProcess.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{CookieList.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONObject.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{HTTPTokener.java"/>
-        <file path="/VuFind+ Cron/lib/mailapi.jar"/>
-        <file path="/VuFind+ Cron/lib/opencsv-2.2.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{ImportFreegal.java"/>
-        <file path="/VuFind+ Cron/lib/commons-logging-1.1.1.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONArray.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{BasicMarcInfo.java"/>
-        <file path="/VuFind+ Cron/src/org/json/README"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.douglascountylibraries{UpdateReadingHistory.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.strands{GenerateCatalog.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{BookcoverCleanup.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.douglascountylibraries{UpdateOnlineItemsWithExpiredHolds.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{Album.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{AttachEContent.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{ImportBase.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONML.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONTokener.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{GutenbergItemInfo.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{XMLTokener.java"/>
-        <file path="/VuFind+ Cron/lib/ini4j-0.5.2.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{Cron.java"/>
-        <file path="/VuFind+ Cron/lib/imap.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{HTTP.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{Util.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{ImportMarcRecord.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{XML.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{ImportResult.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{GaleImport.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{Cookie.java"/>
+        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind"/>
         <file path="/VuFind+ Cron/lib/httpclient-4.1.2.jar"/>
         <file path="/VuFind+ Cron/lib/httpclient-cache-4.1.2.jar"/>
+        <file path="/VuFind+ Cron/lib/imap.jar"/>
+        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.douglascountylibraries"/>
+        <file path="/VuFind+ Cron/lib/commons-logging-1.1.1.jar"/>
         <file path="/VuFind+ Cron/lib/smtp.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{GenerateOPDS.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{OptimizeCore.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{UpdateResourceInformation.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{IProcessHandler.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json{JSONWriter.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{Reindex.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind{ProcessToRun.java"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub{Song.java"/>
+        <file path="/VuFind+ Cron/lib/log4j-1.2.15.jar"/>
         <file path="/VuFind+ Cron/lib/commons-io-2.1.jar"/>
-        <file path="/VuFind+ Cron/lib/marc4j.jar"/>
+        <file path="/VuFind+ Cron/lib/mysql-connector-java-5.1.15-bin.jar"/>
+        <file path="/VuFind+ Cron/lib/pop3.jar"/>
+        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub"/>
+        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json"/>
+        <file path="/VuFind+ Cron/lib/normalizer.jar"/>
+        <file path="/VuFind+ Cron/lib/httpcore-4.1.2.jar"/>
+        <file path="/VuFind+ Cron/lib/pdfbox-1.6.0.jar"/>
+        <file path="/VuFind+ Cron/lib/opencsv-2.2.jar"/>
+        <file path="/VuFind+ Cron/lib/mailapi.jar"/>
+        <file path="/VuFind+ Cron/lib/ini4j-0.5.2.jar"/>
+        <file path="/VuFind+ Cron/lib/httpmime-4.1.2.jar"/>
     </selectedElements>
 </jardesc>

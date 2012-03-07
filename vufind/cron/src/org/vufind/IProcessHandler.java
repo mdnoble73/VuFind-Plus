@@ -1,8 +1,8 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Profile.Section;
+import org.ini4j.Ini;
 
 public interface IProcessHandler {
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger );
+	public void doCronProcess(Ini ini, Logger logger );
 }

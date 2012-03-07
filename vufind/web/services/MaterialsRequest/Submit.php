@@ -92,6 +92,8 @@ class Submit extends Action
 				$materialsRequest->comments = strip_tags($_REQUEST['comments']);
 				if (isset($_REQUEST['placeHoldWhenAvailable'])){
 					$materialsRequest->placeHoldWhenAvailable = $_REQUEST['placeHoldWhenAvailable'];
+				}else{
+					$materialsRequest->placeHoldWhenAvailable = 1;
 				}
 				if (isset($_REQUEST['holdPickupLocation'])){
 					$materialsRequest->holdPickupLocation = $_REQUEST['holdPickupLocation'];
