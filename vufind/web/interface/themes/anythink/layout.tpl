@@ -5,8 +5,22 @@
     <title>{$pageTitle}</title>
     {if $addHeader}{$addHeader}{/if}
     <link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" />
+    {css filename="styles.css"}
+    {css filename="basicHtml.css"}
+  	{css filename="top-menu.css"}
+  	{css filename="library-footer.css"}
+  	{css filename="my-account.css"}
+  	{css filename="holdingsSummary.css"}
+  	{css filename="book-bag.css"}
+  	{css filename="jquery.tooltip.css"}
+  	{css filename="tooltip.css"}
+  	{css filename="record.css"}
+  	{css filename="search-results.css"}
+  	{css filename="suggestions.css"}
+  	{css filename="reports.css"}
 		<link rel="stylesheet" href="{$path}/interface/themes/anythink/css/anythink.css" type="text/css" media="screen" />
     <link rel="stylesheet" href="{$path}/js/jqueryui/ui-lightness/jquery-ui-1.8.11.custom.css" type="text/css" />
+    
 		{css filename="title-scroller.css"}
 		{css filename="ratings.css"}
     <script type="text/javascript">

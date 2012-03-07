@@ -34,17 +34,19 @@ class AJAX extends Action{
 
 	function launch(){
 		$method = $_GET['method'];
-		if (in_array($method, array('CancelRequest'))){
+		if (in_array($method, array('CancelRequest', 'GetWorldCatTitles', 'GetWorldCatIdentifiers'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$result = $this->$method();
 			echo json_encode($result);
-		}else if (in_array($method, array('MaterialsRequestDetails'))){
+		}else if (in_array($method, array('MaterialsRequestDetails', 'UpdateMaterialsRequest'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
+		}else{
+			echo "Unknown Method";
 		}
 	}
 	
@@ -71,6 +73,37 @@ class AJAX extends Action{
 				return array('success' => false, 'error' => 'Could not cancel the request, could not find a request for the provided id.');
 			}
 		}
+	}
+	
+	function UpdateMaterialsRequest(){
+		global $interface;
+		
+		if (!isset($_REQUEST['id'])){
+			$interface->assign('error', 'Please provide an id of the materials request to view.');
+		}else{
+			$id = $_REQUEST['id'];
+			$materialsRequest = new MaterialsRequest();
+			$materialsRequest->id = $id;
+			if ($materialsRequest->find(true)){
+				
+				global $user;
+				if ($user && ($user->hasRole('cataloging') || ($user->id == $materialsRequest->createdBy))){
+					$interface->assign('materialsRequest', $materialsRequest);
+					$interface->assign('showUserInformation', true);
+					//Load user information 
+					$requestUser = new User();
+					$requestUser->id = $materialsRequest->createdBy;
+					if ($requestUser->find(true)){
+						$interface->assign('requestUser', $requestUser);
+					}
+				}else{
+					$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
+				}
+			}else{
+				$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
+			}
+		}
+		return $interface->fetch('MaterialsRequest/ajax-update-request.tpl');
 	}
 	
 	function MaterialsRequestDetails(){
@@ -102,5 +135,101 @@ class AJAX extends Action{
 			}
 		}
 		return $interface->fetch('MaterialsRequest/ajax-request-details.tpl');
+	}
+	
+	function GetWorldCatIdentifiers(){
+		$worldCatTitles = $this->GetWorldCatTitles();
+		if ($worldCatTitles['success'] == false){
+			return $worldCatTitles;
+		}else{
+			$suggestedIdentifiers = array();
+			foreach ($worldCatTitles['titles'] as $title){
+				$identifier = null;
+				if (isset($title['ISBN'])){
+					//Get the first 13 digit ISBN if available
+					foreach ($title['ISBN'] as $isbn){
+						$identifier = $isbn;
+						if (strlen($isbn) == 13){
+							break;
+						}
+					}
+					$title['isbn'] = $identifier; 
+				}elseif (isset($title['oclcNumber'])){
+					$identifier = $title['oclcNumber'];
+				}
+				if (!is_null($identifier) && !array_key_exists($identifier, $suggestedIdentifiers)){
+					$suggestedIdentifiers[$identifier] = $title;
+				}
+			}
+		}
+		global $interface;
+		$interface->assign('suggestedIdentifiers', $suggestedIdentifiers);
+		return array(
+			'success' => true,
+			'identifiers' => $suggestedIdentifiers,
+			'formattedSuggestions' => $interface->fetch('MaterialsRequest/ajax-suggested-identifiers.tpl')
+		);
+	}
+	
+	function GetWorldCatTitles(){
+		global $configArray;
+		if (!isset($_REQUEST['title']) && !isset($_REQUEST['author'])){
+			return array(
+				'success' => false,
+				'error' => 'Cannot load titles from WorldCat, an API Key must be provided in the config file.'
+			);
+		}else if (isset($configArray['WorldCat']['apiKey']) & strlen($configArray['WorldCat']['apiKey']) > 0){
+			$worldCatUrl = "http://www.worldcat.org/webservices/catalog/search/opensearch?q=";
+			if (isset($_REQUEST['title'])){
+				$worldCatUrl .= urlencode($_REQUEST['title']);
+			}
+			if (isset($_REQUEST['author'])){
+				$worldCatUrl .= '+' . urlencode($_REQUEST['author']);
+			} 
+			if (isset($_REQUEST['format'])){
+				if (in_array($_REQUEST['format'],array('book', 'dvd', 'cassette', 'vhs', 'playaway'))){
+					$worldCatUrl .= '+' . urlencode($_REQUEST['format']);
+				}elseif (in_array($_REQUEST['format'],array('cdAudio', 'cdMusic'))){
+					$worldCatUrl .= '+' . urlencode('cd');
+				}
+				
+			}
+			$worldCatUrl .= "&wskey=" . $configArray['WorldCat']['apiKey'];
+			$worldCatUrl .= "&format=rss";
+			//echo($worldCatUrl);
+			$worldCatData = simplexml_load_file($worldCatUrl);
+			//print_r($worldCatData);
+			$worldCatResults = array();
+			foreach($worldCatData->channel->item as $item){
+				$curTitle= array(
+					'title' => (string)$item->title,
+					'author' => (string)$item->author->name
+				);
+				$oclcChildren = $item->children('oclcterms', TRUE);
+				foreach ($oclcChildren as $child){
+					if ($child->getName() == 'recordIdentifier'){
+						$curTitle['oclcNumber'] = (string)$child;
+					}
+					
+				}
+				$dcChildren = $item->children('dc', TRUE);
+				foreach ($dcChildren as $child){
+					if ($child->getName() == 'identifier'){
+						$identifierFields = explode(":", (string)$child);
+						$curTitle[$identifierFields[1]][] = $identifierFields[2];
+					}
+				}
+				$worldCatResults[] = $curTitle;
+			}
+			return array(
+				'success' => true,
+				'titles' => $worldCatResults
+			);
+		}else{
+			return array(
+				'success' => false,
+				'error' => 'Cannot load titles from WorldCat, an API Key must be provided in the config file.'
+			);
+		}
 	}
 }

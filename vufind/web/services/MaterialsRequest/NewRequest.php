@@ -34,6 +34,17 @@ class NewRequest extends Action
 		global $configArray;
 		global $interface;
 		global $user;
+		global $locationSingleton;
+		
+		if ($user){
+			$interface->assign('defaultPhone', $user->phone);
+			$interface->assign('defaultEmail', $user->email);
+			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+		}else{
+			$locations = $locationSingleton->getPickupBranches(false, -1);
+		}
+		
+		$interface->assign('pickupLocations', $locations);
 
 		$interface->setTemplate('new.tpl');
 		$interface->setPageTitle('Materials Request');

@@ -20,11 +20,11 @@
 					</div>
 					<div class="request_detail_field">
 						<div class="request_detail_field_label">Phone Number: </div>
-						<div class="request_detail_field_value">{$requestUser->phone}</div>
+						<div class="request_detail_field_value">{$materialsRequest->phone}</div>
 					</div>
 					<div class="request_detail_field">
 						<div class="request_detail_field_label">Email: </div>
-						<div class="request_detail_field_value">{$requestUser->email}</div>
+						<div class="request_detail_field_value">{$materialsRequest->email}</div>
 					</div>
 					<h2>Request Details</h2>
 				{/if}
@@ -77,10 +77,12 @@
 					<div class="request_detail_field_value">{$materialsRequest->articleInfo}</div>
 				</div>
 				{/if}
+				{if $materialsRequest->abridged != 2}
 				<div class="request_detail_field">
 					<div class="request_detail_field_label">Abridged: </div>
-					<div class="request_detail_field_value">{if $materialsRequest->abridged == 1}Abridged Version{else}Unabridged Version{/if}</div>
+					<div class="request_detail_field_value">{if $materialsRequest->abridged == 1}Abridged Version{elseif $materialsRequest->abridged == 0}Unabridged Version{/if}</div>
 				</div>
+				{/if}
 				<div class="request_detail_field">
 					<div class="request_detail_field_label">Where did you here about this title? </div>
 					<div class="request_detail_field_value_long">{$materialsRequest->about}</div>

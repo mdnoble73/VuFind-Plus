@@ -11,24 +11,25 @@
 			<div class="error">{$error}</div>
 		{else}
 			<div id="materialsRequestFilters">
-				Filters:
+				<fieldset>
+				<legend>Filters:</legend>
 				<form action="{$path}/MaterialsRequest/ManageRequests" method="get">
 					<div>
 					<div>
-						Statuses to Show: <br/>
-						<input type="checkbox" name="statusFilter[]" value="pending" {if in_array('pending', $statusFilter)}checked="checked"{/if}/>Request pending<br/>
-						<input type="checkbox" name="statusFilter[]" value="owned" {if in_array('owned', $statusFilter)}checked="checked"{/if}/>Already owned/On order<br/>
-						<input type="checkbox" name="statusFilter[]" value="purchased" {if in_array('purchased', $statusFilter)}checked="checked"{/if}/>Item purchased, hold placed<br/>
-						<input type="checkbox" name="statusFilter[]" value="referredToILL" {if in_array('referredToILL', $statusFilter)}checked="checked"{/if}/>Request referred to ILL<br/>
-						<input type="checkbox" name="statusFilter[]" value="ILLplaced" {if in_array('ILLplaced', $statusFilter)}checked="checked"{/if}/>ILL request placed<br/>
-						<input type="checkbox" name="statusFilter[]" value="ILLreturned" {if in_array('ILLreturned', $statusFilter)}checked="checked"{/if}/>ILL returned<br/>
-						<input type="checkbox" name="statusFilter[]" value="notEnoughInfo" {if in_array('notEnoughInfo', $statusFilter)}checked="checked"{/if}/>Not enough info - please contact Collection Development to clarify<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredOutOfPrint" {if in_array('notAcquiredOutOfPrint', $statusFilter)}checked="checked"{/if}/>Unable to acquire the item - out of print<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredNotAvailable" {if in_array('notAcquiredNotAvailable', $statusFilter)}checked="checked"{/if}/>Unable to acquire the item - not available in the US<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredFormatNotAvailable" {if in_array('notAcquiredFormatNotAvailable', $statusFilter)}checked="checked"{/if}/>Unable to acquire the item - format not available<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredPrice" {if in_array('notAcquiredPrice', $statusFilter)}checked="checked"{/if}/>Unable to acquire the item - price<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredPublicationDate" {if in_array('notAcquiredPublicationDate', $statusFilter)}checked="checked"{/if}/>Unable to acquire the item - publication date<br/>
-						<input type="checkbox" name="statusFilter[]" value="requestCancelled" {if in_array('requestCancelled', $statusFilter)}checked="checked"{/if}/>Cancelled by Patron<br/>
+						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="$('.statusFilter').attr('checked', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
+						<input type="checkbox" name="statusFilter[]" value="pending" {if in_array('pending', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Request pending<br/>
+						<input type="checkbox" name="statusFilter[]" value="owned" {if in_array('owned', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Already owned/On order<br/>
+						<input type="checkbox" name="statusFilter[]" value="purchased" {if in_array('purchased', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Item purchased, hold placed<br/>
+						<input type="checkbox" name="statusFilter[]" value="referredToILL" {if in_array('referredToILL', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Request referred to ILL<br/>
+						<input type="checkbox" name="statusFilter[]" value="ILLplaced" {if in_array('ILLplaced', $statusFilter)}checked="checked"{/if} class="statusFilter"/>ILL request placed<br/>
+						<input type="checkbox" name="statusFilter[]" value="ILLreturned" {if in_array('ILLreturned', $statusFilter)}checked="checked"{/if} class="statusFilter"/>ILL returned<br/>
+						<input type="checkbox" name="statusFilter[]" value="notEnoughInfo" {if in_array('notEnoughInfo', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Not enough info - please contact Collection Development to clarify<br/>
+						<input type="checkbox" name="statusFilter[]" value="notAcquiredOutOfPrint" {if in_array('notAcquiredOutOfPrint', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - out of print<br/>
+						<input type="checkbox" name="statusFilter[]" value="notAcquiredNotAvailable" {if in_array('notAcquiredNotAvailable', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - not available in the US<br/>
+						<input type="checkbox" name="statusFilter[]" value="notAcquiredFormatNotAvailable" {if in_array('notAcquiredFormatNotAvailable', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - format not available<br/>
+						<input type="checkbox" name="statusFilter[]" value="notAcquiredPrice" {if in_array('notAcquiredPrice', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - price<br/>
+						<input type="checkbox" name="statusFilter[]" value="notAcquiredPublicationDate" {if in_array('notAcquiredPublicationDate', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - publication date<br/>
+						<input type="checkbox" name="statusFilter[]" value="requestCancelled" {if in_array('requestCancelled', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Cancelled by Patron<br/>
 					</div>
 					<div>
 						Date: 
@@ -38,6 +39,7 @@
 					<div><input type="submit" name="submit" value="Update Filters"/></div>
 					</div>
 				</form>
+				</fieldset>
 			</div>
 			{if count($allRequests) > 0}
 				<form id="updateRequests" method="get" action="{$path}/MaterialsRequest/ManageRequests">
@@ -48,6 +50,8 @@
 								<th>Title</th>
 								<th>Author</th>
 								<th>Format</th>
+								<th>ISBN/UPC</th>
+								<th>OCLC Number</th>
 								<th>Status</th>
 								<th>Created</th>
 								<th>&nbsp;</th>
@@ -60,33 +64,41 @@
 									<td>{$request->title}</td>
 									<td>{$request->author}</td>
 									<td>{$request->format}</td>
+									<td>{$request->isbn_upc}</td>
+									<td>{$request->oclcNumber}</td>
 									<td>{$request->status|translate}</td>
 									<td>{$request->dateCreated|date_format}</td>
 									<td>
 										<a href="#" onclick='showMaterialsRequestDetails("{$request->id}")' class="button">Details</a>
+										<a href="#" onclick='updateMaterialsRequest("{$request->id}")' class="button">Update Request</a>
 									</td>
 								</tr>
 							{/foreach}
 						</tbody>
 					</table>
 					<div id="materialsRequestActions">
-						<label for="newStatus">Change status of selected to:</label>
-						<select name="newStatus" id="newStatus">
-							<option value="pending">Request pending</option>
-							<option value="owned">Already owned/On order</option>
-							<option value="purchased">Item purchased, hold placed</option>
-							<option value="referredToILL">Request referred to ILL</option>
-							<option value="ILLplaced">ILL request placed</option>
-							<option value="ILLreturned">ILL returned</option>
-							<option value="notEnoughInfo">Not enough info - please contact Collection Development to clarify</option>
-							<option value="notAcquiredOutOfPrint">Unable to acquire the item - out of print</option>
-							<option value="notAcquiredNotAvailable">Unable to acquire the item - not available in the US</option>
-							<option value="notAcquiredFormatNotAvailable">Unable to acquire the item - format not available</option>
-							<option value="notAcquiredPrice">Unable to acquire the item - price</option>
-							<option value="notAcquiredPublicationDate">Unable to acquire the item - publication date</option>
-							<option value="requestCancelled">Cancelled by Patron</option>
-						</select>
-						<input type="submit" name="updateStatus" value="Update Selected Requests" onclick="return updateSelectedRequests();"/>
+						<div>
+							<label for="newStatus">Change status of selected to:</label>
+							<select name="newStatus" id="newStatus">
+								<option value="pending">Request pending</option>
+								<option value="owned">Already owned/On order</option>
+								<option value="purchased">Item purchased, hold placed</option>
+								<option value="referredToILL">Request referred to ILL</option>
+								<option value="ILLplaced">ILL request placed</option>
+								<option value="ILLreturned">ILL returned</option>
+								<option value="notEnoughInfo">Not enough info - please contact Collection Development to clarify</option>
+								<option value="notAcquiredOutOfPrint">Unable to acquire the item - out of print</option>
+								<option value="notAcquiredNotAvailable">Unable to acquire the item - not available in the US</option>
+								<option value="notAcquiredFormatNotAvailable">Unable to acquire the item - format not available</option>
+								<option value="notAcquiredPrice">Unable to acquire the item - price</option>
+								<option value="notAcquiredPublicationDate">Unable to acquire the item - publication date</option>
+								<option value="requestCancelled">Cancelled by Patron</option>
+							</select>
+							<input type="submit" name="updateStatus" value="Update Selected Requests" onclick="return updateSelectedRequests();"/>
+						</div>
+						<div>
+							<input type="submit" name="exportSelected" value="Export Selected To Excel" onclick="return exportSelectedRequests();"/>
+						</div>
 					</div>
 				</form>
 			{else}

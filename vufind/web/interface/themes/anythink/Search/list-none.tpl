@@ -3,7 +3,7 @@
 
 <div id="page-content" class="content">
   {* Narrow Search Options *}
-  <div id="sidebar">
+  <div id="sidebar-wrapper"><div id="sidebar">
     {* Display spelling suggestions if any *}
 	{if $spellingSuggestions}
 	  <div class="sidegroup">
@@ -18,10 +18,12 @@
       
     {if $sideRecommendations}
       {foreach from=$sideRecommendations item="recommendations"}
+      <div class="debug {$recommendations}">
         {include file=$recommendations}
+      </div>
       {/foreach}
     {/if}
-  </div>
+  </div></div>
   
   <div id="main-content">
     {* Recommendations *}

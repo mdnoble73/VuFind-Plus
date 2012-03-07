@@ -503,6 +503,37 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'materialsRequest_update2' => array(
+				'title' => 'Materials Request Update 2',
+				'description' => 'Material Request add fields phone and email so user can supply a different email address',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE `materials_request` ADD `email` VARCHAR(80)',
+					'ALTER TABLE `materials_request` ADD `phone` VARCHAR(15)',
+				),
+			),
+			
+			'materialsRequest_update3' => array(
+				'title' => 'Materials Request Update 3',
+				'description' => 'Material Request add fields season, magazineTitle, split isbn and upc',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE `materials_request` ADD `season` VARCHAR(80)',
+					'ALTER TABLE `materials_request` ADD `magazineTitle` VARCHAR(255)',
+					'ALTER TABLE `materials_request` CHANGE `isbn_upc` `isbn` VARCHAR( 15 )',
+					'ALTER TABLE `materials_request` ADD `upc` VARCHAR(15)',
+					'ALTER TABLE `materials_request` ADD `issn` VARCHAR(8)',
+					'ALTER TABLE `materials_request` ADD `bookType` VARCHAR(20)',
+					'ALTER TABLE `materials_request` ADD `subFormat` VARCHAR(20)',
+					'ALTER TABLE `materials_request` ADD `magazineDate` VARCHAR(20)',
+					'ALTER TABLE `materials_request` ADD `magazineVolume` VARCHAR(20)',
+					'ALTER TABLE `materials_request` ADD `magazinePageNumbers` VARCHAR(20)',
+					'ALTER TABLE `materials_request` ADD `placeHoldWhenAvailable` TINYINT',
+					'ALTER TABLE `materials_request` ADD `holdPickupLocation` INT(11)',
+					'ALTER TABLE `materials_request` ADD `bookmobileStop` VARCHAR(50)',
+				),
+			),
+			
 			'catalogingRole' => array(
 				'title' => 'Create cataloging role',
 				'description' => 'Create cataloging role to handle materials requests, econtent loading, etc.',

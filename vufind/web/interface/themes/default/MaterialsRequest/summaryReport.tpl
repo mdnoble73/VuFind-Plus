@@ -11,12 +11,13 @@
 			<div class="error">{$error}</div>
 		{else}
 			<div id="materialsRequestFilters">
-				Filters:
+				<fieldset>
+				<legend>Filters:</legend>
 				<form action="{$path}/MaterialsRequest/SummaryReport" method="get">
 					<div>
 					<div>
 						<label for="period">Period</label> 
-						<select name="period" id="period">
+						<select name="period" id="period" onchange="$('#startDate').val('');$('#endDate').val('');";>
 							<option value="day" {if $period == 'day'}selected="selected"{/if}>Day</option>
 							<option value="week" {if $period == 'week'}selected="selected"{/if}>Week</option>
 							<option value="month" {if $period == 'month'}selected="selected"{/if}>Month</option>
@@ -31,6 +32,7 @@
 					<div><input type="submit" name="submit" value="Update Filters"/></div>
 					</div>
 				</form>
+				</fieldset>
 			</div>
 			
 			{* Display results as graph *}
@@ -51,9 +53,18 @@
 					</tr>
 				</thead>
 				<tbody>
-					{foreach from=$periodData item=periodInfo key=period}
+					{foreach from=$periodData item=periodInfo key=periodStart}
 						<tr>
-							<td>{$period|date_format}</td>
+							<td>
+								{* Properly format the period *}
+								{if $period == 'year'}
+									{$periodStart|date_format:'%Y'}
+								{elseif $period == 'month'}
+									{$periodStart|date_format:'%h %Y'}
+								{else}
+									{$periodStart|date_format}
+								{/if}
+							</td>
 							{foreach from=$statuses key=status item=statusLabel}
 								<th>{if $periodInfo.$status}{$periodInfo.$status}{else}0{/if}</th>
 							{/foreach}

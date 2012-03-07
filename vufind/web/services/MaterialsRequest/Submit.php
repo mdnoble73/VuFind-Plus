@@ -25,7 +25,8 @@ require_once "Action.php";
 require_once "sys/MaterialsRequest.php";
 
 /**
- * MaterialsRequest Home Page, displays an existing Materials Request.
+ * MaterialsRequest Submission processing, processes a new request for the user and 
+ * displays a success/fail message to the user. 
  */
 class Submit extends Action
 {
@@ -59,18 +60,45 @@ class Submit extends Action
 			}else{
 				//Materials request can be submitted. 
 				$materialsRequest = new MaterialsRequest();
+				$materialsRequest->phone = strip_tags($_REQUEST['phone']);
+				$materialsRequest->email = strip_tags($_REQUEST['email']);
 				$materialsRequest->title = strip_tags($_REQUEST['title']);
+				$materialsRequest->season = isset($_REQUEST['season']) ? strip_tags($_REQUEST['season']) : '';
+				$materialsRequest->magazineTitle = isset($_REQUEST['magazineTitle']) ? strip_tags($_REQUEST['magazineTitle']) : '';
+				$materialsRequest->magazineDate = isset($_REQUEST['magazineDate']) ? strip_tags($_REQUEST['magazineDate']) : '';
+				$materialsRequest->magazineVolume = isset($_REQUEST['magazineVolume']) ? strip_tags($_REQUEST['magazineVolume']) : '';
+				$materialsRequest->magazinePageNumbers = isset($_REQUEST['magazinePageNumbers']) ? strip_tags($_REQUEST['magazinePageNumbers']) : '';
 				$materialsRequest->author = strip_tags($_REQUEST['author']);
 				$materialsRequest->format = strip_tags($_REQUEST['format']);
+				$materialsRequest->subFormat = isset($_REQUEST['subFormat']) ? strip_tags($_REQUEST['subFormat']) : '';
 				$materialsRequest->ageLevel = strip_tags($_REQUEST['ageLevel']);
-				$materialsRequest->isbn_upc = strip_tags($_REQUEST['isbn_upc']);
-				$materialsRequest->oclcNumber = strip_tags($_REQUEST['oclcNumber']);
+				$materialsRequest->bookType = isset($_REQUEST['bookType']) ? strip_tags($_REQUEST['bookType']) : '';
+				$materialsRequest->isbn = isset($_REQUEST['isbn']) ? strip_tags($_REQUEST['isbn']) : '';
+				$materialsRequest->upc = isset($_REQUEST['upc']) ? strip_tags($_REQUEST['upc']) : '';
+				$materialsRequest->issn = isset($_REQUEST['issn']) ? strip_tags($_REQUEST['issn']) : '';
+				$materialsRequest->oclcNumber = isset($_REQUEST['oclcNumber']) ? strip_tags($_REQUEST['oclcNumber']) : '';
 				$materialsRequest->publisher = strip_tags($_REQUEST['publisher']);
 				$materialsRequest->publicationYear = strip_tags($_REQUEST['publicationYear']);
-				$materialsRequest->articleInfo = strip_tags($_REQUEST['articleInfo']);
-				$materialsRequest->abridged = isset($_REQUEST['abridged']) && $_REQUEST['abridged'] == 'abridged' ? 1 : 0;
+				if (isset($_REQUEST['abridged'])){
+					if ($_REQUEST['abridged'] == 'abridged'){
+						$materialsRequest->abridged = 1;
+					}elseif($_REQUEST['abridged'] == 'unabridged'){
+						$materialsRequest->abridged = 0;
+					}else{
+						$materialsRequest->abridged = 2; //Not applicable
+					}
+				}
 				$materialsRequest->about = strip_tags($_REQUEST['about']);
 				$materialsRequest->comments = strip_tags($_REQUEST['comments']);
+				if (isset($_REQUEST['placeHoldWhenAvailable'])){
+					$materialsRequest->placeHoldWhenAvailable = $_REQUEST['placeHoldWhenAvailable'];
+				}
+				if (isset($_REQUEST['holdPickupLocation'])){
+					$materialsRequest->holdPickupLocation = $_REQUEST['holdPickupLocation'];
+				}
+				if (isset($_REQUEST['bookmobileStop'])){
+					$materialsRequest->bookmobileStop = $_REQUEST['bookmobileStop'];
+				}
 				$materialsRequest->status = 'pending';
 				$materialsRequest->dateCreated = time();
 				$materialsRequest->createdBy = $user->id;

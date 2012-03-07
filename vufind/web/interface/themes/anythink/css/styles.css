@@ -707,7 +707,6 @@ table.datagrid tr.oddrow {
 /* Basic buttons */
 .button {
     background-color:#011753;
-    color: white !important;
     border-radius: 4px;
     font-size: 12px;
     font-family:  Verdana, Helvetica,arial,sans-serif;

@@ -1658,7 +1658,7 @@ private $transactions = array();
 					// Make sure the response is 18 as expected
 					if (preg_match("/^18/", $msg_result)) {
 						$result = $mysip->parseItemInfoResponse( $msg_result );
-						if (isset($result['variable']['AH']) && $itemData['status'] != 'i'){
+						if (isset($result['variable']['AH']) ){
 							$duedate = $result['variable']['AH'][0];
 						}else{
 							$duedate = '';

@@ -399,6 +399,8 @@ body.Search-Home #mini-nav {
 #sidebar {
   padding: 10px;
   background-color: #E2F5F5;
+  border: none;
+  width:auto;
 }
 
 #sidebar h2,
@@ -408,6 +410,17 @@ body.Search-Home #mini-nav {
 
 #sidebar h2 {
   color: #666;
+}
+.sidegroup{
+	border: none;
+	margin: 0px;
+}
+.sidegroup h4{
+	border: none;
+	background: none;
+	color: black;
+	padding: 0px;
+	text-align: left;
 }
 
 #loginForm label {

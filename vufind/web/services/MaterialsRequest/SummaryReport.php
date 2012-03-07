@@ -55,13 +55,24 @@ class SummaryReport extends Admin {
 		if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0){
 			$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
 		} else{
-			if ($period == 'week'){
-				$startDate = new DateTime($endDate->format('m/d/Y') . " - 28 days");
-			}elseif ($period == 'day'){
+			if ($period == 'day'){
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 7 days");
+			}elseif ($period == 'week'){
+				//Get the sunday after this 
+				$endDate->setISODate($endDate->format('Y'), $endDate->format("W"), 0);
+				$endDate->modify("+7 days");
+				$startDate = new DateTime($endDate->format('m/d/Y') . " - 28 days");
 			}elseif ($period == 'month'){
+				$endDate->modify("+1 month");
+				$numDays = $endDate->format("d");
+				$endDate->modify(" -$numDays days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 6 months");
 			}elseif ($period == 'year'){
+				$endDate->modify("+1 year");
+				$numDays = $endDate->format("m");
+				$endDate->modify(" -$numDays months");
+				$numDays = $endDate->format("d");
+				$endDate->modify(" -$numDays days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 2 years");
 			}
 		}

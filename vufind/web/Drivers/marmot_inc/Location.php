@@ -97,7 +97,13 @@ class Location extends DB_DataObject
 	function getPickupBranches($patronProfile, $selectedBranchId) {
 		//Get the library for the patron's home branch.
 		global $librarySingleton;
+		if ($patronProfile){
+			if (is_object($patronProfile)){
+				$patronProfile = get_object_vars($patronProfile);
+			}
+		}
 		$homeLibrary = $librarySingleton->getLibraryForLocation($patronProfile['homeLocationId']);
+		
 
 		if (isset($homeLibrary) && $homeLibrary->inSystemPickupsOnly == 1){
 			if (strlen($homeLibrary->validPickupSystems) > 0){
@@ -154,7 +160,7 @@ class Location extends DB_DataObject
 			} else if ($this->locationId == $patronProfile['myLocation2Id']){
 				//Next come nearby locations for the user
 				$locationList['4' . $this->displayName] = clone $this;
-			} else if ($this->libraryId == $homeLibrary->libraryId){
+			} else if (isset($homeLibrary) && $this->libraryId == $homeLibrary->libraryId){
 				//Other locations that are within the same library system
 				$locationList['5' . $this->displayName] = clone $this;
 			} else {
