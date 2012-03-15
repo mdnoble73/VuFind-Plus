@@ -31,7 +31,9 @@ import org.apache.log4j.PropertyConfigurator;
 import org.econtent.ExtractEContentFromMarc;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
+//import org.solrmarc.marc.MarcImporter;
 import org.strands.StrandsProcessor;
+
 
 /**
  * Runs the nightly reindex process to update solr index based on the latest
@@ -144,7 +146,7 @@ public class ReindexProcess {
 			try {
 				logger.info("Building Alphabetic browse");
 				if (SystemUtil.isWindowsPlatform()){
-					String buildBrowseResult = SystemUtil.executeCommand(new String[]{"cmd", "/C", "index-alphabetic-browse.bat", libraryAbbrev}, logger);
+					String buildBrowseResult = SystemUtil.executeCommand(new String[]{"cmd", "/C", "start", "index-alphabetic-browse.bat", libraryAbbrev}, logger);
 					logger.info("buildBrowseResult = " + buildBrowseResult);
 				}else{
 					String buildBrowseResult = SystemUtil.executeCommand(new String[]{"index-alphabetic-browse.sh", libraryAbbrev}, logger);
@@ -449,15 +451,19 @@ public class ReindexProcess {
 		for (File curFile : marcFilesToProcess){
 			logger.info("Processing marc file " + curFile);
 			try {
+				/*MarcImporter importer = new MarcImporter();
+				importer.init(new String[]{"../../conf/" + serverName + "/import.properties", "../../conf/" + serverName + "/import.properties"});
+				int returnCode = importer.handleAll();*/
 				if (SystemUtil.isWindowsPlatform()){
 					SystemUtil.executeCommand(new String[]{"cmd", "/C", "java", "-jar", "SolrMarc.jar" , 
 						"\"../../conf/" + serverName + "/import.properties\"" ,
 						curFile.toString()}
 						, logger);
 				}else{
-					SystemUtil.executeCommand(new String[]{"java", "-jar", "SolrMarc.jar" , 
-							"../../conf/" + serverName + "/import.properties" ,
-							curFile.toString()}
+					SystemUtil.executeCommand(new String[]{"java",
+							"-jar", "SolrMarc.jar" , 
+							new File("../../conf/" + serverName + "/import.properties").getAbsoluteFile().getAbsolutePath() ,
+							curFile.getAbsolutePath()}
 							, logger);
 				}
 				

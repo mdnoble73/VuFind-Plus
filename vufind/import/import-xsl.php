@@ -35,7 +35,10 @@ require_once 'sys/Proxy_Request.php';
 require_once 'sys/ConnectionManager.php';
 
 // Read Config file
-$configArray = parse_ini_file($importPath . '/../web/conf/config.ini', true);
+$configArray = readConfig();
+
+// Set default timezone
+date_default_timezone_set($configArray['Site']['timezone']);
 
 // Save program name before we start shifting the $argv array:
 $progName = basename($argv[0]);

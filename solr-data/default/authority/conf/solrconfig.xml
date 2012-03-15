@@ -600,7 +600,7 @@
    -->
   <queryResponseWriter
     name="xslt"
-    class="org.apache.solr.request.XSLTResponseWriter"
+    class="org.apache.solr.response.XSLTResponseWriter"
    >
      <int name="xsltCacheLifetimeSeconds">5</int>
    </queryResponseWriter> 

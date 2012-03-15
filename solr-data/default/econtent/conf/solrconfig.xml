@@ -596,6 +596,7 @@
     </lst>
   </requestHandler>
   
+  <searchComponent class="solr.HighlightComponent" name="highlight">
   <highlighting>
    <!-- Configure the standard fragmenter -->
    <!-- This could most likely be commented out in the "default" case -->
@@ -625,7 +626,7 @@
     </lst>
    </formatter>
   </highlighting>
-  
+  </searchComponent>
   
   <!-- queryResponseWriter plugins... query responses will be written using the
     writer specified by the 'wt' request parameter matching the name of a registered
@@ -648,7 +649,7 @@
        in Solr's conf/xslt directory.  Changes to xslt files are checked for
        every xsltCacheLifetimeSeconds.  
    -->
-  <queryResponseWriter name="xslt" class="org.apache.solr.request.XSLTResponseWriter">
+  <queryResponseWriter name="xslt" class="org.apache.solr.response.XSLTResponseWriter">
     <int name="xsltCacheLifetimeSeconds">5</int>
   </queryResponseWriter> 
     
