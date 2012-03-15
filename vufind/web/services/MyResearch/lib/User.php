@@ -5,13 +5,6 @@
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 
-require_once 'User_resource.php';
-require_once 'User_list.php';
-require_once 'User_list_solr.php';
-require_once 'Resource_tags.php';
-require_once 'Tags.php';
-require_once 'sys/Administration/Role.php';
-
 class User extends DB_DataObject
 {
 	###START_AUTOCODE
@@ -56,8 +49,8 @@ class User extends DB_DataObject
 	{
 	}
 
-	function hasResource($resource)
-	{
+	function hasResource($resource) {
+		require_once 'User_resource.php';
 		$join = new User_resource();
 		$join->user_id = $this->id;
 		$join->resource_id = $resource->id;
@@ -68,8 +61,9 @@ class User extends DB_DataObject
 		}
 	}
 
-	function addResource($resource, $list, $tagArray, $notes, $updateSolr = true)
-	{
+	function addResource($resource, $list, $tagArray, $notes, $updateSolr = true){
+		require_once 'User_resource.php';
+		require_once 'Tags.php';
 		$join = new User_resource();
 		$join->user_id = $this->id;
 		$join->resource_id = $resource->id;
@@ -88,6 +82,7 @@ class User extends DB_DataObject
 		}
 		if ($result) {
 			if (is_array($tagArray) && count($tagArray)) {
+				require_once 'Resource_tags.php';
 				$join = new Resource_tags();
 				$join->resource_id = $resource->id;
 				$join->user_id = $this->id;
@@ -108,6 +103,7 @@ class User extends DB_DataObject
 			if ($updateSolr){
 				//Update Solr Index
 				global $configArray;
+				require_once 'User_list_solr.php';
 				$solrConnector = new User_list_solr($configArray['Index']['url']);
 				$solrConnector->saveList($list);
 			}
@@ -132,8 +128,8 @@ class User extends DB_DataObject
 	/**
 	 * @todo: delete any unused tags
 	 */
-	function removeResource($resource)
-	{
+	function removeResource($resource){
+		require_once 'User_resource.php';
 		// Remove the Saved Resource
 		$join = new User_resource();
 		$join->user_id = $this->id;
@@ -141,14 +137,15 @@ class User extends DB_DataObject
 		$join->delete();
 
 		// Remove the Tags from the resource
+		require_once 'Resource_tags.php';
 		$join = new Resource_tags();
 		$join->user_id = $this->id;
 		$join->resource_id = $resource->id;
 		$join->delete();
 	}
 
-	function getResources($tags = null)
-	{
+	function getResources($tags = null) {
+		require_once 'User_resource.php';
 		$resourceList = array();
 
 		$sql = "SELECT DISTINCT resource.* FROM resource, user_resource " .
@@ -175,8 +172,8 @@ class User extends DB_DataObject
 		return $resourceList;
 	}
 
-	function getSavedData($resourceId, $source, $listId = null)
-	{
+	function getSavedData($resourceId, $source, $listId = null) {
+		require_once 'User_resource.php';
 		$savedList = array();
 
 		$sql = "SELECT user_resource.*, user_list.title as list_title, user_list.id as list_id " .
@@ -201,8 +198,9 @@ class User extends DB_DataObject
 	}
 
 
-	function getTags($resourceId = null, $listId = null)
-	{
+	function getTags($resourceId = null, $listId = null){
+		require_once 'Resource_tags.php';
+		require_once 'Tags.php';
 		$tagList = array();
 
 		$sql = "SELECT tags.id, tags.tag, COUNT(resource_tags.id) AS cnt " .
@@ -228,8 +226,9 @@ class User extends DB_DataObject
 	}
 
 
-	function getLists()
-	{
+	function getLists() {
+		require_once 'User_list.php';
+		
 		$lists = array();
 
 		$sql = "SELECT user_list.*, COUNT(user_resource.id) AS cnt FROM user_list " .
@@ -253,6 +252,7 @@ class User extends DB_DataObject
 		if ($name == 'roles'){
 			if (is_null($this->roles)){
 				//Load roles for the user from the user
+				require_once 'sys/Administration/Role.php';
 				$role = new Role();
 				if ($this->id){
 					$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = {$this->id} ORDER BY name");
@@ -282,6 +282,7 @@ class User extends DB_DataObject
 
 	function saveRoles(){
 		if (isset($this->id) && isset($this->roles) && $this->roles != null){
+			require_once 'sys/Administration/Role.php';
 			$role = new Role();
 			$role->query("DELETE FROM user_roles WHERE userId = {$this->id}");
 			//Now add the new values.
@@ -319,6 +320,7 @@ class User extends DB_DataObject
 
 	function getObjectStructure(){
 		//Lookup available roles in the system
+		require_once 'sys/Administration/Role.php';
 		$roleList = Role::getLookup();
 
 		$structure = array(
@@ -336,6 +338,7 @@ class User extends DB_DataObject
 	}
 
 	function getFilters(){
+		require_once 'sys/Administration/Role.php';
 		$roleList = Role::getLookup();
 		$roleList[-1] = 'Any Role';
 		return array(

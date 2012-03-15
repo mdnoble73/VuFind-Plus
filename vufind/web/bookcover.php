@@ -39,15 +39,15 @@ $bookCoverPath = $configArray['Site']['coverPath'];
 require_once 'sys/Timer.php';
 global $timer;
 if (empty($timer)){
-	$timer = new Timer();
+	$timer = new Timer(microtime(false));
 }
 
 global $logger;
 $logger = new Logger();
-if ($configArray['System']['debug']){
-	$inputVariables = print_r($_GET, true);
-	$logger->log("Loading bookcovers $inputVariables", PEAR_LOG_INFO);
-}
+/*if ($configArray['System']['debug']){
+ $inputVariables = print_r($_GET, true);
+ $logger->log("Loading bookcovers $inputVariables", PEAR_LOG_INFO);
+ }*/
 //$logger->log("Starting to load bookcover", PEAR_LOG_INFO);
 
 if (!function_exists('vufind_autoloader')){
@@ -119,32 +119,39 @@ if (!isset($_GET['reload'])){
 	$tmpName = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.png';
 	if ($id != null && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.jpg')) {
 		// Load local cache if available
+		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.jpg';
 		header('Content-type: image/jpeg');
-		echo readfile($bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.jpg');
-		$logger->log("Found cached jpg file for id", PEAR_LOG_INFO);
+		setupHeaders($filename);
+		echo readfile($filename);
 		return;
 	}else if ($id != null && is_readable($tmpName)) {
 		// Load local cache if available
+		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.png';
 		header('Content-type: image/png');
-		echo readfile($bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.png');
-		$logger->log("Found cached png file for id", PEAR_LOG_INFO);
+		setupHeaders($filename);
+		echo readfile($filename);
+		//$logger->log("Found cached png file for id", PEAR_LOG_INFO);
 		return;
 	}else if (strlen($_GET['isn']) > 0 && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['isn'] . '.jpg')) {
 		// Load local cache if available
+		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['isn'] . '.jpg';
 		header('Content-type: image/jpeg');
-		echo readfile($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['isn'] . '.jpg');
-		$logger->log("Found cached jpg file for isbn", PEAR_LOG_INFO);
+		setupHeaders($filename);
+		echo readfile($filename);
+		//$logger->log("Found cached jpg file for isbn", PEAR_LOG_INFO);
 		return;
 	}else if (strlen($_GET['upc']) > 0 && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg')) {
 		// Load local cache if available
+		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg';
 		header('Content-type: image/jpeg');
-		echo readfile($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg');
-		$logger->log("Found cached jpg file for upc", PEAR_LOG_INFO);
+		setupHeaders($filename);
+		echo readfile($filename);
+		//$logger->log("Found cached jpg file for upc", PEAR_LOG_INFO);
 		return;
 	}
 	$timer->logTime("Finished checking for cached cover.");
 }else{
-	$logger->log("Bypassing cache because reload was specified", PEAR_LOG_INFO);
+	//$logger->log("Bypassing cache because reload was specified", PEAR_LOG_INFO);
 }
 
 //First check to see if this has a custom cover due to being an e-book
@@ -178,7 +185,7 @@ if ($configArray['EContent']['library'] && isset($_GET['econtent']) && isset($id
 		}
 		if ($epubFile->cover && strlen($epubFile->cover) > 0){
 			$logger->log("Cover for the file is specified as {$epubFile->cover}.", PEAR_LOG_INFO);
-		  if (strpos($epubFile->cover, 'http://') === 0){
+			if (strpos($epubFile->cover, 'http://') === 0){
 				$filename = $epubFile->cover;
 				global $localFile;
 				$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.jpg';
@@ -191,7 +198,7 @@ if ($configArray['EContent']['library'] && isset($_GET['econtent']) && isset($id
 				global $localFile;
 				$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.jpg';
 				if (file_exists($filename)){
-				  
+
 					if (processImageURL($filename, true)){
 						exit();
 					}
@@ -251,11 +258,9 @@ if ($id && is_numeric($id) && $category && strtolower($category) == 'other'){
 			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		//Process the marc record
-		$marc = trim($record['fullrecord']);
-		$marc = preg_replace('/#31;/', "\x1F", $marc);
-		$marc = preg_replace('/#30;/', "\x1E", $marc);
-		$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-		if ($marcRecord = $marc->next()) {
+		require_once 'sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+		if ($marcRecord) {
 			PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record'));
 		}
 		//Get the 856 tags
@@ -302,7 +307,7 @@ if ((isset($_GET['isn']) && !empty($_GET['isn'])) || (isset($_GET['upc']) && !em
 				exit();
 			}
 		}
-		
+
 		//Have not found an image yet, check files uploaded by publisher
 		if (isset($isbn10) ){
 			$logger->log("Looking for image from publisher isbn10: $isbn10 isbn13: $isbn13 in $bookCoverPath/original/.", PEAR_LOG_INFO);
@@ -315,11 +320,11 @@ if ((isset($_GET['isn']) && !empty($_GET['isn'])) || (isset($_GET['upc']) && !em
 
 		$logger->log("Could not find a cover, using default based on category $category.", PEAR_LOG_INFO);
 		dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
-		
+
 	} else {
 		dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
 	}
-	
+
 } else {
 	$logger->log("Could not find a cover, using default based on category $category.", PEAR_LOG_INFO);
 	dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
@@ -330,7 +335,7 @@ if ((isset($_GET['isn']) && !empty($_GET['isn'])) || (isset($_GET['upc']) && !em
  */
 function dieWithFailImage($bookCoverPath, $size, $category, $id){
 	$useDefaultNoCover = true;
-	
+
 	global $localFile;
 	global $logger;
 	global $configArray;
@@ -359,13 +364,13 @@ function dieWithFailImage($bookCoverPath, $size, $category, $id){
 			$useDefaultNoCover = false;
 		}
 	}
-	
+
 	if ($useDefaultNoCover){
 		$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $id . '.png';
 		$nocoverurl = "interface/themes/default/images/noCover2.png";
 		header('Content-type: image/png');
 	}
-	
+
 	$ret = copy($nocoverurl, $localFile);
 	if (!$ret){
 		$logger->log("Unable to copy file $nocoverurl to $localFile", PEAR_LOG_INFO);
@@ -414,7 +419,7 @@ function processImageURL($url, $cache = true)
 			@unlink($tempFile);
 			return false;
 		}
-		
+
 		if ($_GET['size'] == 'small'){
 			$maxDimension = 100;
 		}elseif ($_GET['size'] == 'medium'){
@@ -422,12 +427,12 @@ function processImageURL($url, $cache = true)
 		}else{
 			$maxDimension = 400;
 		}
-		
+
 		//Check to see if the image neds to be resized
 		if ($width > $maxDimension || $height > $maxDimension){
 			// We no longer need the temp file:
 			@unlink($tempFile);
-				
+
 			if ($width > $height){
 				$new_width = $maxDimension;
 				$new_height = floor( $height * ( $maxDimension / $width ) );
@@ -435,12 +440,12 @@ function processImageURL($url, $cache = true)
 				$new_height = $maxDimension;
 				$new_width = floor( $width * ( $maxDimension / $height ) );
 			}
-			
+
 			//$logger->log("Resizing image New Width: $new_width, New Height: $new_height", PEAR_LOG_INFO);
-			
+
 			// create a new temporary image
 			$tmp_img = imagecreatetruecolor( $new_width, $new_height );
-			
+
 			$imageResource = imagecreatefromstring($image);
 			// copy and resize old image into new image
 			if (!imagecopyresampled( $tmp_img, $imageResource, 0, 0, 0, 0, $new_width, $new_height, $width, $height )){
@@ -453,16 +458,16 @@ function processImageURL($url, $cache = true)
 				$logger->log("Could not save resized file $localFile", PEAR_LOG_ERR);
 				return false;
 			}
-			
-			
+
+
 		}else{
 			//$logger->log("Image is the correct size, not resizing.", PEAR_LOG_INFO);
-			
+
 			// Conversion needed -- do some normalization for non-JPEG images:
 			if ($type != IMAGETYPE_JPEG) {
 				// We no longer need the temp file:
 				@unlink($tempFile);
-	
+
 				// Try to create a GD image and rewrite as JPEG, fail if we can't:
 				if (!($imageGD = @imagecreatefromstring($image))) {
 					$logger->log("Could not create image from string $url", PEAR_LOG_ERR);
@@ -559,7 +564,7 @@ function google()
 		return false;
 	}
 	if (is_callable('json_decode')) {
-	$url = 'http://books.google.com/books?jscmd=viewapi&' .
+		$url = 'http://books.google.com/books?jscmd=viewapi&' .
                'bibkeys=ISBN:' . $_GET['isn'] . '&callback=addTheCover';
 		$client = new Proxy_Request();
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
@@ -581,7 +586,7 @@ function google()
 				if (isset($json['thumbnail_url'])){
 					$imageUrl = $json['thumbnail_url'];
 					if ($size == 'small'){
-	
+
 					}else if ($size == 'medium'){
 						$imageUrl = preg_replace('/zoom=\d/', 'zoom=1', $imageUrl);
 					}else{ //large
@@ -669,10 +674,10 @@ function lookForPublisherFile($folderToCheck, $isbn10, $isbn13){
 		$dh = opendir($folderToCheck);
 		if ($dh){
 			while (($file = readdir($dh)) !== false) {
-				
+
 				if (is_dir($folderToCheck . $file) && $file != '.' && $file != '..'){
 					//$logger->log("Found file $file", PEAR_LOG_INFO);
-					$subDirectories[] = $folderToCheck . $file . '/'; 
+					$subDirectories[] = $folderToCheck . $file . '/';
 				}
 			}
 			closedir($dh);
@@ -687,4 +692,31 @@ function lookForPublisherFile($folderToCheck, $isbn10, $isbn13){
 	return false;
 }
 
-?>
+function setupHeaders($filename){
+	$timestamp = filemtime($filename);
+	$last_modified = substr(date('r', $timestamp), 0, -5).'GMT';
+	$etag = '"'.md5($last_modified).'"';
+	// Send the headers
+	header("Last-Modified: $last_modified");
+	header("ETag: $etag");
+	// See if the client has provided the required headers
+	$if_modified_since = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ?
+	stripslashes($_SERVER['HTTP_IF_MODIFIED_SINCE']) :
+	false;
+	$if_none_match = isset($_SERVER['HTTP_IF_NONE_MATCH']) ?
+	stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) :
+	false;
+	if (!$if_modified_since && !$if_none_match) {
+		return;
+	}
+	// At least one of the headers is there - check them
+	if ($if_none_match && $if_none_match != $etag) {
+		return; // etag is there but doesn't match
+	}
+	if ($if_modified_since && $if_modified_since != $last_modified) {
+		return; // if-modified-since is there but doesn't match
+	}
+	// Nothing has changed since their last request - serve a 304 and exit
+	header('HTTP/1.0 304 Not Modified');
+	die();
+}

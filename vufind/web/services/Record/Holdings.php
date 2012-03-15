@@ -78,7 +78,7 @@ class Holdings extends Record
 						$issueSummaries = $result;
 						break;
 					}else{
-						$holdings[$copy['location']][] = $copy;
+						$holdings[$copy['location']] = $copy;
 					}
 				}
 				if (isset($issueSummaries) && count($issueSummaries) > 0){

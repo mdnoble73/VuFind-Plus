@@ -598,7 +598,13 @@ class IndexRecord implements RecordInterface
 		// Assemble the URL:
 		$parts = array();
 		foreach($params as $key => $value) {
-			$parts[] = $key . '=' . urlencode($value);
+			if (is_array($value)){
+				foreach($value as $arrVal){
+					$parts[] = $key . '[]=' . urlencode($value);
+				}
+			}else{
+				$parts[] = $key . '=' . urlencode($value);
+			}
 		}
 		return implode('&', $parts);
 	}

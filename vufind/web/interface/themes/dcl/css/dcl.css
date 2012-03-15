@@ -24,3 +24,40 @@
 	background-image: url(/interface/themes/dcl/images/searchbar-gradient.png);
 	background-repeat: repeat-x;
 }
+
+.sidegroup {
+	border: 1px solid #949494;
+	margin: 0 0 20px 0;
+	-moz-border-radius: 12px;
+	border-radius: 12px;
+	padding-bottom: 10px;
+}
+.sidegroup h4 {
+	padding: .5em 0 .5em 0;
+	color: white;
+	font-weight: bold;
+	background-color: #e58e29;
+	-moz-border-radius-topleft: 11px;
+	border-top-left-radius: 11px;
+	-moz-border-radius-topright: 11px;
+	border-top-right-radius: 11px;
+	text-align: center;
+	margin-top: 0px;
+}
+
+#titleDetailsSidegroup h4{
+	background-color: #E58E29;
+}
+
+#tagsSidegroup h4{
+	background-color: #011751;
+}
+#similarTitlesSidegroup h4{
+	background-color: #011751;
+}
+#similarAuthorsSidegroup h4{
+	background-color: #011751;
+}
+#otherEditionsSidegroup h4{
+	background-color: #011751;
+}

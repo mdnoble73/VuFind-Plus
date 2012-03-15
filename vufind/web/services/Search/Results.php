@@ -136,6 +136,7 @@ class Results extends Action {
 		// Initialise from the current search globals
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);
+		$timer->logTime("Init Search Object");
 
 		// Build RSS Feed for Results (if requested)
 		if ($searchObject->getView() == 'rss') {

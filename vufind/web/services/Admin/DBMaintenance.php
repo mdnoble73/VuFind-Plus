@@ -148,69 +148,7 @@ class DBMaintenance extends Admin {
           "ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
 		),
 		),
-
-    	 'list_cache' => array(
-    	   'title' => 'Create list cache',
-    	   'description' => 'Initial creation of list cache table to cache return values for system generated lists (title information)',
-    	   'dependencies' => array(),
-    	   'sql' => array(
-    	     "CREATE TABLE list_cache (".
-    	       "listName VARCHAR(50) NOT NULL PRIMARY KEY, ".
-    	       "jsonData TEXT NOT NULL, ".
-    	       "cacheDate int(16) NOT NULL".
-    	     ")",
-		),
-		),
-
-    	 'list_cache_2' => array(
-         'title' => 'Create list cache 2',
-         'description' => 'Initial creation of list cache 2 table to cache return values for system generated lists (formatted for rendering in title scroller)',
-         'dependencies' => array(),
-         'sql' => array(
-    	     'DROP TABLE IF EXISTS list_cache2',
-           "CREATE TABLE list_cache2 (".
-             "listName VARCHAR(50) NOT NULL, ".
-             "scrollerName VARCHAR(50) NOT NULL, ".
-             "jsonData LONGTEXT NOT NULL, ".
-             "cacheDate int(16) NOT NULL".
-           ")",
-    	     "ALTER TABLE `list_cache2` ADD PRIMARY KEY ( `listName` , `scrollerName` ) ;"
-    	     ),
-    	     ),
-
-    	 'list_cache_2_update_1' => array(
-         'title' => 'List cache 2 update 1',
-         'description' => 'Update List Cache 2 to add cache expiration time to allow various expiration times.',
-         'dependencies' => array(),
-         'sql' => array(
-    	     "ALTER TABLE `list_cache2` ADD cacheExpiration int(16) NOT NULL ;"
-    	   ),
-    	 ),
-
-    	 'sip2_item_cache' => array(
-         'title' => 'Create SIP2 Item cache',
-         'description' => 'Initial creation of SIP 2 Item cache table to cache return values from SIP 2 related to barcodes',
-         'dependencies' => array(),
-         'sql' => array(
-           "CREATE TABLE sip2_item_cache (".
-             "barcode VARCHAR(50) NOT NULL PRIMARY KEY, ".
-             "holdQueueLength int(16) NOT NULL, ".
-    	       "duedate VARCHAR(16) NOT NULL, ".
-             "cacheDate int(16) NOT NULL".
-           ")",
-    	     ),
-    	     ),
-    	
-    	 'sip2_item_cache_1' => array(
-         'title' => 'SIP2 Item cache Update 1',
-         'description' => 'Add caching of location',
-         'dependencies' => array(),
-         'sql' => array(
-           "ALTER TABLE sip2_item_cache ADD location varchar(10)",
-    	     ),
-    	     ),
-    	     
-
+    	 
       'list_widgets' => array(
         'title' => 'Setup Configurable List Widgets',
         'description' => 'Create tables related to configurable list widgets',
@@ -567,14 +505,11 @@ class DBMaintenance extends Admin {
 				"ALTER TABLE externallinktracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE ip_lookup CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE library CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE list_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE list_cache2 CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE list_widgets CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE list_widget_lists CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE location CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE millennium_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE nonholdablelocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE novelist_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE ptyperestrictedlocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE purchaselinktracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
@@ -584,7 +519,6 @@ class DBMaintenance extends Admin {
 				"ALTER TABLE search CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE search_stats CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE session CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE sip2_item_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE spelling_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE usagetracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
@@ -605,6 +539,20 @@ class DBMaintenance extends Admin {
 			'sql' => array(
 				//Update resource table indexes
 				"ALTER TABLE `resource` ADD UNIQUE `records_by_source` (`record_id`, `source`)" 
+			),
+		),
+		
+		'remove_old_tables' => array(
+			'title' => 'Remove old tables',
+			'description' => 'Remove tables that are no longer needed due to usage of memcache',
+			'dependencies' => array(),
+			'sql' => array(
+				//Update resource table indexes
+				'DROP TABLE IF EXISTS list_cache',
+				'DROP TABLE IF EXISTS list_cache2',
+				'DROP TABLE IF EXISTS novelist_cache', 
+				'DROP TABLE IF EXISTS reviews_cache',
+				'DROP TABLE IF EXISTS sip2_item_cache',
 			),
 		),
 		

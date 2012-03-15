@@ -6,7 +6,7 @@
 <div class="imageColumn"> 
     <div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
     <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
-    <img src="{$coverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+    <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
 
 </div>

@@ -88,11 +88,9 @@ class Record extends Action
 		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());
 		
 		// Process MARC Data
-		$marc = trim($record['fullrecord']);
-		$marc = preg_replace('/#31;/', "\x1F", $marc);
-		$marc = preg_replace('/#30;/', "\x1E", $marc);
-		$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-		if ($marcRecord = $marc->next()) {
+		require_once 'sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 			$interface->assign('marc', $marcRecord);
 		} else {
@@ -226,7 +224,7 @@ class Record extends Action
 			}
 		}
 
-		$timer->logTime('Got data from Marc Record');
+		$timer->logTime("Got basic data from Marc Record subaction = $subAction, record_id = $record_id");
 		//stop if this is not the main action.
 		if ($subAction == true){
 			return;
@@ -313,12 +311,8 @@ class Record extends Action
 		$interface->assign('format_category', $record['format_category'][0]);
 		$interface->assign('recordLanguage', $record['language']);
 		
-		$timer->logTime('Got data from Marc Record');
-		//stop if this is not the main action.
-		if ($subAction == true){
-			return;
-		}
-
+		$timer->logTime('Got detailed data from Marc Record');
+		
 		$notes = array();
 
 		$marcFields500 = $marcRecord->getFields('500');
@@ -505,7 +499,7 @@ class Record extends Action
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
 		$tags = array();
-		if ($tags = $resource->getTags()) {
+		if ($tags = $resource->getTags($limit)) {
 			array_slice($tags, 0, $limit);
 		}
 		$interface->assign('tagList', $tags);
@@ -513,26 +507,33 @@ class Record extends Action
 
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
 
-		if (!$interface->is_cached($this->cacheId)) {
-			// Find Similar Records
-			//11/3 - We decided the More like this functionality did not provide good enough
-			//results so we are disabling.
-			$similar = $this->db->getMoreLikeThis($_GET['id']);
-			$timer->logTime('Got More Like This');
-
+		// Find Similar Records
+		global $memcache;
+		$similar = $memcache->get('similar_titles_' . $this->id);
+		if ($similar == false){
+			$similar = $this->db->getMoreLikeThis($this->id);
 			// Send the similar items to the template; if there is only one, we need
 			// to force it to be an array or things will not display correctly.
 			if (isset($similar) && count($similar['response']['docs']) > 0) {
-				$interface->assign('similarRecords', $similar['response']['docs']);
+				$similar = $similar['response']['docs'];
+			}else{
+				$similar = array();
+				$logger->logTime("Did not find any similar records");
 			}
-
-			// Find Other Editions
-			$editions = $this->getEditions();
-			if (!PEAR::isError($editions)) {
-				$interface->assign('editions', $editions);
-			}
-			$timer->logTime('Got Other editions');
+			$memcache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
 		}
+		$interface->assign('similarRecords', $similar);
+		$timer->logTime('Loaded similar titles');
+		
+		// Find Other Editions
+		$editions = $this->getEditions();
+		if (!PEAR::isError($editions)) {
+			$interface->assign('editions', $editions);
+		}else{
+			$logger->logTime("Did not find any other editions");
+		}
+		$timer->logTime('Got Other editions');
+		
 		
 		$interface->assign('showStrands', isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0);
 
@@ -660,17 +661,23 @@ class Record extends Action
 
 	function getEditions() {
 		global $configArray;
-		if ($this->isbn) {
-			if ($configArray['Content']['otherEditions'] = 'LibraryThing'){
-				return $this->getLibraryThingRelatedRecords($this->isbn);
+		global $memcache;
+		$editions = $memcache->get('other_editions_' . $this->isbn);
+		if (!$editions){
+			if ($this->isbn) {
+				if ($configArray['Content']['otherEditions'] = 'LibraryThing'){
+					$editions = $this->getLibraryThingRelatedRecords($this->isbn);
+				}else{
+					$editions = $this->getXISBN($this->isbn);
+				}
+			} else if (isset($this->record['issn'])) {
+				$editions = $this->getXISSN($this->record['issn']);
 			}else{
-				return $this->getXISBN($this->isbn);
+				$editions = null;
 			}
-		} else if (isset($this->record['issn'])) {
-			return $this->getXISSN($this->record['issn']);
+			$memcache->set('other_editions_' . $this->isbn, $editions, 0, $configArray['Caching']['other_editions']);
 		}
-
-		return null;
+		return $editions;
 	}
 
 	private function getLibraryThingRelatedRecords($isbn){

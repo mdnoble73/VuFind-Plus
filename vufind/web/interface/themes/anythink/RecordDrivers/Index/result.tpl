@@ -4,7 +4,7 @@
   </div>-->
   <div class="cover"> 
       {if $user->disableCoverArt != 1}  
-      <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}"><img src="{$bookCoverUrl}" class="cover-image" alt="{translate text='Cover Image'}"/></a>
+      <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
       {/if}
       <div class="rating" id="rating-{$summId|escape}"></div>
       <div class='requestThisLink' id="placeHold{$summId|escape:"url"}"><a class="button" href="{$url}/Record/{$summId|escape:"url"}/Hold">Hold</a></div>

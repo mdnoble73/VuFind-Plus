@@ -246,8 +246,8 @@ function redrawSaveStatus() {literal}{{/literal}
       <div id = "recordcover">  
 	    <div class="recordcoverWrapper">
           
-          <a href="{$coverUrl}">              
-            <img alt="{translate text='Book Cover'}" class="recordcover" src="{$coverUrl}" />
+          <a href="{$bookCoverUrl}">              
+            <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
           </a>
         </div>
       </div>  

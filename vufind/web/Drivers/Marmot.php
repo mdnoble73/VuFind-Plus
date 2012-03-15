@@ -848,11 +848,9 @@ class Marmot extends Innovative implements DriverInterface
 				//Must not be a MARC record. Ignore it for now.
 			}else{
 				// Process MARC Data
-				$marc = trim($record['fullrecord']);
-				$marc = preg_replace('/#31;/', "\x1F", $marc);
-				$marc = preg_replace('/#30;/', "\x1E", $marc);
-				$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-				if ($marcRecord = $marc->next()) {
+				require_once 'sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+				if ($marcRecord) {
 					//Check the 856 tag to see if there is a URL
 					if ($linkField = $marcRecord->getField('856')) {
 						if ($linkURLField = $linkField->getSubfield('u')) {

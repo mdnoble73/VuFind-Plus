@@ -107,8 +107,7 @@ class UInterface extends Smarty
 		$this->assign('theme', $this->vufindTheme);
 		$timer->logTime('Basic configuration');
 
-		if (isset($configArray['OpenURL']) &&
-		isset($configArray['OpenURL']['url'])) {
+		if (isset($configArray['OpenURL']) && isset($configArray['OpenURL']['url'])) {
 			// Trim off any parameters (for legacy compatibility -- default config
 			// used to include extraneous parameters):
 			list($base) = explode('?', $configArray['OpenURL']['url']);
@@ -213,8 +212,7 @@ class UInterface extends Smarty
 	}
 }
 
-function translate($params)
-{
+function translate($params) {
 	global $translator;
 
 	// If no translator exists yet, create one -- this may be necessary if we
@@ -233,9 +231,7 @@ function translate($params)
 	}
 }
 
-function char($params)
-{
+function char($params) {
 	extract($params);
 	return chr($int);
 }
-

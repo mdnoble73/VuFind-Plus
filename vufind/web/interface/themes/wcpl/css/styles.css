@@ -955,21 +955,21 @@ div.checkedout,span.checkedout{
     margin-right:1em;
 }
 .book {
-    background-image:url(/interface/themes/default/images/silk/book.png);
+    background-image:url(/images/silk/book.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .journal {
-    background-image:url(/interface/themes/default/images/silk/report.png);
+    background-image:url(/images/silk/report.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .newspaper {
-    background-image:url(/interface/themes/default/images/silk/newspaper.png);
+    background-image:url(/images/silk/newspaper.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;

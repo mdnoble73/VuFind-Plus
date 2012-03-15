@@ -485,15 +485,23 @@ class AJAX extends Action {
 		$interface->assign('enrichment', $enrichmentData);
 		return $interface->fetch('Record/ajax-reviews.tpl');
 	}
+	
 	function getDescription(){
-		require_once 'Description.php';
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
+		global $memcache;
+		global $configArray;
 		$id = $_REQUEST['id'];
-		global $interface;
-		$description = new Description(true, $id);
-		$descriptionArray = $description->loadData();
+		//Bypass loading solr, etc if we already have loaded the descriptive info before
+		$descriptionArray = $memcache->get("record_description_{$id}");
+		if (!$descriptionArray){
+			require_once 'Description.php';
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
+	
+			global $interface;
+			$description = new Description(true, $id);
+			$descriptionArray = $description->loadData();
+			$memcache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+		}
 
 		$output = "<result>\n";
 

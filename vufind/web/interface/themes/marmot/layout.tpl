@@ -10,12 +10,10 @@
       {css filename="consolidated_css.css"}
     {else}
 	    {css filename="basicHtml.css"}
-    	<link rel="stylesheet" href="{$path}/js/autocomplete/jquery.autocomplete.css" type="text/css" />
 	    <link rel="stylesheet" href="{$path}/js/jqueryui/flick/jquery-ui-1.8.8.custom.css" type="text/css" />
     	{css media="screen" filename="styles.css"}
     	{css media ="screen" filename="book-bag.css"}
-    	{css filename="title-scroller.css"}
-	  	{css filename="my-account.css"}
+    	{css filename="my-account.css"}
 	  	{css filename="holdingsSummary.css"}
 	  	{css filename="ratings.css"}
 	  	{css filename="book-bag.css"}
@@ -63,8 +61,6 @@
 
 		  <script type="text/javascript" src="{$path}/js/starrating/jquery.rater.js"></script>
 		  
-		  <script type="text/javascript" src="{$path}/js/autocomplete/lib/jquery.bgiframe.min.js"></script>
-		  <script type="text/javascript" src="{$path}/js/autocomplete/jquery.autocomplete.js"></script>
 		  <script type="text/javascript" src="{$path}/js/autofill.js"></script>
 		
 		  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
@@ -73,7 +69,6 @@
 		  
 		  <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 		  
-			<script type="text/javascript" src="{$path}/js/jcarousel/lib/jquery.jcarousel.min.js"></script>
 			<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
 			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>

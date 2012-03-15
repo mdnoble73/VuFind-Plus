@@ -81,11 +81,8 @@ class Record extends Base
         $interface->assign('record', $record);
 
         // Load MARC data
-        $marc = trim($record['fullrecord']);
-        $marc = preg_replace('/#31;/', "\x1F", $marc);
-        $marc = preg_replace('/#30;/', "\x1E", $marc);
-        $marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-        $marcRecord = $marc->next();
+        require_once 'sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
         if (!$marcRecord) {
             PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record'));
         }

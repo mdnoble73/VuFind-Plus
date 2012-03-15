@@ -62,16 +62,10 @@ class Horizon implements DriverInterface{
 		}
 	}
 
-private $holdings = array();
 	public function getHolding($id, $record = null, $mysip = null, $forSummary = false){
-		require_once('sys/Cache/SIP2ItemCache.php');
 		global $timer;
 		global $configArray;
 
-		if (isset($this->holdings[$id])){
-			return $this->holdings[$id];
-		}
-			
 		$allItems = array();
 
 		if ($record == null){
@@ -100,12 +94,9 @@ private $holdings = array();
 		$recordURL = null;
 
 		if ($record) {
-			// Process MARC Data
-			$marc = trim($record['fullrecord']);
-			$marc = preg_replace('/#31;/', "\x1F", $marc);
-			$marc = preg_replace('/#30;/', "\x1E", $marc);
-			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-			if ($marcRecord = $marc->next()) {
+			require_once 'sys/MarcLoader.php';
+			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+			if ($marcRecord) {
 				$timer->logTime('Loaded MARC record from search object');
 				if (!$configArray['Catalog']['itemLevelCallNumbers']){
 					$callNumber = '';
@@ -134,134 +125,72 @@ private $holdings = array();
 				$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
 				$statusSubfield     = $configArray['Catalog']['statusSubfield'];
 				foreach ($items as $itemIndex => $item){
-					$itemData = array();
-					$itemId = $item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '';
-					//Get the barcode from the horizon database
-					$itemData['locationCode'] = strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' );
-					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
+					$barcode = $item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '';
+					//Check to see if we already have data for this barcode 
+					global $memcache;
+					$itemData = $memcache->get('item_data_' . $barcode);
+					if ($itemData == false){
+						//No data exists
 					
-					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
-						$itemData['callnumber'] = $callNumber;
-					}else{
-						$itemData['callnumber'] = ($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
-					}
-					//Set default status
-					$itemData['status'] = $item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '';
-					if ($this->useDb){
-						//Get updated status from database
-						//Query the database for realtime availability
-						$query = "select item_status from item where item# = " . $itemId;
-						$itemStatusResult = $this->_query($query);
-						$itemsStatus = $this->_fetch_assoc($itemStatusResult);
-						if (isset($itemsStatus['item_status']) && strlen($itemsStatus['item_status']) > 0){
-							$itemData['status'] = $itemsStatus['item_status'];
-							$timer->logTime("Got status from database item $itemIndex");
+						$itemData = array();
+						$itemId = $item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '';
+						//Get the barcode from the horizon database
+						$itemData['locationCode'] = strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' );
+						$itemData['location'] = $this->translateLocation($itemData['locationCode']);
+						
+						if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
+							$itemData['callnumber'] = $callNumber;
+						}else{
+							$itemData['callnumber'] = ($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
 						}
-					}
-					$itemData['availability'] = preg_match("/({$configArray['Catalog']['availableStatuses']})/i", $itemData['status']);
-					//Make the item holdable by default.  Then check rules to make it non-holdable.
-					$itemData['holdable'] = true;
-					//Make lucky day items not holdable
-					$itemData['luckyDay'] = ($item->getSubfield('t') != null ? preg_match('/^yld.*$/i', $item->getSubfield('t')->getData()) == 1 : false);
-					
-					$subfield_t = $item->getSubfield('t');
-					if ($subfield_t != null){
-						$subfield_t = strtolower($subfield_t->getData());
-						if (in_array($subfield_t, array('cp', 'lh', 'ill'))){
-							//Make local history items and ill items not-holdable
+						$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
+						//Set default status
+						$itemData['status'] = $item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '';
+						if ($this->useDb){
+							//Get updated status from database
+							//Query the database for realtime availability
+							$query = "select item_status from item where item# = " . $itemId;
+							$itemStatusResult = $this->_query($query);
+							$itemsStatus = $this->_fetch_assoc($itemStatusResult);
+							if (isset($itemsStatus['item_status']) && strlen($itemsStatus['item_status']) > 0){
+								$itemData['status'] = $itemsStatus['item_status'];
+								$timer->logTime("Got status from database item $itemIndex");
+							}
+						}
+						$itemData['availability'] = preg_match("/({$configArray['Catalog']['availableStatuses']})/i", $itemData['status']);
+						//Make the item holdable by default.  Then check rules to make it non-holdable.
+						$itemData['holdable'] = true;
+						//Make lucky day items not holdable
+						$itemData['luckyDay'] = ($item->getSubfield('t') != null ? preg_match('/^yld.*$/i', $item->getSubfield('t')->getData()) == 1 : false);
+						
+						$subfield_t = $item->getSubfield('t');
+						if ($subfield_t != null){
+							$subfield_t = strtolower($subfield_t->getData());
+							if (in_array($subfield_t, array('cp', 'lh', 'ill'))){
+								//Make local history items and ill items not-holdable
+								$itemData['holdable'] = false;
+							}
+						}
+						//Online items are not holdable.
+						if (!preg_match("/({$configArray['Catalog']['nonHoldableStatuses']})/i", $itemData['status'])){
 							$itemData['holdable'] = false;
 						}
+	
+						$itemData['barcode'] = $barcode;
+						$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
+						$itemData['holdQueueLength'] = 0;
+						if (strlen($itemData['barcode']) > 0){
+							$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status']);
+							$itemData = array_merge($itemData, $itemSip2Data);
+						}
+
+						$itemData['collection'] = $this->translateCollection($item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
+	
+						$itemData['statusfull'] = $this->translateStatus($itemData['status']);
+						//Suppress items based on status
+						$memcache->set('item_data_' . $barcode, $itemData, 0, $configArray['Caching']['item_data']);
 					}
-					//Online items are not holdable.
-					if (!preg_match("/({$configArray['Catalog']['nonHoldableStatuses']})/i", $itemData['status'])){
-						$itemData['holdable'] = false;
-					}
-
-					$itemData['barcode'] = $item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '';
-					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
-					$itemData['holdQueueLength'] = 0;
-					if (strlen($itemData['barcode']) > 0){
-						if ($forSummary && count($allItems) > 0){
-							//Shortcut if we are loading info for the holdings summary.  Just use the info
-							//from the first record since we aren't showing detailed information
-							$firstItem = reset($allItems);
-							$itemData['duedate'] = $firstItem['duedate'];
-							$itemData['holdQueueLength'] = intval($firstItem['holdQueueLength']);
-						}else{
-							//Check to see if the SIP2 information is already cached
-							$sip2ItemCache = new SIP2ItemCache();
-							$sip2ItemCache->barcode = $itemData['barcode'];
-							if (false && $sip2ItemCache->find(true)){
-								$itemData['duedate'] = $sip2ItemCache->duedate;
-								$itemData['holdQueueLength'] = intval($sip2ItemCache->holdQueueLength);
-							}else{
-								if ($sipInitialized == false){
-									//setup connection to SIP2 server
-									$mysip = new sip2();
-									$mysip->hostname = $configArray['SIP2']['host'];
-									$mysip->port = $configArray['SIP2']['port'];
-
-									if ($mysip->connect()) {
-										//send selfcheck status message
-										$in = $mysip->msgSCStatus();
-										$msg_result = $mysip->get_message($in);
-										// Make sure the response is 98 as expected
-										if (preg_match("/^98/", $msg_result)) {
-											$result = $mysip->parseACSStatusResponse($msg_result);
-
-											//  Use result to populate SIP2 setings
-											$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-											$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
-										}
-									}
-									$sipInitialized = true;
-									$timer->logTime('Connected to SIP2 server');
-								}
-									
-								$in = $mysip->msgItemInformation($itemData['barcode']);
-								$msg_result = $mysip->get_message($in);
-
-								// Make sure the response is 18 as expected
-								if (preg_match("/^18/", $msg_result)) {
-									$result = $mysip->parseItemInfoResponse( $msg_result );
-									if (isset($result['variable']['AH']) && $itemData['status'] != 'i'){
-										$itemData['duedate'] = $result['variable']['AH'][0];
-									}else{
-										$itemData['duedate'] = '';
-									}
-									if (isset($result['variable']['CF'][0])){
-										$itemData['holdQueueLength'] = intval($result['variable']['CF'][0]);
-									}
-									if ($configArray['Catalog']['realtimeLocations'] == true && isset($result['variable']['AQ'][0])){
-										//Looks like horizon is returning these backwards via SIP.  
-										//AQ should be current, but is always returning the same code. 
-										//AP should be permanent, but is returning the current location
-										//echo("Permanent location " . $result['variable']['AQ'][0] . " current location " . $result['variable']['AP'][0] . "\r\n");
-										$itemData['locationCode'] = $result['variable']['AQ'][0];
-										$itemData['location'] = $this->translateLocation($itemData['locationCode']);
-										$sip2ItemCache->location = $itemData['locationCode'];
-									}
-									if (!$this->useDb){
-										//Override circulation status based on SIP
-										if ($result['fixed']['CirculationStatus'] == 4){
-											$itemData['status'] = 'o';
-											$itemData['availability'] = false;
-										}
-									}
-									$sip2ItemCache->duedate = $itemData['duedate'];
-									$sip2ItemCache->holdQueueLength = intval(isset($itemData['holdQueueLength']) ? $itemData['holdQueueLength'] : 0);
-									$sip2ItemCache->cacheDate = time();
-									//$sip2ItemCache->insert();
-								}
-								$timer->logTime("Got due date and hold queue length from SIP 2 for item $itemIndex");
-							}
-						}//end loading information from SIP 2
-					}
-
-					$itemData['collection'] = $this->translateCollection($item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
-
-					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
-					//Suppress items based on status
+					
 					$suppressItem = false;
 					$statusesToSuppress = $configArray['Catalog']['statusesToSuppress'];
 					if (strlen($statusesToSuppress) > 0 && preg_match("/^($statusesToSuppress)$/i", $itemData['status'])){
@@ -280,11 +209,11 @@ private $holdings = array();
 					//Suppress staff items
 					$isStaff = false;
 					$subfieldO = $item->getSubfield('o');
-					if ($subfieldO->getData() == 1){
+					if (isset($subfieldO) && is_object($subfieldO) && $subfieldO->getData() == 1){
 						$isStaff = true;
 						$suppressItem = true; 
 					}
-					
+						
 					if (!$suppressItem){
 						$sortString = $itemData['location'] . $itemData['callnumber'] . (count($allItems) + 1);
 						if ($physicalLocation != null && strcasecmp($physicalLocation->code, $itemData['locationCode']) == 0){
@@ -293,6 +222,9 @@ private $holdings = array();
 							$sortString = "2" . $sortString;
 						}
 						$allItems[$sortString] = $itemData;
+					}else{
+						$logger = new Logger();
+						$logger->log("item suppressed for barcode $barcode", PEAR_LOG_INFO);
 					}
 				}
 			} else {
@@ -300,8 +232,6 @@ private $holdings = array();
 			}
 		}
 		$timer->logTime("Finished loading status information");
-
-		$this->holdings[$id] = $allItems;
 
 		return $allItems;
 	}
@@ -979,11 +909,9 @@ public function getMyHoldsViaDB($patron)
 			$recordURL = null;
 			if ($record) {
 				// Process MARC Data
-				$marc = trim($record['fullrecord']);
-				$marc = preg_replace('/#31;/', "\x1F", $marc);
-				$marc = preg_replace('/#30;/', "\x1E", $marc);
-				$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-				if ($marcRecord = $marc->next()) {
+				require_once 'sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+				if ($marcRecord) {
 					//Check the 856 tag to see if there is a URL
 					if ($linkField = $marcRecord->getField('856')) {
 						if ($linkURLField = $linkField->getSubfield('u')) {
@@ -1080,7 +1008,7 @@ public function getMyHoldsViaDB($patron)
 					$summaryInformation['class'] = 'unavailable';
 				}
 			}else{
-				if ($numHoldableCopies == 0 && $canShowHoldButton && $summaryInformation['showPlaceHold'] != true){
+				if ($numHoldableCopies == 0 && $canShowHoldButton && (isset($summaryInformation['showPlaceHold']) && $summaryInformation['showPlaceHold'] != true)){
 					$summaryInformation['status'] = "Not Available For Checkout";
 					$summaryInformation['showPlaceHold'] = false;
 					$summaryInformation['class'] = 'reserve';
@@ -1584,8 +1512,6 @@ private $transactions = array();
 			$timer->logTime("Got transactions from Database");
 		}
 
-		$sipInitialized = false;
-		require_once('sys/Cache/SIP2ItemCache.php');
 		if (isset($transactions)){
 			//Load information about titles from Resources table (for peformance)
 			$recordIds = array();
@@ -1623,59 +1549,9 @@ private $transactions = array();
 			//Get econtent info and hold queue length
 			foreach ($transactions as $key => $transaction){
 				//Check for hold queue length
-				//Check to see if the SIP2 information is already cached
-				$sip2ItemCache = new SIP2ItemCache();
-				$sip2ItemCache->barcode = $transaction['barcode'];
-				if (false && $sip2ItemCache->find(true)){
-					$transaction['holdQueueLength'] = intval($sip2ItemCache->holdQueueLength);
-				}else{
-					if ($sipInitialized == false){
-						//setup connection to SIP2 server
-						$mysip = new sip2();
-						$mysip->hostname = $configArray['SIP2']['host'];
-						$mysip->port = $configArray['SIP2']['port'];
-
-						if ($mysip->connect()) {
-							//send selfcheck status message
-							$in = $mysip->msgSCStatus();
-							$msg_result = $mysip->get_message($in);
-							// Make sure the response is 98 as expected
-							if (preg_match("/^98/", $msg_result)) {
-								$result = $mysip->parseACSStatusResponse($msg_result);
-
-								//  Use result to populate SIP2 setings
-								$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-								$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
-							}
-						}
-						$sipInitialized = true;
-						$timer->logTime('Connected to SIP2 server');
-					}
-
-					$in = $mysip->msgItemInformation($transaction['barcode']);
-					$msg_result = $mysip->get_message($in);
-
-					// Make sure the response is 18 as expected
-					if (preg_match("/^18/", $msg_result)) {
-						$result = $mysip->parseItemInfoResponse( $msg_result );
-						if (isset($result['variable']['AH']) ){
-							$duedate = $result['variable']['AH'][0];
-						}else{
-							$duedate = '';
-						}
-						if (isset($result['variable']['CF'][0])){
-							$transaction['holdQueueLength'] = intval($result['variable']['CF'][0]);
-						}else{
-							$transaction['holdQueueLength'] = 0;
-						}
-						$sip2ItemCache->duedate = $duedate;
-						$sip2ItemCache->holdQueueLength = $transaction['holdQueueLength'];
-						$sip2ItemCache->cacheDate = time();
-						//$sip2ItemCache->insert();
-					}
-				}//end loading holdQueueLength from SIP2
-				$timer->logTime("Got holdQueueLength for title $key");
-
+				$itemData = $this->_loadItemSIP2Data($transaction['barcode']);
+				$transaction['holdQueueLength'] = intval($itemData->holdQueueLength);
+				
 				$transactions[$key] = $transaction;
 			}
 		}
@@ -1718,6 +1594,75 @@ private $transactions = array();
 			'transactions' => $transactions,
 			'numTransactions' => $totalTransactions
 		);
+	}
+	
+	private $sipInitialized = false;
+	private $mysip = false;
+	private function _loadItemSIP2Data($barcode, $itemStatus){
+		global $memcache;
+		global $configArray;
+		global $timer;
+		$itemSip2Data = $memcache->get("item_sip2_data_$barcode");
+		if ($itemSip2Data == false){
+			//Check to see if the SIP2 information is already cached
+			if ($this->sipInitialized == false){
+				//setup connection to SIP2 server
+				$this->mysip = new sip2();
+				$this->mysip = new sip2();
+				$this->mysip->hostname = $configArray['SIP2']['host'];
+				$this->mysip->port = $configArray['SIP2']['port'];
+
+				if ($this->mysip->connect()) {
+					//send selfcheck status message
+					$in = $this->mysip->msgSCStatus();
+					$msg_result = $this->mysip->get_message($in);
+					// Make sure the response is 98 as expected
+					if (preg_match("/^98/", $msg_result)) {
+						$result = $this->mysip->parseACSStatusResponse($msg_result);
+
+						//  Use result to populate SIP2 setings
+						$this->mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+						$this->mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+					}
+				}
+				$this->sipInitialized = true;
+				$timer->logTime('Connected to SIP2 server');
+			}
+				
+			$in = $this->mysip->msgItemInformation($barcode);
+			$msg_result = $this->mysip->get_message($in);
+
+			// Make sure the response is 18 as expected
+			if (preg_match("/^18/", $msg_result)) {
+				$result = $this->mysip->parseItemInfoResponse( $msg_result );
+				if (isset($result['variable']['AH']) && $itemStatus != 'i'){
+					$itemSip2Data['duedate'] = $result['variable']['AH'][0];
+				}else{
+					$itemSip2Data['duedate'] = '';
+				}
+				if (isset($result['variable']['CF'][0])){
+					$itemSip2Data['holdQueueLength'] = intval($result['variable']['CF'][0]);
+				}
+				if ($configArray['Catalog']['realtimeLocations'] == true && isset($result['variable']['AQ'][0])){
+					//Looks like horizon is returning these backwards via SIP.  
+					//AQ should be current, but is always returning the same code. 
+					//AP should be permanent, but is returning the current location
+					//echo("Permanent location " . $result['variable']['AQ'][0] . " current location " . $result['variable']['AP'][0] . "\r\n");
+					$itemSip2Data['locationCode'] = $result['variable']['AQ'][0];
+					$itemSip2Data['location'] = $this->translateLocation($itemData['locationCode']);
+				}
+				if (!$this->useDb){
+					//Override circulation status based on SIP
+					if ($result['fixed']['CirculationStatus'] == 4){
+						$itemSip2Data['status'] = 'o';
+						$itemSip2Data['availability'] = false;
+					}
+				}
+			}
+			$memcache->set("item_sip2_data_$barcode", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
+			$timer->logTime("Got due date and hold queue length from SIP 2 for barcode $barcode");
+		}
+		return $itemSip2Data;
 	}
 	public function getMyTransactionsViaHIP($patron){
 		global $user;

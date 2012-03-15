@@ -120,11 +120,6 @@ class Solr implements IndexEngine {
 	private $scopingDisabled = false;
 
 	/**
-	 * Only ping the solr server once per page load
-	 */
-	private static $solrPingDone = false;
-
-	/**
 	 * Constructor
 	 *
 	 * Sets up the SOAP Client
@@ -152,8 +147,9 @@ class Solr implements IndexEngine {
 			
 		$this->host = $host . '/' . $index;
 
-		if (self::$solrPingDone == false){
-			self::$solrPingDone = true;
+		global $memcache;
+		$pingDone = $memcache->get('solr_ping');
+		if ($pingDone == false){
 			// Test to see solr is online
 			$test_url = $this->host . "/admin/ping";
 			$test_client = new Proxy_Request();
@@ -168,6 +164,7 @@ class Solr implements IndexEngine {
 			} else {
 				PEAR::raiseError($result);
 			}
+			$pingDone = $memcache->set('solr_ping', true, 0, $configArray['Caching']['solr_ping']);
 			$timer->logTime('Ping Solr instance');
 		}
 
@@ -317,15 +314,22 @@ class Solr implements IndexEngine {
 		if ($this->debug) {
 			echo "<pre>Get Record: $id</pre>\n";
 		}
+		global $memcache;
+		global $configArray;
+		$record = $memcache->get("solr_record_$id");
+		if ($record == false){
 
-		// Query String Parameters
-		$options = array('q' => "id:\"$id\"");
-		$result = $this->_select('GET', $options);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result);
+			// Query String Parameters
+			$options = array('q' => "id:\"$id\"");
+			$result = $this->_select('GET', $options);
+			if (PEAR::isError($result)) {
+				PEAR::raiseError($result);
+			}
+	
+			$record = $result['response']['docs'][0];
+			$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
 		}
-
-		return $result['response']['docs'][0];
+		return $record;
 	}
 	
 	function getRecordByBarcode($barcode){
@@ -881,6 +885,7 @@ class Solr implements IndexEngine {
 	$sort = null, $fields = null,
 	$method = HTTP_REQUEST_METHOD_POST, $returnSolrError = false)
 	{
+		global $timer;
 		// Query String Parameters
 		$options = array('q' => $query, 'rows' => $limit, 'start' => $start, 'indent' => 'yes');
 
@@ -960,6 +965,7 @@ class Solr implements IndexEngine {
 				$options['q'] = $this->_buildAdvancedQuery($handler, $query);
 			}
 		}
+		$timer->logTime("build query");
 
 		// Limit Fields
 		if ($fields) {
@@ -1015,8 +1021,8 @@ class Solr implements IndexEngine {
 				$options['q'] = "{!boost b=$boost} $baseQuery";
 				//echo ("Advanced Query " . $options['q']);
 			}
-
 		}
+		$timer->logTime("apply boosting");
 
 		//*************************
 		//Marmot overrides for filtering based on library system and location
@@ -1041,6 +1047,8 @@ class Solr implements IndexEngine {
 				$filter[] = 'collection_group:"' . $defaultCollection . '"';
 			}
 		}
+		$timer->logTime("apply filters based on location");
+		
 
 		// Build Facet Options
 		if ($facet && !empty($facet['field'])) {
@@ -1076,6 +1084,7 @@ class Solr implements IndexEngine {
 				$options[$param] = $value;
 			}
 		}
+		$timer->logTime("build facet options");
 
 		// Build Filter Query
 		if (is_array($filter) && count($filter)) {
@@ -1117,7 +1126,9 @@ class Solr implements IndexEngine {
 			$options['debugQuery'] = 'on';
 		}
 
+		$timer->logTime("end solr setup");
 		$result = $this->_select($method, $options, $returnSolrError);
+		$timer->logTime("run select");
 		if (PEAR::isError($result)) {
 			PEAR::raiseError($result);
 		}
@@ -1377,6 +1388,7 @@ class Solr implements IndexEngine {
 	 */
 	private function _select($method = HTTP_REQUEST_METHOD_GET, $params = array(), $returnSolrError = false)
 	{
+		global $timer;
 		$this->client->setMethod($method);
 		$this->client->setURL($this->host . "/select/");
 
@@ -1432,8 +1444,10 @@ class Solr implements IndexEngine {
 		}
 
 		// Send Request
+		$timer->logTime("Prepare to send request to solr");
 		$result = $this->client->sendRequest();
 		$this->client->clearPostData();
+		$timer->logTime("Send data to solr");
 
 		if (!PEAR::isError($result)) {
 			return $this->_process($this->client->getResponseBody(), $returnSolrError);
@@ -1513,6 +1527,7 @@ class Solr implements IndexEngine {
 	 */
 	private function _process($result, $returnSolrError = false)
 	{
+		global $timer;
 		// Catch errors from SOLR
 		if (substr(trim($result), 0, 2) == '<h') {
 			$errorMsg = substr($result, strpos($result, '<pre>'));
@@ -1526,6 +1541,7 @@ class Solr implements IndexEngine {
 			}
 		}
 		$result = json_decode($result, true);
+		$timer->logTime("receive resut from solr and load from json data");
 
 		// Inject highlighting details into results if necessary:
 		if (isset($result['highlighting'])) {
@@ -1538,6 +1554,7 @@ class Solr implements IndexEngine {
 			// Remove highlighting section now that we have copied its contents:
 			unset($result['highlighting']);
 		}
+		$timer->logTime("process highlighting");
 
 		return $result;
 	}

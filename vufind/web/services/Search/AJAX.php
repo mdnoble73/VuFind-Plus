@@ -546,16 +546,20 @@ class AJAX extends Action {
 	function GetAutoSuggestList(){
 		require_once 'services/Search/lib/SearchSuggestions.php';
 		global $timer;
-
+		global $configArray;
+		global $memcache; 
 		$searchTerm = isset($_REQUEST['searchTerm']) ? $_REQUEST['searchTerm'] : $_REQUEST['q'];
 		$searchType = isset($_REQUEST['type']) ? $_REQUEST['type'] : '';
-		$suggestions = new SearchSuggestions();
-		$commonSearches = $suggestions->getAllSuggestions($searchTerm, $searchType);
-		$timer->logTime("loaded search suggestions");
-		if (count($commonSearches) > 0){
-			echo json_encode($commonSearches);
+		$cacheKey = 'auto_suggest_list_' . urlencode($searchType) . '_' . urlencode($searchTerm);
+		$searchSuggestions = $memcache->get($cacheKey);
+		if ($searchSuggestions == false){
+			$suggestions = new SearchSuggestions();
+			$commonSearches = $suggestions->getAllSuggestions($searchTerm, $searchType);
+			$searchSuggestions = json_encode($commonSearches);
+			$memcache->set($cacheKey, $searchSuggestions, 0, $configArray['Caching']['search_suggestions'] );
+			$timer->logTime("Loaded search suggestions $cacheKey");
 		}
-		$timer->logTime("rendered search suggestions");
+		echo $searchSuggestions;
 	}
 
 	function getProspectorResults(){
@@ -590,62 +594,52 @@ class AJAX extends Action {
 
 	function RandomSysListTitles(){
 		global $timer;
-		require_once('sys/Cache/ListCache2.php');
 		$listName = $_GET['name'];
 		$scrollerName = strip_tags($_GET['scrollerName']);
 
-		//Check to see if the list has been cached and is recent
-		$listCache = new ListCache2();
-		$listCache->listName = $listName;
-		$listCache->scrollerName = $scrollerName;
-		if ($listCache->find(true)){
-			echo $listCache->jsonData;
-			$timer->logTime("Loaded cached ListCache2 for $listName");
-			return;
-		}
-		$timer->logTime("Finished checking for cached ListCache2 for $listName");
-
-		require_once('services/API/ListAPI.php');
-		global $interface;
-		global $configArray;
-
-		$listAPI = new ListAPI();
-
-		$titles = $listAPI->getRandomSystemListTitles($listName);
-		$timer->logTime("Got titles from list api for $listName");
-
-		foreach ($titles as $key => $rawData){
-				
-			$interface->assign('description', $rawData['description']);
-			$interface->assign('length', $rawData['length']);
-			$interface->assign('publisher', $rawData['publisher']);
-			$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
-				
-			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
-			if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
-				$recordId = substr($rawData['id'], 14);
-				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . '" id="descriptionTrigger' . $rawData['id'] . '">';
-			}else{
-				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+		$cacheName = "list_widget_data_{$listName}_{$scrollerName}";
+		$listData = $memcache->get($cacheName);
+		if (!$listData || isset($_REQUEST['reload'])){
+		
+			require_once('services/API/ListAPI.php');
+			global $interface;
+			global $configArray;
+	
+			$listAPI = new ListAPI();
+	
+			$titles = $listAPI->getRandomSystemListTitles($listName);
+			$timer->logTime("Got titles from list api for $listName");
+	
+			foreach ($titles as $key => $rawData){
+					
+				$interface->assign('description', $rawData['description']);
+				$interface->assign('length', $rawData['length']);
+				$interface->assign('publisher', $rawData['publisher']);
+				$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
+					
+				$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+				if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+					$recordId = substr($rawData['id'], 14);
+					$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . '" id="descriptionTrigger' . $rawData['id'] . '">';
+				}else{
+					$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+				}
+	    	$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
+	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
+	    			"</a></div>" . 
+	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
+				$descriptionInfo .
+	    			"</div>";
+				$rawData['formattedTitle'] = $formattedTitle;
+				$titles[$key] = $rawData;
 			}
-    	$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-    			"</a></div>" . 
-    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
-			$descriptionInfo .
-    			"</div>";
-			$rawData['formattedTitle'] = $formattedTitle;
-			$titles[$key] = $rawData;
+			$timer->logTime("Formatted titles for list $listName");
+			$listData = json_encode($return);
+			if (isset($return['cacheable']) && $return['cacheable'] == true){
+				$memcache->set($cacheName, $listData, 0, 60 * 60 * $titles['cacheLength']);
+			}
 		}
-		$timer->logTime("Formatted titles for list $listName");
-		$return = array('titles' => $titles, 'currentIndex' => 15);
-		$json_data = json_encode($return);
-		$listCache->jsonData = $json_data;
-		$listCache->cacheDate = time();
-		$listCache->cacheExpiration = time() + (60 * 60 * 6); 
-		$listCache->insert();
-		$timer->logTime("Updated listcache2 for $listName");
-		echo ($json_data);
+		echo $listData;
 	}
 
 	/**
@@ -659,74 +653,63 @@ class AJAX extends Action {
 	}
 	
 	function GetListTitles(){
-		require_once('sys/Cache/ListCache2.php');
+		global $memcache;
+		global $configArray;
+		
 		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
 		$scrollerName = strip_tags($_GET['scrollerName']);
-		//Check to see if the list has been cached and is recent
-		$listCache = new ListCache2();
-		$listCache->listName = $listName;
-		$listCache->scrollerName = $scrollerName;
-		if ($listCache->find(true)){
-			if (isset($_REQUEST['reload'])){
-				$listCache->delete();
-			}else{
-				echo $listCache->jsonData;
-				return;
-			}
-		}
-
-		require_once('services/API/ListAPI.php');
-		global $interface;
-		global $configArray;
-		$listAPI = new ListAPI();
-
-		$titles = $listAPI->getListTitles();
-		$addStrandsTracking = false;
-		if ($titles['success'] == true){
-			if (isset($titles['strands'])){
-				$addStrandsTracking = true;
-				$strandsInfo = $titles['strands'];
-			}
-			$titles = $titles['titles'];
-		}else{
-			$return = array('titles' => array(), 'currentIndex' =>0);
-			return $return;
-		}
-
 		
-		foreach ($titles as $key => $rawData){
-			 
-			$interface->assign('description', $rawData['description']);
-			$interface->assign('length', $rawData['length']);
-			$interface->assign('publisher', $rawData['publisher']);
-			$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
-			 
-			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
-			if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
-				$recordId = substr($rawData['id'], 14);
-				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+		$cacheName = "list_widget_data_{$listName}_{$scrollerName}";
+		$listData = $memcache->get($cacheName);
+		if (!$listData || isset($_REQUEST['reload'])){
+			require_once('services/API/ListAPI.php');
+			global $interface;
+			$listAPI = new ListAPI();
+	
+			$titles = $listAPI->getListTitles();
+			$addStrandsTracking = false;
+			if ($titles['success'] == true){
+				if (isset($titles['strands'])){
+					$addStrandsTracking = true;
+					$strandsInfo = $titles['strands'];
+				}
+				$titles = $titles['titles'];
+				foreach ($titles as $key => $rawData){
+				 
+					$interface->assign('description', $rawData['description']);
+					$interface->assign('length', $rawData['length']);
+					$interface->assign('publisher', $rawData['publisher']);
+					$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
+					 
+					$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+					if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+						$recordId = substr($rawData['id'], 14);
+						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+					}else{
+						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+					}
+		      $formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
+		          "</a></div>" . 
+		          "<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
+					      $descriptionInfo .
+		          "</div>";
+					$rawData['formattedTitle'] = $formattedTitle;
+					$titles[$key] = $rawData;
+				}
+				$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
+				 
+				$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
 			}else{
-				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+				$return = array('titles' => array(), 'currentIndex' =>0);
+				$listData = json_encode($return);
 			}
-      $formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-          "</a></div>" . 
-          "<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
-			      $descriptionInfo .
-          "</div>";
-			$rawData['formattedTitle'] = $formattedTitle;
-			$titles[$key] = $rawData;
+			
+			$listData = json_encode($return);
+			if (isset($return['cacheable']) && $return['cacheable'] == true){
+				$memcache->set($cacheName, $listData, 0, 60 * 60 * $titles['cacheLength']);
+			}
 		}
-		$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
-		 
-		$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
-		$json_data = json_encode($return);
-		if (isset($return['cacheable']) && $return['cacheable'] == true){
-			$listCache->jsonData = $json_data;
-			$listCache->cacheDate = time();
-			$listCache->cacheExpiration = time() + (60 * 60 * $titles['cacheLength']); 
-			$listCache->insert();
-		}
-		echo ($json_data);
+		echo $listData;
 	}
 }
 

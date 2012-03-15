@@ -38,10 +38,6 @@ class Resource extends DB_DataObject {
 		//Get a reference to the scope we are in.
 		global $library;
 		global $user;
-		//Load all bad words.
-		require_once('Drivers/marmot_inc/BadWord.php');
-		$badWords = new BadWord();
-		$badWordsList = $badWords->getBadWordExpressions();
 			
 		$tagList = array();
 
@@ -52,10 +48,15 @@ class Resource extends DB_DataObject {
                  "AND resource.record_id = '" . $this->escape($this->record_id) . "' " .
                  "AND resource.source = '" . $this->escape($this->source) . "' " .
                  "GROUP BY tags.tag " .
-                 "ORDER BY cnt DESC, tags.tag";
+                 "ORDER BY cnt DESC, tags.tag LIMIT 0, $limit";
 		$tag = new Tags();
 		$tag->query($query);
 		if ($tag->N) {
+			//Load all bad words.
+			require_once('Drivers/marmot_inc/BadWord.php');
+			$badWords = new BadWord();
+			$badWordsList = $badWords->getBadWordExpressions();
+		
 			while ($tag->fetch()) {
 				//Determine if the current user added the tag
 				$userAddedThis = false;
@@ -253,53 +254,57 @@ class Resource extends DB_DataObject {
 
 	function getRatingData($user){
 		global $configArray;
-		require_once 'Drivers/marmot_inc/UserRating.php';
-
-		//Set default rating data
-		$ratingData = array(
-            'average' => 0,
-            'count'   => 0,
-            'user'    => 0,
-            'summary' => array(
-                'fiveStar'   => 0,
-                'fourStar'   => 0,
-                'threeStar'   => 0,
-                'twoStar'   => 0,
-                'oneStar'   => 0,
-		),
-		);
-
-		//Get rating data for the resource
-		$sql = "SELECT AVG(rating) average, count(rating) count, sum(1star) num1star, sum(2star) num2star, sum(3star) num3star, sum(4star) num4star, sum(5star) num5star FROM (SELECT rating, (rating = 1) as 1star, (rating = 2) as 2star, (rating = 3) as 3star, (rating = 4) as 4star, (rating = 5) as 5star from user_rating inner join resource on user_rating.resourceid = resource.id where resource.record_id =  '{$this->record_id}') ratingData";
-		$rating = new UserRating();
-		$rating->query($sql);
-		if ($rating->N > 0){
-			$rating->fetch();
-			$ratingData['average'] = number_format($rating->average, 2);
-			$ratingData['count'] = $rating->count;
-			$ratingData['summary']['oneStar'] = $rating->num1star == null ? 0 :  $rating->num1star;
-			$ratingData['summary']['twoStar'] = $rating->num2star == null ? 0 :  $rating->num2star;
-			$ratingData['summary']['threeStar'] = $rating->num3star == null ? 0 :  $rating->num3star;
-			$ratingData['summary']['fourStar'] = $rating->num4star == null ? 0 :  $rating->num4star;
-			$ratingData['summary']['fiveStar'] = $rating->num5star == null ? 0 :  $rating->num5star;
-		}
-		//Get user rating
-		if (isset($user) && $user != false){
+		global $memcache;
+		$ratingData = $memcache->get("rating_{$this->record_id}");
+		if (!$ratingData){
+			require_once 'Drivers/marmot_inc/UserRating.php';
+	
+			//Set default rating data
+			$ratingData = array(
+	            'average' => 0,
+	            'count'   => 0,
+	            'user'    => 0,
+	            'summary' => array(
+	                'fiveStar'   => 0,
+	                'fourStar'   => 0,
+	                'threeStar'   => 0,
+	                'twoStar'   => 0,
+	                'oneStar'   => 0,
+			),
+			);
+	
+			//Get rating data for the resource
+			$sql = "SELECT AVG(rating) average, count(rating) count, sum(1star) num1star, sum(2star) num2star, sum(3star) num3star, sum(4star) num4star, sum(5star) num5star FROM (SELECT rating, (rating = 1) as 1star, (rating = 2) as 2star, (rating = 3) as 3star, (rating = 4) as 4star, (rating = 5) as 5star from user_rating inner join resource on user_rating.resourceid = resource.id where resource.record_id =  '{$this->record_id}') ratingData";
 			$rating = new UserRating();
-			$rating->userid = $user->id;
-			$rating->resourceid = $this->record_id;
-			$rating->find();
-			if ($rating->N){
+			$rating->query($sql);
+			if ($rating->N > 0){
 				$rating->fetch();
-				$ratingData['user'] = $rating->rating;
+				$ratingData['average'] = number_format($rating->average, 2);
+				$ratingData['count'] = $rating->count;
+				$ratingData['summary']['oneStar'] = $rating->num1star == null ? 0 :  $rating->num1star;
+				$ratingData['summary']['twoStar'] = $rating->num2star == null ? 0 :  $rating->num2star;
+				$ratingData['summary']['threeStar'] = $rating->num3star == null ? 0 :  $rating->num3star;
+				$ratingData['summary']['fourStar'] = $rating->num4star == null ? 0 :  $rating->num4star;
+				$ratingData['summary']['fiveStar'] = $rating->num5star == null ? 0 :  $rating->num5star;
 			}
+			//Get user rating
+			if (isset($user) && $user != false){
+				$rating = new UserRating();
+				$rating->userid = $user->id;
+				$rating->resourceid = $this->record_id;
+				$rating->find();
+				if ($rating->N){
+					$rating->fetch();
+					$ratingData['user'] = $rating->rating;
+				}
+			}
+	
+			//Create a graph of the individual ratings
+			if ($configArray['Content']['ratingsGraph']){
+				$ratingData['summaryGraph'] = $this->createRatingGraph($ratingData);
+			}
+			$memcache->set("rating_{$this->record_id}", $ratingData, 0, $configArray['Caching']['rating']);
 		}
-
-		//Create a graph of the individual ratings
-		if ($configArray['Content']['ratingsGraph']){
-			$ratingData['summaryGraph'] = $this->createRatingGraph($ratingData);
-		}
-
 		return $ratingData;
 	}
 
@@ -331,7 +336,7 @@ class Resource extends DB_DataObject {
 		$gray_lite = imagecolorallocate ($im,0xed,0xed,0xed);
 		$gray_dark = imagecolorallocate ($im,0x8d,0x8d,0x8d);
 		$white     = imagecolorallocate ($im,0xf9,0xf9,0xf9);
-		$text	   = imagecolorallocate ($im,0x32,0x32,0x32);
+		$text      = imagecolorallocate ($im,0x32,0x32,0x32);
 
 		// Fill in the background of the image
 		imagefilledrectangle($im,0,0,$imagewidth,$imageheight,$white);

@@ -117,3 +117,19 @@ function setFieldVisibility(){
 		$("#supplementalDetails").show();
 	}
 }
+
+function updateHoldOptions(){
+	var placeHold = $("input[name=placeHoldWhenAvailable]:checked").val();
+	if (placeHold == 1){
+		$("#pickupLocationField").show();
+		if ($("#pickupLocation option:selected").val() == 'bookmobile'){
+			$("#bookmobileStopField").show();
+		}else{
+			$("#bookmobileStopField").hide();
+		}
+	}else{
+		$("#bookmobileStopField").hide();
+		$("#pickupLocationField").hide();
+	}
+	
+} 

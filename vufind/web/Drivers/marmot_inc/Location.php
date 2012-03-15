@@ -201,6 +201,8 @@ class Location extends DB_DataObject
 					$this->activeLocation = clone($activeLocation);
 				}
 			}
+			global $timer;
+			$timer->logTime('Finished getActiveLocation'); 
 		}
 
 		return $this->activeLocation;
@@ -293,32 +295,43 @@ class Location extends DB_DataObject
 	private $ipLocation = 'unset';
 	private $ipId = 'unset';
 	function getIPLocation(){
+		global $timer;
+		$timer->logTime('Starting getIPLocation');
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
-		//echo("Active IP is $activeIp");
-		require_once './Drivers/marmot_inc/ipcalc.php';
-		require_once './Drivers/marmot_inc/subnet.php';
-		$subnetSql = new subnet();
-		$subnetSql->find();
-		$subnets = array();
-		while ($subnetSql->fetch()) {
-			$subnets[] = clone $subnetSql;
+		if (isset($_SESSION['activeIp']) && $activeIp == $_SESSION['activeIp']){
+			$this->ipLocation = $_SESSION['ipLocation'];
+			$this->ipId = $_SESSION['ipId'];
+		}else{
+			//echo("Active IP is $activeIp");
+			require_once './Drivers/marmot_inc/ipcalc.php';
+			require_once './Drivers/marmot_inc/subnet.php';
+			$subnetSql = new subnet();
+			$subnetSql->find();
+			$subnets = array();
+			while ($subnetSql->fetch()) {
+				$subnets[] = clone $subnetSql;
+			}
+			$bestmatch=FindBestMatch($activeIp,$subnets);
+			//Get the locationId for the subnet.
+			if (isset($bestmatch) && $bestmatch != null){
+				//echo("Best match Location is {$bestmatch->locationid}");
+				 
+				$matchedLocation = $this->staticGet('locationId', $bestmatch->locationid);
+				//Only use the physical location regardless of where we are
+				$this->ipLocation = clone($matchedLocation);
+				$this->ipId = $bestmatch->id;
+			} else {
+				//Clear the cookie if we don't get a match.
+				$this->activeIp = '';
+				$this->ipLocation = null;
+				$this->ipId = -1;
+			}
+			$_SESSION['ipLocation'] = $this->ipLocation;
+			$_SESSION['ipId'] = $this->ipId;
+			$_SESSION['activeIp'] = $activeIp;
 		}
-		$bestmatch=FindBestMatch($activeIp,$subnets);
-		//Get the locationId for the subnet.
-		if (isset($bestmatch) && $bestmatch != null){
-			//echo("Best match Location is {$bestmatch->locationid}");
-			 
-			$matchedLocation = $this->staticGet('locationId', $bestmatch->locationid);
-			//Only use the physical location regardless of where we are
-			$this->ipLocation = clone($matchedLocation);
-			$this->ipId = $bestmatch->id;
-		} else {
-			//Clear the cookie if we don't get a match.
-			$this->activeIp = '';
-			$this->ipLocation = null;
-			$this->ipId = -1;
-		}
+		$timer->logTime('Finished getIPLocation');
 		return $this->ipLocation;
 	}
 

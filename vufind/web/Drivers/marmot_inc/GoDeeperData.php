@@ -94,40 +94,45 @@ class GoDeeperData{
 	}
 	function getSummary($isbn, $upc){
 		global $configArray;
-		$clientKey = $configArray['Syndetics']['key'];
-		//Load the index page from syndetics
-		$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/SUMMARY.XML&client=$clientKey&type=xw10&upc=$upc";
-
-		try{
-			//Get the XML from the service
-			$ctx = stream_context_create(array(
-				  'http' => array(
-				  'timeout' => 2
-			)
-			));
+		global $memcache;
+		$summaryData = $memcache->get("syndetics_summary_{$isbn}_{$upc}");
 			
-			$response =file_get_contents($requestUrl, 0, $ctx);
-			if (preg_match('/Error in Query Selection/', $response)){
-				return array();
-			}
-			
-			//Parse the XML
-			$data = new SimpleXMLElement($response);
-
-			$summaryData = array();
-			if (isset($data)){
-				if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
-					$summaryData['summary'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520->a;
+		if (!$summaryData){
+			try{
+				$clientKey = $configArray['Syndetics']['key'];
+				//Load the index page from syndetics
+				$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/SUMMARY.XML&client=$clientKey&type=xw10&upc=$upc";
+	
+				//Get the XML from the service
+				$ctx = stream_context_create(array(
+						  'http' => array(
+						  'timeout' => 2
+				)
+				));
+	
+				$response =file_get_contents($requestUrl, 0, $ctx);
+				if (preg_match('/Error in Query Selection/', $response)){
+					return array();
 				}
+	
+				//Parse the XML
+				$data = new SimpleXMLElement($response);
+	
+				$summaryData = array();
+				if (isset($data)){
+					if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
+						$summaryData['summary'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520->a;
+					}
+				}
+			}catch (Exception $e) {
+				$logger = new Logger();
+				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERROR);
+				$logger->log("Request URL was $requestUrl");
+				$summaryData = array();
 			}
-
-			return $summaryData;
-		}catch (Exception $e) {
-			$logger = new Logger();
-			$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERROR);
-			$logger->log("Request URL was $requestUrl");
-			return array();
+			$memcache->set("syndetics_summary_{$isbn}_{$upc}", $summaryData, MEMCACHE_COMPRESSED, $configArray['Caching']['syndetics_summary']);
 		}
+		return $summaryData;
 	}
 	function getTableOfContents($isbn, $upc){
 		global $configArray;

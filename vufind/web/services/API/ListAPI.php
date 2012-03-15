@@ -622,11 +622,9 @@ class ListAPI extends Action {
 				}
 
 				// Process MARC Data
-				$marc = trim($record['fullrecord']);
-				$marc = preg_replace('/#31;/', "\x1F", $marc);
-				$marc = preg_replace('/#30;/', "\x1E", $marc);
-				$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-				if ($marcRecord = $marc->next()) {
+				require_once 'sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
 				}
 
@@ -667,114 +665,97 @@ class ListAPI extends Action {
 	}
 
 	function getRandomSystemListTitles($listName){
-		require_once('sys/Cache/ListCache.php');
-		//Check to see if the list has been cached and is recent
-		$listCache = new ListCache();
-		$listCache->listName = $listName;
-		if ($listCache->find(true)){
-			return json_decode($listCache->jsonData, true);
-		}
-
+		global $memcache;
 		global $configArray;
-		require_once('services/Record/Description.php');
-		//return a random selection of 30 titles from the list.
-		$scrollerName = strip_tags($_GET['scrollerName']);
-		$searchObj = SearchObjectFactory::initSearchObject();
-		$searchObj->init();
-		$searchObj->setBasicQuery("*:*");
-		$searchObj->addFilter("system_list:$listName");
-		$seed = rand(0, 1000);
-		$searchObj->setSort("random" . $seed);
-		$searchObj->setLimit(50);
-		$searchObj->processSearch(false, false);
-		$matchingRecords = $searchObj->getResultRecordSet();
-
-		$titles = array();
-		foreach ($matchingRecords as $record){
-			$isbn = $record['isbn'][0];
-			if (strpos($isbn, ' ') > 0){
-				$isbn = substr($isbn, 0, strpos($isbn, ' '));
+		$listTitles = $memcache->get('system_list_titles_' . $listName);
+		if ($listTitles == false){
+			require_once('services/Record/Description.php');
+			//return a random selection of 30 titles from the list.
+			$searchObj = SearchObjectFactory::initSearchObject();
+			$searchObj->init();
+			$searchObj->setBasicQuery("*:*");
+			$searchObj->addFilter("system_list:$listName");
+			$seed = rand(0, 1000);
+			$searchObj->setSort("random" . $seed);
+			$searchObj->setLimit(50);
+			$searchObj->processSearch(false, false);
+			$matchingRecords = $searchObj->getResultRecordSet();
+	
+			$listTitles = array();
+			foreach ($matchingRecords as $record){
+				$isbn = $record['isbn'][0];
+				if (strpos($isbn, ' ') > 0){
+					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				}
+	
+				// Process MARC Data
+				require_once 'sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+				if ($marcRecord) {
+					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
+				}
+	
+				$listTitles[] = array(
+	          'id' => $record['id'],
+	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+	          'title' => $record['title'],
+	          'author' => isset($record['author']) ? $record['author'] : '',
+				    'description' => $descriptiveInfo['description'],
+	          'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
+	          'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
+				);
 			}
-
-			// Process MARC Data
-			$marc = trim($record['fullrecord']);
-			$marc = preg_replace('/#31;/', "\x1F", $marc);
-			$marc = preg_replace('/#30;/', "\x1E", $marc);
-			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-			if ($marcRecord = $marc->next()) {
-				$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
-			}
-
-			$titles[] = array(
-          'id' => $record['id'],
-          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-          'title' => $record['title'],
-          'author' => isset($record['author']) ? $record['author'] : '',
-			    'description' => $descriptiveInfo['description'],
-          'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
-          'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
-			);
+	
+			$memcache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
-
-		$listCache->jsonData = json_encode($titles);
-		$listCache->cacheDate = time();
-		$listCache->insert();
-		return $titles;
+		return $listTitles;
 	}
 
 	function getSystemListTitles($listName){
-		require_once('sys/Cache/ListCache.php');
-		//Check to see if the list has been cached and is recent
-		$listCache = new ListCache();
-		$listCache->listName = $listName;
-		if ($listCache->find(true)){
-			return json_decode($listCache->jsonData, true);
-		}
-
+		global $memcache;
 		global $configArray;
-		require_once('services/Record/Description.php');
-		//return a random selection of 30 titles from the list.
-		$scrollerName = strip_tags($_GET['scrollerName']);
-		$searchObj = SearchObjectFactory::initSearchObject();
-		$searchObj->init();
-		$searchObj->setBasicQuery("*:*");
-		$searchObj->addFilter("system_list:$listName");
-		$searchObj->setLimit(50);
-		$searchObj->processSearch(false, false);
-		$matchingRecords = $searchObj->getResultRecordSet();
-
-		$titles = array();
-		foreach ($matchingRecords as $record){
-			$isbn = $record['isbn'][0];
-			if (strpos($isbn, ' ') > 0){
-				$isbn = substr($isbn, 0, strpos($isbn, ' '));
+		$listTitles = $memcache->get('system_list_titles_' . $listName);
+		if ($listTitles == false){
+			require_once('services/Record/Description.php');
+			//return a random selection of 30 titles from the list.
+			$scrollerName = strip_tags($_GET['scrollerName']);
+			$searchObj = SearchObjectFactory::initSearchObject();
+			$searchObj->init();
+			$searchObj->setBasicQuery("*:*");
+			$searchObj->addFilter("system_list:$listName");
+			$searchObj->setLimit(50);
+			$searchObj->processSearch(false, false);
+			$matchingRecords = $searchObj->getResultRecordSet();
+	
+			$listTitles = array();
+			foreach ($matchingRecords as $record){
+				$isbn = $record['isbn'][0];
+				if (strpos($isbn, ' ') > 0){
+					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				}
+	
+				// Process MARC Data
+				require_once 'sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+				if ($marcRecord) {
+					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
+				}
+	
+	
+				$listTitles[] = array(
+	          'id' => $record['id'],
+	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
+	          'title' => $record['title'],
+	          'author' => $record['author'],
+				    'description' => $descriptiveInfo['description'],
+				    'length' => $descriptiveInfo['length'],
+				    'publisher' => $descriptiveInfo['publisher'],
+				);
 			}
 
-			// Process MARC Data
-			$marc = trim($record['fullrecord']);
-			$marc = preg_replace('/#31;/', "\x1F", $marc);
-			$marc = preg_replace('/#30;/', "\x1E", $marc);
-			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-			if ($marcRecord = $marc->next()) {
-				$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
-			}
-
-
-			$titles[] = array(
-          'id' => $record['id'],
-          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
-          'title' => $record['title'],
-          'author' => $record['author'],
-			    'description' => $descriptiveInfo['description'],
-			    'length' => $descriptiveInfo['length'],
-			    'publisher' => $descriptiveInfo['publisher'],
-			);
+			$memcache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
-
-		$listCache->jsonData = json_encode($titles);
-		$listCache->cacheDate = time();
-		$listCache->insert();
-		return $titles;
+		return $listTitles;
 	}
 	
 	/**

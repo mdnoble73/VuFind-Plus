@@ -77,6 +77,13 @@ class AJAX extends Action{
 	
 	function UpdateMaterialsRequest(){
 		global $interface;
+		global $configArray;
+		
+		$useWorldCat = false;
+		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){
+			$useWorldCat = strlen($configArray['WorldCat']['apiKey']) > 0;
+		}
+		$interface->assign('useWorldCat', $useWorldCat);
 		
 		if (!isset($_REQUEST['id'])){
 			$interface->assign('error', 'Please provide an id of the materials request to view.');

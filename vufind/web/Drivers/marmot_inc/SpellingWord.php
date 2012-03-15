@@ -20,7 +20,6 @@ class SpellingWord extends DB_DataObject
 
 	function getSpellingSuggestions($word){
 		//Get suggestions, giving a little boost to words starting with what has been typed so far.
-		$word = mysql_real_escape_string($word);
 		$query = "SELECT * FROM spelling_words WHERE word sounds like '" . mysql_escape_string($word) . "' UNION SELECT word, commonality - 20 FROM spelling_words WHERE word like '" . mysql_escape_string($word) . "%' ORDER BY commonality, word LIMIT 10";
 		$this->query($query);
 		$suggestions = array();

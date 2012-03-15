@@ -3,5 +3,5 @@
 </IfModule>
 
 # Dynamic CSS
-AddType application/x-httpd-php .css
-
+#AddType application/x-httpd-php .css
+AddType text/css .css

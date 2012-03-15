@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/SolrStats.php';
-require_once 'Drivers/marmot_inc/BadWord.php';
+//require_once 'sys/SolrStats.php';
+//require_once 'Drivers/marmot_inc/BadWord.php';
 require_once 'Drivers/marmot_inc/SpellingWord.php';
 
 class SearchSuggestions{
-	function getCommonSearchesSolr($searchTerm){
+	/*function getCommonSearchesSolr($searchTerm){
 		global $configArray;
 		// Load SOLR Statistics
 		$solr = new SolrStats($configArray['Statistics']['solr']);
@@ -85,7 +85,7 @@ class SearchSuggestions{
 			return $searchSuggestions;
 		}
 		return array();
-	}
+	}*/
 
 	function getCommonSearchesMySql($searchTerm, $searchType){
 		require_once('Drivers/marmot_inc/SearchStat.php');
@@ -109,6 +109,7 @@ class SearchSuggestions{
 
 	function getAllSuggestions($searchTerm, $searchType){
 		global $timer;
+		
 		$searchSuggestions = $this->getCommonSearchesMySql($searchTerm, $searchType);
 		$timer->logTime('Loaded common search suggestions');
 		//ISN and Authors are not typically regular words

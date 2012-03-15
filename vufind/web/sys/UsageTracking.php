@@ -43,8 +43,6 @@ class UsageTracking extends DB_DataObject{
 		//Usage Tracking Variables
 		$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'none';
 		$pageURL = $_SERVER['REQUEST_URI'];
-	
-			
 
 		// If the Subnet (location) is unknown save as a -1
 		if (!isset($ipLocation)) {
@@ -57,8 +55,6 @@ class UsageTracking extends DB_DataObject{
 		
 		// Set the tracking date for today and format it
 		$trackingDate = strtotime(date('m/d/Y'));
-		//use this line to override the date for testing
-		//$trackingDate = strtotime('10/20/2011');
 			
 		//Look up the date and the ipId in the usageTracking table and increment the pageView total by 1
 		$usageTracking = new UsageTracking();	
@@ -72,7 +68,6 @@ class UsageTracking extends DB_DataObject{
 			$usageTracking->$trackingType = $trackingIncrement;
 			return $usageTracking->insert();
 		}
-
 	}
 
 }

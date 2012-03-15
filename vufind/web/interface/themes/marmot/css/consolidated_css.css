@@ -31,8 +31,6 @@
   $fullCss .= includeCSS("./record.css");
   $fullCss .=  ("/*fixedHeaderTable.css*/");
   $fullCss .= includeCSS("./fixedHeaderTable.css");
-  $fullCss .=  ("/*seriesCarousel.css*/");
-  $fullCss .= includeCSS("./seriesCarousel.css");
   $fullCss .=  ("/*suggestions.css*/");
   $fullCss .= includeCSS("./suggestions.css");
 	$fullCss .=  ("/*prospector.css*/");

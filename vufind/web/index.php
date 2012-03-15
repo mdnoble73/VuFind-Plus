@@ -19,15 +19,32 @@
  */
 
 /** CORE APPLICATION CONTROLLER **/
-
+$startTime = microtime(true);
 // Retrieve values from configuration file
 require_once 'sys/ConfigArray.php';
 $configArray = readConfig();
+require_once 'sys/Timer.php';
+global $timer;
+$timer = new Timer($startTime);
+$timer->logTime("Read Config");
 
 if ($configArray['System']['debug']) {
 	ini_set('display_errors', true);
 	error_reporting(E_ALL);
 }
+
+global $memcache;
+// Set defaults if nothing set in config file.
+$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
+$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
+$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
+
+// Connect to Memcache:
+$memcache = new Memcache();
+if (!$memcache->connect($host, $port, $timeout)) {
+	PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+}
+$timer->logTime("Initialize Memcache");
 
 //Cleanup method information so module, action, and id are set properly.
 //This ensures that we don't have to change the http-vufind.conf file when new types are added.
@@ -62,19 +79,25 @@ date_default_timezone_set($configArray['Site']['timezone']);
 
 // Require System Libraries
 require_once 'PEAR.php';
+$timer->logTime("Include PEAR");
 require_once 'sys/Interface.php';
+$timer->logTime("Include Interface");
 require_once 'sys/Logger.php';
+$timer->logTime("Include Logger");
 require_once 'sys/User.php';
-require_once 'sys/Timer.php';
+$timer->logTime("Include User");
 require_once 'sys/Translator.php';
+$timer->logTime("Include Translator");
 require_once 'sys/SearchObject/Factory.php';
+$timer->logTime("Include Search Object Factory");
 require_once 'sys/ConnectionManager.php';
+$timer->logTime("Include ConnectionManager");
 require_once 'Drivers/marmot_inc/Library.php';
 require_once 'Drivers/marmot_inc/Location.php';
+$timer->logTime("Include Library and Location");
 require_once 'sys/UsageTracking.php';
+$timer->logTime("Include Usage Tracking");
 
-global $timer;
-$timer = new Timer();
 $timer->logTime('Startup');
 // Set up autoloader (needed for YAML)
 function vufind_autoloader($class) {
@@ -94,6 +117,20 @@ $options =& PEAR::getStaticProperty('DB_DataObject', 'options');
 $options = $configArray['Database'];
 $timer->logTime('Setup database connection');
 
+// Initiate Session State
+$session_type = $configArray['Session']['type'];
+$session_lifetime = $configArray['Session']['lifetime'];
+register_shutdown_function('session_write_close');
+if (isset($configArray['Site']['cookie_domain'])){
+	session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
+}
+require_once 'sys/' . $session_type . '.php';
+if (class_exists($session_type)) {
+	$session = new $session_type();
+	$session->init($session_lifetime);
+}
+$timer->logTime('Session initialization ' . $session_type);
+
 //Create global singleton instances for Library and Location
 global $librarySingleton;
 $librarySingleton = new Library();
@@ -101,6 +138,7 @@ $timer->logTime('Created library');
 global $locationSingleton;
 $locationSingleton = new Location();
 $timer->logTime('Created Location');
+
 $active_ip = $locationSingleton->getActiveIp();
 if (!isset($_COOKIE['test_ip']) || $active_ip != $_COOKIE['test_ip']){
 	if ($active_ip == ''){
@@ -255,32 +293,23 @@ if (isset($_REQUEST['mylang'])) {
 } else {
 	$language = strip_tags((isset($_COOKIE['language'])) ? $_COOKIE['language'] : $configArray['Site']['language']);
 }
-// Make sure language code is valid, reset to default if bad:
-$validLanguages = array_keys($configArray['Languages']);
-if (!in_array($language, $validLanguages)) {
-	$language = $configArray['Site']['language'];
+$translator = $memcache->get("translator_$language");
+if ($translator == false){
+	// Make sure language code is valid, reset to default if bad:
+	$validLanguages = array_keys($configArray['Languages']);
+	if (!in_array($language, $validLanguages)) {
+		$language = $configArray['Site']['language'];
+	}
+	$translator = new I18N_Translator('lang', $language, $configArray['System']['missingTranslations']);
+	$interface->setLanguage($language);
+	$memcache->set("translator_$language", $translator, 0, $configArray['Caching']['translator']);
+	$timer->logTime('Translator setup');
 }
-$translator = new I18N_Translator('lang', $language, $configArray['System']['missingTranslations']);
-$interface->setLanguage($language);
-$timer->logTime('Translator setup');
-
-// Initiate Session State
-$session_type = $configArray['Session']['type'];
-$session_lifetime = $configArray['Session']['lifetime'];
-register_shutdown_function('session_write_close');
-if (isset($configArray['Site']['cookie_domain'])){
-	session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
-}
-require_once 'sys/' . $session_type . '.php';
-if (class_exists($session_type)) {
-	$session = new $session_type();
-	$session->init($session_lifetime);
-}
-$timer->logTime('Session initialization ' . $session_type);
 
 // Determine Module and Action
 global $user;
 $user = UserAccount::isLoggedIn();
+$timer->logTime('Check if user is logged in');
 $module = (isset($_GET['module'])) ? $_GET['module'] : null;
 $module = preg_replace('/[^\w]/', '', $module);
 $action = (isset($_GET['action'])) ? $_GET['action'] : null;
@@ -400,8 +429,6 @@ if ($searchSource == 'genealogy'){
 	$_REQUEST['type'] = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : 'Keyword';
 }
 $interface->assign('searchSource', $searchSource);
-$logger = new Logger();
-//$logger->log("searchSource = $searchSource", PEAR_LOG_ERR);
 
 //Determine if the top search box and breadcrumbs should be shown.  Not showing these
 //Does have a slight performance advantage.
@@ -463,6 +490,8 @@ if ($action == "AJAX" || $action == "JSON"){
 	//Load user list for book bag
 	if ($user){
 		$lists = $user->getLists();
+		$timer->logTime('Get user lists for book cart');
+		
 		$userLists = array();
 		foreach($lists as $current) {
 			$userLists[] = array('id' => $current->id,
@@ -501,16 +530,19 @@ if (!is_null($ipLocation) && $user){
 	$interface->assign('onInternalIP', false);
 	$interface->assign('includeAutoLogoutCode', false);
 }
+$timer->logTime('Check whether or not to include auto logout code');
 
 if (!in_array($action, array("AJAX", "JSON")) && !in_array($module, array("API", "Admin", "Report")) ){
 	// Log the usageTracking data
 	$usageTracking = new UsageTracking();
 	$usageTracking->logTrackingData('numPageViews', 1, $ipLocation, $ipId);
+	$timer->logTime('Log Usage Tracking');
 }
 
 // Process Login Followup
 if (isset($_REQUEST['followup'])) {
 	processFollowup();
+	$timer->logTime('Process followup');	
 }
 
 //If there is a hold_message, make sure it gets displayed.
@@ -524,13 +556,16 @@ if (isset($_SESSION['hold_message'])) {
 
 // Process Solr shard settings
 processShards();
+$timer->logTime('Process Shards');
 
 // Call Action
 if (is_readable("services/$module/$action.php")) {
 	require_once "services/$module/$action.php";
 	if (class_exists($action)) {
 		$service = new $action();
+		$timer->logTime('Start lauch of action');
 		$service->launch();
+		$timer->logTime('Finish launch of action');
 	} else {
 		PEAR::raiseError(new PEAR_Error('Unknown Action'));
 	}
@@ -538,6 +573,7 @@ if (is_readable("services/$module/$action.php")) {
 	PEAR::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module'"));
 }
 $timer->logTime('Finished Index');
+$timer->writeTimings();
 
 function processFollowup(){
 	global $configArray;
@@ -723,6 +759,7 @@ function checkAvailabilityMode() {
  * @return array the configuration options adjusted based on the scoping rules.
  */
 function updateConfigForScoping($configArray) {
+	global $timer;
 	//Get the subdomain for the request
 	$serverName = $_SERVER['SERVER_NAME'];
 
@@ -745,39 +782,40 @@ function updateConfigForScoping($configArray) {
 			}
 		}
 	}
-	if (is_null($subdomain) || $subdomain == 'cherokee' || $subdomain == 'opac' || $subdomain == 'opac1' || $subdomain == 'opac2') {
-		//No additional configuration options, use the default.
-		return $configArray;
-	}
+	
+	$timer->logTime('got subdomain');
 
 	//Load the library system information
-	$Library = new Library();
-	$Library->whereAdd("subdomain = '$subdomain'");
-	$Library->find();
 	global $library;
 	global $locationSingleton;
-
-	if ($Library->N == 1) {
-		$Library->fetch();
-		//Make the library infroamtion global so we can work with it later.
-		$library = $Library;
+	if (isset($_SESSION['library']) && isset($_SESSION['location'])){
+		$library = $_SESSION['library'];
+		$locationSingleton = $_SESSION['library'];
 	}else{
-		//The subdomain can also indicate a location.
-		$Location = new Location();
-		$Location->whereAdd("code = '$subdomain'");
-		$Location->find();
-		if ($Location->N == 1){
-			$Location->fetch();
-			//We found a location for the subdomain, get the library.
-			global $librarySingleton;
-			$library = $librarySingleton->getLibraryForLocation($Location->locationId);
-			$locationSingleton->setActiveLocation(clone $Location);
+		$Library = new Library();
+		$Library->whereAdd("subdomain = '$subdomain'");
+		$Library->find();
+		
+	
+		if ($Library->N == 1) {
+			$Library->fetch();
+			//Make the library infroamtion global so we can work with it later.
+			$library = $Library;
+		}else{
+			//The subdomain can also indicate a location.
+			$Location = new Location();
+			$Location->whereAdd("code = '$subdomain'");
+			$Location->find();
+			if ($Location->N == 1){
+				$Location->fetch();
+				//We found a location for the subdomain, get the library.
+				global $librarySingleton;
+				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
+				$locationSingleton->setActiveLocation(clone $Location);
+			}
 		}
 	}
 	if (isset($library) && $library != null){
-		//Update the url will not have a trailing backslash
-		//$configArray['Site']['url'] = 'http://' . $serverName . $configArray['Site']['path'] ;
-		//TODO: Do this
 		//Update the title
 		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
 		$configArray['Site']['title'] = $library->displayName;
@@ -799,7 +837,7 @@ function updateConfigForScoping($configArray) {
 		
 
 		$location = $locationSingleton->getActiveLocation();
-
+		
 		//Add an extra css file for the scope if it exists.
 		if (file_exists('./interface/themes/' . $library->themeName . '/css/extra_styles.css')) {
 			$configArray['Site']['theme_css'] = $configArray['Site']['url'] . '/interface/themes/' . $library->themeName . '/css/extra_styles.css';
@@ -823,6 +861,7 @@ function updateConfigForScoping($configArray) {
 		}
 
 	}
+	$timer->logTime('finished update config for scoping');
 
 	return $configArray;
 }

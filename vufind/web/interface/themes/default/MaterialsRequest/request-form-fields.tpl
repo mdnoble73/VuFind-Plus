@@ -91,9 +91,11 @@
 </fieldset>
 <fieldset>
 	<legend>Identifiers</legend>
+	{if $useWorldCat}
 	<div class="formatSpecificField bookField dvdField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
 		<input type="button" id="suggestIdentifiers" value="Lookup ISBN &amp; OCLC Number" onclick="return getWorldCatIdentifiers();"/>
 	</div>
+	{/if}
 	<div id="suggestedIdentifiers" style="display:none"></div>
 	<div class="formatSpecificField bookField dvdField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField">
 		<label for="isbn">ISBN:</label>
@@ -153,18 +155,18 @@
 	<legend>Holds</legend>
 	<div>
 		Place a hold for me when the item is available: 
-		<input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked"/><label for="placeHoldYes">Yes</label> 
-		<input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo"/><label for="placeHoldNo">No</label>
+		<input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" onclick="updateHoldOptions();"/><label for="placeHoldYes">Yes</label> 
+		<input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" checked="checked" onclick="updateHoldOptions();"/><label for="placeHoldNo">No</label>
 	</div>
-	<div>
+	<div id="pickupLocationField" style="display:none;">
 		<label for="pickupLocation">Pickup Location: </label>
-		<select name="holdPickupLocation" id="pickupLocation">
+		<select name="holdPickupLocation" id="pickupLocation" onchange="updateHoldOptions();">
 			{foreach from=$pickupLocations item=location}
 				<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
 			{/foreach}
 		</select>
 	</div>
-	<div>
+	<div id="bookmobileStopField" style="display:none;">
 		<label for="bookmobileStop">Bookmobile Stop: </label>
 		<input name="bookmobileStop" id="bookmobileStop" size="50" maxlength="50"/>
 	</div>

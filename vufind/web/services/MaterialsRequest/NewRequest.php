@@ -45,6 +45,12 @@ class NewRequest extends Action
 		}
 		
 		$interface->assign('pickupLocations', $locations);
+		
+		$useWorldCat = false;
+		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){
+			$useWorldCat = strlen($configArray['WorldCat']['apiKey']) > 0;
+		}
+		$interface->assign('useWorldCat', $useWorldCat);
 
 		$interface->setTemplate('new.tpl');
 		$interface->setPageTitle('Materials Request');

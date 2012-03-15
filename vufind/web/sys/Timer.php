@@ -5,13 +5,13 @@ class Timer{
 	private $timingMessages;
 	private $timingsEnabled = false;
 
-	public function Timer(){
+	public function Timer($startTime){
 		global $configArray;
 		if (isset($configArray['System']['timings'])) {
 			$this->timingsEnabled = $configArray['System']['timings'];
 		}
-		$this->lastTime = microtime(true);
-		$this->firstTime = microtime(true);
+		$this->lastTime = $startTime;
+		$this->firstTime = $startTime;
 		$this->timingMessages = array();
 	}
 	public function logTime($message){
@@ -26,6 +26,12 @@ class Timer{
 	}
 
 	function writeTimings(){
+		$curTime = microtime(true);
+		$elapsedTime = round($curTime - $this->lastTime, 2);
+		if ($elapsedTime > 0){
+			$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
+		}
+		$this->lastTime = $curTime;
 		$logger = new Logger();
 		$totalElapsedTime =round(microtime(true) - $this->firstTime, 2);
 		$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";

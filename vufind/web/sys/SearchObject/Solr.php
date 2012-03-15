@@ -944,8 +944,9 @@ class SearchObject_Solr extends SearchObject_Base
 	 *                                     with the search itself?
 	 * @return  object solr result structure (for now)
 	 */
-	public function processSearch($returnIndexErrors = false, $recommendations = false)
-	{
+	public function processSearch($returnIndexErrors = false, $recommendations = false) {
+		global $timer;
+		
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
 
@@ -953,6 +954,8 @@ class SearchObject_Solr extends SearchObject_Base
 		if ($recommendations) {
 			$this->initRecommendations();
 		}
+		$timer->logTime("initRecommendations");
+		
 
 		// Tag searches need to be handled differently
 		if (count($search) == 1 && isset($search[0]['index']) && $search[0]['index'] == 'tag') {
@@ -960,6 +963,7 @@ class SearchObject_Solr extends SearchObject_Base
 			// array.  If we didn't find any tag matches, we should return an
 			// empty record set.
 			$newSearch = $this->processTagSearch($search[0]['lookfor']);
+			$timer->logTime("process Tag search");
 			// Save search so it displays correctly on the "no hits" page:
 			$this->publicQuery = $search[0]['lookfor'];
 			if (empty($newSearch)) {
@@ -971,6 +975,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		// Build Query
 		$query = $this->indexEngine->buildQuery($search);
+		$timer->logTime("build query");
 		if (PEAR::isError($query)) {
 			return $query;
 		}
@@ -1027,6 +1032,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$facetSet['sort'] = $this->facetSort;
 			}
 		}
+		$timer->logTime("create facets");
 
 		// Build our spellcheck query
 		if ($this->spellcheck) {
@@ -1043,6 +1049,7 @@ class SearchObject_Solr extends SearchObject_Base
 		} else {
 			$spellcheck = "";
 		}
+		$timer->logTime("create spell check");
 
 		// Get time before the query
 		$this->startQueryTimer();
@@ -1068,6 +1075,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->method,     // HTTP Request method
 		$returnIndexErrors // Include errors in response?
 		);
+		$timer->logTime("run solr search");
 
 		// Get time after the query
 		$this->stopQueryTimer();

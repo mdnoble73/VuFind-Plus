@@ -500,22 +500,12 @@ ul.browse {
 .recordtab li.active a {
     color:#608600;
 }
-.sidegroup h4 {
-	padding:.5em 0 .5em 0;
-	color: white;
-	font-weight: bold;
-	background-color: #e58e29;
-	-moz-border-radius-topleft: 11px; border-top-left-radius: 11px;
-    -moz-border-radius-topright: 11px; border-top-right-radius: 11px;
-    text-align: center;
-    margin-top: 0px;
-}
+
 .sidegroup {
-	border: 1px solid #949494;
-	margin:0 0 20px 0;
-	-moz-border-radius: 12px; border-radius: 12px;
+	margin: 0 0 20px 0;
 	padding-bottom: 10px;
 }
+
 .sidebarLabel{
 	padding: 8px 10px 3px 10px;
 	font-weight: bold;
@@ -966,7 +956,7 @@ div.checkedout,span.checkedout{
     margin-right:1em;
 }
 .book {
-    background-image:url(//images/silk/book.png);
+    background-image:url(/images/silk/book.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;

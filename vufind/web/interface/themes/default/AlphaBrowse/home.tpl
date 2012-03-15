@@ -51,6 +51,8 @@
                   {else}
                   	{if $source=="author"}
                   		{$path}/Author/Home?author={$item.heading|escape:"url"}
+                  	{elseif $source=="callnumber"}
+                  		{$path}/Search/Results?basicType=AllFields&amp;lookfor={$item.heading|escape:"url"}
                   	{else}
                     	{$path}/Search/Results?basicType={$source|capitalize|escape:"url"}&amp;lookfor={$item.heading|escape:"url"}
                     {/if}

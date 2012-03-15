@@ -640,24 +640,9 @@ ul.browse {
 	color: #608600;
 }
 
-.sidegroup h4 {
-	padding: .5em 0 .5em 0;
-	color: white;
-	font-weight: bold;
-	background-color: #e58e29;
-	-moz-border-radius-topleft: 11px;
-	border-top-left-radius: 11px;
-	-moz-border-radius-topright: 11px;
-	border-top-right-radius: 11px;
-	text-align: center;
-	margin-top: 0px;
-}
 
 .sidegroup {
-	border: 1px solid #949494;
 	margin: 0 0 20px 0;
-	-moz-border-radius: 12px;
-	border-radius: 12px;
 	padding-bottom: 10px;
 }
 
