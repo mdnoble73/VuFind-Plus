@@ -1455,7 +1455,7 @@ private $patronProfiles = array();
             'state' => trim($addressParts[2]),
             'zip' => isset($addressParts[3]) ? trim($addressParts[3]) : '',
             'phone' => isset($result['variable']['BF'][0]) ? $result['variable']['BF'][0] : '',
-            'email' => $result['variable']['BE'][0],
+            'email' => isset($result['variable']['BE'][0]) ? $result['variable']['BE'][0] : '',
             'homeLocationId' => isset($homeLocationId) ? $homeLocationId : -1,
             'homeLocationName' => $this->translateLocation($result['variable']['AQ'][0]),
             'expires' => $formattedExpiration,
@@ -1549,8 +1549,8 @@ private $transactions = array();
 			//Get econtent info and hold queue length
 			foreach ($transactions as $key => $transaction){
 				//Check for hold queue length
-				$itemData = $this->_loadItemSIP2Data($transaction['barcode']);
-				$transaction['holdQueueLength'] = intval($itemData->holdQueueLength);
+				$itemData = $this->_loadItemSIP2Data($transaction['barcode'], '');
+				$transaction['holdQueueLength'] = intval($itemData['holdQueueLength']);
 				
 				$transactions[$key] = $transaction;
 			}
@@ -1642,6 +1642,8 @@ private $transactions = array();
 				}
 				if (isset($result['variable']['CF'][0])){
 					$itemSip2Data['holdQueueLength'] = intval($result['variable']['CF'][0]);
+				}else{
+					$itemSip2Data['holdQueueLength'] = 0;
 				}
 				if ($configArray['Catalog']['realtimeLocations'] == true && isset($result['variable']['AQ'][0])){
 					//Looks like horizon is returning these backwards via SIP.  
