@@ -1,0 +1,122 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.ControlField;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Subfield;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import org.ini4j.Ini;
+import java.util.regex.*;
+
+private Connection econtentConn = null;
+private boolean configLoaded = false;
+private Ini configIni = null;
+private PreparedStatement hasEContentRecordStmt;
+private PreparedStatement eContentRecordStmt;
+private HashSet eContentRecords = null;
+
+public String checkSuppression(Record record, String recordIdSpec){
+	return "notsuppressed";
+
+	//Suspend if 949c is w
+	Set input = indexer.getFieldList(record, "949c");
+	Iterator iter = input.iterator();
+	while (iter.hasNext()) {
+		String curLocationCode = iter.next();
+		if (curLocationCode.equalsIgnoreCase("w")){
+			System.out.println("Suppressing record due to location code");
+			return "suppressed";
+		}
+	}
+	
+	// parse configuration files
+	loadConfig();
+	
+	// Connect to the mysql database
+	connectToMySQL();
+	
+	if (eContentRecords == null){
+		eContentRecords = loadEContentRecords();
+	}
+	
+	Set fields = indexer.getFieldList(record, recordIdSpec);
+	Iterator fieldsIter = fields.iterator();
+	if (fields != null) {
+		while(fieldsIter.hasNext()) {
+			// Get the current string to work on:
+			String recordId = fieldsIter.next();
+			// Check to see if the record has an eContent Record
+			//hasEContentRecordStmt.setString(1, recordId);
+			//ResultSet eContentResults = hasEContentRecordStmt.executeQuery();
+			//while (eContentResults.next()){
+			if (eContentRecords.contains(recordId)){
+				//There is at least one record.
+				System.out.println("Suppressing because there is an eContent record for " + recordId);
+				return "suppressed";
+			}
+		}
+	}
+
+	return "notsuppressed";
+}
+
+public void loadConfig(){
+	if (configLoaded == false){
+		System.out.println("Loading configuration");
+		parseConfigIni();
+		configLoaded = true;
+	}
+}
+
+public void connectToMySQL(){
+	//Get the connection from the INI
+	if (econtentConn == null){
+		databaseConnectionInfo = getDatabaseConnectionInfo();
+		econtentConn = DriverManager.getConnection(databaseConnectionInfo);
+		
+		hasEContentRecordStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE ilsId = ?");
+		eContentRecordStmt = econtentConn.prepareStatement("SELECT DISTINCT ilsId FROM econtent_record where ilsId is not null");
+	}
+}
+
+public HashSet loadEContentRecords(){
+  HashSet eContentRecords = new HashSet();
+  ResultSet eContentRecordRs = eContentRecordStmt.executeQuery();
+  while (eContentRecordRs.next()){
+  	eContentRecords.add(eContentRecordRs.getString(1));
+  }
+  return eContentRecords;
+}
+
+public String getDatabaseConnectionInfo(){
+	String databaseConnection = configIni.get("General", "econtentDatabase");
+	if (databaseConnection == null) {
+		dieWithError("Unable to load databaseConnection from cron config.ini");
+	}
+	return databaseConnection;
+}
+
+public void parseConfigIni(){
+	if (configIni == null){
+		// Obtain path to Aperture from the fulltext.ini file:
+		configIni = new Ini();
+		// Find VuFind's home directory in the environment; if it's not available,
+		// try using a relative path on the assumption that we are currently in
+		// VuFind's root directory:
+		String vufindHome = System.getenv("VUFIND_HOME");
+		if (vufindHome == null) {
+			vufindHome = "";
+		}
+
+		String configIniFile = vufindHome + "/cron/conf/config.ini";
+		File file = new File(configIniFile);
+		try {
+			configIni.load(new FileReader(configIniFile));
+		} catch (Throwable e) {
+			dieWithError("Unable to access " + configIniFile);
+		}
+	}
+}

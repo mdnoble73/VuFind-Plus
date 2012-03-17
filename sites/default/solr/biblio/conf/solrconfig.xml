@@ -25,15 +25,7 @@
          -Dsolr.abortOnConfigurationError=false
      -->
   <abortOnConfigurationError>${solr.abortOnConfigurationError:false}</abortOnConfigurationError>
-  
-  <!-- Controls what version of Lucene various components of Solr
-       adhere to.  Generally, you want to use the latest version to
-       get all bug fixes and improvements. It is highly recommended
-       that you fully re-index after changing this setting as it can
-       affect both how text is indexed and queried.
-    -->
-  <luceneMatchVersion>LUCENE_35</luceneMatchVersion>
-  
+
   <!-- Used to specify an alternate directory to hold all index data
        other than the default ./data under the Solr home.
        If replication is in use, this should match the replication configuration. -->
@@ -469,7 +461,7 @@
     <str name="scopeNoteField">scope_note</str>
 
 
-    <str name="sources">topic,author,title,lcc,dewey,callnumber</str>
+    <str name="sources">topic,author,title,lcc,dewey</str>
 
     <lst name="topic">
       <str name="DBpath">${solr.solr.home:./solr}/alphabetical_browse/topic_browse.db</str>
@@ -495,11 +487,6 @@
       <str name="DBpath">${solr.solr.home:./solr}/alphabetical_browse/dewey_browse.db</str>
       <str name="field">dewey-raw</str>
       <str name="ignoreDiacritics">yes</str>
-    </lst>
-    
-    <lst name="callnumber">
-      <str name="DBpath">${solr.solr.home:./solr}/alphabetical_browse/callnumber_browse.db</str>
-      <str name="field">callnumber_browse</str>
     </lst>
 
   </requestHandler>
@@ -660,7 +647,6 @@
     </lst>
   </requestHandler>
   
-  <searchComponent class="solr.HighlightComponent" name="highlight">
   <highlighting>
    <!-- Configure the standard fragmenter -->
    <!-- This could most likely be commented out in the "default" case -->
@@ -690,7 +676,6 @@
     </lst>
    </formatter>
   </highlighting>
-  </searchComponent>
   
   
   <!-- queryResponseWriter plugins... query responses will be written using the
@@ -714,7 +699,7 @@
        in Solr's conf/xslt directory.  Changes to xslt files are checked for
        every xsltCacheLifetimeSeconds.  
    -->
-  <queryResponseWriter name="xslt" class="org.apache.solr.response.XSLTResponseWriter">
+  <queryResponseWriter name="xslt" class="org.apache.solr.request.XSLTResponseWriter">
     <int name="xsltCacheLifetimeSeconds">5</int>
   </queryResponseWriter> 
     

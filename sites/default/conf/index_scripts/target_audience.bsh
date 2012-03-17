@@ -1,0 +1,74 @@
+import org.marc4j.marc.*;
+
+/**
+ * Determine Record Format(s)
+ *
+ * @param  Record          record
+ * @return Set     format of record
+ */
+public Set getTargetAudience(Record record){
+	Set result = new LinkedHashSet();
+	try{
+		String leader = record.getLeader().toString();
+		char leaderBit;
+	    
+		ControlField ohOhEightField = (ControlField) record.getVariableField("008");
+		ControlField ohOhSixField = (ControlField) record.getVariableField("006");
+	
+		// check the Leader at position 6 to determine the type of field
+		char recordType = Character.toUpperCase(leader.charAt(6));
+		char bibLevel = Character.toUpperCase(leader.charAt(7));
+		//Figure out what material type the record is
+		if ((recordType == 'A' || recordType == 'T') && (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
+			|| (recordType == 'M') /* Computer Files */
+			|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
+			|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /* Visual Materials */
+			){
+			char targetAudienceChar;
+			if (ohOhSixField != null && ohOhSixField.getData().length() >= 5){
+				targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(5));
+				if (targetAudienceChar != ' '){ 
+					result.add(Character.toString(targetAudienceChar));
+				}
+			}else if (ohOhEightField != null && ohOhEightField.getData().length() >= 22){
+				targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(22));
+				if (targetAudienceChar != ' '){ 
+					result.add(Character.toString(targetAudienceChar));
+				}
+			}
+		}
+		//If we haven't gotten a target audience, try to get one from the collection (949c)
+		if (result.isEmpty()){
+			List itemRecords = record.getVariableFields("949");
+			for (int i = 0; i < itemRecords.size(); i++){
+				Object field = itemRecords.get(i);
+				if (field instanceof DataField){
+					DataField dataField = (DataField)field;
+					//Get subfield c (collection)
+					String subfieldC = dataField.getSubfield('c').getData();
+					if (subfieldC.endsWith("jf") || subfieldC.endsWith("jnf") || subfieldC.startsWith("je")){
+						result.add("Juvenile");
+						break;
+					}else if(subfieldC.endsWith("yf") || subfieldC.endsWith("ynf") || subfieldC.startsWith("ye")){
+						result.add("YA");
+						break;
+					}else if((subfieldC.endsWith("e") || subfieldC.endsWith("er") || subfieldC.endsWith("eb") || subfieldC.startsWith("ea")) && !subfieldC.equals("bce")){
+						result.add("Easy");
+						break;
+					}else if(subfieldC.endsWith("f") || subfieldC.endsWith("nf") || subfieldC.startsWith("ae")){
+						result.add("Adult");
+						break;
+					}
+				}
+			}
+			if (result.isEmpty()){
+				result.add("Unknown");
+			}
+		}
+	}catch (Exception e){
+		System.out.println("ERROR in getTargetAudience " + e.toString());
+		result.add("Unknown");
+	}
+    
+	return result;
+}

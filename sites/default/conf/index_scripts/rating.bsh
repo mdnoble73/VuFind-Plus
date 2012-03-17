@@ -1,0 +1,131 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.ControlField;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Subfield;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import org.ini4j.Ini;
+import java.util.regex.*;
+
+private Connection vufindConn = null;
+private boolean configLoaded = false;
+private Ini configIni = null;
+private PreparedStatement recordRatingStmt;
+
+public String getRating(Record record, String recordIdSpec){
+	// parse configuration files
+	loadConfig();
+	
+	// Connect to the mysql database
+	connectToMySQL();
+	Set fields = indexer.getFieldList(record, recordIdSpec);
+	Iterator fieldsIter = fields.iterator();
+	if (fields != null) {
+		while(fieldsIter.hasNext()) {
+			// Get the current string to work on:
+			String recordId = fieldsIter.next();
+			// Check to see if the record has an eContent Record
+			recordRatingStmt.setString(1, recordId);
+			ResultSet ratingResults = recordRatingStmt.executeQuery();
+			while (ratingResults.next()){
+				float rating = ratingResults.getFloat(1);
+				if (Math.abs(rating) < 0.0001){
+					rating = -2.5f;
+				}
+				System.out.println("Rating = " + rating);
+				return Float.toString(rating);
+			}
+		}
+	}
+
+	return Float.toString(-2.5f);
+}
+
+public String getRatingFacet(Record record, String recordIdSpec){
+	// parse configuration files
+	loadConfig();
+	
+	// Connect to the mysql database
+	connectToMySQL();
+	Set fields = indexer.getFieldList(record, recordIdSpec);
+	Iterator fieldsIter = fields.iterator();
+	if (fields != null) {
+		while(fieldsIter.hasNext()) {
+			// Get the current string to work on:
+			String recordId = fieldsIter.next();
+			// Check to see if the record has an eContent Record
+			recordRatingStmt.setString(1, recordId);
+			ResultSet ratingResults = recordRatingStmt.executeQuery();
+			while (ratingResults.next()){
+				float rating = ratingResults.getFloat(1);
+				if (rating > 4.5){
+					return "fiveStar";
+				}else if (rating > 3.5){
+					return "fourStar";
+				}else if (rating > 2.5){
+					return "threeStar";
+				}else if (rating > 1.5){
+					return "twoStar";
+				}else if (rating > 0.0001){
+					return "oneStar";
+				}else{
+					return "Unrated";
+				}
+			}
+		}
+	}
+
+	return "Unrated";
+}
+
+public void loadConfig(){
+	if (configLoaded == false){
+		System.out.println("Loading configuration");
+		parseConfigIni();
+		configLoaded = true;
+	}
+}
+
+public void connectToMySQL(){
+	//Get the connection from the INI
+	if (vufindConn == null){
+		databaseConnectionInfo = getDatabaseConnectionInfo();
+		vufindConn = DriverManager.getConnection(databaseConnectionInfo);
+		
+		recordRatingStmt = vufindConn.prepareStatement("SELECT avg(rating) from resource inner join user_rating on user_rating.resourceid = resource.id where record_id = ? and source like 'vufind'");
+	}
+}
+
+public String getDatabaseConnectionInfo(){
+	String databaseConnection = configIni.get("General", "database");
+	if (databaseConnection == null) {
+		dieWithError("Unable to load databaseConnection from cron config.ini");
+	}
+	return databaseConnection;
+}
+
+public void parseConfigIni(){
+	if (configIni == null){
+		// Obtain path to Aperture from the fulltext.ini file:
+		configIni = new Ini();
+		// Find VuFind's home directory in the environment; if it's not available,
+		// try using a relative path on the assumption that we are currently in
+		// VuFind's root directory:
+		String vufindHome = System.getenv("VUFIND_HOME");
+		if (vufindHome == null) {
+			vufindHome = "";
+		}
+
+		String configIniFile = vufindHome + "/cron/conf/config.ini";
+		File file = new File(configIniFile);
+		try {
+			configIni.load(new FileReader(configIniFile));
+		} catch (Throwable e) {
+			dieWithError("Unable to access " + configIniFile);
+		}
+	}
+}

@@ -1,0 +1,36 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.ControlField;
+import org.marc4j.marc.DataField;
+import java.util.regex.*;
+
+org.solrmarc.index.SolrIndexer indexer = null;
+/**
+ * Determine the rating for the record from the 521 tag
+ *
+ * @param  Record          record
+ * @return String   Rating or null if not set.
+ */
+public String getMpaaRating(Record record) {
+    String val = indexer.getFirstFieldVal(record, "521a");
+
+    if (val != null) {
+    	if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")){
+    		return "Not Rated";
+    	}else if(val.matches("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)\\.?")){
+    		try {
+				Pattern Regex = Pattern.compile("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)", Pattern.CANON_EQ);
+				Matcher RegexMatcher = Regex.matcher(val);
+				if (RegexMatcher.find()) {
+					return RegexMatcher.group(1) + " Rated";
+					
+				} 
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
+			}
+    	}else{
+    		return null;
+    	}
+    } else {
+        return val;
+    }
+}
