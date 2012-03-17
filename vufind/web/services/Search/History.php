@@ -104,6 +104,23 @@ class History extends Action {
 		}
 
 		//Load profile inforamtion for display in My Account menu
+		//Determine whether or not materials request functionality should be enabled
+		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
+			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
+			if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
+				//Check to see if we need to do additonal restrictions by patron type
+				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
+				if (strlen($allowablePatronTypes) > 0 && $user){
+					if (!preg_match("/$allowablePatronTypes/i", $user->patronType)){
+						$enableMaterialsRequest = false;
+					}
+				}
+			}
+		}else{
+			$enableMaterialsRequest = false;
+		}
+		$interface->assign('enableMaterialsRequest', $enableMaterialsRequest);
+		
 		//This code is also in MyResearch.php
 		if ($user !== false){
 			global $configArray;

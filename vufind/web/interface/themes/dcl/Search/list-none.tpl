@@ -72,7 +72,9 @@
     </div>
     {/if}
 
+		{if $enableMaterialsRequest}
     Can't find what you are looking for? Try our <a href="http://apps.douglascountylibraries.org/materials_request/" target="_blank">Materials Request Service</a>.</div>
-
+		{/if}
+		
     </div>
 </div>

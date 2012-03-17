@@ -7,6 +7,8 @@ vufind/admin/sql/
 vufind/web/images/charts/*
 vufind/web/interface/cache/
 vufind/web/interface/compile/
+vufind/web/*_strandsCatalog.csv
+vufind/web/phpinfo.php
 
 # Compiled source #
 ###################

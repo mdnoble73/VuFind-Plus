@@ -20,6 +20,9 @@
       <div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyResearch/ReadingHistory">{translate text='My Reading History'}</a></div>
       <div class="myAccountLink{if $pageTemplate=="list.tpl"} active{/if}"><a href="{$path}/MyResearch/MyList">{translate text='My Lists'}</a></div>
       <div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyResearch/Profile">{translate text='Profile'}</a></div>
+      {if $enableMaterialsRequest}
+      <div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'}</a></div>
+      {/if}
       {* Only highlight saved searches as active if user is logged in: *}
       <div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
     </div>

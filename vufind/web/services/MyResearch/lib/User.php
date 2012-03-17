@@ -21,6 +21,7 @@ class User extends DB_DataObject
 	public $phone;                           // string(30)  
 	public $cat_username;                    // string(50)
 	public $cat_password;                    // string(50)
+	public $patronType;
 	public $college;                         // string(100)  not_null
 	public $major;                           // string(100)  not_null
 	public $created;                         // datetime(19)  not_null binary
@@ -42,7 +43,7 @@ class User extends DB_DataObject
 
 	function __sleep()
 	{
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt');
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType');
 	}
 
 	function __wakeup()

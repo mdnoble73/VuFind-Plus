@@ -140,12 +140,13 @@ class SIPAuthentication implements Authentication {
 
 							if (($result['variable']['BL'][0] == 'Y') and ($result['variable']['CQ'][0] == 'Y')) {
 								//Get patron info as well
-								$in = $mysip->msgPatronInformation('fine');
+								$in = $mysip->msgPatronInformation('none');
 								$msg_result = $mysip->get_message($in);
 				
 								// Make sure the response is 24 as expected
 								if (preg_match("/^64/", $msg_result)) {
 									$patronInfoResponse = $mysip->parsePatronInfoResponse( $msg_result );
+									//print_r($patronInfoResponse);
 								}
 								
 								// Success!!!
@@ -199,7 +200,7 @@ class SIPAuthentication implements Authentication {
 		} else {
 			$insert = true;
 		}
-
+		
 		// This could potentially be different depending on the ILS.  Name could be Bob Wicksall or Wicksall, Bob.
 		// This is currently assuming Wicksall, Bob
 		$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
@@ -208,10 +209,11 @@ class SIPAuthentication implements Authentication {
 		// Should revisit this.
 		$user->cat_username = $username;
 		$user->cat_password = $password;
-		$user->email = $patronInfoResponse['variable']['BE'][0];
+		$user->email = isset($patronInfoResponse['variable']['BE'][0]) ? $patronInfoResponse['variable']['BE'][0] : '';
 		$user->phone = $patronInfoResponse['variable']['BF'][0];
 		$user->major = 'null';
 		$user->college = 'null';
+		$user->patronType = $patronInfoResponse['variable']['PC'][0];
 
 		if ($insert) {
 			$user->created = date('Y-m-d');

@@ -71,6 +71,23 @@ class MyResearch extends Action
 				}
 			}
 		}
+		
+		//Determine whether or not materials request functionality should be enabled
+		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
+			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
+			if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
+				//Check to see if we need to do additonal restrictions by patron type
+				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
+				if (strlen($allowablePatronTypes) > 0 && $user){
+					if (preg_match("/^{$allowablePatronTypes}$/i", $user->patronType) == 0){
+						$enableMaterialsRequest = false;
+					}
+				}
+			}
+		}else{
+			$enableMaterialsRequest = false;
+		}
+		$interface->assign('enableMaterialsRequest', $enableMaterialsRequest);
 
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php

@@ -49,6 +49,23 @@ class ManageRequests extends Admin {
 			}
 		}
 
+		$availableStatuses = array(
+			'pending' => translate('pending'),
+			'owned' => translate('owned'),
+			'purchased' => translate('purchased'),
+			'referredToILL' => translate('referredToILL'),
+			'ILLplaced' => translate('ILLplaced'),
+			'ILLreturned' => translate('ILLreturned'),
+			'notEnoughInfo' => translate('notEnoughInfo'),
+			'notAcquiredOutOfPrint' => translate('notAcquiredOutOfPrint'),
+			'notAcquiredNotAvailable' => translate('notAcquiredNotAvailable'),
+			'notAcquiredFormatNotAvailable' => translate('notAcquiredFormatNotAvailable'),
+			'notAcquiredPrice' => translate('notAcquiredPrice'),
+			'notAcquiredPublicationDate' => translate('notAcquiredPublicationDate'),
+			'requestCancelled' => translate('requestCancelled'),
+		);
+		$interface->assign('availableStatuses', $availableStatuses);
+		
 		$defaultStatusesToShow = array('pending', 'referredToILL', 'ILLplaced', 'notEnoughInfo');
 		if (isset($_REQUEST['statusFilter'])){
 			$statusesToShow = $_REQUEST['statusFilter'];
@@ -56,18 +73,52 @@ class ManageRequests extends Admin {
 			$statusesToShow = $defaultStatusesToShow;
 		}
 		$interface->assign('statusFilter', $statusesToShow);
+		
+		$availableFormats = array(
+			'book' => translate('book'),
+			'dvd' => translate('dvd'),
+			'cdAudio' => translate('cdAudio'),
+			'cdMusic' => translate('cdMusic'),
+			'ebook' => translate('ebook'),
+			'eaudio' => translate('eaudio'),
+			'playaway' => translate('playaway'),
+			'article' => translate('article'),
+			'cassette' => translate('cassette'),
+			'vhs' => translate('vhs'),
+		);
+		$interface->assign('availableFormats', $availableFormats);
+		$defaultFormatsToShow = array_keys($availableFormats);
+		if (isset($_REQUEST['formatFilter'])){
+			$formatsToShow = $_REQUEST['formatFilter'];
+		}else{
+			$formatsToShow = $defaultFormatsToShow;
+		}
+		$interface->assign('formatFilter', $formatsToShow);
+		
 		//Get a list of all materials requests for the user
 		$allRequests = array();
 		if ($user){
 			$materialsRequests = new MaterialsRequest();
-				
-			$statusSql = "";
-			foreach ($statusesToShow as $status){
-				if (strlen($statusSql) > 0) $statusSql .= ",";
-				$statusSql .= "'" . mysql_escape_string($status) . "'";
+
+			if (count($availableStatuses) > count($statusesToShow)){
+				$statusSql = "";
+				foreach ($statusesToShow as $status){
+					if (strlen($statusSql) > 0) $statusSql .= ",";
+					$statusSql .= "'" . mysql_escape_string($status) . "'";
+				}
+				$materialsRequests->whereAdd("status in ($statusSql)");
 			}
-			$materialsRequests->whereAdd("status in ($statusSql)");
-				
+			
+			if (count($availableFormats) > count($formatsToShow)){
+				//At least one format is disabled
+				$formatSql = "";
+				foreach ($formatsToShow as $format){
+					if (strlen($formatSql) > 0) $formatSql .= ",";
+					$formatSql .= "'" . mysql_escape_string($format) . "'";
+				}
+				$materialsRequests->whereAdd("format in ($formatSql)");
+			}
+
 			//Add filtering by date as needed
 			if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0){
 				$startDate = strtotime($_REQUEST['startDate']);
@@ -79,7 +130,7 @@ class ManageRequests extends Admin {
 				$materialsRequests->whereAdd("dateCreated <= $endDate");
 				$interface->assign('endDate', $_REQUEST['endDate']);
 			}
-				
+
 			$materialsRequests->find();
 			while ($materialsRequests->fetch()){
 				$allRequests[] = clone $materialsRequests;
@@ -97,7 +148,7 @@ class ManageRequests extends Admin {
 			$interface->display('layout.tpl');
 		}
 	}
-	
+
 	function exportToExcel($selectedRequestIds, $allRequests){
 		//May ned more time to exort all records
 		set_time_limit(600);
@@ -107,38 +158,38 @@ class ManageRequests extends Admin {
 
 		// Set properties
 		$objPHPExcel->getProperties()->setCreator("VuFind")
-			->setLastModifiedBy("VuFind")
-			->setTitle("Office 2007 XLSX Document")
-			->setSubject("Office 2007 XLSX Document")
-			->setDescription("Office 2007 XLSX, generated using PHP.")
-			->setKeywords("office 2007 openxml php")
-			->setCategory("Itemless eContent Report");
+		->setLastModifiedBy("VuFind")
+		->setTitle("Office 2007 XLSX Document")
+		->setSubject("Office 2007 XLSX Document")
+		->setDescription("Office 2007 XLSX, generated using PHP.")
+		->setKeywords("office 2007 openxml php")
+		->setCategory("Itemless eContent Report");
 
 		// Add some data
 		$activeSheet = $objPHPExcel->setActiveSheetIndex(0);
 		$activeSheet->setCellValueByColumnAndRow(0, 1, 'Materials Requests');
-		
+
 		//Define table headers
 		$curRow = 3;
 		$curCol = 0;
 		$activeSheet
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'ID')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Title')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Author')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Format')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Age Level')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'ISBN')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'UPC')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'ISSN')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'OCLC Number')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Publication Year')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Article Info')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Abridged')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'How did you hear about this?')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Comments')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Status')
-			->setCellValueByColumnAndRow($curCol++, $curRow, 'Date Created');
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'ID')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Title')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Author')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Format')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Age Level')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'ISBN')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'UPC')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'ISSN')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'OCLC Number')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Publication Year')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Article Info')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Abridged')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'How did you hear about this?')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Comments')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Status')
+		->setCellValueByColumnAndRow($curCol++, $curRow, 'Date Created');
 
 		$numCols = $curCol;
 		//Loop Through The Report Data
@@ -146,28 +197,28 @@ class ManageRequests extends Admin {
 			if (array_key_exists($request->id, $selectedRequestIds)){
 				$curRow++;
 				$curCol = 0;
-				
+
 				$activeSheet
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->id)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->title)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->author)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->format)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->ageLevel)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->isbn)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->upc)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->issn)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->oclcNumber)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->publisher)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->publicationYear)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->articleInfo)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->abridged == 0 ? 'Unabridged' : ($request->abridged == 1 ? 'Abridged' : 'Not Applicable'))
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->about)
-					->setCellValueByColumnAndRow($curCol++, $curRow, $request->comments)
-					->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status))
-					->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->id)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->title)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->author)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->format)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->ageLevel)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->isbn)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->upc)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->issn)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->oclcNumber)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->publisher)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->publicationYear)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->articleInfo)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->abridged == 0 ? 'Unabridged' : ($request->abridged == 1 ? 'Abridged' : 'Not Applicable'))
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->about)
+				->setCellValueByColumnAndRow($curCol++, $curRow, $request->comments)
+				->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status))
+				->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
 			}
 		}
-		
+
 		for ($i = 0; $i < $numCols; $i++){
 			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}

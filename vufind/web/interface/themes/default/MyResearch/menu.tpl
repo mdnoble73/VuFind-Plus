@@ -7,6 +7,9 @@
       <li{if $pageTemplate=="holds.tpl"} class="active"{/if} style="float: none;"><a href="{$url}/MyResearch/Holds">{translate text='Holds and Recalls'}</a></li>
       <li{if $pageTemplate=="fines.tpl"} class="active"{/if} style="float: none;"><a href="{$url}/MyResearch/Fines">{translate text='Fines'}</a></li>
       <li{if $pageTemplate=="profile.tpl"} class="active"{/if} style="float: none;"><a href="{$url}/MyResearch/Profile">{translate text='Profile'}</a></li>
+      {if $enableMaterialsRequest}
+        <div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'}</a></div>
+      {/if}
       {* Only highlight saved searches as active if user is logged in: *}
       <li{if $user && $pageTemplate=="history.tpl"} class="active"{/if} style="float: none;"><a href="{$url}/Search/History?require_login">{translate text='history_saved_searches'}</a></li>
     </ul>

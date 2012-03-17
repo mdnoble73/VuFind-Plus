@@ -14,7 +14,7 @@
 		</div>
 	{/if}
 	<div id="materialRequestContactInfo">
-		Please enter your contact information so we can concact you if we have questions about your request.
+		Please enter your contact information so we can contact you if we have questions about your request.
 		<div>
 			<label for="phone">{translate text='Phone'}: </label>
 			<input type="text" name="phone" id="phone" size="15" class="tel" value="{$defaultPhone}"/>

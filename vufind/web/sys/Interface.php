@@ -78,11 +78,17 @@ class UInterface extends Smarty
 		$md5 = md5($this->vufindTheme);
 		$this->compile_dir   = "$local/interface/compile/$md5";
 		if (!is_dir($this->compile_dir)) {
-			mkdir($this->compile_dir);
+			if (!mkdir($this->compile_dir)){
+				echo("Could not create compile directory {$this->compile_dir}");
+				die();
+			}
 		}
 		$this->cache_dir     = "$local/interface/cache/$md5";
 		if (!is_dir($this->cache_dir)) {
-			mkdir($this->cache_dir);
+			if (!mkdir($this->cache_dir)){
+				echo("Could not create cache directory {$this->cache_dir}");
+				die();
+			}
 		}
 		$this->plugins_dir   = array('plugins', "$local/interface/plugins");
 		$this->caching       = false;

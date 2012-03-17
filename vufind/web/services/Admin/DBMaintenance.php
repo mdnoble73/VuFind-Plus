@@ -148,6 +148,15 @@ class DBMaintenance extends Admin {
           "ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
 		),
 		),
+		
+		'user_ilsType' => array(
+        'title' => 'User Type',
+        'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
+        'dependencies' => array(),
+        'sql' => array(
+          "ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
+		),
+		),
     	 
       'list_widgets' => array(
         'title' => 'Setup Configurable List Widgets',
