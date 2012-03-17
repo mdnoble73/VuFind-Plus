@@ -1,0 +1,1 @@
+As content is extracted from EPUB files and PDF files, it is copied here so the content does not need to be continually extracted.

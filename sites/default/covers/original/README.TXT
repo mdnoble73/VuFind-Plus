@@ -1,0 +1,1 @@
+Original covers that are uploaded by users or provided by publishers go here. 

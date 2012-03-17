@@ -1,0 +1,1 @@
+Log files are added here for apache, reindexing, messages, etc.

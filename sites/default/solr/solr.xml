@@ -4,5 +4,6 @@
   <core name="biblio2" instanceDir="biblio"/>
   <core name="biblio" instanceDir="biblio2"/>
   <core name="authority" instanceDir="authority"/>
+  <core name="genealogy" instanceDir="genealogy"/>
 </cores>
 </solr>
