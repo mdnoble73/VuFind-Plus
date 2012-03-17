@@ -35,12 +35,15 @@ function getExtraConfigArrayFile($name)
 
 	//Check to see if there is a domain name based subfolder for he configuration
 	$servername = $_SERVER['SERVER_NAME'];
-	if (file_exists("../../conf/$servername/$filename")){
+	if (file_exists("../../sites/$servername/conf/$filename")){
 		// Return the file path (note that all ini files are in the conf/ directory)
-		return "../../conf/$servername/$filename";
+		return "../../sites/$servername/conf/$filename";
+	}elseif (file_exists("../../sites/default/conf/$filename")){
+		// Return the file path (note that all ini files are in the conf/ directory)
+		return "../../sites/default/conf/$filename";
 	} else{
 		// Return the file path (note that all ini files are in the conf/ directory)
-		return '../../conf/' . $filename;
+		return '../../sites/' . $filename;
 	}
 
 }
@@ -120,20 +123,27 @@ function ini_merge($config_ini, $custom_ini)
 function readConfig()
 {
 	$servername = $_SERVER['SERVER_NAME'];
-	if (file_exists("../../conf/$servername/config.ini")){
-		$mainArray = parse_ini_file("../../conf/$servername/config.ini", true);
+	$configFile = "../../sites/$servername/conf/config.ini";
+	if (file_exists($configFile)){
+		$mainArray = parse_ini_file($configFile, true);
 	}else{
-		$mainArray = parse_ini_file('../../conf/config.ini', true);
+		$configFile = '../../sites/default/conf/config.ini';
+		$mainArray = parse_ini_file($configFile, true);
 	}
 	
 	if ($mainArray == false){
-		echo("Unable to parse configuration file, please check syntax");
+		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
 	
 	if (isset($mainArray['Extra_Config']) &&
 	isset($mainArray['Extra_Config']['local_overrides'])) {
-		$file = trim('../../conf/' . $mainArray['Extra_Config']['local_overrides']);
-		$localOverride = @parse_ini_file($file, true);
+		if (file_exists("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides'])){
+			$file = trim("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides']);
+			$localOverride = @parse_ini_file($file, true);
+		}else {
+			$file = trim('../../sites/default/conf/' . $mainArray['Extra_Config']['local_overrides']);
+			$localOverride = @parse_ini_file($file, true);
+		}
 		if ($localOverride) {
 			return ini_merge($mainArray, $localOverride);
 		}

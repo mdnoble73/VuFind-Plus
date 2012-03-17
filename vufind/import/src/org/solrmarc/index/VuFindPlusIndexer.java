@@ -37,12 +37,11 @@ import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
-import org.solrmarc.tools.CallNumUtils;
-import org.solrmarc.tools.SolrMarcIndexerException;
 import org.ini4j.Ini;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.solrmarc.tools.CallNumUtils;
 import org.vufind.Util;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -79,6 +78,9 @@ public class VuFindPlusIndexer extends SolrIndexer {
 	 */
 	public VuFindPlusIndexer(final String propertiesMapFile, final String[] propertyDirs) throws FileNotFoundException, IOException, ParseException {
 		super(propertiesMapFile, propertyDirs);
+		//Echo the current classpath
+		String classPath = System.getProperty("java.class.path");
+		System.out.println("Class Path = " + classPath);
 		connectToDatabases();
 		System.out.println("Finished initializing VuFindPlus Indexer");
 	}
@@ -105,21 +107,29 @@ public class VuFindPlusIndexer extends SolrIndexer {
 		// Obtain the DSN from the config.ini file:
 		Ini ini = new Ini();
 
-		// Find VuFind's home directory in the environment; if it's not available,
-		// try using a relative path on the assumption that we are currently in
-		// VuFind's import subdirectory:
-		String vufindHome = System.getenv("VUFIND_HOME");
-		if (vufindHome == null) {
-			vufindHome = "..";
+		// Determine the configuration file to use
+		String configFile;
+		String serverName = System.getProperty("reindex.process.serverName");
+		if (serverName == null){
+			// Find VuFind's home directory in the environment; if it's not available,
+			// try using a relative path on the assumption that we are currently in
+			// VuFind's import subdirectory:
+			String vufindHome = System.getenv("VUFIND_HOME");
+			if (vufindHome == null) {
+				vufindHome = "..";
+			}
+	
+			String configPath = System.getProperty("solrmarc.path", vufindHome + "/web/conf");
+			configFile = configPath + "/config.ini";
+		}else{
+			configFile = "../../sites/" + serverName + "/conf/config.ini";
+			System.out.println("configFile = " + configFile);
 		}
-
-		String configPath = System.getProperty("solrmarc.path", vufindHome + "/web/conf");
-		String configFile = configPath + "/config.ini";
 		File file = new File(configFile);
 		try {
 			ini.load(new FileReader(file));
 		} catch (Throwable e) {
-			dieWithError("Unable to access " + configFile);
+			dieWithError("Unable to read config file " + configFile);
 		}
 		String dsn = Util.cleanIniValue(ini.get("Database", "database_vufind_jdbc"));
 
@@ -1153,5 +1163,13 @@ public class VuFindPlusIndexer extends SolrIndexer {
 			suppressionChecker = new CheckSuppression(vufindDatabase, econtentDatabase);
 		}
 		return suppressionChecker.getSuppression(record, recordIdSpec, suppressionFieldSpec, suppressionPattern);
+	}
+	
+	private class SolrMarcIndexerException extends RuntimeException{
+		private static final long	serialVersionUID	= 1L;
+		public final static int EXIT = 0;
+		public SolrMarcIndexerException(int level, String msg){
+			super(msg);
+		}
 	}
 }

@@ -31,7 +31,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.econtent.ExtractEContentFromMarc;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
-//import org.solrmarc.marc.MarcImporter;
 import org.strands.StrandsProcessor;
 
 
@@ -106,7 +105,8 @@ public class ReindexProcess {
 			System.exit(1);
 		}
 		serverName = args[0];
-
+		System.setProperty("reindex.process.serverName", serverName);
+		
 		initializeReindex();
 
 		
@@ -417,21 +417,9 @@ public class ReindexProcess {
 	}
 
 	private static void importMarcFiles() {
-		// Delete the existing solrmarc.log file
-		File solrmarcLog = new File("solrmarc.log");
-		if (solrmarcLog.exists()){
-			solrmarcLog.delete();
-		}
-		for (int i = 1; i <= 4; i++){
-			solrmarcLog = new File("solrmarc.log." + i);
-			if (solrmarcLog.exists()){
-				solrmarcLog.delete();
-			}
-		}
-		
 		// Copy schema from biblio to biblio2
-		File schema = new File("../../solr-data/" + libraryAbbrev + "/biblio/conf/schema.xml");
-		File schema2 = new File("../../solr-data/" + libraryAbbrev + "/biblio2/conf/schema.xml");
+		File schema = new File("../../sites/" + serverName + "/solr/biblio/conf/schema.xml");
+		File schema2 = new File("../../sites/" + serverName + "/solr/biblio2/conf/schema.xml");
 		try {
 			copyFile(schema, schema2);
 		} catch (IOException e) {
@@ -456,16 +444,19 @@ public class ReindexProcess {
 				int returnCode = importer.handleAll();*/
 				if (SystemUtil.isWindowsPlatform()){
 					SystemUtil.executeCommand(new String[]{"cmd", "/C", "java", "-jar", "SolrMarc.jar" , 
-						"\"../../conf/" + serverName + "/import.properties\"" ,
+						"\"../../sites/" + serverName + "/conf/import.properties\"" ,
 						curFile.toString()}
 						, logger);
 				}else{
 					SystemUtil.executeCommand(new String[]{"java",
 							"-jar", "SolrMarc.jar" , 
-							new File("../../conf/" + serverName + "/import.properties").getAbsoluteFile().getAbsolutePath() ,
+							new File("../../sites/" + serverName + "/conf/import.properties").getAbsoluteFile().getAbsolutePath() ,
 							curFile.getAbsolutePath()}
 							, logger);
 				}
+				/*MarcImporter importer = new MarcImporter();
+				importer.init(new String[]{"../../conf/" + serverName + "/import.properties", curFile.toString()});
+				int numProcessed = importer.handleAll();*/
 				
 			} catch (Exception e) {
 				logger.error("Error running importScript", e);
@@ -492,18 +483,42 @@ public class ReindexProcess {
 	}
 
 	private static void initializeReindex() {
+		System.out.println("Starting to initialize system");
+		// Delete the existing reindex.log file
+		File solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log");
+		if (solrmarcLog.exists()){
+			solrmarcLog.delete();
+		}
+		for (int i = 1; i <= 4; i++){
+			solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log." + i);
+			if (solrmarcLog.exists()){
+				solrmarcLog.delete();
+			}
+		}
+		solrmarcLog = new File("solrmarc.log");
+		if (solrmarcLog.exists()){
+			solrmarcLog.delete();
+		}
+		for (int i = 1; i <= 4; i++){
+			solrmarcLog = new File("solrmarc.log." + i);
+			if (solrmarcLog.exists()){
+				solrmarcLog.delete();
+			}
+		}
+		
 		// Initialize the logger
-		File log4jFile = new File("../../conf/" + serverName + "/log4j.reindex.properties");
+		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.reindex.properties");
 		if (log4jFile.exists()) {
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		} else {
 			System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
+			System.exit(1);
 		}
 
 		logger.info("Starting Reindex for " + serverName);
 
 		// Load the configuration file
-		String configName = "../../conf/" + serverName + "/config.ini";
+		String configName = "../../sites/" + serverName + "/conf/config.ini";
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
 			logger.error("Could not find confiuration file " + configName);

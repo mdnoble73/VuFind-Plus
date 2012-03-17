@@ -134,9 +134,6 @@
                     <field name="publishDate">
                         <xsl:value-of select="//doaj:publicationDate"/>
                     </field>
-                    <field name="publishDateSort">
-                        <xsl:value-of select="//doaj:publicationDate"/>
-                    </field>
                 </xsl:if>
 
                 <!-- DESCRIPTION -->

@@ -30,7 +30,7 @@ $timer->logTime("Read Config");
 
 if ($configArray['System']['debug']) {
 	ini_set('display_errors', true);
-	error_reporting(E_ALL);
+	error_reporting(E_ALL && ~E_DEPRECATED);
 }
 
 global $memcache;

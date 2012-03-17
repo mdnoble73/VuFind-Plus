@@ -1,0 +1,100 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.ControlField;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Subfield;
+import java.util.regex.*;
+
+public String getAcceleratedReaderReadingLevel(Record record){
+	String result = null;
+	//Get a list of all tags that may contain the lexile score.  
+	List input = record.getVariableFields("526");
+	Iterator iter = input.iterator();
+
+	DataField field;
+	while (iter.hasNext()) {
+		field = (DataField) iter.next();
+    
+		if (field.getSubfield('a') == null){
+			continue;
+		}else{
+			String type = field.getSubfield('a').getData();
+			if (type.matches("(?i)accelerated reader")){
+				String rawData = field.getSubfield('c').getData();
+				try {
+					Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+					Matcher RegexMatcher = Regex.matcher(rawData);
+					if (RegexMatcher.find()) {
+						String arData = RegexMatcher.group(1);
+						result = arData;
+						System.out.println("AR Reading Level " + result);
+						return result;
+					} 
+				} catch (PatternSyntaxException ex) {
+					// Syntax error in the regular expression
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+public String getAcceleratedReaderPointLevel(Record record){
+	String result = null;
+	//Get a list of all tags that may contain the lexile score.  
+	List input = record.getVariableFields("526");
+	Iterator iter = input.iterator();
+
+	DataField field;
+	while (iter.hasNext()) {
+		field = (DataField) iter.next();
+    
+		if (field.getSubfield('a') == null){
+			continue;
+		}else{
+			String type = field.getSubfield('a').getData();
+			if (type.matches("(?i)accelerated reader")){
+				String rawData = field.getSubfield('d').getData();
+				try {
+					Pattern Regex = Pattern.compile("([\\d.]+)",
+						Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+					Matcher RegexMatcher = Regex.matcher(rawData);
+					if (RegexMatcher.find()) {
+						String arData = RegexMatcher.group(1);
+						result = arData;
+						System.out.println("AR Point Level " + result);
+						return result;
+					} 
+				} catch (PatternSyntaxException ex) {
+					// Syntax error in the regular expression
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+public String getAcceleratedReaderInterestLevel(Record record){
+	String result = null;
+	//Get a list of all tags that may contain the lexile score.  
+	List input = record.getVariableFields("526");
+	Iterator iter = input.iterator();
+
+	DataField field;
+	while (iter.hasNext()) {
+		field = (DataField) iter.next();
+    
+		if (field.getSubfield('a') == null){
+			continue;
+		}else{
+			String type = field.getSubfield('a').getData();
+			if (type.matches("(?i)accelerated reader")){
+				String arReadingLevel = field.getSubfield('b').getData();
+				return arReadingLevel;
+			}
+		}
+	}
+
+	return result;
+}

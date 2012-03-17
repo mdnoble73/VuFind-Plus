@@ -1,0 +1,42 @@
+import org.marc4j.marc.Record;
+import org.marc4j.marc.DataField;
+import java.util.regex.Pattern;
+import java.io.*;
+import org.ini4j.Ini;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+/**
+ * Extract the award name for the title if any
+ *
+ * @param Record record
+ * @param String field spec to search for URLs
+ * @param String only harvest files matching this extension (null for all)
+ * @return String The full-text
+ */
+public Set getAwardName(Record record, String fieldSpec) {
+	Set result = new LinkedHashSet();
+	// Loop through the specified MARC fields:
+	Set fields = indexer.getFieldList(record, fieldSpec);
+	Iterator fieldsIter = fields.iterator();
+	if (fields != null) {
+		while(fieldsIter.hasNext()) {
+			// Get the current string to work on:
+			String current = fieldsIter.next();
+			//Strip extra data after the award name. 
+			if (current.indexOf(",") > 0){
+				current = current.substring(0, current.indexOf(","));
+			}
+			result.add(current.trim());
+		}
+	}
+	// return set of awards to SolrMarc
+	if (result.size() == 0){
+		return null;
+	}
+	return result;
+}

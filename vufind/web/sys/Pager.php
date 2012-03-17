@@ -18,7 +18,7 @@
  *
  */
 require_once 'Pager/Pager.php';
- 
+
 /**
  * VuFind Pager Class
  *
@@ -30,20 +30,20 @@ require_once 'Pager/Pager.php';
  */
 class VuFindPager
 {
-    var $pager;
-    
-    /**
-     * Constructor
-     *
-     * Initialize the PEAR pager object.
-     *
-     * @param   array   $options        The Pager options to override.
-     * @access  public
-     */
-    public function __construct($options = array())
-    {
-        // Set default Pager options:
-        $finalOptions = array(
+	var $pager;
+
+	/**
+	 * Constructor
+	 *
+	 * Initialize the PEAR pager object.
+	 *
+	 * @param   array   $options        The Pager options to override.
+	 * @access  public
+	 */
+	public function __construct($options = array())
+	{
+		// Set default Pager options:
+		$finalOptions = array(
             'mode'       => 'sliding',
             'path'       => "",
             'delta'      => 2,
@@ -58,37 +58,37 @@ class VuFindPager
             'urlVar'          => 'page',
             'curPageSpanPre'  => '<span>',
             'curPageSpanPost' => '</span>');
-            
-        // Override defaults with user-provided values:
-        foreach($options as $optionName => $optionValue) {
-            $finalOptions[$optionName] = $optionValue;
-        }
-        
-        // Create the pager object:
-        $this->pager =& Pager::factory($finalOptions);
-    }
 
-    /**
-     * Generate the pager HTML using the options passed to the constructor.
-     *
-     * @access  public
-     * @return  array
-     */
-    public function getLinks()
-    {
-        return $this->pager->getLinks();
-    }
-    
-    public function isLastPage(){
-        $currentPage = $this->pager->_currentPage;
-        $totalPages = $this->pager->_totalPages;
-        return $currentPage == $totalPages;
-    }
-    public function getNumRecordsOnPage(){
-        if (!$this->isLastPage()){
-            return $this->pager->_perPage;
-        }
-        return $this->pager->_totalItems - ($this->pager->_perPage * ($this->pager->_currentPage - 1));
-    }
+		// Override defaults with user-provided values:
+		foreach($options as $optionName => $optionValue) {
+			$finalOptions[$optionName] = $optionValue;
+		}
+
+		// Create the pager object:
+		$this->pager =& Pager::factory($finalOptions);
+	}
+
+	/**
+	 * Generate the pager HTML using the options passed to the constructor.
+	 *
+	 * @access  public
+	 * @return  array
+	 */
+	public function getLinks()
+	{
+		return $this->pager->getLinks();
+	}
+
+	public function isLastPage(){
+		$currentPage = $this->pager->_currentPage;
+		$totalPages = $this->pager->_totalPages;
+		return $currentPage == $totalPages;
+	}
+	public function getNumRecordsOnPage(){
+		if (!$this->isLastPage()){
+			return $this->pager->_perPage;
+		}
+		return $this->pager->_totalItems - ($this->pager->_perPage * ($this->pager->_currentPage - 1));
+	}
 }
 ?>

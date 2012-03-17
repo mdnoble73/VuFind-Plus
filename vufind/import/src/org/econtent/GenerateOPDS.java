@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.vufind.IEContentProcessor;
-import org.vufind.IProcessHandler;
 import org.vufind.ISupplementalProcessor;
 
 public class GenerateOPDS implements IEContentProcessor, ISupplementalProcessor{

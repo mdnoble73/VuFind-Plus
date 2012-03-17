@@ -35,7 +35,7 @@
                 <field name="fullrecord">
                     &lt;root&gt;
                     &lt;url&gt;
-                    <xsl:value-of select="//METS:dmdSec/METS:mdRef/@href"/><xsl:value-of select="//METS:dmdSec/METS:mdRef/@xlink:href"/>
+                    <xsl:value-of select="//METS:dmdSec/METS:mdRef/@href"/>
                     &lt;/url&gt;
                     &lt;thumbnail&gt;
                     <xsl:value-of select="//METS:fileSec/METS:fileGrp[@USE = 'THUMBNAIL']/METS:file[@ID = //METS:structMap/METS:div/METS:div[@TYPE = 'page_level']/METS:div[1]/METS:fptr/@FILEID]/METS:FLocat/@xlink:href"/>
@@ -97,13 +97,6 @@
                     </xsl:for-each>
                 </xsl:if>
 
-                <!-- TOPIC -->
-                <xsl:if test="//dc:subject">
-                    <xsl:for-each select="//dc:subject">
-                        <field name="topic"><xsl:value-of select="normalize-space()"/></field>
-                    </xsl:for-each>
-                </xsl:if>
-
                 <!-- TITLE -->
                 <xsl:if test="//dc:title[normalize-space()]">
                     <field name="title">
@@ -130,9 +123,6 @@
                 <!-- PUBLISHDATE -->
                 <xsl:if test="//dc:date">
                     <field name="publishDate">
-                        <xsl:value-of select="substring(//dc:date, 1, 4)"/>
-                    </field>
-                    <field name="publishDateSort">
                         <xsl:value-of select="substring(//dc:date, 1, 4)"/>
                     </field>
                 </xsl:if>

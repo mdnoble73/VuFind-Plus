@@ -1,15 +1,7 @@
 # Specific locations within VuFind #
 ####################################
-conf/**/*
-!conf/default
-covers/
-!covers/default/*
-/econtent/
-httpd-conf/
-logs/
-marc/
-solr-data/*
-!solr-data/default
+sites/**/*
+!sites/default
 vufind/documentation/
 vufind/admin/sql/
 vufind/web/images/charts/*

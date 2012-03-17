@@ -42,17 +42,17 @@ require_once 'Solr.php';
  */
 class SolrAuth extends Solr
 {
-    /**
-     * Constructor
-     *
-     * @param string $host The URL for the local Solr Server
-     *
-     * @access public
-     */
-    public function __construct($host)
-    {
-        parent::__construct($host, 'authority');
-        $this->searchSpecsFile = 'conf/authsearchspecs.yaml';
-    }
+	/**
+	 * Constructor
+	 *
+	 * @param string $host The URL for the local Solr Server
+	 *
+	 * @access public
+	 */
+	public function __construct($host)
+	{
+		parent::__construct($host, 'authority');
+		$this->searchSpecsFile = 'conf/authsearchspecs.yaml';
+	}
 }
 ?>

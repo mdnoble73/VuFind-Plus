@@ -140,9 +140,9 @@ class Solr implements IndexEngine {
 
 		//Check for a more specific searchspecs file
 		$servername = $_SERVER['SERVER_NAME'];
-		if (file_exists("../../conf/$servername/searchspecs.yaml")){
+		if (file_exists("../../sites/$servername/conf/searchspecs.yaml")){
 			// Return the file path (note that all ini files are in the conf/ directory)
-			$this->searchSpecsFile = "../../conf/$servername/searchspecs.yaml";
+			$this->searchSpecsFile = "../../sites/$servername/conf/searchspecs.yaml";
 		}
 			
 		$this->host = $host . '/' . $index;

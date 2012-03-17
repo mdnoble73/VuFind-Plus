@@ -19,6 +19,7 @@
  */
 
 require_once 'services/MyResearch/MyResearch.php';
+require_once 'sys/Pager.php';
 
 class CheckedOut extends MyResearch{
 	function launch(){

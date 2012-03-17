@@ -4,7 +4,7 @@
 :: $Id:marcupdate.bat
 setlocal
 ::Get the current batch file's short path
-for %%x in (%~f0) do set scriptdir=%%~dpsx
+for %%x in (%0) do set scriptdir=%%~dpsx
 for %%x in (%scriptdir%) do set scriptdir=%%~dpsx
 
 if EXIST %scriptdir%SolrMarc.jar goto doit
@@ -14,4 +14,4 @@ popd
 
 :doit
 
-java -Dsolrmarc.main.class="org.solrmarc.marc.MarcMerger" -jar %scriptdir%SolrMarc.jar %1 %2 %3 %4 %5 %6 %7 %8 %9
+java -Dsolrmarc.main.class="org.solrmarc.marc.MarcMerger" -jar %scriptdir%SolrMarc.jar %1 %2 %3 %4 %5 %6 %7 
