@@ -1,6 +1,6 @@
 # Specific locations within VuFind #
 ####################################
-sites/**/*
+sites/*
 !sites/default
 vufind/documentation/
 vufind/admin/sql/
