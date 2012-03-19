@@ -153,63 +153,61 @@ class EContentDriver implements DriverInterface{
 	}
 	
 	public function _getOverdriveHoldings($eContentRecord){
+		require_once('sys/eContent/OverdriveItem.php');
 		//get the url for the page in overdrive 
+		global $memcache;
+		global $configArray;
+		
 		$overdriveUrl = $eContentRecord->sourceUrl;
-		if ($overdriveUrl == null | strlen($overdriveUrl) == 0){
-			return array();
-		}else{
-			require_once('sys/eContent/OverdriveItem.php');
+		
+		if ($overdriveUrl == null || strlen($overdriveUrl) == 0){
 			$items = array();
-			$overDriveId = substr($eContentRecord->sourceUrl, -36);
-			//Check to see if the file has been cached
-			require_once 'sys/eContent/OverDriveRecordCache.php';
-			//Remove any cached information that has been stored for more than 2 hours
-			$cache = new OverDriveRecordCache();
-			$cache->whereAdd('lastLoaded < ' . (time() - 2 * 3600));
-			$cache->delete(true);
-			
-			$cache = new OverDriveRecordCache();
-			$cache->sourceUrl = $eContentRecord->sourceUrl;
-			if ($cache->find(true)){
-				$overdrivePage = $cache->pageContents;
-			}else{
-				$overdrivePage = file_get_contents($overdriveUrl);
-				if (strlen($overdrivePage) > 0){
-					$cache->pageContents = $overdrivePage;
-					$cache->lastLoaded = time();
-					$cache->insert();
-				}
-			}
-			//Extract the Format Information section 
-			if (preg_match('/<h1>Format Information<\/h1>(.*?)<h1>/s', $overdrivePage, $extraction)){
-				$formatSection = $extraction[1];
-				//Strip out information we don't care about
-				$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
-				//Extract the actual formats from the remaining text.
-				if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>/s', $formatSection, $itemInfoAll)) {
-					for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
-						$overdriveItem = new OverdriveItem();
-						$overdriveItem->source = 'OverDrive';
-						$overdriveItem->format = $itemInfoAll[1][$matchi];
-						$overdriveItem->formatId = $itemInfoAll[2][$matchi];
-						//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
-						$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0);
-						$links = array();
-						if ($overdriveItem->available){
-							$links[] = array(
-								'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$overdriveItem->formatId}');",
-								'text' => 'Check Out'
-							);
-						}else{
-							$links[] = array(
-								'onclick' => "return placeOverDriveHold('$overDriveId', '{$overdriveItem->formatId}');",
-								'text' => 'Place Hold'
-							);
-						}
-						$overdriveItem->links = $links;
-						$items[] = $overdriveItem;
+		}else{
+			$overDriveId = substr($overdriveUrl, -36);
+			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
+			if (true || $items == false){
+				$items = array();
+				//Check to see if the file has been cached
+				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
+				if ($overdrivePage == false || strlen($overdrivePage) == 0){
+					$overdrivePage = file_get_contents($overdriveUrl);
+					if (!$memcache->set('overdrive_record_' . $overDriveId, $overdrivePage, MEMCACHE_COMPRESSED, $configArray['Caching']['overdrive_record'])){
+						echo("Error saving page to memcache $overDriveId");
 					}
 				}
+				//echo($overdrivePage);
+				//Extract the Format Information section 
+				if (preg_match('/<h1>Format Information<\/h1>(.*?)<h1>/s', $overdrivePage, $extraction)){
+					$formatSection = $extraction[1];
+					//Strip out information we don't care about
+					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
+					//Extract the actual formats from the remaining text.
+					if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>/s', $formatSection, $itemInfoAll)) {
+						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
+							$overdriveItem = new OverdriveItem();
+							$overdriveItem->source = 'OverDrive';
+							$overdriveItem->format = $itemInfoAll[1][$matchi];
+							$overdriveItem->formatId = $itemInfoAll[2][$matchi];
+							//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
+							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0);
+							$links = array();
+							if ($overdriveItem->available){
+								$links[] = array(
+									'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$overdriveItem->formatId}');",
+									'text' => 'Check Out'
+								);
+							}else{
+								$links[] = array(
+									'onclick' => "return placeOverDriveHold('$overDriveId', '{$overdriveItem->formatId}');",
+									'text' => 'Place Hold'
+								);
+							}
+							$overdriveItem->links = $links;
+							$items[] = $overdriveItem;
+						}
+					}
+				}
+				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
 			}
 			return $items;
 		}

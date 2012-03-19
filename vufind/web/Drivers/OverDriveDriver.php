@@ -1,8 +1,6 @@
 <?php
 
 require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/OverDriveAccountCache.php';
-require_once 'sys/eContent/OverDriveRecordCache.php';
 
 /**
  * Loads information from OverDrive and provides updates to OverDrive by screen scraping
@@ -37,18 +35,15 @@ class OverDriveDriver {
 	 * @param EContentRecord $record
 	 */
 	public function getCoverUrl($record){
+		global $memcache;
+		global $configArray;
+		
 		$sourceUrl = $record->sourceUrl;
-		//Check to see if the file has been cached
-		require_once 'sys/eContent/OverDriveRecordCache.php';
-		$cache = new OverDriveRecordCache();
-		$cache->sourceUrl = $sourceUrl;
-		if ($cache->find(true)){
-			$overdrivePage = $cache->pageContents;
-		}else{
+		$overDriveId = substr($eContentRecord->sourceUrl, -36);
+		$overdrivePage = $memcache->get("overdrive_record_" . $overDriveId);
+		if (!$overdrivePage){
 			$overdrivePage = file_get_contents($sourceUrl);
-			$cache->pageContents = $overdrivePage;
-			$cache->lastLoaded = time();
-			$cache->insert();
+			$memcache->set("overdrive_record_" . $overDriveId, $overdrivePage, 0, $configArray['Caching']['overdrive_record']);
 		}
 		if (preg_match('/<td width="135">.*?<img class="blackborder".*?src="(.*?)".*?<\/td>/s', $overdrivePage, $imageMatches)) {
 			return $imageMatches[1];
@@ -125,24 +120,15 @@ class OverDriveDriver {
 	 * @return array
 	 */
 	public function getOverDriveWishList($user, $overDriveInfo = null){
-		$wishlist = array();
-		$wishlist['items'] = array();
+		global $memcache;
+		global $configArray;
+		global $timer;
 		
-		//First check to see if there is cached information
-		$accountCache = new OverDriveAccountCache();
-		$accountCache->userId = $user->id;
-		$reloadPage = false;
-		if (!$accountCache->find(true)){
-			$accountCache->insert();
-			$reloadPage = true;
-		}else{
-			//Only cache for an hour
-			if ($accountCache->wishlistPage == null || strlen($accountCache->wishlistPage) == 0 || $accountCache->wishlistPageLastLoaded < (time() - $this->maxAccountCacheMin) ){
-				$reloadPage = true;
-			}
-		}
+		$wishlist = $memcache->get('overdrive_wishlist_' . $user->id);
+		if ($wishlist == false){
+			$wishlist = array();
+			$wishlist['items'] = array();
 		
-		if ($reloadPage){
 			$closeSession = false;
 			if ($overDriveInfo == null){
 				$ch = curl_init();
@@ -158,57 +144,51 @@ class OverDriveDriver {
 				//Load the WishList Page
 				curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['wishlistUrl']);
 				$wishlistPage = curl_exec($overDriveInfo['ch']);
-				
-				$accountCache->wishlistPage = $wishlistPage;
-				$accountCache->wishlistPageLastLoaded = time();
-				if (strlen($accountCache->wishlistPage) > 0 && preg_match('/<td class="(?:pghead|colhead)">Wish List<\/td>/', $wishlistPage)){
-					$ret = $accountCache->update();
-				}
 			}
 			
 			if ($closeSession){
 				curl_close($ch);
 			}
-		}else{
-			$wishlistPage = $accountCache->wishlistPage;
-		}
 		
-		//Extract information from the holds page
-		preg_match_all('/<a href="ContentDetails\\.htm\\?ID=(.*?)"><img src="(.*?)".*?>.*?<\/a>.*?<a href="ContentDetails\\.htm\\?ID=.*?">(.*?)<\/a>.*?<small><strong>(.*?)<\/strong><\/small>.*?by\\s(.*?)<\/div>.*?Date added:\\s+(.*?)<!--.*?<\/tr>(.*?)<tr><td colspan="4"><hr size="1" width="100%" noshade>/si', $wishlistPage, $wishlistInfo, PREG_SET_ORDER);
-		
-		for ($matchi = 0; $matchi < count($wishlistInfo); $matchi++) {
-			$wishlistItem = array();
-			$wishlistItem['overDriveId'] = $wishlistInfo[$matchi][1];
-			$wishlistItem['imageUrl'] = $wishlistInfo[$matchi][2];
-			$wishlistItem['title'] = $wishlistInfo[$matchi][3];
-			$wishlistItem['subTitle'] = $wishlistInfo[$matchi][4];
-			$wishlistItem['author'] = $wishlistInfo[$matchi][5];
-			$wishlistItem['dateAdded'] = $wishlistInfo[$matchi][6];
-			$wishlistItem['formats'] = array();
-			$formatInformation = $wishlistInfo[$matchi][7];
-			preg_match_all('/<td colspan="2">(.*?)<\/td>.*?Action=(.*?)&.*?ID=(.*?)[&%].*?Format=(.*?)"/si', $formatInformation, $formatMatches, PREG_SET_ORDER);
-			for ($matchj = 0; $matchj < count($formatMatches); $matchj++) {
-				$format = array();
-				$format['name'] = $formatMatches[$matchj][1];
-				if ($formatMatches[$matchj][2] == 'Add'){
-					$format['available'] = true;
-				}else{
-					$format['available'] = false;
+			//Extract information from the holds page
+			preg_match_all('/<a href="ContentDetails\\.htm\\?ID=(.*?)"><img src="(.*?)".*?>.*?<\/a>.*?<a href="ContentDetails\\.htm\\?ID=.*?">(.*?)<\/a>.*?<small><strong>(.*?)<\/strong><\/small>.*?by\\s(.*?)<\/div>.*?Date added:\\s+(.*?)<!--.*?<\/tr>(.*?)<tr><td colspan="4"><hr size="1" width="100%" noshade>/si', $wishlistPage, $wishlistInfo, PREG_SET_ORDER);
+			
+			for ($matchi = 0; $matchi < count($wishlistInfo); $matchi++) {
+				$wishlistItem = array();
+				$wishlistItem['overDriveId'] = $wishlistInfo[$matchi][1];
+				$wishlistItem['imageUrl'] = $wishlistInfo[$matchi][2];
+				$wishlistItem['title'] = $wishlistInfo[$matchi][3];
+				$wishlistItem['subTitle'] = $wishlistInfo[$matchi][4];
+				$wishlistItem['author'] = $wishlistInfo[$matchi][5];
+				$wishlistItem['dateAdded'] = $wishlistInfo[$matchi][6];
+				$wishlistItem['formats'] = array();
+				$formatInformation = $wishlistInfo[$matchi][7];
+				preg_match_all('/<td colspan="2">(.*?)<\/td>.*?Action=(.*?)&.*?ID=(.*?)[&%].*?Format=(.*?)"/si', $formatInformation, $formatMatches, PREG_SET_ORDER);
+				for ($matchj = 0; $matchj < count($formatMatches); $matchj++) {
+					$format = array();
+					$format['name'] = $formatMatches[$matchj][1];
+					if ($formatMatches[$matchj][2] == 'Add'){
+						$format['available'] = true;
+					}else{
+						$format['available'] = false;
+					}
+					$format['formatId'] = $formatMatches[$matchj][4];
+					$wishlistItem['formats'][] = $format;
 				}
-				$format['formatId'] = $formatMatches[$matchj][4];
-				$wishlistItem['formats'][] = $format;
+				
+				//For each item (load the record from VuFind) based on the id of the item.
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->whereAdd("sourceUrl LIKE '%{$wishlistItem['overDriveId']}%'");
+				if ($eContentRecord->find(true)){
+					$wishlistItem['recordId'] = $eContentRecord->id;
+				}else{
+					$wishlistItem['recordId'] = -1;
+				}
+				
+				$wishlist['items'][] = $wishlistItem;
 			}
-			
-			//For each item (load the record from VuFind) based on the id of the item.
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->whereAdd("sourceUrl LIKE '%{$wishlistItem['overDriveId']}%'");
-			if ($eContentRecord->find(true)){
-				$wishlistItem['recordId'] = $eContentRecord->id;
-			}else{
-				$wishlistItem['recordId'] = -1;
-			}
-			
-			$wishlist['items'][] = $wishlistItem;
+			$memcache->set('overdrive_wishlist_' . $user->id, $wishlist, 0, $configArray['Caching']['overdrive_wishlist']);
+			$timer->logTime("Finished loading titles from overdrive wishlist");
 		}
 		
 		return $wishlist;
@@ -223,24 +203,16 @@ class OverDriveDriver {
 	 * @return array
 	 */
 	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
-		$bookshelf = array();
-		$bookshelf['items'] = array();
+		global $memcache;
+		global $configArray;
+		global $timer;
 		
-		//First check to see if there is cached information
-		$accountCache = new OverDriveAccountCache();
-		$accountCache->userId = $user->id;
-		$reloadPage = false;
-		if (!$accountCache->find(true)){
-			$accountCache->insert();
-			$reloadPage = true;
-		}else{
-			//Only cache for an hour
-			if ($accountCache->bookshelfPage == null || strlen($accountCache->bookshelfPage) == 0 || $accountCache->bookshelfPageLastLoaded < (time() - $this->maxCheckedOutCacheMin) ){
-				$reloadPage = true;
-			}
-		}
+		$bookshelf = $memcache->get('overdrive_checked_out_' . $user->id);
+		if ($bookshelf == false){
+			$bookshelf = array();
+			$bookshelf['items'] = array();
 		
-		if ($reloadPage){
+		
 			$closeSession = false;
 			if ($overDriveInfo == null){
 				$ch = curl_init();
@@ -252,73 +224,55 @@ class OverDriveDriver {
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['bookshelfUrl']);
 			$bookshelfPage = curl_exec($overDriveInfo['ch']);
 			
-			$accountCache->bookshelfPage = $bookshelfPage;
-			$accountCache->bookshelfPageLastLoaded = time();
-			if (strlen($accountCache->bookshelfPage) > 0 && preg_match('/<td class="(?:pghead|colhead)">My Bookshelf<\/td>/', $bookshelfPage)){
-				$ret = $accountCache->update();
-			}
-			
 			if ($closeSession){
 				curl_close($overDriveInfo['ch']);
 			}
-		}else{
-			$bookshelfPage = $accountCache->bookshelfPage;
-		}
 		
-		//Extract information from the holds page
-		preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?"{(.*?)}".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
-		
-		for ($matchi = 0; $matchi < count($bookshelfInfo); $matchi++) {
-			$bookshelfItem = array();
-			$bookshelfItem['imageUrl'] = "http://" . $bookshelfInfo[$matchi][1];
-			$bookshelfItem['title'] = $bookshelfInfo[$matchi][2];
-			$bookshelfItem['overDriveId'] = $bookshelfInfo[$matchi][3];
-			$bookshelfItem['subTitle'] = $bookshelfInfo[$matchi][4];
-			$bookshelfItem['format'] = $bookshelfInfo[$matchi][5];
-			$bookshelfItem['downloadSize'] = $bookshelfInfo[$matchi][6];
-			$bookshelfItem['downloadLink'] = $bookshelfInfo[$matchi][7];
-			$bookshelfItem['checkedOutOn'] = $bookshelfInfo[$matchi][8];
-			$bookshelfItem['checkoutdate'] = strtotime($bookshelfItem['checkedOutOn']);
-			$bookshelfItem['expiresOn'] = $bookshelfInfo[$matchi][9];
+			//Extract information from the holds page
+			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?"{(.*?)}".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
 			
-			//For each item (load the record from VuFind) based on the id of the item.
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->whereAdd("sourceUrl LIKE '%{$bookshelfItem['overDriveId']}%'");
-			if ($eContentRecord->find(true)){
-				$bookshelfItem['recordId'] = $eContentRecord->id;
-			}else{
-				$bookshelfItem['recordId'] = -1;
+			for ($matchi = 0; $matchi < count($bookshelfInfo); $matchi++) {
+				$bookshelfItem = array();
+				$bookshelfItem['imageUrl'] = "http://" . $bookshelfInfo[$matchi][1];
+				$bookshelfItem['title'] = $bookshelfInfo[$matchi][2];
+				$bookshelfItem['overDriveId'] = $bookshelfInfo[$matchi][3];
+				$bookshelfItem['subTitle'] = $bookshelfInfo[$matchi][4];
+				$bookshelfItem['format'] = $bookshelfInfo[$matchi][5];
+				$bookshelfItem['downloadSize'] = $bookshelfInfo[$matchi][6];
+				$bookshelfItem['downloadLink'] = $bookshelfInfo[$matchi][7];
+				$bookshelfItem['checkedOutOn'] = $bookshelfInfo[$matchi][8];
+				$bookshelfItem['checkoutdate'] = strtotime($bookshelfItem['checkedOutOn']);
+				$bookshelfItem['expiresOn'] = $bookshelfInfo[$matchi][9];
+				
+				//For each item (load the record from VuFind) based on the id of the item.
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->whereAdd("sourceUrl LIKE '%{$bookshelfItem['overDriveId']}%'");
+				if ($eContentRecord->find(true)){
+					$bookshelfItem['recordId'] = $eContentRecord->id;
+				}else{
+					$bookshelfItem['recordId'] = -1;
+				}
+				
+				$bookshelf['items'][] = $bookshelfItem;
 			}
-			
-			$bookshelf['items'][] = $bookshelfItem;
+			$timer->logTime("Finished loading titles from overdrive checked out titles");
+			$memcache->set('overdrive_checked_out_' . $user->id, $bookshelf, 0, $configArray['Caching']['overdrive_checked_out']);
 		}
-		
-		
-		
 		return $bookshelf;
 	}
 	
-public function getOverDriveHolds($user, $overDriveInfo = null){
-		$holds = array();
-		$holds['holds'] = array();
-		$holds['holds']['available'] = array();
-		$holds['holds']['unavailable'] = array();
+	public function getOverDriveHolds($user, $overDriveInfo = null){
+		global $memcache;
+		global $configArray;
+		global $timer;
 		
-		//First check to see if there is cached information
-		$accountCache = new OverDriveAccountCache();
-		$accountCache->userId = $user->id;
-		$reloadPage = false;
-		if (!$accountCache->find(true)){
-			$accountCache->insert();
-			$reloadPage = true;
-		}else{
-			//Only cache for an hour
-			if ($accountCache->holdPage == null || strlen($accountCache->holdPage) == 0 || $accountCache->holdPageLastLoaded < (time() - $this->maxAccountCacheMin) ){
-				$reloadPage = true;
-			}
-		}
+		$holds = $memcache->get('overdrive_holds_' . $user->id);
+		if ($holds == false){
+			$holds = array();
+			$holds['holds'] = array();
+			$holds['holds']['available'] = array();
+			$holds['holds']['unavailable'] = array();
 		
-		if ($reloadPage){
 			$closeSession = false;
 			if ($overDriveInfo == null){
 				//Start a curl session 
@@ -333,73 +287,66 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['holdsUrl']);
 			$holdsPage = curl_exec($overDriveInfo['ch']);
 			
-			$accountCache->holdPage = $holdsPage;
-			$accountCache->holdPageLastLoaded = time();
-			if (strlen($accountCache->holdPage) > 0 && preg_match('/<td class="(?:pghead|colhead)">My Holds<\/td>/', $holdsPage)){
-				$ret = $accountCache->update();
-			}
-			
 			if ($closeSession){
 				curl_close($overDriveInfo['ch']);
 			}
 			
-		}else{
-			$holdsPage = $accountCache->holdPage;
-		}
-		
-		//Extract unavailable hold information from the holds page
-		preg_match_all('/<a href="ContentDetails\\.htm\\?ID={(.*?)}"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID={(.*?)}">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
-		
-		for ($matchi = 0; $matchi < count($holdInfo); $matchi++) {
-			$hold = array();
-			$hold['overDriveId'] = $holdInfo[$matchi][1];
-			$hold['imageUrl'] = $holdInfo[$matchi][2];
-			$hold['title'] = $holdInfo[$matchi][4];
-			$hold['subTitle'] = $holdInfo[$matchi][5];
-			$hold['author'] = $holdInfo[$matchi][6];
-			$notificationInformation = $holdInfo[$matchi][7];
-			$linkInformation = $holdInfo[$matchi][8];
+			//Extract unavailable hold information from the holds page
+			preg_match_all('/<a href="ContentDetails\\.htm\\?ID={(.*?)}"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID={(.*?)}">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
 			
-			//For each item (load the record from VuFind) based on the id of the item.
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->whereAdd("sourceUrl LIKE '%{$hold['overDriveId']}%'");
-			if ($eContentRecord->find(true)){
-				$hold['recordId'] = $eContentRecord->id;
-			}else{
-				$hold['recordId'] = -1;
-			}
-			
-			//Check to see if the hold is available or unavailable
-			if (preg_match('/RemoveFromWaitingList&id={(.*?)}&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
-				//Set the format
-				$hold['formatId'] = $formatInfo[2];
+			for ($matchi = 0; $matchi < count($holdInfo); $matchi++) {
+				$hold = array();
+				$hold['overDriveId'] = $holdInfo[$matchi][1];
+				$hold['imageUrl'] = $holdInfo[$matchi][2];
+				$hold['title'] = $holdInfo[$matchi][4];
+				$hold['subTitle'] = $holdInfo[$matchi][5];
+				$hold['author'] = $holdInfo[$matchi][6];
+				$notificationInformation = $holdInfo[$matchi][7];
+				$linkInformation = $holdInfo[$matchi][8];
 				
-				//Extract the hold position 
-				if (preg_match('/You are patron (\\d+) out of (\\d+) on the waiting list/si', $notificationInformation, $notifyInfo)) {
-					$hold['holdQueuePosition'] = $notifyInfo[1];
-					$hold['holdQueueLength'] = $notifyInfo[2];
+				//For each item (load the record from VuFind) based on the id of the item.
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->whereAdd("sourceUrl LIKE '%{$hold['overDriveId']}%'");
+				if ($eContentRecord->find(true)){
+					$hold['recordId'] = $eContentRecord->id;
+				}else{
+					$hold['recordId'] = -1;
 				}
 				
-				$holds['holds']['unavailable'][] = $hold;
-			} else {
-				//Extract the notification date
-				if (preg_match('/Email notification sent: (.*?)<\/small>/si', $notificationInformation, $notifyInfo)) {
-					$hold['notificationDate'] = strtotime($notifyInfo[1]);
-					$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
+				//Check to see if the hold is available or unavailable
+				if (preg_match('/RemoveFromWaitingList&id={(.*?)}&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
+					//Set the format
+					$hold['formatId'] = $formatInfo[2];
+					
+					//Extract the hold position 
+					if (preg_match('/You are patron (\\d+) out of (\\d+) on the waiting list/si', $notificationInformation, $notifyInfo)) {
+						$hold['holdQueuePosition'] = $notifyInfo[1];
+						$hold['holdQueueLength'] = $notifyInfo[2];
+					}
+					
+					$holds['holds']['unavailable'][] = $hold;
+				} else {
+					//Extract the notification date
+					if (preg_match('/Email notification sent: (.*?)<\/small>/si', $notificationInformation, $notifyInfo)) {
+						$hold['notificationDate'] = strtotime($notifyInfo[1]);
+						$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
+					}
+					//Extract the formats that can be checked out.
+					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={(.*?)}&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
+					$hold['formats'] = array();
+					for ($i = 0; $i < count($formatInfo); $i++) {
+						$format = array();
+						$format['name'] = $formatInfo[$i][1];
+						$format['overDriveId'] = $formatInfo[$i][2];
+						$format['formatId'] = $formatInfo[$i][3];
+						// $result[0][$i];
+						$hold['formats'][] = $format;
+					}
+					$holds['holds']['available'][] = $hold;
 				}
-				//Extract the formats that can be checked out.
-				preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={(.*?)}&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
-				$hold['formats'] = array();
-				for ($i = 0; $i < count($formatInfo); $i++) {
-					$format = array();
-					$format['name'] = $formatInfo[$i][1];
-					$format['overDriveId'] = $formatInfo[$i][2];
-					$format['formatId'] = $formatInfo[$i][3];
-					// $result[0][$i];
-					$hold['formats'][] = $format;
-				}
-				$holds['holds']['available'][] = $hold;
 			}
+			$timer->logTime("Finished loading titles from overdrive holds");
+			$memcache->set('overdrive_holds_' . $user->id, $holds, 0, $configArray['Caching']['overdrive_holds']);
 		}
 
 		return $holds;
@@ -414,64 +361,44 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
-		$summary = array();
-		$ch = curl_init();
+		global $memcache;
+		global $configArray;
+		global $timer;
 		
-		//First check to see if all relevant information is cached.
-		$accountCache = new OverDriveAccountCache();
-		$accountCache->userId = $user->id;
-		$loginUser = true;
-		if ($accountCache->find(true)){
-			$loginUser = false;
-			//Chache for 1 hour
-			$earliestCacheTime = time() - $this->maxAccountCacheMin;
-			if ($accountCache->holdPage != null && strlen($accountCache->holdPage) > 0 & $accountCache->holdPageLastLoaded > $earliestCacheTime){
-				//hold page is ok
-			}else{
-				$loginUser= true;
-			}
-			if ($accountCache->bookshelfPage != null && strlen($accountCache->bookshelfPage) > 0 & $accountCache->bookshelfPageLastLoaded > $earliestCacheTime){
-				//bookshelf page is ok
-			}else{
-				$loginUser= true;
-			}
-			if ($accountCache->wishlistPage != null && strlen($accountCache->wishlistPage) > 0 & $accountCache->wishlistPageLastLoaded > $earliestCacheTime){
-				//wishlist page is ok
-			}else{
-				$loginUser= true;
-			}
-		}
-		if ($loginUser){
+		$summary = $memcache->get('overdrive_summary_' . $user->id);
+		if ($summary == false){
+			$summary = array();
+			$ch = curl_init();
+			
 			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-		}else{
-			$overDriveInfo = null;
-		}
-		$holds = $this->getOverDriveHolds($user, $overDriveInfo);
-		if (isset($holds['error'])){
-			$summary['numAvailableHolds'] = "Err";
-			$summary['numUnavailableHolds'] = "Err";
-		}else{
-			$summary['numAvailableHolds'] = count($holds['holds']['available']);
-			$summary['numUnavailableHolds'] = count($holds['holds']['unavailable']);
-		}
-		
-		
-		$checkedOut = $this->getOverDriveCheckedOutItems($user, $overDriveInfo);
-		if (isset($checkedOut['error'])){
-			$summary['numCheckedOut'] = "Err";
-		}else{
-			$summary['numCheckedOut'] = count($checkedOut['items']);
-		}
-		
-		$wishlist = $this->getOverDriveWishList($user, $overDriveInfo);
-		if (isset($wishlist['error'])){
-			$summary['numWishlistItems'] = "Err";
-		}else{
-			$summary['numWishlistItems'] = count($wishlist['items']);
-		}
-		
-		if ($loginUser){
+			$holds = $this->getOverDriveHolds($user, $overDriveInfo);
+			if (isset($holds['error'])){
+				$summary['numAvailableHolds'] = "Err";
+				$summary['numUnavailableHolds'] = "Err";
+			}else{
+				$summary['numAvailableHolds'] = count($holds['holds']['available']);
+				$summary['numUnavailableHolds'] = count($holds['holds']['unavailable']);
+			}
+			
+			
+			$checkedOut = $this->getOverDriveCheckedOutItems($user, $overDriveInfo);
+			if (isset($checkedOut['error'])){
+				$summary['numCheckedOut'] = "Err";
+			}else{
+				$summary['numCheckedOut'] = count($checkedOut['items']);
+			}
+			
+			$wishlist = $this->getOverDriveWishList($user, $overDriveInfo);
+			if (isset($wishlist['error'])){
+				$summary['numWishlistItems'] = "Err";
+			}else{
+				$summary['numWishlistItems'] = count($wishlist['items']);
+			}
+			
 			curl_close($ch);
+			
+			$timer->logTime("Finished loading titles from overdrive summary");
+			$memcache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
 		}
 		
 		return $summary;
@@ -485,6 +412,8 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 	 * @param User $user
 	 */
 	public function placeOverDriveHold($overDriveId, $format, $user){
+		global $memcache;
+
 		$holdResult = array();
 		$holdResult['result'] = false;
 		$holdResult['message'] = '';
@@ -555,14 +484,8 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 					$holdResult['result'] = true;
 					$holdResult['message'] = 'Your hold was placed successfully.';
 					
-					//Check to see if the user has cached hold information and if so, clear it
-					$accountCache = new OverDriveAccountCache();
-					$accountCache->userId = $user->id;
-					if ($accountCache->find(true)){
-						$accountCache->holdPage = "";
-						$accountCache->holdPageLastLoaded = 0;
-						$accountCache->update();
-					}
+					$memcache->delete('overdrive_holds_' . $user->id);
+					$memcache->delete('overdrive_summary_' . $user->id);
 					
 					//Record that the entry was checked out in strands
 					global $configArray;
@@ -580,9 +503,7 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 					}
 					
 					//Delete the cache for the record
-					$recordCache = new OverDriveRecordCache();
-					$recordCache->whereAdd("sourceUrl like '%$overDriveId'");
-					$recordCache->delete(true);
+					$memcache->delete('overdrive_record_' . $overDriveId);
 				}else{
 					$holdResult['result'] = false;
 					$holdResult['message'] = 'There was an error placing your hold.';
@@ -595,6 +516,8 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 	}
 	
 	public function cancelOverDriveHold($overDriveId, $format, $user){
+		global $memcache;
+		
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -617,18 +540,11 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 			
 			//Check to see if the user has cached hold information and if so, clear it
-			$accountCache = new OverDriveAccountCache();
-			$accountCache->userId = $user->id;
-			if ($accountCache->find(true)){
-				$accountCache->holdPage = "";
-				$accountCache->holdPageLastLoaded = 0;
-				$accountCache->update();
-			}
+			$memcache->delete('overdrive_holds_' . $user->id);
+			$memcache->delete('overdrive_summary_' . $user->id);
 			
 			//Delete the cache for the record
-			$recordCache = new OverDriveRecordCache();
-			$recordCache->whereAdd("sourceUrl like '%$overDriveId'");
-			$recordCache->delete(true);
+			$memcache->delete('overdrive_record_' . $overDriveId);
 		}else{
 			$cancelHoldResult['result'] = false;
 			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
@@ -640,6 +556,7 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 	}
 	
 	public function removeOverDriveItemFromWishlist($overDriveId, $user){
+		global $memcache;
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -657,13 +574,8 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 			$cancelHoldResult['result'] = true;
 			$cancelHoldResult['message'] = 'The title was successfully removed from your wishlist.';
 			//Check to see if wishlist information has been closed and if so, clear it.
-			$accountCache = new OverDriveAccountCache();
-			$accountCache->userId = $user->id;
-			if ($accountCache->find(true)){
-				$accountCache->wishlistPage = "";
-				$accountCache->wishlistPageLastLoaded = 0;
-				$accountCache->update();
-			}
+			$memcache->delete('overdrive_wishlist_' . $user->id);
+			$memcache->delete('overdrive_summary_' . $user->id);
 		}else{
 			$cancelHoldResult['result'] = false;
 			$cancelHoldResult['message'] = 'There was an error removing the item from your wishlist.';
@@ -765,13 +677,9 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 				$addToCartResult['result'] = true;
 				$addToCartResult['message'] = 'The title was added to your wishlist.';
 				//Check to see if wishlist information has been closed and if so, clear it.
-				$accountCache = new OverDriveAccountCache();
-				$accountCache->userId = $user->id;
-				if ($accountCache->find(true)){
-					$accountCache->wishlistPage = "";
-					$accountCache->wishlistPageLastLoaded = 0;
-					$accountCache->update();
-				}
+				$memcache->delete('overdrive_wishlist_' . $user->id);
+				$memcache->delete('overdrive_summary_' . $user->id);
+				
 			}else{
 				$addToCartResult['result'] = false;
 				$addToCartResult['message'] = 'There was an error adding the item to your wishlist.';
@@ -840,17 +748,10 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 				$processCartResult['result'] = true;
 				$processCartResult['message'] = "Your titles were checked out successfully. You may now download the titles from your Account.";
 				//Remove all cached account information since th user can checkout from holds or wishlist page
-				$accountCache = new OverDriveAccountCache();
-				$accountCache->userId = $user->id;
-				if ($accountCache->find(true)){
-					$accountCache->holdPage = "";
-					$accountCache->holdPageLastLoaded = 0;
-					$accountCache->bookshelfPage = "";
-					$accountCache->bookshelfPageLastLoaded = 0;
-					$accountCache->wishlistPage = "";
-					$accountCache->wishlistPageLastLoaded = 0;
-					$accountCache->update();
-				}
+				$memcache->delete('overdrive_checked_out_' . $user->id);
+				$memcache->delete('overdrive_holds_' . $user->id);
+				$memcache->delete('overdrive_wishlist_' . $user->id);
+				$memcache->delete('overdrive_summary_' . $user->id);
 			}else{
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = 'There was an error processing your cart.';
@@ -888,9 +789,7 @@ public function getOverDriveHolds($user, $overDriveInfo = null){
 			
 			if ($processCartResult['result'] == true){
 				//Delete the cache for the record
-				$recordCache = new OverDriveRecordCache();
-				$recordCache->whereAdd("sourceUrl like '%$overDriveId'");
-				$recordCache->delete(true);
+				$memcach->delete('overdrive_record_' . $overDriveId);
 				
 				//Record that the entry was checked out in strands
 				global $configArray;$eContentRecord = new EContentRecord();

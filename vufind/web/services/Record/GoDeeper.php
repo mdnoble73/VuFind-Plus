@@ -17,33 +17,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
- 
+
 require_once 'Action.php';
 require_once 'Record.php';
 require_once 'Drivers/marmot_inc/GoDeeperData.php';
 
 class GoDeeper extends Record
 {
-    function launch()
-    {
-        global $interface;
-        $goDeeperOptions = GoDeeperData::getGoDeeperOptions($this->isbn, $this->upc, true);
-        $interface->assign('options', $goDeeperOptions['options']);
-        if ($goDeeperOptions['defaultOption']){
-            $defaultData = GoDeeperData::getHtmlData($goDeeperOptions['defaultOption'], $this->isbn, $this->upc);
-            $interface->assign('defaultGoDeeperData', $defaultData);
-        }
-        
-        if (isset($_GET['lightbox'])) {
-       	    $interface->assign('title', $_GET['message']);
-       	    return $interface->fetch('Record/goDeeper.tpl');
-            
-        } else {
-       	    $interface->setPageTitle(translate('Go Deeper'));
-            $interface->assign('subTemplate', 'goDeeper.tpl');
-            $interface->setTemplate('view.tpl');
-        
-      }
-    }
+	function launch()
+	{
+		global $interface;
+		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($this->isbn, $this->upc, true);
+		$interface->assign('options', $goDeeperOptions['options']);
+		if ($goDeeperOptions['defaultOption']){
+			$defaultData = GoDeeperData::getHtmlData($goDeeperOptions['defaultOption'], $this->isbn, $this->upc);
+			$interface->assign('defaultGoDeeperData', $defaultData);
+		}
+
+		if (isset($_GET['lightbox'])) {
+			$interface->assign('title', $_GET['message']);
+			return $interface->fetch('Record/goDeeper.tpl');
+
+		} else {
+			$interface->setPageTitle(translate('Go Deeper'));
+			$interface->assign('subTemplate', 'goDeeper.tpl');
+			$interface->setTemplate('view.tpl');
+
+		}
+	}
 }
 ?>

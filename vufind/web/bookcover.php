@@ -124,7 +124,7 @@ if (!isset($_GET['reload'])){
 		setupHeaders($filename);
 		echo readfile($filename);
 		return;
-	}else if ($id != null && is_readable($tmpName)) {
+	}else if ($id != null && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.png')) {
 		// Load local cache if available
 		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.png';
 		header('Content-type: image/png');

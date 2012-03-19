@@ -28,10 +28,10 @@
     	<div class="myAccountLink{if $pageTemplate=="eContentWishList.tpl"} active{/if}"><a href="{$path}/MyResearch/MyEContentWishlist">{translate text='Wish List'} ({$profile.numEContentWishList})</a></div>
     </div>
     <div class="myAccountLink">OverDrive Titles
-    	<div class="myAccountLink{if $pageTemplate=="overDriveCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveCheckedOut">{translate text='Checked Out Items'} <!-- (<span id="checkedOutItemsOverDrivePlaceholder">?</span>) --></a></div>
-    	<div class="myAccountLink{if $pageTemplate=="overDriveHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds">{translate text='Available Holds'} <!-- (<span id="availableHoldsOverDrivePlaceholder">?</span>) --></a></div>
-    	<div class="myAccountLink{if $pageTemplate=="overDriveHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds">{translate text='Unavailable Holds'} <!-- (<span id="unavailableHoldsOverDrivePlaceholder">?</span>) --></a></div>
-    	<div class="myAccountLink{if $pageTemplate=="overDriveWishList.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveWishList">{translate text='Wish List'} <!-- (<span id="wishlistOverDrivePlaceholder">?</span>) --></a></div>
+    	<div class="myAccountLink{if $pageTemplate=="overDriveCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveCheckedOut">{translate text='Checked Out Items'} (<span id="checkedOutItemsOverDrivePlaceholder">?</span>)</a></div>
+    	<div class="myAccountLink{if $pageTemplate=="overDriveHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds">{translate text='Available Holds'} (<span id="availableHoldsOverDrivePlaceholder">?</span>)</a></div>
+    	<div class="myAccountLink{if $pageTemplate=="overDriveHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds">{translate text='Unavailable Holds'} (<span id="unavailableHoldsOverDrivePlaceholder">?</span>)</a></div>
+    	<div class="myAccountLink{if $pageTemplate=="overDriveWishList.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveWishList">{translate text='Wish List'} (<span id="wishlistOverDrivePlaceholder">?</span>)</a></div>
     </div>
     <div class="myAccountLink{if $pageTemplate=="favorites.tpl"} active{/if}"><a href="{$path}/MyResearch/Favorites">{translate text='Suggestions, Lists &amp; Tags'}</a></div>
     <div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyResearch/ReadingHistory">{translate text='My Reading History'}</a></div>
@@ -47,5 +47,5 @@
 </div>
 {/strip}
 <script type="text/javascript">
-//getOverDriveSummary();
+getOverDriveSummary();
 </script>

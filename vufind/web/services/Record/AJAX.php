@@ -29,7 +29,9 @@ class AJAX extends Action {
 	}
 
 	function launch() {
+		global $timer;
 		$method = $_GET['method'];
+		$timer->logTime("Starting method $method");
 		if ($method == 'RateTitle' || $method == 'GetSeriesTitles' || $method == 'GetComments' || $method == 'checkPurchaseLinks'){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -403,7 +405,7 @@ class AJAX extends Action {
 
 		//Load go deeper options
 		require_once('Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc, false);
+		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
 		if (count($goDeeperOptions['options']) == 0){
 			$interface->assign('showGoDeeper', false);
 		}else{

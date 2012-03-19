@@ -20,7 +20,6 @@
 
 require_once 'sys/Amazon.php';
 require_once 'sys/Proxy_Request.php';
-require_once 'Drivers/marmot_inc/ReviewsCache.php';
 require_once 'Drivers/marmot_inc/ISBNConverter.php';
 require_once('sys/EditorialReview.php');
 
@@ -56,49 +55,36 @@ class Reviews extends Record
 	function loadReviews($id, $isbn) {
 		global $interface;
 		global $configArray;
-		//Clear out expired review information
-		//Delete any items in the cache that are stale (1 week or more old)
-		$reviewsCache = new ReviewsCache();
-		$cacheExpirationTime = time() - (7 * 24 * 60 * 60);
-		$reviewsCache->whereAdd("cacheDate < $cacheExpirationTime");
-		$reviewsCache->delete(true);
-
-		//Check to see if there is cached review information
-		$reviewsCache = new ReviewsCache();
-		$reviewsCache->recordId = $id;
-		$reviewsCache->find();
-		if ($reviewsCache->N > 0){
-			//Found a cache entry
-			$reviewsCache->fetch();
-			$reviews = json_decode($reviewsCache->reviewData, TRUE);
-			$interface->assign('reviews', $reviews);
-			return $reviews;
-		}
-		 
-		// Fetch from provider
-		if (isset($configArray['Content']['reviews'])) {
-			$providers = explode(',', $configArray['Content']['reviews']);
-			foreach ($providers as $provider) {
-				$provider = explode(':', trim($provider));
-				$func = strtolower($provider[0]);
-				$key = $provider[1];
-				$reviews[$func] = Reviews::$func($isbn, $key);
-
-				// If the current provider had no valid reviews, store nothing:
-				if (empty($reviews[$func]) || PEAR::isError($reviews[$func])) {
-					unset($reviews[$func]);
-				}else{
-					if (is_array($reviews[$func])){
-						foreach ($reviews[$func] as $key => $reviewData){
-							$reviews[$func][$key] = Reviews::cleanupReview($reviews[$func][$key]);
-						}
+		global $memcache;
+		
+		$reviews = $memcache->get("reviews_{$isbn}");
+		if (!$reviews){
+			// Fetch from provider
+			if (isset($configArray['Content']['reviews'])) {
+				$providers = explode(',', $configArray['Content']['reviews']);
+				foreach ($providers as $provider) {
+					$provider = explode(':', trim($provider));
+					$func = strtolower($provider[0]);
+					$key = $provider[1];
+					$reviews[$func] = Reviews::$func($isbn, $key);
+	
+					// If the current provider had no valid reviews, store nothing:
+					if (empty($reviews[$func]) || PEAR::isError($reviews[$func])) {
+						unset($reviews[$func]);
 					}else{
-						$reviews[$func] = Reviews::cleanupReview($reviews[$func]);
+						if (is_array($reviews[$func])){
+							foreach ($reviews[$func] as $key => $reviewData){
+								$reviews[$func][$key] = Reviews::cleanupReview($reviews[$func][$key]);
+							}
+						}else{
+							$reviews[$func] = Reviews::cleanupReview($reviews[$func]);
+						}
 					}
 				}
 			}
+			$memcache->set("reviews_{$isbn}", $reviews, 0, $configArray['Caching']['purchased_reviews']);
 		}
-
+		
 		//Load the Editorial Reviews
 		if (isset($_REQUEST['id'])){
 			$recordId = $_REQUEST['id'];
@@ -131,14 +117,7 @@ class Reviews extends Record
 				$interface->assign('reviews', $reviews);
 			}
 		}
-		//Cache the information we found
-		$reviewsCache = new ReviewsCache();
-		$reviewsCache->recordId = $id;
-		$json_data = json_encode($reviews);
-		$reviewsCache->reviewData = $json_data;
-		$reviewsCache->cacheDate = time();
-		$reviewsCache->insert();
-
+		
 		return $reviews;
 	}
 
@@ -313,55 +292,70 @@ class Reviews extends Record
 	function syndetics($isbn, $id){
 		global $library;
 		global $locationSingleton;
+		global $configArray;
+		global $timer;
+		$logger = new Logger();
+		
+		$review = array();
 		$location = $locationSingleton->getActiveLocation();
 		if (isset($library) && $location != null){
 			if ($library->showAmazonReviews == 0 || $location->showStandardReviews == 0){
-				return $result;
+				return $review;
 			}
 		}else if ($location != null && ($location->showStandardReviews == 0)){
 			//return an empty review
-			return $result;
+			return $review;
 		}else if (isset($library) && ($library->showStandardReviews == 0)){
 			//return an empty review
-			return $result;
+			return $review;
 		}
-
+		
 		//list of syndetic reviews
-		$sourceList = array(/*'CHREVIEW' => array('title' => 'Choice Review',
-		'file' => 'CHREVIEW.XML'),*/
-                            'BLREVIEW' => array('title' => 'Booklist Review',
-                                                'file' => 'BLREVIEW.XML'),
-                            'PWREVIEW' => array('title' => "Publisher's Weekly Review",
-                                                'file' => 'PWREVIEW.XML'),
-		/*'SLJREVIEW' => array('title' => 'School Library Journal Review',
-		 'file' => 'SLJREVIEW.XML'),*/
-                            'LJREVIEW' => array('title' => 'Library Journal Review',
-                                                'file' => 'LJREVIEW.XML'),
-		/*'HBREVIEW' => array('title' => 'Horn Book Review',
-		 'file' => 'HBREVIEW.XML'),
-		 'KIREVIEW' => array('title' => 'Kirkus Book Review',
-		 'file' => 'KIREVIEW.XML'),
-		 'CRITICASEREVIEW' => array('title' => 'Criti Case Review',
-		 'file' => 'CRITICASEREVIEW.XML')*/);
-
+		if (isset($configArray['SyndeticsReviews']['SyndeticsReviewsSources'])){
+			$sourceList = array();
+			foreach ($configArray['SyndeticsReviews']['SyndeticsReviewsSources'] as $key => $label){
+				$sourceList[$key] = array('title' => $label, 'file' => "$key.XML");
+			}
+		}else{
+			$sourceList = array(/*'CHREVIEW' => array('title' => 'Choice Review',
+			'file' => 'CHREVIEW.XML'),*/
+	                            'BLREVIEW' => array('title' => 'Booklist Review',
+	                                                'file' => 'BLREVIEW.XML'),
+	                            'PWREVIEW' => array('title' => "Publisher's Weekly Review",
+	                                                'file' => 'PWREVIEW.XML'),
+			/*'SLJREVIEW' => array('title' => 'School Library Journal Review',
+			 'file' => 'SLJREVIEW.XML'),*/
+	                            'LJREVIEW' => array('title' => 'Library Journal Review',
+	                                                'file' => 'LJREVIEW.XML'),
+			/*'HBREVIEW' => array('title' => 'Horn Book Review',
+			 'file' => 'HBREVIEW.XML'),
+			 'KIREVIEW' => array('title' => 'Kirkus Book Review',
+			 'file' => 'KIREVIEW.XML'),
+			 'CRITICASEREVIEW' => array('title' => 'Criti Case Review',
+			 'file' => 'CRITICASEREVIEW.XML')*/);
+		}
+		$timer->logTime("Got list of syndetic reviews to show");
+		
 		//first request url
 		$url = 'http://syndetics.com/index.aspx?isbn=' . $isbn . '/' .
                'index.xml&client=' . $id . '&type=rw12,hw7';
-
+		
 		//find out if there are any reviews
 		$client = new Proxy_Request();
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
 		if (PEAR::isError($http = $client->sendRequest())) {
+			$logger->log("Error connecting to $url", PEAR_LOG_ERR);
+			$logger->log("$http", PEAR_LOG_ERR);
 			return $http;
 		}
 
 		// Test XML Response
 		if (!($xmldoc = @DOMDocument::loadXML($client->getResponseBody()))) {
+			$logger->log("Did not receive XML from $url", PEAR_LOG_ERR);
 			return new PEAR_Error('Invalid XML');
 		}
 
-		$review = array();
 		$i = 0;
 		foreach ($sourceList as $source => $sourceInfo) {
 			$nodes = $xmldoc->getElementsByTagName($source);
@@ -369,10 +363,12 @@ class Reviews extends Record
 				// Load reviews
 				$url = 'http://syndetics.com/index.aspx?isbn=' . $isbn . '/' .
 				$sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
-
+				
 				$client->setURL($url);
 				if (PEAR::isError($http = $client->sendRequest())) {
-					return $http;
+					$logger->log("Error connecting to $url", PEAR_LOG_ERR);
+					$logger->log("$http", PEAR_LOG_ERR);
+					continue;
 				}
 
 				// Test XML Response

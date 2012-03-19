@@ -28,9 +28,9 @@ class Timer{
 	function writeTimings(){
 		$curTime = microtime(true);
 		$elapsedTime = round($curTime - $this->lastTime, 2);
-		if ($elapsedTime > 0){
+		//if ($elapsedTime > 0){
 			$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
-		}
+		//}
 		$this->lastTime = $curTime;
 		$logger = new Logger();
 		$totalElapsedTime =round(microtime(true) - $this->firstTime, 2);

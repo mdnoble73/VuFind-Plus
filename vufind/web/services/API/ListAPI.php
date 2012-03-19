@@ -442,7 +442,8 @@ class ListAPI extends Action {
 				$ids[] = $recommendation->itemId;
 			}
 			$titles = $this->loadTitleInformationForIds($ids);
-			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'cacheLength'=>0, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
+			
+			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			require_once '/services/MyResearch/lib/Comments.php';
 			require_once '/services/MyResearch/lib/User_resource.php';
@@ -592,6 +593,107 @@ class ListAPI extends Action {
 		}
 	}
 	
+	/**
+	 * Loads caching information to determine what the list should be cached as 
+	 * and whether it is cached for all users and products (general), for a single user, 
+	 * or for a single product.  
+	 */
+	function getCacheInfoForList() {
+		global $interface;
+		global $configArray;
+		global $timer;
+		
+		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
+			$username = $_REQUEST['username'];
+			$password = $_REQUEST['password'];
+			global $user;
+			$user = UserAccount::validateAccount($username, $password);
+		}else{
+			global $user;
+		}
+
+		if ($user){
+			$userId = $user->id;
+		}
+
+		if (!isset($_REQUEST['id'])){
+			return array('success'=>false, 'message'=>'The id of the list to load must be provided as the id parameter.');
+		}
+
+		$listId = $_REQUEST['id'];
+		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
+			if (isset($listInfo)){
+				$listId = $listInfo[1];
+			}
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_general_list:' . $listId,
+				'cacheLength' => $configArray['Caching']['list_general']
+			);
+			
+		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
+			//Load the data from strands
+			$strandsTemplate = $strandsInfo[1];
+			$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
+			$userId = $user ? $user->id : '';
+			
+			//Determine how long the titles should be cached 
+			if (isset($configArray['StrandsCaching'][$strandsTemplate])){
+				$cacheType = $configArray['StrandsCaching'][$strandsTemplate];
+			}else{
+				$cacheType = $configArray['StrandsCaching']['general'];
+			}
+			$cacheLength = $configArray['Caching']['strands_' . $cacheType] ;
+			$cacheName = "strands_{$cacheType}_{$strandsTemplate}";
+			if ($cacheType == 'user'){
+				$cacheName .= '_' . $userId;
+			}else if ($cacheType == 'record'){
+				$cacheName .= '_' . $recordId;
+			}
+			return array(
+				'cacheType' => $cacheType,
+				'cacheName' => $cacheName,
+				'cacheLength' => $cacheLength
+			);
+		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_general_' . $listId,
+				'cacheLength' => $configArray['Caching']['list_general']
+			);
+		}elseif ($listId == 'highestRated'){
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_highest_rated_' . $listId,
+				'cacheLength' => $configArray['Caching']['list_highest_rated']
+			);
+		}elseif ($listId == 'recentlyReviewed'){
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_recently_reviewed_' . $listId,
+				'cacheLength' => $configArray['Caching']['list_recently_reviewed']
+			);
+		}elseif ($listId == 'mostPopular'){
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_most_popular_' . $listId,
+				'cacheLength' => $configArray['Caching']['list_most_popular']
+			);
+		}elseif ($listId == 'recommendations'){
+			return array(
+				'cacheType' => 'user',
+				'cacheName' => 'list_recommendations_' . $listId . '_' . $user->id,
+				'cacheLength' => $configArray['Caching']['list_recommendations']
+			);
+		}else{
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_general_' . $listId,
+				'cacheLength' => $configArray['Caching']['list_general']
+			);
+		}
+	}
+	
 	function comparePublicationDates($a, $b){
 		if ($a['pubDate'] == $b['pubDate']){
 			return 0;
@@ -626,25 +728,28 @@ class ListAPI extends Action {
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
-				}
-
-				if (isset($descriptions) && isset($descriptions[$record['id']])){
-					$descriptiveInfo['description'] = $descriptions[$record['id']];
-				}
-				
-				$description = $descriptiveInfo['description'];
-				$numMatches = preg_match_all('/<\/p>|\\r|\\n|[.,:;]/', substr($description, 400, 50), $matches, PREG_OFFSET_CAPTURE);
-				if ($numMatches > 0){
-					$teaserBreakPoint = $matches[0][$numMatches - 1][1] + 400;
-				}else{
-					//Did not find a match at a paragraph or sentence boundary, just trim to the closest word.
-					if (strlen($description) > 450){
-						$teaserBreakPoint = strrpos(substr($description, 0, 450), ' ');
-					}else{
-						$teaserBreakPoint = strlen($description);
+					
+					if (isset($descriptions) && isset($descriptions[$record['id']])){
+						$descriptiveInfo['description'] = $descriptions[$record['id']];
 					}
+					
+					$description = $descriptiveInfo['description'];
+					$numMatches = preg_match_all('/<\/p>|\\r|\\n|[.,:;]/', substr($description, 400, 50), $matches, PREG_OFFSET_CAPTURE);
+					if ($numMatches > 0){
+						$teaserBreakPoint = $matches[0][$numMatches - 1][1] + 400;
+					}else{
+						//Did not find a match at a paragraph or sentence boundary, just trim to the closest word.
+						if (strlen($description) > 450){
+							$teaserBreakPoint = strrpos(substr($description, 0, 450), ' ');
+						}else{
+							$teaserBreakPoint = strlen($description);
+						}
+					}
+					$teaser = substr($description, 0, $teaserBreakPoint);
+				}else{
+					$description = '';
+					$teaser = '';
 				}
-				$teaser = substr($description, 0, $teaserBreakPoint);
 					
 				$titles[] = array(
             'id' => $record['id'],
@@ -654,8 +759,8 @@ class ListAPI extends Action {
             'author' => isset($record['author']) ? $record['author'] : '',
 				    'description' => $description,
 						'teaser' => $teaser,
-	          'length' => $descriptiveInfo['length'],
-	          'publisher' => $descriptiveInfo['publisher'],
+	          'length' => isset($descriptiveInfo) ? $descriptiveInfo['length'] : '', 
+	          'publisher' => isset($descriptiveInfo) ? $descriptiveInfo['publisher'] : '',
 						'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
 
 				);

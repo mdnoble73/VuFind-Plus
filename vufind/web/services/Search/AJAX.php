@@ -659,12 +659,14 @@ class AJAX extends Action {
 		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
 		$scrollerName = strip_tags($_GET['scrollerName']);
 		
-		$cacheName = "list_widget_data_{$listName}_{$scrollerName}";
-		$listData = $memcache->get($cacheName);
+		//Determine the caching parameters 
+		require_once('services/API/ListAPI.php');
+		$listAPI = new ListAPI();
+		$cacheInfo = $listAPI->getCacheInfoForList();
+		
+		$listData = $memcache->get($cacheInfo['cacheName']);
 		if (!$listData || isset($_REQUEST['reload'])){
-			require_once('services/API/ListAPI.php');
 			global $interface;
-			$listAPI = new ListAPI();
 	
 			$titles = $listAPI->getListTitles();
 			$addStrandsTracking = false;
@@ -705,9 +707,8 @@ class AJAX extends Action {
 			}
 			
 			$listData = json_encode($return);
-			if (isset($return['cacheable']) && $return['cacheable'] == true){
-				$memcache->set($cacheName, $listData, 0, 60 * 60 * $titles['cacheLength']);
-			}
+			$memcache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
+			
 		}
 		echo $listData;
 	}

@@ -101,35 +101,17 @@ class EditorialReview extends DB_DataObject {
 
 		$ret = parent::insert();
 		
-		//Delete anything currently stored in the reviews cache for this record.
-		require_once 'Drivers/marmot_inc/ReviewsCache.php';
-		$reviewsCache = new ReviewsCache();
-		$reviewsCache->recordId = $this->recordId;
-		$reviewsCache->delete();
-		
 		return $ret;
 	}
 
 	function update(){
 		$ret =  parent::update();
 		
-		//Delete anything currently stored in the reviews cache for this record.
-		require_once 'Drivers/marmot_inc/ReviewsCache.php';
-		$reviewsCache = new ReviewsCache();
-		$reviewsCache->recordId = $this->recordId;
-		$reviewsCache->delete();
-		
 		return $ret;
 	}
 	
 	function delete(){
 		$ret =  parent::delete();
-		
-		//Delete anything currently stored in the reviews cache for this record.
-		require_once 'Drivers/marmot_inc/ReviewsCache.php';
-		$reviewsCache = new ReviewsCache();
-		$reviewsCache->recordId = $this->recordId;
-		$reviewsCache->delete();
 		
 		return $ret;
 	}

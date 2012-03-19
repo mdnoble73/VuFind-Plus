@@ -22,11 +22,11 @@
 	  
 	  {* Access online link *}
 	  <div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
-	    <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/dcl/images/access_online.png" alt="Access Online"/></a>
+	    <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/default/images/access_online.png" alt="Access Online"/></a>
 	  </div>
 	  {* Add to Wish List *}
 	  <div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
-	    <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/dcl/images/add_to_wishlist.png" alt="Access Online"/></a>
+	    <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/default/images/add_to_wishlist.png" alt="Access Online"/></a>
 	  </div>
 </div>
 
