@@ -154,10 +154,10 @@ class Location extends DB_DataObject
 			} else if ($this->locationId == $patronProfile['homeLocationId']){
 				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
 				$locationList['2' . $this->displayName] = clone $this;
-			} else if ($this->locationId == $patronProfile['myLocation1Id']){
+			} else if (isset($patronProfile['myLocation1Id']) && $this->locationId == $patronProfile['myLocation1Id']){
 				//Next come nearby locations for the user
 				$locationList['3' . $this->displayName] = clone $this;
-			} else if ($this->locationId == $patronProfile['myLocation2Id']){
+			} else if (isset($patronProfile['myLocation2Id']) && $this->locationId == $patronProfile['myLocation2Id']){
 				//Next come nearby locations for the user
 				$locationList['4' . $this->displayName] = clone $this;
 			} else if (isset($homeLibrary) && $this->libraryId == $homeLibrary->libraryId){

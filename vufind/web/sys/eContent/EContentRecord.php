@@ -195,7 +195,7 @@ class EContentRecord extends SolrDataObject {
 		  'maxLength'=>100, 
 		  'label' => 'cover',
 		  'description' => 'The cover of the item.',
-		  'storagePath' => $configArray['Site']['coverPath'] . '/images/covers/original',
+		  'storagePath' => $configArray['Site']['coverPath'] . '/original',
 		  'required'=> false,
 		  'storeDb' => true,
 		  'storeSolr' => false,
@@ -1017,11 +1017,16 @@ class EContentRecord extends SolrDataObject {
 	}
 	private function clearCachedCover(){
 		global $configArray;
+		
 		//Clear the cached bookcover if one has been added.
-		if (isset($this->cover) && strlen($this->cover) > 0){
+		$logger = new Logger();
+		if (isset($this->cover) && (strlen($this->cover) > 0)){
 			//Call via API since bookcovers may be on a different server
-			$url = $configArray['Site']['coverUrl'] . '/API/ItemAPI?method=clearBookCoverCacheById&id=eContentRecord' . $this->id;
+			$url = $configArray['Site']['coverUrl'] . '/API/ItemAPI?method=clearBookCoverCacheById&id=econtentRecord' . $this->id;
+			$logger->log("Clearing cached cover: $url", PEAR_LOG_DEBUG );
 			file_get_contents($url);
+		}else{
+			$logger->log("Record {$this->id} does not have cover ({$this->cover}), not clearing cache", PEAR_LOG_DEBUG );
 		}
 	}
 	public function getPropertyArray($propertyName){

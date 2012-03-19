@@ -20,6 +20,7 @@
 require_once 'CatalogConnection.php';
 require_once 'services/MyResearch/MyResearch.php';
 require_once("PHPExcel.php");
+require_once 'sys/Pager.php';
 
 class Holds extends MyResearch
 {

@@ -49,24 +49,38 @@ class DataObjectUtil
 	 * @param $form
 	 */
 	static function saveObject($structure, $dataType){
+		$logger = new Logger();
+		//Check to see if we have a new object or an exiting object to update
 		$object = new $dataType();
 		DataObjectUtil::updateFromUI($object, $structure);
+		$primaryKeySet = false;
+		foreach ($structure as $property){
+			if (isset($property['primaryKey']) && $property['primaryKey'] == true){
+				if (isset($object->$property['property']) && !is_null($object->$property['property']) && strlen($object->$property['property']) > 0){
+					$object = new $dataType();
+					$object->$property['property'] = $object->$property['property'];
+					if ($object->find(true)){
+						$logger->log("Loaded existing object from database", PEAR_LOG_DEBUG);
+					}else{
+						$logger->log("Could not find existing object in database", PEAR_LOG_ERROR);
+					}
+					
+					//Reload from UI
+					DataObjectUtil::updateFromUI($object, $structure);
+					$primaryKeySet = true;
+					break;
+				}
+			}
+		}
 		$validationResults = DataObjectUtil::validateObject($structure, $object);
 		$validationResults['object'] = $object;
 
 		if ($validationResults['validatedOk']){
 			//Check to see if we need to insert or update the object.
 			//We can tell which to do based on whether or not the primary key is set
-			$primaryKeySet = false;
-			foreach ($structure as $property){
-				if (isset($property['primaryKey']) && $property['primaryKey'] == true){
-					if (isset($object->$property['property']) && !is_null($object->$property['property']) && strlen($object->$property['property']) > 0){
-						$primaryKeySet = true;
-						break;
-					}
-				}
-			}
+			
 			if ($primaryKeySet){
+				
 				$result = $object->update();
 				$validationResults['saveOk'] = $result;
 			}else{
@@ -195,9 +209,14 @@ class DataObjectUtil
 					$object->$propertyName = '';
 
 				}else if (isset($_FILES[$propertyName])){
-					if ($_FILES[$propertyName]["error"] > 0){
+					if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] == 4){
+						$logger->log("No file was uploaded for $propertyName", PEAR_LOG_DEBUG);
+						//No image supplied, use the existing value
+					}else if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] > 0){
 						//return an error to the browser
+						$logger->log("Error in file upload for $propertyName", PEAR_LOG_ERROR);
 					}else if (in_array($_FILES[$propertyName]["type"], array('image/gif', 'image/jpeg', 'image/png'))){
+						$logger->log("Processing uploaded file for $propertyName");
 						//Copy the full image to the files directory
 						//Filename is the name of the object + the original filename
 						global $configArray;
@@ -206,7 +225,9 @@ class DataObjectUtil
 							$destFolder = $property['storagePath'];
 							$destFullPath = $destFolder . '/' . $destFileName;
 							$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
+							$logger->log("Copied file to $destFullPath", PEAR_LOG_DEBUG);
 						}else{
+							$logger->log("Creating thumbnails for $propertyName");
 							$destFileName = $propertyName . $_FILES[$propertyName]["name"];
 							$destFolder = $configArray['Site']['local'] . '/files/original';
 							$pathToThumbs = $configArray['Site']['local'] . '/files/thumbnail';
@@ -254,6 +275,7 @@ class DataObjectUtil
 						}
 						//store the actual filename
 						$object->$propertyName = $destFileName;
+						$logger->log("Set $propertyName to $destFileName", PEAR_LOG_DEBUG);
 					}
 				}
 

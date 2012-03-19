@@ -496,22 +496,33 @@ class ItemAPI extends Action {
 		$extensions = array('jpg', 'gif', 'png');
 		$record = $this->loadSolrRecord($id);
 		$filenamesToCheck = array();
-		$filenamesToCheck[] = $id;
-		$isbns = $record['isbn'];
-		$upcs = $record['upc'];
-		foreach ($isbns as $isbn){
-			$filenamesToCheck[] = preg_replace('/[^0-9xX]/', '', $isbn);
+		if (preg_match('/econtentrecord/i', $id)){
+			$shortId = substr($id, 14);
+			$filenamesToCheck[] = 'econtent' . $shortId;
 		}
-		if (isset($upcs)){
-			$filenamesToCheck = array_merge($filenamesToCheck, $upcs);
+		$filenamesToCheck[] = $id;
+		if (isset($record['isbn'])){
+			$isbns = $record['isbn'];
+			foreach ($isbns as $isbn){
+				$filenamesToCheck[] = preg_replace('/[^0-9xX]/', '', $isbn);
+			}
+		}
+		if (isset($record['upc'])){
+			$upcs = $record['upc'];
+			if (isset($upcs)){
+				$filenamesToCheck = array_merge($filenamesToCheck, $upcs);
+			}
 		}
 		$deletedFiles = array();
+		global $configArray;
+		$coverPath = $configArray['Site']['coverPath'];
 		foreach ($filenamesToCheck as $filename){
 			foreach ($extensions as $extension){
 				foreach ($sizes as $size){
-					if (is_readable("images/covers/$size/$filename.$extension")){
-						$deletedFiles[] = "images/covers/$size/$filename.$extension";
-						unlink("images/covers/$size/$filename.$extension");
+					$tmpFilename = "$coverPath/$size/$filename.$extension";
+					if (file_exists($tmpFilename)){
+						$deletedFiles[] = $tmpFilename;
+						unlink($tmpFilename);
 					}
 				}
 			}

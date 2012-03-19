@@ -759,8 +759,8 @@ class ListAPI extends Action {
             'author' => isset($record['author']) ? $record['author'] : '',
 				    'description' => $description,
 						'teaser' => $teaser,
-	          'length' => isset($descriptiveInfo) ? $descriptiveInfo['length'] : '', 
-	          'publisher' => isset($descriptiveInfo) ? $descriptiveInfo['publisher'] : '',
+	          'length' => (isset($descriptiveInfo) && isset($descriptiveInfo['length'])) ? $descriptiveInfo['length'] : '', 
+	          'publisher' => (isset($descriptiveInfo) && isset($descriptiveInfo['publisher'])) ? $descriptiveInfo['publisher'] : '',
 						'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
 
 				);

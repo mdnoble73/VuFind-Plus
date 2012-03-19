@@ -202,6 +202,8 @@ if ($configArray['EContent']['library'] && isset($_GET['econtent']) && isset($id
 					if (processImageURL($filename, true)){
 						exit();
 					}
+				}else{
+					$logger->log("Did not find econtent file $filename");
 				}
 			}
 		}
