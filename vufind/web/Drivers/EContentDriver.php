@@ -157,23 +157,26 @@ class EContentDriver implements DriverInterface{
 		//get the url for the page in overdrive 
 		global $memcache;
 		global $configArray;
+		global $timer;
+		$timer->logTime('Starting _getOverdriveHoldings');
 		
 		$overdriveUrl = $eContentRecord->sourceUrl;
-		
 		if ($overdriveUrl == null || strlen($overdriveUrl) == 0){
 			$items = array();
 		}else{
 			$overDriveId = substr($overdriveUrl, -36);
 			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if (true || $items == false){
+			if ($items == false){
 				$items = array();
 				//Check to see if the file has been cached
 				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
+				$logger = new Logger();
 				if ($overdrivePage == false || strlen($overdrivePage) == 0){
 					$overdrivePage = file_get_contents($overdriveUrl);
 					if (!$memcache->set('overdrive_record_' . $overDriveId, $overdrivePage, MEMCACHE_COMPRESSED, $configArray['Caching']['overdrive_record'])){
 						echo("Error saving page to memcache $overDriveId");
 					}
+					$timer->logTime('Loaded record from overdrive');
 				}
 				//echo($overdrivePage);
 				//Extract the Format Information section 
@@ -182,7 +185,7 @@ class EContentDriver implements DriverInterface{
 					//Strip out information we don't care about
 					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
 					//Extract the actual formats from the remaining text.
-					if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>/s', $formatSection, $itemInfoAll)) {
+					if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/s', $formatSection, $itemInfoAll)) {
 						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
 							$overdriveItem = new OverdriveItem();
 							$overdriveItem->source = 'OverDrive';
@@ -190,6 +193,7 @@ class EContentDriver implements DriverInterface{
 							$overdriveItem->formatId = $itemInfoAll[2][$matchi];
 							//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
 							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0);
+							$overdriveItem->size = $itemInfoAll[4][$matchi];
 							$links = array();
 							if ($overdriveItem->available){
 								$links[] = array(
@@ -206,6 +210,7 @@ class EContentDriver implements DriverInterface{
 							$items[] = $overdriveItem;
 						}
 					}
+					$timer->logTime('Parsed items from overdrive record');
 				}
 				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
 			}
@@ -225,8 +230,8 @@ class EContentDriver implements DriverInterface{
 		$onHold = false;
 		$addedToWishList = false;
 		$holdPosition = 0;
-
-		//Load status summary
+		
+				//Load status summary
 		$statusSummary = array();
 		$statusSummary['recordId'] = $id;
 		$statusSummary['totalCopies'] = $eContentRecord->availableCopies;
@@ -238,7 +243,9 @@ class EContentDriver implements DriverInterface{
 			$holdPosition = $item->holdPosition;
 		}
 		
+		$overdriveTitle = false;
 		if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
+			$overdriveTitle = true;
 			//Check to see if any items are available
 			$available = false;
 			foreach ($holdings as $holding){
@@ -325,7 +332,7 @@ class EContentDriver implements DriverInterface{
 		$statusSummary['showPlaceHold'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] == 0) && count($holdings) > 0;
 		$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] > 0);
 		$statusSummary['showAccessOnline'] = (($drmType == 'free' || $checkedOut) && count($holdings) > 0);
-		$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList);
+		$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList && !$overdriveTitle);
 		$statusSummary['holdQueueLength'] = $this->getWaitList($id);
 		$statusSummary['onHold'] = $onHold;
 		$statusSummary['checkedOut'] = $checkedOut;

@@ -313,7 +313,12 @@ class MarcRecord extends IndexRecord
 				$subfields = $result->getSubfields();
 				if ($subfields) {
 					foreach($subfields as $subfield) {
-						$current[] = $subfield->getData();
+						//Add unless this is 655 subfield 2
+						if ($subfield->getCode() == 2){
+							//Suppress this code
+						}else{
+							$current[] = $subfield->getData();
+						}
 					}
 					// If we found at least one chunk, add a heading to our result:
 					if (!empty($current)) {

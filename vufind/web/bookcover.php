@@ -33,6 +33,13 @@ if ($configArray['System']['debug']) {
 	ini_set('display_errors', true);
 	error_reporting(E_ALL);
 }
+
+global $memcache;
+// Set defaults if nothing set in config file.
+$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
+$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
+$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
+
 date_default_timezone_set($configArray['Site']['timezone']);
 $bookCoverPath = $configArray['Site']['coverPath'];
 
@@ -41,6 +48,13 @@ global $timer;
 if (empty($timer)){
 	$timer = new Timer(microtime(false));
 }
+
+// Connect to Memcache:
+$memcache = new Memcache();
+if (!$memcache->connect($host, $port, $timeout)) {
+	PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+}
+$timer->logTime("Initialize Memcache");
 
 global $logger;
 $logger = new Logger();

@@ -39,7 +39,7 @@ class OverDriveDriver {
 		global $configArray;
 		
 		$sourceUrl = $record->sourceUrl;
-		$overDriveId = substr($eContentRecord->sourceUrl, -36);
+		$overDriveId = substr($sourceUrl, -36);
 		$overdrivePage = $memcache->get("overdrive_record_" . $overDriveId);
 		if (!$overdrivePage){
 			$overdrivePage = file_get_contents($sourceUrl);
@@ -649,6 +649,8 @@ class OverDriveDriver {
 	 * @param User $user
 	 */
 	public function addItemToOverDriveWishList($overDriveId, $user){
+		global $memcache;
+		
 		$addToCartResult = array();
 		$addToCartResult['result'] = false;
 		$addToCartResult['message'] = '';

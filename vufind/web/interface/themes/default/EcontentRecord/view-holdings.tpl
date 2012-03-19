@@ -9,6 +9,8 @@
 			<tr id="itemRow{$index}">
 				<td>{translate text=$eContentItem->format}</td>
 				<td>OverDrive</td>
+				<td>Must be checked out to read</td>
+				<td>{$eContentItem->size}</td>
 				<td>
 					{* Options for the user to view online or download *}
 					{foreach from=$eContentItem->links item=link}
@@ -43,10 +45,17 @@
 {/if}
 
 {assign var=firstItem value=$holdings.0}
-{if strcasecmp($firstItem->source, 'OverDrive') == 0}
+{if strcasecmp($source, 'OverDrive') == 0}
 	<a href="#" onclick="return addOverDriveRecordToWishList('{$id}')" class="button">Add&nbsp;to&nbsp;Wish&nbsp;List</a>
 {/if}
-{if strcasecmp($firstItem->source, 'OverDrive') != 0 && $user && $user->hasRole('epubAdmin')}
+{if strcasecmp($source, 'OverDrive') != 0 && $user && $user->hasRole('epubAdmin')}
 	<a href="#" onclick="return addItem('{$id}');" class="button">Add Item</a>
+{/if}
+
+{if strcasecmp($source, 'OverDrive') == 0}
+	<div id='overdriveMediaConsoleInfo'>
+		This title requires the <a href="http://www.overdrive.com/software/omc/">OverDrive Media Console</a> to use the title.  
+		If you do not already have the OverDrive Media Console, you may download it from <a href="http://www.overdrive.com/software/omc/">here</a> 
+	</div>
 {/if}
 

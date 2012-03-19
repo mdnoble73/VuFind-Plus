@@ -122,13 +122,15 @@ function ini_merge($config_ini, $custom_ini)
  */
 function readConfig()
 {
+	//Read default configuration file
+	$configFile = '../../sites/default/conf/config.ini';
+	$mainArray = parse_ini_file($configFile, true);
+	
 	$servername = $_SERVER['SERVER_NAME'];
 	$configFile = "../../sites/$servername/conf/config.ini";
 	if (file_exists($configFile)){
-		$mainArray = parse_ini_file($configFile, true);
-	}else{
-		$configFile = '../../sites/default/conf/config.ini';
-		$mainArray = parse_ini_file($configFile, true);
+		$serverArray = parse_ini_file($configFile, true);
+		$mainArray = ini_merge($mainArray, $serverArray);
 	}
 	
 	if ($mainArray == false){

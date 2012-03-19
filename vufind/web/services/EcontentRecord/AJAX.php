@@ -45,7 +45,13 @@ class AJAX extends Action {
 		$interface->assign('id', $id);
 		//Load holdings information from the driver
 		require_once ('Drivers/EContentDriver.php');
+		require_once ('sys/eContent/EContentRecord.php');
 		$driver = new EContentDriver();
+		//Get any items that are stored for the record
+		$eContentRecord = new EContentRecord();
+		$eContentRecord->id = $id;
+		$eContentRecord->find(true);
+		
 		$holdings = $driver->getHolding($id);
 		$showEContentNotes = false;
 		foreach ($holdings as $holding){
@@ -53,6 +59,7 @@ class AJAX extends Action {
 				$showEContentNotes = true;
 			} 
 		}
+		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
 		$interface->assign('holdings', $holdings);
 		//Load status summary
