@@ -30,7 +30,7 @@ $timer->logTime("Read Config");
 
 if ($configArray['System']['debug']) {
 	ini_set('display_errors', true);
-	error_reporting(E_ALL);
+	error_reporting(E_ALL & ~E_DEPRECATED);
 }
 
 global $memcache;
@@ -436,6 +436,10 @@ if ($action == "AJAX" || $action == "JSON"){
 	$interface->assign('showTopSearchBox', 0);
 	$interface->assign('showBreadcrumbs', 0);
 }else{
+	if (isset($configArray['FooterLists'])){
+		$interface->assign('footerLists', $configArray['FooterLists']);
+	}
+	
 	//Load basic search types for use in the interface.
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
