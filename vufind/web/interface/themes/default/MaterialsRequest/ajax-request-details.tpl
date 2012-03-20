@@ -39,7 +39,7 @@
 						{if $materialsRequest->placeHoldWhenAvailable == 1}
 							<div class="request_detail_field">
 								<div class="request_detail_field_label">Place Hold for User: </div>
-								<div class="request_detail_field_value">Yes ({$materialsRequest->holdPickupLocation}{if $materialsRequest->bookmobileStop}{$materialsRequest->bookmobileStop}{/if})</div>
+								<div class="request_detail_field_value">Yes ({$materialsRequest->location}{if $materialsRequest->bookmobileStop}{$materialsRequest->bookmobileStop}{/if})</div>
 							</div>
 						{/if}
 					</fieldset>

@@ -43,6 +43,11 @@ class MyRequests extends Action
 		}
 		$interface->assign('showOpen', $showOpen);
 		
+		$defaultStatus = new MaterialsRequestStatus();
+		$defaultStatus->isDefault = 1;
+		$defaultStatus->find(true);
+		$interface->assign('defaultStatus', $defaultStatus->id);
+		
 		//Get a list of all materials requests for the user
 		$allRequests = array();
 		if ($user){

@@ -46,10 +46,9 @@
 								<th>Title</th>
 								<th>Author</th>
 								<th>Format</th>
-								<th>ISBN</th>
-								<th>UPC</th>
-								<th>OCLC Number</th>
-								<th>ISSN</th>
+								<th>Patron</th>
+								<th>Hold?</th>
+								<th>ILL?</th>
 								<th>Status</th>
 								<th>Created</th>
 								<th>&nbsp;</th>
@@ -62,10 +61,9 @@
 									<td>{$request->title}</td>
 									<td>{$request->author}</td>
 									<td>{$request->format}</td>
-									<td>{$request->isbn}</td>
-									<td>{$request->upc}</td>
-									<td>{$request->oclcNumber}</td>
-									<td>{$request->issn}</td>
+									<td>{$request->lastname}, {$request->firstname}<br/>{$request->barcode}</td>
+									<td>{if $request->placeHoldWhenAvailable}Yes - {$request->location}{else}No{/if}</td>
+									<td>{if $request->illItem}Yes{else}No{/if}</td>
 									<td>{$request->statusLabel|translate}</td>
 									<td>{$request->dateCreated|date_format}</td>
 									<td>
@@ -80,9 +78,10 @@
 						<div>
 							<label for="newStatus">Change status of selected to:</label>
 							<select name="newStatus" id="newStatus">
-							{foreach from=$availableStatuses item=statusLabel key=status}
-								<option value="{$status}"/>{$statusLabel}<br/>
-							{/foreach}
+								<option value="unselected"/>Select One</option>
+								{foreach from=$availableStatuses item=statusLabel key=status}
+									<option value="{$status}"/>{$statusLabel}</option>
+								{/foreach}
 							</select>
 							<input type="submit" name="updateStatus" value="Update Selected Requests" onclick="return updateSelectedRequests();"/>
 						</div>

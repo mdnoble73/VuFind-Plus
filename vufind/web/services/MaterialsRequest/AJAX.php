@@ -58,13 +58,17 @@ class AJAX extends Action{
 		}elseif (!isset($_REQUEST['id'])){
 			return array('success' => false, 'error' => 'Could not cancel the request, no id provided.');
 		}else{
+			$cancelledStatus = new MaterialsRequestStatus();
+			$cancelledStatus->isPatronCancel = 1;
+			$cancelledStatus->find(true);
+			
 			$id = $_REQUEST['id'];
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
 			$materialsRequest->createdBy = $user->id;
 			if ($materialsRequest->find(true)){
 				$materialsRequest->dateUpdated = time();
-				$materialsRequest->status = 'requestCancelled';
+				$materialsRequest->status = $cancelledStatus->id;
 				if ($materialsRequest->update()){
 					return array('success' => true);
 				}else{
@@ -100,6 +104,15 @@ class AJAX extends Action{
 					$availableFormats = MaterialsRequest::getFormats();
 					$interface->assign('availableFormats', $availableFormats);
 		
+					$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
+					$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
+					$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
+					$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
+					$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+					$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
+					$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
+					$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
+		
 					$interface->assign('materialsRequest', $materialsRequest);
 					$interface->assign('showUserInformation', true);
 					//Load user information 
@@ -129,8 +142,10 @@ class AJAX extends Action{
 			$materialsRequest->id = $id;
 			$statusQuery = new MaterialsRequestStatus();
 			$materialsRequest->joinAdd($statusQuery);
+			$locationQuery = new Location();
+			$materialsRequest->joinAdd($locationQuery, "LEFT");
 			$materialsRequest->selectAdd();
-			$materialsRequest->selectAdd('materials_request.*, description as statusLabel');
+			$materialsRequest->selectAdd('materials_request.*, description as statusLabel, location.displayName as location');
 			if ($materialsRequest->find(true)){
 				$interface->assign('materialsRequest', $materialsRequest);
 				

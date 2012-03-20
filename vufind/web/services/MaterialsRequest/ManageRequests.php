@@ -52,6 +52,9 @@ class ManageRequests extends Admin {
 		
 		if (isset($_REQUEST['statusFilter'])){
 			$statusesToShow = $_REQUEST['statusFilter'];
+			$_SESSION['materialsRequestStatusFilter'] = $statusesToShow;
+		}elseif (isset($_SESSION['materialsRequestStatusFilter'])){
+			$statusesToShow = $_SESSION['materialsRequestStatusFilter'];
 		}else{
 			$statusesToShow = $defaultStatusesToShow;
 		}
@@ -88,6 +91,9 @@ class ManageRequests extends Admin {
 		$defaultFormatsToShow = array_keys($availableFormats);
 		if (isset($_REQUEST['formatFilter'])){
 			$formatsToShow = $_REQUEST['formatFilter'];
+			$_SESSION['materialsRequestFormatFilter'] = $formatsToShow;
+		}elseif (isset($_SESSION['materialsRequestFormatFilter'])){
+			$formatsToShow = $_SESSION['materialsRequestFormatFilter'];
 		}else{
 			$formatsToShow = $defaultFormatsToShow;
 		}
@@ -96,10 +102,13 @@ class ManageRequests extends Admin {
 		//Get a list of all materials requests for the user
 		$allRequests = array();
 		if ($user){
+			
 			$materialsRequests = new MaterialsRequest();
+			$materialsRequests->joinAdd(new Location(), "LEFT");
 			$materialsRequests->joinAdd(new MaterialsRequestStatus());
+			$materialsRequests->joinAdd(new User());
 			$materialsRequests->selectAdd();
-			$materialsRequests->selectAdd('materials_request.*, description as statusLabel');
+			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, firstname, lastname, ' . $configArray['Catalog']['barcodeProperty'] . ' as barcode');
 
 			if (count($availableStatuses) > count($statusesToShow)){
 				$statusSql = "";

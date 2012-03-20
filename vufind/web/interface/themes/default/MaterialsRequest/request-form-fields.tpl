@@ -174,7 +174,7 @@
 				<label for="pickupLocation">Pickup Location: </label>
 				<select name="holdPickupLocation" id="pickupLocation" onchange="updateHoldOptions();">
 					{foreach from=$pickupLocations item=location}
-						<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+						<option value="{$location->locationId}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
 					{/foreach}
 				</select>
 			</div>
@@ -197,7 +197,7 @@
 	{if !$materialsRequest}
 	<div>
 		<label for="about">How/where did you hear about this title:</label>
-		<textarea name="about" id="about" rows="3" cols="80" class="required">{$materialsRequest->about}</textarea>
+		<textarea name="about" id="about" rows="3" cols="80" {if $requireAboutField}class="required"{/if}>{$materialsRequest->about}</textarea>
 	</div>
 	{/if}
 	<div>

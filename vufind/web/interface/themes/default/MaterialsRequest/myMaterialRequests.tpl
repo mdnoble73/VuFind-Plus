@@ -46,7 +46,7 @@
 								<td>{$request->dateCreated|date_format}</td>
 								<td>
 									<a href="#" onclick='showMaterialsRequestDetails("{$request->id}")' class="button">Details</a>
-									{if $request->status == 'pending'}
+									{if $request->status == $defaultStatus}
 									<a href="#" onclick="return cancelMaterialsRequest('{$request->id}');" class="button">Cancel Request</a>
 									{/if}
 								</td>

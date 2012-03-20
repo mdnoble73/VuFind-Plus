@@ -59,6 +59,11 @@ function exportSelectedRequests(){
 }
 
 function updateSelectedRequests(){
+	var newStatus = $("#newStatus").val();
+	if (newStatus == "unselected"){
+		alert("Please select a status to update the requests to.");
+		return false;
+	}
 	var selectedRequests = getSelectedRequests();
 	if (selectedRequests.length == 0){
 		return false;
@@ -108,6 +113,7 @@ function setFieldVisibility(){
 		$("#magazineDate").addClass('required');
 		$("#magazineVolume").addClass('required');
 		$("#magazinePageNumbers").addClass('required');
+		$("#acceptCopyrightYes").addClass('required');
 		$("#supplementalDetails").hide();
 		$("#titleLabel").html("Article Title");
 	}else{
@@ -115,6 +121,7 @@ function setFieldVisibility(){
 		$("#magazineDate").removeClass('required');
 		$("#magazineVolume").removeClass('required');
 		$("#magazinePageNumbers").removeClass('required');
+		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
 		$("#titleLabel").html("Title");
 	}

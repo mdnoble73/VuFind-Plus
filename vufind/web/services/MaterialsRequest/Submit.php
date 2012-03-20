@@ -50,7 +50,21 @@ class Submit extends Action
 			}
 		}
 		if ($processForm){
-			if ($_REQUEST['acceptCopyright'] != 1){
+			//Check to see if the user type is ok to submit a request
+			$enableMaterialsRequest = true;
+			if (isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
+				//Check to see if we need to do additonal restrictions by patron type
+				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
+				if (strlen($allowablePatronTypes) > 0 && $user){
+					if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
+						$enableMaterialsRequest = false;
+					}
+				}
+			}
+			if (!$enableMaterialsRequest){
+				$interface->assign('success', false);
+				$interface->assign('error', 'Sorry, only residents may submit materials requests at this time.');
+			}else if ($_REQUEST['format'] == 'article' && $_REQUEST['acceptCopyright'] != 1){
 				$interface->assign('success', false);
 				$interface->assign('error', 'Sorry, you must accept the copyright agreement before submitting a materials request.');
 			}else{

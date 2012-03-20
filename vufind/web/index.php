@@ -318,6 +318,23 @@ $action = preg_replace('/[^\w]/', '', $action);
 $interface->assign('module', $module);
 $interface->assign('action', $action);
 
+//Determine whether or not materials request functionality should be enabled
+if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
+	$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
+	if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
+		//Check to see if we need to do additonal restrictions by patron type
+		$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
+		if (strlen($allowablePatronTypes) > 0 && $user){
+			if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
+				$enableMaterialsRequest = false;
+			}
+		}
+	}
+}else{
+	$enableMaterialsRequest = false;
+}
+$interface->assign('enableMaterialsRequest', $enableMaterialsRequest);
+
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
 if ($user) {
