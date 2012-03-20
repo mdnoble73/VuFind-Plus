@@ -12,13 +12,13 @@
 		{else}
 			<div id="materialsRequestFilters">
 				<fieldset>
-				<legend>Filters:</legend>
+				<legend class="collapsible">Filters:</legend>
 				<form action="{$path}/MaterialsRequest/ManageRequests" method="get">
 					<div>
 					<div>
 						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="$('.statusFilter').attr('checked', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
 						{foreach from=$availableStatuses item=statusLabel key=status}
-							<input type="checkbox" name="formatFilter[]" value="status" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
+							<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
 						{/foreach}
 					</div>
 					<div>
@@ -66,7 +66,7 @@
 									<td>{$request->upc}</td>
 									<td>{$request->oclcNumber}</td>
 									<td>{$request->issn}</td>
-									<td>{$request->status|translate}</td>
+									<td>{$request->statusLabel|translate}</td>
 									<td>{$request->dateCreated|date_format}</td>
 									<td>
 										<a href="#" onclick='showMaterialsRequestDetails("{$request->id}")' class="button">Details</a>
@@ -80,19 +80,9 @@
 						<div>
 							<label for="newStatus">Change status of selected to:</label>
 							<select name="newStatus" id="newStatus">
-								<option value="pending">Request pending</option>
-								<option value="owned">Already owned/On order</option>
-								<option value="purchased">Item purchased, hold placed</option>
-								<option value="referredToILL">Request referred to ILL</option>
-								<option value="ILLplaced">ILL request placed</option>
-								<option value="ILLreturned">ILL returned</option>
-								<option value="notEnoughInfo">Not enough info - please contact Collection Development to clarify</option>
-								<option value="notAcquiredOutOfPrint">Unable to acquire the item - out of print</option>
-								<option value="notAcquiredNotAvailable">Unable to acquire the item - not available in the US</option>
-								<option value="notAcquiredFormatNotAvailable">Unable to acquire the item - format not available</option>
-								<option value="notAcquiredPrice">Unable to acquire the item - price</option>
-								<option value="notAcquiredPublicationDate">Unable to acquire the item - publication date</option>
-								<option value="requestCancelled">Cancelled by Patron</option>
+							{foreach from=$availableStatuses item=statusLabel key=status}
+								<option value="{$status}"/>{$statusLabel}<br/>
+							{/foreach}
 							</select>
 							<input type="submit" name="updateStatus" value="Update Selected Requests" onclick="return updateSelectedRequests();"/>
 						</div>
@@ -112,5 +102,6 @@
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
 	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 5: {sorter : 'date'}, 6: { sorter: false} } });
+	setupFieldsetToggles();
 {/literal}
 </script>

@@ -23,6 +23,7 @@
 
 require_once "Action.php";
 require_once 'sys/MaterialsRequest.php';
+require_once 'sys/MaterialsRequestStatus.php';
 
 /**
  * MaterialsRequest MyRequests Page, displays materials request information for the active user.
@@ -48,9 +49,13 @@ class MyRequests extends Action
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->createdBy = $user->id;
 			$materialsRequests->orderBy('title, dateCreated');
+			$statusQuery = new MaterialsRequestStatus();
 			if ($showOpen){
-				$materialsRequests->whereAdd("status in ('pending', 'referredToILL', 'ILLplaced', 'notEnoughInfo')");
+				$statusQuery->isOpen = 1;
 			}
+			$materialsRequests->joinAdd($statusQuery);
+			$materialsRequests->selectAdd();
+			$materialsRequests->selectAdd('materials_request.*, description as statusLabel');
 			$materialsRequests->find();
 			while ($materialsRequests->fetch()){
 				$allRequests[] = clone $materialsRequests;

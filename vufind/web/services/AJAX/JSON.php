@@ -111,16 +111,22 @@ class JSON extends Action {
 	function loginUser(){
 		//Login the user.  Must be called via Post parameters.
 		$user = UserAccount::isLoggedIn();
-		if ($user && !PEAR::isError($user)){
-			return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
-		}else{
+		if (!$user || PEAR::isError($user)){
 			$user = UserAccount::login();
-			if ($user && !PEAR::isError($user)){
-				return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
-			}else{
+			if (!$user || PEAR::isError($user)){
 				return array('success'=>false);
 			}
 		}
+		
+		global $locationSingleton;
+		$patronHomeBranch = $locationSingleton->getUserHomeLocation();
+		return array(
+			'success'=>true,
+			'name'=>ucwords($user->firstname . ' ' . $user->lastname),
+			'phone'=>$user->phone,
+			'email'=>$user->email,
+			'homeLocation'=> isset($patronHomeBranch) ? $patronHomeBranch->code : '',
+		);
 	}
 
 	/**

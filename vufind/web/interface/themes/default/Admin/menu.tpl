@@ -62,6 +62,7 @@
 		<li style="float: none;"><a href="{$path}/MaterialsRequest/ManageRequests">Manage Requests</a></li>
 		<li style="float: none;"><a href="{$path}/MaterialsRequest/SummaryReport">Summary Report</a></li>
 		<li style="float: none;"><a href="{$path}/MaterialsRequest/UserReport">Report By User</a></li>
+		<li style="float: none;"><a href="{$path}/Admin/ManageStatuses">Manage Statuses</a></li>
 	</ul>
 </div>
 {/if}

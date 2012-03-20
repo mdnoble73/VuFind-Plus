@@ -42,7 +42,7 @@
 								<td>{$request->title}</td>
 								<td>{$request->author}</td>
 								<td>{$request->format}</td>
-								<td>{$request->status|translate}</td>
+								<td>{$request->statusLabel|translate}</td>
 								<td>{$request->dateCreated|date_format}</td>
 								<td>
 									<a href="#" onclick='showMaterialsRequestDetails("{$request->id}")' class="button">Details</a>

@@ -34,14 +34,13 @@
     {/if}
     <div class="resulthead"><h3>{translate text='nohit_heading'}</h3></div>
       
-      <div><p class="error">Your query - <b>{$lookfor|escape:"html"}</b> - did not produce any results.</p> You could try one of the following options:</div>
+      <p class="error">{translate text='nohit_prefix'} - <b>{$lookfor|escape:"html"}</b> - {translate text='nohit_suffix'}</p>
 
     <div>
     <ul id="noResultsSuggest">
     <li>Check the spelling of your search terms.</li>
     <li>Restate your query by using more, other or broader terms.</li>
     </ul>
-    Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
 
       {if $parseError}
           <p class="error">{translate text='nohit_parse_error'}</p>
@@ -64,6 +63,10 @@
 		      </div>
         {/foreach}
     </div>
+    {/if}
+    
+    {if $enableMaterialsRequest}
+    Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
     {/if}
 
     </div>

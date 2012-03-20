@@ -90,7 +90,19 @@ class Update extends Action {
 				$interface->assign('error', 'Sorry, we could not find a request with that id.');
 			}
 		}
-
+		
+		//Get a list of formats to show 
+		$availableFormats = MaterialsRequest::getFormats();
+		$interface->assign('availableFormats', $availableFormats);
+		
+		$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
+		$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
+		$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
+		$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
+		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+		$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
+		$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
+		
 		$interface->setTemplate('update-result.tpl');
 		$interface->setPageTitle('Update Result');
 		$interface->display('layout.tpl');

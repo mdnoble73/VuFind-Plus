@@ -24,6 +24,7 @@
 require_once 'Action.php';
 require_once('services/Admin/Admin.php');
 require_once('sys/MaterialsRequest.php');
+require_once('sys/MaterialsRequestStatus.php');
 
 class ManageRequests extends Admin {
 
@@ -32,12 +33,37 @@ class ManageRequests extends Admin {
 		global $configArray;
 		global $interface;
 		global $user;
+		
+		//Load status information 
+		$materialsRequestStatus = new MaterialsRequestStatus();
+		$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
+		$materialsRequestStatus->find();
+		$allStatuses = array();
+		$availableStatuses = array();
+		$defaultStatusesToShow = array();
+		while ($materialsRequestStatus->fetch()){
+			$availableStatuses[$materialsRequestStatus->id] = $materialsRequestStatus->description;
+			$allStatuses[$materialsRequestStatus->id] = clone $materialsRequestStatus;
+			if ($materialsRequestStatus->isOpen == 1 || $materialsRequestStatus->isDefault == 1){
+				$defaultStatusesToShow[] = $materialsRequestStatus->id;
+			}
+		}
+		$interface->assign('availableStatuses', $availableStatuses);
+		
+		if (isset($_REQUEST['statusFilter'])){
+			$statusesToShow = $_REQUEST['statusFilter'];
+		}else{
+			$statusesToShow = $defaultStatusesToShow;
+		}
+		$interface->assign('statusFilter', $statusesToShow);
 
 		//Process status change if needed
 		if (isset($_REQUEST['updateStatus']) && isset($_REQUEST['select'])){
 			//Look for which titles should be modified
 			$selectedRequests = $_REQUEST['select'];
 			$statusToSet = $_REQUEST['newStatus'];
+			require_once 'sys/Mailer.php';
+			$mail = new VuFindMailer();
 			foreach ($selectedRequests as $requestId => $selected){
 				$materialRequest = new MaterialsRequest();
 				$materialRequest->id = $requestId;
@@ -45,47 +71,19 @@ class ManageRequests extends Admin {
 					$materialRequest->status = $statusToSet;
 					$materialRequest->dateUpdated = time();
 					$materialRequest->update();
+					
+					if ($allStatuses[$statusToSet]->sendEmailToPatron == 1 && $materialRequest->email){
+						$body = '*****This is an auto-generated email response. Please do not reply.*****';
+						$body .= "\r\n" . $allStatuses[$statusToSet]->emailTemplate;
+						$mail->send($materialRequest->email, $configArray['Site']['email'], "Your Materials Request Update", $body, $configArray['Site']['email']);
+					}
 				}
 			}
 		}
 
-		$availableStatuses = array(
-			'pending' => translate('pending'),
-			'owned' => translate('owned'),
-			'purchased' => translate('purchased'),
-			'referredToILL' => translate('referredToILL'),
-			'ILLplaced' => translate('ILLplaced'),
-			'ILLreturned' => translate('ILLreturned'),
-			'notEnoughInfo' => translate('notEnoughInfo'),
-			'notAcquiredOutOfPrint' => translate('notAcquiredOutOfPrint'),
-			'notAcquiredNotAvailable' => translate('notAcquiredNotAvailable'),
-			'notAcquiredFormatNotAvailable' => translate('notAcquiredFormatNotAvailable'),
-			'notAcquiredPrice' => translate('notAcquiredPrice'),
-			'notAcquiredPublicationDate' => translate('notAcquiredPublicationDate'),
-			'requestCancelled' => translate('requestCancelled'),
-		);
-		$interface->assign('availableStatuses', $availableStatuses);
 		
-		$defaultStatusesToShow = array('pending', 'referredToILL', 'ILLplaced', 'notEnoughInfo');
-		if (isset($_REQUEST['statusFilter'])){
-			$statusesToShow = $_REQUEST['statusFilter'];
-		}else{
-			$statusesToShow = $defaultStatusesToShow;
-		}
-		$interface->assign('statusFilter', $statusesToShow);
 		
-		$availableFormats = array(
-			'book' => translate('book'),
-			'dvd' => translate('dvd'),
-			'cdAudio' => translate('cdAudio'),
-			'cdMusic' => translate('cdMusic'),
-			'ebook' => translate('ebook'),
-			'eaudio' => translate('eaudio'),
-			'playaway' => translate('playaway'),
-			'article' => translate('article'),
-			'cassette' => translate('cassette'),
-			'vhs' => translate('vhs'),
-		);
+		$availableFormats = MaterialsRequest::getFormats();
 		$interface->assign('availableFormats', $availableFormats);
 		$defaultFormatsToShow = array_keys($availableFormats);
 		if (isset($_REQUEST['formatFilter'])){
@@ -99,6 +97,9 @@ class ManageRequests extends Admin {
 		$allRequests = array();
 		if ($user){
 			$materialsRequests = new MaterialsRequest();
+			$materialsRequests->joinAdd(new MaterialsRequestStatus());
+			$materialsRequests->selectAdd();
+			$materialsRequests->selectAdd('materials_request.*, description as statusLabel');
 
 			if (count($availableStatuses) > count($statusesToShow)){
 				$statusSql = "";
@@ -150,6 +151,7 @@ class ManageRequests extends Admin {
 	}
 
 	function exportToExcel($selectedRequestIds, $allRequests){
+		global $configArray;
 		//May ned more time to exort all records
 		set_time_limit(600);
 		//PHPEXCEL
@@ -172,24 +174,43 @@ class ManageRequests extends Admin {
 		//Define table headers
 		$curRow = 3;
 		$curCol = 0;
-		$activeSheet
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'ID')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Title')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Author')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Format')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Age Level')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'ISBN')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'UPC')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'ISSN')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'OCLC Number')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Publication Year')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Article Info')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Abridged')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'How did you hear about this?')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Comments')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Status')
-		->setCellValueByColumnAndRow($curCol++, $curRow, 'Date Created');
+		
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'ID');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Title');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Season');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Magazine');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Author');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Format');
+		if ($configArray['MaterialsRequest']['showEbookFormatField'] || $configArray['MaterialsRequest']['showEaudioFormatField']){
+			$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Sub Format');
+		}
+		if ($configArray['MaterialsRequest']['showBookTypeField']){
+			$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Type');
+		}
+		if ($configArray['MaterialsRequest']['showAgeField']){
+			$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Age Level');
+		}
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'ISBN');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'UPC');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'ISSN');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'OCLC Number');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Publication Year');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Abridged');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'How did you hear about this?');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Comments');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Name');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Barcode');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Email');
+		
+		if ($configArray['MaterialsRequest']['showPlaceHoldField']){
+			$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Hold');
+		}
+		if ($configArray['MaterialsRequest']['showIllField']){
+			$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'ILL');
+		}
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Status');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Date Created');
 
 		$numCols = $curCol;
 		//Loop Through The Report Data
@@ -197,25 +218,71 @@ class ManageRequests extends Admin {
 			if (array_key_exists($request->id, $selectedRequestIds)){
 				$curRow++;
 				$curCol = 0;
-
-				$activeSheet
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->id)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->title)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->author)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->format)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->ageLevel)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->isbn)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->upc)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->issn)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->oclcNumber)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->publisher)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->publicationYear)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->articleInfo)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->abridged == 0 ? 'Unabridged' : ($request->abridged == 1 ? 'Abridged' : 'Not Applicable'))
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->about)
-				->setCellValueByColumnAndRow($curCol++, $curRow, $request->comments)
-				->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status))
-				->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
+				
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->id);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->title);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->season);
+				$magazineInfo = '';
+				if ($request->magazineTitle){
+					$magazineInfo .= $request->magazineTitle . ' ';
+				}
+				if ($request->magazineDate){
+					$magazineInfo .= $request->magazineDate . ' ';
+				}
+				if ($request->magazineVolume){
+					$magazineInfo .= 'volume ' . $request->magazineVolume . ' ';
+				}
+				if ($request->magazinePageNumbers){
+					$magazineInfo .= 'p. ' . $request->magazinePageNumbers . ' ';
+				}
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, trim($magazineInfo));
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->author);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->format);
+				if ($configArray['MaterialsRequest']['showEbookFormatField'] || $configArray['MaterialsRequest']['showEaudioFormatField']){
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->subFormat);
+				}
+				if ($configArray['MaterialsRequest']['showBookTypeField']){
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->bookType);
+				}
+				if ($configArray['MaterialsRequest']['showAgeField']){
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->ageLevel);
+				}
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->isbn);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->upc);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->issn);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->oclcNumber);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->publisher);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->publicationYear);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->abridged == 0 ? 'Unabridged' : ($request->abridged == 1 ? 'Abridged' : 'Not Applicable'));
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->about);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->comments);
+				$requestUser = new User();
+				$requestUser->id = $request->createdBy;
+				$requestUser->find(true);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $requestUser->lastname . ', ' . $requestUser->firstname);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $requestUser->$configArray['Catalog']['barcodeProperty']);
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $requestUser->email);
+				if ($configArray['MaterialsRequest']['showPlaceHoldField']){
+					if ($request->placeHoldWhenAvailable == 1){
+						$value = 'Yes ' . $request->holdPickupLocation;
+						if ($request->bookmobileStop){
+							$value .= ' ' . $request->bookmobileStop;
+						}
+					}else{
+						$value = 'No';
+					}
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $value);
+				}
+				if ($configArray['MaterialsRequest']['showIllField']){
+					if ($request->illItem == 1){
+						$value = 'Yes';
+					}else{
+						$value = 'No';
+					}
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $value);
+				}
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status));
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
 			}
 		}
 

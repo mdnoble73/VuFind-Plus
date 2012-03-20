@@ -23,6 +23,7 @@
 
 require_once "Action.php";
 require_once 'sys/MaterialsRequest.php';
+require_once 'sys/MaterialsRequestStatus.php';
 
 /**
  * MaterialsRequest AJAX Page, handles returing asynchronous information about Materials Requests.
@@ -95,6 +96,10 @@ class AJAX extends Action{
 				
 				global $user;
 				if ($user && ($user->hasRole('cataloging') || ($user->id == $materialsRequest->createdBy))){
+					//Get a list of formats to show 
+					$availableFormats = MaterialsRequest::getFormats();
+					$interface->assign('availableFormats', $availableFormats);
+		
 					$interface->assign('materialsRequest', $materialsRequest);
 					$interface->assign('showUserInformation', true);
 					//Load user information 
@@ -122,6 +127,10 @@ class AJAX extends Action{
 			$id = $_REQUEST['id'];
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
+			$statusQuery = new MaterialsRequestStatus();
+			$materialsRequest->joinAdd($statusQuery);
+			$materialsRequest->selectAdd();
+			$materialsRequest->selectAdd('materials_request.*, description as statusLabel');
 			if ($materialsRequest->find(true)){
 				$interface->assign('materialsRequest', $materialsRequest);
 				

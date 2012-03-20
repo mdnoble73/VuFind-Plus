@@ -21,40 +21,41 @@
 require_once 'Action.php';
 require_once 'services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
+require_once 'sys/MaterialsRequestStatus.php';
 
-class Libraries extends ObjectEditor
+class ManageStatuses extends ObjectEditor
 {
 
 	function getObjectType(){
-		return 'Library';
+		return 'MaterialsRequestStatus';
 	}
 	function getToolName(){
-		return 'Libraries';
+		return 'ManageStatuses';
 	}
 	function getPageTitle(){
-		return 'Library Systems';
+		return 'Materials Request Statuses';
 	}
 	function getAllObjects(){
-		$library = new Library();
-		$library->orderBy('subdomain');
-		$library->find();
-		$libraryList = array();
-		while ($library->fetch()){
-			$libraryList[$library->libraryId] = clone $library;
+		$status = new MaterialsRequestStatus();
+		$status->orderBy('description');
+		$status->find();
+		$objectList = array();
+		while ($status->fetch()){
+			$objectList[$status->id] = clone $status;
 		}
-		return $libraryList;
+		return $objectList;
 	}
 	function getObjectStructure(){
-		return Library::getObjectStructure();
+		return MaterialsRequestStatus::getObjectStructure();
 	}
 	function getPrimaryKeyColumn(){
-		return 'subdomain';
+		return 'description';
 	}
 	function getIdKeyColumn(){
-		return 'libraryId';
+		return 'id';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('cataloging');
 	}
 
 }

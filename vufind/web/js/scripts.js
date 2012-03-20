@@ -325,3 +325,14 @@ function searchSubmit(){
 	document.forms.searchForm.action='/Union/Search'
 	document.forms.searchForm.submit();
 }
+
+function setupFieldsetToggles(){
+	$('legend.collapsible').siblings().hide();
+	$('legend.collapsible').addClass("collapsed");
+	$('legend.collapsible').click(function() {
+		$(this).toggleClass("expanded");
+		$(this).toggleClass("collapsed");
+		$(this).siblings().slideToggle();
+		return false;
+	});
+}

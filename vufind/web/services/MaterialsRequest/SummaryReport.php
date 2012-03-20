@@ -24,6 +24,7 @@
 require_once 'Action.php';
 require_once('services/Admin/Admin.php');
 require_once('sys/MaterialsRequest.php');
+require_once('sys/MaterialsRequestStatus.php');
 require_once("sys/pChart/class/pData.class.php");
 require_once("sys/pChart/class/pDraw.class.php");
 require_once("sys/pChart/class/pImage.class.php");
@@ -117,14 +118,15 @@ class SummaryReport extends Admin {
 
 			//Get a list of all requests by the status of the request
 			$materialsRequest = new MaterialsRequest();
+			$materialsRequest->joinAdd(new MaterialsRequestStatus());
 			$materialsRequest->selectAdd();
-			$materialsRequest->selectAdd('COUNT(id) as numRequests,status');
+			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
 			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
 			$materialsRequest->groupBy('status');
 			$materialsRequest->addOrder('status');
 			$materialsRequest->find();
 			while ($materialsRequest->fetch()){
-				$periodData[$periodStart->getTimestamp()][$materialsRequest->status] = $materialsRequest->numRequests;
+				$periodData[$periodStart->getTimestamp()][$materialsRequest->description] = $materialsRequest->numRequests;
 			}
 		}
 

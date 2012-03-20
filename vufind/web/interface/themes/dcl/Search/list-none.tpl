@@ -1,18 +1,17 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-
 <div id="page-content" class="content">
   {* Narrow Search Options *}
   <div id="sidebar">
     {* Display spelling suggestions if any *}
 	{if $spellingSuggestions}
-	  <div class="sidegroup">
+	  <div class="sidegroup" id="spellingSuggestions">
 	  	<h4>{translate text='spell_suggest'}</h4>
+	  	<div class="sidegroupContents">
 	  	  <dl class="narrowList navmenu narrow_begin">
 	      {foreach from=$spellingSuggestions item=details key=term name=termLoop}
 	        <dd>{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}</dd>
 	      {/foreach}
 	      </dl>
+	    </div>
 	  </div>
 	{/if}
       
@@ -32,7 +31,7 @@
     {/if}
     <div class="resulthead"><h3>{translate text='nohit_heading'}</h3></div>
       
-      <div><p class="error">Your query - <b>{$lookfor|escape:"html"}</b> - did not produce any results.</p> You could try one of the following options:</div>
+      <p class="error">{translate text='nohit_prefix'} - <b>{$lookfor|escape:"html"}</b> - {translate text='nohit_suffix'}</p>
 
     <div>
     <ul id="noResultsSuggest">
@@ -73,7 +72,21 @@
     {/if}
 
 		{if $enableMaterialsRequest}
-    Can't find what you are looking for? Try our <a href="http://apps.douglascountylibraries.org/materials_request/" target="_blank">Materials Request Service</a>.</div>
+		<div id="materialsRequestPrefilterBlock">
+			<div id="materialsRequestPrefilterHeader">Can't Find It In Our Catalog?</div>
+			
+			<div id="materialsRequestPrefilterUnpublished" class="materialsRequestLine">If this item has not been published, please recheck our catalog closer to the publication date.</div>
+			<div id="materialsRequestPrefilterSubmitLine" class="materialsRequestLine">If you are a <em>Douglas County resident</em>, please <a href="{$path}/MaterialsRequest/NewRequest">submit a request</a>.</div>
+			<div id="materialsRequestPrefilterAssist" class="materialsRequestLine">
+				We will do our best to assist you by: 
+				<ul>
+					<li>Purchasing it for our collection per our guidelines.</li>
+					<li>Borrowing it from another library (Interlibrary Loan).</li>
+				</ul>
+			</div>
+			
+			<div id="materialsRequestPrefilterLimit" class="materialsRequestLine">Please limit your requests to 5 per week and submit only 1 title per request form.</div>
+		</div>
 		{/if}
 		
     </div>

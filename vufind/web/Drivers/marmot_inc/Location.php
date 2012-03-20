@@ -219,10 +219,9 @@ class Location extends DB_DataObject
 		$this->userHomeLocation = null;
 
 		global $user;
+		global $library;
 		if (isset($user) && $user != false){
-			if (($library->libraryId != $this->activeLocation->libraryId)){
-				$this->userHomeLocation = clone($this->staticGet('locationId', $user->homeLocationId));
-			}
+			$this->userHomeLocation = clone($this->staticGet('locationId', $user->homeLocationId));
 		}
 
 		return $this->userHomeLocation;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Table Definition for library
+ * Table Definition for Materials Request
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
@@ -38,6 +38,7 @@ class MaterialsRequest extends DB_DataObject
 	public $emailSent;
 	public $holdsCreated;
 	public $placeHoldWhenAvailable;
+	public $illItem;
 	public $holdPickupLocation;
 	public $bookmobileStop;
 	
@@ -46,5 +47,32 @@ class MaterialsRequest extends DB_DataObject
     
 	function keys() {
 	    return array('id');
+ 	}
+ 	
+ 	static function getFormats(){
+ 		$availableFormats = array(
+			'book' => translate('Book'),
+ 			'largePrint' => translate('Large Print'),
+			'dvd' => translate('DVD'),
+			'bluray' => translate('Blu-ray'),
+			'cdAudio' => translate('CD Audio Book'),
+			'cdMusic' => translate('Music CD'),
+			'ebook' => translate('eBook'),
+			'eaudio' => translate('eAudio'),
+			'playaway' => translate('Playaway'),
+			'article' => translate('Article'),
+			'cassette' => translate('Cassette'),
+			'vhs' => translate('VHS'),
+ 			'other' => translate('Other'),
+		);
+		
+		global $configArray;
+		foreach ($availableFormats as $key => $label){
+			if (isset($configArray['MaterialsRequestFormats'][$key]) && $configArray['MaterialsRequestFormats'][$key] == false){
+				unset($availableFormats[$key]);
+			}
+		}
+		
+		return $availableFormats;
  	}
 }

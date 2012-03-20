@@ -17,19 +17,9 @@
 					<div>
 					<div>
 						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="$('.statusFilter').attr('checked', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
-						<input type="checkbox" name="statusFilter[]" value="pending" {if in_array('pending', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Request pending<br/>
-						<input type="checkbox" name="statusFilter[]" value="owned" {if in_array('owned', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Already owned/On order<br/>
-						<input type="checkbox" name="statusFilter[]" value="purchased" {if in_array('purchased', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Item purchased, hold placed<br/>
-						<input type="checkbox" name="statusFilter[]" value="referredToILL" {if in_array('referredToILL', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Request referred to ILL<br/>
-						<input type="checkbox" name="statusFilter[]" value="ILLplaced" {if in_array('ILLplaced', $statusFilter)}checked="checked"{/if} class="statusFilter"/>ILL request placed<br/>
-						<input type="checkbox" name="statusFilter[]" value="ILLreturned" {if in_array('ILLreturned', $statusFilter)}checked="checked"{/if} class="statusFilter"/>ILL returned<br/>
-						<input type="checkbox" name="statusFilter[]" value="notEnoughInfo" {if in_array('notEnoughInfo', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Not enough info - please contact Collection Development to clarify<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredOutOfPrint" {if in_array('notAcquiredOutOfPrint', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - out of print<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredNotAvailable" {if in_array('notAcquiredNotAvailable', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - not available in the US<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredFormatNotAvailable" {if in_array('notAcquiredFormatNotAvailable', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - format not available<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredPrice" {if in_array('notAcquiredPrice', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - price<br/>
-						<input type="checkbox" name="statusFilter[]" value="notAcquiredPublicationDate" {if in_array('notAcquiredPublicationDate', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Unable to acquire the item - publication date<br/>
-						<input type="checkbox" name="statusFilter[]" value="requestCancelled" {if in_array('requestCancelled', $statusFilter)}checked="checked"{/if} class="statusFilter"/>Cancelled by Patron<br/>
+						{foreach from=$availableStatuses item=statusLabel key=status}
+							<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
+						{/foreach}
 					</div>
 					<div><input type="submit" name="submit" value="Update Filters"/></div>
 					</div>

@@ -54,7 +54,7 @@ function exportSelectedRequests(){
 	if (selectedRequests.length == 0){
 		return false;
 	}
-	$.("#updateRequests").submit();
+	$("#updateRequests").submit();
 	return true;
 }
 
@@ -109,12 +109,14 @@ function setFieldVisibility(){
 		$("#magazineVolume").addClass('required');
 		$("#magazinePageNumbers").addClass('required');
 		$("#supplementalDetails").hide();
+		$("#titleLabel").html("Article Title");
 	}else{
 		$("#magazineTitle").removeClass('required');
 		$("#magazineDate").removeClass('required');
 		$("#magazineVolume").removeClass('required');
 		$("#magazinePageNumbers").removeClass('required');
 		$("#supplementalDetails").show();
+		$("#titleLabel").html("Title");
 	}
 }
 
@@ -131,5 +133,40 @@ function updateHoldOptions(){
 		$("#bookmobileStopField").hide();
 		$("#pickupLocationField").hide();
 	}
-	
 } 
+
+function materialsRequestLogin(){
+	var url = path + "/AJAX/JSON?method=loginUser"
+	$.ajax({url: url,
+		data: {username: $('#username').val(), password: $('#password').val()},
+		success: function(response){
+			if (response.result.success == true){
+				//Update the main display to show the user is logged in
+				// Hide "log in" options and show "log out" options:
+				$('#materialsRequestLogin').hide();
+				$('.materialsRequestLoggedInFields').show();
+				$('#myAccountNameLink').html(response.result.name);
+				$('.loginOptions').hide();
+        $('.logoutOptions').show();
+				if (response.result.phone){
+					$('#phone').val(response.result.phone);
+				}
+				if (response.result.email){
+					$('#email').val(response.result.email);
+				}
+				if (response.result.homeLocation){
+					$("#pickupLocation").val(response.result.homeLocation);
+				}
+			}else{
+				alert("That login was not recognized.  Please try again.");
+			}
+		},
+		dataType: 'json',
+		type: 'post' 
+	});
+	return false;
+}
+
+function printRequestBody(){
+	$("#request_details_body").printElement();
+}

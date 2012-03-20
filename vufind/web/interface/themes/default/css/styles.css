@@ -2322,3 +2322,9 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 .request_detail_field {
 	padding-bottom: 3px;
 }
+.collapsed:before{
+	content: "► ";
+}
+.expanded:before{
+	content: "▼ ";
+}

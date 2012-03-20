@@ -171,12 +171,13 @@ class SIPAuthentication implements Authentication {
 			} else {
 				$user = new PEAR_Error('authentication_error_blank');
 			}
+			$timer->logTime("Authenticated user in SIP2Authentication");
+			self::$processedUsers[$username] = $user;
 		} else {
 			$user = new PEAR_Error('authentication_error_blank');
 		}
 
-		$timer->logTime("Authenticated user in SIP2Authentication");
-		self::$processedUsers[$username] = $user;
+		
 		return $user;
 	}
 
@@ -214,6 +215,17 @@ class SIPAuthentication implements Authentication {
 		$user->major = 'null';
 		$user->college = 'null';
 		$user->patronType = $patronInfoResponse['variable']['PC'][0];
+		
+		//Get home location
+		if (!isset($user->homeLocationId) || $user->homeLocationId == 0){
+			$location = new Location();
+			$location->code = $patronInfoResponse['variable']['AQ'][0];
+			$location->find();
+			if ($location->N > 0){
+				$location->fetch();
+				$user->homeLocationId = $location->locationId;
+			}
+		}
 
 		if ($insert) {
 			$user->created = date('Y-m-d');

@@ -22,6 +22,7 @@
  */
 
 require_once "Action.php";
+require_once "sys/MaterialsRequest.php";
 
 /**
  * MaterialsRequest Home Page, displays an existing Materials Request.
@@ -45,6 +46,18 @@ class NewRequest extends Action
 		}
 		
 		$interface->assign('pickupLocations', $locations);
+		
+		//Get a list of formats to show 
+		$availableFormats = MaterialsRequest::getFormats();
+		$interface->assign('availableFormats', $availableFormats);
+		
+		$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
+		$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
+		$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);
+		$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
+		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+		$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
+		$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
 		
 		$useWorldCat = false;
 		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){

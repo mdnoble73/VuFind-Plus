@@ -24,6 +24,7 @@
 require_once 'Action.php';
 require_once('services/Admin/Admin.php');
 require_once('sys/MaterialsRequest.php');
+require_once('sys/MaterialsRequestStatus.php');
 require_once("sys/pChart/class/pData.class.php");
 require_once("sys/pChart/class/pDraw.class.php");
 require_once("sys/pChart/class/pImage.class.php");
@@ -41,7 +42,20 @@ class UserReport extends Admin {
 		$startDate = (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0) ? strtotime($_REQUEST['startDate']) : '';
 		$endDate = (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) ? strtotime($_REQUEST['endDate']) : '';
 
-		$defaultStatusesToShow = array('pending', 'referredToILL', 'ILLplaced', 'notEnoughInfo');
+		//Load status information 
+		$materialsRequestStatus = new MaterialsRequestStatus();
+		$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
+		$materialsRequestStatus->find();
+		$availableStatuses = array();
+		$defaultStatusesToShow = array();
+		while ($materialsRequestStatus->fetch()){
+			$availableStatuses[$materialsRequestStatus->id] = $materialsRequestStatus->description;
+			if ($materialsRequestStatus->isOpen == 1 || $materialsRequestStatus->isDefault == 1){
+				$defaultStatusesToShow[] = $materialsRequestStatus->id;
+			}
+		}
+		$interface->assign('availableStatuses', $availableStatuses);
+		
 		if (isset($_REQUEST['statusFilter'])){
 			$statusesToShow = $_REQUEST['statusFilter'];
 		}else{
@@ -52,9 +66,10 @@ class UserReport extends Admin {
 		//Get a list of users that have requests open
 		$materialsRequest = new MaterialsRequest();
 		$materialsRequest->joinAdd(new User());
+		$materialsRequest->joinAdd(new MaterialsRequestStatus());
 		$materialsRequest->selectAdd();
 		$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests');
-		$materialsRequest->selectAdd('user.id as userId, status, user.firstName, user.lastName, user.cat_username, user.cat_password');
+		$materialsRequest->selectAdd('user.id as userId, status, description, user.firstName, user.lastName, user.cat_username, user.cat_password');
 		$statusSql = "";
 		foreach ($statusesToShow as $status){
 			if (strlen($statusSql) > 0) $statusSql .= ",";
@@ -74,7 +89,7 @@ class UserReport extends Admin {
 				$userData[$materialsRequest->userId]['barcode'] = $materialsRequest->cat_username;
 				$userData[$materialsRequest->userId]['requestsByStatus'] = array();
 			}
-			$userData[$materialsRequest->userId]['requestsByStatus'][$materialsRequest->status] = $materialsRequest->numRequests;
+			$userData[$materialsRequest->userId]['requestsByStatus'][$materialsRequest->description] = $materialsRequest->numRequests;
 		}
 		$interface->assign('userData', $userData);
 

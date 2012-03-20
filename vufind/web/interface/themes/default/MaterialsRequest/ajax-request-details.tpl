@@ -2,8 +2,9 @@
 	<div class='header'>
 		Materials Request Details
 		<a href="#" onclick='hideLightbox();return false;' class="closeIcon">Close <img src="{$path}/images/silk/cancel.png" alt="close" /></a>
+		<a href="#" onclick='printRequestBody();return false;' class="closeIcon"><img src="{$path}/images/silk/printer.png" alt="print" />&nbsp;</a>
 	</div>
-	<div class = "content">
+	<div class = "content" id="request_details_body">
 		{if $error}
 			<div class="error">{$error}</div>
 		{else}
@@ -19,14 +20,28 @@
 							<div class="request_detail_field_label">Barcode: </div>
 							<div class="request_detail_field_value">{$requestUser->cat_username}</div>
 						</div>
+						{if $materialsRequest->phone}
 						<div class="request_detail_field">
 							<div class="request_detail_field_label">Phone Number: </div>
 							<div class="request_detail_field_value">{$materialsRequest->phone}</div>
 						</div>
+						{/if}
 						<div class="request_detail_field">
 							<div class="request_detail_field_label">Email: </div>
 							<div class="request_detail_field_value">{$materialsRequest->email}</div>
 						</div>
+						{if $materialsRequest->illItem == 1}
+							<div class="request_detail_field">
+								<div class="request_detail_field_label">ILL if not purchased: </div>
+								<div class="request_detail_field_value">Yes</div>
+							</div>
+						{/if}
+						{if $materialsRequest->placeHoldWhenAvailable == 1}
+							<div class="request_detail_field">
+								<div class="request_detail_field_label">Place Hold for User: </div>
+								<div class="request_detail_field_value">Yes ({$materialsRequest->holdPickupLocation}{if $materialsRequest->bookmobileStop}{$materialsRequest->bookmobileStop}{/if})</div>
+							</div>
+						{/if}
 					</fieldset>
 				{/if}
 				<fieldset>
@@ -159,7 +174,7 @@
 				{/if}
 				<div class="request_detail_field">
 					<div class="request_detail_field_label">Status: </div>
-					<div class="request_detail_field_value">{$materialsRequest->status}</div>
+					<div class="request_detail_field_value">{$materialsRequest->statusLabel}</div>
 				</div>
 				<div class="request_detail_field">
 					<div class="request_detail_field_label">Requested: </div>
@@ -170,3 +185,4 @@
 		{/if}
 	</div>
 </div>
+<script type="text/javascript" src="{$path}/js/jquery.printelement.min.js"></script>
