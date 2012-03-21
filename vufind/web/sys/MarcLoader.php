@@ -1,4 +1,5 @@
 <?php
+require_once ('File/MARC.php');
 class MarcLoader{
 	public static function loadMarcRecordFromRecord($record){
 		global $memcache;
