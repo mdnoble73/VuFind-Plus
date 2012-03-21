@@ -993,9 +993,9 @@ class Solr implements IndexEngine {
 			global $librarySingleton;
 			global $locationSingleton;
 			$searchLibrary = Library::getSearchLibrary();
-			if (isset($searchLibrary) && !is_null($searchLibrary)){
+			/*if (isset($searchLibrary) && !is_null($searchLibrary)){
 				$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
-			}
+			}*/
 				
 			//Boost items owned at our location
 			require_once('Drivers/marmot_inc/Location.php');
@@ -1027,7 +1027,7 @@ class Solr implements IndexEngine {
 		//*************************
 		//Marmot overrides for filtering based on library system and location
 		//Only show visible records
-		$filter[] = 'bib_suppression:notsuppressed';
+		//$filter[] = 'bib_suppression:notsuppressed';
 		if ($this->scopingDisabled == false){
 
 			if (isset($searchLibrary)){
