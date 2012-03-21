@@ -2328,3 +2328,6 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 .expanded:before{
 	content: "▼ ";
 }
+.requiredIndicator{
+	color:red;
+}

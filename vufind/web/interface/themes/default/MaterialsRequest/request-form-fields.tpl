@@ -6,11 +6,11 @@
 	{if !$user}
 	<div id="materialsRequestLogin">
 		<div>
-			<label for="username">{translate text='Username'}: </label>
+			<label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
 			<input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required"/>
 		</div>
 		<div>
-			<label for="password">{translate text='Password'}: </label>
+			<label for="password">{translate text='Password'} <span class="requiredIndicator">*</span>: </label>
 			<input type="password" name="password" id="password" size="15" class="required"/>
 		</div>
 		<div>
@@ -39,7 +39,7 @@
 	<fieldset>
 		<legend>Basic Information</legend>
 		<div>
-			<label for="format">Format:</label>
+			<label for="format">Format <span class="requiredIndicator">*</span>:</label>
 			<select name="format" class="required" id="format" onchange="setFieldVisibility();">
 			{foreach from=$availableFormats item=label key=formatKey}
 				<option value="{$formatKey}"{if $materialsRequest->format==$formatKey}selected='selected'{/if}>{$label}</option>
@@ -47,11 +47,11 @@
 			</select>
 		</div>
 		<div class="formatSpecificField articleField">
-			<label for="magazineTitle">Magazine/Journal Title:</label>
+			<label for="magazineTitle">Magazine/Journal Title <span class="requiredIndicator">*</span>:</label>
 			<input name="magazineTitle" id="magazineTitle" size="80" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/>
 		</div>
 		<div>
-			<label for="title" id="titleLabel">Title:</label>
+			<label for="title" id="titleLabel">Title <span class="requiredIndicator">*</span>:</label>
 			<input name="title" id="title" size="80" maxlength="255" class="required" value="{$materialsRequest->title}"/>
 		</div>
 		<div class="formatSpecificField dvdField blurayField vhsField">
@@ -59,7 +59,7 @@
 			<input name="season" id="season" size="80" maxlength="80" value="{$materialsRequest->season}"/>
 		</div>
 		<div>
-			<label for="author" id="authorFieldLabel">Author:</label>
+			<label for="author" id="authorFieldLabel">Author <span class="requiredIndicator">*</span>:</label>
 			<input name="author" id="author" size="80" maxlength="255" class="required" value="{$materialsRequest->author}"/>
 		</div>
 		<div class="formatSpecificField articleField">
@@ -67,11 +67,11 @@
 			<input name="magazineDate" id="magazineDate" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineDate}"/>
 		</div>
 		<div class="formatSpecificField articleField">
-			<label for="magazineVolume">Volume:</label>
+			<label for="magazineVolume">Volume <span class="requiredIndicator">*</span>:</label>
 			<input name="magazineVolume" id="magazineVolume" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineVolume}"/>
 		</div>
 		<div class="formatSpecificField articleField">
-			<label for="magazinePageNumbers">Page Numbers:</label>
+			<label for="magazinePageNumbers">Page Numbers <span class="requiredIndicator">*</span>:</label>
 			<input name="magazinePageNumbers" id="magazinePageNumbers" size="10" maxlength="20" class="required" value="{$materialsRequest->magazinePageNumbers}"/>
 		</div>
 		{if $showEbookFormatField}
@@ -196,7 +196,7 @@
 	{/if}
 	{if !$materialsRequest}
 	<div>
-		<label for="about">How/where did you hear about this title:</label>
+		<label for="about">How/where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
 		<textarea name="about" id="about" rows="3" cols="80" {if $requireAboutField}class="required"{/if}>{$materialsRequest->about}</textarea>
 	</div>
 	{/if}

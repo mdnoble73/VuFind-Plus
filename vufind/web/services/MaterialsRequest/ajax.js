@@ -101,11 +101,11 @@ function setFieldVisibility(){
 	
 	//Update labels as neded 
 	if (selectedFormat == 'dvd' || selectedFormat == 'vhs'){
-		$("#authorFieldLabel").html("Actor / Director: ");
+		$("#authorFieldLabel").html("Actor / Director <span class='requiredIndicator'>*</span>:");
 	}else if (selectedFormat == 'cdMusic'){
-		$("#authorFieldLabel").html("Artist / Composer: ");
+		$("#authorFieldLabel").html("Artist / Composer <span class='requiredIndicator'>*</span>:");
 	}else{
-		$("#authorFieldLabel").html("Author: ");
+		$("#authorFieldLabel").html("Author <span class='requiredIndicator'>*</span>:");
 	}
 	
 	if (selectedFormat == 'article'){
@@ -115,7 +115,7 @@ function setFieldVisibility(){
 		$("#magazinePageNumbers").addClass('required');
 		$("#acceptCopyrightYes").addClass('required');
 		$("#supplementalDetails").hide();
-		$("#titleLabel").html("Article Title");
+		$("#titleLabel").html("Article Title <span class='requiredIndicator'>*</span>:");
 	}else{
 		$("#magazineTitle").removeClass('required');
 		$("#magazineDate").removeClass('required');
@@ -123,7 +123,7 @@ function setFieldVisibility(){
 		$("#magazinePageNumbers").removeClass('required');
 		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
-		$("#titleLabel").html("Title");
+		$("#titleLabel").html("Title <span class='requiredIndicator'>*</span>:");
 	}
 }
 
