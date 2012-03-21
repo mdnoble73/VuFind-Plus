@@ -672,7 +672,8 @@ public class ReindexProcess {
 			logger.error("URL to post (" + url + ") is malformed", e);
 			return "";
 		} catch (IOException e) {
-			logger.error("Error posting to url ", e);
+			logger.error("Error posting to url \r\n" + url , e);
+			System.exit(1);
 			return "";
 		}
 	}
