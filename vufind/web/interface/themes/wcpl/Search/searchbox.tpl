@@ -13,9 +13,13 @@
         <option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
       {/foreach}
       </select>
+      {if $userLang == 'es'}
+      <img src='{$path}/interface/themes/{$theme}/images/sp_searchbar-search-label.png' alt='Search' />
+      {else}
       <img src='{$path}/interface/themes/{$theme}/images/searchbar-search-label.png' alt='Search' />
+      {/if}
       <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
-      <div class="searchGoButton" id="searchGo" onclick="javascript:searchSubmit();">GO</div>
+      <div class="searchGoButton" id="searchGo" onclick="javascript:searchSubmit();">{translate text="GO"}</div>
       {if $filterList || $hasCheckboxFilters}
 	    <div class="keepFilters">
 	      <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> {translate text="basic_search_keep_filters"}

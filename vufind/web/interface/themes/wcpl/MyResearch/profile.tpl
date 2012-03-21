@@ -44,7 +44,7 @@
       	<thead>
       	<tr><th colspan='2'>Email Information</th></tr>
         </thead>
-      	<tr><th>{translate text='E-mail'}:</th><td>{if true || $edit == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</th></tr>
+      	<tr><th>{translate text='Email'}:</th><td>{if true || $edit == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</th></tr>
       	<tr><th colspan='2'><input type='submit' value='Update' name='update'/></th></tr>
       	
       	<thead>

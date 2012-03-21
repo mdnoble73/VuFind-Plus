@@ -18,7 +18,7 @@
   <a href="http://www.wakegov.com/libraries/default.htm" alt="Wake County Public Libraries Home">
 	  <img src="{$path}/interface/themes/wcpl/images/header.png" width="1000" height="86" usemap="#top-logo-map2" alt="Wake County Public Libraries"/>
     </a>
-        <div id="loggedInName" class="menu-account-link logoutOptions">Logged in as: <a href="{$path}/MyResearch/Home" id="myAccountNameLink">{if strlen($user->displayName) > 0}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></div> 
+        <div id="loggedInName" class="menu-account-link logoutOptions">{translate text='Logged in as:'} <a href="{$path}/MyResearch/Home" id="myAccountNameLink">{if strlen($user->displayName) > 0}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></div> 
     
     <div id="account_div" class="menu-account-link logoutOptions"><a href="{$path}/MyResearch/Home">{translate text='My Account'}</a></div>
     <div id="logout_div" >
@@ -26,7 +26,7 @@
 	      {translate text='Logout'}
 	    </a>
 	  </div>
-    <div id="loggedInName" class="menu-account-link logoutOptions">Logged in as: <a href="{$path}/MyResearch/Home" id="myAccountNameLink">{if strlen($user->displayName) > 0}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></div> 
+    <div id="loggedInName" class="menu-account-link logoutOptions">{translate text='Logged in as:'} <a href="{$path}/MyResearch/Home" id="myAccountNameLink">{if strlen($user->displayName) > 0}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></div> 
     
     
   </div>
@@ -80,7 +80,7 @@
   
   </div><!-- end searchheader-->
 
-<a href="http://www.surveymonkey.com/s/brian_feedback2" target="_blank"><div id="survey">What do you think<br />of our new catalog?</div><img src="{$path}/interface/themes/wcpl/images/survey_arrow.png" id="surv_arrow" /></a>
+<!-- <a href="http://www.surveymonkey.com/s/brian_feedback2" target="_blank"><div id="survey">What do you think<br />of our new catalog?</div><img src="{$path}/interface/themes/wcpl/images/survey_arrow.png" id="surv_arrow" /></a> -->
   
 </div><!-- end header-->
 

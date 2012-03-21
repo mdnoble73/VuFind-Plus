@@ -28,7 +28,7 @@
             <option value="{$sortVal}"{if $defaultSortOption == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
           {/foreach}
           </select> *}
-          Hide Covers <input type="checkbox" onclick="$('.imageColumn').toggle();"/>
+          {translate text='Hide Covers'} <input type="checkbox" onclick="$('.imageColumn').toggle();"/>
         </div>
 	      <form id="renewForm" action="{$path}/MyResearch/RenewMultiple">
           <div>
