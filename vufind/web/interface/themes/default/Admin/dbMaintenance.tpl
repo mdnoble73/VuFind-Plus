@@ -8,7 +8,7 @@
   <div id="main-content">
     <h1>Database Maintenance</h1>
     <div id="maintenanceOptions"></div>
-    <form id="dbMaintenance" action="{$path}/Admin/DBMaintenance">
+    <form id="dbMaintenance" action="{$path}/Admin/{$action}">
     <div>
     <table>
     <thead>

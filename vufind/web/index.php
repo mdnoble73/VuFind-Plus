@@ -301,10 +301,10 @@ if ($translator == false){
 		$language = $configArray['Site']['language'];
 	}
 	$translator = new I18N_Translator('lang', $language, $configArray['System']['missingTranslations']);
-	$interface->setLanguage($language);
 	$memcache->set("translator_$language", $translator, 0, $configArray['Caching']['translator']);
 	$timer->logTime('Translator setup');
 }
+$interface->setLanguage($language);
 
 // Determine Module and Action
 global $user;

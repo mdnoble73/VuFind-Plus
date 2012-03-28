@@ -336,3 +336,22 @@ function setupFieldsetToggles(){
 		return false;
 	});
 }
+
+function pwdToText(fieldId){
+	var elem = document.getElementById(fieldId);
+	var input = document.createElement('input');
+	input.id = elem.id;
+	input.value = elem.value;
+	input.size = elem.size;
+	input.onfocus = elem.onfocus;
+	input.onblur = elem.onblur;
+	input.className = elem.className;
+	if (elem.type == 'text' ){
+		input.type = 'password';
+	} else {
+		input.type = 'text'; 
+	}
+
+	elem.parentNode.replaceChild(input, elem);
+	return input;
+}

@@ -34,129 +34,142 @@
  */
 class I18N_Translator
 {
-    /**
-     * Language translation files path
-     *
-     * @var     string
-     * @access  public
-     */
-    var $path;
+	/**
+	 * Language translation files path
+	 *
+	 * @var     string
+	 * @access  public
+	 */
+	var $path;
 
-    /**
-     * The specified language.
-     *
-     * @var     string
-     * @access  public
-     */
-    var $langCode;
+	/**
+	 * The specified language.
+	 *
+	 * @var     string
+	 * @access  public
+	 */
+	var $langCode;
 
-    /**
-     * An array of the translated text
-     *
-     * @var     array
-     * @access  public
-     */
-    var $words = array();
+	/**
+	 * An array of the translated text
+	 *
+	 * @var     array
+	 * @access  public
+	 */
+	var $words = array();
 
-    /**
-     * Debugging flag
-     *
-     * @var     boolean
-     * @access  public
-     */
-    var $debug = false;
+	/**
+	 * Debugging flag
+	 *
+	 * @var     boolean
+	 * @access  public
+	 */
+	var $debug = false;
 
-    /**
-     * Constructor
-     *
-     * @param   string $langCode    The ISO 639-1 Language Code
-     * @access  public
-     */
-    function __construct($path, $langCode, $debug = false)
-    {
-        global $timer;
-        $this->path = $path;
-        $this->langCode = preg_replace('/[^\w\-]/', '', $langCode);
+	/**
+	 * Constructor
+	 *
+	 * @param   string $langCode    The ISO 639-1 Language Code
+	 * @access  public
+	 */
+	function __construct($path, $langCode, $debug = false)
+	{
+		global $timer;
+		global $configArray;
+		$this->path = $path;
+		$this->langCode = preg_replace('/[^\w\-]/', '', $langCode);
 
-        if ($debug) {
-            $this->debug = true;
-        }
+		if ($debug) {
+			$this->debug = true;
+		}
 
-        // Load file in specified path
-        if ($dh = opendir($path)) {
-            $file = $path . '/' . $this->langCode . '.ini';
-            if ($this->langCode != '' && is_file($file)) {
-                $this->words = $this->parseLanguageFile($file);
-            } else {
-                return new PEAR_Error("Unknown language file");
-            }
-        } else {
-            return new PEAR_Error("Cannot open $path for reading");
-        }
-        $timer->logTime('Initialize translator for ' . $langCode);
-    }
+		// Load file in specified path
+		if ($dh = opendir($path)) {
+			$file = $path . '/' . $this->langCode . '.ini';
+			if ($this->langCode != '' && is_file($file)) {
+				$this->words = $this->parseLanguageFile($file);
+			} else {
+				return new PEAR_Error("Unknown language file");
+			}
+		} else {
+			return new PEAR_Error("Cannot open $path for reading");
+		}
+		
+		//Check for a more specific language file for the site
+		$servername = $_SERVER['SERVER_NAME'];
+		$serverLangPath = $configArray['Site']['local'] . '/../../sites/' . $servername . '/lang';
+		if ($dh = opendir($serverLangPath)) {
+			$serverFile = $serverLangPath . '/' . $this->langCode . '.ini';
+			if (is_file($serverFile)) {
+				$siteWords = $this->parseLanguageFile($serverFile);
+				$this->words = array_merge($this->words, $siteWords);
+			}
+		}
+		
+		$timer->logTime('Initialize translator for ' . $langCode);
+	}
 
-    /**
-     * Parse a language file.
-     *
-     * @param   string $file        Filename to load
-     * @access  private
-     * @return  array
-     */
-    function parseLanguageFile($file)
-    {
-        /* Old method -- use parse_ini_file; problematic due to reserved words and
-         * increased strictness in PHP 5.3.
-        $words = parse_ini_file($file);
-        return $words;
-         */
-        
-        // Manually parse the language file:
-        $words = array();
-        $contents = file($file);
-        if (is_array($contents)) {
-            foreach($contents as $current) {
-                // Split the string on the equals sign, keeping a max of two chunks:
-                $parts = explode('=', $current, 2);
-                $key = trim($parts[0]);
-                if (!empty($key) && substr($key, 0, 1) != ';') {
-                    // Trim outermost double quotes off the value if present:
-                    if (isset($parts[1])) {
-                        $value = preg_replace('/^\"?(.*?)\"?$/', '$1', trim($parts[1]));
+	/**
+	 * Parse a language file.
+	 *
+	 * @param   string $file        Filename to load
+	 * @access  private
+	 * @return  array
+	 */
+	function parseLanguageFile($file)
+	{
+		/* Old method -- use parse_ini_file; problematic due to reserved words and
+		 * increased strictness in PHP 5.3.
+		 $words = parse_ini_file($file);
+		 return $words;
+		 */
 
-                        // Store the key/value pair (allow empty values -- sometimes
-                        // we want to replace a language token with a blank string):
-                        $words[$key] = $value;
-                    }
-                }
-            }
-        }
-        
-        return $words;
-    }
+		// Manually parse the language file:
+		$words = array();
+		$contents = file($file);
+		if (is_array($contents)) {
+			foreach($contents as $current) {
+				// Split the string on the equals sign, keeping a max of two chunks:
+				$parts = explode('=', $current, 2);
+				$key = trim($parts[0]);
+				if (!empty($key) && substr($key, 0, 1) != ';') {
+					// Trim outermost double quotes off the value if present:
+					if (isset($parts[1])) {
+						$value = preg_replace('/^\"?(.*?)\"?$/', '$1', trim($parts[1]));
 
-    /**
-     * Translate the phrase
-     *
-     * @param   string $phrase      The phrase to translate
-     * @access  public
-     * @note    Can be called statically if 2nd parameter is defined and load
-     *          method is called before
-     */
-    function translate($phrase)
-    {
-        if (isset($this->words[$phrase])) {
-            $translation = $this->words[$phrase];
-        } else {
-            if ($this->debug) {
-                $translation = "translate_index_not_found($phrase)";
-            } else {
-                $translation = $phrase;
-            }
-        }
-        global $timer;
-        //$timer->logTime('Translated phrase' . $phrase);
-        return $translation;
-    }
+						// Store the key/value pair (allow empty values -- sometimes
+						// we want to replace a language token with a blank string):
+						$words[$key] = $value;
+					}
+				}
+			}
+		}
+
+		return $words;
+	}
+
+	/**
+	 * Translate the phrase
+	 *
+	 * @param   string $phrase      The phrase to translate
+	 * @access  public
+	 * @note    Can be called statically if 2nd parameter is defined and load
+	 *          method is called before
+	 */
+	function translate($phrase)
+	{
+		if (isset($this->words[$phrase])) {
+			$translation = $this->words[$phrase];
+		} else {
+			if ($this->debug) {
+				$translation = "translate_index_not_found($phrase)";
+			} else {
+				$translation = $phrase;
+			}
+		}
+		global $timer;
+		//$timer->logTime('Translated phrase' . $phrase);
+		return $translation;
+	}
 }
 ?>

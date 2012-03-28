@@ -222,15 +222,13 @@
         </tbody>
       </table>
       
-	    {if $patronCanRenew}
-		    <div>
+	      <div>
 		      <a href="#" onclick="return renewSelectedTitles();" class="button">Renew Selected Items</a>
 		      <a href="{$path}/MyResearch/RenewAll" class="button">Renew All</a>
 		      <a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcel" >Export to Excel</a>
 		    </div>
 		  </form>
-	    {/if}
-      
+	    
       <script type="text/javascript">
         $(document).ready(function() {literal} { {/literal}
           doGetRatings();

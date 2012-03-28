@@ -138,13 +138,6 @@ class CheckedOut extends MyResearch{
 			$this->exportToExcel($result['transactions']);
 		}
 
-		$homeLibrary = Library::getPatronHomeLibrary();
-		$patronCanRenew = true;
-		if (isset($homeLibrary) && !is_null($homeLibrary)){
-			$patronCanRenew = $homeLibrary->canRenew == 0;
-		}
-		$interface->assign('patronCanRenew', $patronCanRenew);
-
 		$interface->setTemplate('checkedout.tpl');
 		$interface->setPageTitle('Checked Out Items');
 		$interface->display('layout.tpl');

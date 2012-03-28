@@ -74,13 +74,6 @@ class EContentHolds extends MyResearch {
 			}
 		}
 
-		$homeLibrary = Library::getPatronHomeLibrary();
-		$patronCanRenew = true;
-		if (isset($homeLibrary) && !is_null($homeLibrary)){
-			$patronCanRenew = $homeLibrary->canRenew == 0;
-		}
-		$interface->assign('patronCanRenew', $patronCanRenew);
-
 		$interface->setTemplate('eContentHolds.tpl');
 		$interface->setPageTitle('On Hold eContent');
 		$interface->display('layout.tpl');

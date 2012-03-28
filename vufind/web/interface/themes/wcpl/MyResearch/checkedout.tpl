@@ -145,13 +145,11 @@
         </tbody>
       </table>
       
-	    {if $patronCanRenew}
 		    <div>
 		      <a href="#" onclick="return renewSelectedTitles();" class="button">Renew Selected Items</a>
 		      <a href="{$path}/MyResearch/RenewAll" class="button">Renew All</a>
 		    </div>
 		  </form>
-	    {/if}
       
       <script type="text/javascript">
         $(document).ready(function() {literal} { {/literal}

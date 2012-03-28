@@ -1,0 +1,16 @@
+@CHARSET "ISO-8859-1";
+
+#loginFormWrapper{
+	border-right: 0px solid black;
+}
+.loginField{
+	width: 175px;
+	text-align: right;
+}
+
+.loginLabel{
+	width: 150px;
+}
+#loginFormWrapper{
+	width: 350px;
+}

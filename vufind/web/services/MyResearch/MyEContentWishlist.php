@@ -61,14 +61,7 @@ class MyEContentWishlist extends MyResearch {
 			}
 		}
 
-		$homeLibrary = Library::getPatronHomeLibrary();
-		$patronCanRenew = true;
-		if (isset($homeLibrary) && !is_null($homeLibrary)){
-			$patronCanRenew = $homeLibrary->canRenew == 0;
-		}
-		$interface->assign('patronCanRenew', $patronCanRenew);
-
-		$interface->setTemplate('eContentWishList.tpl');
+		interface->setTemplate('eContentWishList.tpl');
 		$interface->setPageTitle('My eContent Wish List');
 		$interface->display('layout.tpl');
 	}

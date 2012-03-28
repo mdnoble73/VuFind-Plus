@@ -24,7 +24,7 @@
       <div id="bookcart_login" class="bag_box">
         <h3>Login</h3>
           <div id='bag_login'>
-            <form method="post" action="{$url}/MyResearch/Home" id="loginForm">
+            <form method="post" action="{$path}/MyResearch/Home" id="loginForm_bookbag">
               <div>
               {translate text='Username'}: <br />
               <input type="text" name="username" id="bag_username" value="{$username|escape}" size="25"/>

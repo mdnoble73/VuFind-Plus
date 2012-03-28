@@ -8,8 +8,11 @@
       <div data-role="fieldcontain">
         <label for="login_username">{translate text='Username'}:</label>
         <input id="login_username" type="text" name="username" value="{$username|escape}"/>
+      </div>
+      <div data-role="fieldcontain">
         <label for="login_password">{translate text='Password'}:</label>
         <input id="login_password" type="password" name="password"/>
+        <a href="#" onclick="return pwdToText('login_password')">{translate text="Show Contents"}</a>
       </div>
       <div data-role="fieldcontain">
         <input type="submit" name="submit" value="{translate text='Login'}"/>

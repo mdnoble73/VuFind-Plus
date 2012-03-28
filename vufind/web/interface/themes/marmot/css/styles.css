@@ -3,8 +3,10 @@ html, body {
     background-color:#eee;
 }
 .content {
-    /*padding:10px 0 10px 0;*/
-    border-bottom: 1px solid #eee;
+	/*padding:10px 0 10px 0;*/
+	border-bottom: 1px solid #eee;
+	background-color: white;
+	text-align: left;
 }
 
 .yui-b {border:1px solid #eee;}

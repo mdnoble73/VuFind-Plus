@@ -38,16 +38,9 @@ require_once 'Innovative.php';
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
  */
-class Marmot extends Innovative implements DriverInterface
+class Marmot implements DriverInterface
 {
-	public $config;
-
-	public function __construct()
-	{
-		// Load Configuration for this Module
-		$this->config = parse_ini_file('conf/Marmot.ini', true);
-	}
-
+	
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
 	var $availableStatiRegex = null;
@@ -114,7 +107,8 @@ class Marmot extends Innovative implements DriverInterface
 	}
 
 	public function isUserStaff(){
-		$staffPTypes = $this->config['Staff P-Types'];
+		global $configArray;
+		$staffPTypes = $configArray['Staff P-Types'];
 		$pType = $this->getPType();
 		if (array_key_exists($pType, $staffPTypes)){
 			return true;
@@ -207,6 +201,7 @@ class Marmot extends Innovative implements DriverInterface
 		global $library;
 		global $user;
 		global $timer;
+		global $configArray;
 
 		//Load circulation status information so we can use it later on to
 		//determine what is holdable and what is not.
@@ -226,15 +221,15 @@ class Marmot extends Innovative implements DriverInterface
 		$count = 0;
 		$keys = array_pad(array(),10,"");
 
-		$loc_col_name      = $this->config['OPAC']['location_column'];
-		$call_col_name     = $this->config['OPAC']['call_no_column'];
-		$status_col_name   = $this->config['OPAC']['status_column'];
-		$reserves_col_name = $this->config['OPAC']['location_column'];
-		$reserves_key_name = $this->config['OPAC']['reserves_key_name'];
-		$transit_key_name  = $this->config['OPAC']['transit_key_name'];
-		$stat_avail 	   = $this->config['OPAC']['status_avail'];
-		$stat_due	   	   = $this->config['OPAC']['status_due'];
-		$stat_libuse	   = $this->config['OPAC']['status_libuse'];
+		$loc_col_name      = $configArray['OPAC']['location_column'];
+		$call_col_name     = $configArray['OPAC']['call_no_column'];
+		$status_col_name   = $configArray['OPAC']['status_column'];
+		$reserves_col_name = $configArray['OPAC']['location_column'];
+		$reserves_key_name = $configArray['OPAC']['reserves_key_name'];
+		$transit_key_name  = $configArray['OPAC']['transit_key_name'];
+		$stat_avail 	   = $configArray['OPAC']['status_avail'];
+		$stat_due	   	   = $configArray['OPAC']['status_due'];
+		$stat_libuse	   = $configArray['OPAC']['status_libuse'];
 
 		$ret = array();
 		//Process each row in the callnumber table.
@@ -1222,10 +1217,11 @@ class Marmot extends Innovative implements DriverInterface
 	private $dump = array();
 	private function _getPatronDump($barcode)
 	{
+		global $configArray;
 		if (array_key_exists($barcode, $this->dump)){
 			return $this->dump[$barcode];
 		}
-		$host=$this->config['OPAC']['patron_host'];
+		$host=$configArray['OPAC']['patron_host'];
 		//Special processing to allow MCVSD Students to login
 		//with their student id.
 		if (strlen($barcode)== 5){
