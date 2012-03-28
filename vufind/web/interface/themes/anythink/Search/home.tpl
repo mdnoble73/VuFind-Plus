@@ -13,6 +13,9 @@
     <label for="password">{translate text='Password'}</label>
     <input id="password" type="password" name="password" />
     </div>
+    <div class="form-item">
+    <a href="#" onclick="return pwdToText('password')">{translate text="Show Contents"}</a>
+    </div>
     <div class="form-item" id="submit-wrapper">
     <input type="submit" name="submit" value="Login" />
     </div>

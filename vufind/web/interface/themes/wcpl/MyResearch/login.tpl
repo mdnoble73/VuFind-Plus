@@ -13,8 +13,14 @@
 	       </div>
 	       <div id ='loginPasswordRow' class='loginFormRow'>
 	       	 <div class='loginLabel'>{translate text='Password'}: </div>
-	         <div class='loginField'><input type="password" name="password" size="15"/></div>
+	         <div class='loginField'><input type="password" name="password" size="15" id="password"/></div>
 	       </div>
+	       <div id ='loginPasswordRow2' class='loginFormRow'>
+					<div class='loginLabel'>&nbsp;</div>
+					<div class='loginField'>
+						&nbsp;<a href="#" onclick="return pwdToText('password')">{translate text="Show Contents"}</a>
+					</div>
+				</div>
 	       <div id='loginSubmitButtonRow' class='loginFormRow'>
 	     	<input id="loginButton" type="image" name="submit" value="Login" src='{$path}/interface/themes/{$theme}/images/login.png' alt='{translate text="Login to your account"}' />
 	        {if $followup}

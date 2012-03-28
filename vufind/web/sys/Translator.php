@@ -91,19 +91,21 @@ class I18N_Translator
 			} else {
 				return new PEAR_Error("Unknown language file");
 			}
+			closedir($dh);
 		} else {
 			return new PEAR_Error("Cannot open $path for reading");
 		}
 		
 		//Check for a more specific language file for the site
-		$servername = $_SERVER['SERVER_NAME'];
+		global $servername;
 		$serverLangPath = $configArray['Site']['local'] . '/../../sites/' . $servername . '/lang';
-		if ($dh = opendir($serverLangPath)) {
+		if ($dh = @opendir($serverLangPath)) {
 			$serverFile = $serverLangPath . '/' . $this->langCode . '.ini';
-			if (is_file($serverFile)) {
+			if (file_exists($serverFile)) {
 				$siteWords = $this->parseLanguageFile($serverFile);
 				$this->words = array_merge($this->words, $siteWords);
 			}
+			closedir($dh);
 		}
 		
 		$timer->logTime('Initialize translator for ' . $langCode);

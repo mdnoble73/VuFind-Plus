@@ -126,6 +126,7 @@ function readConfig()
 	$configFile = '../../sites/default/conf/config.ini';
 	$mainArray = parse_ini_file($configFile, true);
 	
+	global $servername;
 	$servername = $_SERVER['SERVER_NAME'];
 	$configFile = "../../sites/$servername/conf/config.ini";
 	if (file_exists($configFile)){
