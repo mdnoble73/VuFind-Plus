@@ -6,7 +6,7 @@
    <div id='loginFormWrapper'>
 	   <form method="post" action="{$path}/MyResearch/Home" id="loginForm">
 	   	 <div id='loginFormFields'>
-		   <div id='haveCardLabel' class='loginFormRow'>I have a Douglas County Library Card</div>
+		   <div id='haveCardLabel' class='loginFormRow'>I have an Anythink Library Card</div>
 	       <div id ='loginUsernameRow' class='loginFormRow'>
 	       	 <div class='loginLabel'>{translate text='Username'}: </div>
 	         <div class='loginField'><input type="text" name="username" id="username" value="{$username|escape}" size="15"/></div>
@@ -15,6 +15,12 @@
 	       	 <div class='loginLabel'>{translate text='Password'}: </div>
 	         <div class='loginField'><input type="password" name="password" id="password" size="15"/></div>
 	       </div>
+	       <div id ='loginPasswordRow2' class='loginFormRow'>
+					<div class='loginLabel'>&nbsp;</div>
+					<div class='loginField'>
+						&nbsp;<a href="#" onclick="return pwdToText('password')">{translate text="Show Contents"}</a>
+					</div>
+				</div>
 	       <div id='loginSubmitButtonRow' class='loginFormRow'>
 	     	 <input id="loginButton" type="image" name="submit" value="Login" src='{$path}/interface/themes/default/images/login.png' alt='{translate text="Login to your account"}' />
 	       {if $followup}

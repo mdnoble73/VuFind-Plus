@@ -127,11 +127,17 @@ function readConfig()
 	$mainArray = parse_ini_file($configFile, true);
 	
 	global $servername;
-	$servername = $_SERVER['SERVER_NAME'];
-	$configFile = "../../sites/$servername/conf/config.ini";
-	if (file_exists($configFile)){
-		$serverArray = parse_ini_file($configFile, true);
-		$mainArray = ini_merge($mainArray, $serverArray);
+	$server = $_SERVER['SERVER_NAME'];
+	$serverParts = explode('.', $server);
+	while (count($serverParts) > 0){
+		$tmpServername = join('.', $serverParts);
+		$configFile = "../../sites/$tmpServername/conf/config.ini";
+		if (file_exists($configFile)){
+			$serverArray = parse_ini_file($configFile, true);
+			$mainArray = ini_merge($mainArray, $serverArray);
+			$servername = $tmpServername;
+		}
+		array_shift($serverParts);
 	}
 	
 	if ($mainArray == false){
