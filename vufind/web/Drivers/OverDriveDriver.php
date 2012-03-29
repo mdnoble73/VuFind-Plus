@@ -698,7 +698,7 @@ class OverDriveDriver {
 		return $addToCartResult;
 	}
 	
-	public function processOverDriveCart($user, $overDriveInfo = null){
+	public function processOverDriveCart($user, $lendingPeriod, $overDriveInfo = null){
 		$logger = new Logger();
 		$processCartResult = array();
 		$processCartResult['result'] = false;
@@ -732,9 +732,16 @@ class OverDriveDriver {
 			$postParams = array(
 				'x' => 'y', 
 			);
-			preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">.*?<option value="([^"]*)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
-			for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
-				$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriodInfo[$matchi][2];
+			if ($lendingPeriod == -1){
+				preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">.*?<option value="([^"]*)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
+				for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
+					$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriodInfo[$matchi][2];
+				}
+			}else{
+				preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
+				for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
+					$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriod;
+				}
 			}
 			
 			foreach ($postParams as $key => $value) {
@@ -750,6 +757,7 @@ class OverDriveDriver {
 				$processCartResult['result'] = true;
 				$processCartResult['message'] = "Your titles were checked out successfully. You may now download the titles from your Account.";
 				//Remove all cached account information since th user can checkout from holds or wishlist page
+				global $memcache;
 				$memcache->delete('overdrive_checked_out_' . $user->id);
 				$memcache->delete('overdrive_holds_' . $user->id);
 				$memcache->delete('overdrive_wishlist_' . $user->id);
@@ -778,23 +786,27 @@ class OverDriveDriver {
 	 * 
 	 * @param string $overDriveId
 	 * @param int $format
+	 * @param int $lendingPeriod  the number of days that the user would like to have the title chacked out. or -1 to use the default
 	 * @param User $user
 	 */
-	public function checkoutOverDriveItem($overDriveId, $format, $user){
+	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 		$closeSession = true;
 		
 		$addCartResult = $this->addItemToOverDriveCart($overDriveId, $format, $user, $overDriveInfo);
 		if ($addCartResult['result'] == true){
-			$processCartResult = $this->processOverDriveCart($user, $overDriveInfo);
+			$processCartResult = $this->processOverDriveCart($user, $lendingPeriod, $overDriveInfo);
 			
 			if ($processCartResult['result'] == true){
 				//Delete the cache for the record
-				$memcach->delete('overdrive_record_' . $overDriveId);
+				global $memcache;
+				$memcache->delete('overdrive_record_' . $overDriveId);
+				$memcache->delete('overdrive_items_' . $overDriveId);
 				
 				//Record that the entry was checked out in strands
-				global $configArray;$eContentRecord = new EContentRecord();
+				global $configArray;
+				$eContentRecord = new EContentRecord();
 				$eContentRecord->whereAdd("sourceUrl like '%$overDriveId'");
 				if ($eContentRecord->find(true)){
 					if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
@@ -900,5 +912,67 @@ class OverDriveDriver {
 		}
 		
 		return $overDriveInfo;
+	}
+	
+	public function getOverdriveHoldings($eContentRecord){
+		require_once('sys/eContent/OverdriveItem.php');
+		//get the url for the page in overdrive 
+		global $memcache;
+		global $configArray;
+		global $timer;
+		$timer->logTime('Starting _getOverdriveHoldings');
+		
+		$overDriveId = $eContentRecord->getOverDriveId();
+		$overdriveUrl = $eContentRecord->sourceUrl;
+		if ($overDriveId == null ){
+			$items = array();
+		}else{
+			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
+			if ($items == false){
+				$items = array();
+				//Check to see if the file has been cached
+				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
+				$logger = new Logger();
+				if ($overdrivePage == false || strlen($overdrivePage) == 0){
+					$overdrivePage = file_get_contents($overdriveUrl);
+					if (!$memcache->set('overdrive_record_' . $overDriveId, $overdrivePage, MEMCACHE_COMPRESSED, $configArray['Caching']['overdrive_record'])){
+						echo("Error saving page to memcache $overDriveId");
+					}
+					$timer->logTime('Loaded record from overdrive');
+				}
+				//echo($overdrivePage);
+				//Extract the Format Information section 
+				if (preg_match('/<h1>Format Information<\/h1>(.*?)<h1>/s', $overdrivePage, $extraction)){
+					$formatSection = $extraction[1];
+					//Strip out information we don't care about
+					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
+					//Extract the actual formats from the remaining text.
+					if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/s', $formatSection, $itemInfoAll)) {
+						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
+							$overdriveItem = new OverdriveItem();
+							$overdriveItem->recordId = $eContentRecord->id;
+							$overdriveItem->format = $itemInfoAll[1][$matchi];
+							$overdriveItem->formatId = $itemInfoAll[2][$matchi];
+							//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
+							$overdriveItem->size = $itemInfoAll[4][$matchi];
+							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0);
+							$overdriveItem->lastLoaded = time();
+							$items[] = $overdriveItem;
+						}
+					}
+					$timer->logTime('Parsed items from overdrive record');
+				}
+				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
+			}
+			return $items;
+		}
+	}
+	
+	public function getLoanPeriodsForFormat($formatId){
+		if ($formatId == 35){
+			return array(3, 5, 7);
+		}else{
+			return array(7, 14, 21);
+		}
 	}
 }

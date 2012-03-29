@@ -92,7 +92,8 @@ class EContentDriver implements DriverInterface{
 		$eContentRecord->find(true);
 		
 		if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-			$items = $this->_getOverdriveHoldings($eContentRecord);
+			require_once 'Drivers/OverDriveDriver.php';
+			$items = $eContentRecord->getItems(true);
 		}else{
 			//Check to see if the record is checked out or on hold
 			$checkedOut = false;
@@ -152,72 +153,6 @@ class EContentDriver implements DriverInterface{
 		return $items;
 	}
 	
-	public function _getOverdriveHoldings($eContentRecord){
-		require_once('sys/eContent/OverdriveItem.php');
-		//get the url for the page in overdrive 
-		global $memcache;
-		global $configArray;
-		global $timer;
-		$timer->logTime('Starting _getOverdriveHoldings');
-		
-		$overdriveUrl = $eContentRecord->sourceUrl;
-		if ($overdriveUrl == null || strlen($overdriveUrl) == 0){
-			$items = array();
-		}else{
-			$overDriveId = substr($overdriveUrl, -36);
-			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if ($items == false){
-				$items = array();
-				//Check to see if the file has been cached
-				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
-				$logger = new Logger();
-				if ($overdrivePage == false || strlen($overdrivePage) == 0){
-					$overdrivePage = file_get_contents($overdriveUrl);
-					if (!$memcache->set('overdrive_record_' . $overDriveId, $overdrivePage, MEMCACHE_COMPRESSED, $configArray['Caching']['overdrive_record'])){
-						echo("Error saving page to memcache $overDriveId");
-					}
-					$timer->logTime('Loaded record from overdrive');
-				}
-				//echo($overdrivePage);
-				//Extract the Format Information section 
-				if (preg_match('/<h1>Format Information<\/h1>(.*?)<h1>/s', $overdrivePage, $extraction)){
-					$formatSection = $extraction[1];
-					//Strip out information we don't care about
-					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
-					//Extract the actual formats from the remaining text.
-					if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/s', $formatSection, $itemInfoAll)) {
-						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
-							$overdriveItem = new OverdriveItem();
-							$overdriveItem->source = 'OverDrive';
-							$overdriveItem->format = $itemInfoAll[1][$matchi];
-							$overdriveItem->formatId = $itemInfoAll[2][$matchi];
-							//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
-							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0);
-							$overdriveItem->size = $itemInfoAll[4][$matchi];
-							$links = array();
-							if ($overdriveItem->available){
-								$links[] = array(
-									'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$overdriveItem->formatId}');",
-									'text' => 'Check Out'
-								);
-							}else{
-								$links[] = array(
-									'onclick' => "return placeOverDriveHold('$overDriveId', '{$overdriveItem->formatId}');",
-									'text' => 'Place Hold'
-								);
-							}
-							$overdriveItem->links = $links;
-							$items[] = $overdriveItem;
-						}
-					}
-					$timer->logTime('Parsed items from overdrive record');
-				}
-				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
-			}
-			return $items;
-		}
-	}
-
 	public function getStatusSummary($id, $holdings){
 		global $user;
 		//Get the eContent Record
@@ -329,10 +264,18 @@ class EContentDriver implements DriverInterface{
 		
 		//Determine which buttons to show
 		$statusSummary['source'] = $eContentRecord->source;
-		$statusSummary['showPlaceHold'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] == 0) && count($holdings) > 0;
-		$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] > 0);
-		$statusSummary['showAccessOnline'] = (($drmType == 'free' || $checkedOut) && count($holdings) > 0);
-		$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList && !$overdriveTitle);
+		if ($overdriveTitle){
+			$statusSummary['showPlaceHold'] = false;
+			$statusSummary['showCheckout'] = false;
+			$statusSummary['showAddToWishlist'] = false;
+			$statusSummary['showAccessOnline'] = true;
+		}else{
+			$statusSummary['showPlaceHold'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] == 0) && count($holdings) > 0;
+			$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] > 0);
+			$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList);
+			$statusSummary['showAccessOnline'] = (($drmType == 'free' || $checkedOut) && count($holdings) > 0);
+		}
+		
 		$statusSummary['holdQueueLength'] = $this->getWaitList($id);
 		$statusSummary['onHold'] = $onHold;
 		$statusSummary['checkedOut'] = $checkedOut;
@@ -536,7 +479,7 @@ class EContentDriver implements DriverInterface{
 				$overDriveDriver = new OverDriveDriver();
 				$overDriveId = substr($eContentRecord->sourceUrl, -36);
 				//Get holdings for the record 
-				$holdings = $this->_getOverdriveHoldings($eContentRecord);
+				$holdings = $overDriveDriver->getOverdriveHoldings($eContentRecord);
 				//Use the first format as the hold type. The user can checkout any version they want after the hold is available. 
 				$format = $holdings[0]->formatId;
 				$overDriveResult = $overDriveDriver->placeOverDriveHold($overDriveId, $format, $user);
@@ -825,6 +768,7 @@ class EContentDriver implements DriverInterface{
 	
 	public function addRecordToReadingHistory($eContentRecord, $user){
 		//Get the resource for the record
+		require_once('services/MyResearch/lib/Resource.php');
 		$resource = new Resource();
 		$resource->record_id = $eContentRecord->id;
 		$resource->source = 'eContent';

@@ -1,28 +1,34 @@
 function checkoutOverDriveItem(overdriveId, formatId){
 	if (loggedIn){
-		showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
-		var url = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId + "&formatId=" + formatId;
-		$.ajax({
-			url: url,
-			success: function(data){
-				alert(data.message);
-				if (data.result){
-					window.location.href = path + "/MyResearch/OverdriveCheckedOut";
-				}else{
-					hideLightbox();
-				}
-			},
-			dataType: 'json',
-			error: function(){
-				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
-				hideLightbox();
-			}
-		});
+		var url = path + "/EcontentRecord/AJAX?method=GetOverDriveLoanPeriod&overDriveId=" + overdriveId + "&formatId=" + formatId;
+		ajaxLightbox(url);
 	}else{
 		ajaxLogin(function(){
-			checkoutOverDriveItem(overDriveId, formatId);
+			checkoutOverDriveItem(overdriveId, formatId);
 		});
 	}
+}
+
+function checkoutOverDriveItemStep2(overdriveId, formatId){
+	var lendingPeriod = $("#loanPeriod option:selected").val();
+	showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
+	var url = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId + "&formatId=" + formatId + "&lendingPeriod=" + lendingPeriod;
+	$.ajax({
+		url: url,
+		success: function(data){
+			alert(data.message);
+			if (data.result){
+				window.location.href = path + "/MyResearch/OverdriveCheckedOut";
+			}else{
+				hideLightbox();
+			}
+		},
+		dataType: 'json',
+		error: function(){
+			alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+			hideLightbox();
+		}
+	});
 }
 
 function placeOverDriveHold(overDriveId, formatId){

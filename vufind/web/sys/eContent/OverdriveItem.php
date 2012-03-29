@@ -24,15 +24,27 @@
  * @copyright Copyright (C) Douglas County Libraries 2011.
  *
  */
-class OverdriveItem{
+class OverdriveItem extends DB_DataObject{
+	public $__table = 'overdrive_item';
+	public $id;
+	public $recordId;
+	public $source = 'OverDrive'; 
 	public $format;
+	public $formatId;
+	public $size;
 	public $available;
-	public $usageLink;
 	public $notes;
+	public $lastLoaded;
 	/**
 	 * Whether or not the record is checked out to the user 
 	 */
 	public $checkedOut;
 	public $onHold;
 	public $holdPosition;
+	
+	/**
+	 * Dynamic information that can't be cached very long
+	 */
+	public $usageLink;
+	
 }

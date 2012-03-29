@@ -16,7 +16,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -323,14 +323,34 @@ class AJAX extends Action {
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['formatId'];
+		$lendingPeriod = $_REQUEST['lendingPeriod'];
+		$logger = new Logger();
+		$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
 		if ($user && !PEAR::isError($user)){
 			require_once('Drivers/OverDriveDriver.php');
 			$driver = new OverDriveDriver();
-			$result = $driver->checkoutOverDriveItem($overDriveId, $format, $user);
+			$result = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
 			return json_encode($result);
 		}else{
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to checkout an item.'));
 		}
+	}
+	
+	/**
+	 * Return a form where the user can select the loan period when checking out a title
+	 */
+	function GetOverDriveLoanPeriod(){
+		global $interface;
+		global $configArray;
+		$overDriveId = $_REQUEST['overDriveId'];
+		$formatId = $_REQUEST['formatId'];
+		$interface->assign('overDriveId', $overDriveId);
+		$interface->assign('formatId', $formatId);
+		require_once 'Drivers/OverDriveDriver.php';
+		$overDriveDriver = new OverDriveDriver();
+		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
+		$interface->assign('loanPeriods', $loanPeriods);
+		return $interface->fetch('EContentRecord\ajax-loan-period.tpl');
 	}
 	
 	function AddOverDriveRecordToWishList(){

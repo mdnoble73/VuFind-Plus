@@ -129,6 +129,7 @@ function readConfig()
 	global $servername;
 	$server = $_SERVER['SERVER_NAME'];
 	$serverParts = explode('.', $server);
+	$servername = 'default';
 	while (count($serverParts) > 0){
 		$tmpServername = join('.', $serverParts);
 		$configFile = "../../sites/$tmpServername/conf/config.ini";

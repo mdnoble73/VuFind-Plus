@@ -605,6 +605,16 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'add_indexes' => array(
+			'title' => 'Add indexes',
+			'description' => 'Add indexes to tables that were not defined originally',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `editorial_reviews` ADD INDEX `RecordId` ( `recordId` ) ',
+				'ALTER TABLE `list_widget_lists` ADD INDEX `ListWidgetId` ( `listWidgetId` ) ',
+			),
+		),
+		
 		'remove_old_tables' => array(
 			'title' => 'Remove old tables',
 			'description' => 'Remove tables that are no longer needed due to usage of memcache',

@@ -281,7 +281,27 @@ class DBMaintenanceEContent extends Admin {
 			'sql' => array(
 				"ALTER TABLE econtent_item ADD link VARCHAR(500) NULL",
 				"ALTER TABLE `econtent_item` CHANGE `type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook' ) NOT NULL",
+			),
 		),
+		
+		'overdriveItem' => array(
+			'title' => 'Overdrive Item',
+			'description' => 'Setup of Overdrive item to cache information about items from OverDrive for performance',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS overdrive_item",
+				"CREATE TABLE IF NOT EXISTS  overdrive_item(" .
+					  "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " . 
+					  "`recordId` int(11) NOT NULL COMMENT 'The record id that this record belongs to', " .
+					  "`format` VARCHAR(100) NOT NULL default '' COMMENT 'A description of the format from overdrive', " .
+					  "`formatId` int(11) NULL COMMENT 'The id of the format ', " .  
+					  "`size` VARCHAR(25) NOT NULL COMMENT 'A description of the size of the file(s) to be downloaded', " .
+					  "`available` TINYINT COMMENT 'Whether or not the format is available for immediate usage.', " .
+					  "`notes` VARCHAR(255) NOT NULL default '', " .
+					  "`lastLoaded` int(11) NOT NULL " .
+					") ENGINE = MYISAM COMMENT = 'Cached information about overdrive items within VuFind'",
+				'ALTER TABLE `overdrive_item` ADD INDEX `RecordId` ( `recordId` ) ',
+			),
 		),
 		
 		'eContentWishList'  => array(
@@ -418,6 +438,18 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 		
+		'add_indexes_2' => array(
+			'title' => 'Add eContent indexes 2',
+			'description' => 'Add additional indexes to econtent tables that were not defined originally',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `econtent_rating` ADD INDEX `RecordId` ( `recordId` ) ',
+				'ALTER TABLE `econtent_hold` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+				'ALTER TABLE `econtent_checkout` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+				'ALTER TABLE `econtent_wishlist` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+			),
+		),
+		
 		'utf8_update' => array(
 			'title' => 'Update to UTF-8',
 			'description' => 'Update database to use UTF-8 encoding',
@@ -436,7 +468,17 @@ class DBMaintenanceEContent extends Admin {
 				"ALTER TABLE econtent_wishlist CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE overdrive_account_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE overdrive_record_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+			),
 		),
+		
+		'cleanup_1' => array(
+			'title' => 'Cleanup 1',
+			'description' => 'Remove unused database tables',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS overdrive_account_cache",
+				"DROP TABLE IF EXISTS overdrive_record_cache",
+			),
 		),
 		
 		);

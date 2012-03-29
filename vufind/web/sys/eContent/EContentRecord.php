@@ -42,7 +42,7 @@ class EContentRecord extends SolrDataObject {
 	public $reviewedBy; //Id of a cataloging use who reviewed the item for consistency
 	public $reviewStatus; //0 = unreviewed, 1=approved, 2=rejected
 	public $reviewNotes;
-	public $accessType; 
+	public $accessType;
 	public $availableCopies;
 	public $onOrderCopies;
 	public $trialTitle;
@@ -51,7 +51,7 @@ class EContentRecord extends SolrDataObject {
 	public $literary_form_full;
 	public $marcRecord;
 	public $status; //'active', 'archived', or 'deleted'
-	
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentRecord',$k,$v); }
 
@@ -76,28 +76,28 @@ class EContentRecord extends SolrDataObject {
 		return 'EMedia';
 	}
 	function keywords(){
-		return $this->title . "\r\n" . 
-					 $this->subTitle . "\r\n" .
-					 $this->author . "\r\n" .
-					 $this->author2 . "\r\n" .
-					 $this->description . "\r\n" .
-					 $this->subject . "\r\n" .
-					 $this->language . "\r\n" .
-					 $this->publisher . "\r\n" .
-					 $this->publishDate . "\r\n" .
-					 $this->edition . "\r\n" .
-					 $this->isbn . "\r\n" .
-					 $this->issn . "\r\n" .
-					 $this->upc . "\r\n" .
-					 $this->lccn . "\r\n" .
-					 $this->series . "\r\n" .
-					 $this->topic . "\r\n" .
-					 $this->genre . "\r\n" .
-					 $this->region . "\r\n" .
-					 $this->era . "\r\n" .
-					 $this->target_audience . "\r\n" .
-					 $this->notes . "\r\n" .
-					 $this->source . "\r\n";
+		return $this->title . "\r\n" .
+		$this->subTitle . "\r\n" .
+		$this->author . "\r\n" .
+		$this->author2 . "\r\n" .
+		$this->description . "\r\n" .
+		$this->subject . "\r\n" .
+		$this->language . "\r\n" .
+		$this->publisher . "\r\n" .
+		$this->publishDate . "\r\n" .
+		$this->edition . "\r\n" .
+		$this->isbn . "\r\n" .
+		$this->issn . "\r\n" .
+		$this->upc . "\r\n" .
+		$this->lccn . "\r\n" .
+		$this->series . "\r\n" .
+		$this->topic . "\r\n" .
+		$this->genre . "\r\n" .
+		$this->region . "\r\n" .
+		$this->era . "\r\n" .
+		$this->target_audience . "\r\n" .
+		$this->notes . "\r\n" .
+		$this->source . "\r\n";
 	}
 	function subject_facet(){
 		return $this->getPropertyArray('subject');
@@ -117,7 +117,7 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => true, 
 			'storeSolr' => false, 
 		),
-		
+
 		array(
 			'property'=>'recordtype', 
 			'type'=>'method', 
@@ -132,7 +132,7 @@ class EContentRecord extends SolrDataObject {
     	'storeDb' => false, 
     	'storeSolr' => true, 
 		),
-		
+
 		'title' => array(
 		  'property' => 'title',
 		  'type' => 'text',
@@ -245,7 +245,7 @@ class EContentRecord extends SolrDataObject {
 		    'Humor, Satires, etc.' => 'Humor, Satires, etc.',
 		    'Speeches' => 'Speeches',
 		    'Letters' => 'Letters',
-		  ),
+		),
 		  'storeDb' => true,
 		  'storeSolr' => true,
 		),
@@ -312,18 +312,18 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => false,
 		  'storeSolr' => true,
 		),
-		
+
 		/*'format' => array(
-		  'property' => 'format',
-		  'type' => 'text',
-		  'size' => 100,
-		  'maxLength'=>100, 
-		  'label' => 'Format',
-		  'description' => 'The Format of the item.',
-		  'required'=> true,
-		  'storeDb' => true,
-		  'storeSolr' => true,
-		),*/
+		 'property' => 'format',
+		 'type' => 'text',
+		 'size' => 100,
+		 'maxLength'=>100,
+		 'label' => 'Format',
+		 'description' => 'The Format of the item.',
+		 'required'=> true,
+		 'storeDb' => true,
+		 'storeSolr' => true,
+		 ),*/
 		'format_category' => array(
 		  'property' => 'format_category',
 		  'type' => 'method',
@@ -500,7 +500,7 @@ class EContentRecord extends SolrDataObject {
 		    'Juvenile' => 'Juvenile',
 		    'General Interest' => 'General Interest',
 		    'Special Interest' => 'Special Interest',
-		  ),
+		),
 		  'label' => 'Target Audience',
 		  'description' => 'The Target Audience of the item.',
 		  'required'=> false,
@@ -583,7 +583,7 @@ class EContentRecord extends SolrDataObject {
 				'description'=>'addedBy',
 				'storeDb' => true,
 				'storeSolr' => false
-			),
+		),
 		'reviewedBy' => array(
 				'property'=>'reviewedBy',
 				'type'=>'hidden',
@@ -591,7 +591,7 @@ class EContentRecord extends SolrDataObject {
 				'description'=>'reviewedBy',
 				'storeDb' => true,
 				'storeSolr' => false,
-			),
+		),
 		'reviewStatus' => array(
 		  'property' => 'reviewStatus',
 		  'type' => 'enum',
@@ -701,7 +701,7 @@ class EContentRecord extends SolrDataObject {
 	function allfields(){
 		$allFields = "";
 		foreach ($this as $field => $value){
-			
+				
 			if (!in_array($field, array('__table', 'items', 'N')) && strpos($field, "_") !== 0){
 				//echo ("Processing $field\r\n<br/>");
 				if (is_array($value)){
@@ -729,13 +729,13 @@ class EContentRecord extends SolrDataObject {
 			}else{
 				return $econtentRating->avgRating;
 			}
-			
+				
 		}else{
 			return -2.5;
 		}
-		
+
 	}
-	
+
 	function rating_facet(){
 		$rating = $this->rating();
 		if ($rating > 4.5){
@@ -750,9 +750,9 @@ class EContentRecord extends SolrDataObject {
 			return "oneStar";
 		}else{
 			return "Unrated";
-		}		
+		}
 	}
-	
+
 	static function getCollectionValues(){
 		return array(
 		  'aebf' => 'Adult ebook fiction',
@@ -804,13 +804,13 @@ class EContentRecord extends SolrDataObject {
 		}
 		//Get the items for the record
 		/*require_once('Drivers/EContentDriver.php');
-		$driver = new EContentDriver();
-		$holdings = $driver->getHolding($this->id);
-		if (count($holdings) == 0){
+		 $driver = new EContentDriver();
+		 $holdings = $driver->getHolding($this->id);
+		 if (count($holdings) == 0){
 			return "suppressed";
-		}else{
+			}else{
 			return "notsuppressed";
-		}*/
+			}*/
 	}
 	function available_at(){
 		//Check to see if the item is checked out or if it has available holds
@@ -891,11 +891,11 @@ class EContentRecord extends SolrDataObject {
 		}
 		return $validationResults;
 	}
-	
+
 	function format(){
 		$formats = array();
 		//Load itmes for the record
-		$items = $this->getItems();
+		$items = $this->getItems(false);
 		if (strcasecmp($this->source, 'OverDrive') == 0){
 			foreach ($items as $item){
 				$formats[$item->format] = $item->format;
@@ -907,7 +907,7 @@ class EContentRecord extends SolrDataObject {
 		}
 		return $formats;
 	}
-	
+
 	function econtentText(){
 		$eContentText = "";
 		if (strcasecmp($this->source, 'OverDrive') != 0){
@@ -920,15 +920,87 @@ class EContentRecord extends SolrDataObject {
 		}
 		return $eContentText;
 	}
-	
+
 	private $items = null;
-	function getItems(){
-		if ($this->items == null){
+	function getItems($reload = false){
+		if ($this->items == null || $reload){
 			$this->items = array();
+				
 			if (strcasecmp($this->source, 'OverDrive') == 0){
-				require_once 'Drivers/EContentDriver.php';
-				$eContentDriver = new EContentDriver();
-				$this->items = $eContentDriver->_getOverdriveHoldings($this);
+				//Check to see if we have cached any items
+				require_once 'sys/eContent/OverdriveItem.php';
+				$overDriveItem = new OverdriveItem();
+
+				$overDriveItem->recordId = $this->id;
+				$overDriveItem->find();
+				$cachedItems = array();
+				if ($overDriveItem->N > 0){
+					while ($overDriveItem->fetch()){
+						$cachedItems[] = clone $overDriveItem;
+					}
+				}
+
+				if (count($cachedItems) == 0 || $reload){
+					$dataChanged = false;
+					//For performance, need to store overdrive items since we fetch items
+					//to get common things like list the formats.
+					require_once 'Drivers/OverDriveDriver.php';
+					$overdriveDriver = new OverDriveDriver();
+					$currentItems = $overdriveDriver->getOverdriveHoldings($this);
+						
+					//Check each of the cached items to see if it has changed
+					foreach ($currentItems as $currentKey => $currentItem){
+						$cachedItemFound = false;
+						foreach ($cachedItems as $cacheKey => $cachedItem){
+							if ($cachedItem->formatId = $currentItem->formatId){
+								if ($cachedItem->available != $currentItem->available){
+									$dataChanged = true;
+									$cachedItem->available = $currentItem->available;
+									$currentItem->update();
+								}
+								$this->items[] = $cachedItem;
+								unset($currentItems[$currentKey]);
+								unset($cachedItems[$cacheKey]);
+								$cachedItemFound = true;
+								break;
+							}
+						}
+						if (!$cachedItemFound){
+							$this->items[] = $currentItem;
+							$currentItem->insert();
+						}
+					}
+					//Delete any cached items that no longer exist
+					foreach ($cachedItems as $cachedKey => $cachedItem){
+						$cachedItem->delete();
+						$dataChanged = true;
+					}
+					//Mark that the record should be reindexed.
+					if ($dataChanged){
+						$this->updateDetailed(true);
+					}
+				}else{
+					$this->items = $cachedItems;
+				}
+
+				$overDriveId = $this->getOverDriveId();
+				foreach ($this->items as $itemKey => $item){
+					$links = array();
+					if ($item->available){
+						$links[] = array(
+							'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$item->formatId}');",
+							'text' => 'Check Out'
+							);
+					}else{
+						$links[] = array(
+							'onclick' => "return placeOverDriveHold('$overDriveId', '{$item->formatId}');",
+							'text' => 'Place Hold'
+							);
+					}
+					$item->links = $links;
+					$this->items[$itemKey] = $item;
+				}
+
 			}else{
 				require_once 'sys/eContent/EContentItem.php';
 				$eContentItem = new EContentItem();
@@ -941,7 +1013,7 @@ class EContentRecord extends SolrDataObject {
 		}
 		return $this->items;
 	}
-	
+
 	function getNumItems(){
 		if ($this->items == null){
 			$this->items = array();
@@ -1017,7 +1089,7 @@ class EContentRecord extends SolrDataObject {
 	}
 	private function clearCachedCover(){
 		global $configArray;
-		
+
 		//Clear the cached bookcover if one has been added.
 		$logger = new Logger();
 		if (isset($this->cover) && (strlen($this->cover) > 0)){
@@ -1085,5 +1157,13 @@ class EContentRecord extends SolrDataObject {
 	}
 	public function time_since_added(){
 		return '';
+	}
+	public function getOverDriveId(){
+		$overdriveUrl = $this->sourceUrl;
+		if ($overdriveUrl == null || strlen($overdriveUrl) < 36){
+			return null;
+		}else{
+			return substr($overdriveUrl, -36);
+		}
 	}
 }

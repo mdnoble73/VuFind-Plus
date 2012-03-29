@@ -1706,6 +1706,7 @@ class UserAPI extends Action {
 	 * <li>recordId - The id of the record within the eContent database.</li>
 	 * <li>or overdriveId - The id of the record in OverDrive.</li>
 	 * <li>format - The format of the item to place a hold on within OverDrive.</li>
+	 * <li>lendingPeriod - The number of days to checkout the title. (optional) </li>
 	 * </ul>
 	 *
 	 * Returns JSON encoded data as follows:
@@ -1737,8 +1738,7 @@ class UserAPI extends Action {
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
+				$overDriveId = $eContentRecord->getOverDriveId();
 			}
 		}else{
 			$overDriveId = $_REQUEST['overDriveId'];
@@ -1750,7 +1750,8 @@ class UserAPI extends Action {
 		if ($user && !PEAR::isError($user)){
 			require_once('Drivers/OverDriveDriver.php');
 			$driver = new OverDriveDriver();
-			$holdMessage = $driver->checkoutOverDriveItem($overDriveId, $format, $user);
+			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
+			$holdMessage = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1763,6 +1764,7 @@ class UserAPI extends Action {
 	 * <ul>
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
+	 * <li>lendingPeriod - The number of days to checkout the title. (optional) </li>
 	 * </ul>
 	 *
 	 * Returns JSON encoded data as follows:
@@ -1773,7 +1775,7 @@ class UserAPI extends Action {
 	 *
 	 * Sample Call:
 	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=processOverDriveCart&username=23025003575917&password=1234
+	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=processOverDriveCart&username=23025003575917&password=1234&lendingPeriod=14
 	 * </code>
 	 *
 	 * Sample Response:
@@ -1796,7 +1798,8 @@ class UserAPI extends Action {
 		if ($user && !PEAR::isError($user)){
 			require_once('Drivers/OverDriveDriver.php');
 			$driver = new OverDriveDriver();
-			$processCartResult = $driver->processOverDriveCart($user);
+			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
+			$processCartResult = $driver->processOverDriveCart($user, $lendingPeriod);
 			return array('success'=> $processCartResult['result'], 'message'=>$processCartResult['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
