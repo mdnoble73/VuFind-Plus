@@ -612,6 +612,7 @@ class DBMaintenance extends Admin {
 			'sql' => array(
 				'ALTER TABLE `editorial_reviews` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `list_widget_lists` ADD INDEX `ListWidgetId` ( `listWidgetId` ) ',
+				'ALTER TABLE `location` ADD INDEX `ValidHoldPickupBranch` ( `validHoldPickupBranch` ) ',
 			),
 		),
 		

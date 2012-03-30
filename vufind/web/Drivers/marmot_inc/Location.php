@@ -295,16 +295,19 @@ class Location extends DB_DataObject
 	private $ipId = 'unset';
 	function getIPLocation(){
 		global $timer;
+		global $memcache;
+		global $configArray;
 		$timer->logTime('Starting getIPLocation');
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
-		if (isset($_SESSION['activeIp']) && $activeIp == $_SESSION['activeIp']){
-			$this->ipLocation = $_SESSION['ipLocation'];
-			$this->ipId = $_SESSION['ipId'];
-		}else{
+		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
+		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
+		
+		if ($this->ipLocation === false || $this->ipId === false){
 			//echo("Active IP is $activeIp");
 			require_once './Drivers/marmot_inc/ipcalc.php';
 			require_once './Drivers/marmot_inc/subnet.php';
+			
 			$subnetSql = new subnet();
 			$subnetSql->find();
 			$subnets = array();
@@ -326,9 +329,8 @@ class Location extends DB_DataObject
 				$this->ipLocation = null;
 				$this->ipId = -1;
 			}
-			$_SESSION['ipLocation'] = $this->ipLocation;
-			$_SESSION['ipId'] = $this->ipId;
-			$_SESSION['activeIp'] = $activeIp;
+			$memcache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
+			$memcache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
 		}
 		$timer->logTime('Finished getIPLocation');
 		return $this->ipLocation;

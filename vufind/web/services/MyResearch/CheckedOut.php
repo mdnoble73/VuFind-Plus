@@ -27,6 +27,7 @@ class CheckedOut extends MyResearch{
 		global $interface;
 		global $user;
 		global $timer;
+		$logger = new Logger();
 
 		// Get My Transactions
 		$oneOrMoreRenewableItems = false;
@@ -81,54 +82,21 @@ class CheckedOut extends MyResearch{
 
 					$transList = array();
 					foreach ($result['transactions'] as $i => $data) {
-
-						/*if ($record == null){
-							echo("No record found for {$data['id']}<br/>");
-							}*/
 						$itemBarcode = $data['barcode'];
 						if (isset($_SESSION['renewResult'][$itemBarcode])){
 							$renewMessage = $_SESSION['renewResult'][$itemBarcode]['message'];
 							$renewResult = $_SESSION['renewResult'][$itemBarcode]['result'];
 							$data['renewMessage'] = $renewMessage;
 							$data['renewResult']  = $renewResult;
-							$result['transactions'][$i] = $result;
+							$result['transactions'][$i] = $data;
 							unset($_SESSION['renewResult'][$itemBarcode]);
+							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
 						}else{
 							$renewMessage = null;
 							$renewResult = null;
 						}
 
-						/*//Make sure that we don't get duplicate sort keys by appending the xnum.
-						 $sortKey .= '-' . $i;
-						 $id = $data['id'];
-						 $downloadLink = null;
-						 $readOnlineLink = null;
-						 $returnEPubLink = null;
-						 $transList[$sortKey] = array(
-						 'recordId'=> $id,
-						 'shortId'   => $id,
-						 'isbn'      => $data['isbn'],
-						 'upc'      => $data['upc'],
-						 'author'    => $data['author'],
-						 'title'     => $title,
-						 'format_category'    => $data['format_category'],
-						 'format'    => $data['format'],
-						 'checkoutdate'   => $data['checkoutdate'],
-						 'duedate'   => $data['duedate'],
-						 'canrenew'  => isset($data['canrenew']) ? $data['canrenew'] : true ,
-						 'itemindex' => isset($data['itemindex']) ? $data['itemindex'] : $i,
-						 'itemid'    => $data['barcode'],
-						 'renewMessage' => $renewMessage,
-						 'renewResult'  => $renewResult,
-						 'renewCount'=> $data['renewCount'],
-						 'overdue' => $data['overdue'],
-						 'daysUntilDue' => $data['daysUntilDue'],
-						 'hasEpub'     => isset($data['hasEpub']) ? $data['hasEpub'] : false,
-						 'links'       => $data['links'],
-						 'holdQueueLength' => $data['holdQueueLength'],
-						 );*/
 					}
-					//ksort($transList);
 					$interface->assign('transList', $result['transactions']);
 				}
 			}

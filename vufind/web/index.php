@@ -147,7 +147,7 @@ if (!isset($_COOKIE['test_ip']) || $active_ip != $_COOKIE['test_ip']){
 		setcookie('test_ip', $active_ip, 0, '/');
 	}
 }
-$timer->logTime('Got marmot ip');
+$timer->logTime('Got active ip address');
 $branch = $locationSingleton->getBranchLocationCode();
 if (!isset($_COOKIE['branch']) || $branch != $_COOKIE['branch']){
 	if ($branch == ''){

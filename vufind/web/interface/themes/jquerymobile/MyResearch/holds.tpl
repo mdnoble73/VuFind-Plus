@@ -1,3 +1,4 @@
+{strip}
 <div data-role="page" id="MyResearch-holds">
   {include file="header.tpl"}
   <div data-role="content">
@@ -35,7 +36,7 @@
               
             </div>
             {if !empty($resource.id)}</a>{/if}
-            <a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" data-icon="delete">Cancel Hold</a>
+            <a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" data-role="button" rel="external" data-icon="delete">Cancel Hold</a>
           </li>
         {/foreach}
         </ul>
@@ -48,4 +49,4 @@
   </div>
   {include file="footer.tpl"}
 </div>
-
+{/strip}

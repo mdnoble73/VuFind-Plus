@@ -307,18 +307,19 @@ class Horizon implements DriverInterface{
 		}else{
 			$holds = $this->getMyHoldsViaHip($patron);
 		}
-
+		$timer->logTime("Retrieved holds from ILS");
+		
 		$recordIds = array();
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $hold){
-				$recordIds[] = $hold['id'];
+				$recordIds[] = "'" . $hold['id'] . "'";
 			}
 		}
 		//Get records from resource table
 		$resourceInfo = new Resource();
 		if (count($recordIds) > 0){
 			$recordIdString = implode(",", $recordIds);
-			$resourceSql = "SELECT * FROM resource where record_id in ({$recordIdString})";
+			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
 			$resourceInfo->query($resourceSql);
 			$timer->logTime('Got records for all titles');
 	
@@ -1516,13 +1517,13 @@ private $transactions = array();
 			//Load information about titles from Resources table (for peformance)
 			$recordIds = array();
 			foreach ($transactions as $i => $data) {
-				$recordIds[] = $data['id'];
+				$recordIds[] = "'" . $data['id'] . "'";
 			}
 			//Get records from resource table
 			$resourceInfo = new Resource();
 			if (count($recordIds) > 0){
 				$recordIdString = implode(",", $recordIds);
-				$resourceSql = "SELECT * FROM resource where record_id in ({$recordIdString})";
+				$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
 				$resourceInfo->query($resourceSql);
 	
 				$timer->logTime('Got records for all titles');
@@ -1800,7 +1801,7 @@ public function renewItem($patronId, $itemId){
 		$locationSingleton = new Location();
 		$ipLocation = $locationSingleton->getIPLocation();
 		$ipId = $locationSingleton->getIPid();
-			
+
 		if (false){
 			$ret =  $this->renewItemViaHIP($patronId, $itemId);
 		}else{
