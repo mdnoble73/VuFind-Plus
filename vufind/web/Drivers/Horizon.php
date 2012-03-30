@@ -40,12 +40,12 @@ class Horizon implements DriverInterface{
 		// Connect to database
 		if (!isset($configArray['Catalog']['useDb']) || $configArray['Catalog']['useDb'] == true){
 			try{
-				if ($configArray['System']['windowsInstall']){
+				if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0 ){
 					sybase_min_client_severity(11);
 					$this->db = @sybase_connect($configArrayCatalog['Catalog']['database'] ,
 					$configArrayCatalog['Catalog']['username'],
 					$configArrayCatalog['Catalog']['password']);
-				}elseif ($configArray['System']['linuxInstall']){
+				}else{
 					$this->db = mssql_connect($configArrayCatalog['Catalog']['host'] . ':' . $configArrayCatalog['Catalog']['port'],
 					$configArrayCatalog['Catalog']['username'],
 					$configArrayCatalog['Catalog']['password']);
