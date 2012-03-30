@@ -2910,30 +2910,28 @@ private function parseSip2Fines($finesData){
 
 	protected function _query($query){
 		global $configArray;
-		if ($configArray['System']['windowsInstall']){
+		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
 			return sybase_query($query);
-		}elseif ($configArray['System']['linuxInstall']){
+		}else{
 			return mssql_query($query);
 		}
 	}
 	
 	protected function _fetch_assoc($result_id){
 		global $configArray;
-		if ($configArray['System']['windowsInstall']){
+		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
 			return sybase_fetch_assoc($result_id);
-		}elseif ($configArray['System']['linuxInstall']){
+		}else{
 			return mssql_fetch_assoc($result_id);
 		}
 	}
 	
 	protected function _fetch_array($result_id){
 		global $configArray;
-		if ($configArray['System']['windowsInstall']){
+		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
 			return sybase_fetch_array($result_id);
-		}elseif ($configArray['System']['linuxInstall']){
+		}else{
 			return mssql_fetch_array($result_id);
 		}
 	}
 }
-
-?>
