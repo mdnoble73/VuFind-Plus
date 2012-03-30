@@ -42,16 +42,16 @@ class Horizon implements DriverInterface{
 			try{
 				if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0 ){
 					sybase_min_client_severity(11);
-					$this->db = @sybase_connect($configArrayCatalog['Catalog']['database'] ,
-					$configArrayCatalog['Catalog']['username'],
-					$configArrayCatalog['Catalog']['password']);
+					$this->db = @sybase_connect($configArray['Catalog']['database'] ,
+					$configArray['Catalog']['username'],
+					$configArray['Catalog']['password']);
 				}else{
-					$this->db = mssql_connect($configArrayCatalog['Catalog']['host'] . ':' . $configArrayCatalog['Catalog']['port'],
-					$configArrayCatalog['Catalog']['username'],
-					$configArrayCatalog['Catalog']['password']);
+					$this->db = mssql_connect($configArray['Catalog']['host'] . ':' . $configArray['Catalog']['port'],
+					$configArray['Catalog']['username'],
+					$configArray['Catalog']['password']);
 	
 					// Select the databse
-					mssql_select_db($configArrayCatalog['Catalog']['database']);
+					mssql_select_db($configArray['Catalog']['database']);
 				}
 			}catch (Exception $e){
 				$logger = new Logger();
