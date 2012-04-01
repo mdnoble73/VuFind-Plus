@@ -250,7 +250,7 @@ public class Util {
 		}
 	}
 
-	public static void deleteDirectory(File dirToDelete) {
+	public static boolean deleteDirectory(File dirToDelete) {
 		File[] files = dirToDelete.listFiles();
 		if (files != null) {
 			for (File curFile : files) {
@@ -261,7 +261,7 @@ public class Util {
 				}
 			}
 		}
-		dirToDelete.delete();
+		return dirToDelete.delete();
 	}
 
 	public static boolean copyDir(File source, File dest) {

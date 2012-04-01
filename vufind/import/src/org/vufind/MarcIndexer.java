@@ -134,9 +134,15 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		File biblioSpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio/spellShingle");
 		File biblio2SpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellShingle");
 		logger.info("Deleting directory " + biblioIndexDir.getAbsolutePath());
-		Util.deleteDirectory(biblioIndexDir);
-		Util.deleteDirectory(biblioSpellcheckerDir);
-		Util.deleteDirectory(biblioSpellShingleDir);
+		if (!Util.deleteDirectory(biblioIndexDir)){
+			logger.error("Could not delete directory " + biblioIndexDir);
+		}
+		if (!Util.deleteDirectory(biblioSpellcheckerDir)){
+			logger.error("Could not delete directory " + biblioSpellcheckerDir);
+		}
+		if (!Util.deleteDirectory(biblioSpellShingleDir)){
+			logger.error("Could not delete directory " + biblioSpellShingleDir);
+		}
 		Util.copyDir(biblio2IndexDir, biblioIndexDir);
 		Util.copyDir(biblio2SpellcheckerDir, biblioSpellcheckerDir);
 		Util.copyDir(biblio2SpellShingleDir, biblioSpellShingleDir);
