@@ -22,12 +22,35 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private String solrPort;
 	private Logger logger;
 	private String serverName;
+	private boolean reindexUnchangedRecords;
 	
 	@Override
 	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
 		this.serverName = serverName;
 		solrPort = configIni.get("Reindex", "solrPort");
+
+		//Check to see if we should clear the existing index
+		String clearMarcRecordsAtStartOfIndexVal = configIni.get("Reindex", "clearMarcRecordsAtStartOfIndex");
+		boolean clearMarcRecordsAtStartOfIndex;
+		if (clearMarcRecordsAtStartOfIndexVal == null){
+			clearMarcRecordsAtStartOfIndex = false;
+		}else{
+			clearMarcRecordsAtStartOfIndex = Boolean.parseBoolean(clearMarcRecordsAtStartOfIndexVal);
+		}
+		if (clearMarcRecordsAtStartOfIndex){
+			logger.info("Clearing existing marc records from index");
+			Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/?commit=true", "<delete><query>recordtype:marc</query></delete>", logger);
+		}
+		
+		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
+		if (reindexUnchangedRecordsVal == null){
+			reindexUnchangedRecords = true;
+		}else{
+			reindexUnchangedRecords = Boolean.parseBoolean(reindexUnchangedRecordsVal);
+		}
+		//Make sure that we don't skip unchanged records if we are clearing at the beginning
+		if (clearMarcRecordsAtStartOfIndex) reindexUnchangedRecords = true;
 		return true;
 	}
 
@@ -44,6 +67,9 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
+		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
+			logger.info("Skipping record because it hasn't changed");
+		}
 		try {
 			//Create the XML document for the record
 			String xmlDoc = createXmlDocForRecord(recordInfo);
@@ -67,12 +93,12 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 				String fieldName = keyIterator.next();
 				Object fieldValue = recordInfo.getFields().get(fieldName);
 				if (fieldValue instanceof String){
-					doc.e("field").a("name", fieldName).t((String)fieldValue);
+					doc.e("field").a("name", fieldName).t(Util.encodeSpecialCharacters((String)fieldValue));
 				}else{
 					Set<String> fieldValues = (Set<String>)fieldValue;
 					Iterator<String> fieldValuesIter = fieldValues.iterator();
 					while(fieldValuesIter.hasNext()){
-						doc.e("field").a("name", fieldName).t(fieldValuesIter.next());
+						doc.e("field").a("name", fieldName).t(Util.encodeSpecialCharacters(fieldValuesIter.next()));
 					}
 				}
 			}

@@ -252,31 +252,31 @@ public class Util {
 
 	public static void deleteDirectory(File dirToDelete) {
 		File[] files = dirToDelete.listFiles();
-		if (files != null){
-			for (File curFile : files){
-				if (curFile.isDirectory()){
+		if (files != null) {
+			for (File curFile : files) {
+				if (curFile.isDirectory()) {
 					deleteDirectory(curFile);
-				}else{
+				} else {
 					curFile.delete();
 				}
 			}
 		}
 		dirToDelete.delete();
 	}
-	
+
 	public static boolean copyDir(File source, File dest) {
-		if (!dest.exists()){
+		if (!dest.exists()) {
 			dest.mkdir();
 		}
-		if (source.exists() == false){
+		if (source.exists() == false) {
 			return false;
 		}
 		File[] sourceFiles = source.listFiles();
-		for (File curFile : sourceFiles){
+		for (File curFile : sourceFiles) {
 			File destFile = new File(dest.getAbsolutePath() + "/" + curFile.getName());
-			if (curFile.isDirectory()){
+			if (curFile.isDirectory()) {
 				copyDir(curFile, destFile);
-			}else{
+			} else {
 				try {
 					Util.copyFile(curFile, destFile);
 				} catch (IOException e) {
@@ -285,6 +285,46 @@ public class Util {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Returns the string where all non-ascii and <, &, > are encoded as numeric
+	 * entities. I.e. "&lt;A &amp; B &gt;" .... (insert result here). The result
+	 * is safe to include anywhere in a text field in an XML-string. If there was
+	 * no characters to protect, the original string is returned.
+	 * 
+	 * @param originalUnprotectedString
+	 *          original string which may contain characters either reserved in
+	 *          XML or with different representation in different encodings (like
+	 *          8859-1 and UFT-8)
+	 * @return
+	 */
+	public static String encodeSpecialCharacters(String originalUnprotectedString) {
+		if (originalUnprotectedString == null) {
+			return null;
+		}
+		boolean anyCharactersProtected = false;
+
+		StringBuffer stringBuffer = new StringBuffer();
+		for (int i = 0; i < originalUnprotectedString.length(); i++) {
+			char ch = originalUnprotectedString.charAt(i);
+
+			boolean controlCharacter = ch < 32;
+			boolean unicodeButNotAscii = ch > 126;
+			boolean characterWithSpecialMeaningInXML = ch == '<' || ch == '&' || ch == '>';
+
+			if (characterWithSpecialMeaningInXML || unicodeButNotAscii || controlCharacter) {
+				stringBuffer.append("&#" + (int) ch + ";");
+				anyCharactersProtected = true;
+			} else {
+				stringBuffer.append(ch);
+			}
+		}
+		if (anyCharactersProtected == false) {
+			return originalUnprotectedString;
+		}
+
+		return stringBuffer.toString();
 	}
 
 }
