@@ -10,7 +10,7 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 
-public class UpdateResourceInformation implements IMarcRecordProcessor, ISupplementalProcessor{
+public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordProcessor{
 	private Logger logger;
 	private Connection conn = null;
 	
@@ -58,7 +58,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, ISupplem
 	}
 
 	@Override
-	public boolean processMarcRecord(MarcProcessor processor, BasicMarcInfo recordInfo, Logger logger) {
+	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
 			existingResourceStmt.setString(1, recordInfo.getId());
 			ResultSet existingResourceResult = existingResourceStmt.executeQuery();
@@ -72,16 +72,16 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, ISupplem
 				
 				// Update the existing record
 				String title = recordInfo.getTitle();
-				String author = recordInfo.getAuthors().size() > 0 ? recordInfo.getAuthors().get(0) : "";
+				String author = recordInfo.getAuthor();
 				
 				// Update resource SQL
 				resourceUpdateStmt.setString(1, Util.trimTo(200, title));
 				resourceUpdateStmt.setString(2, Util.trimTo(200, recordInfo.getSortTitle()));
 				resourceUpdateStmt.setString(3, Util.trimTo(255, author));
 				resourceUpdateStmt.setString(4, Util.trimTo(13, recordInfo.getIsbn()));
-				resourceUpdateStmt.setString(5, Util.trimTo(13, recordInfo.getUpc()));
-				resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFormat(processor.getFormatMap())));
-				resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFormatCategory(processor.getFormatCategoryMap())));
+				resourceUpdateStmt.setString(5, Util.trimTo(13, recordInfo.getFirstFieldValueInSet("upc")));
+				resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
+				resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
 				resourceUpdateStmt.setLong(9, new Date().getTime() / 1000);
 				resourceUpdateStmt.setLong(10, existingResourceResult.getLong(1));
@@ -98,15 +98,15 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, ISupplem
 					String sql = "INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 					resourceInsertStmt = conn.prepareStatement(sql);
 				}
-				String author = recordInfo.getAuthors().size() > 0 ? recordInfo.getAuthors().get(0) : "";
+				String author = recordInfo.getAuthor();
 				// Update resource SQL
 				resourceInsertStmt.setString(1, Util.trimTo(200, recordInfo.getTitle()));
 				resourceInsertStmt.setString(2, Util.trimTo(200, recordInfo.getSortTitle()));
 				resourceInsertStmt.setString(3, Util.trimTo(255, author));
 				resourceInsertStmt.setString(4, Util.trimTo(13, recordInfo.getIsbn()));
-				resourceInsertStmt.setString(5, Util.trimTo(13, recordInfo.getUpc()));
-				resourceInsertStmt.setString(6, Util.trimTo(50, recordInfo.getFormat(processor.getFormatMap())));
-				resourceInsertStmt.setString(7, Util.trimTo(50, recordInfo.getFormatCategory(processor.getFormatCategoryMap())));
+				resourceInsertStmt.setString(5, Util.trimTo(13, recordInfo.getFirstFieldValueInSet("upc")));
+				resourceInsertStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
+				resourceInsertStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceInsertStmt.setString(8, recordInfo.getId());
 				resourceInsertStmt.setString(9, "VuFind");
 

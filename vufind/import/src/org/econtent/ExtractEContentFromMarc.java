@@ -14,9 +14,9 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 import org.econtent.GutenbergItemInfo;
 import org.ini4j.Ini;
-import org.vufind.BasicMarcInfo;
+import org.vufind.MarcRecordDetails;
 import org.vufind.IMarcRecordProcessor;
-import org.vufind.ISupplementalProcessor;
+import org.vufind.IRecordProcessor;
 import org.vufind.MarcProcessor;
 import org.vufind.Util;
 
@@ -29,7 +29,7 @@ import au.com.bytecode.opencsv.CSVReader;
  *
  */
 
-public class ExtractEContentFromMarc implements IMarcRecordProcessor, ISupplementalProcessor{
+public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordProcessor{
 	private Logger logger;
 	private String econtentDBConnectionInfo;
 	private Connection econtentConn = null;
@@ -98,7 +98,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, ISupplemen
 	}
 	
 	@Override
-	public boolean processMarcRecord(MarcProcessor marcProcessor, BasicMarcInfo recordInfo, Logger logger) {
+	public boolean processMarcRecord(MarcProcessor marcProcessor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
 			//Check the 856 tag to see if this is a source that we can handle. 
 			String sourceUrl = recordInfo.getSourceUrl();
@@ -258,7 +258,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, ISupplemen
 		}
 	}
 
-	private void attachGutenbergItems(BasicMarcInfo recordInfo, long eContentRecordId, Logger logger) {
+	private void attachGutenbergItems(MarcRecordDetails recordInfo, long eContentRecordId, Logger logger) {
 		//If no, load the source url 
 		String sourceUrl = recordInfo.getSourceUrl();
 		logger.info("Loading gutenberg items " + sourceUrl);

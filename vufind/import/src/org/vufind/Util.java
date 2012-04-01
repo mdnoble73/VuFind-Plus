@@ -15,10 +15,13 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 public class Util {
 	public static String convertStreamToString(InputStream is) throws IOException {
@@ -30,7 +33,6 @@ public class Util {
 		 */
 		if (is != null) {
 			Writer writer = new StringWriter();
-			
 
 			char[] buffer = new char[1024];
 			try {
@@ -47,40 +49,40 @@ public class Util {
 			return "";
 		}
 	}
-	
-	public static boolean doSolrUpdate(String baseIndexUrl, String body){
+
+	public static boolean doSolrUpdate(String baseIndexUrl, String body) {
 		try {
 			HttpURLConnection conn = null;
 			OutputStreamWriter wr = null;
 			URL url = new URL(baseIndexUrl + "/update/");
-			conn = (HttpURLConnection)url.openConnection();
+			conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
 			conn.addRequestProperty("Content-Type", "text/xml");
 			wr = new OutputStreamWriter(conn.getOutputStream());
 			wr.write(body);
 			wr.flush();
-			
+
 			// Get the response
-			InputStream _is;  
+			InputStream _is;
 			boolean doOuptut = false;
-			if (conn.getResponseCode() == 200) {  
-			    _is = conn.getInputStream();  
+			if (conn.getResponseCode() == 200) {
+				_is = conn.getInputStream();
 			} else {
 				System.out.println("Error in update");
 				System.out.println("  " + body);
-			     /* error from server */  
-			    _is = conn.getErrorStream();
-			    doOuptut = true;
+				/* error from server */
+				_is = conn.getErrorStream();
+				doOuptut = true;
 			}
 			BufferedReader rd = new BufferedReader(new InputStreamReader(_is));
 			String line;
 			while ((line = rd.readLine()) != null) {
-			    if (doOuptut) System.out.println(line);
+				if (doOuptut) System.out.println(line);
 			}
 			wr.close();
 			rd.close();
 			conn.disconnect();
-			
+
 			return true;
 		} catch (MalformedURLException e) {
 			System.out.println("Invalid url optimizing genealogy index " + e.toString());
@@ -91,36 +93,37 @@ public class Util {
 			return false;
 		}
 	}
-	
-	public static String getCRSeparatedString(List<String> values){
+
+	public static String getCRSeparatedString(List<String> values) {
 		StringBuffer crSeparatedString = new StringBuffer();
-		for(String curValue : values){
-			if (crSeparatedString.length() > 0){
+		for (String curValue : values) {
+			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append("\r\n");
 			}
 			crSeparatedString.append(curValue);
 		}
 		return crSeparatedString.toString();
 	}
-	
-	public static String getCRSeparatedString(HashSet<String> values){
+
+	public static String getCRSeparatedString(HashSet<String> values) {
 		StringBuffer crSeparatedString = new StringBuffer();
-		for(String curValue : values){
-			if (crSeparatedString.length() > 0){
+		for (String curValue : values) {
+			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append("\r\n");
 			}
 			crSeparatedString.append(curValue);
 		}
 		return crSeparatedString.toString();
 	}
+
 	public static void copyFile(File sourceFile, File destFile) throws IOException {
 		if (!destFile.exists()) {
 			destFile.createNewFile();
 		}
-	
+
 		FileChannel source = null;
 		FileChannel destination = null;
-	
+
 		try {
 			source = new FileInputStream(sourceFile).getChannel();
 			destination = new FileOutputStream(destFile).getChannel();
@@ -134,52 +137,50 @@ public class Util {
 			}
 		}
 	}
-	
-	public static String encodeString(String originalString){
-		//System.out.println(originalString);
+
+	public static String encodeString(String originalString) {
+		// System.out.println(originalString);
 		return originalString;
-		/*Charset charset = Charset.forName("US-ASCII");
-		CharsetEncoder encoder = charset.newEncoder();
-		ByteBuffer bb = null;
-
-		encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
-		try {
-			CharBuffer cb = CharBuffer.wrap(originalString);
-			bb = encoder.encode(cb);
-		} catch (CharacterCodingException e) {
-			e.printStackTrace();
-		}
-
-		CharBuffer cbb = bb.asCharBuffer();
-		return cbb.toString();*/
+		/*
+		 * Charset charset = Charset.forName("US-ASCII"); CharsetEncoder encoder =
+		 * charset.newEncoder(); ByteBuffer bb = null;
+		 * 
+		 * encoder.onUnmappableCharacter(CodingErrorAction.IGNORE); try { CharBuffer
+		 * cb = CharBuffer.wrap(originalString); bb = encoder.encode(cb); } catch
+		 * (CharacterCodingException e) { e.printStackTrace(); }
+		 * 
+		 * CharBuffer cbb = bb.asCharBuffer(); return cbb.toString();
+		 */
 	}
-	
-	public static String cleanIniValue(String value){
-		if (value == null){
+
+	public static String cleanIniValue(String value) {
+		if (value == null) {
 			return null;
 		}
 		value = value.trim();
-		if (value.startsWith("\"")){
+		if (value.startsWith("\"")) {
 			value = value.substring(1);
 		}
-		if (value.endsWith("\"")){
-			value = value.substring(0, value.length() -1);
+		if (value.endsWith("\"")) {
+			value = value.substring(0, value.length() - 1);
 		}
 		return value;
 	}
-	
+
 	public static String trimTo(int maxCharacters, String stringToTrim) {
-		if (stringToTrim.length() > maxCharacters){
+		if (stringToTrim == null) {
+			return null;
+		}
+		if (stringToTrim.length() > maxCharacters) {
 			stringToTrim = stringToTrim.substring(0, maxCharacters);
 		}
 		return stringToTrim;
 	}
-	
+
 	public static HashMap<String, String> readPropertiesFile(File formatMapFile) throws IOException {
 		HashMap<String, String> formatMap = new HashMap<String, String>();
 		BufferedReader reader = new BufferedReader(new FileReader(formatMapFile));
 		String inputLine = reader.readLine();
-		System.out.println("Reading properties file " + formatMapFile.getAbsolutePath());
 		while (inputLine != null) {
 			inputLine = inputLine.trim();
 			if (inputLine.length() == 0 || inputLine.startsWith("#")) {
@@ -194,7 +195,59 @@ public class Util {
 			}
 			inputLine = reader.readLine();
 		}
-		System.out.println("Finished reading properties file " + formatMapFile.getAbsolutePath() + " found " + formatMap.size() + " records.");
 		return formatMap;
-	}	
+	}
+
+	public static String postToURL(String url, String postData, Logger logger) {
+		try {
+			URL emptyIndexURL = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn.setDoInput(true);
+			if (postData != null && postData.length() > 0) {
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Type", "text/xml");
+
+				conn.setRequestProperty("Content-Language", "en-US");
+
+				conn.setDoOutput(true);
+				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+				wr.write(postData);
+				wr.flush();
+				wr.close();
+			}
+
+			StringBuffer response = new StringBuffer();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
+				logger.info(postData);
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+			}
+
+			return response.toString();
+		} catch (MalformedURLException e) {
+			logger.error("URL to post (" + url + ") is malformed", e);
+			return "";
+		} catch (IOException e) {
+			logger.error("Error posting to url \r\n" + url, e);
+			System.exit(1);
+			return "";
+		}
+	}
+
 }

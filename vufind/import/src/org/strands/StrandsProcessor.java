@@ -19,14 +19,14 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.vufind.BasicMarcInfo;
+import org.vufind.MarcRecordDetails;
 import org.vufind.IEContentProcessor;
 import org.vufind.IMarcRecordProcessor;
-import org.vufind.ISupplementalProcessor;
+import org.vufind.IRecordProcessor;
 import org.vufind.MarcProcessor;
 import org.vufind.Util;
 
-public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcessor, ISupplementalProcessor {
+public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcessor, IRecordProcessor {
 	private Logger logger;
 	private BufferedWriter writer;
 	private String vufindUrl;
@@ -266,7 +266,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	}
 
 	@Override
-	public boolean processMarcRecord(MarcProcessor processor, BasicMarcInfo recordInfo, Logger logger) {
+	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
 			// Write the id
 			writer.write("'" + recordInfo.getId() + "'");

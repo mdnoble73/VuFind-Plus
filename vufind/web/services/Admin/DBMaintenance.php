@@ -353,6 +353,52 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'resource_callnumber' => array(
+				'title' => 'Resource call numbers',
+				'description' => 'Create table to store call numbers for resources',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS resource_callnumber",
+
+				  'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
+				  'id int(11) NOT NULL AUTO_INCREMENT, '.
+				  'resourceId INT NOT NULL, ' .
+					'locationId INT NOT NULL, ' .
+					'callnumber VARCHAR(50) NOT NULL DEFAULT "", ' .
+					'PRIMARY KEY (id), '.
+					'INDEX (`callnumber`), ' .
+					'INDEX (`resourceId`), ' .
+					'INDEX (`locationId`)' .
+					') ENGINE=InnoDB',
+				),
+			),
+			
+			'resource_subject' => array(
+				'title' => 'Resource subject',
+				'description' => 'Create table to store subjects for resources',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS subject",
+			
+					'CREATE TABLE IF NOT EXISTS subject (' .
+				  'id int(11) NOT NULL AUTO_INCREMENT, '.
+				  'subject VARCHAR(100) NOT NULL, ' .
+					'PRIMARY KEY (id), '.
+					'INDEX (`subject`)' .
+					') ENGINE=InnoDB',
+			
+					"DROP TABLE IF EXISTS resource_subject",
+
+				  'CREATE TABLE IF NOT EXISTS resource_subject (' .
+				  'id int(11) NOT NULL AUTO_INCREMENT, '.
+				  'resourceId INT(11) NOT NULL, ' .
+					'subjectId INT(11) NOT NULL, ' .
+					'PRIMARY KEY (id), '.
+					'INDEX (`resourceId`), ' .
+					'INDEX (`subjectId`)' .
+					') ENGINE=InnoDB',
+				),
+			),
 
 			'readingHistory' => array(
         'title' => 'Reading History Creation',
@@ -605,6 +651,78 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'alpha_browse_setup' => array(
+			'title' => 'Setup Alphabetic Browse',
+			'description' => 'Create tables to handle alphabetic browse functionality.',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS title_browse",
+				"DROP TABLE IF EXISTS author_browse",
+				"DROP TABLE IF EXISTS callnumber_browse",
+				"DROP TABLE IF EXISTS subject_browse",
+				"CREATE TABLE `title_browse` ( 
+					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+				PRIMARY KEY ( `id` ) ,
+				INDEX ( `value` )
+				) ENGINE = InnoDB;",
+				"CREATE TABLE `author_browse` ( 
+					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+				PRIMARY KEY ( `id` ) ,
+				INDEX ( `value` )
+				) ENGINE = InnoDB;",
+				"CREATE TABLE `callnumber_browse` ( 
+					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+				PRIMARY KEY ( `id` ) ,
+				INDEX ( `value` )
+				) ENGINE = InnoDB;",
+				"CREATE TABLE `subject_browse` ( 
+					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+				PRIMARY KEY ( `id` ) ,
+				INDEX ( `value` )
+				) ENGINE = InnoDB;",
+			),
+		),
+		
+		'indexLog' => array(
+      'title' => 'Reindex Log table',
+      'description' => 'Create Reindex Log table to track reindexing.',
+      'dependencies' => array(),
+      'sql' => array(
+		    'DROP TABLE IF EXISTS reindex_log;',
+		    "CREATE TABLE IF NOT EXISTS reindex_log(" .
+			    "`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
+					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
+					"`endTime` INT(11) NULL COMMENT 'The timestamp when the reindex process ended', " .
+					"`numRecordsAddedToSolr` INT(11), " .
+					"`numRecordsRemovedFromSolr` INT(11), " .
+					"`numUnchangedRecords` INT(11), " .
+					"`notes` LONGTEXT COMMENT 'Detailed information about the reindex process.', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = MYISAM;",
+      ),
+		),
+		
+		'marcImport' => array(
+      'title' => 'Marc Import table',
+      'description' => 'Create a table to store information about marc records that are being imported.',
+      'dependencies' => array(),
+      'sql' => array(
+		    'DROP TABLE IF EXISTS marc_import;',
+		    "CREATE TABLE IF NOT EXISTS marc_import(" .
+			    "`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
+					"`checksum` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = MYISAM;",
+      ),
+		),
 		'add_indexes' => array(
 			'title' => 'Add indexes',
 			'description' => 'Add indexes to tables that were not defined originally',

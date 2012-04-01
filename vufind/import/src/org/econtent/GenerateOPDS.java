@@ -20,9 +20,9 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.vufind.IEContentProcessor;
-import org.vufind.ISupplementalProcessor;
+import org.vufind.IRecordProcessor;
 
-public class GenerateOPDS implements IEContentProcessor, ISupplementalProcessor{
+public class GenerateOPDS implements IEContentProcessor, IRecordProcessor{
 	private Logger logger;
 	private BufferedWriter writer;
 	private String econtentDBConnectionInfo;
@@ -39,7 +39,7 @@ public class GenerateOPDS implements IEContentProcessor, ISupplementalProcessor{
 		}
 		return true;
 	}
-	public voif temp(){
+	public void temp(){
 		try {
 			//Connect to the eContent database
 			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);

@@ -13,7 +13,6 @@ import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -41,21 +40,6 @@ import org.strands.StrandsProcessor;
  * Reindex process does the following steps: 
  * 1) Runs export process to extract
  * marc records from the ILS (if applicable) 
- * 2) Empty backup index of all marc
- * records (preserves lists) 
- * 3) Processes marc record files in export to import
- * them into backup index 
- * 4) Optimizes backup index 
- * 5) Check the reindexing process for errors and make sure the new index is ok to load
- * 6) Swap main
- * index and backup index so backup is moved into production 
- * 7) Unload both indexes so the indexes can be synchronized
- * 8) Copy files from the backup index to the main index 
- * 9) Reload the indexes 
- * 10) Update the alphabetic browse databases 
- * 11) Update resources database 
- * 12) Process marc record export for eContent that can be automatically extracted 
- * 13) Send email notification that the index is complete
  * 
  * @author Mark Noble <mnoble@turningleaftech.com>
  * 
@@ -66,11 +50,11 @@ public class ReindexProcess {
 
 	//General configuration
 	private static String serverName;
-	private static String libraryAbbrev;
 	private static Ini configIni;
 	private static String solrPort;
 	
 	//Reporting information
+	private static long reindexLogId;
 	private static int numSevereErrors = 0;
 	private static HashSet<String> distinctSevereErrors = new HashSet<String>(); 
 	private static int numErrors = 0;
@@ -84,8 +68,8 @@ public class ReindexProcess {
 	//Variables to determine what sub processes to run. 
 	private static boolean updateSolr = true;
 	private static boolean updateResources = true;
-	private static boolean loadEContentFromMarc = true;
-	private static boolean exportStrandsCatalog = true;
+	private static boolean loadEContentFromMarc = false;
+	private static boolean exportStrandsCatalog = false;
 	private static boolean exportOPDSCatalog = true;
 	
 	//Database connections and prepared statements
@@ -108,84 +92,88 @@ public class ReindexProcess {
 		System.setProperty("reindex.process.serverName", serverName);
 		
 		initializeReindex();
-
 		
-		// 1) Runs export process to extract marc records from the ILS (if
-		// applicable)
+		// Runs the export process to extract marc records from the ILS (if applicable)
 		runExportScript();
 		
-		if (updateSolr){
-			// 2) Empty backup index of all marc records (preserves lists)
-			@SuppressWarnings("deprecation")
-			String emptyIndexResponse = postToURL("http://localhost:" + solrPort + "/solr/biblio2/update?stream.body=" + URLEncoder.encode("<delete><query>recordtype:marc</query></delete>") + "&commit=true", null);
-			logger.info("Response for emptying index " + emptyIndexResponse);
-	
-			// 3) Processes marc record files in export to import them into backup index
-			importMarcFiles();
-	
-			// 4) Optimizes backup index (done as part of the index)
-			try {
-				@SuppressWarnings("deprecation")
-				String optimizeResponse = postToURL("http://localhost:" + solrPort + "/solr/biblio2/update?stream.body=" + URLEncoder.encode("<optimize />"), null);
-				logger.info("Response for swaping cores " + optimizeResponse);
-			} catch (Exception e) {
-				logger.error("Error optimizing biblio2", e);
-			}
-			
-			// 5) Check the reindexing process for errors and make sure the new index is ok to load
-			checkMarcImport();
-			
-			// 6) Swap main index and backup index so backup is moved into production
-			String swapCoresResponse = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", null);
-			logger.info("Response for swaping cores " + swapCoresResponse);
-			
-			// 7-9) Move biblio2 index to biblio index
-			moveBiblio2ToBiblio();
-			
-			// 10) Update the alphabetic browse databases
-			try {
-				logger.info("Building Alphabetic browse");
-				if (SystemUtil.isWindowsPlatform()){
-					String buildBrowseResult = SystemUtil.executeCommand(new String[]{"cmd", "/C", "start", "index-alphabetic-browse.bat", libraryAbbrev}, logger);
-					logger.info("buildBrowseResult = " + buildBrowseResult);
-				}else{
-					String buildBrowseResult = SystemUtil.executeCommand(new String[]{"index-alphabetic-browse.sh", libraryAbbrev}, logger);
-					logger.info("buildBrowseResult = " + buildBrowseResult);
-				}
-				
-			} catch (Exception e) {
-				logger.error("Error running importScript", e);
-			}
-		}
-		
-		ArrayList<ISupplementalProcessor> supplementalProcessors = loadSupplementalProcessors();
-		if (supplementalProcessors.size() > 0){
-			for (ISupplementalProcessor processor : supplementalProcessors){
+		//Process all reords (marc records, econtent that has been added to the database, and resources)
+		ArrayList<IRecordProcessor> recordProcessors = loadRecordProcesors();
+		if (recordProcessors.size() > 0){
+			logger.info("Initializing record processors");
+			for (IRecordProcessor processor : recordProcessors){
 				processor.init(configIni, logger);
 			}
-			//Do additional processing of marc records
-			doSupplementalMarcProcessing(supplementalProcessors);
+			//Do processing of marc records with record processors loaded above. 
+			// includes indexing records
+			// extracting eContent from records
+			// Updating resource information
+			// Saving records to strands - may need to move to resources if we are doing partial exports
+			processMarcRecords(recordProcessors);
 			
-			//Create resources for all eContent records if they don't have a resource already. 
-			doSupplementalEContentProcessing(supplementalProcessors);
+			//Process eContent records that have been saved to the database. 
+			/*processEContentRecords(recordProcessors);
 			
 			//Do processing of resources as needed (for extraction of resources).
-			doSupplementalResourceProcessing(supplementalProcessors);
+			processResources(recordProcessors);*/
 			
-			for (ISupplementalProcessor processor : supplementalProcessors){
+			for (IRecordProcessor processor : recordProcessors){
 				processor.finish();
 			}
 		}
 		
-		// 15) Send email notification that the index is complete or update the database
+		// Update the alphabetic browse database tables
+		buildAlphaBrowseTables();
+		
+		// Send completion information
 		endTime = new Date().getTime();
 		sendCompletionMessage(true);
 
 		logger.info("Finished Reindex for " + serverName);
 	}
+		
+	private static void buildAlphaBrowseTables() {
+		logger.info("Building Alphabetic Browse tables");
+		//Run queries to create alphabetic browse tables from resources table
+		try {
+			//Setup title browse
+			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE title_browse");
+			truncateTable.executeUpdate();
+			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
+			setRowNumberStatement.execute();
+			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO title_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.numResults, baseQuery.title FROM (SELECT count(id) as numResults, title, title_sort FROM `resource` WHERE title_sort is not null and CHAR_LENGTH(title_sort) > 0 and title_sort != 'null' group by title) baseQuery order by title_sort asc");
+			int numBrowseRows = createBrowseTable.executeUpdate();
+			logger.info("Added " + numBrowseRows + " to title browse table");
+		} catch (SQLException e) {
+			logger.error("Error creating title browse table", e);
+		}
+		
+		try {
+			//Setup author browse
+			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE author_browse");
+			truncateTable.executeUpdate();
+			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
+			setRowNumberStatement.execute();
+			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO author_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.* FROM (SELECT count(id) as numResults, author FROM `resource` WHERE author is not null and CHAR_LENGTH(author) > 0 and author != 'null' group by author) baseQuery order by author asc");
+			int numBrowseRows = createBrowseTable.executeUpdate();
+			logger.info("Added " + numBrowseRows + " to author browse table");
+		} catch (SQLException e) {
+			logger.error("Error creating author browse table", e);
+		}
+
+	}
+
 	
-	private static ArrayList<ISupplementalProcessor> loadSupplementalProcessors(){
-		ArrayList<ISupplementalProcessor> supplementalProcessors = new ArrayList<ISupplementalProcessor>();
+	private static ArrayList<IRecordProcessor> loadRecordProcesors(){
+		ArrayList<IRecordProcessor> supplementalProcessors = new ArrayList<IRecordProcessor>();
+		if (updateSolr){
+			MarcIndexer marcIndexer = new MarcIndexer();
+			if (marcIndexer.init(configIni, logger)){
+				supplementalProcessors.add(marcIndexer);
+			}else{
+				logger.error("Could not initialize marcIndexer");
+				System.exit(1);
+			}
+		}
 		if (updateResources){
 			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
 			if (resourceUpdater.init(configIni, logger)){
@@ -220,9 +208,9 @@ public class ReindexProcess {
 		return supplementalProcessors;
 	}
 
-	private static void doSupplementalResourceProcessing(ArrayList<ISupplementalProcessor> supplementalProcessors) {
+	private static void processResources(ArrayList<IRecordProcessor> supplementalProcessors) {
 		ArrayList<IResourceProcessor> resourceProcessors = new ArrayList<IResourceProcessor>();
-		for (ISupplementalProcessor processor: supplementalProcessors){
+		for (IRecordProcessor processor: supplementalProcessors){
 			if (processor instanceof IResourceProcessor){
 				resourceProcessors.add((IResourceProcessor)processor);
 			}
@@ -231,6 +219,7 @@ public class ReindexProcess {
 			return;
 		}
 		
+		logger.info("Processing resources");
 		try {
 			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource");
 			ResultSet allResources = allResourcesStmt.executeQuery();
@@ -244,8 +233,10 @@ public class ReindexProcess {
 		}
 	}
 
-	private static void doSupplementalEContentProcessing(ArrayList<ISupplementalProcessor> supplementalProcessors) {
+	private static void processEContentRecords(ArrayList<IRecordProcessor> supplementalProcessors) {
 		try {
+			logger.info("Processing econtent records");
+			
 			//Setup prepared statements that we will use
 			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'");
 			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated from resource where record_id = ? and source = 'eContent'");
@@ -344,9 +335,9 @@ public class ReindexProcess {
 		}
 	}
 
-	private static void doSupplementalMarcProcessing(ArrayList<ISupplementalProcessor> supplementalProcessors) {
+	private static void processMarcRecords(ArrayList<IRecordProcessor> supplementalProcessors) {
 		ArrayList<IMarcRecordProcessor> marcProcessors = new ArrayList<IMarcRecordProcessor>();
-		for (ISupplementalProcessor processor: supplementalProcessors){
+		for (IRecordProcessor processor: supplementalProcessors){
 			if (processor instanceof IMarcRecordProcessor){
 				marcProcessors.add((IMarcRecordProcessor)processor);
 			}
@@ -356,29 +347,30 @@ public class ReindexProcess {
 		}
 		
 		MarcProcessor marcProcessor = new MarcProcessor();
-		marcProcessor.init(configIni, logger);
+		marcProcessor.init(serverName, configIni, vufindConn, logger);
 		
 		if (supplementalProcessors.size() > 0){
+			logger.info("Processing exported marc records");
 			marcProcessor.processMarcFiles(marcProcessors, logger);
 		}
 	}
 
 	private static void moveBiblio2ToBiblio() {
 		// 7) Unload the main index
-		String unloadBiblio2Response = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio2", null);
+		String unloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio2", null, logger);
 		logger.info("Response for unloading biblio 2 core " + unloadBiblio2Response);
 		
-		String unloadBiblioResponse = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio", null);
+		String unloadBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio", null, logger);
 		logger.info("Response for unloading biblio core " + unloadBiblioResponse);
 		
 		// 8) Copy files from the backup index to the main index
 		// Remove all files from biblio (index, spellchecker, spellShingle)
-		File biblioIndexDir = new File ("../../solr-data/" + libraryAbbrev + "/biblio/index");
-		File biblio2IndexDir = new File ("../../solr-data/" + libraryAbbrev + "/biblio2/index");
-		File biblioSpellcheckerDir = new File ("../../solr-data/" + libraryAbbrev + "/biblio/spellchecker");
-		File biblio2SpellcheckerDir = new File ("../../solr-data/" + libraryAbbrev + "/biblio2/spellchecker");
-		File biblioSpellShingleDir = new File ("../../solr-data/" + libraryAbbrev + "/biblio/spellShingle");
-		File biblio2SpellShingleDir = new File ("../../solr-data/" + libraryAbbrev + "/biblio2/spellShingle");
+		File biblioIndexDir = new File ("../../sites/" + serverName + "/solr/biblio/index");
+		File biblio2IndexDir = new File ("../../sites/" + serverName + "/solr/biblio2/index");
+		File biblioSpellcheckerDir = new File ("../../sites/" + serverName + "/solr/biblio/spellchecker");
+		File biblio2SpellcheckerDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellchecker");
+		File biblioSpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio/spellShingle");
+		File biblio2SpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellShingle");
 		deleteDirectory(biblioIndexDir);
 		deleteDirectory(biblioSpellcheckerDir);
 		deleteDirectory(biblioSpellShingleDir);
@@ -387,10 +379,10 @@ public class ReindexProcess {
 		copyDir(biblio2SpellShingleDir, biblioSpellShingleDir);
 		
 		// 9) Reload the indexes
-		String createBiblioResponse = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio&instanceDir=biblio", null);
+		String createBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio&instanceDir=biblio", null, logger);
 		logger.info("Response for creating biblio2 core " + createBiblioResponse);
 		
-		String createBiblio2Response = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio2&instanceDir=biblio2", null);
+		String createBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio2&instanceDir=biblio2", null, logger);
 		logger.info("Response for creating biblio2 core " + createBiblio2Response);
 	}
 
@@ -421,12 +413,12 @@ public class ReindexProcess {
 		File schema = new File("../../sites/" + serverName + "/solr/biblio/conf/schema.xml");
 		File schema2 = new File("../../sites/" + serverName + "/solr/biblio2/conf/schema.xml");
 		try {
-			copyFile(schema, schema2);
+			Util.copyFile(schema, schema2);
 		} catch (IOException e) {
 			logger.error("Unable to copy schema from biblio to biblio2", e);
 			System.exit(1);
 		}
-		String reloadBiblio2Response = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=biblio2", null);
+		String reloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=biblio2", null, logger);
 		logger.info("Response for reloading biblio2 " + reloadBiblio2Response);
 		// Get the marc files to process
 		String marcFilePath = configIni.get("Reindex", "marcPath");
@@ -465,13 +457,14 @@ public class ReindexProcess {
 		}
 		
 		// Reload biblio 2 again so the optimzation can cleanup files
-		reloadBiblio2Response = postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=biblio2", null);
+		reloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=biblio2", null, logger);
 		logger.info("Response for reloading biblio2 " + reloadBiblio2Response);
 	}
 
 	private static void runExportScript() {
 		String extractScript = configIni.get("Reindex", "extractScript");
 		if (extractScript.length() > 0) {
+			logger.info("Running export script");
 			try {
 				String reindexResult = SystemUtil.executeCommand(extractScript, "", logger);
 				logger.info("Result of extractScript (" + extractScript + ") was " + reindexResult);
@@ -519,6 +512,7 @@ public class ReindexProcess {
 
 		// Load the configuration file
 		String configName = "../../sites/" + serverName + "/conf/config.ini";
+		logger.info("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
 			logger.error("Could not find confiuration file " + configName);
@@ -541,7 +535,6 @@ public class ReindexProcess {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");
 			System.exit(1);
 		}
-		libraryAbbrev = configIni.get("Reindex", "libraryAbbrev");
 		
 		String updateSolrStr = configIni.get("Reindex", "updateSolr");
 		if (updateSolrStr != null){
@@ -564,6 +557,7 @@ public class ReindexProcess {
 			loadEContentFromMarc = Boolean.parseBoolean(loadEContentFromMarcStr);
 		}
 		
+		logger.info("Setting up database connections");
 		//Setup connections to vufind and econtent databases
 		String databaseConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_vufind_jdbc"));
 		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
@@ -589,6 +583,21 @@ public class ReindexProcess {
 			System.exit(1);
 		}
 		
+		//Start a reindex log entry 
+		try {
+			logger.info("Creating log entry for index");
+			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO reindex_log (startTime) VALUES (?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			createLogEntryStatement.setLong(1, new Date().getTime() / 1000);
+			createLogEntryStatement.executeUpdate();
+			ResultSet generatedKeys = createLogEntryStatement.getGeneratedKeys();
+			if (generatedKeys.next()){
+				reindexLogId = generatedKeys.getLong(1);
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to create log entry for reindex process", e);
+			System.exit(0);
+		}
+		
 	}
 
 	private static void copyDir(File source, File dest) {
@@ -606,7 +615,7 @@ public class ReindexProcess {
 				copyDir(curFile, destFile);
 			}else{
 				try {
-					copyFile(curFile, destFile);
+					Util.copyFile(curFile, destFile);
 				} catch (IOException e) {
 					logger.error("Error copying file", e);
 				}
@@ -645,60 +654,6 @@ public class ReindexProcess {
 		}
 		return filesToProcess;
 	}
-
-	private static String postToURL(String url, String postData) {
-		try {
-			URL emptyIndexURL = new URL(url);
-			URLConnection conn = emptyIndexURL.openConnection();
-			if (postData != null && postData.length() > 0){
-				conn.setDoOutput(true);
-				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-				wr.write(postData);
-				wr.flush();
-				wr.close();
-			}
-
-			// Get the response
-			BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			String line;
-			StringBuffer response = new StringBuffer();
-			while ((line = rd.readLine()) != null) {
-				response.append(line);
-			}
-			
-			rd.close();
-			return response.toString();
-		} catch (MalformedURLException e) {
-			logger.error("URL to post (" + url + ") is malformed", e);
-			return "";
-		} catch (IOException e) {
-			logger.error("Error posting to url \r\n" + url , e);
-			System.exit(1);
-			return "";
-		}
-	}
-
-	private static void copyFile(File sourceFile, File destFile) throws IOException {
-		if (!destFile.exists()) {
-			destFile.createNewFile();
-		}
-	
-		FileChannel source = null;
-		FileChannel destination = null;
-	
-		try {
-			source = new FileInputStream(sourceFile).getChannel();
-			destination = new FileOutputStream(destFile).getChannel();
-			destination.transferFrom(source, 0, source.size());
-		} finally {
-			if (source != null) {
-				source.close();
-			}
-			if (destination != null) {
-				destination.close();
-			}
-		}
-	}
 	
 	private static void getSolrmarcStats(File fileToRead){
 		try {
@@ -731,6 +686,7 @@ public class ReindexProcess {
 	}
 	
 	private static void sendCompletionMessage(boolean passed){
+		/*StringBuffer completionNotes = new StringBuffer();
 		if (passed){
 			logger.info("Reindex completed successfully");
 		}else{
@@ -751,6 +707,16 @@ public class ReindexProcess {
 		}
 		long elapsedTime = endTime - startTime;
 		float elapsedMinutes = (float)elapsedTime / (float)(60000); 
-		logger.info("Time elpased: " + elapsedMinutes + " minutes");
+		logger.info("Time elpased: " + elapsedMinutes + " minutes");*/
+		
+		try {
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, notes = ? WHERE id=?");
+			finishedStatement.setLong(1, new Date().getTime() / 1000);
+			finishedStatement.setString(2, "");
+			finishedStatement.setLong(3, reindexLogId);
+			finishedStatement.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Unable to update reindex log with completion time.", e);
+		}
 	}
 }
