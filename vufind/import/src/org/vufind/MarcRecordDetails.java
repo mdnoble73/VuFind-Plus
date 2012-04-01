@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -15,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
@@ -96,7 +100,7 @@ public class MarcRecordDetails {
 				}
 			} else if (indexType.startsWith("custom")) {
 				try {
-					handleCustom(fields, indexType, indexField, mapName, record, indexParm);
+					handleCustom(fields, indexType, indexField, mapName, indexParm);
 				} catch (SolrMarcIndexerException e) {
 					String recCntlNum = null;
 					try {
@@ -283,7 +287,7 @@ public class MarcRecordDetails {
 	 * @return the contents of the indicated marc field(s)/subfield(s), as a set
 	 *         of Strings.
 	 */
-	public static Set<String> getFieldList(Record record, String tagStr) {
+	public Set<String> getFieldList(Record record, String tagStr) {
 		String[] tags = tagStr.split(":");
 		Set<String> result = new LinkedHashSet<String>();
 		for (int i = 0; i < tags.length; i++) {
@@ -330,13 +334,13 @@ public class MarcRecordDetails {
 
 				if (havePattern)
 					if (linkedField)
-						result.addAll(getLinkedFieldValue(record, tag, subfield, separator));
+						result.addAll(getLinkedFieldValue(tag, subfield, separator));
 					else
-						result.addAll(getAllSubfields(record, tag + subfield, separator));
+						result.addAll(getAllSubfields(tag + subfield, separator));
 				else if (linkedField)
-					result.addAll(getLinkedFieldValue(record, tag, subfield, separator));
+					result.addAll(getLinkedFieldValue(tag, subfield, separator));
 				else
-					result.addAll(getSubfieldDataAsSet(record, tag, subfield, separator));
+					result.addAll(getSubfieldDataAsSet(tag, subfield, separator));
 			}
 		}
 		return result;
@@ -374,7 +378,7 @@ public class MarcRecordDetails {
 	 *          subfields to use.
 	 * @return first value of the indicated marc field(s)/subfield(s) as a string
 	 */
-	public static String getFirstFieldVal(Record record, String tagStr) {
+	public String getFirstFieldVal(Record record, String tagStr) {
 		Set<String> result = getFieldList(record, tagStr);
 		Iterator<String> iter = result.iterator();
 		if (iter.hasNext())
@@ -437,7 +441,7 @@ public class MarcRecordDetails {
 	 * @return set of Strings containing the values of the designated 880
 	 *         field(s)/subfield(s)
 	 */
-	public static Set<String> getLinkedFieldValue(final Record record, String tag, String subfield, String separator) {
+	public Set<String> getLinkedFieldValue(String tag, String subfield, String separator) {
 		// assume brackets expression is a pattern such as [a-z]
 		Set<String> result = new LinkedHashSet<String>();
 		boolean havePattern = false;
@@ -501,7 +505,7 @@ public class MarcRecordDetails {
 	 *          fldTag
 	 */
 	@SuppressWarnings("unchecked")
-	protected static Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfldsStr, String separator) {
+	protected Set<String> getSubfieldDataAsSet(String fldTag, String subfldsStr, String separator) {
 		Set<String> resultSet = new LinkedHashSet<String>();
 
 		// Process Leader
@@ -608,8 +612,6 @@ public class MarcRecordDetails {
 	 * of each marc field will be put in a separate result (but the subfields will
 	 * be concatenated into a single value for each marc field)
 	 * 
-	 * @param record
-	 *          marc record object
 	 * @param fieldSpec
 	 *          - the desired marc fields and subfields as given in the
 	 *          xxx_index.properties file
@@ -618,7 +620,7 @@ public class MarcRecordDetails {
 	 *          contents
 	 * @return Set of values (as strings) for solr field
 	 */
-	public static Set<String> getAllSubfields(final Record record, String fieldSpec, String separator) {
+	public Set<String> getAllSubfields(String fieldSpec, String separator) {
 		Set<String> result = new LinkedHashSet<String>();
 
 		String[] fldTags = fieldSpec.split(":");
@@ -824,36 +826,20 @@ public class MarcRecordDetails {
 	 *          convert the data in the specified fields of the MARC record to the
 	 *          desired values to be included in the Solr index record. (If
 	 *          mapName is null, the values in the record will be returned as-is.)
-	 * @param record
-	 *          - The MARC record that is being indexed.
 	 * @param indexParm
 	 *          - contains the name of the custom method to invoke, as well as the
 	 *          additional parameters to pass to that method.
 	 */
-	private void handleCustom(Map<String, Object> indexMap, String indexType, String indexField, String mapName, Record record, String indexParm)
+	private void handleCustom(Map<String, Object> indexMap, String indexType, String indexField, String mapName, String indexParm)
 			throws SolrMarcIndexerException {
 		Object retval = null;
 		Class<?> returnType = null;
-		String recCntlNum = null;
-		try {
-			recCntlNum = record.getControlNumber();
-		} catch (NullPointerException npe) { /*
-																					 * ignore as this is for error msgs
-																					 * only
-																					 */
-		}
+		String id = this.getId();
 
 		String className = null;
 		Class<?> classThatContainsMethod = this.getClass();
 		Object objectThatContainsMethod = this;
 		try {
-			if (indexType.matches("custom(DeleteRecordIfFieldEmpty)?[(][a-zA-Z0-9.]+[)]")) {
-				className = indexType.replaceFirst("custom(DeleteRecordIfFieldEmpty)?[(]([a-zA-Z0-9.]+)[)]", "$2");
-				if (marcProcessor.getCustomMixinMap().containsKey(className)) {
-					objectThatContainsMethod = marcProcessor.getCustomMixinMap().get(className);
-					classThatContainsMethod = objectThatContainsMethod.getClass();
-				}
-			}
 
 			Method method;
 			if (indexParm.indexOf("(") != -1) {
@@ -862,13 +848,11 @@ public class MarcRecordDetails {
 				// parameters are separated by unescaped commas
 				String parms[] = parmStr.trim().split("(?<=[^\\\\]),");
 				int numparms = parms.length;
-				Class parmClasses[] = new Class[numparms + 1];
-				parmClasses[0] = Record.class;
-				Object objParms[] = new Object[numparms + 1];
-				objParms[0] = record;
+				Class parmClasses[] = new Class[numparms];
+				Object objParms[] = new Object[numparms];
 				for (int i = 0; i < numparms; i++) {
-					parmClasses[i + 1] = String.class;
-					objParms[i + 1] = Util.cleanIniValue(parms[i].trim());
+					parmClasses[i] = String.class;
+					objParms[i] = Util.cleanIniValue(parms[i].trim());
 				}
 				method = marcProcessor.getCustomMethodMap().get(functionName);
 				if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
@@ -876,30 +860,30 @@ public class MarcRecordDetails {
 				retval = method.invoke(objectThatContainsMethod, objParms);
 			} else {
 				method = marcProcessor.getCustomMethodMap().get(indexParm);
-				if (method == null) method = classThatContainsMethod.getMethod(indexParm, new Class[] { Record.class });
+				if (method == null) method = classThatContainsMethod.getMethod(indexParm);
 				returnType = method.getReturnType();
-				retval = method.invoke(objectThatContainsMethod, new Object[] { record });
+				retval = method.invoke(objectThatContainsMethod);
 			}
 		} catch (SecurityException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (NoSuchMethodException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (IllegalArgumentException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (IllegalAccessException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof SolrMarcIndexerException) {
 				throw ((SolrMarcIndexerException) e.getTargetException());
@@ -907,7 +891,7 @@ public class MarcRecordDetails {
 			e.printStackTrace(); // DEBUG
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		}
 		boolean deleteIfEmpty = false;
 		if (indexType.startsWith("customDeleteRecordIfFieldEmpty")) deleteIfEmpty = true;
@@ -1056,7 +1040,7 @@ public class MarcRecordDetails {
 	 * @return 245a, b, and k values concatenated in order found, with trailing
 	 *         punct removed. Returns empty string if no suitable title found.
 	 */
-	public String getTitle(Record record) {
+	public String getTitle() {
 		DataField titleField = (DataField) record.getVariableField("245");
 		if (titleField == null) {
 			return "";
@@ -1088,13 +1072,13 @@ public class MarcRecordDetails {
 	 * 
 	 * @see org.solrmarc.index.SolrIndexer.getTitle()
 	 */
-	public String getSortableTitle(Record record) {
+	public String getSortableTitle() {
 		DataField titleField = (DataField) record.getVariableField("245");
 		if (titleField == null) return "";
 
 		int nonFilingInt = getInd2AsInt(titleField);
 
-		String title = getTitle(record);
+		String title = getTitle();
 		title = title.toLowerCase();
 
 		// Skip non-filing chars, if possible.
@@ -1125,33 +1109,29 @@ public class MarcRecordDetails {
 		return (String) fields.get("id");
 	}
 
-	public String getTitle() {
-		return (String) fields.get("title");
-	}
-	
-	public String getIsbn(){
-		//return the first 13 digit isbn or 10 digit if there are no 13
+	public String getIsbn() {
+		// return the first 13 digit isbn or 10 digit if there are no 13
 		Object isbnField = fields.get("isbn");
-		if (isbnField instanceof String){
-			String curIsbn = (String)isbnField;
-			if (curIsbn.indexOf(" ") > 0){
+		if (isbnField instanceof String) {
+			String curIsbn = (String) isbnField;
+			if (curIsbn.indexOf(" ") > 0) {
 				curIsbn = curIsbn.substring(0, curIsbn.indexOf(" "));
 			}
 			return curIsbn;
-		}else{
-			Set<String> isbns = (Set<String>)isbnField;
+		} else {
+			Set<String> isbns = (Set<String>) isbnField;
 			String bestIsbn = null;
-			if (isbns != null && isbns.size() > 0){
+			if (isbns != null && isbns.size() > 0) {
 				Iterator<String> isbnIterator = isbns.iterator();
-				while (isbnIterator.hasNext()){
+				while (isbnIterator.hasNext()) {
 					String curIsbn = isbnIterator.next();
-					if (curIsbn.indexOf(" ") > 0){
+					if (curIsbn.indexOf(" ") > 0) {
 						curIsbn = curIsbn.substring(0, curIsbn.indexOf(" "));
 					}
-					if (curIsbn.length() == 13){
+					if (curIsbn.length() == 13) {
 						bestIsbn = curIsbn;
 						break;
-					}else if (bestIsbn == null){
+					} else if (bestIsbn == null) {
 						bestIsbn = curIsbn;
 					}
 				}
@@ -1159,28 +1139,319 @@ public class MarcRecordDetails {
 			return bestIsbn;
 		}
 	}
-	
-	public String getFirstFieldValueInSet(String fieldName){
+
+	public String getFirstFieldValueInSet(String fieldName) {
 		Object fieldValue = fields.get(fieldName);
-		if (fieldValue instanceof String){
-			return (String)fieldValue;
-		}else{
-			Set<String> fieldValues = (Set<String>)fields.get(fieldName);
-			if (fieldValues != null &&fieldValues.size() >= 1){
-				return (String)fieldValues.iterator().next();
+		if (fieldValue instanceof String) {
+			return (String) fieldValue;
+		} else {
+			Set<String> fieldValues = (Set<String>) fields.get(fieldName);
+			if (fieldValues != null && fieldValues.size() >= 1) {
+				return (String) fieldValues.iterator().next();
 			}
 			return null;
 		}
 	}
 
 	public String getAuthor() {
-		return (String)fields.get("author");
+		return (String) fields.get("author");
 	}
 
 	public String getSortTitle() {
 		return (String) fields.get("title_sort");
 	}
+
 	public HashMap<String, Object> getFields() {
 		return fields;
+	}
+
+	/**
+	 * Extract the call number label from a record
+	 * 
+	 * @param record
+	 * @return Call number label
+	 */
+	public String getFullCallNumber() {
+
+		return (getFullCallNumber("099ab:090ab:050ab"));
+	}
+
+	/**
+	 * Extract the call number label from a record
+	 * 
+	 * @param record
+	 * @return Call number label
+	 */
+	public String getFullCallNumber(String fieldSpec) {
+
+		String val = getFirstFieldVal(record, fieldSpec);
+
+		if (val != null) {
+			return val.toUpperCase().replaceAll(" ", "");
+		} else {
+			return val;
+		}
+	}
+
+	/**
+	 * Extract the call number label from a record
+	 * 
+	 * @param record
+	 * @return Call number label
+	 */
+	public String getCallNumberLabel() {
+
+		return getCallNumberLabel("090a:050a");
+	}
+
+	/**
+	 * Extract the call number label from a record
+	 * 
+	 * @param record
+	 * @return Call number label
+	 */
+	public String getCallNumberLabel(String fieldSpec) {
+
+		String val = getFirstFieldVal(record, fieldSpec);
+
+		if (val != null) {
+			int dotPos = val.indexOf(".");
+			if (dotPos > 0) {
+				val = val.substring(0, dotPos);
+			}
+			return val.toUpperCase();
+		} else {
+			return val;
+		}
+	}
+
+	/**
+	 * Extract the subject component of the call number
+	 * 
+	 * Can return null
+	 * 
+	 * @param record
+	 * @return Call number label
+	 */
+	public String getCallNumberSubject() {
+
+		return (getCallNumberSubject("090a:050a"));
+	}
+
+	/**
+	 * Extract the subject component of the call number
+	 * 
+	 * Can return null
+	 * 
+	 * @param record
+	 * @return Call number label
+	 */
+	public String getCallNumberSubject(String fieldSpec) {
+
+		String val = getFirstFieldVal(record, fieldSpec);
+
+		if (val != null) {
+			String[] callNumberSubject = val.toUpperCase().split("[^A-Z]+");
+			if (callNumberSubject.length > 0) {
+				return callNumberSubject[0];
+			}
+		}
+		return (null);
+	}
+
+	/**
+	 * Loops through all datafields and creates a field for "all fields"
+	 * searching. Shameless stolen from Vufind Indexer Custom Code
+	 * 
+	 * @param record
+	 *          marc record object
+	 * @param lowerBoundStr
+	 *          - the "lowest" marc field to include (e.g. 100). defaults to 100
+	 *          if value passed doesn't parse as an integer
+	 * @param upperBoundStr
+	 *          - one more than the "highest" marc field to include (e.g. 900 will
+	 *          include up to 899). Defaults to 900 if value passed doesn't parse
+	 *          as an integer
+	 * @return a string containing ALL subfields of ALL marc fields within the
+	 *         range indicated by the bound string arguments.
+	 */
+	public String getAllSearchableFields(String lowerBoundStr, String upperBoundStr) {
+		StringBuffer buffer = new StringBuffer("");
+		int lowerBound = localParseInt(lowerBoundStr, 100);
+		int upperBound = localParseInt(upperBoundStr, 900);
+
+		List<DataField> fields = record.getDataFields();
+		for (DataField field : fields) {
+			// Get all fields starting with the 100 and ending with the 839
+			// This will ignore any "code" fields and only use textual fields
+			int tag = localParseInt(field.getTag(), -1);
+			if ((tag >= lowerBound) && (tag < upperBound)) {
+				// Loop through subfields
+				List<Subfield> subfields = field.getSubfields();
+				for (Subfield subfield : subfields) {
+					if (buffer.length() > 0) buffer.append(" ");
+					buffer.append(subfield.getData());
+				}
+			}
+		}
+		return buffer.toString();
+	}
+
+	/**
+	 * return an int for the passed string
+	 * 
+	 * @param str
+	 * @param defValue
+	 *          - default value, if string doesn't parse into int
+	 */
+	private int localParseInt(String str, int defValue) {
+		int value = defValue;
+		try {
+			value = Integer.parseInt(str);
+		} catch (NumberFormatException nfe) {
+			// provided value is not valid numeric string
+			// Ignoring it and moving happily on.
+		}
+		return (value);
+	}
+
+	public String getMpaaRating() {
+		String val = getFirstFieldVal(record, "521a");
+
+		if (val != null) {
+			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
+				return "Not Rated";
+			} else if (val.matches("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)\\.?")) {
+				try {
+					Pattern Regex = Pattern.compile("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)", Pattern.CANON_EQ);
+					Matcher RegexMatcher = Regex.matcher(val);
+					if (RegexMatcher.find()) {
+						return RegexMatcher.group(1) + " Rated";
+					} else {
+						return val;
+					}
+				} catch (PatternSyntaxException ex) {
+					// Syntax error in the regular expression
+					return null;
+				}
+			} else {
+				return null;
+			}
+		} else {
+			return val;
+		}
+	}
+
+	private Float	rating	= null;
+
+	public String getRating(String recordIdSpec) {
+		if (rating == null) {
+			Set fields = getFieldList(record, recordIdSpec);
+			Iterator fieldsIter = fields.iterator();
+			if (fields != null) {
+				while (fieldsIter.hasNext()) {
+					try {
+						// Get the current string to work on:
+						String recordId = (String) fieldsIter.next();
+						// Check to see if the record has an eContent Record
+						PreparedStatement recordRatingStmt = marcProcessor.getRecordRatingStmt();
+						recordRatingStmt.setString(1, recordId);
+						ResultSet ratingResults = marcProcessor.getRecordRatingStmt().executeQuery();
+						while (ratingResults.next()) {
+							float rating = ratingResults.getFloat(1);
+							if (Math.abs(rating) < 0.0001) {
+								rating = -2.5f;
+							}
+						}
+					} catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+			rating = -2.5f;
+		}
+		return Float.toString(rating);
+	}
+
+	public String getRatingFacet(String recordIdSpec) {
+		if (rating == null) {
+			getRating(recordIdSpec);
+		}
+
+		if (rating > 4.5) {
+			return "fiveStar";
+		} else if (rating > 3.5) {
+			return "fourStar";
+		} else if (rating > 2.5) {
+			return "threeStar";
+		} else if (rating > 1.5) {
+			return "twoStar";
+		} else if (rating > 0.0001) {
+			return "oneStar";
+		} else {
+			return "Unrated";
+		}
+	}
+
+	public Set getAllFields() {
+		Set result = new LinkedHashSet();
+		StringBuffer allFieldData = new StringBuffer();
+		List controlFields = record.getControlFields();
+		for (Object field : controlFields) {
+			ControlField dataField = (ControlField) field;
+			allFieldData.append(dataField.getData()).append(" ");
+		}
+
+		List fields = record.getDataFields();
+		for (Object field : fields) {
+			DataField dataField = (DataField) field;
+			List subfields = dataField.getSubfields();
+			for (Object subfieldObj : subfields) {
+				Subfield subfield = (Subfield) subfieldObj;
+				allFieldData.append(subfield.getData()).append(" ");
+			}
+		}
+		result.add(allFieldData.toString());
+
+		return result;
+	}
+
+	public Set getLiteraryForm() {
+		Set result = new LinkedHashSet();
+		String leader = record.getLeader().toString();
+		char leaderBit;
+
+		ControlField ohOhEightField = (ControlField) record.getVariableField("008");
+		ControlField ohOhSixField = (ControlField) record.getVariableField("006");
+
+		// check the Leader at position 6 to determine the type of field
+		char recordType = Character.toUpperCase(leader.charAt(6));
+		char bibLevel = Character.toUpperCase(leader.charAt(7));
+		// Figure out what material type the record is
+		if ((recordType == 'A' || recordType == 'T') && (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
+				|| (recordType == 'M') /* Computer Files */
+				|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
+				|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
+																																															 * Visual
+																																															 * Materials
+																																															 */
+		) {
+			char targetAudienceChar;
+			if (ohOhSixField != null && ohOhSixField.getData().length() >= 16) {
+				targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
+				result.add(Character.toString(targetAudienceChar));
+			} else if (ohOhEightField != null && ohOhEightField.getData().length() >= 33) {
+				targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
+				result.add(Character.toString(targetAudienceChar));
+			} else {
+				result.add("Unknown");
+			}
+		} else {
+			result.add("Unknown");
+		}
+
+		return result;
 	}
 }

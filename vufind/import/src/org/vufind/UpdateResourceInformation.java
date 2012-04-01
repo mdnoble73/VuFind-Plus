@@ -18,7 +18,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	private PreparedStatement resourceInsertStmt = null;
 	private PreparedStatement existingResourceStmt = null;
 
-	public boolean init(Ini configIni, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
 		// Load configuration
 		String databaseConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_vufind_jdbc"));

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="vufind" basedir="." default="main">
+  <property name="tmp" value="/tmp" />
+  <property name="package"  value="${phing.project.name}" override="true" />
+  <property name="builddir" value="${tmp}/build/${phing.project.name}" override="true" />
+  <property name="srcdir"   value="${project.basedir}" override="true" />
+  <property name="apacheconfdir" value="/etc/apache2/conf.d" />
+  <property name="apachectl" value="/etc/init.d/apache2" />
+  <property name="vufindurl" value="http://localhost/vufind" />
+  <property name="vufinddb" value="vufind_test" />
+  <property name="vufinddbuser" value="vufindtest" />
+  <property name="vufinddbpass" value="vufindtestpass" />
+  <property name="mysqlhost" value="localhost" />
+  <property name="mysqlrootuser" value="root" />
+  <property name="mysqlrootpass" value="password" />
+  <property name="marctestfile" value="${project.basedir}/tests/catalog_INCR-TEST_SAMPLE.mrc" />
+  <property name="version" value="1.2" />
+
+  <!-- Main Target -->
+  <target name="main" description="main target">
+
+    <!-- Create dirs -->
+    <mkdir dir="${builddir}/reports"/>
+    <mkdir dir="${builddir}/reports/coverage"/>
+
+    <!-- PHP API Documentation -->
+    <phpdoc title="API Documentation"
+      destdir="${builddir}/apidocs"
+      sourcecode="yes"
+      defaultpackagename="VuFind"
+      output="HTML:Smarty:PHP">
+      <fileset dir=".">
+        <include name="harvest/**/*.php" />
+        <include name="import/**/*.php" />
+        <include name="util/**/*.php" />
+        <include name="web/**/*.php" />
+        <exclude name="web/Crypt/**/*.php" />
+        <exclude name="web/Horde/**/*.php" />
+        <exclude name="web/interface/compile/**/*.php" />
+        <exclude name="web/sys/mobileesp/**/*.php" />
+      </fileset>
+    </phpdoc>
+
+    <!-- PHP CodeSniffer -->
+    <exec command="phpcs --standard=PEAR --ignore=*/mobileesp/*,*/iWebKit/*,${srcdir}/web/Crypt/*,${srcdir}/web/Horde/*,${srcdir}/web/sys/SIP2.php,*/rc4.js,${srcdir}/web/js/phpserializer.js,*/jquery*.js,*/jquery*.css,*/css/blueprint/*,${srcdir}/web/interface/compile/* --report=checkstyle ${srcdir} > ${builddir}/reports/checkstyle.xml" escape="false" />
+
+    <!-- PHPUnit -->
+    <exec command="phpunit --log-junit ${builddir}/reports/phpunit.xml --coverage-clover ${builddir}/reports/coverage/clover.xml --coverage-html ${builddir}/reports/coverage/ ${srcdir}/tests/AllTests.php"/>
+
+  </target>
+
+  <!-- Install and Activate VuFind -->
+  <target name="startup" description="install and activate demo">
+    <!-- set up appropriate read/write permissions for Apache -->
+    <exec command="chmod -R a+r ${srcdir}" />
+    <exec command="chmod -R a+x ${srcdir}/.." />
+    <exec command="chmod -R a+x ${srcdir}" />
+    <exec command="chmod -R a+w ${srcdir}/web/interface/cache ${srcdir}/web/interface/compile ${srcdir}/web/images/covers" />
+
+    <!-- build MySQL database -->
+    <exec command="mysqladmin -f -h ${mysqlhost} -u ${mysqlrootuser} -p${mysqlrootpass} drop ${vufinddb}" />
+    <exec command="mysqladmin -h ${mysqlhost} -u ${mysqlrootuser} -p${mysqlrootpass} create ${vufinddb}" checkreturn="true" />
+    <exec command="mysql -h ${mysqlhost} -u ${mysqlrootuser} -p${mysqlrootpass} -e &quot;GRANT SELECT,INSERT,UPDATE,DELETE ON ${vufinddb}.* TO '${vufinddbuser}'@'${mysqlhost}' IDENTIFIED BY '${vufinddbpass}' WITH GRANT OPTION&quot;" checkreturn="true" />
+    <exec command="mysql -h ${mysqlhost} -u ${mysqlrootuser} -p${mysqlrootpass} -e &quot;FLUSH PRIVILEGES&quot;" checkreturn="true" />
+    <exec command="mysql -h ${mysqlhost} -u ${mysqlrootuser} -p${mysqlrootpass} -D ${vufinddb} &lt; ${srcdir}/mysql.sql" checkreturn="true" />
+    <exec command="cp ${srcdir}/web/conf/vufind.ini ${srcdir}/web/conf/${vufinddb}.ini" />
+    <exec command="chmod 644 ${srcdir}/web/conf/${vufinddb}.ini" />
+
+    <!-- configure VuFind -->
+    <exec command="sed -e &quot;s!/usr/local/vufind!${srcdir}!&quot; ${srcdir}/web/conf/config.ini | sed -e &quot;s!http://library.myuniversity.edu/vufind!${vufindurl}!&quot; &gt; ${srcdir}/web/conf/config.ini.tmp" />
+    <exec command="sed -e &quot;s!mysql://root@localhost/vufind!mysql://${vufinddbuser}:${vufinddbpass}@${mysqlhost}/${vufinddb}!&quot; ${srcdir}/web/conf/config.ini.tmp &gt; ${srcdir}/web/conf/config.ini" />
+    <exec command="rm ${srcdir}/web/conf/config.ini.tmp" />
+
+    <!-- activate Apache -->
+    <exec command="sed -e &quot;s!/usr/local/vufind!${srcdir}!&quot; ${srcdir}/httpd-vufind.conf &gt; ${apacheconfdir}/vufindtest" />
+    <exec command="chmod 644 ${apacheconfdir}/vufindtest" />
+    <exec command="${apachectl} restart" />
+
+    <!-- import marc test records into vufind index (note: the marc test records have prefix "testsample#") -->
+    <exec command="find ${srcdir}/tests/Selenium/Bugs -name *.mrc -printf %p," outputProperty="buglist" />
+    <foreach list="${buglist}${marctestfile}" param="filename" delimiter="," target="importrec" />
+
+    <!-- start Solr (use restart in case of old PID files) -->
+    <exec command="VUFIND_HOME=${srcdir} JETTY_PID=${tmp}/vufindtest.pid JETTY_CONSOLE=/dev/null ${srcdir}/vufind.sh restart" outputProperty="LASTOUTPUT" />
+    <echo message="${LASTOUTPUT}" />
+
+    <!-- start the X frame buffer and selenium RC server -->
+    <exec command="VUFIND_HOME=${srcdir} ${srcdir}/tests/auto_test.sh start" outputProperty="LASTOUTPUT" />
+    <echo message="${LASTOUTPUT}" />
+
+  </target>
+
+  <!-- Uninstall and Deactivate VuFind -->
+  <target name="shutdown" description="deactivate and uninstall demo">
+
+    <!-- delete the sample/bugs marc test records from vufind index -->
+    <exec command="find ${srcdir}/tests/Selenium/Bugs -name *.mrc -printf %p," outputProperty="buglist" />
+    <foreach list="${buglist}${marctestfile}" param="filename" delimiter="," target="deleterec" />
+
+    <!-- remove Apache settings -->
+    <exec command="rm ${apacheconfdir}/vufindtest" />
+    <exec command="${apachectl} restart" />
+
+    <!-- drop MySQL database -->
+    <exec command="mysqladmin -f -h ${mysqlhost} -u ${mysqlrootuser} -p${mysqlrootpass} drop ${vufinddb}" />
+    <exec command="rm ${srcdir}/web/conf/${vufinddb}.ini" />
+
+    <!-- stop Solr -->
+    <exec command="VUFIND_HOME=${srcdir} JETTY_PID=${tmp}/vufindtest.pid ${srcdir}/vufind.sh stop" outputProperty="LASTOUTPUT" />
+    <echo message="${LASTOUTPUT}" />
+
+    <!-- restore original files -->
+    <exec command="svn revert -R *" outputProperty="LASTOUTPUT" />
+    <echo message="${LASTOUTPUT}" />
+
+    <!-- stop the X frame buffer and selenium RC server -->
+    <exec command="VUFIND_HOME=${srcdir} ${srcdir}/tests/auto_test.sh stop" outputProperty="LASTOUTPUT" />
+    <echo message="${LASTOUTPUT}" />
+
+  </target>
+
+  <!-- Prepare VuFind for distribution -->
+  <target name="package" description="build VuFind packages for distribution">
+    <!-- make sure the work area is empty, then rebuild it -->
+    <delete dir="${builddir}/packages" includeemptydirs="true" failonerror="true" />
+    <mkdir dir="${builddir}/packages" />
+    <delete dir="${builddir}/export" includeemptydirs="true" failonerror="true" />
+    <mkdir dir="${builddir}/export" />
+
+    <!-- export the source into the temporary directory -->
+    <exec command="svn export ${srcdir} ${builddir}/export/vufind-${version}" />
+
+    <!-- build the standard tar.gz archive -->
+    <exec command="tar -C${builddir}/export -c vufind-${version} &gt; ${builddir}/packages/vufind-${version}.tar" />
+    <exec command="gzip ${builddir}/packages/vufind-${version}.tar" />
+
+    <!-- build the DEB package -->
+    <mkdir dir="${builddir}/export/vufind/usr/local" />
+    <copy todir="${builddir}/export/vufind/usr/local/vufind">
+      <fileset dir="${builddir}/export/vufind-${version}">
+        <include name="**" />
+      </fileset>
+    </copy>
+    <move file="${builddir}/export/vufind/usr/local/vufind/packages/DEBIAN" todir="${builddir}/export/vufind" includeemptydirs="true"/>
+    <exec command="chmod 0775 ${builddir}/export/vufind/DEBIAN/postinst" />
+    <exec command="dpkg-deb -b ${builddir}/export/vufind ${builddir}/packages/vufind_${version}.deb" />
+
+    <!-- clean up -->
+    <delete dir="${builddir}/export" includeemptydirs="true" failonerror="true" />
+
+    <!-- report success -->
+    <echo message="Packages successfully generated in ${builddir}/packages" />
+  </target>
+
+  <target name="importrec" description="import each of the bug marc test record">
+    <if>
+    <istrue value="${filename}"/>       <!-- To ignore the last token, as find command output list has ',' after last filename -->
+      <then>
+        <exec command="VUFIND_HOME=${srcdir} ${srcdir}/import-marc.sh ${filename}" outputProperty="LASTOUTPUT" />
+        <echo message="${LASTOUTPUT}" />
+      </then>
+    </if>
+  </target>
+
+  <target name="deleterec" description="import each of the bug marc test record">
+    <if>
+    <istrue value="${filename}"/>
+      <then>
+        <exec command="php ${srcdir}/util/deletes.php ${filename}" />
+      </then>
+    </if>
+  </target>
+
+</project>

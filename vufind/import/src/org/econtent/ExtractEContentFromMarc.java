@@ -50,7 +50,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	//private long logEntryId = -1;
 	
-	public boolean init(Ini configIni, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
 		//Import a marc record into the eContent core. 
 		if (!loadConfig(configIni, logger)){

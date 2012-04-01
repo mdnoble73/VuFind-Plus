@@ -82,9 +82,10 @@ public class MarcProcessor {
 	private Map<String, Interpreter>			scriptMap						= new HashMap<String, Interpreter>();;
 
 	protected int													recordsProcessed		= 0;
-	protected int													maxRecordsToProcess	= 60;
+	protected int													maxRecordsToProcess	= -1;
 	private PreparedStatement							insertChecksumStmt;
 	private PreparedStatement							updateChecksumStmt;
+	private PreparedStatement	recordRatingStmt;
 
 	public static final int								RECORD_CHANGED			= 1;
 	public static final int								RECORD_UNCHANGED		= 2;
@@ -146,15 +147,24 @@ public class MarcProcessor {
 			logger.error("Unable to load checksums for existing records", e);
 			return false;
 		}
-		// Setup statements for updating marc record checksums
+		// Setup additional statements 
 		try {
 			insertChecksumStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum) VALUES (?, ?)");
 			updateChecksumStmt = vufindConn.prepareStatement("UPDATE marc_import SET checksum = ? WHERE id = ?");
+			recordRatingStmt = vufindConn.prepareStatement("SELECT avg(rating) from resource inner join user_rating on user_rating.resourceid = resource.id where record_id = ? and source like 'vufind'");
 		} catch (SQLException e) {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
 		}
 		return true;
+	}
+
+	public PreparedStatement getRecordRatingStmt() {
+		return recordRatingStmt;
+	}
+
+	public void setRecordRatingStmt(PreparedStatement recordRatingStmt) {
+		this.recordRatingStmt = recordRatingStmt;
 	}
 
 	/**

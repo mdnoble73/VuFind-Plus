@@ -250,4 +250,41 @@ public class Util {
 		}
 	}
 
+	public static void deleteDirectory(File dirToDelete) {
+		File[] files = dirToDelete.listFiles();
+		if (files != null){
+			for (File curFile : files){
+				if (curFile.isDirectory()){
+					deleteDirectory(curFile);
+				}else{
+					curFile.delete();
+				}
+			}
+		}
+		dirToDelete.delete();
+	}
+	
+	public static boolean copyDir(File source, File dest) {
+		if (!dest.exists()){
+			dest.mkdir();
+		}
+		if (source.exists() == false){
+			return false;
+		}
+		File[] sourceFiles = source.listFiles();
+		for (File curFile : sourceFiles){
+			File destFile = new File(dest.getAbsolutePath() + "/" + curFile.getName());
+			if (curFile.isDirectory()){
+				copyDir(curFile, destFile);
+			}else{
+				try {
+					Util.copyFile(curFile, destFile);
+				} catch (IOException e) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 }

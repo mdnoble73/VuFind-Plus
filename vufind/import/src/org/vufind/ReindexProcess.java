@@ -101,7 +101,7 @@ public class ReindexProcess {
 		if (recordProcessors.size() > 0){
 			logger.info("Initializing record processors");
 			for (IRecordProcessor processor : recordProcessors){
-				processor.init(configIni, logger);
+				processor.init(configIni, serverName, logger);
 			}
 			//Do processing of marc records with record processors loaded above. 
 			// includes indexing records
@@ -167,7 +167,7 @@ public class ReindexProcess {
 		ArrayList<IRecordProcessor> supplementalProcessors = new ArrayList<IRecordProcessor>();
 		if (updateSolr){
 			MarcIndexer marcIndexer = new MarcIndexer();
-			if (marcIndexer.init(configIni, logger)){
+			if (marcIndexer.init(configIni, serverName, logger)){
 				supplementalProcessors.add(marcIndexer);
 			}else{
 				logger.error("Could not initialize marcIndexer");
@@ -176,7 +176,7 @@ public class ReindexProcess {
 		}
 		if (updateResources){
 			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
-			if (resourceUpdater.init(configIni, logger)){
+			if (resourceUpdater.init(configIni, serverName, logger)){
 				supplementalProcessors.add(resourceUpdater);
 			}else{
 				logger.error("Could not initialize resourceUpdater");
@@ -185,7 +185,7 @@ public class ReindexProcess {
 		}
 		if (loadEContentFromMarc){
 			ExtractEContentFromMarc econtentExtractor = new ExtractEContentFromMarc();
-			if (econtentExtractor.init(configIni, logger)){
+			if (econtentExtractor.init(configIni, serverName, logger)){
 				supplementalProcessors.add(econtentExtractor);
 			}else{
 				logger.error("Could not initialize econtentExtractor");
@@ -194,7 +194,7 @@ public class ReindexProcess {
 		}
 		if (exportStrandsCatalog){
 			StrandsProcessor strandsProcessor = new StrandsProcessor();
-			if (strandsProcessor.init(configIni, logger)){
+			if (strandsProcessor.init(configIni, serverName, logger)){
 				supplementalProcessors.add(strandsProcessor);
 			}else{
 				logger.error("Could not initialize strandsProcessor");
@@ -352,59 +352,6 @@ public class ReindexProcess {
 		if (supplementalProcessors.size() > 0){
 			logger.info("Processing exported marc records");
 			marcProcessor.processMarcFiles(marcProcessors, logger);
-		}
-	}
-
-	private static void moveBiblio2ToBiblio() {
-		// 7) Unload the main index
-		String unloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio2", null, logger);
-		logger.info("Response for unloading biblio 2 core " + unloadBiblio2Response);
-		
-		String unloadBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio", null, logger);
-		logger.info("Response for unloading biblio core " + unloadBiblioResponse);
-		
-		// 8) Copy files from the backup index to the main index
-		// Remove all files from biblio (index, spellchecker, spellShingle)
-		File biblioIndexDir = new File ("../../sites/" + serverName + "/solr/biblio/index");
-		File biblio2IndexDir = new File ("../../sites/" + serverName + "/solr/biblio2/index");
-		File biblioSpellcheckerDir = new File ("../../sites/" + serverName + "/solr/biblio/spellchecker");
-		File biblio2SpellcheckerDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellchecker");
-		File biblioSpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio/spellShingle");
-		File biblio2SpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellShingle");
-		deleteDirectory(biblioIndexDir);
-		deleteDirectory(biblioSpellcheckerDir);
-		deleteDirectory(biblioSpellShingleDir);
-		copyDir(biblio2IndexDir, biblioIndexDir);
-		copyDir(biblio2SpellcheckerDir, biblioSpellcheckerDir);
-		copyDir(biblio2SpellShingleDir, biblioSpellShingleDir);
-		
-		// 9) Reload the indexes
-		String createBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio&instanceDir=biblio", null, logger);
-		logger.info("Response for creating biblio2 core " + createBiblioResponse);
-		
-		String createBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio2&instanceDir=biblio2", null, logger);
-		logger.info("Response for creating biblio2 core " + createBiblio2Response);
-	}
-
-	private static void checkMarcImport() {
-		ArrayList<File> solrmarcLogs = new ArrayList<File>();
-		File solrmarcLog = new File("solrmarc.log");
-		if (solrmarcLog.exists()){
-			solrmarcLogs.add(solrmarcLog);
-		}
-		for (int i = 1; i <= 4; i++){
-			solrmarcLog = new File("solrmarc.log." + i);
-			if (solrmarcLog.exists()){
-				solrmarcLogs.add(solrmarcLog);
-			}
-		}
-		
-		for (File curFile : solrmarcLogs){
-			getSolrmarcStats(curFile);
-		}
-		if (numAdded < 1000 || (numSevereErrors + numErrors + numExceptions) > numAdded){
-			sendCompletionMessage(false);
-			System.exit(0);
 		}
 	}
 
@@ -598,41 +545,6 @@ public class ReindexProcess {
 			System.exit(0);
 		}
 		
-	}
-
-	private static void copyDir(File source, File dest) {
-		if (!dest.exists()){
-			dest.mkdir();
-		}
-		if (source.exists() == false){
-			logger.error("Source directory " + source.toString() + " does not exist!");
-			return;
-		}
-		File[] sourceFiles = source.listFiles();
-		for (File curFile : sourceFiles){
-			File destFile = new File(dest.getAbsolutePath() + "/" + curFile.getName());
-			if (curFile.isDirectory()){
-				copyDir(curFile, destFile);
-			}else{
-				try {
-					Util.copyFile(curFile, destFile);
-				} catch (IOException e) {
-					logger.error("Error copying file", e);
-				}
-			}
-		}
-	}
-
-	private static void deleteDirectory(File dirToDelete) {
-		File[] files = dirToDelete.listFiles();
-		for (File curFile : files){
-			if (curFile.isDirectory()){
-				deleteDirectory(curFile);
-			}else{
-				curFile.delete();
-			}
-		}
-		dirToDelete.delete();
 	}
 
 	private static ArrayList<File> loadMarcFilesToProcess(String marcFilePath, int numFilesToImport) {

@@ -42,7 +42,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	/**
 	 * Build a csv file to import into strands
 	 */
-	public boolean init(Ini configIni, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
 		logger.info("Creating Catalog File for Strands");
 
