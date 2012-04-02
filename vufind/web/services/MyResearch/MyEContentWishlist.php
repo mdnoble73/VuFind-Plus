@@ -61,7 +61,7 @@ class MyEContentWishlist extends MyResearch {
 			}
 		}
 
-		interface->setTemplate('eContentWishList.tpl');
+		$interface->setTemplate('eContentWishList.tpl');
 		$interface->setPageTitle('My eContent Wish List');
 		$interface->display('layout.tpl');
 	}

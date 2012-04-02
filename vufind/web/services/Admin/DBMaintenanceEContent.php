@@ -450,6 +450,19 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 		
+		'add_indexes_3' => array(
+			'title' => 'Add eContent indexes 2',
+			'description' => 'Add additional indexes to econtent tables that were not defined originally',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `econtent_record` ADD INDEX ( `accessType` ) ',
+				'ALTER TABLE `econtent_record` ADD INDEX ( `source` ) ',
+				'ALTER TABLE `econtent_hold` ADD INDEX ( `status` ) ',
+				'ALTER TABLE `econtent_checkout` ADD INDEX ( `status` ) ',
+				'ALTER TABLE `econtent_wishlist` ADD INDEX ( `status` ) ',
+			),
+		),
+		
 		'utf8_update' => array(
 			'title' => 'Update to UTF-8',
 			'description' => 'Update database to use UTF-8 encoding',

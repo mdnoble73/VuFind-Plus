@@ -732,6 +732,32 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'add_indexes2' => array(
+			'title' => 'Add indexes 2',
+			'description' => 'Add additinoal indexes to tables that were not defined originally',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `user_rating` ADD INDEX `Resourceid` ( `resourceid` ) ',
+				'ALTER TABLE `user_rating` ADD INDEX `UserId` ( `userid` ) ',
+				'ALTER TABLE `materials_request_status` ADD INDEX ( `isDefault` )',
+				'ALTER TABLE `materials_request_status` ADD INDEX ( `isOpen` )',
+				'ALTER TABLE `materials_request_status` ADD INDEX ( `isPatronCancel` )',
+				'ALTER TABLE `materials_request` ADD INDEX ( `status` )'
+			),
+		),
+		
+		'spelling_optimization' => array(
+			'title' => 'Spelling Optimization',
+			'description' => 'Optimizations to spelling to ensure indexes are used',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `spelling_words` ADD `soundex` VARCHAR(20) ',
+				'ALTER TABLE `spelling_words` ADD INDEX `Soundex` (`soundex`)',
+				'UPDATE `spelling_words` SET soundex = SOUNDEX(word) '
+			),
+		),
+		
+		
 		'remove_old_tables' => array(
 			'title' => 'Remove old tables',
 			'description' => 'Remove tables that are no longer needed due to usage of memcache',

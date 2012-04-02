@@ -19,7 +19,7 @@ $(function() {
 		<h2>eContent Usage</h2>
 		
 		<div id="filterContainer">
-			<form id="statisticsForm" action="{$path}/Admin/EContentUsage">
+			<form id="statisticsForm" action="{$path}/EContent/EContentUsage">
 				<div id="filterLeftColumn">
 							<div id="startDate">
 							Start Date: 
