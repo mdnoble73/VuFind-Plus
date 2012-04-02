@@ -8,9 +8,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -91,7 +93,7 @@ public class MarcRecordDetails {
 			} else if (indexType.startsWith("join")) {
 				String joinChar = " ";
 				if (indexType.contains("(") && indexType.endsWith(")")) joinChar = indexType.replace("join(", "").replace(")", "");
-				addField(fields, indexField, getFieldVals(record, indexParm, joinChar));
+				addField(fields, indexField, getFieldVals(indexParm, joinChar));
 			} else if (indexType.equals("std")) {
 				if (indexParm.equals("era")) {
 					addFields(fields, indexField, mapName, getEra(record));
@@ -361,7 +363,7 @@ public class MarcRecordDetails {
 	 * @return single string containing all values of the indicated marc
 	 *         field(s)/subfield(s) concatenated with separator string
 	 */
-	public String getFieldVals(Record record, String tagStr, String separator) {
+	public String getFieldVals(String tagStr, String separator) {
 		Set<String> result = getFieldList(record, tagStr);
 		return org.solrmarc.tools.Utils.join(result, separator);
 	}
@@ -378,7 +380,7 @@ public class MarcRecordDetails {
 	 *          subfields to use.
 	 * @return first value of the indicated marc field(s)/subfield(s) as a string
 	 */
-	public String getFirstFieldVal(Record record, String tagStr) {
+	public String getFirstFieldVal(String tagStr) {
 		Set<String> result = getFieldList(record, tagStr);
 		Iterator<String> iter = result.iterator();
 		if (iter.hasNext())
@@ -711,7 +713,7 @@ public class MarcRecordDetails {
 	 */
 	public Set<String> getEra(Record record) {
 		Set<String> result = new LinkedHashSet<String>();
-		String eraField = getFirstFieldVal(record, "045a");
+		String eraField = getFirstFieldVal("045a");
 		if (eraField == null) return result;
 
 		if (eraField.length() == 4) {
@@ -770,7 +772,7 @@ public class MarcRecordDetails {
 	 * @return 260c, "cleaned" per org.solrmarc.tools.Utils.cleanDate()
 	 */
 	public String getDate(Record record) {
-		String date = getFieldVals(record, "260c", ", ");
+		String date = getFieldVals("260c", ", ");
 		if (date == null || date.length() == 0) return (null);
 		return Utils.cleanDate(date);
 	}
@@ -1184,7 +1186,7 @@ public class MarcRecordDetails {
 	 */
 	public String getFullCallNumber(String fieldSpec) {
 
-		String val = getFirstFieldVal(record, fieldSpec);
+		String val = getFirstFieldVal( fieldSpec);
 
 		if (val != null) {
 			return val.toUpperCase().replaceAll(" ", "");
@@ -1212,7 +1214,7 @@ public class MarcRecordDetails {
 	 */
 	public String getCallNumberLabel(String fieldSpec) {
 
-		String val = getFirstFieldVal(record, fieldSpec);
+		String val = getFirstFieldVal(fieldSpec);
 
 		if (val != null) {
 			int dotPos = val.indexOf(".");
@@ -1248,7 +1250,7 @@ public class MarcRecordDetails {
 	 */
 	public String getCallNumberSubject(String fieldSpec) {
 
-		String val = getFirstFieldVal(record, fieldSpec);
+		String val = getFirstFieldVal(fieldSpec);
 
 		if (val != null) {
 			String[] callNumberSubject = val.toUpperCase().split("[^A-Z]+");
@@ -1316,7 +1318,7 @@ public class MarcRecordDetails {
 	}
 
 	public String getMpaaRating() {
-		String val = getFirstFieldVal(record, "521a");
+		String val = getFirstFieldVal("521a");
 
 		if (val != null) {
 			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
@@ -1453,5 +1455,25 @@ public class MarcRecordDetails {
 		}
 
 		return result;
+	}
+	
+	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield){
+		Set<LocalCallNumber> localCallnumbers = new HashSet<LocalCallNumber>();
+		List itemFields = record.getVariableFields(itemTag);
+		Iterator itemFieldIterator = itemFields.iterator();
+		char callNumberSubfieldChar = callNumberSubfield.charAt(0);
+		char locationSubfieldChar = locationSubfield.charAt(0);
+		while (itemFieldIterator.hasNext()){
+			DataField itemField = (DataField)itemFieldIterator.next();
+			Subfield callNumber = itemField.getSubfield(callNumberSubfieldChar);
+			Subfield location = itemField.getSubfield(locationSubfieldChar);
+			if (callNumber != null && location != null){
+				String callNumberData = callNumber.getData();
+				callNumberData = callNumberData.replaceAll("~", " ");
+				LocalCallNumber localCallNumber = new LocalCallNumber(location.getData(), callNumberData);
+				localCallnumbers.add(localCallNumber);
+			}
+		}
+		return localCallnumbers;
 	}
 }

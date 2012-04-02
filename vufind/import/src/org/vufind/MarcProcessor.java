@@ -151,7 +151,7 @@ public class MarcProcessor {
 		try {
 			insertChecksumStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum) VALUES (?, ?)");
 			updateChecksumStmt = vufindConn.prepareStatement("UPDATE marc_import SET checksum = ? WHERE id = ?");
-			recordRatingStmt = vufindConn.prepareStatement("SELECT avg(rating) from resource inner join user_rating on user_rating.resourceid = resource.id where record_id = ? and source like 'vufind'");
+			recordRatingStmt = vufindConn.prepareStatement("SELECT avg(rating) from resource inner join user_rating on user_rating.resourceid = resource.id where record_id = ? and source = 'VuFind'");
 		} catch (SQLException e) {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;

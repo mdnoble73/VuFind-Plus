@@ -160,6 +160,33 @@ public class ReindexProcess {
 			logger.error("Error creating author browse table", e);
 		}
 
+		//Setup subject browse
+		try {
+			//Setup subject browse
+			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE subject_browse");
+			truncateTable.executeUpdate();
+			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
+			setRowNumberStatement.execute();
+			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO subject_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.* FROM (SELECT count(resource.id) as numResults, subject from resource inner join resource_subject on resource.id = resource_subject.resourceId inner join subject on subjectId = subject.id group by subjectId) baseQuery order by subject asc");
+			int numBrowseRows = createBrowseTable.executeUpdate();
+			logger.info("Added " + numBrowseRows + " to subject browse table");
+		} catch (SQLException e) {
+			logger.error("Error creating subject browse table", e);
+		}
+		
+	//Setup call number browse
+		try {
+			//Setup callnumber browse
+			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE callnumber_browse");
+			truncateTable.executeUpdate();
+			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
+			setRowNumberStatement.execute();
+			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO callnumber_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.* FROM (SELECT count(resource.id) as numResults, callnumber from resource inner join (select resourceId, callnumber FROM resource_callnumber group by resourceId, callnumber) titleCallNumber on resource.id = resourceId group by callnumber) baseQuery order by callnumber asc");
+			int numBrowseRows = createBrowseTable.executeUpdate();
+			logger.info("Added " + numBrowseRows + " to callnumber browse table");
+		} catch (SQLException e) {
+			logger.error("Error creating callnumber browse table", e);
+		}
 	}
 
 	

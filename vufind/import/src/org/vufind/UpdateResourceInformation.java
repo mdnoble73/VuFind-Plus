@@ -5,10 +5,16 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.solrmarc.tools.Utils;
 
 public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordProcessor{
 	private Logger logger;
@@ -17,7 +23,25 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	private PreparedStatement resourceUpdateStmt = null;
 	private PreparedStatement resourceInsertStmt = null;
 	private PreparedStatement existingResourceStmt = null;
-
+	
+	//Code related to subjects of resources
+	private HashMap<String, Long> existingSubjects;
+	private PreparedStatement getExistingSubjectsStmt = null;
+	private PreparedStatement insertSubjectStmt = null;
+	private PreparedStatement clearResourceSubjectsStmt = null;
+	private PreparedStatement linkResourceToSubjectStmt = null;
+	
+	//Code related to call numbers
+	private HashMap<String, Long> locations;
+	private PreparedStatement getLocationsStmt = null;
+	private PreparedStatement clearResourceCallnumbersStmt = null;
+	private PreparedStatement addCallnumberToResourceStmt = null;
+	
+	//Information about how to process call numbers for local browse
+	private String itemTag;
+	private String callNumberSubfield;
+	private String locationSubfield;
+	
 	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
 		// Load configuration
@@ -40,14 +64,36 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		
 		try {
 			// Check to see if the record already exists
-			if (existingResourceStmt == null){
-				existingResourceStmt = conn.prepareStatement("SELECT id, marc_checksum from resource where record_id = ? and source = 'VuFind'");
+			existingResourceStmt = conn.prepareStatement("SELECT id, marc_checksum from resource where record_id = ? and source = 'VuFind'");
+			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, date_updated=? WHERE id = ?");
+			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			
+			getExistingSubjectsStmt = conn.prepareStatement("SELECT * FROM subject");
+			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
+			existingSubjects = new HashMap<String, Long>();
+			while (existingSubjectsRS.next()){
+				existingSubjects.put(existingSubjectsRS.getString("subject"),existingSubjectsRS.getLong("id") );
+			}
+			existingSubjectsRS.close();
+			insertSubjectStmt = conn.prepareStatement("INSERT INTO subject (subject) VALUES (?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			clearResourceSubjectsStmt = conn.prepareStatement("DELETE FROM resource_subject WHERE resourceId = ?");
+			linkResourceToSubjectStmt = conn.prepareStatement("INSERT INTO resource_subject (subjectId, resourceId) VALUES (?, ?)");
+			
+			getLocationsStmt = conn.prepareStatement("SELECT locationId, code FROM location");
+			ResultSet locationsRS = getLocationsStmt.executeQuery();
+			locations = new HashMap<String, Long>();
+			while (locationsRS.next()){
+				locations.put(locationsRS.getString("code").toLowerCase(),locationsRS.getLong("locationId") );
 			}
 			
-			if (resourceUpdateStmt == null){
-				String sql = "UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, date_updated=? WHERE id = ?";
-				resourceUpdateStmt =conn.prepareStatement(sql);
-			}
+			clearResourceCallnumbersStmt = conn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
+			addCallnumberToResourceStmt = conn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
+			
+			//Load field information for local call numbers
+			itemTag = configIni.get("Reindex", "itemTag");
+			callNumberSubfield = configIni.get("Reindex", "callNumberSubfield");
+			locationSubfield = configIni.get("Reindex", "locationSubfield");
+			
 		} catch (SQLException ex) {
 			// handle any errors
 			logger.error("Unable to setup prepared statements", ex);
@@ -59,16 +105,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
+		Long resourceId = -1L;
+		
 		try {
 			existingResourceStmt.setString(1, recordInfo.getId());
 			ResultSet existingResourceResult = existingResourceStmt.executeQuery();
 			if (existingResourceResult.next()) {
-				// Check to see if the record has changed 
-				long existingHashCode = existingResourceResult.getLong("marc_checksum");
-				if (existingHashCode == recordInfo.getChecksum()){
-					//logger.debug("record has not changed, do not update it.");
-					return true;
-				}
+				resourceId = existingResourceResult.getLong(1);
 				
 				// Update the existing record
 				String title = recordInfo.getTitle();
@@ -84,20 +127,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
 				resourceUpdateStmt.setLong(9, new Date().getTime() / 1000);
-				resourceUpdateStmt.setLong(10, existingResourceResult.getLong(1));
+				resourceUpdateStmt.setLong(10, resourceId);
 
 				int rowsUpdated = resourceUpdateStmt.executeUpdate();
 				if (rowsUpdated == 0) {
-					logger.debug("Unable to update resource for record " + recordInfo.getId() + " " + existingResourceResult.getString("id"));
-				} else {
-					//logger.info("Updated resource for " + recordInfo.getId() + " " + existingResourceResult.getString("id"));
+					logger.debug("Unable to update resource for record " + recordInfo.getId() + " " + resourceId);
 				}
 			} else {
-				//Insert a new record for the resource
-				if (resourceInsertStmt == null){
-					String sql = "INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-					resourceInsertStmt = conn.prepareStatement(sql);
-				}
 				String author = recordInfo.getAuthor();
 				// Update resource SQL
 				resourceInsertStmt.setString(1, Util.trimTo(200, recordInfo.getTitle()));
@@ -114,7 +150,64 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				if (rowsUpdated == 0) {
 					logger.debug("Unable to insert record " + recordInfo.getId());
 				} else {
-					//logger.info("Inserted record " + recordInfo.getId());
+					//Get the resourceId
+					ResultSet insertedResourceIds = resourceInsertStmt.getGeneratedKeys();
+					if (insertedResourceIds.next()){
+						resourceId = insertedResourceIds.getLong(1);
+					}
+				}
+			}
+			
+			if (resourceId != -1){
+				clearResourceSubjectsStmt.setLong(1, resourceId);
+				clearResourceSubjectsStmt.executeUpdate();
+				clearResourceCallnumbersStmt.setLong(1, resourceId);
+				clearResourceCallnumbersStmt.executeUpdate();
+				//Add subjects 
+				Object subjects = recordInfo.getFields().get("topic_facet");
+				Set<String> subjectsToProcess = new HashSet<String>();
+				if (subjects != null){
+					if (subjects instanceof String){
+						subjectsToProcess.add((String)subjects); 
+					}else{
+						subjectsToProcess.addAll((Set)subjects);
+					}
+					Iterator<String> subjectIterator = subjectsToProcess.iterator();
+					while (subjectIterator.hasNext()){
+						String curSubject = subjectIterator.next();
+						//Trim trailing punctuation from the subject
+						curSubject = Utils.cleanData(curSubject);
+						//Check to see if the subject exists already
+						Long subjectId = existingSubjects.get(curSubject);
+						if (subjectId == null){
+							//Insert the subject into the subject table
+							insertSubjectStmt.setString(1, curSubject);
+							insertSubjectStmt.executeUpdate();
+							ResultSet generatedKeys = insertSubjectStmt.getGeneratedKeys();
+							if (generatedKeys.next()){
+								subjectId = generatedKeys.getLong(1);
+								existingSubjects.put(curSubject, subjectId);
+							}
+						}
+						if (subjectId != null){
+							linkResourceToSubjectStmt.setLong(1, subjectId);
+							linkResourceToSubjectStmt.setLong(2, resourceId);
+							linkResourceToSubjectStmt.executeUpdate();
+						}
+					}
+				}
+				
+				//Add call numbers based on the location
+				Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
+				logger.info("Found " + localCallNumbers.size() + " call numbers");
+				for (LocalCallNumber curCallNumber : localCallNumbers){
+					Long locationId = locations.get(curCallNumber.getLocationCode());
+					if (locationId != null){
+						addCallnumberToResourceStmt.setLong(1, resourceId);
+						addCallnumberToResourceStmt.setLong(2, locationId);
+						addCallnumberToResourceStmt.setString(3, curCallNumber.getCallNumber());
+						addCallnumberToResourceStmt.executeUpdate();
+					}
 				}
 			}
 		} catch (SQLException ex) {

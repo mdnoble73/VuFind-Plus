@@ -19,9 +19,13 @@ import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.marc4j.marc.Record;
+import org.solrmarc.tools.Utils;
 
 public class Util {
 	public static String convertStreamToString(InputStream is) throws IOException {
