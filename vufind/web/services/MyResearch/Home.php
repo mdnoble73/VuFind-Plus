@@ -37,16 +37,6 @@ class Home extends MyResearch
 		global $interface;
 		global $user;
 
-		if (isset($_REQUEST['followup'])) {
-			$followupUrl =  $configArray['Site']['url'] . "/".  strip_tags($_REQUEST['followupModule']);
-			if (!empty($_REQUEST['recordId'])) {
-				$followupUrl .= "/" .  strip_tags($_REQUEST['recordId']);
-			}
-			$followupUrl .= "/" .  strip_tags($_REQUEST['followupAction']);
-			if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
-			header("Location: " . $followupUrl);
-		}
-
 		if (isset($_REQUEST['returnUrl'])) {
 			$followupUrl =  $_REQUEST['returnUrl'];
 			header("Location: " . $followupUrl);

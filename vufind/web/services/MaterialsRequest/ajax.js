@@ -112,6 +112,7 @@ function setFieldVisibility(){
 		$("#magazineTitle").addClass('required');
 		$("#magazineDate").addClass('required');
 		$("#magazineVolume").addClass('required');
+		$("#magazineNumber").addClass('required');
 		$("#magazinePageNumbers").addClass('required');
 		$("#acceptCopyrightYes").addClass('required');
 		$("#supplementalDetails").hide();
@@ -120,6 +121,7 @@ function setFieldVisibility(){
 		$("#magazineTitle").removeClass('required');
 		$("#magazineDate").removeClass('required');
 		$("#magazineVolume").removeClass('required');
+		$("#magazineNUmber").removeClass('required');
 		$("#magazinePageNumbers").removeClass('required');
 		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
@@ -150,23 +152,32 @@ function materialsRequestLogin(){
 			if (response.result.success == true){
 				//Update the main display to show the user is logged in
 				// Hide "log in" options and show "log out" options:
-				$('#materialsRequestLogin').hide();
-				$('.materialsRequestLoggedInFields').show();
-				$('#myAccountNameLink').html(response.result.name);
 				$('.loginOptions').hide();
         $('.logoutOptions').show();
-				if (response.result.phone){
-					$('#phone').val(response.result.phone);
-				}
-				if (response.result.email){
-					$('#email').val(response.result.email);
-				}
-				if (response.result.homeLocation){
-					$("#pickupLocation").val(response.result.homeLocation);
+				$('#myAccountNameLink').html(response.result.name);
+				if (response.result.enableMaterialsRequest){
+					$('#materialsRequestLogin').hide();
+					$('.materialsRequestLoggedInFields').show();
+					if (response.result.phone){
+						$('#phone').val(response.result.phone);
+					}
+					if (response.result.email){
+						$('#email').val(response.result.email);
+					}
+					if (response.result.homeLocation){
+						$("#pickupLocation").val(response.result.homeLocation);
+					}
+				}else{
+					alert("Sorry, materials request functionality is only available to residents at this time.");
 				}
 			}else{
 				alert("That login was not recognized.  Please try again.");
+				return false;
 			}
+		},
+		error: function(jqXHR, textStatus, errorThrown){
+			alert("That login was not recognized.  Please try again.");
+			return false;
 		},
 		dataType: 'json',
 		type: 'post' 

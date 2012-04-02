@@ -66,7 +66,8 @@ class MyRequests extends Action
 				$allRequests[] = clone $materialsRequests;
 			}
 		}else{
-			$interface->assign('error', "You must be logged in to view your requests.");
+			header('Location: ' . $configArray['Site']['path'] . '/MyResearch/Home?followupModule=MaterialsRequest&followupAction=MyRequests');
+			//$interface->assign('error', "You must be logged in to view your requests.");
 		}
 		$interface->assign('allRequests', $allRequests);
 

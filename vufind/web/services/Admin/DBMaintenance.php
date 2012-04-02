@@ -536,6 +536,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'materialsRequest_update5' => array(
+				'title' => 'Materials Request Update 5',
+				'description' => 'Material Request add magazine number',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE `materials_request` ADD `magazineNumber` VARCHAR(80)',
+				),
+			),
+			
 			'materialsRequestStatus' => array(
         'title' => 'Materials Request Status Table Creation',
         'description' => 'Update reading History to include an id table',

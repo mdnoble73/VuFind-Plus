@@ -54,7 +54,7 @@ class Login extends Action
 		$followup = isset($_REQUEST['followup']) ?  strip_tags($_REQUEST['followup']) : $action;
 
 		// Don't go to the trouble if we're just logging in to the Home action
-		if ($followup != 'Home') {
+		if ($followup != 'Home' || (isset($_REQUEST['followupModule']) && isset($_REQUEST['followupAction']))) {
 			$interface->assign('followup', $followup);
 			$interface->assign('followupModule', isset($_REQUEST['followupModule']) ? strip_tags($_REQUEST['followupModule']) : $module);
 
@@ -64,8 +64,7 @@ class Login extends Action
 			if ($finalAction == 'MyList') {
 				$finalAction .= '/' . $_GET['id'];
 			}
-			$interface->assign('followupAction', isset($_REQUEST['followupAction']) ?
-			$_REQUEST['followupAction'] : $finalAction);
+			$interface->assign('followupAction', isset($_REQUEST['followupAction']) ? $_REQUEST['followupAction'] : $finalAction);
 
 			// If we have a save or delete action, create the appropriate recordId
 			//     parameter.  If we've looped back due to user error and already have

@@ -110,6 +110,7 @@ class JSON extends Action {
 
 	function loginUser(){
 		//Login the user.  Must be called via Post parameters.
+		global $user;
 		$user = UserAccount::isLoggedIn();
 		if (!$user || PEAR::isError($user)){
 			$user = UserAccount::login();
@@ -120,12 +121,15 @@ class JSON extends Action {
 		
 		global $locationSingleton;
 		$patronHomeBranch = $locationSingleton->getUserHomeLocation();
+		//Check to see if materials request should be activated
+		require_once 'sys/MaterialsRequest.php';
 		return array(
 			'success'=>true,
 			'name'=>ucwords($user->firstname . ' ' . $user->lastname),
 			'phone'=>$user->phone,
 			'email'=>$user->email,
 			'homeLocation'=> isset($patronHomeBranch) ? $patronHomeBranch->code : '',
+			'enableMaterialsRequest' => MaterialsRequest::enableMaterialsRequest(),
 		);
 	}
 

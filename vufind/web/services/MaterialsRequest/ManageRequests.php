@@ -78,6 +78,22 @@ class ManageRequests extends Admin {
 					if ($allStatuses[$statusToSet]->sendEmailToPatron == 1 && $materialRequest->email){
 						$body = '*****This is an auto-generated email response. Please do not reply.*****';
 						$body .= "\r\n" . $allStatuses[$statusToSet]->emailTemplate;
+						
+						//Replace tags with appropriate values 
+						$materialsRequestUser = new User();
+						$materialsRequestUser->id = $materialRequest->createdBy;
+						$materialsRequestUser->find(true);
+						foreach ($materialsRequestUser as $fieldName => $fieldValue){
+							if (!is_array($fieldValue)){
+								$body = str_replace('{' . $fieldName . '}', $fieldValue, $body);
+							}
+						}
+						foreach ($materialRequest as $fieldName => $fieldValue){
+							if (!is_array($fieldValue)){
+								$body = str_replace('{' . $fieldName . '}', $fieldValue, $body);
+							}
+						}
+						$materialsRequestUser->find(true);
 						$mail->send($materialRequest->email, $configArray['Site']['email'], "Your Materials Request Update", $body, $configArray['Site']['email']);
 					}
 				}
@@ -240,6 +256,9 @@ class ManageRequests extends Admin {
 				}
 				if ($request->magazineVolume){
 					$magazineInfo .= 'volume ' . $request->magazineVolume . ' ';
+				}
+				if ($request->magazineNumber){
+					$magazineInfo .= 'number ' . $request->magazineNumber . ' ';
 				}
 				if ($request->magazinePageNumbers){
 					$magazineInfo .= 'p. ' . $request->magazinePageNumbers . ' ';

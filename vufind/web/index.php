@@ -320,21 +320,8 @@ $interface->assign('module', $module);
 $interface->assign('action', $action);
 
 //Determine whether or not materials request functionality should be enabled
-if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
-	$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
-	if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
-		//Check to see if we need to do additonal restrictions by patron type
-		$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
-		if (strlen($allowablePatronTypes) > 0 && $user){
-			if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
-				$enableMaterialsRequest = false;
-			}
-		}
-	}
-}else{
-	$enableMaterialsRequest = false;
-}
-$interface->assign('enableMaterialsRequest', $enableMaterialsRequest);
+require_once 'sys/MaterialsRequest.php';
+$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
@@ -360,6 +347,19 @@ if ($user) {
 		$followupUrl =  $_REQUEST['returnUrl'];
 		header("Location: " . $followupUrl);
 		exit();
+	}
+	if ($user){
+		if (isset($_REQUEST['followupModule']) && isset($_REQUEST['followupAction'])) {
+			echo("Redirecting to followup location");
+			$followupUrl =  $configArray['Site']['url'] . "/".  strip_tags($_REQUEST['followupModule']);
+			if (!empty($_REQUEST['recordId'])) {
+				$followupUrl .= "/" .  strip_tags($_REQUEST['recordId']);
+			}
+			$followupUrl .= "/" .  strip_tags($_REQUEST['followupAction']);
+			if(isset($_REQUEST['comment'])) $followupUrl .= "?comment=" . urlencode($_REQUEST['comment']);
+			header("Location: " . $followupUrl);
+			exit();
+		}
 	}
 	//TODO: Redirect to that location?
 	if (isset($_REQUEST['followup']) || isset($_REQUEST['followupModule'])){

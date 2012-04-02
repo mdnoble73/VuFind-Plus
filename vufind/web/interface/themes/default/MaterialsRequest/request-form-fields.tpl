@@ -63,12 +63,16 @@
 			<input name="author" id="author" size="80" maxlength="255" class="required" value="{$materialsRequest->author}"/>
 		</div>
 		<div class="formatSpecificField articleField">
-			<label for="magazineDate">Date:</label>
+			<label for="magazineDate">Date <span class="requiredIndicator">*</span>:</label>
 			<input name="magazineDate" id="magazineDate" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineDate}"/>
 		</div>
 		<div class="formatSpecificField articleField">
 			<label for="magazineVolume">Volume <span class="requiredIndicator">*</span>:</label>
 			<input name="magazineVolume" id="magazineVolume" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineVolume}"/>
+		</div>
+		<div class="formatSpecificField articleField">
+			<label for="magazineNumber">Number <span class="requiredIndicator">*</span>:</label>
+			<input name="magazineNumber" id="magazineNumber" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineNumber}"/>
 		</div>
 		<div class="formatSpecificField articleField">
 			<label for="magazinePageNumbers">Page Numbers <span class="requiredIndicator">*</span>:</label>
@@ -167,10 +171,10 @@
 			{if $showPlaceHoldField}
 			<div>
 				Place a hold for me when the item is available: 
-				<input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" onclick="updateHoldOptions();"/><label for="placeHoldYes">Yes</label> 
-				<input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" checked="checked" onclick="updateHoldOptions();"/><label for="placeHoldNo">No</label>
+				<input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked" onclick="updateHoldOptions();"/><label for="placeHoldYes">Yes</label> 
+				<input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" onclick="updateHoldOptions();"/><label for="placeHoldNo">No</label>
 			</div>
-			<div id="pickupLocationField" style="display:none;">
+			<div id="pickupLocationField">
 				<label for="pickupLocation">Pickup Location: </label>
 				<select name="holdPickupLocation" id="pickupLocation" onchange="updateHoldOptions();">
 					{foreach from=$pickupLocations item=location}
@@ -185,7 +189,7 @@
 			{/if}
 			{if $showIllField}
 			<div>
-				ILL this item if not purchased?: 
+				Do you want us to borrow from another library if not purchased?: 
 				<input type="radio" name="illItem" value="1" id="illItemYes" /><label for="illItemYes">Yes</label> 
 				<input type="radio" name="illItem" value="0" id="illItemNo" checked="checked" /><label for="illItemNo">No</label>
 			</div>

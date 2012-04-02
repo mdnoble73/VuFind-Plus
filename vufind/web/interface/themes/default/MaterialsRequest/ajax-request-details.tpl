@@ -84,6 +84,10 @@
 							<div class="request_detail_field_value">{$materialsRequest->magazineVolume}</div>
 						</div>
 						<div class="request_detail_field">
+							<div class="request_detail_field_label">Number: </div>
+							<div class="request_detail_field_value">{$materialsRequest->magazineNumber}</div>
+						</div>
+						<div class="request_detail_field">
 							<div class="request_detail_field_label">Page Numbers: </div>
 							<div class="request_detail_field_value">{$materialsRequest->magazinePageNumbers}</div>
 						</div>
