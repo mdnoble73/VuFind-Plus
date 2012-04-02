@@ -65,7 +65,7 @@ class SaveToList extends Action
 
 		if (isset($_GET['submit'])) {
 			$this->saveRecord();
-			header('Location: ' . $configArray['Site']['url'] . '/EContentRecord/' .
+			header('Location: ' . $configArray['Site']['url'] . '/EcontentRecord/' .
 			urlencode($_GET['id']));
 			exit();
 		}

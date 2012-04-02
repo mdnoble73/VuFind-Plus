@@ -6,7 +6,7 @@
     </div>
     
     <div id="loginFormWrapper">
-  	<form id='checkoutItemForm' action="{$path}/EContentRecord/{$id|escape:"url"}/Checkout" method="post">
+  	<form id='checkoutItemForm' action="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" method="post">
   		<div>
         
 		    {if (!isset($user)) }

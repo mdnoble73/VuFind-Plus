@@ -6,7 +6,7 @@
     </div>
     
     <div id="loginFormWrapper">
-  	<form id='placeHoldForm' action="{$path}/EContentRecord/{$id|escape:"url"}/Hold" method="post">
+  	<form id='placeHoldForm' action="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" method="post">
   		<div>
         
 		    {if (!isset($user)) }

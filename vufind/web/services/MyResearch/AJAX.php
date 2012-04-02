@@ -247,7 +247,7 @@ class AJAX extends Action {
 						'title' => $record->title,
 						'author' => $record->author,
 						'source' => 'eContent',
-						'link' => $configArray['Site']['path'] . "/EContentRecord/" . $record->id,
+						'link' => $configArray['Site']['path'] . "/EcontentRecord/" . $record->id,
 					);
 				}
 			}

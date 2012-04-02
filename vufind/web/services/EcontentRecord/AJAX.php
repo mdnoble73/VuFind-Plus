@@ -75,7 +75,7 @@ class AJAX extends Action {
 	// Email Record
 	function SendEmail()
 	{
-		require_once 'services/EContentRecord/Email.php';
+		require_once 'services/EcontentRecord/Email.php';
 
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
@@ -94,7 +94,7 @@ class AJAX extends Action {
 	// SMS Record
 	function SendSMS()
 	{
-		require_once 'services/EContentRecord/SMS.php';
+		require_once 'services/EcontentRecord/SMS.php';
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
@@ -256,7 +256,7 @@ class AJAX extends Action {
 		$object->recordId = $recordId;
 		$interface->assign('object', $object);
 		$interface->assign('title', 'Add a new eContent Item');
-		$interface->assign('submitUrl', $configArray['Site']['path'] . "/EContentRecord/SaveItem");
+		$interface->assign('submitUrl', $configArray['Site']['path'] . "/EcontentRecord/SaveItem");
 		$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
 		return $interface->fetch('EContentRecord\ajax-editItem.tpl');
 	}
@@ -274,7 +274,7 @@ class AJAX extends Action {
 		if ($object->find(true)){
 			$interface->assign('object', $object);
 			$interface->assign('title', 'Edit eContent Item');
-			$interface->assign('submitUrl', $configArray['Site']['path'] . "/EContentRecord/SaveItem");
+			$interface->assign('submitUrl', $configArray['Site']['path'] . "/EcontentRecord/SaveItem");
 			$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
 			return $interface->fetch('EContentRecord\ajax-editItem.tpl');
 		}else{

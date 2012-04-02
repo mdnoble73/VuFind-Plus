@@ -39,7 +39,7 @@ class SaveItem extends Action{
 			echo("Could not save the new item");
 		}else{
 			$object = $ret['object'];
-			header("Location: " . $configArray['Site']['path'] . "/EContentRecord/{$object->recordId}/Home");
+			header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/{$object->recordId}/Home");
 		}
 	}
 }

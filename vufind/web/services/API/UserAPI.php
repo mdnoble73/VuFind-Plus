@@ -1330,11 +1330,9 @@ class UserAPI extends Action {
 			if (!$eContentRecord->find(true)){
 				return array('success'=>false, 'message'=>'Could not find the record in the database.');
 			}
-			if ($eContentRecord->accessType != 'free'){
-				//Check to see if the user has access to the title.
-				if (!$driver->isRecordCheckedOutToUser($recordId)){
-					return array('success'=>false, 'message'=>'The record is not checked out to you.');
-				}
+			//Check to see if the user has access to the title.
+			if (!$driver->isRecordCheckedOutToUser($recordId)){
+				return array('success'=>false, 'message'=>'The record is not checked out to you.');
 			}
 				
 			$eContentItem = new EContentItem();

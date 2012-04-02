@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$path}/services/EContentRecord/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
 {* Main Listing *}
 {if (isset($title)) }
 <script type="text/javascript">

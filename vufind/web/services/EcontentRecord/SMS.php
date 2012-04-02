@@ -55,7 +55,7 @@ class SMS extends Action {
 		$interface->assign('id', $_REQUEST['id']);
 		$interface->assign('carriers', $this->sms->getCarriers());
 		$interface->assign('formTargetPath',
-            '/EContentRecord/' . urlencode($_GET['id']) . '/SMS');
+            '/EcontentRecord/' . urlencode($_GET['id']) . '/SMS');
 
 		if (isset($_GET['lightbox'])) {
 			// Use for lightbox

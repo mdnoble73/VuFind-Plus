@@ -203,7 +203,7 @@ class ListAPI extends Action {
 					$itemLink;
 					if ($title['recordtype'] == 'econtentRecord'){
 						$titleIdShort = preg_replace('/econtentRecord/', '', $titleId);
-						$itemLink = htmlspecialchars($configArray['Site']['url'] . '/EContentRecord/' . $titleIdShort);
+						$itemLink = htmlspecialchars($configArray['Site']['url'] . '/EcontentRecord/' . $titleIdShort);
 					}else{
 						$itemLink = htmlspecialchars($configArray['Site']['url'] . '/Record/' . $titleId);
 					}

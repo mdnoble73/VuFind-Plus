@@ -1541,7 +1541,7 @@ class SearchObject_Solr extends SearchObject_Base
             	//Since the base URL can be different depending on the record type, add the url to the response
 							if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
 								$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
-								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EContentRecord/' . $id;
+								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
 							}else{
 								$id = $result['response']['docs'][$i]['id'];
 								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;

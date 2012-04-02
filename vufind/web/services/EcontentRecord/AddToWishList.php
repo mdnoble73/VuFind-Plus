@@ -63,6 +63,6 @@ class AddToWishList extends Action {
 		$eContentDriver = new EContentDriver();
 		$ret = $eContentDriver->addToWishList($id, $this->user);
 		
-		header('Location: ' . $configArray['Site']['path'] . '/EContentRecord/' . $id . '/Home');
+		header('Location: ' . $configArray['Site']['path'] . '/EcontentRecord/' . $id . '/Home');
 	}
 }

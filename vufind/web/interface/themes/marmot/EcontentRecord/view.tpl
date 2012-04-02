@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$path}/services/EContentRecord/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
 {if !empty($addThis)}
 <script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
 {/if}
@@ -39,26 +39,26 @@ function redrawSaveStatus() {literal}{{/literal}
             <li><a href="{$url}/Record/{$id|escape:"url"}/Cite" class="cite" onclick="getLightbox('Record', 'Cite', '{$id|escape}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li>
 				{/if}
 				{if !$tabbedDetails}
-					<li><a href="{$path}/EContentRecord/{$id|escape:"url"}/Cite" class="cite" onclick='getLightbox("EContentRecord", "Cite", "{$id|escape}", null, "{translate text='Cite this'}"); return false;'>{translate text="Cite this"}</a></li>
+					<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" onclick='getLightbox("EcntentRecord", "Cite", "{$id|escape}", null, "{translate text='Cite this'}"); return false;'>{translate text="Cite this"}</a></li>
 				{/if}
 				{if $showTextThis == 1}
-					<li><a href="{$path}/EContentRecord/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('EContentRecord', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+					<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('EcontentRecord', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
 				{/if}
 				{if $showEmailThis == 1}
-		        <li><a href="{$path}/EContentRecord/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('EContentRecord', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+		        <li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('EcontentRecord', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
 				{/if}
 				{if is_array($exportFormats) && count($exportFormats) > 0}
 		        <li>
-		          <a href="{$path}/EContentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+		          <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
 		          <ul class="menu" id="exportMenu">
 		            {foreach from=$exportFormats item=exportFormat}
-		              <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EContentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
+		              <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
 		            {/foreach}
 		          </ul>
 		        </li>
 				{/if}
 				{if $showFavorites == 1}
-		        <li id="saveLink"><a href="{$path}/EContentRecord/{$id|escape:"url"}/SaveToList" class="fav" onclick="getLightbox('EContentRecord', 'SaveToList', '{$id|escape}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
+		        <li id="saveLink"><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SaveToList" class="fav" onclick="getLightbox('EcontentRecord', 'SaveToList', '{$id|escape}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
 				{/if}
 				{if !empty($addThis)}
 		        <li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
@@ -91,22 +91,22 @@ function redrawSaveStatus() {literal}{{/literal}
 		      {/if}
       {* Place hold link *}
 	  <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
 	  </div>
 	  
 	  {* Checkout link *}
 	  <div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/Checkout"><img src="{$path}/interface/themes/dcl/images/checkout.png" alt="Checkout"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout"><img src="{$path}/interface/themes/dcl/images/checkout.png" alt="Checkout"/></a>
 	  </div>
 	  
 	  {* Access online link *}
 	  <div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/dcl/images/access_online.png" alt="Access Online"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/dcl/images/access_online.png" alt="Access Online"/></a>
 	  </div>
 	  
 	  {* Add to Wish List *}
 	  <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EContentRecord/{$id|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/dcl/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/dcl/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
 	  </div>
 
       {if $goldRushLink}
@@ -235,7 +235,7 @@ function redrawSaveStatus() {literal}{{/literal}
         <script type="text/javascript">
         $(
 	        function() {literal} { {/literal}
-	            $('#rate{$noDot}').rater({literal}{ {/literal} module:'EContentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EContentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+	            $('#rate{$noDot}').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
 	        {literal} } {/literal}
 		    );
 	      </script>
@@ -261,12 +261,12 @@ function redrawSaveStatus() {literal}{{/literal}
         </h1>
         {if $user && $user->hasRole('epubAdmin')}
         {if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
-        <span id="editEContentLink"><a href='{$path}/EContentRecord/{$id}/Edit'>(edit)</a></span>
+        <span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>
         {if $eContentRecord->status != 'archived' && $eContentRecord->status != 'deleted'}
-        	<span id="archiveEContentLink"><a href='{$path}/EContentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?  The record should not have any holds or checkouts when it is archived.')">(archive)</a></span>
+        	<span id="archiveEContentLink"><a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?  The record should not have any holds or checkouts when it is archived.')">(archive)</a></span>
         {/if}
         {if $eContentRecord->status != 'deleted'}
-        	<span id="deleteEContentLink"><a href='{$path}/EContentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?  The record should not have any holds or checkouts when it is deleted.')">(delete)</a></span>
+        	<span id="deleteEContentLink"><a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?  The record should not have any holds or checkouts when it is deleted.')">(delete)</a></span>
         {/if}
         {/if}
     
@@ -285,8 +285,8 @@ function redrawSaveStatus() {literal}{{/literal}
         <div class="sidebarValue">{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</div>
       {/if}
       <div class="sidebarValue">
-        <a href="{$path}/EContentRecord/{$id|escape:"url"}/AddTag" class="tool add"
-           onclick="getLightbox('EContentRecord', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add Tag"}</a>
+        <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddTag" class="tool add"
+           onclick="getLightbox('EcontentRecord', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add Tag"}</a>
       </div>
       </td>
       </tr>
@@ -390,9 +390,9 @@ function redrawSaveStatus() {literal}{{/literal}
             <span class ="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
             <div class='addReviewTitle'>Add your Review</div>
             {assign var=id value=$id}
-            {include file="EContentRecord/submit-comments.tpl"}
+            {include file="EcontentRecord/submit-comments.tpl"}
           </div>
-          {include file="EContentRecord/view-comments.tpl"}
+          {include file="EcontentRecord/view-comments.tpl"}
         </div>
       {/if}
       
@@ -406,7 +406,7 @@ function redrawSaveStatus() {literal}{{/literal}
           <div id="purchaseTitleLinks">
           <h3>Get a copy for yourself</h3>
           {foreach from=$purchaseLinks item=purchaseLink}
-            <div class='purchaseTitle button'><a href="/EContentRecord/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}" target="_blank">{$purchaseLink.linkText}</a></div>
+            <div class='purchaseTitle button'><a href="/EcontentRecord/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}" target="_blank">{$purchaseLink.linkText}</a></div>
           {/foreach}
           </div>
         {else}
@@ -471,7 +471,7 @@ function redrawSaveStatus() {literal}{{/literal}
         {foreach from=$editions item=edition}
           <div class="sidebarLabel">
           	{if $edition.recordtype == 'econtentRecord'}
-          	<a href="{$path}/EContentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          	<a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
           	{else}
           	<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
           	{/if}

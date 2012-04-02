@@ -91,14 +91,12 @@ class GetMedia extends Action {
 			if (file_exists($bookFile)){
 				require_once('Drivers/EContentDriver.php');
 				$driver = new EContentDriver();
-				if ($eContentRecord->accessType != 'free'){
-					//Check to see if the user has access to the title.
-					if (!$driver->isRecordCheckedOutToUser($id)){
-						$errorOccurred = true;
-						$interface->assign('errorMessage', "Sorry, you do not have access to that title, please <a href='{$configArray['Site']['path']}/Record/{$id}/Hold'>place a hold</a> on the title and you will be notified when it is ready for pickup.");
-					}
+				//Check to see if the user has access to the title.
+				if (!$driver->isRecordCheckedOutToUser($id)){
+					$errorOccurred = true;
+					$interface->assign('errorMessage', "Sorry, you do not have access to that title, please <a href='{$configArray['Site']['path']}/Record/{$id}/Hold'>place a hold</a> on the title and you will be notified when it is ready for pickup.");
 				}
-
+				
 				if (!$errorOccurred){
 					//Record that the e-pub file is being opened.
 					$driver->recordEContentAction($id, 'Download', $econtentItem->getAccessType());

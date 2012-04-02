@@ -132,15 +132,12 @@ class EContentDriver implements DriverInterface{
 				$item->source = $eContentRecord->source;
 				//Generate links for the items
 				$links = array();
-				if ($eContentRecord->accessType == 'free'){
-					$links = $this->getDefaultEContentLinks($eContentRecord, $item);
-				}else{
-					if ($checkedOut){
-						$links = $this->_getCheckedOutEContentLinks($eContentRecord, $item, $eContentCheckout);
-					}else if ($onHold){
-						$links = $this->getOnHoldEContentLinks($eContentHold);
-					}
+				if ($checkedOut){
+					$links = $this->_getCheckedOutEContentLinks($eContentRecord, $item, $eContentCheckout);
+				}else if ($onHold){
+					$links = $this->getOnHoldEContentLinks($eContentHold);
 				}
+				
 				$item->checkedOut = $checkedOut;
 				$item->onHold = $onHold;
 				$item->holdPosition = $holdPosition;
@@ -271,9 +268,9 @@ class EContentDriver implements DriverInterface{
 			$statusSummary['showAccessOnline'] = true;
 		}else{
 			$statusSummary['showPlaceHold'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] == 0) && count($holdings) > 0;
-			$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && $drmType != 'free' && ($statusSummary['availableCopies'] > 0);
+			$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && ($statusSummary['availableCopies'] > 0);
 			$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList);
-			$statusSummary['showAccessOnline'] = (($drmType == 'free' || $checkedOut) && count($holdings) > 0);
+			$statusSummary['showAccessOnline'] = ($checkedOut && count($holdings) > 0);
 		}
 		
 		$statusSummary['holdQueueLength'] = $this->getWaitList($id);
@@ -409,10 +406,7 @@ class EContentDriver implements DriverInterface{
 		$links = array();
 		$addDefaultTypeLinks = false;
 		if ($eContentItem != null){
-			if ($eContentRecord->accessType == 'free'){
-				//No protection
-				$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $eContentItem));
-			}elseif ($eContentRecord->accessType == 'acs' && ($eContentItem->item_type == 'epub' || $eContentItem->item_type == 'pdf')){
+			if ($eContentRecord->accessType == 'acs' && ($eContentItem->item_type == 'epub' || $eContentItem->item_type == 'pdf')){
 				//Protected by ACS server
 				//Links to read the title online or checkout from ACS server
 				if ($eContentItem->item_type == 'pdf'){
@@ -421,17 +415,14 @@ class EContentDriver implements DriverInterface{
 					$links = array_merge($links, $this->_getACSEpubLinks($eContentItem, $eContentCheckout));
 				}
 			}else{
-				//Single usage
+				//Single usage or free
 				//default links to read the title or download
 				$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $eContentItem));
 			}
 		}else{
 			$eContentItems = $eContentRecord->getItems();
 			foreach ($eContentItems as $item){
-				if ($eContentRecord->accessType == 'free'){
-					//No protection
-					$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $item));
-				}elseif ($eContentRecord->accessType == 'acs' && ($item->item_type == 'epub' || $item->item_type == 'pdf')){
+				if ($eContentRecord->accessType == 'acs' && ($item->item_type == 'epub' || $item->item_type == 'pdf')){
 					//Protected by ACS server
 					//Links to read the title online or checkout from ACS server
 					if ($item->item_type == 'pdf'){
@@ -440,7 +431,7 @@ class EContentDriver implements DriverInterface{
 						$links = array_merge($links, $this->_getACSEpubLinks($item, $eContentCheckout));
 					}
 				}else{
-					//Single usage
+					//Single usage or free
 					//default links to read the title or download
 					$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $item));
 				}
@@ -451,7 +442,7 @@ class EContentDriver implements DriverInterface{
 		if ($eContentCheckout->downloadedToReader == 0){
 			$links[] = array(
 				'text' => 'Return&nbsp;Now',
-				'onclick' => "if (confirm('Are you sure you want to return this title?')){returnEpub('{$configArray['Site']['path']}/EContentRecord/{$eContentRecord->id}/ReturnTitle')};return false;",
+				'onclick' => "if (confirm('Are you sure you want to return this title?')){returnEpub('{$configArray['Site']['path']}/EcontentRecord/{$eContentRecord->id}/ReturnTitle')};return false;",
 			);
 		}else{
 			$links[] = array(
@@ -486,54 +477,48 @@ class EContentDriver implements DriverInterface{
 				$return['result'] = $overDriveResult['result'];
 				$return['message'] = $overDriveResult['message'];
 			}else{
-				if ($eContentRecord->accessType == 'free'){
-					//Check to see if a hold is needed
+				//Check to see if the user already has a hold placed
+				$holds = new EContentHold();
+				$holds->userId = $user->id;
+				$holds->recordId = $id;
+				$holds->whereAdd("(status = 'active' or status = 'suspended' or status ='available')");
+				$holds->find();
+				if ($holds->N > 0){
 					$return['result'] = false;
-					$return['message'] = "This title does not require checkouts. You can read a copy online or download by viewing the full record details.";
+					$return['message'] = "That record is already on hold for you, unable to place a second hold.";
 				}else{
-					//Check to see if the user already has a hold placed
-					$holds = new EContentHold();
-					$holds->userId = $user->id;
-					$holds->recordId = $id;
-					$holds->whereAdd("(status = 'active' or status = 'suspended' or status ='available')");
-					$holds->find();
-					if ($holds->N > 0){
+					//Check to see if the user already has the record checked out
+					$checkouts = new EContentCheckout();
+					$checkouts->userId = $user->id;
+					$checkouts->status = 'out';
+					$checkouts->recordId = $id;
+					$checkouts->find();
+					if ($checkouts->N > 0){
 						$return['result'] = false;
-						$return['message'] = "That record is already on hold for you, unable to place a second hold.";
+						$return['message'] = "That record is already checked out to you, unable to place a hold.";
 					}else{
-						//Check to see if the user already has the record checked out
-						$checkouts = new EContentCheckout();
-						$checkouts->userId = $user->id;
-						$checkouts->status = 'out';
-						$checkouts->recordId = $id;
-						$checkouts->find();
-						if ($checkouts->N > 0){
-							$return['result'] = false;
-							$return['message'] = "That record is already checked out to you, unable to place a hold.";
+						//Check to see if there are any available copies and then checkout the record rather than placing a hold
+						$holdings = $this->getHolding($id);
+						$holdingsSummary = $this->getStatusSummary($id, $holdings);
+						if ($holdingsSummary['availableCopies'] > 0 || $eContentRecord->accessType == 'free'){
+							//The record can be checked out directly
+							$ret = $this->checkoutRecord($id, $user);
+							return $ret;
 						}else{
-							//Check to see if there are any available copies and then checkout the record rather than placing a hold
-							$holdings = $this->getHolding($id);
-							$holdingsSummary = $this->getStatusSummary($id, $holdings);
-							if ($holdingsSummary['availableCopies'] > 0){
-								//The record can be checked out directly
-								$ret = $this->checkoutRecord($id, $user);
-								return $ret;
-							}else{
-								//Place the hold for the user
-								$hold = new EContentHold();
-								$hold->userId = $user->id;
-								$hold->recordId = $id;
-								$hold->status = 'active';
-								$hold->datePlaced = time();
-								$hold->dateUpdated = time();
-								if ($hold->insert()){
-									$return['result'] = true;
-									$holdPosition = $this->_getHoldPosition($hold);
-									$return['message'] = "Your hold was successfully placed, you are number {$holdPosition} in the queue.";
-									
-									//Record that the record had a hold placed on it
-									$this->recordEContentAction($id, "Place Hold", $eContentRecord->accessType);
-								}
+							//Place the hold for the user
+							$hold = new EContentHold();
+							$hold->userId = $user->id;
+							$hold->recordId = $id;
+							$hold->status = 'active';
+							$hold->datePlaced = time();
+							$hold->dateUpdated = time();
+							if ($hold->insert()){
+								$return['result'] = true;
+								$holdPosition = $this->_getHoldPosition($hold);
+								$return['message'] = "Your hold was successfully placed, you are number {$holdPosition} in the queue.";
+								
+								//Record that the record had a hold placed on it
+								$this->recordEContentAction($id, "Place Hold", $eContentRecord->accessType);
 							}
 						}
 					}
@@ -839,7 +824,7 @@ class EContentDriver implements DriverInterface{
 		while ($user_epub_history->fetch()){
 			$freeItem = clone $user_epub_history;
 			$freeItem->links[] = array(
-				'url' => $configArray['Site']['path'] . '/EContentRecord/' . $freeItem->recordId ,
+				'url' => $configArray['Site']['path'] . '/EcontentRecord/' . $freeItem->recordId ,
 				'text' => 'Read'
 			);
 			
@@ -864,7 +849,7 @@ class EContentDriver implements DriverInterface{
 		while ($wishListEntry->fetch()){
 			$wishListItem = clone $wishListEntry;
 			$wishListItem->links[] = array(
-				'url' => $configArray['Site']['path'] . '/EContentRecord/' . $wishListEntry->recordId . '/RemoveFromWishList' ,
+				'url' => $configArray['Site']['path'] . '/EcontentRecord/' . $wishListEntry->recordId . '/RemoveFromWishList' ,
 				'text' => 'Remove&nbsp;From&nbsp;Wish&nbsp;List'
 			);
 			$wishListItem->recordId = 'econtentRecord' . $wishListItem->recordId;
@@ -891,43 +876,43 @@ class EContentDriver implements DriverInterface{
 		if (strcasecmp($eContentItem->item_type, 'epub') == 0){
 			//Read in DCL Viewer
 			$links[] = array(
-							'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Viewer?item={$eContentItem->id}",
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Viewer?item={$eContentItem->id}",
 							'text' => 'Read&nbsp;EPUB&nbsp;Online',
 			);
 
 			if ($eContentRecord->source != "Gale Group"){
 				//Download link
 				$links[] = array(
-								'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
+								'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
 								'text' => 'Download&nbsp;EPUB',
 				);
 			}
 		}elseif (strcasecmp($eContentItem->item_type, 'mp3') == 0){
 			//Read online (will launch PDF viewer)
 			$links[] = array(
-							'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Viewer?item={$eContentItem->id}",
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Viewer?item={$eContentItem->id}",
 							'text' => 'Listen&nbsp;Online',
 			);
 			$links[] = array(
-							'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
 							'text' => 'Download&nbsp;MP3',
 			);
 		}elseif (strcasecmp($eContentItem->item_type, 'pdf') == 0){
 			//Read online (will launch PDF viewer)
 			$links[] = array(
-							'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
 							'text' => 'Open&nbsp;PDF',
 			);
 		}elseif (strcasecmp($eContentItem->item_type, 'kindle') == 0){
 			//Download book to device
 			$links[] = array(
-							'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
 							'text' => 'Download&nbsp;Kindle&nbsp;Book',
 			);
 		}elseif (strcasecmp($eContentItem->item_type, 'plucker') == 0){
 			//Download book to device
 			$links[] = array(
-							'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
 							'text' => 'Download&nbsp;Plucker&nbsp;Book',
 			);
 		}elseif (strcasecmp($eContentItem->item_type, 'externalMP3') == 0){
@@ -955,7 +940,7 @@ class EContentDriver implements DriverInterface{
 			}
 		}elseif (in_array($eContentItem->item_type, array('externalLink', 'interactiveBook'))){
 			$links[] = array(
-							'url' =>  $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
+							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
 							'text' => 'Download&nbsp;from&nbsp;' . $eContentItem->source,
 			);
 		}
@@ -968,29 +953,29 @@ class EContentDriver implements DriverInterface{
 		//Link to cancel hold
 		$links[] = array(
 			'text' => 'Cancel&nbsp;Hold',
-			'onclick' => "if (confirm('Are you sure you want to cancel this title?')){cancelEContentHold('{$configArray['Site']['path']}/EContentRecord/{$eContentHold->recordId}/CancelHold')};return false;",
+			'onclick' => "if (confirm('Are you sure you want to cancel this title?')){cancelEContentHold('{$configArray['Site']['path']}/EcontentRecord/{$eContentHold->recordId}/CancelHold')};return false;",
 		
 		);
 		//Link to suspend hold
 		/*if ($eContentHold->status == 'active'){
 			$links[] = array(
 				'text' => 'Suspend&nbsp;Hold',
-				'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentHold->recordId}/SuspendHold",
+				'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentHold->recordId}/SuspendHold",
 			);
 		}*/
 		//Link to reactivate hold
 		if ($eContentHold->status == 'suspended'){
 			$links[] = array(
 				'text' => 'Reactivate&nbsp;Hold',
-				'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentHold->recordId}/ReactivateHold",
-				'onclick' => "reactivateEContentHold('{$configArray['Site']['path']}/EContentRecord/{$eContentHold->recordId}/ReactivateHold');return false;",
+				'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentHold->recordId}/ReactivateHold",
+				'onclick' => "reactivateEContentHold('{$configArray['Site']['path']}/EcontentRecord/{$eContentHold->recordId}/ReactivateHold');return false;",
 			);
 		}
 		//Link to check out (if available)
 		if ($eContentHold->status == 'available'){
 			$links[] = array(
 				'text' => 'Checkout',
-				'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentHold->recordId}/Checkout",
+				'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentHold->recordId}/Checkout",
 			
 			);
 		}
@@ -1065,7 +1050,7 @@ class EContentDriver implements DriverInterface{
 		$links = array();
 		//Read in DCL Viewer
 		$links[] = array(
-			'url' => $configArray['Site']['path'] . "/EContentRecord/{$eContentItem->recordId}/Viewer?item={$eContentItem->id}",
+			'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Viewer?item={$eContentItem->id}",
 			'text' => 'Read&nbsp;Online',
 		);
 
