@@ -465,9 +465,12 @@ class Record extends Action
 		//Do actions needed if this is the main action.
 
 		//$interface->caching = 1;
-
 		$interface->assign('id', $this->id);
-		$interface->assign('classicId', substr($this->id, 1, -1));
+		if (substr($this->id, 0, 1) == '.'){
+			$interface->assign('shortId', substr($this->id, 1));
+		}else{
+			$interface->assign('shortId', $this->id);
+		}
 
 		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' . $configArray['Site']['url']  . '/Record/' . urlencode($this->id) . '/RDF" />');
 

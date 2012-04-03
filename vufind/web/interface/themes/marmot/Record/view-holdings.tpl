@@ -1,8 +1,7 @@
-<table border="0" width ="500" class="holdingsTable">
+<table border="0" class="holdingsTable">
 {assign var=lastSection value=''}
 {if isset($holdings) && count($holdings) > 0}
-{foreach from=$holdings item=holding1}
- {foreach from=$holding1 item=holding}
+{foreach from=$holdings item=holding}
   {if $lastSection != $holding.section}
     {if strlen($holding.section) > 0}
     <tr class='holdings-section'>
@@ -37,7 +36,6 @@
       {/if}
     </td>
 
-  {/foreach}
   {/foreach}
   </tr>
  {elseif isset($issueSummaries) && count($issueSummaries) > 0}

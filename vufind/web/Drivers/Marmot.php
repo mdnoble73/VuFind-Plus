@@ -40,7 +40,7 @@ require_once 'Innovative.php';
  */
 class Marmot implements DriverInterface
 {
-	
+
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
 	var $availableStatiRegex = null;
@@ -619,9 +619,14 @@ class Marmot implements DriverInterface
 
 	}
 
-	public function getStatuses($ids)
-	{
-		return parent::getStatuses($ids);
+	public function getStatuses($ids) {
+		$items = array();
+		$count = 0;
+		foreach ($ids as $id) {
+			$items[$count] = $this->getStatus($id);
+			$count++;
+		}
+		return $items;
 	}
 
 	/**
@@ -681,7 +686,7 @@ class Marmot implements DriverInterface
 		if ($location != null && $location->showHoldButton == 0){
 			$canShowHoldButton = false;
 		}
-		 
+			
 		//Valid statuses are:
 		//It's here
 		//  - at the physical location and not checked out
@@ -986,7 +991,7 @@ class Marmot implements DriverInterface
 
 	public function getHolding($id)
 	{
-		return parent::getHolding($id);
+		return $this->getStatus($id);
 	}
 
 	public function getPurchaseHistory($id)
@@ -1083,12 +1088,12 @@ class Marmot implements DriverInterface
 			$patron = get_object_vars($patron);
 		}
 		$id2= $patron['id'];
-		
+
 		if (array_key_exists($patron['id'], $this->patronProfiles)){
 			$timer->logTime('Retrieved Cached Profile for Patron');
 			return $this->patronProfiles[$patron['id']];
 		}
-		
+
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($id2);
 
@@ -1098,14 +1103,14 @@ class Marmot implements DriverInterface
 		$City = isset($addressParts[1]) ? $addressParts[1] : '';
 		$State = isset($addressParts[2]) ? $addressParts[2] : '';
 		$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
-		
+
 		if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
 			$City = $matches[1];
 			$State = $matches[2];
 			$Zip = $matches[3];
 		}
 		$Fullname = $patronDump['PATRN_NAME'];
-		
+
 		$nameParts = explode(', ',$Fullname);
 		$lastname = $nameParts[0];
 		$secondname = isset($nameParts[1]) ? $nameParts[1] : '';
@@ -1146,12 +1151,12 @@ class Marmot implements DriverInterface
 					$_SESSION['userinfo'] = serialize($user);
 				}
 			}
-			
+
 			//Get displayname for prefered location 1
 			$myLocation1 = new Location();
 			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
 			$myLocation1->find(1);
-	
+
 			//Get displayname for prefered location 1
 			$myLocation2 = new Location();
 			$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
@@ -1196,13 +1201,13 @@ class Marmot implements DriverInterface
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 				'ptype' => $patronDump['P_TYPE'],
 		);
-		
+
 		//Get eContent info as well
 		require_once('Drivers/EContentDriver.php');
-		$eContentDriver = new EContentDriver(); 
+		$eContentDriver = new EContentDriver();
 		$eContentAccountSummary = $eContentDriver->getAccountSummary();
 		$profile = array_merge($profile, $eContentAccountSummary);
-		
+
 		$timer->logTime("Got Patron Profile");
 		$this->patronProfiles[$patron['id']] = $profile;
 		return $profile;
@@ -1353,7 +1358,7 @@ class Marmot implements DriverInterface
 		$sresult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* ITEM.? CHECKED OUT<[^<]+?>\W<[^<]+?>/", "", $sresult);
 
 		$s = substr($sresult, stripos($sresult, 'patFunc'));
-		 
+			
 		$s = substr($s,strpos($s,">")+1);
 
 		$s = substr($s,0,stripos($s,"</table"));
@@ -1612,7 +1617,7 @@ class Marmot implements DriverInterface
 		//$logger->log('Hold information = ' . $sresult, PEAR_LOG_INFO);
 
 		$s = substr($sresult, stripos($sresult, 'patFunc'));
-		 
+			
 		$s = substr($s,strpos($s,">")+1);
 
 		$s = substr($s,0,stripos($s,"</table"));
@@ -1866,7 +1871,7 @@ class Marmot implements DriverInterface
 					$middlename = $secondnameParts[1];
 				}
 			}
-			
+
 			list($first, $last)=explode(' ', $username);
 
 			$header=array();
@@ -1893,8 +1898,8 @@ class Marmot implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
-			 
-			 
+
+
 			$post_data['name'] = $firstname . " " . $lastname;
 			$post_data['code'] = $patronDump['P_BARCODE'];
 			$post_data['needby_Month']= $Month;
@@ -1909,7 +1914,7 @@ class Marmot implements DriverInterface
 			}
 			$post_data['x']="48";
 			$post_data['y']="15";
-			 
+
 			foreach ($post_data as $key => $value) {
 				$post_items[] = $key . '=' . $value;
 			}
@@ -1921,7 +1926,7 @@ class Marmot implements DriverInterface
 			$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
 
 			$sresult = preg_replace("/<!--([^(-->)]*)-->/","",$sresult);
-			 
+
 			curl_close($curl_connection);
 
 			//Parse the response to get the status message
@@ -1938,7 +1943,7 @@ class Marmot implements DriverInterface
 				$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
 				$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
 				$cleanResponse = trim(strip_tags($cleanResponse));
-				 
+					
 				list($book,$reason)= explode("\n",$cleanResponse);
 				if (preg_match('/success/', $cleanResponse)){
 					//Hold was successful

@@ -31,10 +31,8 @@ function redrawSaveStatus() {literal}{{/literal}
 
 </script>
 
-<div id="bd">
-  <div id="yui-main" class="content">
-    <div class="yui-b first">
-      <b class="btop"><b></b></b>
+<div id="page-content" class="content">
+  {if $error}<p class="error">{$error}</p>{/if} 
         <div class="toolbar">
         <ul>
             {if isset($previousId)}
