@@ -55,12 +55,8 @@
     <div class="sidegroup">  
     <h3>Genealogy</h3>
     <ul id="list3">
-      <li{if $action == "People"} class="active"{/if} style="float: none;"><a href="People">People</a></li>
-      {*<li{if $action == "Artifacts"} class="active"{/if} style="float: none;"><a href="People">Artifacts</a></li>*}
       <li{if $action == "GenealogyImport"} class="active"{/if} style="float: none;"><a href="GenealogyImport">Import Information</a></li>
-      <li{if $action == "GenealogyReindex"} class="active"{/if} style="float: none;"><a href="GenealogyReindex">Reindex Information</a></li>
       <li{if $action == "GenealogyFixDates"} class="active"{/if} style="float: none;"><a href="GenealogyFixDates">Fix Dates</a></li>
-      
     </ul>
     </div>
     {/if}

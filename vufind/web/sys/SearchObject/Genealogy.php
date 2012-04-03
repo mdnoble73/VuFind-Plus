@@ -86,6 +86,9 @@ class SearchObject_Genealogy extends SearchObject_Base
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Genealogy']['url'], $configArray['Genealogy']['default_core']);
 		$timer->logTime('Created Index Engine for Genealogy');
+		
+		//Make sure to turn off sharding for genealogy
+		$this->indexEngine->setShards(array());
 
 		// Get default facet settings
 		$this->allFacetSettings = getExtraConfigArray('genealogyFacets');

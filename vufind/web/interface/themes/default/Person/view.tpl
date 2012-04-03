@@ -86,7 +86,7 @@
 	          {if $person->addition || $person->lot || $person->block || $person->grave}
 	          <div class='personDetail'><span class='personDetailLabel'>Burial Location:</span>
 	          <span class='personDetailValue'>
-	          	Lot {$person->lot}, Block {$person->block}, {$person->addition} Addition, {$person->grave}
+	          	Addition {$person->addition}, Block {$person->block}, Lot {$person->lot}, Grave {$person->grave}
 	          </span></div>
 	          {if $person->tombstoneInscription}
 	          <div class='personDetail'><span class='personDetailLabel'>Tombstone Inscription:</span><div class='personDetailValue'>{$person->tombstoneInscription}</div></div>
