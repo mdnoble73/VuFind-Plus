@@ -38,7 +38,9 @@ h4 { font-size:.30em; margin:1em 50px; }
 h4, h4 a { color:#ffffff; }
 
 #title { position:absolute; top:50%; width:100%; height:322px; margin-top:-180px; text-align:center; z-index:10; }
-.cloud { position:absolute; display:block; }
+#debug { position:absolute; top:75%; width:50%; margin-left:25%; height:20%; text-align:left; z-index:10;overflow:auto; font-size:11px; }
+#debug h4 { font-size:13px; margin: 1em 0px;}
+.cloud { position:absolute; display:block;}
 .puff { position:absolute; display:block; width:15px; height:15px; background:white; opacity:.05; filter:alpha(opacity=5); }
 
 </style>
@@ -146,7 +148,20 @@ window.onload = start
 			<h4>{translate text="Please contact the Library Reference Department for assistance"}<br /></h4>
     	<h4><a href="mailto:{$supportEmail}">{$supportEmail}</a></h4>
 		</div>
-
+		<div id ="debug">
+			{if $debug}
+			  <h4>{translate text="Debug Information"}</h4>
+			  {assign var=errorCode value=$error->getCode()}
+			  {if $errorCode}
+			  <p class="errorMsg">{translate text="Code"}: {$errorCode}</p>
+			  {/if}
+			  <p>{translate text="Backtrace"}:</p>
+			  {foreach from=$error->backtrace item=trace}
+			    [{$trace.line}] {$trace.file}<br />
+			  {/foreach}
+			{/if}
+		</div>
 	</div>
+	
 </body>
 </html>
