@@ -48,7 +48,7 @@ $timer->logTime("Initialize Memcache");
 
 //Cleanup method information so module, action, and id are set properly.
 //This ensures that we don't have to change the http-vufind.conf file when new types are added.
-$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview');
+$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
 $dataObjectsStr = implode('|', $dataObjects);
 if (preg_match("/($dataObjectsStr)\/((?:\.b)?\d++)\/([^\/?]+)/", $_SERVER['REQUEST_URI'], $matches)){
 	$_GET['module'] = $matches[1];
@@ -751,17 +751,36 @@ function handlePEARError($error, $method = null){
 // Check for the various stages of functionality
 function checkAvailabilityMode() {
 	global $configArray;
+	global $locationSingleton;
 	$mode = array();
 
 	// If the config file 'available' flag is
 	//    set we are forcing downtime.
 	if (!$configArray['System']['available']) {
-		$mode['online']   = false;
-		$mode['level']    = 'unavailable';
-		// TODO : Variable reasons passed to template... and translated
-		//$mode['message']  = $configArray['System']['available_reason'];
-		$mode['template'] = 'unavailable.tpl';
-		return $mode;
+		//Unless the user is accessing from a maintainence IP address
+		
+		$isMaintainence = false;
+		if (isset($configArray['System']['maintainenceIps'])){
+			$activeIp = $locationSingleton->getActiveIp();
+			$maintainenceIp =  $configArray['System']['maintainenceIps'];
+			
+			$maintainenceIps = explode(",", $maintainenceIp);
+			foreach ($maintainenceIps as $curIp){
+				if ($curIp == $activeIp){
+					$isMaintainence = true;
+					break;
+				}
+			}
+		}
+		
+		if (!$isMaintainence){
+			$mode['online']   = false;
+			$mode['level']    = 'unavailable';
+			// TODO : Variable reasons passed to template... and translated
+			//$mode['message']  = $configArray['System']['available_reason'];
+			$mode['template'] = 'unavailable.tpl';
+			return $mode;
+		}
 	}
 	// TODO : Check if solr index is online
 	// TODO : Check if ILMS database is online

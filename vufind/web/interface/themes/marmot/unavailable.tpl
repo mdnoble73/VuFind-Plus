@@ -1,9 +1,9 @@
+{literal}
 <!DOCTYPE html>
 <html lang="en">
 <meta charset="utf-8">
 <head>
-{literal}
-<title>An Error has Occurred</title>
+<title>Maintainence in Progress</title>
 <style>
 
 
@@ -119,10 +119,43 @@ function animateClouds() {
 	clouds = newClouds
 }
 
+function changeMessage(msg) {
+	var msgEl = document.getElementById('message')
+	msgEl.innerHTML = msg || randomChoice(messages)
+}
+
+function startMessages() {
+	try {
+		if (window.sessionStorage) {
+			var times
+			if (sessionStorage.times) {
+				times = ++sessionStorage.times
+			} else {
+				times = sessionStorage.times = 0
+			}
+			
+			messages.push(msg)
+		}
+	} catch (e) {}
+
+	setInterval(function() { changeMessage() }, 15*1000)
+}
+
+messages = [
+	
+	'Perhaps you could read a book.',
+	'Have you considered starting your novel?',
+	'Librarians have answers to your questions!',
+	'We are working very hard to bring you a better catalog',
+	'Want to search our <a href="http://marmot.lib.overdrive.com">digital collection</a>?',
+	'<a href="http://marmot.lib.overdrive.com">Watch a movie</a>'
+]
+
 function start() {
 	if (arguments.callee.ran) { return; }
 	arguments.callee.ran = true
 
+	startMessages()
 	setInterval(animateClouds, 2*1000)
 
 	for (n=0; n<50; n++) {
@@ -135,16 +168,17 @@ if (document.addEventListener) {
 }
 window.onload = start
 </script>
-{/literal}
 </head>
+{/literal}
 <body>
 	<div id="container">
 		<div id="title">
 			
-			<h1>Oops, an error occurred</h1>
-			<h2>This error has been logged and we are working on a fix.</h2>
-			<h4>{translate text="Please contact the Library Reference Department for assistance"}<br /></h4>
-    	<h4><a href="mailto:{$supportEmail}">{$supportEmail}</a></h4>
+			<h1>Marmot Catalog is Down</h1>
+			<h2>for scheduled maintenance</h2>
+			<h4> Please search our <a href="http://www.millennium.marmot.org/">Classic Catalog</a></h4>
+			<h3> ___ </h3>
+			<h3 id="message"></h3>
 		</div>
 
 	</div>
