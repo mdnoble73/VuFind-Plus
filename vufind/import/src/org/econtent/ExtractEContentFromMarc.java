@@ -41,9 +41,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private PreparedStatement doesIlsIdExist;
 	private PreparedStatement createEContentRecord;
 	private PreparedStatement updateEContentRecord;
-	//private PreparedStatement createLogEntry;
-	//private PreparedStatement markLogEntryFinished = null;
-	//private PreparedStatement updateRecordsProcessed;
 	private PreparedStatement doesGutenbergItemExist;
 	private PreparedStatement addGutenbergItem;
 	private PreparedStatement updateGutenbergItem;
@@ -63,36 +60,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			doesIlsIdExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
-			//createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_marc_import (filename, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
-			//markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_marc_import SET dateFinished = ?, recordsProcessed = ?, status = 'finished' WHERE id = ?");
-			//updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_marc_import SET recordsProcessed = ? WHERE id = ?");
 			doesGutenbergItemExist = econtentConn.prepareStatement("SELECT id from econtent_item WHERE recordId = ? AND item_type = ? and notes = ?");
 			addGutenbergItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, link, notes, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			updateGutenbergItem = econtentConn.prepareStatement("UPDATE econtent_item SET filename = ?, folder = ?, link = ?, date_updated =? WHERE recordId = ? AND item_type = ? AND notes = ?");
-			
-			//Add a log entry to indicate that the marc file is being imported
-			/*createLogEntry.setString(1, this.marcRecordPath);
-			createLogEntry.setLong(2, new Date().getTime() / 1000);
-			createLogEntry.executeUpdate();
-			ResultSet logResult = createLogEntry.getGeneratedKeys();
-			if (logResult.next()){
-				logEntryId = logResult.getLong(1);
-			}*/
 			
 		} catch (Exception ex) {
 			// handle any errors
 			logger.error("Error initializing econtent extraction ", ex);
 			return false;
-		}finally{
-			/*logger.info("Marking log entry finished");
-			try {
-				markLogEntryFinished.setLong(1, new Date().getTime() / 1000);
-				markLogEntryFinished.setLong(2, this.recordsProcessed);
-				markLogEntryFinished.setLong(3, logEntryId);
-				markLogEntryFinished.executeUpdate();
-			} catch (SQLException e) {
-				logger.error("Error importing marking log as finished ", e);
-			}*/
 		}
 		return true;
 	}
@@ -303,18 +278,26 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 	}
 
-	private void reindexRecord(long eContentRecordId, Logger logger) {
+	private void reindexRecord(final long eContentRecordId, final Logger logger) {
 		//reindex the new record
-		try {
-			URL url = new URL(vufindUrl + "/EContentRecord/" + eContentRecordId + "/Reindex");
-			Object reindexResultRaw = url.getContent();
-			if (reindexResultRaw instanceof InputStream) {
-				String updateIndexResponse = Util.convertStreamToString((InputStream) reindexResultRaw);
-				logger.info("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					URL url = new URL(vufindUrl + "/EcontentRecord/" + eContentRecordId + "/Reindex");
+					Object reindexResultRaw = url.getContent();
+					if (reindexResultRaw instanceof InputStream) {
+						String updateIndexResponse = Util.convertStreamToString((InputStream) reindexResultRaw);
+						logger.info("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
+					}
+				} catch (Exception e) {
+					logger.info("Unable to reindex record " + eContentRecordId, e);
+				}
 			}
-		} catch (Exception e) {
-			logger.info("Unable to reindex record " + eContentRecordId, e);
-		}
+		}).start();
+		
 	}
 
 	protected boolean loadConfig(Ini configIni, Logger logger) {

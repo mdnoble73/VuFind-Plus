@@ -27,8 +27,6 @@ import java.util.regex.PatternSyntaxException;
 import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONWriter;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
@@ -742,28 +740,6 @@ public class MarcRecordDetails {
 	}
 	
 	/**
-	 * Write a marc record as a string containing MarcXML
-	 * 
-	 * @param record
-	 *          marc record object to be written
-	 * @return String containing MarcXML representation of marc record object
-	 */
-	protected String writeJson(Record record) {
-		StringWriter stringWriter = new StringWriter();
-		JSONWriter writer = new JSONWriter(new StringWriter());
-		try {
-			writer.object();
-			writer.key("marc");
-			writer.value(record);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return stringWriter.toString();
-	}
-
-	/**
 	 * get the era field values from 045a as a Set of Strings
 	 */
 	public Set<String> getEra(Record record) {
@@ -852,8 +828,6 @@ public class MarcRecordDetails {
 			return writeRaw(record);
 		} else if (indexParm.equals("xml") || indexParm.equalsIgnoreCase("FullRecordAsXML")) {
 			return writeXml(record);
-		} else if (indexParm.equals("json") || indexParm.equalsIgnoreCase("FullRecordAsJSON")) {
-			return writeJson(record);
 		} else if (indexParm.equals("xml") || indexParm.equalsIgnoreCase("FullRecordAsText")) {
 			return (record.toString().replaceAll("\n", "<br/>"));
 		} else if (indexParm.equals("date") || indexParm.equalsIgnoreCase("DateOfPublication")) {
@@ -1212,7 +1186,7 @@ public class MarcRecordDetails {
 			if (fieldValues != null && fieldValues.size() >= 1) {
 				return (String) fieldValues.iterator().next();
 			}
-			return null;
+			return "";
 		}
 	}
 
