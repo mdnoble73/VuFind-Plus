@@ -65,8 +65,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		try {
 			// Check to see if the record already exists
 			existingResourceStmt = conn.prepareStatement("SELECT id, marc_checksum from resource where record_id = ? and source = 'VuFind'");
-			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, date_updated=? WHERE id = ?");
-			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, date_updated=? WHERE id = ?");
+			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, marc_checksum, marc, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			getExistingSubjectsStmt = conn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -126,8 +126,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
 				resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
-				resourceUpdateStmt.setLong(9, new Date().getTime() / 1000);
-				resourceUpdateStmt.setLong(10, resourceId);
+				resourceUpdateStmt.setBytes(9, recordInfo.getRawRecord().getBytes());
+				resourceUpdateStmt.setLong(10, new Date().getTime() / 1000);
+				resourceUpdateStmt.setLong(11, resourceId);
 
 				int rowsUpdated = resourceUpdateStmt.executeUpdate();
 				if (rowsUpdated == 0) {
@@ -144,7 +145,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				resourceInsertStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
 				resourceInsertStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceInsertStmt.setString(8, recordInfo.getId());
-				resourceInsertStmt.setString(9, "VuFind");
+				resourceInsertStmt.setLong(9, recordInfo.getChecksum());
+				resourceInsertStmt.setBytes(10, recordInfo.getRawRecord().getBytes());
+				resourceInsertStmt.setString(11, "VuFind");
 
 				int rowsUpdated = resourceInsertStmt.executeUpdate();
 				if (rowsUpdated == 0) {

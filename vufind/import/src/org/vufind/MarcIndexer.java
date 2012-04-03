@@ -93,12 +93,19 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 				String fieldName = keyIterator.next();
 				Object fieldValue = recordInfo.getFields().get(fieldName);
 				if (fieldValue instanceof String){
-					doc.e("field").a("name", fieldName).t(Util.encodeSpecialCharacters((String)fieldValue));
+					if (fieldName.equals("fullrecord")){
+						//doc.e("field").a("name", fieldName).cdata( ((String)fieldValue).getBytes() );
+						//doc.e("field").a("name", fieldName).data( ((String)fieldValue).getBytes());
+						doc.e("field").a("name", fieldName).data( Util.encodeSpecialCharacters((String)fieldValue).getBytes());
+						System.out.println(Util.encodeSpecialCharacters((String)fieldValue));
+					}else{
+						doc.e("field").a("name", fieldName).t((String)fieldValue);
+					}
 				}else{
 					Set<String> fieldValues = (Set<String>)fieldValue;
 					Iterator<String> fieldValuesIter = fieldValues.iterator();
 					while(fieldValuesIter.hasNext()){
-						doc.e("field").a("name", fieldName).t(Util.encodeSpecialCharacters(fieldValuesIter.next()));
+						doc.e("field").a("name", fieldName).t(fieldValuesIter.next());
 					}
 				}
 			}

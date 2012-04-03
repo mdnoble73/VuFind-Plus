@@ -353,6 +353,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'resource_update4' => array(
+				'title' => 'Update resource table 4',
+				'description' => 'Update resource table to include a field for the actual marc record',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `resource` ADD marc BLOB",
+				),
+			),
+			
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
 				'description' => 'Create table to store call numbers for resources',

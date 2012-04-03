@@ -12,10 +12,11 @@
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.vufind"/>
-        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent"/>
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.solrmarc.tools"/>
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.strands"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent"/>
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.solrmarc.marcoverride"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.json"/>
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.solrmarc.marc"/>
     </selectedElements>
 </jardesc>

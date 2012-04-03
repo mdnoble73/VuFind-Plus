@@ -1,6 +1,8 @@
 package org.vufind;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,17 +27,22 @@ import java.util.regex.PatternSyntaxException;
 import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONWriter;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
 import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
+import org.marc4j.marc.Leader;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 import org.marc4j.marc.VariableField;
 import org.solrmarc.tools.CallNumUtils;
 import org.solrmarc.tools.SolrMarcIndexerException;
 import org.solrmarc.tools.Utils;
+
+import com.sun.corba.se.impl.copyobject.JavaStreamObjectCopierImpl;
 
 import bsh.BshMethod;
 import bsh.EvalError;
@@ -669,12 +676,36 @@ public class MarcRecordDetails {
 	 * @return string containing binary (UTF-8 encoded) representation of marc
 	 *         record object.
 	 */
-	protected String writeRaw(Record record) {
+	public String writeRaw(Record record) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		MarcWriter writer = new MarcStreamWriter(out, "UTF-8");
 		writer.write(record);
 		writer.close();
 
+		String result = null;
+		try {
+			result = out.toString("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// e.printStackTrace();
+			logger.error(e.getCause());
+		}
+		return result;
+	}
+	
+	/**
+	 * Write a marc record as a binary string to the
+	 * 
+	 * @param record
+	 *          marc record object to be written
+	 * @return string containing binary (UTF-8 encoded) representation of marc
+	 *         record object.
+	 */
+	public String getRawRecord() {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MarcWriter writer = new MarcStreamWriter(out, "UTF-8");
+		writer.write(record);
+		writer.close();
+		
 		String result = null;
 		try {
 			result = out.toString("UTF-8");
@@ -708,6 +739,28 @@ public class MarcRecordDetails {
 			logger.error(e.getCause());
 		}
 		return tmp;
+	}
+	
+	/**
+	 * Write a marc record as a string containing MarcXML
+	 * 
+	 * @param record
+	 *          marc record object to be written
+	 * @return String containing MarcXML representation of marc record object
+	 */
+	protected String writeJson(Record record) {
+		StringWriter stringWriter = new StringWriter();
+		JSONWriter writer = new JSONWriter(new StringWriter());
+		try {
+			writer.object();
+			writer.key("marc");
+			writer.value(record);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return stringWriter.toString();
 	}
 
 	/**
@@ -799,6 +852,8 @@ public class MarcRecordDetails {
 			return writeRaw(record);
 		} else if (indexParm.equals("xml") || indexParm.equalsIgnoreCase("FullRecordAsXML")) {
 			return writeXml(record);
+		} else if (indexParm.equals("json") || indexParm.equalsIgnoreCase("FullRecordAsJSON")) {
+			return writeJson(record);
 		} else if (indexParm.equals("xml") || indexParm.equalsIgnoreCase("FullRecordAsText")) {
 			return (record.toString().replaceAll("\n", "<br/>"));
 		} else if (indexParm.equals("date") || indexParm.equalsIgnoreCase("DateOfPublication")) {

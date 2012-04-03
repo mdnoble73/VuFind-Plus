@@ -18,6 +18,8 @@ class Resource extends DB_DataObject {
 	public $upc;
 	public $format;
 	public $format_category;
+	public $marc;
+	public $marc_checksum;
 	public $source = 'VuFind';               // string(50)  not_null
 
 	/* Static get */
@@ -375,7 +377,7 @@ class Resource extends DB_DataObject {
 		}
 
 		// Send the PNG header information. Replace for JPEG or GIF or whatever
-		$imagestring = file_get_contents("interface/themes/{$configArray['Site']['theme']}/images/stars.png");
+		$imagestring = file_get_contents("interface/themes/default/images/stars.png");
 		$image2 = imagecreatefromstring($imagestring);
 
 		imagecopy($im,$image2,0,0,0,0, imagesx($image2),imagesy($image2));

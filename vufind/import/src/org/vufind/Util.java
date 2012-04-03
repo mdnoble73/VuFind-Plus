@@ -318,7 +318,7 @@ public class Util {
 			boolean characterWithSpecialMeaningInXML = ch == '<' || ch == '&' || ch == '>';
 
 			if (characterWithSpecialMeaningInXML || unicodeButNotAscii || controlCharacter) {
-				stringBuffer.append("&#" + (int) ch + ";");
+				stringBuffer.append("#" + (int) ch + ";");
 				anyCharactersProtected = true;
 			} else {
 				stringBuffer.append(ch);
