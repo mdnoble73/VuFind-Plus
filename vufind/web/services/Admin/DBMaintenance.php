@@ -55,9 +55,13 @@ class DBMaintenance extends Admin {
 						}else{
 							$result = mysql_query($sql);
 							if ($result == 0 || $result == false){
-								$update['status'] = 'Update failed ' . mysql_error();
-								$updateOk = false;
-								break;
+								if (isset($update['continueOnError']) && $update['continueOnError']){
+									$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
+								}else{
+									$update['status'] = 'Update failed ' . mysql_error();
+									$updateOk = false;
+									break;
+								}
 							}else{
 								$update['status'] = 'Update succeeded';
 							}
@@ -134,8 +138,10 @@ class DBMaintenance extends Admin {
 				'title' => 'Library 6',
 				'description' => 'Add fields orginally defined for Marmot',
 				'dependencies' => array(),
+				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `prospectorCode` VARCHAR(10) NOT NULL DEFAULT '';",
+					"ALTER TABLE `library` ADD `showRatings` TINYINT(4) NOT NULL DEFAULT '1';",
 					"ALTER TABLE `library` ADD `searchesFile` VARCHAR(15) NOT NULL DEFAULT 'default';",
 					"ALTER TABLE `library` ADD `minimumFineAmount` FLOAT NOT NULL DEFAULT '0';",
 					"UPDATE library set minimumFineAmount = '5' where showEcommerceLink = '1'",
@@ -636,6 +642,7 @@ class DBMaintenance extends Admin {
 			'title' => 'Update to UTF-8',
 			'description' => 'Update database to use UTF-8 encoding',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				"ALTER DATABASE " . $configArray['Database']['database_vufind_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE administrators CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
