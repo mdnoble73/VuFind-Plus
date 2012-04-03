@@ -11,7 +11,7 @@ html { overflow:hidden; }
 body { font: 60px 'SilkscreenNormal', Arial, sans-serif; letter-spacing:0; background:#25d; color:#fff; }
 
 /* Thanks, http://www.colorzilla.com/gradient-editor/ */
-#container {
+#errorContainer {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -27,15 +27,15 @@ body { font: 60px 'SilkscreenNormal', Arial, sans-serif; letter-spacing:0; backg
 	background: linear-gradient(top, #083a7f 0%,#242b3d 100%);
 }
 
-h1, h2 { margin:0; text-shadow:0 5px 0px rgba(0,0,0,.2); }
-h1 { font-size:1em; }
-h2 { font-size:.5em; }
-a { color:#fff; }
-h3 { font-size:.25em; margin:1em 50px; }
-h3, h3 a { color:#6b778d; }
-h3 img { margin:0 3px; }
-h4 { font-size:.30em; margin:1em 50px; }
-h4, h4 a { color:#ffffff; }
+#errorContainer h1, #errorContainer h2 { margin:0; text-shadow:0 5px 0px rgba(0,0,0,.2); }
+#errorContainer h1 { font-size:1em; }
+#errorContainer h2 { font-size:.5em; }
+#errorContainer a { color:#fff; }
+#errorContainer h3 { font-size:.25em; margin:1em 50px; }
+#errorContainer h3, #errorContainer h3 a { color:#6b778d; }
+#errorContainer h3 img { margin:0 3px; }
+#errorContainer h4 { font-size:.30em; margin:1em 50px; }
+#errorContainer h4, #errorContainer h4 a { color:#ffffff; }
 
 #title { position:absolute; top:50%; width:100%; height:322px; margin-top:-180px; text-align:center; z-index:10; }
 #debug { position:absolute; top:75%; width:50%; margin-left:25%; height:20%; text-align:left; z-index:10;overflow:auto; font-size:11px; }
@@ -171,13 +171,14 @@ if (document.addEventListener) {
 window.onload = start
 </script>
 {/literal}
-</head>
+
 <body>
-	<div id="container">
+	<div id="errorContainer">
 		<div id="title">
 			
 			<h1>Oops, an error occurred</h1>
 			<h2>This error has been logged and we are working on a fix.</h2>
+			<h4>{$error->getMessage()}</h4>
 			<h4>{translate text="Please contact the Library Reference Department for assistance"}<br /></h4>
     	<h4><a href="mailto:{$supportEmail}">{$supportEmail}</a></h4>
 			<h3> ___ </h3>
@@ -185,7 +186,8 @@ window.onload = start
 		</div>
 		<div id ="debug">
 			{if $debug}
-			  <h2>{translate text="Debug Information"}</h2>
+			  <h4>{translate text="Debug Information"}</h4>
+				<p class="errorStmt">{$error->getDebugInfo()}</p>
 			  {assign var=errorCode value=$error->getCode()}
 			  {if $errorCode}
 			  <p class="errorMsg">{translate text="Code"}: {$errorCode}</p>

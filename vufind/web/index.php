@@ -707,6 +707,7 @@ function handlePEARError($error, $method = null){
 	$interface->assign('error', $error);
 	$interface->assign('debug', $configArray['System']['debug']);
 
+	ob_clean();
 	$interface->display('error.tpl');
 
 	// Exceptions we don't want to log
