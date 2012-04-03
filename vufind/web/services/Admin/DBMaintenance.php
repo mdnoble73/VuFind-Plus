@@ -136,7 +136,6 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `prospectorCode` VARCHAR(10) NOT NULL DEFAULT '';",
-					"ALTER TABLE `library` ADD `showRatings` TINYINT(4) NOT NULL DEFAULT '1';",
 					"ALTER TABLE `library` ADD `searchesFile` VARCHAR(15) NOT NULL DEFAULT 'default';",
 					"ALTER TABLE `library` ADD `minimumFineAmount` FLOAT NOT NULL DEFAULT '0';",
 					"UPDATE library set minimumFineAmount = '5' where showEcommerceLink = '1'",
