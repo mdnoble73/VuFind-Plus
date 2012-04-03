@@ -851,25 +851,25 @@ public class SolrIndexer
         {
             // e.printStackTrace();
 //            logger.error(record.getControlNumber() + " " + indexField + " " + e.getCause());
-            logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+            logger.error("SecurityException while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
         }
         catch (NoSuchMethodException e)
         {
             // e.printStackTrace();
 //            logger.error(record.getControlNumber() + " " + indexField + " " + e.getCause());
-            logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+            logger.error("NoSuchMethodException while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
         }
         catch (IllegalArgumentException e)
         {
             // e.printStackTrace();
 //            logger.error(record.getControlNumber() + " " + indexField + " " + e.getCause());
-            logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+            logger.error("IllegalArgumentException while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
         }
         catch (IllegalAccessException e)
         {
             // e.printStackTrace();
 //            logger.error(record.getControlNumber() + " " + indexField + " " + e.getCause());
-            logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+            logger.error("IllegalAccessException while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
         }
         catch (InvocationTargetException e)
         {
@@ -879,7 +879,7 @@ public class SolrIndexer
             }
             e.printStackTrace();   // DEBUG
 //            logger.error(record.getControlNumber() + " " + indexField + " " + e.getCause());
-            logger.error("Error while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
+            logger.error("InvocationTargetException while indexing " + indexField + " for record " + (recCntlNum != null ? recCntlNum : "") + " -- " + e.getCause());
         }
         boolean deleteIfEmpty = false;
         if (indexType.startsWith("customDeleteRecordIfFieldEmpty")) 

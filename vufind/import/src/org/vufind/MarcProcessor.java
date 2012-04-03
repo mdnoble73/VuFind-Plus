@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -53,7 +54,7 @@ public class MarcProcessor {
 
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>			marcFieldProps	= new HashMap<String, String[]>();
-
+	
 	public HashMap<String, String[]> getMarcFieldProps() {
 		return marcFieldProps;
 	}
@@ -86,13 +87,15 @@ public class MarcProcessor {
 	private PreparedStatement							insertChecksumStmt;
 	private PreparedStatement							updateChecksumStmt;
 	private PreparedStatement	recordRatingStmt;
+	
+	private HashSet<String> existingEContentIds = new HashSet<String>(); 
 
 	public static final int								RECORD_CHANGED			= 1;
 	public static final int								RECORD_UNCHANGED		= 2;
 	public static final int								RECORD_NEW					= 3;
 	public static final int								RECORD_DELETED			= 4;
 
-	public boolean init(String serverName, Ini configIni, Connection vufindConn, Logger logger) {
+	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 
 		marcRecordPath = configIni.get("Reindex", "marcPath");
@@ -147,6 +150,20 @@ public class MarcProcessor {
 			logger.error("Unable to load checksums for existing records", e);
 			return false;
 		}
+		
+		//Load the ILS ids of any eContent records that have been loaded so we can 
+		//suppress the record in the regular content
+		try {
+			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record");
+			ResultSet existingEContentRecordRS = existingEContentRecordStmt.executeQuery();
+			while (existingEContentRecordRS.next()) {
+				existingEContentIds.add(existingEContentRecordRS.getString("ilsId"));
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to load checksums for existing records", e);
+			return false;
+		}
+		
 		// Setup additional statements 
 		try {
 			insertChecksumStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum) VALUES (?, ?)");
@@ -157,6 +174,10 @@ public class MarcProcessor {
 			return false;
 		}
 		return true;
+	}
+
+	public HashSet<String> getExistingEContentIds() {
+		return existingEContentIds;
 	}
 
 	public PreparedStatement getRecordRatingStmt() {

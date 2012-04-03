@@ -197,16 +197,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 					}
 				}
 				
-				//Add call numbers based on the location
-				Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
-				logger.info("Found " + localCallNumbers.size() + " call numbers");
-				for (LocalCallNumber curCallNumber : localCallNumbers){
-					Long locationId = locations.get(curCallNumber.getLocationCode());
-					if (locationId != null){
-						addCallnumberToResourceStmt.setLong(1, resourceId);
-						addCallnumberToResourceStmt.setLong(2, locationId);
-						addCallnumberToResourceStmt.setString(3, curCallNumber.getCallNumber());
-						addCallnumberToResourceStmt.executeUpdate();
+				if (callNumberSubfield != null && callNumberSubfield.length() > 0 && locationSubfield != null && locationSubfield.length() > 0){
+					//Add call numbers based on the location
+					Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
+					for (LocalCallNumber curCallNumber : localCallNumbers){
+						Long locationId = locations.get(curCallNumber.getLocationCode());
+						if (locationId != null){
+							addCallnumberToResourceStmt.setLong(1, resourceId);
+							addCallnumberToResourceStmt.setLong(2, locationId);
+							addCallnumberToResourceStmt.setString(3, curCallNumber.getCallNumber());
+							addCallnumberToResourceStmt.executeUpdate();
+						}
 					}
 				}
 			}

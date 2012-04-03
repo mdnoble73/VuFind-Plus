@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 import org.marc4j.marc.VariableField;
+import org.solrmarc.tools.CallNumUtils;
 import org.solrmarc.tools.SolrMarcIndexerException;
 import org.solrmarc.tools.Utils;
 
@@ -771,7 +773,7 @@ public class MarcRecordDetails {
 	 *          - the marc record object
 	 * @return 260c, "cleaned" per org.solrmarc.tools.Utils.cleanDate()
 	 */
-	public String getDate(Record record) {
+	public String getDate() {
 		String date = getFieldVals("260c", ", ");
 		if (date == null || date.length() == 0) return (null);
 		return Utils.cleanDate(date);
@@ -800,7 +802,7 @@ public class MarcRecordDetails {
 		} else if (indexParm.equals("xml") || indexParm.equalsIgnoreCase("FullRecordAsText")) {
 			return (record.toString().replaceAll("\n", "<br/>"));
 		} else if (indexParm.equals("date") || indexParm.equalsIgnoreCase("DateOfPublication")) {
-			return getDate(record);
+			return getDate();
 		} else if (indexParm.equals("index_date") || indexParm.equalsIgnoreCase("DateRecordIndexed")) {
 			return getCurrentDate();
 		}
@@ -870,22 +872,22 @@ public class MarcRecordDetails {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
+			logger.error("SecurityException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (NoSuchMethodException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
+			logger.error("NoSuchMethodException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (IllegalArgumentException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
+			logger.error("IllegalArgumentException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (IllegalAccessException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
+			logger.error("IllegalAccessException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		} catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof SolrMarcIndexerException) {
 				throw ((SolrMarcIndexerException) e.getTargetException());
@@ -893,7 +895,7 @@ public class MarcRecordDetails {
 			e.printStackTrace(); // DEBUG
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("Error while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
+			logger.error("InvocationTargetException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
 		}
 		boolean deleteIfEmpty = false;
 		if (indexType.startsWith("customDeleteRecordIfFieldEmpty")) deleteIfEmpty = true;
@@ -1186,7 +1188,7 @@ public class MarcRecordDetails {
 	 */
 	public String getFullCallNumber(String fieldSpec) {
 
-		String val = getFirstFieldVal( fieldSpec);
+		String val = getFirstFieldVal(fieldSpec);
 
 		if (val != null) {
 			return val.toUpperCase().replaceAll(" ", "");
@@ -1456,18 +1458,18 @@ public class MarcRecordDetails {
 
 		return result;
 	}
-	
-	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield){
+
+	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield) {
 		Set<LocalCallNumber> localCallnumbers = new HashSet<LocalCallNumber>();
-		List itemFields = record.getVariableFields(itemTag);
+		List<DataField> itemFields = record.getVariableFields(itemTag);
 		Iterator itemFieldIterator = itemFields.iterator();
 		char callNumberSubfieldChar = callNumberSubfield.charAt(0);
 		char locationSubfieldChar = locationSubfield.charAt(0);
-		while (itemFieldIterator.hasNext()){
-			DataField itemField = (DataField)itemFieldIterator.next();
+		while (itemFieldIterator.hasNext()) {
+			DataField itemField = (DataField) itemFieldIterator.next();
 			Subfield callNumber = itemField.getSubfield(callNumberSubfieldChar);
 			Subfield location = itemField.getSubfield(locationSubfieldChar);
-			if (callNumber != null && location != null){
+			if (callNumber != null && location != null) {
 				String callNumberData = callNumber.getData();
 				callNumberData = callNumberData.replaceAll("~", " ");
 				LocalCallNumber localCallNumber = new LocalCallNumber(location.getData(), callNumberData);
@@ -1475,5 +1477,968 @@ public class MarcRecordDetails {
 			}
 		}
 		return localCallnumbers;
+	}
+
+	private Set<String>	locationCodes;
+
+	public Set<String> getLocationCodes(String locationSpecifier, String locationSpecifier2) {
+		if (locationCodes != null) {
+			return locationCodes;
+		}
+
+		locationCodes = new LinkedHashSet();
+		// Get a list of all branches that own at least one copy from the 989d tag
+		Set input = getFieldList(record, locationSpecifier);
+		Iterator<String> iter = input.iterator();
+		while (iter.hasNext()) {
+			String curLocationCode = iter.next();
+			String ResultString = null;
+			try {
+				Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
+				Matcher RegexMatcher = Regex.matcher(curLocationCode);
+				if (RegexMatcher.find()) {
+					curLocationCode = RegexMatcher.group(1);
+				}
+				addLocationCode(curLocationCode, locationCodes);
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
+			}
+		}
+
+		// Add any location codes from the 998 subfield a
+		if (locationSpecifier2 != null && locationSpecifier2.length() > 0 && !locationSpecifier2.equals("null")) {
+			Set input2 = getFieldList(record, "998a");
+			Iterator<String> iter2 = input2.iterator();
+			while (iter2.hasNext()) {
+				String curLocationCode = iter2.next();
+				if (curLocationCode.length() >= 2) {
+					String ResultString = null;
+					try {
+						Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
+						Matcher RegexMatcher = Regex.matcher(curLocationCode);
+						if (RegexMatcher.find()) {
+							curLocationCode = RegexMatcher.group(1);
+						}
+						addLocationCode(curLocationCode, locationCodes);
+
+					} catch (PatternSyntaxException ex) {
+						// Syntax error in the regular expression
+					}
+				}
+			}
+		}
+		return locationCodes;
+	}
+
+	private void addLocationCode(String locationCode, Set<String> locationCodes) {
+		locationCode = locationCode.trim();
+		for (String existingCode : locationCodes) {
+			if (existingCode.startsWith(locationCode)) {
+				// There is a more specific location code, skip this code
+				return;
+			}
+		}
+		locationCodes.add(locationCode);
+		// Deal with special case collections which are treated as a branches, but
+		// are really a collection that crosses multiple branches.
+		if (locationCode.matches("^(ssbj[aejlnpuvkbrm]|ssbyl|ssc.*|sst.*)$")) {
+			locationCodes.add("steamjuv");
+		} else if (locationCode.matches("^(evabd|evaj|evajs|evebd|evej|evejs|evgbd|evgj|evgjs|evj|evajn|evejn|evgjn)$")) {
+			locationCodes.add("evldjuv");
+		} else if (locationCode.matches("^(mpbj|mpcj|mpdj|mpfj|mpgj|mpmj|mpmja|mpmjm|mpmjn|mpoj|mppj|mpcja|mpfja|mppja|mpbja|mpdja|mpoja|mpgja)$")) {
+			locationCodes.add("mesajuv");
+		} else if (locationCode
+				.matches("^(mvap.*|mvbw.*|mvch.*|mvcl.*|mvco.*|mvcp.*|mvcs|mvdi.*|mvdr.*|mvem.*|mvfv.*|mvgp.*|mvlm.*|mvlo.*|mvlp.*|mvmv.*|mvni.*|mvoa.*|mvpo.*|mvpp.*|mvrm.*|mvrr.*|mvsc.*|mvsh.*|mvta.*|mvtm.*|mvto.*|mvwi.*)$")) {
+			locationCodes.add("mcvsdelem");
+		} else if (locationCode.matches("^(pcjv)$")) {
+			locationCodes.add("pitkinjuv");
+		} else if (locationCode.matches("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$")) {
+			locationCodes.add("gcpjuv");
+		}
+	}
+
+	public String getLibrarySystemBoost(String locationSpecifier, String locationSpecifier2, String activeSystem, String branchCodes) {
+		Set<String> locationCodes = getLocationCodes(locationSpecifier, locationSpecifier2);
+
+		StringBuffer branchString = new StringBuffer();
+		for (String curBranch : locationCodes) {
+			branchString.append(curBranch + " ");
+		}
+		// System.out.println(activeSystem + " regex = (?:\\(\\d+\\))?(" +
+		// branchCodes + ")(\\s.*|$)");
+		boolean FoundMatch = false;
+		try {
+			Pattern Regex = Pattern.compile("(?:\\(\\d+\\))?(" + branchCodes + ")(\\s|$)");
+			Matcher RegexMatcher = Regex.matcher(branchString);
+			FoundMatch = RegexMatcher.find();
+		} catch (PatternSyntaxException ex) {
+			// Syntax error in the regular expression
+		}
+		if (FoundMatch) {
+			// System.out.println(activeSystem + " boost = 500");
+			return "500";
+		} else {
+			return "0";
+		}
+	}
+
+	public String getLocationBoost(String locationSpecifier, String locationSpecifier2, String activeLocation) {
+		Set<String> locationCodes = getLocationCodes(locationSpecifier, locationSpecifier2);
+
+		StringBuffer branchString = new StringBuffer();
+		for (String curBranch : locationCodes) {
+			branchString.append(curBranch + " ");
+		}
+
+		boolean FoundMatch = false;
+		try {
+			Pattern Regex = Pattern.compile("(?:\\(\\d+\\))?(" + activeLocation + ".*?)(\\s|$)");
+			Matcher RegexMatcher = Regex.matcher(branchString);
+			FoundMatch = RegexMatcher.find();
+		} catch (PatternSyntaxException ex) {
+			// Syntax error in the regular expression
+		}
+		if (FoundMatch) {
+			// System.out.println(activeLocation + " boost = 750");
+			return "750";
+		} else {
+			return "0";
+		}
+	}
+
+	/**
+	 * Determine Record Format(s)
+	 * 
+	 * @param Record
+	 *          record
+	 * @return Set format of record
+	 */
+	public Set getFormat(String returnFirst) {
+		Set result = new LinkedHashSet();
+		String leader = record.getLeader().toString();
+		char leaderBit;
+		ControlField fixedField = (ControlField) record.getVariableField("008");
+		DataField title = (DataField) record.getVariableField("245");
+		char formatCode = ' ';
+
+		boolean returnFirstValue = false;
+		if (returnFirst.equals("true")) {
+			returnFirstValue = true;
+		}
+
+		// check for playaway in 260|b
+		DataField sysDetailsNote = (DataField) record.getVariableField("260");
+		if (sysDetailsNote != null) {
+			if (sysDetailsNote.getSubfield('b') != null) {
+				String sysDetailsValue = sysDetailsNote.getSubfield('b').getData().toLowerCase();
+				if (sysDetailsValue.contains("playaway")) {
+					result.add("Playaway");
+					if (returnFirstValue) return result;
+				}
+			}
+		}
+
+		// Check for formats in the 538 field
+		DataField sysDetailsNote2 = (DataField) record.getVariableField("538");
+		if (sysDetailsNote2 != null) {
+			if (sysDetailsNote2.getSubfield('a') != null) {
+				String sysDetailsValue = sysDetailsNote2.getSubfield('a').getData().toLowerCase();
+				if (sysDetailsValue.contains("playaway")) {
+					result.add("Playaway");
+					if (returnFirstValue) return result;
+				} else if (sysDetailsValue.contains("bluray") || sysDetailsValue.contains("blu-ray")) {
+					result.add("Blu-ray");
+					if (returnFirstValue) return result;
+				} else if (sysDetailsValue.contains("vertical file")) {
+					result.add("VerticalFile");
+					if (returnFirstValue) return result;
+				}
+			}
+		}
+
+		// Check for formats in the 500 tag
+		DataField noteField = (DataField) record.getVariableField("500");
+		if (noteField != null) {
+			if (noteField.getSubfield('a') != null) {
+				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
+				if (noteValue.contains("vertical file")) {
+					result.add("VerticalFile");
+					if (returnFirstValue) return result;
+				}
+			}
+		}
+
+		// check if there's an h in the 245
+		if (title != null) {
+			if (title.getSubfield('h') != null) {
+				if (title.getSubfield('h').getData().toLowerCase().contains("[electronic resource]")) {
+					result.add("Electronic");
+					if (returnFirstValue) return result;
+				}
+			}
+		}
+
+		// Check for large print book (large format in 650, 300, or 250 fields)
+		// Check for blu-ray in 300 fields
+		DataField edition = (DataField) record.getVariableField("250");
+		if (edition != null) {
+			if (edition.getSubfield('a') != null) {
+				if (edition.getSubfield('a').getData().toLowerCase().contains("large type")) {
+					result.add("LargePrint");
+					if (returnFirstValue) return result;
+				}
+			}
+		}
+
+		List physicalDescription = record.getVariableFields("300");
+		if (physicalDescription != null) {
+			Iterator fieldsIter = physicalDescription.iterator();
+			DataField field;
+			while (fieldsIter.hasNext()) {
+				field = (DataField) fieldsIter.next();
+				List<Subfield> subfields = field.getSubfields();
+				Iterator<Subfield> subfieldIter = subfields.iterator();
+				while (subfieldIter.hasNext()) {
+					Subfield subfield = subfieldIter.next();
+					if (subfield.getData().toLowerCase().contains("large type")) {
+						result.add("LargePrint");
+						if (returnFirstValue) return result;
+					} else if (subfield.getData().toLowerCase().contains("bluray") || subfield.getData().toLowerCase().contains("blu-ray")) {
+						result.add("Blu-ray");
+						if (returnFirstValue) return result;
+					}
+				}
+			}
+		}
+		List topicalTerm = record.getVariableFields("650");
+		if (physicalDescription != null) {
+			Iterator fieldsIter = topicalTerm.iterator();
+			DataField field;
+			while (fieldsIter.hasNext()) {
+				field = (DataField) fieldsIter.next();
+				List<Subfield> subfields = field.getSubfields();
+				Iterator<Subfield> subfieldIter = subfields.iterator();
+				while (subfieldIter.hasNext()) {
+					Subfield subfield = subfieldIter.next();
+					if (subfield.getData().toLowerCase().contains("large type")) {
+						result.add("LargePrint");
+						if (returnFirstValue) return result;
+					}
+				}
+			}
+		}
+
+		// check the 007 - this is a repeating field
+		List fields = record.getVariableFields("007");
+		if (fields != null) {
+			Iterator fieldsIter = fields.iterator();
+			ControlField formatField;
+			while (fieldsIter.hasNext()) {
+				formatField = (ControlField) fieldsIter.next();
+				if (formatField.getData() == null || formatField.getData().length() < 2) {
+					continue;
+				}
+				// Check for blu-ray (s in position 4)
+				// This logic does not appear correct.
+				/*
+				 * if (formatField.getData() != null && formatField.getData().length()
+				 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
+				 * result.add("Blu-ray"); break; } }
+				 */
+				formatCode = formatField.getData().toUpperCase().charAt(0);
+				switch (formatCode) {
+				case 'A':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'D':
+						result.add("Atlas");
+						break;
+					default:
+						result.add("Map");
+						break;
+					}
+					break;
+				case 'C':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'A':
+						result.add("TapeCartridge");
+						break;
+					case 'B':
+						result.add("ChipCartridge");
+						break;
+					case 'C':
+						result.add("DiscCartridge");
+						break;
+					case 'F':
+						result.add("TapeCassette");
+						break;
+					case 'H':
+						result.add("TapeReel");
+						break;
+					case 'J':
+						result.add("FloppyDisk");
+						break;
+					case 'M':
+					case 'O':
+						result.add("CDROM");
+						break;
+					case 'R':
+						// Do not return - this will cause anything with an
+						// 856 field to be labeled as "Electronic"
+						break;
+					default:
+						result.add("Software");
+						break;
+					}
+					break;
+				case 'D':
+					result.add("Globe");
+					break;
+				case 'F':
+					result.add("Braille");
+					break;
+				case 'G':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'C':
+					case 'D':
+						result.add("Filmstrip");
+						break;
+					case 'T':
+						result.add("Transparency");
+						break;
+					default:
+						result.add("Slide");
+						break;
+					}
+					break;
+				case 'H':
+					result.add("Microfilm");
+					break;
+				case 'K':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'C':
+						result.add("Collage");
+						break;
+					case 'D':
+						result.add("Drawing");
+						break;
+					case 'E':
+						result.add("Painting");
+						break;
+					case 'F':
+						result.add("Print");
+						break;
+					case 'G':
+						result.add("Photonegative");
+						break;
+					case 'J':
+						result.add("Print");
+						break;
+					case 'L':
+						result.add("Drawing");
+						break;
+					case 'O':
+						result.add("FlashCard");
+						break;
+					case 'N':
+						result.add("Chart");
+						break;
+					default:
+						result.add("Photo");
+						break;
+					}
+					break;
+				case 'M':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'F':
+						result.add("VideoCassette");
+						break;
+					case 'R':
+						result.add("Filmstrip");
+						break;
+					default:
+						result.add("MotionPicture");
+						break;
+					}
+					break;
+				case 'O':
+					result.add("Kit");
+					break;
+				case 'Q':
+					result.add("MusicalScore");
+					break;
+				case 'R':
+					result.add("SensorImage");
+					break;
+				case 'S':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'D':
+						result.add("SoundDisc");
+						break;
+					case 'S':
+						result.add("SoundCassette");
+						break;
+					default:
+						result.add("SoundRecording");
+						break;
+					}
+					break;
+				case 'V':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'C':
+						result.add("VideoCartridge");
+						break;
+					case 'D':
+						result.add("VideoDisc");
+						break;
+					case 'F':
+						result.add("VideoCassette");
+						break;
+					case 'R':
+						result.add("VideoReel");
+						break;
+					default:
+						result.add("Video");
+						break;
+					}
+					break;
+				}
+				if (returnFirstValue && !result.isEmpty()) {
+					return result;
+				}
+			}
+			if (!result.isEmpty() && returnFirstValue) {
+				return result;
+			}
+		}
+
+		// check the Leader at position 6
+		if (leader.length() >= 6) {
+			leaderBit = leader.charAt(6);
+			switch (Character.toUpperCase(leaderBit)) {
+			case 'C':
+			case 'D':
+				result.add("MusicalScore");
+				break;
+			case 'E':
+			case 'F':
+				result.add("Map");
+				break;
+			case 'G':
+				// We appear to have a number of items without 007 tags marked as G's.
+				// These seem to be Videos rather than Slides.
+				// result.add("Slide");
+				result.add("Video");
+				break;
+			case 'I':
+				result.add("SoundRecording");
+				break;
+			case 'J':
+				result.add("MusicRecording");
+				break;
+			case 'K':
+				result.add("Photo");
+				break;
+			case 'M':
+				result.add("Electronic");
+				break;
+			case 'O':
+			case 'P':
+				result.add("Kit");
+				break;
+			case 'R':
+				result.add("PhysicalObject");
+				break;
+			case 'T':
+				result.add("Manuscript");
+				break;
+			}
+		}
+		if (!result.isEmpty() && returnFirstValue) {
+			return result;
+		}
+
+		if (leader.length() >= 7) {
+			// check the Leader at position 7
+			leaderBit = leader.charAt(7);
+			switch (Character.toUpperCase(leaderBit)) {
+			// Monograph
+			case 'M':
+				if (formatCode == 'C') {
+					result.add("eBook");
+				} else {
+					if (result.isEmpty()) {
+						result.add("Book");
+					}
+				}
+				break;
+			// Serial
+			case 'S':
+				// Look in 008 to determine what type of Continuing Resource
+				formatCode = fixedField.getData().toUpperCase().charAt(21);
+				switch (formatCode) {
+				case 'N':
+					result.add("Newspaper");
+					break;
+				case 'P':
+					result.add("Journal");
+					break;
+				default:
+					result.add("Serial");
+					break;
+				}
+			}
+		}
+
+		// Nothing worked!
+		if (result.isEmpty()) {
+			result.add("Unknown");
+		}
+
+		return result;
+	}
+
+	/**
+	 * Determine the number of items for the record
+	 * 
+	 * @param Record
+	 *          record
+	 * @return Set format of record
+	 */
+	public String getNumHoldings(String itemField) {
+		Set input = getFieldList(record, itemField);
+		int numHoldings = input.size();
+		if (numHoldings == 0) {
+			numHoldings = 1;
+		}
+
+		return Integer.toString(numHoldings);
+	}
+
+	/**
+	 * Determine Record Format(s)
+	 * 
+	 * @param Record
+	 *          record
+	 * @return Set format of record
+	 */
+	public Set getTargetAudience() {
+		Set result = new LinkedHashSet();
+		try {
+			String leader = record.getLeader().toString();
+			char leaderBit;
+
+			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
+			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
+
+			// check the Leader at position 6 to determine the type of field
+			char recordType = Character.toUpperCase(leader.charAt(6));
+			char bibLevel = Character.toUpperCase(leader.charAt(7));
+			// Figure out what material type the record is
+			if ((recordType == 'A' || recordType == 'T') && (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
+					|| (recordType == 'M') /* Computer Files */
+					|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
+					|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
+																																																 * Visual
+																																																 * Materials
+																																																 */
+			) {
+				char targetAudienceChar;
+				if (ohOhSixField != null && ohOhSixField.getData().length() >= 5) {
+					targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(5));
+					if (targetAudienceChar != ' ') {
+						result.add(Character.toString(targetAudienceChar));
+					}
+				}
+				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() >= 22) {
+					targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(22));
+					if (targetAudienceChar != ' ') {
+						result.add(Character.toString(targetAudienceChar));
+					}
+				} else {
+					result.add("Unknown");
+				}
+			} else {
+				result.add("Unknown");
+			}
+		} catch (Exception e) {
+			System.out.println("ERROR in getTargetAudience " + e.toString());
+			result.add("Unknown");
+		}
+
+		if (result.size() == 0) {
+			result.add("Unknown");
+		}
+
+		/*
+		 * Iterator iter = result.iterator(); while (iter.hasNext()){
+		 * System.out.println("Audience: " + iter.next().toString()); }
+		 */
+
+		return result;
+	}
+
+	/**
+	 * Determine if a record is illustrated.
+	 * 
+	 * @param Record
+	 *          record
+	 * @return String "Illustrated" or "Not Illustrated"
+	 */
+	public String isIllustrated() {
+		String leader = record.getLeader().toString();
+
+		// Does the leader indicate this is a "language material" that might have
+		// extra
+		// illustration details in the fixed fields?
+		if (leader.charAt(6) == 'a') {
+			String currentCode = ""; // for use in loops below
+
+			// List of 008/18-21 codes that indicate illustrations:
+			String illusCodes = "abcdefghijklmop";
+
+			// Check the illustration characters of the 008:
+			ControlField fixedField = (ControlField) record.getVariableField("008");
+			if (fixedField != null) {
+				String fixedFieldText = fixedField.getData().toLowerCase();
+				for (int i = 18; i <= 21; i++) {
+					if (i < fixedFieldText.length()) {
+						currentCode = fixedFieldText.substring(i, i + 1);
+						if (illusCodes.contains(currentCode)) {
+							return "Illustrated";
+						}
+					}
+				}
+			}
+
+			// Now check if any 006 fields apply:
+			List fields = record.getVariableFields("006");
+			Iterator fieldsIter = fields.iterator();
+			if (fields != null) {
+				ControlField formatField;
+				while (fieldsIter.hasNext()) {
+					fixedField = (ControlField) fieldsIter.next();
+					String fixedFieldText = fixedField.getData().toLowerCase();
+					for (int i = 1; i <= 4; i++) {
+						if (i < fixedFieldText.length()) {
+							currentCode = fixedFieldText.substring(i, i + 1);
+							if (illusCodes.contains(currentCode)) {
+								return "Illustrated";
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Now check for interesting strings in 300 subfield b:
+		List fields = record.getVariableFields("300");
+		Iterator fieldsIter = fields.iterator();
+		if (fields != null) {
+			DataField physical;
+			while (fieldsIter.hasNext()) {
+				physical = (DataField) fieldsIter.next();
+				List<Subfield> subfields = physical.getSubfields('b');
+				Iterator<Subfield> subfieldsIter = subfields.iterator();
+				if (subfields != null) {
+					String desc;
+					while (subfieldsIter.hasNext()) {
+						Subfield curSubfield = subfieldsIter.next();
+						desc = curSubfield.getData().toLowerCase();
+						if (desc.contains("ill.") || desc.contains("illus.")) {
+							return "Illustrated";
+						}
+					}
+				}
+			}
+		}
+
+		// If we made it this far, we found no sign of illustrations:
+		return "Not Illustrated";
+	}
+
+	public Set getDateAdded(String dateFieldSpec, String dateFormat) {
+		Set result = new LinkedHashSet();
+		// Get the date the record was added from the 907d tag (should only be one).
+		Set<String> input = getFieldList(record, dateFieldSpec);
+		Iterator<String> iter = input.iterator();
+		int numHoldings = 0;
+		StringBuffer branchStringBuff = new StringBuffer();
+		while (iter.hasNext()) {
+			String curDateAdded = iter.next();
+			String ResultString = null;
+			try {
+				SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+				Date dateAdded = formatter.parse(curDateAdded);
+				// System.out.println("Indexing " + curDateAdded + " " +
+				// dateAdded.getTime());
+				SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+				result.add(formatter2.format(dateAdded));
+				break;
+			} catch (Exception ex) {
+				// Syntax error in the regular expression
+				System.out.println("Unable to parse date added " + curDateAdded);
+			}
+		}
+		return result;
+	}
+
+	public Set getRelativeTimeAdded(String dateFieldSpec, String dateFormat) {
+		Set result = new LinkedHashSet();
+		// Get the date the record was added from the 998b tag (should only be one).
+		Set datesAdded = getDateAdded(dateFieldSpec, dateFormat);
+
+		for (Object curDateObj : datesAdded) {
+			String curDateStr = (String) curDateObj;
+			SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			try {
+				Date curDate = formatter2.parse(curDateStr);
+				addTimeSinceAddedForDateToResults(curDate, result);
+			} catch (ParseException e) {
+				logger.error("Error parsing date " + curDateStr + " in getRelativeTimeAdded");
+			}
+		}
+		return result;
+	}
+
+	public void addTimeSinceAddedForDateToResults(Date curDate, Set result) {
+		long timeDifferenceDays = (new Date().getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
+		// System.out.println("Time Difference Days: " + timeDifferenceDays);
+		if (timeDifferenceDays <= 1) {
+			result.add("Day");
+		}
+		if (timeDifferenceDays <= 7) {
+			result.add("Week");
+		}
+		if (timeDifferenceDays <= 30) {
+			result.add("Month");
+		}
+		if (timeDifferenceDays <= 60) {
+			result.add("2 Months");
+		}
+		if (timeDifferenceDays <= 90) {
+			result.add("Quarter");
+		}
+		if (timeDifferenceDays <= 180) {
+			result.add("Six Months");
+		}
+		if (timeDifferenceDays <= 365) {
+			result.add("Year");
+		}
+	}
+
+	public Set getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
+			String branchCodes) {
+		// System.out.println("Branch Codes for " + activeSystem + " are " +
+		// branchCodes);
+		Set result = new LinkedHashSet();
+		// Get a list of all 989 tags that store per item information
+		List<DataField> input = record.getVariableFields(itemField);
+		Iterator<DataField> iter = input.iterator();
+		String dateAddedStr = null;
+		SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+		Date dateAddedDate = null;
+		char locationChar = locationSubfield.charAt(0);
+		char dateChar = dateSubfield.charAt(0);
+		// System.out.println("Active System: " + activeSystem);
+		while (iter.hasNext()) {
+			DataField curField = (DataField) iter.next();
+			try {
+				String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
+				// System.out.println("Testing branch code (" + branchCode + ") for " +
+				// activeSystem);
+				if (branchCode.matches(branchCodes)) {
+					// System.out.println("Testing branch code (" + branchCode + ") for "
+					// + activeSystem);
+					String dateAddedCurStr = curField.getSubfield(dateChar).getData();
+					// System.out.println("Branch: " + branchCode + " - " +
+					// dateAddedCurStr);
+					Date dateAddedCurDate = formatter.parse(dateAddedCurStr);
+					if (dateAddedStr == null) {
+						dateAddedStr = dateAddedCurStr;
+						dateAddedDate = dateAddedCurDate;
+					} else if (dateAddedCurDate.getTime() < dateAddedDate.getTime()) {
+						dateAddedStr = dateAddedCurStr;
+						dateAddedDate = dateAddedCurDate;
+					}
+				}
+			} catch (Exception e) {
+				System.out.println("Non-fatal error loading relative time added " + e);
+			}
+		}
+
+		if (dateAddedDate != null) {
+			// System.out.println("Date Added Date: " + dateAddedStr);
+			addTimeSinceAddedForDateToResults(dateAddedDate, result);
+		}
+		return result;
+	}
+
+	/**
+	 * Extract a numeric portion of the Dewey decimal call number
+	 * 
+	 * Can return null
+	 * 
+	 * @param record
+	 * @param fieldSpec
+	 *          - which MARC fields / subfields need to be analyzed
+	 * @param precisionStr
+	 *          - a decimal number (represented in string format) showing the
+	 *          desired precision of the returned number; i.e. 100 to round to
+	 *          nearest hundred, 10 to round to nearest ten, 0.1 to round to
+	 *          nearest tenth, etc.
+	 * @return Set containing requested numeric portions of Dewey decimal call
+	 *         numbers
+	 */
+	public Set getDeweyNumber(String fieldSpec, String precisionStr) {
+		// Initialize our return value:
+		Set result = new LinkedHashSet();
+
+		// Precision comes in as a string, but we need to convert it to a float:
+		float precision = Float.parseFloat(precisionStr);
+
+		// Loop through the specified MARC fields:
+		Set<String> input = getFieldList(record, fieldSpec);
+		Iterator<String> iter = input.iterator();
+		while (iter.hasNext()) {
+			// Get the current string to work on:
+			String current = iter.next();
+
+			if (CallNumUtils.isValidDewey(current)) {
+				// Convert the numeric portion of the call number into a float:
+				float currentVal = Float.parseFloat(CallNumUtils.getDeweyB4Cutter(current));
+
+				// Round the call number value to the specified precision:
+				Float finalVal = new Float(Math.floor(currentVal / precision) * precision);
+
+				// Convert the rounded value back to a string (with leading zeros) and
+				// save it:
+				result.add(CallNumUtils.normalizeFloat(finalVal.toString(), 3, -1));
+			}
+		}
+
+		// If we found no call number matches, return null; otherwise, return our
+		// results:
+		if (result.isEmpty()) return null;
+		return result;
+	}
+
+	/**
+	 * Normalize Dewey numbers for searching purposes (uppercase/stripped spaces)
+	 * 
+	 * Can return null
+	 * 
+	 * @param record
+	 * @param fieldSpec
+	 *          - which MARC fields / subfields need to be analyzed
+	 * @return Set containing normalized Dewey numbers extracted from specified
+	 *         fields.
+	 */
+	public Set getDeweySearchable(String fieldSpec) {
+		// Initialize our return value:
+		Set result = new LinkedHashSet();
+
+		// Loop through the specified MARC fields:
+		Set<String> input = getFieldList(record, fieldSpec);
+		Iterator<String> iter = input.iterator();
+		while (iter.hasNext()) {
+			// Get the current string to work on:
+			String current = iter.next();
+
+			// Add valid strings to the set, normalizing them to be all uppercase
+			// and free from whitespace.
+			if (CallNumUtils.isValidDewey(current)) {
+				result.add(current.toUpperCase().replaceAll(" ", ""));
+			}
+		}
+
+		// If we found no call numbers, return null; otherwise, return our results:
+		if (result.isEmpty()) return null;
+		return result;
+	}
+
+	/**
+	 * Normalize Dewey numbers for sorting purposes (use only the first valid
+	 * number!)
+	 * 
+	 * Can return null
+	 * 
+	 * @param record
+	 * @param fieldSpec
+	 *          - which MARC fields / subfields need to be analyzed
+	 * @return String containing the first valid Dewey number encountered,
+	 *         normalized for sorting purposes.
+	 */
+	public String getDeweySortable(String fieldSpec) {
+		// Loop through the specified MARC fields:
+		Set<String> input = getFieldList(record, fieldSpec);
+		Iterator<String> iter = input.iterator();
+		while (iter.hasNext()) {
+			// Get the current string to work on:
+			String current = iter.next();
+
+			// If this is a valid Dewey number, return the sortable shelf key:
+			if (CallNumUtils.isValidDewey(current)) {
+				return CallNumUtils.getDeweyShelfKey(current);
+			}
+		}
+
+		// If we made it this far, we didn't find a valid sortable Dewey number:
+		return null;
+	}
+
+	public Set checkSuppression(String locationField, String locationsToSuppress, String manualSuppressionField, String manualSuppressionValue) {
+		Set result = new LinkedHashSet();
+		// If all locations should be suppressed, then the record should be suppressed.
+		Set<String> input = getFieldList(record, "998a");
+		Iterator<String> iter = input.iterator();
+		int numHoldings = 0;
+		StringBuffer branchStringBuff = new StringBuffer();
+		boolean suppressRecord = true;
+		while (iter.hasNext()) {
+			String curLocationCode = iter.next();
+			String ResultString = null;
+			try {
+				if (!curLocationCode.matches("locationsToSuppress")) {
+					suppressRecord = false;
+					break;
+				}
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
+			}
+		}
+
+		if (!suppressRecord) {
+			// Now, check for manually suppressed record where the 907c tag is set to
+			// W
+			Set<String> input2 = getFieldList(record, manualSuppressionField);
+			Iterator<String> iter2 = input2.iterator();
+			suppressRecord = false;
+			while (iter2.hasNext()) {
+				String curCode = iter2.next();
+				if (curCode.matches(manualSuppressionValue)) {
+					suppressRecord = true;
+					break;
+				}
+			}
+		}
+
+		// Check to see if the record is already loaded into the eContent core
+		if (!suppressRecord) {
+			String ilsId = this.getId();
+			if (marcProcessor.getExistingEContentIds().contains(ilsId)){
+				System.out.println("Suppressing because there is an eContent record for " + ilsId);
+				suppressRecord = true;
+			}
+		}
+
+		if (suppressRecord) {
+			// return that the record is suppressed
+			result.add("suppressed");
+		} else {
+			// return that the record is not suppressed
+			result.add("notSuppressed");
+		}
+
+		return result;
 	}
 }

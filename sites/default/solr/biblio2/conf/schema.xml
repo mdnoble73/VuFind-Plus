@@ -135,6 +135,7 @@
 	<fields>
 		<!-- Core Fields  -->
 		<field name="id" type="string" indexed="true" stored="true"/>
+		<field name="id_sort" type="integer" indexed="true" stored="false"/>
 		<field name="fullrecord" type="string" indexed="false" stored="true"/>
 		<field name="marc_error" type="string" indexed="false" stored="true" multiValued="true"/>
 		<field name="allfields" type="text" indexed="true" stored="false"/>
@@ -144,7 +145,7 @@
 		<field name="econtentText" type="text" indexed="true" stored="false"/>
 		<field name="econtentText_unstemmed" type="textProper" indexed="true" stored="false"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
-		<field name="keywords_proper" type="textProper" indexed="true" stored="true"/>
+		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="spelling" type="textSpell" indexed="true" stored="true"/>
 		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
 		<!-- Institutional Fields -->
@@ -152,7 +153,7 @@
 		<field name="institution" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="building" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="collection_group" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="available_at" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="available_at" type="building_code" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
 		<!-- Generic Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
@@ -170,7 +171,7 @@
 				<tokenizer class="solr.PatternTokenizerFactory" pattern="\w" group="1"/>
 			</analyzer>
 		</field>
-		<field name="title_proper" type="textProper" indexed="true" stored="true"/>
+		<field name="title_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="title_sort" type="alphaOnlySort" indexed="true" stored="true"/>
 		<field name="title_sub" type="text" indexed="true" stored="true"/>
 		<field name="title_short" type="text" indexed="true" stored="true"/>
@@ -186,7 +187,7 @@
 		<field name="edition" type="string" indexed="true" stored="true"/>
 		<field name="description" type="text" indexed="true" stored="true"/>
 		<field name="contents" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="contents_proper" type="text" indexed="true" stored="true" multiValued="true"/>
+		<field name="contents_proper" type="text" indexed="true" stored="false" multiValued="true"/>
 		<field name="url" type="string" indexed="false" stored="true" multiValued="true"/>
 		<field name="thumbnail" type="string" indexed="false" stored="true"/>
 		<!-- Catalog Specific Fields -->
@@ -224,6 +225,10 @@
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="topic_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="author_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
@@ -250,14 +255,17 @@
 		<!-- Used for loading correct record driver -->
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
-    <dynamicField name="loc_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="loc_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="collection_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<!-- Non MARC -->
 		<field name="tag" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="comment" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="bib_suppression" type="text" indexed="true" stored="false" multiValued="false"/>
 		<field name="date_added" type="date" indexed="true" stored="true" multiValued="false"/>
 		<field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="rating" type="float" indexed="true" stored="true" multiValued="false"/>
+		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="rating" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Special fields for Lists -->
 		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false"/>
@@ -294,6 +302,10 @@
 	<copyField source="genre" dest="genre_proper"/>
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="allfields" dest="allfields_proper"/>
+	<!-- CopyFields for Alphabetic Browse -->
+	<copyField source="topic"    dest="topic_browse"/>
+	<copyField source="author"    dest="author_browse"/>
+	<copyField source="author2"    dest="author_browse"/> 
 	<!-- Default Boolean Operator -->
 	<solrQueryParser defaultOperator="AND"/>
 </schema>

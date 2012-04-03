@@ -374,7 +374,7 @@ public class ReindexProcess {
 		}
 		
 		MarcProcessor marcProcessor = new MarcProcessor();
-		marcProcessor.init(serverName, configIni, vufindConn, logger);
+		marcProcessor.init(serverName, configIni, vufindConn, econtentConn, logger);
 		
 		if (supplementalProcessors.size() > 0){
 			logger.info("Processing exported marc records");
@@ -505,7 +505,7 @@ public class ReindexProcess {
 			logger.error("Configuration file could not be read.", e);
 		}
 		solrPort = configIni.get("Reindex", "solrPort");
-		if (solrPort.length() == 0) {
+		if (solrPort == null || solrPort.length() == 0) {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");
 			System.exit(1);
 		}

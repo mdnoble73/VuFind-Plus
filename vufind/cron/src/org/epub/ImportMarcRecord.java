@@ -123,10 +123,12 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 	protected boolean processMarcRecord(BasicMarcInfo recordInfo, Logger logger) {
 		try {
 			//Check to see if the record already exists
-			String controlNumber = recordInfo.getControlNumber();
-			if (controlNumber.length() == 0){
-				//Get the ils id
-				controlNumber = recordInfo.getId();
+			//Use Id number first because multiple copies of a title can be purchased
+			//From different sources (i.e. OverDrive and 3M)
+			String controlNumber = recordInfo.getId();
+			if (controlNumber == null || controlNumber.length() == 0){
+				//Get the control number
+				controlNumber = recordInfo.getControlNumber();
 			}
 			boolean importRecordIntoDatabase = true;
 			long eContentRecordId = -1;

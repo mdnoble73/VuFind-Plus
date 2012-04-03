@@ -38,7 +38,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private String vufindUrl;
 	
-	private PreparedStatement doesControlNumberExist;
+	private PreparedStatement doesIlsIdExist;
 	private PreparedStatement createEContentRecord;
 	private PreparedStatement updateEContentRecord;
 	//private PreparedStatement createLogEntry;
@@ -60,7 +60,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		try {
 			//Connect to the vufind database
 			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
-			doesControlNumberExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE marcControlField = ?");
+			doesIlsIdExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
 			//createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_marc_import (filename, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
@@ -126,22 +126,22 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			
 			if (addRecordToEContent){
 				//Check to see if the record already exists
-				String controlNumber = recordInfo.getControlNumber();
-				if (controlNumber.length() == 0){
+				String ilsId = recordInfo.getId();
+				if (ilsId.length() == 0){
 					//Get the ils id
-					controlNumber = recordInfo.getId();
+					ilsId = recordInfo.getId();
 				}
 				boolean importRecordIntoDatabase = true;
 				long eContentRecordId = -1;
-				if (controlNumber.length() == 0){
-					logger.warn("Control number could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
+				if (ilsId.length() == 0){
+					logger.warn("ILS Id could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
 				}else{
-					doesControlNumberExist.setString(1, controlNumber);
-					ResultSet controlNumberExists = doesControlNumberExist.executeQuery();
-					if (controlNumberExists.next()){
+					doesIlsIdExist.setString(1, ilsId);
+					ResultSet ilsIdExists = doesIlsIdExist.executeQuery();
+					if (ilsIdExists.next()){
 						//The record already exists, check if it needs to be updated?
 						importRecordIntoDatabase = false;
-						eContentRecordId = controlNumberExists.getLong("id");
+						eContentRecordId = ilsIdExists.getLong("id");
 					}else{
 						//Add to database
 						importRecordIntoDatabase = true;
@@ -152,7 +152,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				if (importRecordIntoDatabase){
 					
 					//Add to database
-					logger.info("Adding control number " + controlNumber + " to the database.");
+					logger.info("Adding ils id " + ilsId + " to the database.");
 					createEContentRecord.setString(1, recordInfo.getId());
 					createEContentRecord.setString(2, "");
 					createEContentRecord.setString(3, source);
@@ -178,7 +178,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					createEContentRecord.setString(23, recordInfo.getSourceUrl());
 					createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
 					createEContentRecord.setString(25, recordInfo.getPublishDate());
-					createEContentRecord.setString(26, controlNumber);
+					createEContentRecord.setString(26, recordInfo.getControlNumber());
 					createEContentRecord.setString(27, accessType);
 					createEContentRecord.setLong(28, new Date().getTime() / 1000);
 					createEContentRecord.setString(29, recordInfo.toString());
@@ -194,7 +194,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					}
 				}else{
 					//Update the record
-					logger.info("Updating control number " + controlNumber + " recordId " + eContentRecordId);
+					logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
 					updateEContentRecord.setString(1, recordInfo.getId());
 					updateEContentRecord.setString(2, "");
 					updateEContentRecord.setString(3, source);
@@ -220,7 +220,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					updateEContentRecord.setString(23, recordInfo.getSourceUrl());
 					updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
 					updateEContentRecord.setString(25, recordInfo.getPublishDate());
-					updateEContentRecord.setString(26, controlNumber);
+					updateEContentRecord.setString(26, recordInfo.getControlNumber());
 					updateEContentRecord.setString(27, accessType);
 					updateEContentRecord.setLong(28, new Date().getTime() / 1000);
 					updateEContentRecord.setString(29, recordInfo.toString());
