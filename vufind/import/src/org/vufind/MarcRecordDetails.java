@@ -1151,6 +1151,10 @@ public class MarcRecordDetails {
 
 		return title;
 	}
+	
+	public String getDescription(){
+		return getFirstFieldVal("520a");
+	}
 
 	/**
 	 * @param df
@@ -2444,7 +2448,7 @@ public class MarcRecordDetails {
 	public Set checkSuppression(String locationField, String locationsToSuppress, String manualSuppressionField, String manualSuppressionValue) {
 		Set result = new LinkedHashSet();
 		// If all locations should be suppressed, then the record should be suppressed.
-		Set<String> input = getFieldList(record, "998a");
+		Set<String> input = getFieldList(record, locationField);
 		Iterator<String> iter = input.iterator();
 		int numHoldings = 0;
 		StringBuffer branchStringBuff = new StringBuffer();
@@ -2465,14 +2469,16 @@ public class MarcRecordDetails {
 		if (!suppressRecord) {
 			// Now, check for manually suppressed record where the 907c tag is set to
 			// W
-			Set<String> input2 = getFieldList(record, manualSuppressionField);
-			Iterator<String> iter2 = input2.iterator();
-			suppressRecord = false;
-			while (iter2.hasNext()) {
-				String curCode = iter2.next();
-				if (curCode.matches(manualSuppressionValue)) {
-					suppressRecord = true;
-					break;
+			if (manualSuppressionField != null & !manualSuppressionField.equals("null")){
+				Set<String> input2 = getFieldList(record, manualSuppressionField);
+				Iterator<String> iter2 = input2.iterator();
+				suppressRecord = false;
+				while (iter2.hasNext()) {
+					String curCode = iter2.next();
+					if (curCode.matches(manualSuppressionValue)) {
+						suppressRecord = true;
+						break;
+					}
 				}
 			}
 		}

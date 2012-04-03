@@ -98,7 +98,23 @@ public class Util {
 		}
 	}
 
-	public static String getCRSeparatedString(List<String> values) {
+	public static String getCRSeparatedString(Object values) {
+		StringBuffer crSeparatedString = new StringBuffer();
+		if (values instanceof String){
+			crSeparatedString.append((String)values);
+		}else if (values instanceof Iterable){
+			Iterable<String> valuesIterable = (Iterable<String>)values;
+			for (String curValue : valuesIterable) {
+				if (crSeparatedString.length() > 0) {
+					crSeparatedString.append("\r\n");
+				}
+				crSeparatedString.append(curValue);
+			}
+		}
+		return crSeparatedString.toString();
+	}
+	
+	public static String getCRSeparatedStringFromSet(Set<String> values) {
 		StringBuffer crSeparatedString = new StringBuffer();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
