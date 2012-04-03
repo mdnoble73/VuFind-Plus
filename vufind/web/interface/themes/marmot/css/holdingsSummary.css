@@ -8,27 +8,8 @@
 } 
 .holdingsSummary{
   background: #F9F9F9;
-  float: right;
-  width: 200px;
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
-  border: 2px solid #3E63A6; /* Default border for summary*/
   margin-left:5px;
-  margin-bottom:10px;
   padding: 7px;
-  text-align: center;
-  display: inline-block;
-  
-	zoom: 1;
-	*display: inline;
-}
-
-#holdingsSummary.here, #holdingsSummary.nearby{
-  border: 3px solid #009900; 
-}
-
-#holdingsSummary.unavailable, #holdingsSummary.reserve{
-    border: 2px solid #cccccc; 
 }
 
 #holdingsSummary a{

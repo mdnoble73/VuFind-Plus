@@ -37,6 +37,7 @@ class MyResearch extends Action
 		global $user;
 
 		$interface->assign('page_body_style', 'sidebar_left');
+		$interface->assign('ils', $configArray['Catalog']['ils']);
 
 		if (!UserAccount::isLoggedIn()) {
 			require_once 'Login.php';
@@ -73,6 +74,14 @@ class MyResearch extends Action
 		
 		//Determine whether or not materials request functionality should be enabled
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
+		
+		//Check to see if we have any acs or single use eContent in the catalog 
+		//to enable the holds and wishlist appropriately
+		if (isset($configArray['EContent']['hasProtectedEContent'])){
+			$interface->assign('hasProtectedEContent', $configArray['EContent']['hasProtectedEContent']);
+		}else{
+			$interface->assign('hasProtectedEContent', false);
+		}
 
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php
@@ -94,10 +103,12 @@ class MyResearch extends Action
 			}
 
 			//Figure out if we should show a link to classic opac to pay holds.
+			$ecommerceLink = $configArray['Site']['ecommerceLink'];
 			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-			if (isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
+			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
 				$interface->assign('showEcommerceLink', true);
 				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
+				$interface->assign('ecommerceLink', $ecommerceLink);
 			}else{
 				$interface->assign('showEcommerceLink', false);
 				$interface->assign('minimumFineAmount', 0);

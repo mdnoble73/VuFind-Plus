@@ -4,6 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   {css filename="styles.css"}
   {css filename="basicHtml.css"}
+  {css filename="jqueryui.css"}
   <link rel="stylesheet" href="{$path}/js/jqueryui/ui-lightness/jquery-ui-1.8.11.custom.css" type="text/css" />
   
   <script type="text/javascript">

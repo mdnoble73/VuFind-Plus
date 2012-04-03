@@ -4,6 +4,7 @@ sites/*
 !sites/default
 vufind/documentation/
 vufind/admin/sql/
+vufind/web/images/fiveStar/*
 vufind/web/images/charts/*
 vufind/web/interface/cache/
 vufind/web/interface/compile/

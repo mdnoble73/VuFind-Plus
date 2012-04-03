@@ -67,6 +67,16 @@
 </div>
 {/if}
 
+{if $user && $user->hasRole('genealogyContributor')}
+<div class="sidegroup">  
+	<h4>Genealogy</h4>
+	<ul id="genealogyMenu">
+		<li{if $action == "GenealogyImport"} class="active"{/if} style="float: none;"><a href="GenealogyImport">Import Information</a></li>
+		<li{if $action == "GenealogyFixDates"} class="active"{/if} style="float: none;"><a href="GenealogyFixDates">Fix Dates</a></li>
+	</ul>
+	</div>
+{/if}
+
 {if $user && $user->hasRole('opacAdmin')}
 <div class="sidegroup">    
     <h4>Editorial Reviews</h4>
@@ -101,6 +111,12 @@
       <li{if $action == "Libraries"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/Libraries">Library Systems</a></li>
       <li{if $action == "Locations"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/Locations">Locations</a></li>
       <li{if $action == "ListWidgets"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/ListWidgets">List Widgets</a></li>
+      <li{if $action == "UserSuggestions"} class="active"{/if} style="float: none;"><a href="{$path}/UserSuggestions">User Suggestions</a></li>
+      {if $ils == 'Millennium'}
+	      <li{if $action == "CirculationStatuses"} class="active"{/if} style="float: none;"><a href="{$path}/CirculationStatuses">Circulation Statuses</a></li>
+	      <li{if $action == "NonHoldableLocations"} class="active"{/if} style="float: none;"><a href="{$path}/NonHoldableLocations">Non-Holdable Locations</a></li>
+	      <li{if $action == "PTypeRestrictedLocations"} class="active"{/if} style="float: none;"><a href="{$path}/PTypeRestrictedLocations">PType Restricted Locations</a></li>
+      {/if}
       {/if}
     </ul>
 </div>

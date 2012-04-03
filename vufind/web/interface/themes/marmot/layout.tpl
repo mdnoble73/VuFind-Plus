@@ -10,7 +10,7 @@
       {css filename="consolidated_css.css"}
     {else}
 	    {css filename="basicHtml.css"}
-	    <link rel="stylesheet" href="{$path}/js/jqueryui/flick/jquery-ui-1.8.8.custom.css" type="text/css" />
+	    {css filename="jqueryui.css"}
     	{css media="screen" filename="styles.css"}
     	{css media ="screen" filename="book-bag.css"}
     	{css filename="my-account.css"}

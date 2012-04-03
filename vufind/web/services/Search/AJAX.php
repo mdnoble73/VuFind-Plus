@@ -217,7 +217,7 @@ class AJAX extends Action {
 			echo ' <item id="' . htmlspecialchars($record['shortId']) . '">';
 			echo '  <id>' . htmlspecialchars($record['shortId']) . '</id>';
 			echo '  <status>' . htmlspecialchars($record['status']) . '</status>';
-			echo '  <callnumber>' . htmlspecialchars($record['callnumber']) . '</callnumber>';
+			echo '  <callnumber>' . (isset($record['callnumber']) ? htmlspecialchars($record['callnumber']) : '') . '</callnumber>';
 			echo '  <showplacehold>' . htmlspecialchars($record['showPlaceHold']) . '</showplacehold>';
 			echo '  <availablecopies>' . htmlspecialchars($record['availableCopies']) . '</availablecopies>';
 			echo '  <holdablecopies>' . htmlspecialchars($record['holdableCopies']) . '</holdablecopies>';

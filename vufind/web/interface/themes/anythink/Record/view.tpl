@@ -383,7 +383,7 @@ function redrawSaveStatus() {literal}{{/literal}
       
     </div>
    
-    {* tabs for series, similar titles, and *}
+    {* tabs for series, similar titles, and people who viewed also viewed *}
     {if $showStrands}
 	    <div id="relatedTitleInfo" class="ui-tabs">
 	    	<ul>

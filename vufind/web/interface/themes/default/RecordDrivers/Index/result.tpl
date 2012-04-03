@@ -1,23 +1,24 @@
-<div id="record{$summId|escape}" class="resultsList">
+<div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList">
 <div class="selectTitle">
-  <input type="checkbox" class="titleSelect" name="selected[{$summId|escape:"url"}]" id="selected{$summId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape:"url"}', '{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}', this);"{/if} />&nbsp;
+  <input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}', '{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}', this);"{/if} />&nbsp;
 </div>
         
 <div class="imageColumn"> 
     {if $user->disableCoverArt != 1}  
-    <div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
-    <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
+    <div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none'></div>
+    <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
     <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
     {/if}
     {* Place hold link *}
-    <div class='requestThisLink' id="placeHold{$summId|escape:"url"}" style="display:none">
+    <div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
       <a href="{$url}/Record/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
     </div>
 </div>
 
 <div class="resultDetails">
   <div class="resultItemLine1">
+  {if $summScore}({$summScore}) {/if}
 	<a href="{$url}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $summTitleStatement}
     <div class="searchResultSectionInfo">
@@ -48,44 +49,44 @@
 
   {if is_array($summFormats)}
     {foreach from=$summFormats item=format}
-      <span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+      <span class="iconlabel" >{translate text=$format}</span>&nbsp;
     {/foreach}
   {else}
-    <span class="iconlabel {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$summFormats}</span>
+    <span class="iconlabel">{translate text=$summFormats}</span>
   {/if}
-  <div id = "holdingsSummary{$summId|escape:"url"}" class="holdingsSummary">
-    <div class="statusSummary" id="statusSummary{$summId|escape:"url"}">
+  <div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">
+    <div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
       <span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
     </div>
   </div>
 </div>
 
-<div id ="searchStars{$summId|escape}" class="resultActions">
-  <div class="rate{$summId|escape} stat">
+<div id ="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultActions">
+  <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
 	  <div class="statVal">
 	    <span class="ui-rater">
 	      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-	      (<span class="ui-rater-rateCount-{$summId|escape} ui-rater-rateCount">0</span>)
+	      (<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
 	    </span>
 	  </div>
-    <div id="saveLink{$summId|escape}">
+    <div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
       {if $user}
-      	<div id="lists{$summId|escape}"></div>
+      	<div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
     		<script type="text/javascript">
-    		  getSaveStatuses('{$summId|escape:"javascript"}');
+    		  getSaveStatuses('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
     		</script>
       {/if}
       {if $showFavorites == 1} 
-        <a href="{$url}/Record/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$url}/Record/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
-    {assign var=id value=$summId}
+    {assign var=id value=$summShortId}
     {include file="Record/title-review.tpl"}
   </div>
   <script type="text/javascript">
     $(
        function() {literal} { {/literal}
-           $('.rate{$summId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: {$summId},  rating:0.0, postHref: '{$url}/Record/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+           $('.rate{if $summShortId}{$summShortId|escape}{else}{$summId|escape}{/if}').rater({literal}{ {/literal}module: 'Record', recordId: '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}',  rating:0.0, postHref: '{$url}/Record/{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}/AJAX?method=RateTitle'{literal} } {/literal});
        {literal} } {/literal}
     );
   </script>
@@ -94,10 +95,10 @@
 
 
 <script type="text/javascript">
-  addRatingId('{$summId|escape:"javascript"}');
-  addIdToStatusList('{$summId|escape:"javascript"}');
+  addRatingId('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
+  addIdToStatusList('{$summId|escape}');
   $(document).ready(function(){literal} { {/literal}
-  	resultDescription('{$summId}','{$summId}');
+  	resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}');
   {literal} }); {/literal}
   
 </script>

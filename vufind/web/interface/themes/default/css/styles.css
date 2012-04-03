@@ -655,7 +655,34 @@ ul.browse {
 	padding: 0px 10px 0px 20px;
 	font-size: 90%;
 }
-
+#sidebar-wrapper{
+	display: inline-block;
+	padding-right: 20px;
+	vertical-align: top;
+	width: 200px;
+}
+.sidegroup {
+	border: 1px solid #949494;
+	margin: 0 0 20px 0;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	padding-bottom: 10px;
+}
+.sidegroup h4 {
+	padding: .5em 0 .5em 0;
+	color: black;
+	font-weight: bold;
+	background-color: #EDEDED;
+	-moz-border-radius-topleft: 2px;
+	border-top-left-radius: 2px;
+	-moz-border-radius-topright: 2px;
+	border-top-right-radius: 2px;
+	text-align: center;
+	margin-top: 0px;
+}
+.navmenu dd {
+	border-bottom: 0px solid black;
+}
 ul.bulleted li {
 	list-style: disc url(/interface/themes/default/images/side_bullet.png)
 		outside;

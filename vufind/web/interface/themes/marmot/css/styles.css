@@ -18,7 +18,7 @@ div.yui-b.first {background-color:#fff;}
 	width: 990px;
 }
 #page-content, #ft{
-	
+	padding: 10px;
 	text-align: left;
 }
 #sidebar{
@@ -35,7 +35,7 @@ div.yui-b.first {background-color:#fff;}
 	display: inline-block;
 	position: relative;
 	vertical-align: top;
-	width: 746px;
+	width: 726px;
 	background-color: white;
 	padding: 10px 10px 0px;
 	border-radius: 8px;
@@ -296,13 +296,16 @@ div.record {
     border-bottom: 1px solid #e3e3e3;
 }
 .navmenu dd {
-    padding:.1em 0 .1em .5em;
-    list-style-type: none;
-    border-bottom: 1px solid #e3e3e3;
+	padding: .1em 0 .1em 10px;
+	list-style-type: none;
+	text-align: left;
+	text-indent: -10px;
+	margin: 0px 10px 0px 20px;
 }
 .navmenu dt {
-    margin-top:.75em;
-    font-weight:bold;
+	margin: 15px 10px 10px;
+	font-weight: bold;
+	text-align: left;
 }
 input.yearbox {
 	width: 3em;
@@ -488,7 +491,52 @@ ul.browse {
 }
 .sidegroup h4 {border-bottom:solid 2px #d5d5d5;padding:.5em 0 .5em 0;}
 .sidegroup {margin:0 0 3em 0;}
+.sidegroup {
+	margin: 0 0 20px 0;
+	padding-bottom: 10px;
+}
+
+.sidebarLabel {
+	padding: 8px 10px 3px 10px;
+	font-weight: bold;
+}
+
+.sidebarValue {
+	padding: 0px 10px 0px 20px;
+	font-size: 90%;
+}
+#sidebar-wrapper{
+	display: inline-block;
+	padding-right: 20px;
+	vertical-align: top;
+	width: 200px;
+}
+.sidegroup {
+	border: 1px solid #949494;
+	margin: 0 0 20px 0;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	padding-bottom: 10px;
+}
+.sidegroup h4 {
+	padding: .5em 0 .5em 0;
+	color: black;
+	font-weight: bold;
+	background-color: #EDEDED;
+	-moz-border-radius-topleft: 2px;
+	border-top-left-radius: 2px;
+	-moz-border-radius-topright: 2px;
+	border-top-right-radius: 2px;
+	text-align: center;
+	margin-top: 0px;
+}
+.navmenu dd {
+	border-bottom: 0px solid black;
+}
 ul.bulleted li {list-style: disc url(/interface/themes/default/images/side_bullet.png) outside;margin-left:1.5em;
+}
+.sidegroup ul {
+	padding-left: 20px;
 }
 
 /************* Tabs (Record Page) *****************/

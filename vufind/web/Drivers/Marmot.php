@@ -186,7 +186,7 @@ class Marmot implements DriverInterface
 		//Temporarily ignore errors
 		disableErrorHandler();
 		$millenniumCache->insert();
-		enableErrorHanlder();
+		enableErrorHandler();
 
 		return $millenniumCache;
 
@@ -960,7 +960,7 @@ class Marmot implements DriverInterface
 		}
 
 		//Clear unavailable status if it matches the status
-		if (strcasecmp(trim($summaryInformation['unavailableStatus']), trim($summaryInformation['status'])) == 0){
+		if (isset($summaryInformation['unavailableStatus']) && strcasecmp(trim($summaryInformation['unavailableStatus']), trim($summaryInformation['status'])) == 0){
 			$summaryInformation['unavailableStatus'] = '';
 		}
 

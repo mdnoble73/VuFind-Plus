@@ -31,6 +31,7 @@
   </div>
 {/if}]]>
 </SimilarAuthors>
+<SeriesInfo><![CDATA[{$seriesInfo}]]></SeriesInfo>
 <Series>
 <![CDATA[{if $enrichment.novelist.series}
 <div id = "seriestab">

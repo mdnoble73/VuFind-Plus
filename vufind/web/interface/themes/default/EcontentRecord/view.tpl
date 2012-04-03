@@ -11,6 +11,9 @@
   {if $isbn}
     GetReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}');
   {/if}
+  	{if $enablePospectorIntegration == 1}
+    GetProspectorInfo('{$id|escape:"url"}');
+	{/if}
   {if $user}
 	  redrawSaveStatus();
 	{/if}
@@ -210,6 +213,13 @@ function redrawSaveStatus() {literal}{{/literal}
     </div>
     {/if}
     
+    {if $enablePospectorIntegration == 1}
+    <div class="sidegroup">
+    {* Display in Prospector Sidebar *}
+    <div id="inProspectorPlaceholder"></div>
+    </div>
+    {/if}
+    
     {if $linkToAmazon == 1 && $isbn}
     <div class="titledetails">
       <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
@@ -320,7 +330,9 @@ function redrawSaveStatus() {literal}{{/literal}
     <div id="record-details-column">
       <div id="record-details-header">
 	      <div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading...</div>
-	      
+	      {if $enableProspectorIntegration == 1}
+	      <div id="prospectorHoldingsPlaceholder"></div>
+	      {/if}
 	      <div id="recordTools">
 		    <ul>
 		      
@@ -378,70 +390,127 @@ function redrawSaveStatus() {literal}{{/literal}
       
     </div>
    
-    {* tabs for series, similar titles, and *}
-    <div id="relatedTitleInfo" class="ui-tabs">
-    	<ul>
-    		<li><a href="#list-similar-titles">Similar Titles</a></li>
-    		<li><a href="#list-also-viewed">People who viewed this also viewed</a></li>
-    		<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-    	</ul>
-    	
-    	{assign var="scrollerName" value="SimilarTitles"}
-			{assign var="wrapperId" value="similar-titles"}
-			{assign var="scrollerVariable" value="similarTitleScroller"}
-			{include file=titleScroller.tpl}
-			
-			{assign var="scrollerName" value="AlsoViewed"}
-			{assign var="wrapperId" value="also-viewed"}
-			{assign var="scrollerVariable" value="alsoViewedScroller"}
-			{include file=titleScroller.tpl}
-    
-			{assign var="scrollerName" value="Series"}
-			{assign var="wrapperId" value="series"}
-			{assign var="scrollerVariable" value="seriesScroller"}
-			{assign var="fullListLink" value="$path/Record/$id/Series"}
-			{include file=titleScroller.tpl}
+    {* tabs for series, similar titles, and people who viewed also viewed *}
+    {if $showStrands}
+	    <div id="relatedTitleInfo" class="ui-tabs">
+	    	<ul>
+	    		<li><a href="#list-similar-titles">Similar Titles</a></li>
+	    		<li><a href="#list-also-viewed">People who viewed this also viewed</a></li>
+	    		<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
+	    	</ul>
+	    	
+	    	{assign var="scrollerName" value="SimilarTitles"}
+				{assign var="wrapperId" value="similar-titles"}
+				{assign var="scrollerVariable" value="similarTitleScroller"}
+				{include file=titleScroller.tpl}
+				
+				{assign var="scrollerName" value="AlsoViewed"}
+				{assign var="wrapperId" value="also-viewed"}
+				{assign var="scrollerVariable" value="alsoViewedScroller"}
+				{include file=titleScroller.tpl}
+				
 	    
-		</div>
-    
-            
-    {literal}
-	<script type="text/javascript">
-		var similarTitleScroller;
-		var alsoViewedScroller;
-		
-		$(function() {
-			$("#relatedTitleInfo").tabs();
-			$("#moredetails-tabs").tabs();
-			
-			{/literal}
-			{if $defaultDetailsTab}
-				$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-			{/if}
-			
-			similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-			similarTitleScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId=econtentRecord{$id}&scrollerName=SimilarTitles', false);
-
+				{assign var="scrollerName" value="Series"}
+				{assign var="wrapperId" value="series"}
+				{assign var="scrollerVariable" value="seriesScroller"}
+				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{include file=titleScroller.tpl}
+		    
+			</div>
 			{literal}
-			$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-				if (ui.index == 0) {
-					similarTitleScroller.activateCurrentTitle();
-				}else if (ui.index == 1) { 
-					if (alsoViewedScroller == null){
-						{/literal}
-						alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
-						alsoViewedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId=econtentRecord{$id}&scrollerName=AlsoViewed', false);
+			<script type="text/javascript">
+				var similarTitleScroller;
+				var alsoViewedScroller;
+				
+				$(function() {
+					$("#relatedTitleInfo").tabs();
+					$("#moredetails-tabs").tabs();
+					
+					{/literal}
+					{if $defaultDetailsTab}
+						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
+					{/if}
+					
+					similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
+					similarTitleScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
+		
 					{literal}
-					}else{
-						alsoViewedScroller.activateCurrentTitle();
-					}
-				}
-			});
-		});
-	</script>
-	{/literal}
-    
-    <a id="detailsTabAnchor" name="detailsTab" href="#detailsTab"></a>
+					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
+						if (ui.index == 0) {
+							similarTitleScroller.activateCurrentTitle();
+						}else if (ui.index == 1) { 
+							if (alsoViewedScroller == null){
+								{/literal}
+								alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
+								alsoViewedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
+							{literal}
+							}else{
+								alsoViewedScroller.activateCurrentTitle();
+							}
+						}
+					});
+				});
+			</script>
+			{/literal}
+		{elseif $showSimilarTitles}
+			<div id="relatedTitleInfo" class="ui-tabs">
+	    	<ul>
+	    		<li><a href="#list-similar-titles">Similar Titles</a></li>
+	    		<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
+	    	</ul>
+	    	
+	    	{assign var="scrollerName" value="SimilarTitlesVuFind"}
+				{assign var="wrapperId" value="similar-titles-vufind"}
+				{assign var="scrollerVariable" value="similarTitleVuFindScroller"}
+				{include file=titleScroller.tpl}
+
+				{assign var="scrollerName" value="Series"}
+				{assign var="wrapperId" value="series"}
+				{assign var="scrollerVariable" value="seriesScroller"}
+				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{include file=titleScroller.tpl}
+		    
+			</div>
+			{literal}
+			<script type="text/javascript">
+				var similarTitleScroller;
+				var alsoViewedScroller;
+				
+				$(function() {
+					$("#relatedTitleInfo").tabs();
+					$("#moredetails-tabs").tabs();
+					
+					{/literal}
+					{if $defaultDetailsTab}
+						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
+					{/if}
+					
+					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
+					similarTitleVuFindScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
+		
+					{literal}
+					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
+						if (ui.index == 0) {
+							similarTitleVuFindScroller.activateCurrentTitle();
+						}
+					});
+				});
+			</script>
+			{/literal}
+		{else}
+			<div id="relatedTitleInfo" style="display:none">
+	    	
+				{assign var="scrollerName" value="Series"}
+				{assign var="wrapperId" value="series"}
+				{assign var="scrollerVariable" value="seriesScroller"}
+				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{include file=titleScroller.tpl}
+		    
+			</div>
+			
+		{/if}
+		
+		<a id="detailsTabAnchor" name="detailsTab" href="#detailsTab"></a>
     <div id="moredetails-tabs">
       {* Define tabs for the display *}
       <ul>
@@ -528,11 +597,20 @@ function redrawSaveStatus() {literal}{{/literal}
 	      </div>
       {/if}
     </div> {* End of tabs*}
+    
+    {literal}
+		<script type="text/javascript">
+			$(function() {
+				$("#moredetails-tabs").tabs();
+			});
+		</script>
+		{/literal}
             
   </div>
     
 </div>
-   
+
+{if $showStrands}   
 {* Strands Tracking *}{literal}
 <!-- Event definition to be included in the body before the Strands js library -->
 <script type="text/javascript">
@@ -543,5 +621,5 @@ StrandsTrack.push({
 });
 </script>
 {/literal}
-
+{/if}
      

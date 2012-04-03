@@ -73,7 +73,12 @@ class EContentRecord extends SolrDataObject {
 		return $this->title;
 	}
 	function format_category(){
-		return 'EMedia';
+		global $configArray;
+		if(isset($configArray['EContent']['formatCategory'])){
+			return $configArray['EContent']['formatCategory'];
+		}else{
+			return 'EMedia';
+		}
 	}
 	function keywords(){
 		return $this->title . "\r\n" .
@@ -898,11 +903,11 @@ class EContentRecord extends SolrDataObject {
 		$items = $this->getItems(false);
 		if (strcasecmp($this->source, 'OverDrive') == 0){
 			foreach ($items as $item){
-				$formats[$item->format] = $item->format;
+				$formats[$item->format] = translate($item->format);
 			}
 		}else{
 			foreach ($items as $item){
-				$formats[$item->item_type] = $item->item_type;
+				$formats[$item->item_type] = translate($item->item_type);
 			}
 		}
 		return $formats;

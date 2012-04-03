@@ -229,6 +229,9 @@ $interface->assign('page_body_style', 'one_column');
 
 if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0){
 	$interface->assign('strandsAPID', $configArray['Strands']['APID']);
+	$interface->assign('showStrands', true);
+}else{
+	$interface->assign('showStrands', false);
 }
 
 // Check system availability
