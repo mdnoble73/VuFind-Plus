@@ -5,7 +5,7 @@
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 
-class MaterialsRequest extends DB_DataObject 
+class MaterialsRequest extends DB_DataObject
 {
 	public $__table = 'materials_request';   // table name
 	public $id;
@@ -42,16 +42,16 @@ class MaterialsRequest extends DB_DataObject
 	public $illItem;
 	public $holdPickupLocation;
 	public $bookmobileStop;
-	
+
 	/* Static get */
-  function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('MaterialsRequest',$k,$v); }
-    
+	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('MaterialsRequest',$k,$v); }
+
 	function keys() {
-	    return array('id');
- 	}
- 	
- 	static function getFormats(){
- 		$availableFormats = array(
+		return array('id');
+	}
+
+	static function getFormats(){
+		$availableFormats = array(
 			'book' => translate('Book'),
  			'largePrint' => translate('Large Print'),
 			'dvd' => translate('DVD'),
@@ -66,19 +66,20 @@ class MaterialsRequest extends DB_DataObject
 			'vhs' => translate('VHS'),
  			'other' => translate('Other'),
 		);
-		
+
 		global $configArray;
 		foreach ($availableFormats as $key => $label){
 			if (isset($configArray['MaterialsRequestFormats'][$key]) && $configArray['MaterialsRequestFormats'][$key] == false){
 				unset($availableFormats[$key]);
 			}
 		}
-		
+
 		return $availableFormats;
- 	}
- 	
- 	static function enableMaterialsRequest(){
- 		global $configArray;
+	}
+
+	static function enableMaterialsRequest(){
+		global $configArray;
+		global $user;
 		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
 			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
 			if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
@@ -94,5 +95,5 @@ class MaterialsRequest extends DB_DataObject
 			$enableMaterialsRequest = false;
 		}
 		return $enableMaterialsRequest;
- 	}
+	}
 }

@@ -14,9 +14,11 @@
 			<h4>eContent Titles</h4>
 			<div data-role="controlgroup">
 	    	<a href="{$path}/MyResearch/EContentCheckedOut" data-role="button" rel="external">{translate text='Checked Out Items'} ({$profile.numEContentCheckedOut})</a>
+	    	{if $hasProtectedEContent}
 	    	<a href="{$path}/MyResearch/EContentHolds" data-role="button" rel="external">{translate text='Available Holds'} ({$profile.numEContentAvailableHolds})</a>
 	    	<a href="{$path}/MyResearch/EContentHolds" data-role="button" rel="external">{translate text='Unavailable Holds'} ({$profile.numEContentUnavailableHolds})</a>
 	    	<a href="{$path}/MyResearch/MyEContentWishlist" data-role="button" rel="external">{translate text='Wish List'} ({$profile.numEContentWishList})</a>
+	    	{/if}
 	    </div>
 	    <h4>OverDrive Titles</h4>
 	    <div data-role="controlgroup">

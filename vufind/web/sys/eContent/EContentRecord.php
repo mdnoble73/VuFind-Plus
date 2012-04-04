@@ -1086,9 +1086,21 @@ class EContentRecord extends SolrDataObject {
 	}
 
 	function update(){
+		//Check to see if we are adding copies.  
+		//If so, we wil need to process the hold queue after 
+		//The tile is saved
+		$currentValue = new EContentRecord();
+		$currentValue->id = $this->id;
+		$currentValue->find(true);
+		
 		$ret = parent::update();
 		if ($ret){
 			$this->clearCachedCover();
+			if ($currentValue->N == 1 && $currentValue->availableCopies != $this->availableCopies){
+				require_once 'Drivers/EContentDriver.php';
+				$eContentDriver = new EContentDriver();
+				$eContentDriver->processHoldQueue($this->id);
+			}
 		}
 		return $ret;
 	}
