@@ -20,7 +20,7 @@
 				<div id ='loginPasswordRow2' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>
 					<div class='loginField'>
-						&nbsp;<a href="#" onclick="return pwdToText('password')">{translate text="Show Contents"}</a>
+						<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
 					</div>
 				</div>
 				<div id='loginSubmitButtonRow' class='loginFormRow'>

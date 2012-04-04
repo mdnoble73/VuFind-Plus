@@ -42,7 +42,7 @@
         <input class="loginFormInput" type="text" name="username" value="{$username|escape}" size="15"/>
         <div class="loginLabelHome">{translate text='Password'}</div>
         <input class="loginFormInput" type="password" name="password" size="15" id="password"/>
-        <div class="loginLabelHome"><a href="#" onclick="return pwdToText('password')">{translate text="Show Contents"}</a></div>
+        <div class="loginLabelHome"><input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label></div>
         <input id="loginButtonHome" type="image" name="submit" value="Login" src='{$path}/interface/themes/{$theme}/images/login.png' alt='{translate text="Login"}' />
       </div>
       

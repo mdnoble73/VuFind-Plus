@@ -14,7 +14,7 @@
     <input id="password" type="password" name="password" />
     </div>
     <div class="form-item">
-    <a href="#" onclick="return pwdToText('password')">{translate text="Show Contents"}</a>
+    <input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
     </div>
     <div class="form-item" id="submit-wrapper">
     <input type="submit" name="submit" value="Login" />

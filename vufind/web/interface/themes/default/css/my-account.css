@@ -10,8 +10,6 @@
 }
 
 #loginFormWrapper{
-	width: 42%;
-	border-right: 1px solid #5D8EAC;
 	padding: 10px 30px;
 	display: inline-block;
 	vertical-align: top;
@@ -49,7 +47,7 @@
 	display: inline-block;
 	zoom: 1;
 	*display: inline;
-	width: 95px;
+	width: 150px;
 }
 
 .loginFormRow{
