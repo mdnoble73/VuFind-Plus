@@ -13,6 +13,7 @@
       {/foreach}
       </select>
       <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
+      <input type="button" name="submit" id='searchBarFind' value="{translate text="Find"}" />
 			{if $filterList || $hasCheckboxFilters}
 	    <div class="keepFilters">
 	      <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> {translate text="basic_search_keep_filters"}

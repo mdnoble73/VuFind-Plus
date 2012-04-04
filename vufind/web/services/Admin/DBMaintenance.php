@@ -56,6 +56,7 @@ class DBMaintenance extends Admin {
 							$result = mysql_query($sql);
 							if ($result == 0 || $result == false){
 								if (isset($update['continueOnError']) && $update['continueOnError']){
+									if (!isset($update['status'])) $update['status'] = '';
 									$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
 								}else{
 									$update['status'] = 'Update failed ' . mysql_error();
@@ -140,6 +141,9 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
+			
+					"ALTER TABLE `library` ADD `showHoldCancelDate` TINYINT(4) NOT NULL DEFAULT '0';",
+					"ALTER TABLE `library` ADD `enablePospectorIntegration` TINYINT(4) NOT NULL DEFAULT '0';",
 					"ALTER TABLE `library` ADD `prospectorCode` VARCHAR(10) NOT NULL DEFAULT '';",
 					"ALTER TABLE `library` ADD `showRatings` TINYINT(4) NOT NULL DEFAULT '1';",
 					"ALTER TABLE `library` ADD `searchesFile` VARCHAR(15) NOT NULL DEFAULT 'default';",
@@ -149,6 +153,7 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `enableCourseReserves` TINYINT(1) NOT NULL DEFAULT '0';",
 					"ALTER TABLE `library` ADD `exportOptions` VARCHAR(100) NOT NULL DEFAULT 'RefWorks|EndNote';",
 					"ALTER TABLE `library` ADD `enableSelfRegistration` TINYINT NOT NULL DEFAULT '0';",
+					"ALTER TABLE `library` ADD `useHomeLinkInBreadcrumbs` TINYINT(4) NOT NULL DEFAULT '0';",
 				),
 			),
 		
