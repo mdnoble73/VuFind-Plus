@@ -258,7 +258,7 @@ class AJAX extends Action {
 		$interface->assign('title', 'Add a new eContent Item');
 		$interface->assign('submitUrl', $configArray['Site']['path'] . "/EcontentRecord/SaveItem");
 		$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
-		return $interface->fetch('EcontentRecord\ajax-editItem.tpl');
+		return $interface->fetch('EcontentRecord/ajax-editItem.tpl');
 	}
 	function EditItem(){
 		require_once 'sys/eContent/EContentItem.php';
@@ -276,7 +276,7 @@ class AJAX extends Action {
 			$interface->assign('title', 'Edit eContent Item');
 			$interface->assign('submitUrl', $configArray['Site']['path'] . "/EcontentRecord/SaveItem");
 			$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
-			return $interface->fetch('EcontentRecord\ajax-editItem.tpl');
+			return $interface->fetch('EcontentRecord/ajax-editItem.tpl');
 		}else{
 			return "Could not find a record for item $itemId";
 		}
@@ -350,7 +350,7 @@ class AJAX extends Action {
 		$overDriveDriver = new OverDriveDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
-		return $interface->fetch('ajax-loan-period.tpl');
+		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
 	
 	function AddOverDriveRecordToWishList(){
