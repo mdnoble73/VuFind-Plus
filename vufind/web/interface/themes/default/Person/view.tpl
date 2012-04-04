@@ -22,7 +22,7 @@
 		          {if $record.picture}
 					    <a target='_blank' href='{$path}/files/original/{$record.picture|escape}'><img src="{$path}/files/medium/{$record.picture|escape}" class="alignleft listResultImage" alt="{translate text='Picture'}"/></a><br />
 					    {else}
-					    <img src="{$path}/interface/themes/marmot/images/person.png" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
+					    <img src="{$path}/interface/themes/default/images/person.png" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
 					    {/if}
 					    </a>
 		        </div>  
