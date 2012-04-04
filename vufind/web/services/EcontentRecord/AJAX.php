@@ -350,7 +350,7 @@ class AJAX extends Action {
 		$overDriveDriver = new OverDriveDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
-		return $interface->fetch('EcontentRecord\ajax-loan-period.tpl');
+		return $interface->fetch('ajax-loan-period.tpl');
 	}
 	
 	function AddOverDriveRecordToWishList(){
