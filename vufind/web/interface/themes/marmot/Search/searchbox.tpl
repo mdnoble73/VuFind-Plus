@@ -66,7 +66,7 @@
       <div id="shards">
 			{if isset($shards)}
 				{foreach from=$shards key=shard item=isSelected}
-					<input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard{$shard|escape}" /> <label for="shard{$shard|escape}">{$shard|translate}</label>
+					<input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard{$shard|replace:' ':''|escape}" /> <label for="shard{$shard|replace:' ':''|escape}">{$shard|translate}</label>
 				{/foreach}
 			{/if}
       </div>

@@ -5,15 +5,14 @@
   {css filename="styles.css"}
   {css filename="basicHtml.css"}
   {css filename="jqueryui.css"}
-  <link rel="stylesheet" href="{$path}/js/jqueryui/ui-lightness/jquery-ui-1.8.11.custom.css" type="text/css" />
   
   <script type="text/javascript">
     path = '{$path}';
   </script>
     
   {* Link in jquery first *}
-  <script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-  <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
   
   {css filename="title-scroller.css"}
   {css filename="jquery.tooltip.css"}

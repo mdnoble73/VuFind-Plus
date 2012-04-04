@@ -355,22 +355,26 @@ class EContentItem extends DB_DataObject {
 	
 	function getSize(){
 		global $configArray;
-		if ($this->filename){
+		if ($this->filename && strlen($this->filename) > 0){
 			if (file_exists($configArray['EContent']['library'] . '/'. $this->filename)){
 				return filesize($configArray['EContent']['library'] . '/'. $this->filename);
 			}else{
 				return 0;
 			}
-		}else if ($this->folder){
+		}else if ($this->folder && strlen($this->folder) > 0){
 			//Get the size of all files in the folder
 			$mainFolder = $configArray['EContent']['library'] . '/'. $this->folder . '/';
-			$size = 0;
-			$dh = opendir($mainFolder);
-			while (($file = readdir($dh)) !== false) {
-				$size += filesize($mainFolder . $file);
+			if (file_exists($configArray['EContent']['library'] . '/'. $this->folder . '/')){
+				$size = 0;
+				$dh = opendir($mainFolder);
+				while (($file = readdir($dh)) !== false) {
+					$size += filesize($mainFolder . $file);
+				}
+				closedir($dh);
+				return $size;
+			}else{
+				return 0;
 			}
-			closedir($dh);
-			return $size;
 		}else{
 			return 0;
 		}

@@ -9,7 +9,7 @@
     {if $consolidateCss}
     	 {css filename="consolidated.css"}
     {else}
-    	<link rel="stylesheet" href="{$path}/js/jqueryui/custom/jquery-ui-1.8.16.custom.css" type="text/css" />
+    	{css filename="jqueryui.css"}
 	    {css filename="styles.css"}
 	    {css filename="basicHtml.css"}
 			{css filename="header.css"}
@@ -45,7 +45,7 @@
     <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
     
     <script type="text/javascript" src="{$path}/js/jquery-1.6.2.min.js"></script>
-    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
     <script type="text/javascript" src="{$path}/js/scripts.js"></script>
     <script type="text/javascript" src="{$path}/js/rc4.js"></script>
     <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>

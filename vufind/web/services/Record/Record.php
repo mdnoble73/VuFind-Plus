@@ -629,7 +629,7 @@ class Record extends Action
 							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 							$interface->assign('previousTitle', $previousRecord['title']);
 							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('previousType', 'EContentRecord');
+								$interface->assign('previousType', 'EcontentRecord');
 								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
 							}else{
 								$interface->assign('previousType', 'Record');
@@ -647,7 +647,7 @@ class Record extends Action
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
 							$interface->assign('nextTitle', $nextRecord['title']);
 							if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('nextType', 'EContentRecord');
+								$interface->assign('nextType', 'EcontentRecord');
 								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
 							}else{
 								$interface->assign('nextType', 'Record');

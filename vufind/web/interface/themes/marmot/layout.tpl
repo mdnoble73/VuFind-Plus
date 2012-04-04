@@ -46,8 +46,8 @@
 	    <script type="text/javascript" src="{$path}/js/rc4.js"></script>
 	
 	    
-	    <script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.8.custom.min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
 	    
 	    {if $enableBookCart}
 	    <script type="text/javascript" src="{$path}/js/bookcart/jquery.blockUI.js"></script>
@@ -65,7 +65,6 @@
 		  <script type="text/javascript" src="{$path}/js/autofill.js"></script>
 		
 		  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
-		  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.dimensions.js"></script>
 		  <script type="text/javascript" src="{$path}/js/tooltip/jquery.tooltip.js"></script>
 		  
 		  <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>

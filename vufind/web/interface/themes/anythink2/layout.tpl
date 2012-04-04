@@ -45,8 +45,8 @@
 	    <script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
 	    <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
 	    
-	    <script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.11.custom.min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
 	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
 	    <script type="text/javascript" src="{$path}/js/rc4.js"></script>
 	    <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>

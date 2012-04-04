@@ -79,6 +79,9 @@ div.yui-b.first {background-color:#fff;}
     min-height:16em;
 }
 .searchHomeBrowseHeader {background-color:#fff;padding:0 25px;font-size:90%;min-height:3em;}
+#lookfor{
+	position:relative;
+}
 /* for Internet Explorer */
 /*\*/
 * html .searchHomeBrowseHeader {

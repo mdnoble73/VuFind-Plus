@@ -126,33 +126,3 @@ function Login(elems, salt, module, action, id, lookfor, message)
     };
     var transaction = YAHOO.util.Connect.asyncRequest('GET', url+'?'+params, callback, null);
 }
-
-function initAutocomplete(inputBox, suggestionBox, typeDropDown)
-{
-    // Build the data source for retrieving suggestions:
-    dataSource = new YAHOO.util.XHRDataSource(path + "/AJAX/Autocomplete");
-    dataSource.responseType = YAHOO.util.XHRDataSource.TYPE_TEXT;
-    dataSource.responseSchema = {
-        fieldDelim : "---NOTAPPLICABLE---",
-        recordDelim : "\n"
-    };
-
-    // Build the autocomplete control:
-    var autoComp = new YAHOO.widget.AutoComplete(inputBox, suggestionBox, dataSource);
-
-    // Disable auto-highlighting (it interferes with the user's ability to submit
-    // their query string by hitting Enter):
-    autoComp.autoHighlight = false;
-
-    // Ensure that the autocomplete control sends the current search type as a
-    // parameter to the data source:
-    autoComp.generateRequest = function(query) {
-        var typeParam = "";
-        var o = document.getElementById(typeDropDown);
-        if (o && o.value) {
-            typeParam = "&type=" + encodeURIComponent(o.value);
-        }
-        // query is already URL-encoded when it is passed in -- don't double-encode!
-        return "?q=" + query + typeParam;
-    }
-}

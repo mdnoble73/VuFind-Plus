@@ -1,5 +1,23 @@
-{if $topFacetSet}
-  {foreach from=$topFacetSet item=cluster key=title}
+    {if $topFacetSet}
+      {foreach from=$topFacetSet item=cluster key=title}
+        {if $cluster.label == 'Category'}
+            {if ($categorySelected == false)}
+	            <div id="formatCategories">
+	            <div id='categoryValues'>
+	            {foreach from=$cluster.list item=thisFacet name="narrowLoop"}
+	                {* Do not show Other facet in top facets*}
+		                {if $thisFacet.value != 'Other'}
+				        {if $thisFacet.isApplied}
+				        <span class='categoryValue categoryValue{translate text=$thisFacet.value|escape}'><img class='categoryIcon' src='{$url}/interface/themes/default/images/{$thisFacet.imageName|escape}.png' alt='{$thisFacet.value|escape}'/> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></span>
+				        {else}
+				        <a href="{$thisFacet.url|escape}"><span class='categoryValue categoryValue{$thisFacet.value|escape}' ><img class='categoryIcon' src='{$url}/interface/themes/default/images/{$thisFacet.imageName|escape}.png' alt='{$thisFacet.value|escape}'/>({$thisFacet.count})</span></a>
+				        {/if}
+			        {/if}
+		        {/foreach}
+	            </div>
+	            </div>
+            {/if}
+        {else}
   <div class="authorbox">
   <table class="facetsTop navmenu narrow_begin">
     <tr><th colspan="{$topFacetSettings.cols}">{translate text=$cluster.label}<span>{translate text="top_facet_suffix"}</span></th></tr>
@@ -14,7 +32,7 @@
     <tr>
     {/if}
         {if $thisFacet.isApplied}
-        <td>{$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected"></td>
+        <td>{$thisFacet.value|escape}</a> <img src="/images/silk/tick.png" alt="Selected"> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></td>
         {else}
         <td><a href="{$thisFacet.url|escape}">{$thisFacet.value|escape}</a> ({$thisFacet.count})</td>
         {/if}
@@ -27,5 +45,6 @@
         {/foreach}
   </table>
   </div>
+        {/if}
   {/foreach}
 {/if}

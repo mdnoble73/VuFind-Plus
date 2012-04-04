@@ -10,8 +10,7 @@
     {if $consolidateCss}
       {css filename="consolidated_css.css"}
     {else}
-	    <link rel="stylesheet" href="{$path}/js/autocomplete/jquery.autocomplete.css" type="text/css" >
-	    <link rel="stylesheet" href="{$path}/js/jqueryui/flick/jquery-ui-1.8.8.custom.css" type="text/css" >
+	    {css filename="jqueryui.css"}
     	{css media="screen" filename="styles.css"}
     	{css media ="screen" filename="book-bag.css"}
     {/if}
@@ -31,7 +30,7 @@
 
     
     <script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.8.custom.min.js"></script>
+    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
     <script src="http://www.coloradomesa.edu/js/megamenu.js" type="text/javascript"></script>
     
     {if $enableBookCart}
@@ -54,8 +53,6 @@
   
   <script type="text/javascript" src="{$path}/js/starrating/jquery.rater.js"></script>
   
-  <script type="text/javascript" src="{$path}/js/autocomplete/lib/jquery.bgiframe.min.js"></script>
-  <script type="text/javascript" src="{$path}/js/autocomplete/jquery.autocomplete.js"></script>
   <script type="text/javascript" src="{$path}/js/autofill.js"></script>
 
   <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
