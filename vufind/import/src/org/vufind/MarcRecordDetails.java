@@ -2476,4 +2476,39 @@ public class MarcRecordDetails {
 
 		return result;
 	}
+	
+	/**
+	 * Determine Record Format(s)
+	 *
+	 * @param  Record          record
+	 * @return Set     format of record
+	 */
+	public Set getAvailableLocations(String itemField, String statusSubField, String availableStatus, String locationSubField){
+		Set result = new LinkedHashSet();
+		List itemRecords = record.getVariableFields(itemField);
+		char statusSubFieldChar = statusSubField.charAt(0);
+		char locationSubFieldChar = locationSubField.charAt(0);
+		for (int i = 0; i < itemRecords.size(); i++){
+			Object field = itemRecords.get(i);
+			if (field instanceof DataField){
+				DataField dataField = (DataField)field;
+				//Get subfield u (status)
+				Subfield subfieldU = dataField.getSubfield(statusSubFieldChar);
+				if (subfieldU != null){
+					if (subfieldU.getData().equals("online")){
+						//If the tile is available online, force the location to be online
+						result.add("online");
+					}else if (subfieldU.getData().matches(availableStatus)){
+						//If the book is checked in, show it as available
+						//Get subfield m (location)
+						Subfield subfieldM = dataField.getSubfield(locationSubFieldChar);
+						result.add(subfieldM.getData().toLowerCase());
+					}
+					
+				}
+			}
+			
+		}
+		return result;
+	}
 }
