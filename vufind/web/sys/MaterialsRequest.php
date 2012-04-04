@@ -78,6 +78,7 @@ class MaterialsRequest extends DB_DataObject
  	}
  	
  	static function enableMaterialsRequest(){
+ 		global $configArray;
 		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
 			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
 			if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){

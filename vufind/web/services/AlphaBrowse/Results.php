@@ -83,18 +83,22 @@ class Results extends Home {
 				$result = $alphaBrowse->getBrowseResults($source, $from, $page, $limit);
 			}
 
-			// Only display next/previous page links when applicable:
-			if ($result['totalCount'] > $limit) {
-				$interface->assign('nextpage', $page + 1);
+			if ($result['totalCount'] == 0){
+				$interface->assign('error', "No Results were found");
+			}else{
+				// Only display next/previous page links when applicable:
+				if ($result['totalCount'] > $limit) {
+					$interface->assign('nextpage', $page + 1);
+				}
+				if ($result['startRow'] > 1) {
+					$interface->assign('prevpage', $page - 1);
+				}
+	
+				// Send other relevant values to the template:
+				$interface->assign('source', $source);
+				$interface->assign('from', $from);
+				$interface->assign('result', $result);
 			}
-			if ($result['startRow'] > 1) {
-				$interface->assign('prevpage', $page - 1);
-			}
-
-			// Send other relevant values to the template:
-			$interface->assign('source', $source);
-			$interface->assign('from', $from);
-			$interface->assign('result', $result);
 		}
 
 		// We also need to load all the same details as the basic Home action:

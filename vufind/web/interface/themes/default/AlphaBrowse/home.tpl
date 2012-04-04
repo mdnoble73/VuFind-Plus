@@ -35,7 +35,9 @@
 		</div>
 	{else}
 		{* spacer div so that empty form page isn't too small: *}
-		<div style="height:350px; width: 1px;"><!-- empty --></div>
+		<div style="height:350px; width: 1px;"><!-- empty -->
+			{if $error}{$error}{/if}
+		</div>
 	{/if}
 </div>
 {/strip}
