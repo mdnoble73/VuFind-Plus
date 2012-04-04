@@ -279,7 +279,7 @@ class AJAX extends Action {
 
 			$interface->assign('holdingsSummary', $record);
 
-			$formattedHoldingsSummary = $interface->fetch('EContentRecord/holdingsSummary.tpl');
+			$formattedHoldingsSummary = $interface->fetch('EcontentRecord/holdingsSummary.tpl');
 
 			echo ' <item id="' . htmlspecialchars($record['recordId']) . '">';
 			echo '  <status>' . htmlspecialchars($record['status']) . '</status>';
