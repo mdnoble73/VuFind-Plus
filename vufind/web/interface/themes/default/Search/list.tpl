@@ -1,12 +1,24 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
 {* Main Listing *}
-<div id="bd">
-  <div id="yui-main" class="content">
-    <div class="yui-b first">
-    <b class="btop"><b></b></b>
+{if (isset($title)) }
+<script type="text/javascript">
+	alert("{$title}");
+</script>
+{/if}
+<div id="page-content" class="content">
+  {* Narrow Search Options *}
+  <div id="sidebar">
+    {if $sideRecommendations}
+      {foreach from=$sideRecommendations item="recommendations"}
+        {include file=$recommendations}
+      {/foreach}
+    {/if}
+  </div>
+  {* End Narrow Search Options *}
 
+	<div id="main-content">
+    
+      <div id="searchInfo">
       {* Recommendations *}
       {if $topRecommendations}
         {foreach from=$topRecommendations item="recommendations"}
@@ -15,7 +27,7 @@
       {/if}
 
       {* Listing Options *}
-      <div class="yui-ge resulthead">
+      <div class="resulthead">
         <div class="yui-u first">
         {if $recordCount}
           {translate text="Showing"}
@@ -34,12 +46,14 @@
         </div>
 
         <div class="yui-u toggle">
-          {translate text='Sort'}
-          <select name="sort" onChange="document.location.href = this.options[this.selectedIndex].value;">
-          {foreach from=$sortList item=sortData key=sortLabel}
-            <option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected{/if}>{translate text=$sortData.desc}</option>
-          {/foreach}
-          </select>
+	        {if $recordCount}
+	          {translate text='Sort'}
+	          <select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
+	          {foreach from=$sortList item=sortData key=sortLabel}
+	            <option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
+	          {/foreach}
+	          </select>
+	        {/if}
         </div>
 
       </div>
@@ -51,28 +65,25 @@
         {$pageContent}
       {/if}
 
+      {if $prospectorNumTitlesToLoad > 0}
+        <script type="text/javascript">getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
+      {/if}
+      {* Prospector Results *}
+      <div id='prospectorSearchResultsPlaceholder'></div>
+        
       {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
+      
       <div class="searchtools">
         <strong>{translate text='Search Tools'}:</strong>
         <a href="{$rssLink|escape}" class="feed">{translate text='Get RSS Feed'}</a>
-        <a href="{$url}/Search/Email" class="mail" onClick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
+        <a href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
         {if $savedSearch}<a href="{$url}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$url}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
+        <a href="{$excelLink|escape}" class="exportToExcel">{translate text='Export To Excel'}</a>
       </div>
       
       <b class="bbot"><b></b></b>
     </div>
     {* End Main Listing *}
-    
   </div>
-
-  {* Narrow Search Options *}
-  <div class="yui-b">
-    {if $sideRecommendations}
-      {foreach from=$sideRecommendations item="recommendations"}
-        {include file=$recommendations}
-      {/foreach}
-    {/if}
-  </div>
-  {* End Narrow Search Options *}
-
 </div>
+
