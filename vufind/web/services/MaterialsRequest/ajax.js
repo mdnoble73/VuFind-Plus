@@ -121,7 +121,7 @@ function setFieldVisibility(){
 		$("#magazineTitle").removeClass('required');
 		$("#magazineDate").removeClass('required');
 		$("#magazineVolume").removeClass('required');
-		$("#magazineNUmber").removeClass('required');
+		$("#magazineNumber").removeClass('required');
 		$("#magazinePageNumbers").removeClass('required');
 		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
