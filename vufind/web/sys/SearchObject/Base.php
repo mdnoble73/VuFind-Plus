@@ -575,6 +575,10 @@ abstract class SearchObject_Base
 				$this->sort = $this->defaultSort;
 			}
 		}
+		//Validate the sort to make sure it is corrct.  
+		if (!array_key_exists($this->sort, $this->sortOptions)){
+			$this->sort = $this->defaultSort;
+		}
 	}
 
 	public function setSort($sort){
@@ -625,7 +629,7 @@ abstract class SearchObject_Base
 		}
 
 		// Sorting
-		if ($this->sort != null && $this->sort != $this->defaultSort) {
+		if ($this->sort != null ) {
 			$params[] = "sort=" . urlencode($this->sort);
 		}
 

@@ -26,18 +26,20 @@ class Timer{
 	}
 
 	function writeTimings(){
-		$curTime = microtime(true);
-		$elapsedTime = round($curTime - $this->lastTime, 2);
-		//if ($elapsedTime > 0){
-			$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
-		//}
-		$this->lastTime = $curTime;
-		$logger = new Logger();
-		$totalElapsedTime =round(microtime(true) - $this->firstTime, 2);
-		$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
-		$timingInfo .= implode("\r\n", $this->timingMessages);
-		$timingInfo .= "\r\nTotal Elapsed time was: $totalElapsedTime seconds.\r\n";
-		$logger->log($timingInfo, PEAR_LOG_NOTICE);
+		if ($this->timingsEnabled){
+			$curTime = microtime(true);
+			$elapsedTime = round($curTime - $this->lastTime, 2);
+			//if ($elapsedTime > 0){
+				$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
+			//}
+			$this->lastTime = $curTime;
+			$logger = new Logger();
+			$totalElapsedTime =round(microtime(true) - $this->firstTime, 2);
+			$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
+			$timingInfo .= implode("\r\n", $this->timingMessages);
+			$timingInfo .= "\r\nTotal Elapsed time was: $totalElapsedTime seconds.\r\n";
+			$logger->log($timingInfo, PEAR_LOG_NOTICE);
+		}
 	}
 	
 	function __destruct() {

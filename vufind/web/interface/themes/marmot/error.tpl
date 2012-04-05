@@ -171,7 +171,7 @@ if (document.addEventListener) {
 window.onload = start
 </script>
 {/literal}
-
+</head>
 <body>
 	<div id="errorContainer">
 		<div id="title">

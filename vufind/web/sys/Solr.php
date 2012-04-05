@@ -1021,33 +1021,35 @@ class Solr implements IndexEngine {
 				$options['q'] = "{!boost b=$boost} $baseQuery";
 				//echo ("Advanced Query " . $options['q']);
 			}
-		}
-		$timer->logTime("apply boosting");
+			
+			$timer->logTime("apply boosting");
 
-		//*************************
-		//Marmot overrides for filtering based on library system and location
-		//Only show visible records
-		//$filter[] = 'bib_suppression:notsuppressed';
-		if ($this->scopingDisabled == false){
-
-			if (isset($searchLibrary)){
-				if (strlen($searchLibrary->defaultLibraryFacet) > 0){
-					$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\")";
+			//*************************
+			//Marmot overrides for filtering based on library system and location
+			//Only show visible records
+			$filter[] = 'bib_suppression:notsuppressed';
+			if ($this->scopingDisabled == false){
+	
+				if (isset($searchLibrary)){
+					if (strlen($searchLibrary->defaultLibraryFacet) > 0){
+						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\")";
+					}
+				}
+	
+				if ($searchLocation != null){
+					if (strlen($searchLocation->defaultLocationFacet)){
+						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\")";
+					}
+				}
+	
+				global $defaultCollection;
+				if (isset($defaultCollection) && strlen($defaultCollection) > 0){
+					$filter[] = 'collection_group:"' . $defaultCollection . '"';
 				}
 			}
-
-			if ($searchLocation != null){
-				if (strlen($searchLocation->defaultLocationFacet)){
-					$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\")";
-				}
-			}
-
-			global $defaultCollection;
-			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
-				$filter[] = 'collection_group:"' . $defaultCollection . '"';
-			}
+			$timer->logTime("apply filters based on location");
 		}
-		$timer->logTime("apply filters based on location");
+		
 		
 
 		// Build Facet Options

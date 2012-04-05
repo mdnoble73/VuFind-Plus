@@ -5,8 +5,8 @@
             <li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
             {/if}
             <li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
-            <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary-form-full%3A"Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Fiction Books'}</a></li>
-            <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary-form-full%3A"Non+Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Non-Fiction Books'}</a></li>
+            <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Fiction Books'}</a></li>
+            <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Non-Fiction Books'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format%3A"DVD"&amp;sort=title'>{translate text='New DVDs'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format_category%3A"Audio"&amp;filter[]=format%3A"CD"&amp;sort=title'>{translate text='New Audio Books & CDs'}</a></li>
           </ul>
