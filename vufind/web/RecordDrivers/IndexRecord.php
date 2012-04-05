@@ -600,7 +600,7 @@ class IndexRecord implements RecordInterface
 		foreach($params as $key => $value) {
 			if (is_array($value)){
 				foreach($value as $arrVal){
-					$parts[] = $key . '[]=' . urlencode($value);
+					$parts[] = $key . '[]=' . urlencode($arrVal);
 				}
 			}else{
 				$parts[] = $key . '=' . urlencode($value);
