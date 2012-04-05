@@ -4,8 +4,8 @@ sites/*
 !sites/default
 vufind/documentation/
 vufind/admin/sql/
-vufind/web/images/fiveStar/*
-vufind/web/images/charts/*
+vufind/web/images/fiveStar/*.png
+vufind/web/images/charts/*.png
 vufind/web/interface/cache/
 vufind/web/interface/compile/
 vufind/web/*_strandsCatalog.csv

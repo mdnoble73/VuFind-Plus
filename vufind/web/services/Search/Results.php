@@ -263,7 +263,8 @@ class Results extends Action {
 				$listId = substr($record['id'], 4);
 				header("Location: " . $configArray['Site']['url'] . "/MyResearch/MyList/{$listId}");
 			}elseif ($record['recordtype'] == 'econtentRecord'){
-				header("Location: " . $configArray['Site']['url'] . "/EcontentRecord/{$record['id']}/Home");
+				$shortId = str_replace('econtentRecord', '', $record['id']);
+				header("Location: " . $configArray['Site']['url'] . "/EcontentRecord/$shortId/Home");
 			}else{
 				header("Location: " . $configArray['Site']['url'] . "/Record/{$record['id']}/Home");
 			}
