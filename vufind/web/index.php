@@ -711,7 +711,7 @@ function handlePEARError($error, $method = null){
 	
 	// Display an error screen to the user:
 	global $interface;
-	if (!isset($interface) || $interface = false){
+	if (!isset($interface) || $interface == false){
 		$interface = new UInterface();
 	}
 
