@@ -233,6 +233,7 @@ if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && 
 }else{
 	$interface->assign('showStrands', false);
 }
+$interface->assign('showFines', $configArray['Catalog']['showFines']);
 
 // Check system availability
 $mode = checkAvailabilityMode();

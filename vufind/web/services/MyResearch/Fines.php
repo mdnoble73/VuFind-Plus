@@ -33,35 +33,37 @@ class Fines extends MyResearch
 		if ($patron = $this->catalogLogin()) {
 			if (PEAR::isError($patron))
 			PEAR::raiseError($patron);
-			$result = $this->catalog->getMyFines($patron, true);
-			if (!PEAR::isError($result)) {
-				if (count($result)) {
-					// Drop the index object into a global
-					//  so it's accessible inside the callback.
-					$finesIndexEngine = $this->db;
-
-					$dg = new Structures_DataGrid();
-					$dg->renderer->setTableAttribute('width', '100%');
-					$dg->renderer->setTableAttribute('cellspacing', '1');
-					$dg->renderer->setTableAttribute('cellpadding', '4');
-					$dg->renderer->setTableAttribute('class', 'datagrid');
-
-					$dg->addColumn(new Structures_DataGrid_Column(translate('Reason'), 'reason', 'reason'));
-					$dg->addColumn(new Structures_DataGrid_Column(translate('Title'), 'message', 'message'));
-					//$dg->addColumn(new Structures_DataGrid_Column(translate('Checked Out'), 'checkout', 'checkout'));
-					$dg->addColumn(new Structures_DataGrid_Column(translate('Date'), 'date', 'date', array('width' => '80')));
-					$dg->addColumn(new Structures_DataGrid_Column(translate('Fee'), 'amount', 'amount'));
-					//$dg->addColumn(new Structures_DataGrid_Column(translate('Balance'), 'balance', 'balance', null, null, 'formatNumber'));
-					//$dg->addColumn(new Structures_DataGrid_Column(translate('Comment'), 'comment', 'comment'));
-
-					$dg->bind($result);
-					if (method_exists($dg, 'getOutput')) {
-						$interface->assign('finesData', $dg->getOutput());
+			if ($this->catalog->checkFunction('getMyFines')){
+				$result = $this->catalog->getMyFines($patron, true);
+				if (!PEAR::isError($result)) {
+					if (count($result)) {
+						// Drop the index object into a global
+						//  so it's accessible inside the callback.
+						$finesIndexEngine = $this->db;
+	
+						$dg = new Structures_DataGrid();
+						$dg->renderer->setTableAttribute('width', '100%');
+						$dg->renderer->setTableAttribute('cellspacing', '1');
+						$dg->renderer->setTableAttribute('cellpadding', '4');
+						$dg->renderer->setTableAttribute('class', 'datagrid');
+	
+						$dg->addColumn(new Structures_DataGrid_Column(translate('Reason'), 'reason', 'reason'));
+						$dg->addColumn(new Structures_DataGrid_Column(translate('Title'), 'message', 'message'));
+						//$dg->addColumn(new Structures_DataGrid_Column(translate('Checked Out'), 'checkout', 'checkout'));
+						$dg->addColumn(new Structures_DataGrid_Column(translate('Date'), 'date', 'date', array('width' => '80')));
+						$dg->addColumn(new Structures_DataGrid_Column(translate('Fee'), 'amount', 'amount'));
+						//$dg->addColumn(new Structures_DataGrid_Column(translate('Balance'), 'balance', 'balance', null, null, 'formatNumber'));
+						//$dg->addColumn(new Structures_DataGrid_Column(translate('Comment'), 'comment', 'comment'));
+	
+						$dg->bind($result);
+						if (method_exists($dg, 'getOutput')) {
+							$interface->assign('finesData', $dg->getOutput());
+						} else {
+							$interface->assign('finesData', $dg->renderer->toHTML());
+						}
 					} else {
-						$interface->assign('finesData', $dg->renderer->toHTML());
+						$interface->assign('finesData', translate('You do not have any fines'));
 					}
-				} else {
-					$interface->assign('finesData', translate('You do not have any fines'));
 				}
 			}
 		}

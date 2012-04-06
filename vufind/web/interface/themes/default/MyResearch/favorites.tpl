@@ -16,7 +16,7 @@
       {include file=$userNoticeFile}
     {/if}
       
-    {if $user->disableRecommendations == 0}
+    {if $showStrands && $user->disableRecommendations == 0}
 	    {assign var="scrollerName" value="Recommended"}
 			{assign var="wrapperId" value="recommended"}
 			{assign var="scrollerVariable" value="recommendedScroller"}

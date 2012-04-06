@@ -69,7 +69,8 @@
 		  
 		  <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 		  
-			<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+			<script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
+      <script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
 			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 			<script type="text/javascript" src="{$path}/js/description.js"></script>

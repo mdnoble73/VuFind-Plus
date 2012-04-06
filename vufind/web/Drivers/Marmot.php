@@ -1781,7 +1781,7 @@ class Marmot implements DriverInterface
 			$scount++;
 
 		}
-		return array('holds' => $holds);
+		return array('holds' => $holds, 'numUnavailableHolds' => 0);
 	}
 
 	/**
