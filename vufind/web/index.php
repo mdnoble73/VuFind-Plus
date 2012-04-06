@@ -704,6 +704,20 @@ function handlePEARError($error, $method = null){
 		$errorAlreadyOccurred = true;
 	}
 
+	//Clear any output that has been generated so far so the user just gets the error message. 
+	@ob_clean();
+	header("Content-Type: text/html");
+	
+	// Display an error screen to the user:
+	global $interface;
+	if (!isset($interface) || $interface = false){
+		$interface = new UInterface();
+	}
+
+	$interface->assign('error', $error);
+	$interface->assign('debug', $configArray['System']['debug']);
+	$interface->display('error.tpl');
+
 	// Exceptions we don't want to log
 	$doLog = true;
 	// Microsoft Web Discussions Toolbar polls the server for these two files
@@ -740,17 +754,6 @@ function handlePEARError($error, $method = null){
 	$logger = new Logger();
 	$logger->log($errorDetails, PEAR_LOG_ERR);
 
-	//Clear any output that has been generated so far so the user just gets the error message. 
-	@ob_clean();
-	header("Content-Type: text/html");
-	
-	// Display an error screen to the user:
-	$interface = new UInterface();
-
-	$interface->assign('error', $error);
-	$interface->assign('debug', $configArray['System']['debug']);
-	$interface->display('error.tpl');
-	
 	exit();
 }
 

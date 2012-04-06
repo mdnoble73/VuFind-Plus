@@ -1086,8 +1086,10 @@ class Marmot implements DriverInterface
 
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
+			$id2 = $patron['cat_password'];
+		}else{
+			$id2= $patron['id'];
 		}
-		$id2= $patron['id'];
 
 		if (array_key_exists($patron['id'], $this->patronProfiles)){
 			$timer->logTime('Retrieved Cached Profile for Patron');
@@ -1219,66 +1221,75 @@ class Marmot implements DriverInterface
 	 *
 	 * @param string $barcode the patron's barcode
 	 */
-	private $dump = array();
 	private function _getPatronDump($barcode)
 	{
 		global $configArray;
-		if (array_key_exists($barcode, $this->dump)){
-			return $this->dump[$barcode];
-		}
-		$host=$configArray['OPAC']['patron_host'];
-		//Special processing to allow MCVSD Students to login
-		//with their student id.
-		if (strlen($barcode)== 5){
-			$barcode = "41000000" . $barcode;
-		}
-		// Load Record Page.  This page has a dump of all patron information
-		//as a simple name value pair list within the body of the webpage.
-		//Sample format of a row is as follows:
-		//P TYPE[p47]=100<BR>
-		$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-		$req = new Proxy_Request($req);
-		//$result = file_get_contents($req);
-		if (PEAR::isError($req->sendRequest())) {
-			return null;
-		}
-		$result = $req->getResponseBody();
-		//Strip the acutal contents out of the body of the page.
-		$r = substr($result, stripos($result, 'BODY'));
-		$r = substr($r,strpos($r,">")+1);
-		$r = substr($r,0,stripos($r,"</BODY"));
-
-		//Remove the bracketted information from each row
-		$r = preg_replace("/\[.+?]=/","=",$r);
-
-		//Split the rows on each BR tag.
-		//This could also be done with a regex similar to the following:
-		//(.*)<BR\s*>
-		//And then get all matches of group 1.
-		//Or a regex similar to
-		//(.*?)\[.*?\]=(.*?)<BR\s*>
-		//Group1 would be the keys and group 2 the values.
-		$rows = preg_replace("/<BR.*?>/","*",$r);
-		$rows = explode("*",$rows);
-
-		//Add the key and value from each row into an associative array.
-		$ret = array();
-		$patronDump = array();
-		foreach ($rows as $row) {
-			if (strlen(trim($row)) > 0){
-				$ret = explode("=",$row, 2);
-				//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
-				$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
-				//Holds can be an array, treat them differently.
-				if ($patronDumpKey == 'HOLD'){
-					$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
-				}else{
-					$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
+		global $memcache;
+		$patronDump = $memcache->get("patron_dump_$barcode");
+		if (true || !$patronDump){
+			$host=$configArray['OPAC']['patron_host'];
+			//Special processing to allow MCVSD Students to login
+			//with their student id.
+			if (strlen($barcode)== 5){
+				$barcode = "41000000" . $barcode;
+			}
+			
+			// Load Record Page.  This page has a dump of all patron information
+			//as a simple name value pair list within the body of the webpage.
+			//Sample format of a row is as follows:
+			//P TYPE[p47]=100<BR>
+			$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
+			$req = new Proxy_Request($req);
+			//$result = file_get_contents($req);
+			if (PEAR::isError($req->sendRequest())) {
+				return null;
+			}
+			$result = $req->getResponseBody();
+			//Strip the acutal contents out of the body of the page.
+			$r = substr($result, stripos($result, 'BODY'));
+			$r = substr($r,strpos($r,">")+1);
+			$r = substr($r,0,stripos($r,"</BODY"));
+	
+			//Remove the bracketted information from each row
+			$r = preg_replace("/\[.+?]=/","=",$r);
+		
+			//Split the rows on each BR tag.
+			//This could also be done with a regex similar to the following:
+			//(.*)<BR\s*>
+			//And then get all matches of group 1.
+			//Or a regex similar to
+			//(.*?)\[.*?\]=(.*?)<BR\s*>
+			//Group1 would be the keys and group 2 the values.
+			$rows = preg_replace("/<BR.*?>/","*",$r);
+			$rows = explode("*",$rows);
+	
+			//Add the key and value from each row into an associative array.
+			$ret = array();
+			$patronDump = array();
+			foreach ($rows as $row) {
+				if (strlen(trim($row)) > 0){
+					$ret = explode("=",$row, 2);
+					//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
+					$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
+					//Holds can be an array, treat them differently.
+					if ($patronDumpKey == 'HOLD'){
+						$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
+					}else{
+						$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
+					}
 				}
 			}
+			
+			if (isset($configArray['ERRNUM'])){
+				//Could not load the record
+				return null;
+			}else{
+				
+				$memcache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
+				//Need to wait a little bit since getting the patron api locks the record in the DB
+				sleep(1);
+			}
 		}
-		sleep(1);
-		$this->dump[$barcode] = $patronDump;
 		return $patronDump;
 	}
 
@@ -1443,7 +1454,11 @@ class Marmot implements DriverInterface
 			$scount++;
 
 		}
-		return $sret;
+		return array(
+			'transactions' => $sret,
+			'numTransactions' => count($srows)
+		);
+		
 	}
 
 	public function getReadingHistory($patron)
@@ -1612,6 +1627,12 @@ class Marmot implements DriverInterface
 
 	public function parseHoldsPage($sresult){
 		$logger = new Logger();
+		$availableHolds = array();
+		$unavailableHolds = array();
+		$holds = array(
+			'available'=> $availableHolds,
+			'unavailable' => $unavailableHolds
+		);
 
 		$sresult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sresult);
 		//$logger->log('Hold information = ' . $sresult, PEAR_LOG_INFO);
@@ -1632,12 +1653,12 @@ class Marmot implements DriverInterface
 		//echo "</pre>";
 		$scount = 0;
 		$skeys = array_pad(array(),10,"");
-		$sret = array();
 		foreach ($srows as $srow) {
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			//  echo "<pre>";
 			//  print_r($scols);
 			//  echo "</pre>";
+			$curHold= array();
 
 			//Holds page occassionally has a header with number of items checked out.
 			for ($i=0; $i < sizeof($scols); $i++) {
@@ -1653,12 +1674,12 @@ class Marmot implements DriverInterface
 						$matches = array();
 						$numMatches = preg_match_all('/.*?cancel(.*?)x(\\d\\d).*/s', $scols[$i], $matches);
 						if ($numMatches > 0){
-							$sret[$scount-2]['renew'] = "BOX";
-							$sret[$scount-2]['cancelable'] = true;
-							$sret[$scount-2]['cancelId'] = $matches[1][0];
-							$sret[$scount-2]['xnum'] = $matches[2][0];
+							$curHold['renew'] = "BOX";
+							$curHold['cancelable'] = true;
+							$curHold['cancelId'] = $matches[1][0];
+							$curHold['xnum'] = $matches[2][0];
 						}else{
-							$sret[$scount-2]['cancelable'] = false;
+							$curHold['cancelable'] = false;
 						}
 					}
 
@@ -1671,11 +1692,11 @@ class Marmot implements DriverInterface
 							$title = trim($scols[$i]);
 						}
 
-						$sret[$scount-2]['id'] = $bibid;
-						$sret[$scount-2]['title'] = $title;
+						$curHold['id'] = $bibid;
+						$curHold['title'] = $title;
 					}
 					if (stripos($skeys[$i],"Ratings") > -1) {
-						$sret[$scount-2]['request'] = "STARS";
+						$curHold['request'] = "STARS";
 					}
 
 					if (stripos($skeys[$i],"PICKUP LOCATION") > -1) {
@@ -1683,23 +1704,23 @@ class Marmot implements DriverInterface
 						//Extract the current location for the hold if possible
 						$matches = array();
 						if (preg_match('/<select\\s+name=loc(.*?)x(\\d\\d).*?<option\\s+value="([a-z]{1,5})[+ ]*"\\s+selected="selected">.*/s', $scols[$i], $matches)){
-							$sret[$scount-2]['locationId'] = $matches[1];
-							$sret[$scount-2]['locationXnum'] = $matches[2];
+							$curHold['locationId'] = $matches[1];
+							$curHold['locationXnum'] = $matches[2];
 							$curPickupBranch = new Location();
 							$curPickupBranch->whereAdd("code = '{$matches[3]}'");
 							$curPickupBranch->find(1);
 							if ($curPickupBranch->N > 0){
 								$curPickupBranch->fetch();
-								$sret[$scount-2]['currentPickupId'] = $curPickupBranch->locationId;
-								$sret[$scount-2]['currentPickupName'] = $curPickupBranch->displayName;
+								$curHold['currentPickupId'] = $curPickupBranch->locationId;
+								$curHold['currentPickupName'] = $curPickupBranch->displayName;
 							}
-							$sret[$scount-2]['locationUpdateable'] = true;
+							$curHold['locationUpdateable'] = true;
 							//Return the full select box for reference.
-							$sret[$scount-2]['location'] = $scols[$i];
+							$curHold['location'] = $scols[$i];
 						}else{
-							$sret[$scount-2]['location'] = $scols[$i];
-							$sret[$scount-2]['currentPickupName'] = $scols[$i];
-							$sret[$scount-2]['locationUpdateable'] = false;
+							$curHold['location'] = $scols[$i];
+							$curHold['currentPickupName'] = $scols[$i];
+							$curHold['locationUpdateable'] = false;
 						}
 					}
 
@@ -1708,59 +1729,59 @@ class Marmot implements DriverInterface
 						$status = strtolower($status);
 						$status = ucwords($status);
 						if ($status !="&nbsp"){
-							$sret[$scount-2]['status'] = $status;
+							$curHold['status'] = $status;
 						}else{
-							$sret[$scount-2]['status'] = "Pending";
+							$curHold['status'] = "Pending";
 						}
 						$matches = array();
-						$sret[$scount-2]['renewError'] = false;
+						$curHold['renewError'] = false;
 						if (preg_match('/.*DUE\\s(\\d{2}-\\d{2}-\\d{2}).*(?:<font color="red">\\s*(.*)<\/font>).*/s', $scols[$i], $matches)){
 							//Renew error
-							$sret[$scount-2]['renewError'] = $matches[2];
-							$sret[$scount-2]['statusMessage'] = $matches[2];
+							$curHold['renewError'] = $matches[2];
+							$curHold['statusMessage'] = $matches[2];
 						}else{
 							if (preg_match('/.*DUE\\s(\\d{2}-\\d{2}-\\d{2})\\s(.*)?/s', $scols[$i], $matches)){
-								$sret[$scount-2]['statusMessage'] = $matches[2];
+								$curHold['statusMessage'] = $matches[2];
 							}
 						}
-						$logger->log('Status for item ' . $sret[$scount-2]['id'] . '=' . $scols[$i], PEAR_LOG_INFO);
+						$logger->log('Status for item ' . $curHold['id'] . '=' . $scols[$i], PEAR_LOG_INFO);
 					}
 					if (stripos($skeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
-						$sret[$scount-2]['expire'] = strip_tags($scols[$i]);
+						$curHold['expire'] = strip_tags($scols[$i]);
 					}
 					if (stripos($skeys[$i],"FREEZE") > -1) {
 						$matches = array();
-						$sret[$scount-2]['frozen'] = false;
+						$curHold['frozen'] = false;
 						if (preg_match('/<input.*name="freeze(.*?)"\\s*(\\w*)\\s*\/>/', $scols[$i], $matches)){
-							$sret[$scount-2]['freezeable'] = true;
+							$curHold['freezeable'] = true;
 							if (strlen($matches[2]) > 0){
-								$sret[$scount-2]['frozen'] = true;
+								$curHold['frozen'] = true;
 							}
 						}elseif (preg_match('/This hold can\s?not be frozen/i', $scols[$i], $matches)){
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
-							$shortId = str_replace('.b', 'b', $sret[$scount-2]['id']);
+							$shortId = str_replace('.b', 'b', $curHold['id']);
 							$_SESSION['freezeResult'][$shortId]['message'] = $scols[$i];
 							$_SESSION['freezeResult'][$shortId]['result'] = false;
 						}else{
-							$sret[$scount-2]['freezeable'] = false;
+							$curHold['freezeable'] = false;
 
 						}
 					}
 
-					//$sret[$scount-2][$skeys[$i]] = $scols[$i];
-					//$sret[$scount-2]['id'] = $barcode;
-					//$sret[$scount-2]['barcode'] = $id;
-					//$sret[$scount-2]['number'] = ($scount -1);
-					$sret[$scount-2]['create'] = null;
-					$sret[$scount-2]['reqnum'] = null;
+					//$curHold[$skeys[$i]] = $scols[$i];
+					//$curHold['id'] = $barcode;
+					//$curHold['barcode'] = $id;
+					//$curHold['number'] = ($scount -1);
+					$curHold['create'] = null;
+					$curHold['reqnum'] = null;
 				}
-
+				$holds['unavailable'] = $curHold;
 			}
 
 			$scount++;
 
 		}
-		return $sret;
+		return array('holds' => $holds);
 	}
 
 	/**
