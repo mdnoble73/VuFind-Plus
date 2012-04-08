@@ -1,8 +1,8 @@
         {* Your footer *}
         <div><p><strong>{translate text='Featured Items'}</strong></p>
           <ul>
-            <li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Telluride%22&filter[]=literary-form%3A%22Non+Fiction%22&filter[]=local_time_since_added_wilkinson%3A%22Month%22&filter[]=format%3A%22Book%22&sort=year">{translate text='New Non-Fiction'}</a></li>
-            <li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Telluride%22&filter[]=literary-form%3A%22Fiction%22&filter[]=local_time_since_added_wilkinson%3A%22Month%22&filter[]=format%3A%22Book%22&sort=year">{translate text='New Fiction'}</a></li>
+            <li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Telluride%22&filter[]=literary_form%3A%22Non+Fiction%22&filter[]=local_time_since_added_wilkinson%3A%22Month%22&filter[]=format%3A%22Book%22&sort=year">{translate text='New Non-Fiction'}</a></li>
+            <li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Telluride%22&filter[]=literary_form%3A%22Fiction%22&filter[]=local_time_since_added_wilkinson%3A%22Month%22&filter[]=format%3A%22Book%22&sort=year">{translate text='New Fiction'}</a></li>
             <li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Telluride%22&filter[]=local_time_since_added_wilkinson%3A%22Month%22&filter[]=format%3A%22DVD%22&sort=year">{translate text='New DVDs'}</a></li>
           </ul>
         </div>
