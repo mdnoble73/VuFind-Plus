@@ -216,25 +216,16 @@ class AJAX extends Action {
 		$titles = array();
 		foreach ($listTitles as $title){
 			if ($title->source == 'VuFind'){
-				if (!($record = $db->getRecord($title->record_id))) {
-					//Old record which has been removed? Ignore for purposes of lists.
-					continue;
-				}
-	
-				$marcRecord = new MarcRecord($record);
-				$upcs = $marcRecord->getUPCs();
-				$upc = count($upcs) > 0 ? $upcs[0] : '';
-	
-				$formatCategories = $marcRecord->getFormatCategory();
-				$formatCategory = count($formatCategories) > 0 ? $formatCategories[0] : '';
+				$upc = $title->upc;
+				$formatCategory = $title->format_category;
 			
 				$titles[] = array(
-		    		'id' => $marcRecord->getId(),
-		    		'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $marcRecord->getId() . "&isn=" . $marcRecord->getCleanISBN() . "&size=medium&upc=" . $upc . "&category=" . $formatCategory,
-		    		'title' => $marcRecord->getTitle(),
-		    		'author' => $marcRecord->getAuthor(),
+		    		'id' => $title->record_id,
+		    		'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $title->record_id . "&isn=" . $title->isbn . "&size=small&upc=" . $upc . "&category=" . $formatCategory,
+		    		'title' => $title->title,
+		    		'author' => $title->author,
 				    'source' => 'VuFind',
-				    'link' => $configArray['Site']['path'] . "/Record/" . $marcRecord->getId(),
+				    'link' => $configArray['Site']['path'] . "/Record/" . $title->record_id,
 				);
 			}else{
 				require_once('sys/eContent/EContentRecord.php');
@@ -243,7 +234,7 @@ class AJAX extends Action {
 				if ($record->find(true)){
 					$titles[] = array(
 						'id' => $record->id,
-						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record->id . "&isn=" . $record->isbn . "&size=medium&upc=" . $record->upc . "&category=EMedia",
+						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record->id . "&isn=" . $record->isbn . "&size=small&upc=" . $record->upc . "&category=EMedia",
 						'title' => $record->title,
 						'author' => $record->author,
 						'source' => 'eContent',

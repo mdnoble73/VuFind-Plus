@@ -89,8 +89,8 @@
             </thead>
             <tbody> 
           
-	          {foreach from=$transList item=record name="recordLoop"}
-				    {if ($smarty.foreach.recordLoop.iteration % 2) == 0}
+	          {foreach from=$transList item=record name="recordLoop" key=recordKey}
+	          {if ($smarty.foreach.recordLoop.iteration % 2) == 0}
 							<tr id="record{$record.recordId|escape}" class="result alt record{$smarty.foreach.recordLoop.iteration}">
 					{else}
 							<tr id="record{$record.recordId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
@@ -153,7 +153,7 @@
             </td>
             
             <td class="myAccountCell">      
-				       {$record.checkout|escape} to {$record.lastCheckout|escape}
+				       {$record.checkout|escape}{if $record.lastCheckout} to {$record.lastCheckout|escape}{/if}
 		        </td>             
             
 

@@ -367,8 +367,8 @@ class CatalogConnection
 	 *                              If an error occures, return a PEAR_Error
 	 * @access  public
 	 */
-	function getReadingHistory($patron){
-		return $this->driver->getReadingHistory($patron);
+	function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut"){
+		return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
 	}
 
 	/**

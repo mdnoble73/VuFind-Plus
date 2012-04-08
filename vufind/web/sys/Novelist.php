@@ -29,11 +29,15 @@ class Novelist{
 	
 			try{
 				//Get the XML from the service
+				disableErrorHandler();
 				$req = new Proxy_Request($requestUrl);
 				//$result = file_get_contents($req);
 				if (PEAR::isError($req->sendRequest())) {
+					enableErrorHandler();
 					return null;
 				}
+				enableErrorHandler();
+				
 				$response = $req->getResponseBody();
 				$timer->logTime("Made call to Novelist for enrichment information");
 	

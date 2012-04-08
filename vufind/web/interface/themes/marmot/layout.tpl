@@ -13,7 +13,8 @@
 	    {css filename="jqueryui.css"}
     	{css media="screen" filename="styles.css"}
     	{css media ="screen" filename="book-bag.css"}
-    	{css filename="my-account.css"}
+    	{css filename="title-scroller.css"}
+	  	{css filename="my-account.css"}
 	  	{css filename="holdingsSummary.css"}
 	  	{css filename="ratings.css"}
 	  	{css filename="book-bag.css"}
@@ -69,7 +70,8 @@
 		  
 		  <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 		  
-			<script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
+			<script type="text/javascript" src="{$path}/js/jquery.waitforimages.js"></script>
+		  <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
       <script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
 			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>

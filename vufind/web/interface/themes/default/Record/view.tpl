@@ -326,7 +326,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		        </li>
 		      {/if}
 		      {if $showFavorites == 1}
-		        <li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getLightbox('Record', 'Save', '{$id|escape}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
+		        <li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="saveRecordToList('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
 		      {/if}
 		      {if !empty($addThis)}
 		        <li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>

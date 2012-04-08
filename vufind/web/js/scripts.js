@@ -50,7 +50,7 @@ function ajaxLightbox(urlToLoad){
 }
 
 function showElementInLightbox(title, elementSelector){
-	//Find out how far down the screen the user has scrolled.
+	// Find out how far down the screen the user has scrolled.
 	var new_top =  document.body.scrollTop;
 
 	// Get the height of the document
@@ -72,22 +72,21 @@ function showElementInLightbox(title, elementSelector){
 	
 }
 
-function hideLightbox()
-{
-    var lightbox = $('#lightbox');
-    var popupbox = $('#popupbox');
+function hideLightbox(){
+	var lightbox = $('#lightbox');
+	var popupbox = $('#popupbox');
 
-    hideSelects('visible');
-    lightbox.hide();
-    popupbox.hide();
+	hideSelects('visible');
+	lightbox.hide();
+	popupbox.hide();
 }
 
 function hideSelects(visibility)
 {
-    selects = document.getElementsByTagName('select');
-    for(i = 0; i < selects.length; i++) {
-        selects[i].style.visibility = visibility;
-    }
+	selects = document.getElementsByTagName('select');
+	for(i = 0; i < selects.length; i++) {
+		selects[i].style.visibility = visibility;
+	}
 }
 
 function toggleMenu(elemId)
@@ -111,7 +110,7 @@ function filterAll(element)
     var e = getElem('searchForm').elements;
     var len = e.length;
     for (var i = 0; i < len; i++) {
-        //  Look for filters (specifically checkbox filters)
+        // Look for filters (specifically checkbox filters)
         if (e[i].name == 'filter[]' && e[i].checked != undefined) {
             e[i].checked = element.checked;
         }
@@ -124,8 +123,11 @@ function jsEntityEncode(str)
     return new_str;
 }
 
-/* Function to check if user is logged in. It expects a function as an argument,
-to which a value of TRUE or FALSE will be supplied, once it comes back from the server */
+/*
+ * Function to check if user is logged in. It expects a function as an argument,
+ * to which a value of TRUE or FALSE will be supplied, once it comes back from
+ * the server
+ */
 function isLoggedIn(logged_in_function) {
 	var url = path + '/AJAX/Home?method=isLoggedIn';
 	
@@ -141,7 +143,10 @@ function isLoggedIn(logged_in_function) {
 	return false; 
 }
 
-/* Function to check if user is logged in. Runs Synchronously and returns the value of whether it is logged in or not. */
+/*
+ * Function to check if user is logged in. Runs Synchronously and returns the
+ * value of whether it is logged in or not.
+ */
 function isLoggedInSync() {
 	var url = path + '/AJAX/Home?method=isLoggedIn';
 	
@@ -163,42 +168,42 @@ function isLoggedInSync() {
 
 /* update the sort parameter and redirect the user back to the same page */
 function changeSort(newSort){
-	//Get the current url
+	// Get the current url
 	var currentLocation = window.location.href;
-	//Check to see if we already have a sort parameter. .
+	// Check to see if we already have a sort parameter. .
 	if (currentLocation.match(/(sort=[^&]*)/)) {
-		//Replace the existing sort with the new sort parameter
+		// Replace the existing sort with the new sort parameter
 		currentLocation = currentLocation.replace(/sort=[^&]*/, 'sort=' + newSort);
 	} else {
-		//Add the new sort parameter
+		// Add the new sort parameter
 		if (currentLocation.match(/\?/)) {
 			currentLocation += "&sort=" + newSort;
 		}else{
 			currentLocation += "?sort=" + newSort;
 		}
 	}
-	//Redirect back to this page.
+	// Redirect back to this page.
 	window.location.href = currentLocation;
 }
 
 
 /* update the sort parameter and redirect the user back to the same page */
 function changeAccountSort(newSort){
-	//Get the current url
+	// Get the current url
 	var currentLocation = window.location.href;
-	//Check to see if we already have a sort parameter. .
+	// Check to see if we already have a sort parameter. .
 	if (currentLocation.match(/(accountSort=[^&]*)/)) {
-		//Replace the existing sort with the new sort parameter
+		// Replace the existing sort with the new sort parameter
 		currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);
 	} else {
-		//Add the new sort parameter
+		// Add the new sort parameter
 		if (currentLocation.match(/\?/)) {
 			currentLocation += "&accountSort=" + newSort;
 		}else{
 			currentLocation += "?accountSort=" + newSort;
 		}
 	}
-	//Redirect back to this page.
+	// Redirect back to this page.
 	window.location.href = currentLocation;
 }
 
@@ -220,7 +225,7 @@ function checkAll(){
 }
 
 function startSearch(){
-	//Stop auto complete since there is a search running already
+	// Stop auto complete since there is a search running already
 	$('#lookfor').autocomplete( "disable" );
 }
 
@@ -263,15 +268,15 @@ function reactivateEContentHold(reactivateUrl){
 function getOverDriveSummary(){
 	$.getJSON(path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
 		if (data.error){
-			//Unable to load overdrive summary
+			// Unable to load overdrive summary
 		}else{
-			//Load checked out items
+			// Load checked out items
 			$("#checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
-			//Load available holds
+			// Load available holds
 			$("#availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
-			//Load unavailable holds
+			// Load unavailable holds
 			$("#unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
-			//Load wishlist
+			// Load wishlist
 			$("#wishlistOverDrivePlaceholder").html(data.numWishlistItems);
 		}
 	});
@@ -341,6 +346,7 @@ function pwdToText(fieldId){
 	var elem = document.getElementById(fieldId);
 	var input = document.createElement('input');
 	input.id = elem.id;
+	input.name = elem.name;
 	input.value = elem.value;
 	input.size = elem.size;
 	input.onfocus = elem.onfocus;
@@ -355,3 +361,14 @@ function pwdToText(fieldId){
 	elem.parentNode.replaceChild(input, elem);
 	return input;
 }
+
+function saveRecordToList(recordId, recordSource){
+	if (loggedIn){
+		var url = path + "/Record/" + recordId + "/Save?lightbox=true";
+		ajaxLightbox(url);
+	}else{
+		ajaxLogin(function(){
+			saveRecordToList(recordId, recordSource);
+		});
+	}
+} 

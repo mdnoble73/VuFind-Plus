@@ -309,6 +309,7 @@ class Horizon implements DriverInterface{
 		}
 		$timer->logTime("Retrieved holds from ILS");
 		
+		//Get a list of all record id so we can load supplemental information 
 		$recordIds = array();
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $hold){

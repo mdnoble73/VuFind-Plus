@@ -44,7 +44,7 @@ class Save extends Action
 			// Needed for login followup:
 			$interface->assign('recordId', $_GET['id']);
 			if (isset($_GET['lightbox'])) {
-				$interface->assign('title', $_GET['message']);
+				$interface->assign('title', translate('Save Record To List'));
 				$interface->assign('message', 'You must be logged in first');
 				$interface->assign('followup', true);
 				$interface->assign('followupModule', 'Record');
@@ -80,7 +80,7 @@ class Save extends Action
 		$interface->assign('record', $details);
 
 		// Find out if the item is already part of any lists; save list info/IDs
-		$saved = $this->user->getSavedData($_GET['id']);
+		$saved = $this->user->getSavedData($_GET['id'], 'VuFind');
 		$containingLists = array();
 		$containingListIds = array();
 		foreach($saved as $current) {
@@ -104,7 +104,7 @@ class Save extends Action
 		// Display Page
 		$interface->assign('id', $_GET['id']);
 		if (isset($_GET['lightbox'])) {
-			$interface->assign('title', $_GET['message']);
+			$interface->assign('title', translate('Save Record To List'));
 			return $interface->fetch('Record/save.tpl');
 		} else {
 			$interface->setPageTitle('Add to favorites');

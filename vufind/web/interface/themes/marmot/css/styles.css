@@ -1285,7 +1285,9 @@ font-size: 14px;
 font-weight: 900;
 padding-left:20px;
 }
-
+table.holdingsTable{
+	width: 100%;
+}
 table.holdingsTable td {
 padding 10px;
 }

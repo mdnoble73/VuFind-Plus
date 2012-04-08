@@ -1177,6 +1177,18 @@ class Marmot implements DriverInterface
 		}
 
 		$finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
+		
+		$numHoldsAvailable = 0;
+		$numHoldsRequested = 0;
+		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
+			foreach ($patronDump['HOLD'] as $hold){
+				if (preg_match('/TP=i,/', $hold)){
+					$numHoldsAvailable++;
+				}else{
+					$numHoldsRequested++;
+				}
+			}
+		}
 		$profile = array('lastname' => $lastname,
 				'firstname' => $firstname,
 				'fullname' => $Fullname,
@@ -1200,6 +1212,8 @@ class Marmot implements DriverInterface
 				'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
 				'numCheckedOut' => $patronDump['CUR_CHKOUT'],
 				'numHolds' => isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0,
+				'numHoldsAvailable' => $numHoldsAvailable,
+				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 				'ptype' => $patronDump['P_TYPE'],
 		);
@@ -1225,8 +1239,9 @@ class Marmot implements DriverInterface
 	{
 		global $configArray;
 		global $memcache;
+		global $timer;
 		$patronDump = $memcache->get("patron_dump_$barcode");
-		if (true || !$patronDump){
+		if (!$patronDump){
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
@@ -1279,6 +1294,7 @@ class Marmot implements DriverInterface
 					}
 				}
 			}
+			$timer->logTime("Got patron information from Patron API");
 			
 			if (isset($configArray['ERRNUM'])){
 				//Could not load the record
@@ -1287,7 +1303,7 @@ class Marmot implements DriverInterface
 				
 				$memcache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
 				//Need to wait a little bit since getting the patron api locks the record in the DB
-				sleep(1);
+				usleep(250);
 			}
 		}
 		return $patronDump;
@@ -1461,8 +1477,8 @@ class Marmot implements DriverInterface
 		
 	}
 
-	public function getReadingHistory($patron)
-	{
+	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		global $timer;
 		$id2= $patron['id'];
 		$patronDump = $this->_getPatronDump($id2);
 
@@ -1481,9 +1497,10 @@ class Marmot implements DriverInterface
 
 		$scount = 0;
 		$skeys = array_pad(array(),10,"");
-		$sret = array();
+		$readingHistoryTitles = array();
 		foreach ($srows as $srow) {
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+			$historyEntry = array();
 			for ($i=0; $i < sizeof($scols); $i++) {
 				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
 				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
@@ -1493,41 +1510,81 @@ class Marmot implements DriverInterface
 					$skeys[$i] = $scols[$i];
 				} else if ($scount > 1) {
 					if (stripos($skeys[$i],"Mark") > -1) {
-						$sret[$scount-2]['deletable'] = "BOX";
+						$historyEntry['deletable'] = "BOX";
 					}
 
 					if (stripos($skeys[$i],"Title") > -1) {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+							$shortId = $matches[1];
 							$bibid = '.' . $matches[1];
 							$title = $matches[2];
 						}
 
-						$sret[$scount-2]['id'] = $bibid;
-						$sret[$scount-2]['title'] = $title;
+						$historyEntry['id'] = $bibid;
+						$historyEntry['shortId'] = $shortId;
+						$historyEntry['title'] = $title;
 					}
 
 					if (stripos($skeys[$i],"Author") > -1) {
-						$sret[$scount-2]['author'] = strip_tags($scols[$i]);
+						$historyEntry['author'] = strip_tags($scols[$i]);
 					}
 
 					if (stripos($skeys[$i],"Checked Out") > -1) {
-						$sret[$scount-2]['checkout'] = strip_tags($scols[$i]);
+						$historyEntry['checkout'] = strip_tags($scols[$i]);
 					}
 					if (stripos($skeys[$i],"Details") > -1) {
-						$sret[$scount-2]['details'] = strip_tags($scols[$i]);
+						$historyEntry['details'] = strip_tags($scols[$i]);
 					}
 
-					$sret[$scount-2]['borrower_num'] = $patron['id'];
+					$historyEntry['borrower_num'] = $patron['id'];
+				} //Done processing column 
+			} //Done processing row
+
+			if ($scount > 1){
+				//Get additional information from resources table
+				$resource = new Resource();
+				$resource->shortId = $historyEntry['shortId'];
+				if ($resource->find(true)){
+					$historyEntry = array_merge($historyEntry, get_object_vars($resource));
+					$historyEntry['recordId'] = $resource->record_id;
+				}else{
+					//echo("Warning did not find resource for {$historyEntry['shortId']}");
 				}
-
+				$titleKey = '';
+				if ($sortOption == "title"){
+					$titleKey = $historyEntry['title_sort'];
+				}elseif ($sortOption == "author"){
+					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
+					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
+					$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+				}elseif ($sortOption == "format"){
+					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+				}else{
+					$titleKey = $historyEntry['title_sort'];
+				}
+				$titleKey .= '_' . $scount;
+				$readingHistoryTitles[$titleKey] = $historyEntry;
 			}
-
 			$scount++;
-
+		}//processed all rows in the table
+		
+		if ($sortOption == "checkedOut" || $sortOption == "returned"){
+			krsort($readingHistoryTitles);
+		}else{
+			ksort($readingHistoryTitles);
 		}
+		$numTitles = count($readingHistoryTitles);
+		//process pagination
+		if ($recordsPerPage != -1){
+			$startRecord = ($page - 1) * $recordsPerPage;
+			$readingHistoryTitles = array_slice($readingHistoryTitles, $startRecord, $recordsPerPage);
+		}
+		
 		//The history is active if there is an opt out link.
 		$historyActive = (strpos($pageContents, 'OptOut') > 0);
-		return array('historyActive'=>$historyActive, 'titles'=>$sret);
+		$timer->logTime("Loaded Reading history for patron");
+		return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 	}
 
 	/**
@@ -1610,9 +1667,10 @@ class Marmot implements DriverInterface
 		unlink($cookieJar);
 	}
 
-	public function getMyHolds($patron)
+	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
 	{
 		global $timer;
+		global $configArray;
 		$id2= $patron['id'];
 		$patronDump = $this->_getPatronDump($id2);
 
@@ -1622,10 +1680,112 @@ class Marmot implements DriverInterface
 
 		$holds = $this->parseHoldsPage($sresult);
 		$timer->logTime("Parsed Holds page");
-		return $holds;
+		
+		//Get a list of all record id so we can load supplemental information 
+		$recordIds = array();
+		foreach($holds as $section => $holdSections){
+			foreach($holdSections as $hold){
+				$recordIds[] = "'" . $hold['shortId'] . "'";
+			}
+		}
+		//Get records from resource table
+		$resourceInfo = new Resource();
+		if (count($recordIds) > 0){
+			$recordIdString = implode(",", $recordIds);
+			mysql_select_db($configArray['Database']['database_vufind_dbname']);
+			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND shortId in ({$recordIdString})";
+			$resourceInfo->query($resourceSql);
+			$timer->logTime('Got records for all titles');
+	
+			//Load title author, etc. information
+			while ($resourceInfo->fetch()){
+				foreach($holds as $section => $holdSections){
+					foreach($holdSections as $key => $hold){
+						$hold['recordId'] = $hold['id'];
+						if ($hold['shortId'] == $resourceInfo->shortId){
+							//Load title, author, and format information about the title
+							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
+							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';
+							$hold['author'] = isset($resourceInfo->author) ? $resourceInfo->author : null;
+							$hold['format'] = isset($resourceInfo->format) ?$resourceInfo->format : null;
+							$hold['isbn'] = isset($resourceInfo->isbn) ? $resourceInfo->isbn : '';
+							$hold['upc'] = isset($resourceInfo->upc) ? $resourceInfo->upc : '';
+							$hold['format_category'] = isset($resourceInfo->format_category) ? $resourceInfo->format_category : '';
+							$holds[$section][$key] = $hold;
+						}
+					}
+				}
+			}
+		}
+		
+		//Process sorting
+		//echo ("<br/>\r\nSorting by $sortOption");
+		foreach ($holds as $sectionName => $section){
+			$sortKeys = array();
+			$i = 0;
+			foreach ($section as $key => $hold){
+				$sortTitle = isset($hold['sortTitle']) ? $hold['sortTitle'] : (isset($hold['title']) ? $hold['title'] : "Unknown");
+				if ($sectionName == 'available'){
+					$sortKeys[$key] = $sortTitle;
+				}else{
+					if ($sortOption == 'title'){
+						$sortKeys[$key] = $sortTitle;
+					}elseif ($sortOption == 'author'){
+						$sortKeys[$key] = (isset($hold['author']) ? $hold['author'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($sortOption == 'placed'){
+						$sortKeys[$key] = $hold['createTime'] . '-' . $sortTitle;
+					}elseif ($sortOption == 'format'){
+						$sortKeys[$key] = (isset($hold['format']) ? $hold['format'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($sortOption == 'location'){
+						$sortKeys[$key] = (isset($hold['location']) ? $hold['location'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($sortOption == 'holdQueueLength'){
+						$sortKeys[$key] = (isset($hold['holdQueueLength']) ? $hold['holdQueueLength'] : 0) . '-' . $sortTitle;
+					}elseif ($sortOption == 'position'){
+						$sortKeys[$key] = str_pad((isset($hold['position']) ? $hold['position'] : 1), 3, "0", STR_PAD_LEFT) . '-' . $sortTitle;
+					}elseif ($sortOption == 'status'){
+						$sortKeys[$key] = (isset($hold['status']) ? $hold['status'] : "Unknown") . '-' . (isset($hold['reactivateTime']) ? $hold['reactivateTime'] : "0") . '-' . $sortTitle;
+					}else{
+						$sortKeys[$key] = $sortTitle;
+					}
+					//echo ("<br/>\r\nSort Key for $key = {$sortKeys[$key]}");
+				}
+
+				$sortKeys[$key] = strtolower($sortKeys[$key] . '-' . $i++);
+			}
+			array_multisort($sortKeys, $section);
+			$holds[$sectionName] = $section;
+		}
+
+		//Limit to a specific number of records
+		if (isset($holds['unavailable'])){
+			$numUnavailableHolds = count($holds['unavailable']);
+			if ($recordsPerPage != -1){
+				$startRecord = ($page - 1) * $recordsPerPage;
+				$holds['unavailable'] = array_slice($holds['unavailable'], $startRecord, $recordsPerPage);
+			}
+		}else{
+			$numUnavailableHolds = 0;
+		}
+		
+		if (!isset($holds['available'])){
+			$holds['available'] = array();
+		}
+		if (!isset($holds['unavailable'])){
+			$holds['unavailable'] = array();
+		}
+		//Sort the hold sections so vailable holds are first. 
+		ksort($holds);
+
+		$this->holds[$patron['id']] = $holds;
+		$timer->logTime("Processed hold pagination and sorting");
+		return array(
+			'holds' => $holds,
+			'numUnavailableHolds' => $numUnavailableHolds,
+		);
 	}
 
 	public function parseHoldsPage($sresult){
+		global $timer;
 		$logger = new Logger();
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -1659,7 +1819,9 @@ class Marmot implements DriverInterface
 			//  print_r($scols);
 			//  echo "</pre>";
 			$curHold= array();
-
+			$curHold['create'] = null;
+			$curHold['reqnum'] = null;
+			
 			//Holds page occassionally has a header with number of items checked out.
 			for ($i=0; $i < sizeof($scols); $i++) {
 				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
@@ -1685,14 +1847,17 @@ class Marmot implements DriverInterface
 
 					if (stripos($skeys[$i],"TITLE") > -1) {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
-							$bibid = '.' . $matches[1];
+							$shortId = $matches[1];
+							$bibid = '.' . $matches[1]; //Technically, this isn't corrcect since the check digit is missing
 							$title = $matches[2];
 						}else{
 							$bibid = '';
+							$shortId = '';
 							$title = trim($scols[$i]);
 						}
 
 						$curHold['id'] = $bibid;
+						$curHold['shortId'] = $shortId;
 						$curHold['title'] = $title;
 					}
 					if (stripos($skeys[$i],"Ratings") > -1) {
@@ -1764,24 +1929,24 @@ class Marmot implements DriverInterface
 							$_SESSION['freezeResult'][$shortId]['result'] = false;
 						}else{
 							$curHold['freezeable'] = false;
-
 						}
 					}
-
-					//$curHold[$skeys[$i]] = $scols[$i];
-					//$curHold['id'] = $barcode;
-					//$curHold['barcode'] = $id;
-					//$curHold['number'] = ($scount -1);
-					$curHold['create'] = null;
-					$curHold['reqnum'] = null;
 				}
-				$holds['unavailable'] = $curHold;
+			} //End of columns
+			
+			if ($scount > 1) {
+				if (!isset($curHold['status']) || $curHold['status'] == "Pending"){
+					$holds['unavailable'][] = $curHold;
+				}else{
+					$holds['available'][] = $curHold;
+				}
 			}
 
 			$scount++;
 
-		}
-		return array('holds' => $holds, 'numUnavailableHolds' => 0);
+		}//End of the row
+		
+		return $holds;
 	}
 
 	/**
@@ -2345,6 +2510,10 @@ class Marmot implements DriverInterface
 
 		curl_close($curl_connection);
 		unlink($cookieJar);
+		
+		//Make sure to clear any cached data
+		global $memcache;
+		$memcache->delete("patron_dump_$patronId");
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){

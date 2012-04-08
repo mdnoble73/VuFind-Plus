@@ -14,7 +14,7 @@
   
 	<div id="main-content">
 		{if $user->cat_username}
-			{if $user->disableRecommendations == 0}
+			{if $showStrands && $user->disableRecommendations == 0}
 				{* Display recommendations for the user *}
 				{assign var="scrollerName" value="Recommended"}
 				{assign var="wrapperId" value="recommended"}
@@ -47,7 +47,7 @@
 					<div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
 						<div class='holdSectionBody'>
 							{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
-								{if $sectionKey=='available'}
+								{if $sectionKey=='available' && $libraryHoursMessage}
 									<div class='libraryHours'>{$libraryHoursMessage}</div>
 								{/if}
 								{* Form to update holds at one time *}
