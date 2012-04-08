@@ -388,6 +388,16 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'resource_update5' => array(
+				'title' => 'Update resource table 5',
+				'description' => 'Add a short id column for use with certain ILS i.e. Millennium',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `resource` ADD shortId VARCHAR(20)",
+					"ALTER TABLE `resource` ADD INDEX (shortId)", 
+				),
+			),
+			
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
 				'description' => 'Create table to store call numbers for resources',

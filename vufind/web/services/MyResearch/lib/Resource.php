@@ -11,6 +11,7 @@ class Resource extends DB_DataObject {
 	public $__table = 'resource';                        // table name
 	public $id;                              // int(11)  not_null primary_key auto_increment
 	public $record_id;                       // string(30)  not_null multiple_key
+	public $shortId;                       // string(30)  not_null multiple_key
 	public $title;                           // string(200)  not_null
 	public $title_sort;                           // string(200)  sortable title
 	public $author;
