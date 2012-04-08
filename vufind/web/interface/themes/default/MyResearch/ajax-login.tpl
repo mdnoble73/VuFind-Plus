@@ -3,10 +3,9 @@
 	<div class="resulthead">
 	<h3>{translate text='Login to your account'}</h3>
 	</div>
-	<div id='loginFormWrapper'>
+	<div id='ajaxLoginForm'>
 		<form method="post" action="{$path}/MyResearch/Home" id="loginForm">
 			<div id='loginFormFields'>
-				<div id='haveCardLabel' class='loginFormRow'>I have a Douglas County Library Card</div>
 				<div id ='loginUsernameRow' class='loginFormRow'>
 					<div class='loginLabel'>{translate text='Username'}: </div>
 					<div class='loginField'><input type="text" name="username" id="username" value="{$username|escape}" size="15"/></div>
@@ -29,22 +28,6 @@
 				</div>
 			</div>
 		</form>
-	</div>
-	<div id='needACardWrapper'>
-		<div id='needCardLabel' class='loginFormRow'>
-		<a href="http://getacard.org">I need a Douglas County Libraries Card</a>
-		</div>
-		<div class='loginFormRow'>
-		<a href="http://getacard.org"><img src="{$path}/interface/themes/dcl/images/library_card.gif" alt="Get a Library Card" /></a>
-		</div>
-	</div>
-	<div id='retreiveLoginInfo'>
-		<div id='forgottenCardLabel' class='loginFormRow'>
-			<a href="http://getacard.org/account_lookup_form_internal.php" >FORGOTTEN YOUR CARD NUMBER?</a>
-		</div>
-		<div id='emailPinLabel' class='loginFormRow'>
-			<a href="http://getacard.org/pin_emailer_form.php">EMAIL MY PIN</a>
-		</div>
 	</div>
 	<script type="text/javascript">$('#username').focus();</script>
 </div>

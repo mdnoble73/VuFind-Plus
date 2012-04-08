@@ -10,6 +10,10 @@ vufind/web/interface/cache/
 vufind/web/interface/compile/
 vufind/web/*_strandsCatalog.csv
 vufind/web/phpinfo.php
+vufind/import/src_backup
+vufind/web/images/covers/medium/*
+vufind/web/images/covers/small/*
+vufind/web/images/covers/large/*
 
 # Compiled source #
 ###################

@@ -10,7 +10,11 @@
 
   <tr>
     <td>{translate text='Password'}: </td>
-    <td><input type="password" name="password" size="15"></td>
+    <td>
+    	<input type="password" name="password" size="15">
+    	<br/>
+    	<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+    </td>
   </tr>
 
   <tr>
