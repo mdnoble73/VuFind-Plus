@@ -15,17 +15,12 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.marc4j.marc.Record;
-import org.solrmarc.tools.Utils;
 
 public class Util {
 	public static String convertStreamToString(InputStream is) throws IOException {
@@ -103,10 +98,28 @@ public class Util {
 		if (values instanceof String){
 			crSeparatedString.append((String)values);
 		}else if (values instanceof Iterable){
+			@SuppressWarnings("unchecked")
 			Iterable<String> valuesIterable = (Iterable<String>)values;
 			for (String curValue : valuesIterable) {
 				if (crSeparatedString.length() > 0) {
 					crSeparatedString.append("\r\n");
+				}
+				crSeparatedString.append(curValue);
+			}
+		}
+		return crSeparatedString.toString();
+	}
+	
+	public static String getSemiColonSeparatedString(Object values) {
+		StringBuffer crSeparatedString = new StringBuffer();
+		if (values instanceof String){
+			crSeparatedString.append((String)values);
+		}else if (values instanceof Iterable){
+			@SuppressWarnings("unchecked")
+			Iterable<String> valuesIterable = (Iterable<String>)values;
+			for (String curValue : valuesIterable) {
+				if (crSeparatedString.length() > 0) {
+					crSeparatedString.append(";");
 				}
 				crSeparatedString.append(curValue);
 			}

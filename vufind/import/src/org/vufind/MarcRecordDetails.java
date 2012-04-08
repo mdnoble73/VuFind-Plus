@@ -1,8 +1,6 @@
 package org.vufind;
 
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,15 +29,12 @@ import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
 import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
-import org.marc4j.marc.Leader;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 import org.marc4j.marc.VariableField;
 import org.solrmarc.tools.CallNumUtils;
 import org.solrmarc.tools.SolrMarcIndexerException;
 import org.solrmarc.tools.Utils;
-
-import com.sun.corba.se.impl.copyobject.JavaStreamObjectCopierImpl;
 
 import bsh.BshMethod;
 import bsh.EvalError;
@@ -68,7 +62,6 @@ public class MarcRecordDetails {
 	 * @param logger
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	public boolean mapRecord(MarcProcessor marcProcessor, Record record, Logger logger) {
 		// Preload basic information that nearly everything will need
 		this.record = record;
@@ -450,6 +443,7 @@ public class MarcRecordDetails {
 	 * @return set of Strings containing the values of the designated 880
 	 *         field(s)/subfield(s)
 	 */
+	@SuppressWarnings("unchecked")
 	public Set<String> getLinkedFieldValue(String tag, String subfield, String separator) {
 		// assume brackets expression is a pattern such as [a-z]
 		Set<String> result = new LinkedHashSet<String>();
@@ -629,6 +623,7 @@ public class MarcRecordDetails {
 	 *          contents
 	 * @return Set of values (as strings) for solr field
 	 */
+	@SuppressWarnings("unchecked")
 	public Set<String> getAllSubfields(String fieldSpec, String separator) {
 		Set<String> result = new LinkedHashSet<String>();
 
@@ -869,7 +864,6 @@ public class MarcRecordDetails {
 		Class<?> returnType = null;
 		String id = this.getId();
 
-		String className = null;
 		Class<?> classThatContainsMethod = this.getClass();
 		Object objectThatContainsMethod = this;
 		try {
@@ -881,6 +875,7 @@ public class MarcRecordDetails {
 				// parameters are separated by unescaped commas
 				String parms[] = parmStr.trim().split("(?<=[^\\\\]),");
 				int numparms = parms.length;
+				@SuppressWarnings("rawtypes")
 				Class parmClasses[] = new Class[numparms];
 				Object objParms[] = new Object[numparms];
 				for (int i = 0; i < numparms; i++) {
@@ -976,6 +971,7 @@ public class MarcRecordDetails {
 				// parameters are separated by unescaped commas
 				String parms[] = parmStr.trim().split("(?<=[^\\\\]),");
 				int numparms = parms.length;
+				@SuppressWarnings("rawtypes")
 				Class parmClasses[] = new Class[numparms + 1];
 				parmClasses[0] = Record.class;
 				Object objParms[] = new Object[numparms + 1];
@@ -1043,6 +1039,7 @@ public class MarcRecordDetails {
 	 * @return returns true if the indexing process should stop and the solr
 	 *         record should be deleted.
 	 */
+	@SuppressWarnings("unchecked")
 	private boolean finishCustomOrScript(Map<String, Object> indexMap, String indexField, String mapName, Class<?> returnType, Object retval,
 			boolean deleteIfEmpty) {
 		if (returnType == null || retval == null)
@@ -1081,6 +1078,7 @@ public class MarcRecordDetails {
 
 		StringBuilder titleBuilder = new StringBuilder();
 
+		@SuppressWarnings("unchecked")
 		Iterator<Subfield> iter = titleField.getSubfields().iterator();
 		while (iter.hasNext()) {
 			Subfield f = iter.next();
@@ -1145,6 +1143,15 @@ public class MarcRecordDetails {
 	public String getId() {
 		return (String) fields.get("id");
 	}
+	
+	public String getShortId() {
+		String shortId = getId();
+		if (shortId.startsWith(".b") && shortId.length() == 10){
+			//Millennium id, trim off the leading . and the trailing checksum digit 
+			shortId = shortId.substring(1, 9);
+		}
+		return shortId;
+	}
 
 	public String getIsbn() {
 		// return the first 13 digit isbn or 10 digit if there are no 13
@@ -1156,6 +1163,7 @@ public class MarcRecordDetails {
 			}
 			return curIsbn;
 		} else {
+			@SuppressWarnings("unchecked")
 			Set<String> isbns = (Set<String>) isbnField;
 			String bestIsbn = null;
 			if (isbns != null && isbns.size() > 0) {
@@ -1182,6 +1190,7 @@ public class MarcRecordDetails {
 		if (fieldValue instanceof String) {
 			return (String) fieldValue;
 		} else {
+			@SuppressWarnings("unchecked")
 			Set<String> fieldValues = (Set<String>) fields.get(fieldName);
 			if (fieldValues != null && fieldValues.size() >= 1) {
 				return (String) fieldValues.iterator().next();
@@ -1312,6 +1321,7 @@ public class MarcRecordDetails {
 	 * @return a string containing ALL subfields of ALL marc fields within the
 	 *         range indicated by the bound string arguments.
 	 */
+	@SuppressWarnings("unchecked")
 	public String getAllSearchableFields(String lowerBoundStr, String upperBoundStr) {
 		StringBuffer buffer = new StringBuffer("");
 		int lowerBound = localParseInt(lowerBoundStr, 100);
@@ -1383,13 +1393,13 @@ public class MarcRecordDetails {
 
 	public String getRating(String recordIdSpec) {
 		if (rating == null) {
-			Set fields = getFieldList(record, recordIdSpec);
-			Iterator fieldsIter = fields.iterator();
+			Set<String> fields = getFieldList(record, recordIdSpec);
+			Iterator<String> fieldsIter = fields.iterator();
 			if (fields != null) {
 				while (fieldsIter.hasNext()) {
 					try {
 						// Get the current string to work on:
-						String recordId = (String) fieldsIter.next();
+						String recordId = fieldsIter.next();
 						// Check to see if the record has an eContent Record
 						PreparedStatement recordRatingStmt = marcProcessor.getRecordRatingStmt();
 						recordRatingStmt.setString(1, recordId);
@@ -1432,34 +1442,31 @@ public class MarcRecordDetails {
 		}
 	}
 
-	public Set getAllFields() {
-		Set result = new LinkedHashSet();
+	@SuppressWarnings("unchecked")
+	public String getAllFields() {
 		StringBuffer allFieldData = new StringBuffer();
-		List controlFields = record.getControlFields();
+		List<ControlField> controlFields = record.getControlFields();
 		for (Object field : controlFields) {
 			ControlField dataField = (ControlField) field;
 			allFieldData.append(dataField.getData()).append(" ");
 		}
 
-		List fields = record.getDataFields();
+		List<DataField> fields = record.getDataFields();
 		for (Object field : fields) {
 			DataField dataField = (DataField) field;
-			List subfields = dataField.getSubfields();
+			List<Subfield> subfields = dataField.getSubfields();
 			for (Object subfieldObj : subfields) {
 				Subfield subfield = (Subfield) subfieldObj;
 				allFieldData.append(subfield.getData()).append(" ");
 			}
 		}
-		result.add(allFieldData.toString());
-
-		return result;
+		return allFieldData.toString();
 	}
 
-	public Set getLiteraryForm() {
-		Set result = new LinkedHashSet();
+	public Set<String> getLiteraryForm() {
+		Set<String> result = new LinkedHashSet<String>();
 		String leader = record.getLeader().toString();
-		char leaderBit;
-
+		
 		ControlField ohOhEightField = (ControlField) record.getVariableField("008");
 		ControlField ohOhSixField = (ControlField) record.getVariableField("006");
 
@@ -1494,8 +1501,9 @@ public class MarcRecordDetails {
 
 	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield) {
 		Set<LocalCallNumber> localCallnumbers = new HashSet<LocalCallNumber>();
+		@SuppressWarnings("unchecked")
 		List<DataField> itemFields = record.getVariableFields(itemTag);
-		Iterator itemFieldIterator = itemFields.iterator();
+		Iterator<DataField> itemFieldIterator = itemFields.iterator();
 		char callNumberSubfieldChar = callNumberSubfield.charAt(0);
 		char locationSubfieldChar = locationSubfield.charAt(0);
 		while (itemFieldIterator.hasNext()) {
@@ -1519,13 +1527,12 @@ public class MarcRecordDetails {
 			return locationCodes;
 		}
 
-		locationCodes = new LinkedHashSet();
+		locationCodes = new LinkedHashSet<String>();
 		// Get a list of all branches that own at least one copy from the 989d tag
-		Set input = getFieldList(record, locationSpecifier);
+		Set<String> input = getFieldList(record, locationSpecifier);
 		Iterator<String> iter = input.iterator();
 		while (iter.hasNext()) {
 			String curLocationCode = iter.next();
-			String ResultString = null;
 			try {
 				Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
 				Matcher RegexMatcher = Regex.matcher(curLocationCode);
@@ -1540,12 +1547,11 @@ public class MarcRecordDetails {
 
 		// Add any location codes from the 998 subfield a
 		if (locationSpecifier2 != null && locationSpecifier2.length() > 0 && !locationSpecifier2.equals("null")) {
-			Set input2 = getFieldList(record, "998a");
+			Set<String> input2 = getFieldList(record, "998a");
 			Iterator<String> iter2 = input2.iterator();
 			while (iter2.hasNext()) {
 				String curLocationCode = iter2.next();
 				if (curLocationCode.length() >= 2) {
-					String ResultString = null;
 					try {
 						Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
 						Matcher RegexMatcher = Regex.matcher(curLocationCode);
@@ -1646,8 +1652,8 @@ public class MarcRecordDetails {
 	 *          record
 	 * @return Set format of record
 	 */
-	public Set getFormat(String returnFirst) {
-		Set result = new LinkedHashSet();
+	public Set<String> getFormat(String returnFirst) {
+		Set<String> result = new LinkedHashSet<String>();
 		String leader = record.getLeader().toString();
 		char leaderBit;
 		ControlField fixedField = (ControlField) record.getVariableField("008");
@@ -1723,12 +1729,14 @@ public class MarcRecordDetails {
 			}
 		}
 
-		List physicalDescription = record.getVariableFields("300");
+		@SuppressWarnings("unchecked")
+		List<DataField> physicalDescription = record.getVariableFields("300");
 		if (physicalDescription != null) {
-			Iterator fieldsIter = physicalDescription.iterator();
+			Iterator<DataField> fieldsIter = physicalDescription.iterator();
 			DataField field;
 			while (fieldsIter.hasNext()) {
 				field = (DataField) fieldsIter.next();
+				@SuppressWarnings("unchecked")
 				List<Subfield> subfields = field.getSubfields();
 				Iterator<Subfield> subfieldIter = subfields.iterator();
 				while (subfieldIter.hasNext()) {
@@ -1743,12 +1751,14 @@ public class MarcRecordDetails {
 				}
 			}
 		}
-		List topicalTerm = record.getVariableFields("650");
+		@SuppressWarnings("unchecked")
+		List<DataField> topicalTerm = record.getVariableFields("650");
 		if (physicalDescription != null) {
-			Iterator fieldsIter = topicalTerm.iterator();
+			Iterator<DataField> fieldsIter = topicalTerm.iterator();
 			DataField field;
 			while (fieldsIter.hasNext()) {
 				field = (DataField) fieldsIter.next();
+				@SuppressWarnings("unchecked")
 				List<Subfield> subfields = field.getSubfields();
 				Iterator<Subfield> subfieldIter = subfields.iterator();
 				while (subfieldIter.hasNext()) {
@@ -1762,9 +1772,10 @@ public class MarcRecordDetails {
 		}
 
 		// check the 007 - this is a repeating field
-		List fields = record.getVariableFields("007");
+		@SuppressWarnings("unchecked")
+		List<DataField> fields = record.getVariableFields("007");
 		if (fields != null) {
-			Iterator fieldsIter = fields.iterator();
+			Iterator<DataField> fieldsIter = fields.iterator();
 			ControlField formatField;
 			while (fieldsIter.hasNext()) {
 				formatField = (ControlField) fieldsIter.next();
@@ -2038,7 +2049,7 @@ public class MarcRecordDetails {
 	 * @return Set format of record
 	 */
 	public String getNumHoldings(String itemField) {
-		Set input = getFieldList(record, itemField);
+		Set<String> input = getFieldList(record, itemField);
 		int numHoldings = input.size();
 		if (numHoldings == 0) {
 			numHoldings = 1;
@@ -2054,12 +2065,11 @@ public class MarcRecordDetails {
 	 *          record
 	 * @return Set format of record
 	 */
-	public Set getTargetAudience() {
-		Set result = new LinkedHashSet();
+	public Set<String> getTargetAudience() {
+		Set<String> result = new LinkedHashSet<String>();
 		try {
 			String leader = record.getLeader().toString();
-			char leaderBit;
-
+			
 			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
 			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
 
@@ -2144,10 +2154,10 @@ public class MarcRecordDetails {
 			}
 
 			// Now check if any 006 fields apply:
-			List fields = record.getVariableFields("006");
-			Iterator fieldsIter = fields.iterator();
+			@SuppressWarnings("unchecked")
+			List<VariableField> fields = record.getVariableFields("006");
+			Iterator<VariableField> fieldsIter = fields.iterator();
 			if (fields != null) {
-				ControlField formatField;
 				while (fieldsIter.hasNext()) {
 					fixedField = (ControlField) fieldsIter.next();
 					String fixedFieldText = fixedField.getData().toLowerCase();
@@ -2164,12 +2174,14 @@ public class MarcRecordDetails {
 		}
 
 		// Now check for interesting strings in 300 subfield b:
-		List fields = record.getVariableFields("300");
-		Iterator fieldsIter = fields.iterator();
+		@SuppressWarnings("unchecked")
+		List<DataField> fields = record.getVariableFields("300");
+		Iterator<DataField> fieldsIter = fields.iterator();
 		if (fields != null) {
 			DataField physical;
 			while (fieldsIter.hasNext()) {
 				physical = (DataField) fieldsIter.next();
+				@SuppressWarnings("unchecked")
 				List<Subfield> subfields = physical.getSubfields('b');
 				Iterator<Subfield> subfieldsIter = subfields.iterator();
 				if (subfields != null) {
@@ -2189,82 +2201,82 @@ public class MarcRecordDetails {
 		return "Not Illustrated";
 	}
 
-	public Set getDateAdded(String dateFieldSpec, String dateFormat) {
-		Set result = new LinkedHashSet();
+	public String getDateAdded(String dateFieldSpec, String dateFormat) {
 		// Get the date the record was added from the 907d tag (should only be one).
 		Set<String> input = getFieldList(record, dateFieldSpec);
 		Iterator<String> iter = input.iterator();
-		int numHoldings = 0;
-		StringBuffer branchStringBuff = new StringBuffer();
 		while (iter.hasNext()) {
 			String curDateAdded = iter.next();
-			String ResultString = null;
 			try {
 				SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
 				Date dateAdded = formatter.parse(curDateAdded);
 				// System.out.println("Indexing " + curDateAdded + " " +
 				// dateAdded.getTime());
 				SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-				result.add(formatter2.format(dateAdded));
-				break;
+				return formatter2.format(dateAdded);
 			} catch (Exception ex) {
 				// Syntax error in the regular expression
 				System.out.println("Unable to parse date added " + curDateAdded);
 			}
 		}
-		return result;
+		return null;
 	}
 
-	public Set getRelativeTimeAdded(String dateFieldSpec, String dateFormat) {
-		Set result = new LinkedHashSet();
+	public String getRelativeTimeAdded(String dateFieldSpec, String dateFormat) {
 		// Get the date the record was added from the 998b tag (should only be one).
-		Set datesAdded = getDateAdded(dateFieldSpec, dateFormat);
+		String dateAdded = getDateAdded(dateFieldSpec, dateFormat);
+		if (dateAdded == null) return null;
 
-		for (Object curDateObj : datesAdded) {
-			String curDateStr = (String) curDateObj;
-			SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			try {
-				Date curDate = formatter2.parse(curDateStr);
-				addTimeSinceAddedForDateToResults(curDate, result);
-			} catch (ParseException e) {
-				logger.error("Error parsing date " + curDateStr + " in getRelativeTimeAdded");
-			}
+		String curDateStr = (String) dateAdded;
+		SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		try {
+			Date curDate = formatter2.parse(curDateStr);
+			return getTimeSinceAddedForDate(curDate);
+		} catch (ParseException e) {
+			logger.error("Error parsing date " + curDateStr + " in getRelativeTimeAdded");
 		}
-		return result;
+		
+		return null;
 	}
-
-	public void addTimeSinceAddedForDateToResults(Date curDate, Set result) {
+	
+	public String getTimeSinceAddedForDate(Date curDate){
 		long timeDifferenceDays = (new Date().getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		if (timeDifferenceDays <= 1) {
-			result.add("Day");
+			return "Day";
 		}
 		if (timeDifferenceDays <= 7) {
-			result.add("Week");
+			return "Week";
 		}
 		if (timeDifferenceDays <= 30) {
-			result.add("Month");
+			return "Month";
 		}
 		if (timeDifferenceDays <= 60) {
-			result.add("2 Months");
+			return "2 Months";
 		}
 		if (timeDifferenceDays <= 90) {
-			result.add("Quarter");
+			return "Quarter";
 		}
 		if (timeDifferenceDays <= 180) {
-			result.add("Six Months");
+			return "Six Months";
 		}
 		if (timeDifferenceDays <= 365) {
-			result.add("Year");
+			return "Year";
 		}
+		return null;
 	}
 
-	public Set getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
+	public void addTimeSinceAddedForDateToResults(Date curDate, Set<String> result) {
+		result.add(getTimeSinceAddedForDate(curDate));
+	}
+
+	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
 			String branchCodes) {
 		// System.out.println("Branch Codes for " + activeSystem + " are " +
 		// branchCodes);
-		Set result = new LinkedHashSet();
+		Set<String> result = new LinkedHashSet<String>();
 		// Get a list of all 989 tags that store per item information
+		@SuppressWarnings("unchecked")
 		List<DataField> input = record.getVariableFields(itemField);
 		Iterator<DataField> iter = input.iterator();
 		String dateAddedStr = null;
@@ -2322,9 +2334,9 @@ public class MarcRecordDetails {
 	 * @return Set containing requested numeric portions of Dewey decimal call
 	 *         numbers
 	 */
-	public Set getDeweyNumber(String fieldSpec, String precisionStr) {
+	public Set<String> getDeweyNumber(String fieldSpec, String precisionStr) {
 		// Initialize our return value:
-		Set result = new LinkedHashSet();
+		Set<String> result = new LinkedHashSet<String>();
 
 		// Precision comes in as a string, but we need to convert it to a float:
 		float precision = Float.parseFloat(precisionStr);
@@ -2366,9 +2378,9 @@ public class MarcRecordDetails {
 	 * @return Set containing normalized Dewey numbers extracted from specified
 	 *         fields.
 	 */
-	public Set getDeweySearchable(String fieldSpec) {
+	public Set<String> getDeweySearchable(String fieldSpec) {
 		// Initialize our return value:
-		Set result = new LinkedHashSet();
+		Set<String> result = new LinkedHashSet<String>();
 
 		// Loop through the specified MARC fields:
 		Set<String> input = getFieldList(record, fieldSpec);
@@ -2419,17 +2431,13 @@ public class MarcRecordDetails {
 		return null;
 	}
 
-	public Set checkSuppression(String locationField, String locationsToSuppress, String manualSuppressionField, String manualSuppressionValue) {
-		Set result = new LinkedHashSet();
+	public String checkSuppression(String locationField, String locationsToSuppress, String manualSuppressionField, String manualSuppressionValue) {
 		// If all locations should be suppressed, then the record should be suppressed.
 		Set<String> input = getFieldList(record, locationField);
 		Iterator<String> iter = input.iterator();
-		int numHoldings = 0;
-		StringBuffer branchStringBuff = new StringBuffer();
 		boolean suppressRecord = true;
 		while (iter.hasNext()) {
 			String curLocationCode = iter.next();
-			String ResultString = null;
 			try {
 				if (!curLocationCode.matches("locationsToSuppress")) {
 					suppressRecord = false;
@@ -2468,13 +2476,11 @@ public class MarcRecordDetails {
 
 		if (suppressRecord) {
 			// return that the record is suppressed
-			result.add("suppressed");
+			return "suppressed";
 		} else {
 			// return that the record is not suppressed
-			result.add("notSuppressed");
+			return "notSuppressed";
 		}
-
-		return result;
 	}
 	
 	/**
@@ -2483,9 +2489,10 @@ public class MarcRecordDetails {
 	 * @param  Record          record
 	 * @return Set     format of record
 	 */
-	public Set getAvailableLocations(String itemField, String statusSubField, String availableStatus, String locationSubField){
-		Set result = new LinkedHashSet();
-		List itemRecords = record.getVariableFields(itemField);
+	public Set<String> getAvailableLocations(String itemField, String statusSubField, String availableStatus, String locationSubField){
+		Set<String> result = new LinkedHashSet<String>();
+		@SuppressWarnings("unchecked")
+		List<VariableField> itemRecords = record.getVariableFields(itemField);
 		char statusSubFieldChar = statusSubField.charAt(0);
 		char locationSubFieldChar = locationSubField.charAt(0);
 		for (int i = 0; i < itemRecords.size(); i++){
@@ -2509,6 +2516,16 @@ public class MarcRecordDetails {
 			}
 			
 		}
+		return result;
+	}
+
+	public Set<String> getAuthors() {
+		Set<String> result = new HashSet<String>();
+		String author = getAuthor();
+		if (author != null){
+			result.add(author);
+		}
+		result.addAll(getAuthors());
 		return result;
 	}
 }

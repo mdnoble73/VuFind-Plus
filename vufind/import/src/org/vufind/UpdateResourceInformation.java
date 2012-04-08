@@ -5,7 +5,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +41,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	private String callNumberSubfield;
 	private String locationSubfield;
 	
+	private ProcessorResults results = new ProcessorResults("Update Resources");
+	
 	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
 		// Load configuration
@@ -65,8 +66,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		try {
 			// Check to see if the record already exists
 			existingResourceStmt = conn.prepareStatement("SELECT id, marc_checksum from resource where record_id = ? and source = 'VuFind'");
-			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, date_updated=? WHERE id = ?");
-			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, marc_checksum, marc, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=? WHERE id = ?");
+			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			getExistingSubjectsStmt = conn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -103,6 +104,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		Long resourceId = -1L;
@@ -111,6 +113,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			existingResourceStmt.setString(1, recordInfo.getId());
 			ResultSet existingResourceResult = existingResourceStmt.executeQuery();
 			if (existingResourceResult.next()) {
+				results.incRecordsProcessed();
 				resourceId = existingResourceResult.getLong(1);
 				
 				// Update the existing record
@@ -127,12 +130,16 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
 				resourceUpdateStmt.setBytes(9, recordInfo.getRawRecord().getBytes());
-				resourceUpdateStmt.setLong(10, new Date().getTime() / 1000);
-				resourceUpdateStmt.setLong(11, resourceId);
+				resourceUpdateStmt.setString(10, recordInfo.getShortId());
+				resourceUpdateStmt.setLong(11, new Date().getTime() / 1000);
+				resourceUpdateStmt.setLong(12, resourceId);
 
 				int rowsUpdated = resourceUpdateStmt.executeUpdate();
 				if (rowsUpdated == 0) {
 					logger.debug("Unable to update resource for record " + recordInfo.getId() + " " + resourceId);
+					results.incErrors();
+				}else{
+					results.incUpdated();
 				}
 			} else {
 				String author = recordInfo.getAuthor();
@@ -145,14 +152,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				resourceInsertStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
 				resourceInsertStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 				resourceInsertStmt.setString(8, recordInfo.getId());
-				resourceInsertStmt.setLong(9, recordInfo.getChecksum());
-				resourceInsertStmt.setBytes(10, recordInfo.getRawRecord().getBytes());
+				resourceInsertStmt.setString(9, recordInfo.getShortId());
+				resourceInsertStmt.setLong(10, recordInfo.getChecksum());
+				resourceInsertStmt.setBytes(11, recordInfo.getRawRecord().getBytes());
 				resourceInsertStmt.setString(11, "VuFind");
 
 				int rowsUpdated = resourceInsertStmt.executeUpdate();
 				if (rowsUpdated == 0) {
 					logger.debug("Unable to insert record " + recordInfo.getId());
+					results.incErrors();
 				} else {
+					results.incAdded();
 					//Get the resourceId
 					ResultSet insertedResourceIds = resourceInsertStmt.getGeneratedKeys();
 					if (insertedResourceIds.next()){
@@ -173,7 +183,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 					if (subjects instanceof String){
 						subjectsToProcess.add((String)subjects); 
 					}else{
-						subjectsToProcess.addAll((Set)subjects);
+						subjectsToProcess.addAll((Set<String>)subjects);
 					}
 					Iterator<String> subjectIterator = subjectsToProcess.iterator();
 					while (subjectIterator.hasNext()){
@@ -218,8 +228,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			// handle any errors
 			logger.error("Error updating resource for record " + recordInfo.getId() + " " + ex.toString());
 			System.out.println(recordInfo.getTitle());
+			results.incErrors();
 		}
-		// TODO Auto-generated method stub
 		return true;
 	}
 
@@ -230,5 +240,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		} catch (SQLException e) {
 			logger.error("Unable to close connection", e);
 		}
+	}
+
+	@Override
+	public ProcessorResults getResults() {
+		return results;
 	}
 }

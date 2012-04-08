@@ -1,11 +1,6 @@
 package org.vufind;
 
 import java.io.File;
-import java.io.ObjectInputStream.GetField;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -23,6 +18,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private Logger logger;
 	private String serverName;
 	private boolean reindexUnchangedRecords;
+	private ProcessorResults results = new ProcessorResults("Marc Indexer");
 	
 	@Override
 	public boolean init(Ini configIni, String serverName, Logger logger) {
@@ -101,7 +97,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 					}else{
 						doc.e("field").a("name", fieldName).t((String)fieldValue);
 					}
-				}else{
+				}else if (fieldValue instanceof Set){
+					@SuppressWarnings("unchecked")
 					Set<String> fieldValues = (Set<String>)fieldValue;
 					Iterator<String> fieldValuesIter = fieldValues.iterator();
 					while(fieldValuesIter.hasNext()){
@@ -125,6 +122,17 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	}
 	
 	private void moveBiblio2ToBiblio() {
+		//Wait for 120 seconds to give the optimization time to complete
+		for (int i = 0; i < 12; i++){
+			//wait for 10 seconds
+			logger.info("Pausing to allow commit to finish before copying cores");
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		// 7) Unload the main index
 		String unloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio2", null, logger);
 		logger.info("Response for unloading biblio 2 core " + unloadBiblio2Response);
@@ -166,4 +174,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		return true;
 	}
 
+	@Override
+	public ProcessorResults getResults() {
+		return results;
+	}
 }

@@ -24,7 +24,6 @@ import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.marc.Record;
-import org.solrmarc.index.SolrIndexerMixin;
 import org.solrmarc.tools.Utils;
 
 import bsh.EvalError;
@@ -64,12 +63,7 @@ public class MarcProcessor {
 	 * translation maps (hence, it's a map of maps)
 	 */
 	HashMap<String, Map<String, String>>	translationMaps			= new HashMap<String, Map<String, String>>();
-	/**
-	 * map of custom mixin classes that contain additional indexing functions
-	 * values are the translation maps (hence, it's a map of maps)
-	 */
-	private Map<String, SolrIndexerMixin>	customMixinMap			= new HashMap<String, SolrIndexerMixin>();
-
+	
 	/**
 	 * map of custom methods. keys are names of custom methods; values are the
 	 * methods to call for that custom method
@@ -523,12 +517,14 @@ public class MarcProcessor {
 							}
 							recordsProcessed++;
 							if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
+								logger.debug("Stopping processing because maximum number of records to process was reached.");
 								break;
 							}
 						} catch (Exception e) {
 							logger.error("Error processing record " + recordNumber, e);
 						}
 					}
+					logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 				} catch (Exception e) {
 					logger.error("Error processing file " + marcFile.toString(), e);
 				}
@@ -538,10 +534,6 @@ public class MarcProcessor {
 			logger.error("Unable to process marc files", e);
 			return false;
 		}
-	}
-
-	public Map<String, SolrIndexerMixin> getCustomMixinMap() {
-		return customMixinMap;
 	}
 
 	public Map<String, Method> getCustomMethodMap() {

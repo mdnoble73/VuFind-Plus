@@ -21,6 +21,7 @@ import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.vufind.IEContentProcessor;
 import org.vufind.IRecordProcessor;
+import org.vufind.ProcessorResults;
 
 public class GenerateOPDS implements IEContentProcessor, IRecordProcessor{
 	private Logger logger;
@@ -29,6 +30,7 @@ public class GenerateOPDS implements IEContentProcessor, IRecordProcessor{
 	private Connection econtentConn = null;
 	private String outputFileString;
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+	private ProcessorResults results = new ProcessorResults("OPDS export");
 	
 	public boolean init(Ini configIni, Logger logger) {
 		// Get the destination name where the catalog should be written to.
@@ -133,4 +135,8 @@ public class GenerateOPDS implements IEContentProcessor, IRecordProcessor{
 		writer.write("  </author>\r\n");
 	}
 
+	@Override
+	public ProcessorResults getResults() {
+		return results;
+	}
 }

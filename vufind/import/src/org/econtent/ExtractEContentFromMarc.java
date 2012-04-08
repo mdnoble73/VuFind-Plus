@@ -18,6 +18,7 @@ import org.vufind.MarcRecordDetails;
 import org.vufind.IMarcRecordProcessor;
 import org.vufind.IRecordProcessor;
 import org.vufind.MarcProcessor;
+import org.vufind.ProcessorResults;
 import org.vufind.Util;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -45,7 +46,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private PreparedStatement addGutenbergItem;
 	private PreparedStatement updateGutenbergItem;
 	
-	//private long logEntryId = -1;
+	public ProcessorResults results = new ProcessorResults("Extract eContent from ILS");
 	
 	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
@@ -354,5 +355,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		} catch (SQLException e) {
 			logger.error("Unable to close connection", e);
 		}
+	}
+	
+	@Override
+	public ProcessorResults getResults() {
+		return results;
 	}
 }

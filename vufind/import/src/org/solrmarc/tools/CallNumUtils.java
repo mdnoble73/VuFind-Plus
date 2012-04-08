@@ -347,6 +347,7 @@ public final class CallNumUtils {
 			// not because further on there is a second cutter preceded by
 			// a period.
 			// look for period before second cutter
+			@SuppressWarnings("unused")
 			String afterLCclassNCutter = rawLCcallnum.replaceFirst(LC_CLASS_N_CUTTER + " *", "");
 			String cutterRegex = LC_CLASS_N_CUTTER + " *(.*)\\." + CUTTER_REGEX;
 

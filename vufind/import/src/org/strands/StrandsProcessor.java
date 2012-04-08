@@ -13,8 +13,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
@@ -24,6 +22,7 @@ import org.vufind.IEContentProcessor;
 import org.vufind.IMarcRecordProcessor;
 import org.vufind.IRecordProcessor;
 import org.vufind.MarcProcessor;
+import org.vufind.ProcessorResults;
 import org.vufind.Util;
 
 public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcessor, IRecordProcessor {
@@ -35,10 +34,8 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	private PreparedStatement getFormatsForRecord = null;
 	private File tempFile;
 	private String strandsCatalogFile;
-	private HashMap<String, String> formatMap;
-	private HashMap<String, String> formatCategoryMap;
-	private HashMap<String, String> targetAudienceMap;
-
+	private ProcessorResults results = new ProcessorResults("Strands Export");
+	
 	/**
 	 * Build a csv file to import into strands
 	 */
@@ -67,67 +64,6 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 		String econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
 			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
-		String translationMapPath = configIni.get("Reindex", "translationMapPath");
-		// Read the format map
-		String formatMapFileString = translationMapPath + "/format_map.properties";
-		File formatMapFile = null;
-		if (formatMapFileString == null || formatMapFileString.length() == 0) {
-			logger.error("Format Map File not found in GenerateCatalog Settings.  Please specify the path as the formatMapFile key.");
-			return false;
-		} else {
-			formatMapFile = new File(formatMapFileString);
-			if (!formatMapFile.exists()) {
-				logger.error("Format Map File does not exist.  Please check the formatMapFile key.");
-				return false;
-			}
-		}
-		try {
-			formatMap = Util.readPropertiesFile(formatMapFile);
-		}catch (IOException e){
-			logger.error("Unable to load map from properties file");
-			return false;
-		}
-		
-	// Read the category map
-		String formatCategoryMapFileString = translationMapPath + "/format_category_map.properties";
-		File formatCategoryMapFile = null;
-		if (formatCategoryMapFileString == null || formatCategoryMapFileString.length() == 0) {
-			logger.error("Format Category Map File not found in GenerateCatalog Settings.  Please specify the path as the formatCategoryMapFile key.");
-			return false;
-		} else {
-			formatCategoryMapFile = new File(formatCategoryMapFileString);
-			if (!formatCategoryMapFile.exists()) {
-				logger.error("Format Category Map File " + formatCategoryMapFileString + " does not exist.  Please check the formatCategoryMapFile key.");
-				return false;
-			}
-		}
-		try {
-			formatCategoryMap = Util.readPropertiesFile(formatCategoryMapFile);
-		}catch (IOException e){
-			logger.error("Unable to load formatCategory map from properties file");
-			return false;
-		}
-
-		// Read the target audience map
-		String targetAudienceFileString = translationMapPath + "/target_audience_full_map.properties";
-		File targetAudienceMapFile = null;
-		if (targetAudienceFileString == null || targetAudienceFileString.length() == 0) {
-			logger.error("Target Audience Map File not found in GenerateCatalog Settings.  Please specify the path as the targetAudienceMapFile key.");
-			return false;
-		} else {
-			targetAudienceMapFile = new File(targetAudienceFileString);
-			if (!targetAudienceMapFile.exists()) {
-				logger.error("Target Audience File does not exist.  Please check the targetAudienceFile key.");
-				return false;
-			}
-		}
-		try {
-			targetAudienceMap = Util.readPropertiesFile(targetAudienceMapFile);
-		}catch (IOException e){
-			logger.error("Unable to load targetAudience map from properties file");
 			return false;
 		}
 		
@@ -283,77 +219,33 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("|'" + authors.toString() + "'");
 
 			// Get the image link
-			writer.write("|'" + bookcoverUrl + "bookcover.php?isn=" + recordInfo.getIsbn() + "&amp;upc=" + recordInfo.getUpc() + "&amp;id="
+			writer.write("|'" + bookcoverUrl + "bookcover.php?isn=" + recordInfo.getIsbn() + "&amp;upc=" + recordInfo.getFirstFieldValueInSet("upc") + "&amp;id="
 					+ recordInfo.getId() + "&amp;size=small'");
 
 			// Get the publisher
-			writer.write("|'" + prepForCsv(recordInfo.getPublisher(), true, false) + "'");
+			writer.write("|'" + prepForCsv(recordInfo.getFirstFieldValueInSet("publisher"), true, false) + "'");
 
 			// Get the description
 			writer.write("|'" + prepForCsv(recordInfo.getDescription(), false, false) + "'");
 
 			// Get the genre
-			StringBuffer genres = new StringBuffer();
-			for (String genre : recordInfo.getGeneres()) {
-				if (genre.length() > 0) {
-					if (genres.length() > 0) {
-						genres.append(";");
-					}
-					genres.append(prepForCsv(genre, true, false));
-				}
-			}
-			writer.write("|'" + genres.toString() + "'");
+			String genres = Util.getSemiColonSeparatedString(recordInfo.getFields().get("genre"));
+			writer.write("|'" + genres + "'");
 
 			// Get the format
-			StringBuffer formats = new StringBuffer();
-			for (String collection : recordInfo.getCollections()) {
-				String format = formatMap.get(collection);
-				if (format != null) {
-					if (formats.length() > 0) {
-						formats.append(";");
-					}
-					formats.append(prepForCsv(format, true, false));
-				} else {
-					logger.error("Could not find a format for collection " + collection);
-				}
-			}
+			String formats = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format"));
 			writer.write("|'" + formats.toString() + "'");
 
 			// Get the subjects
-			StringBuffer subjects = new StringBuffer();
-			for (String subject : recordInfo.getSubjects()) {
-				if (subjects.length() > 0) {
-					subjects.append(";");
-				}
-				subjects.append(prepForCsv(subject, true, false));
-			}
+			String subjects = Util.getSemiColonSeparatedString(recordInfo.getFields().get("topic"));
 			writer.write("|'" + subjects.toString() + "'");
 
 			// Get the audiences
-			HashSet<String> targetAudiences = recordInfo.getTargetAudience();
-			StringBuffer audiences = new StringBuffer();
-			for (String targetAudience : targetAudiences) {
-				String audience = targetAudienceMap.get(targetAudience);
-				if (audience != null) {
-					if (audiences.length() > 0) {
-						audiences.append(";");
-					}
-					audiences.append(prepForCsv(audience, true, false));
-				}
-			}
+			String audiences = Util.getSemiColonSeparatedString(recordInfo.getFields().get("target_audience"));
 			writer.write("|'" + audiences.toString() + "'");
 
 			// Get the format categories
-			StringBuffer categories = new StringBuffer();
-			for (String collection : recordInfo.getCollections()) {
-				String category = formatCategoryMap.get(collection);
-				if (category != null) {
-					if (categories.length() > 0) {
-						categories.append(";");
-					}
-					categories.append(prepForCsv(category, true, false));
-				}
-			}
+			String categories = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format_category"));
 			writer.write("|'" + categories.toString() + "'");
 
 			writer.write("\r\n");
@@ -390,5 +282,8 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			logger.error("Error closing database", e);
 		}
 	}
-
+	@Override
+	public ProcessorResults getResults() {
+		return results;
+	}
 }

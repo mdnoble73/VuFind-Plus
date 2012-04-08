@@ -1,19 +1,9 @@
 package org.vufind;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.channels.FileChannel;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -21,9 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -55,13 +42,6 @@ public class ReindexProcess {
 	
 	//Reporting information
 	private static long reindexLogId;
-	private static int numSevereErrors = 0;
-	private static HashSet<String> distinctSevereErrors = new HashSet<String>(); 
-	private static int numErrors = 0;
-	private static HashSet<String> distinctErrors = new HashSet<String>();
-	private static int numAdded = 0;
-	private static int numExceptions = 0;
-	private static HashSet<String> distinctExceptions = new HashSet<String>();
 	private static long startTime;
 	private static long endTime;
 	
@@ -71,6 +51,7 @@ public class ReindexProcess {
 	private static boolean loadEContentFromMarc = false;
 	private static boolean exportStrandsCatalog = false;
 	private static boolean exportOPDSCatalog = true;
+	private static boolean updateAlphaBrowse = true;
 	
 	//Database connections and prepared statements
 	private static Connection vufindConn = null;
@@ -111,10 +92,10 @@ public class ReindexProcess {
 			processMarcRecords(recordProcessors);
 			
 			//Process eContent records that have been saved to the database. 
-			/*processEContentRecords(recordProcessors);
+			processEContentRecords(recordProcessors);
 			
 			//Do processing of resources as needed (for extraction of resources).
-			processResources(recordProcessors);*/
+			processResources(recordProcessors);
 			
 			for (IRecordProcessor processor : recordProcessors){
 				processor.finish();
@@ -122,11 +103,13 @@ public class ReindexProcess {
 		}
 		
 		// Update the alphabetic browse database tables
-		buildAlphaBrowseTables();
+		if (updateAlphaBrowse){
+			buildAlphaBrowseTables();
+		}
 		
 		// Send completion information
 		endTime = new Date().getTime();
-		sendCompletionMessage(true);
+		sendCompletionMessage(recordProcessors);
 
 		logger.info("Finished Reindex for " + serverName);
 	}
@@ -302,7 +285,7 @@ public class ReindexProcess {
 				if (upc.indexOf("\n") > 0){
 					upc = upc.substring(0,upc.indexOf("\n"));
 				}
-				System.out.println("UPC: " + upc);
+				//System.out.println("UPC: " + upc);
 				
 				//Check to see if we have an existing resource
 				existingResourceStmt.setString(1, econtentId);
@@ -380,59 +363,6 @@ public class ReindexProcess {
 			logger.info("Processing exported marc records");
 			marcProcessor.processMarcFiles(marcProcessors, logger);
 		}
-	}
-
-	private static void importMarcFiles() {
-		// Copy schema from biblio to biblio2
-		File schema = new File("../../sites/" + serverName + "/solr/biblio/conf/schema.xml");
-		File schema2 = new File("../../sites/" + serverName + "/solr/biblio2/conf/schema.xml");
-		try {
-			Util.copyFile(schema, schema2);
-		} catch (IOException e) {
-			logger.error("Unable to copy schema from biblio to biblio2", e);
-			System.exit(1);
-		}
-		String reloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=biblio2", null, logger);
-		logger.info("Response for reloading biblio2 " + reloadBiblio2Response);
-		// Get the marc files to process
-		String marcFilePath = configIni.get("Reindex", "marcPath");
-		String numFilesToImportStr = configIni.get("Reindex", "numFilesToImport");
-		int numFilesToImport = -1;
-		if (numFilesToImportStr != null && numFilesToImportStr.length() == 0){
-			numFilesToImport = Integer.parseInt(numFilesToImportStr);
-		}
-		ArrayList<File> marcFilesToProcess = loadMarcFilesToProcess(marcFilePath, numFilesToImport);
-		for (File curFile : marcFilesToProcess){
-			logger.info("Processing marc file " + curFile);
-			try {
-				/*MarcImporter importer = new MarcImporter();
-				importer.init(new String[]{"../../conf/" + serverName + "/import.properties", "../../conf/" + serverName + "/import.properties"});
-				int returnCode = importer.handleAll();*/
-				if (SystemUtil.isWindowsPlatform()){
-					SystemUtil.executeCommand(new String[]{"cmd", "/C", "java", "-jar", "SolrMarc.jar" , 
-						"\"../../sites/" + serverName + "/conf/import.properties\"" ,
-						curFile.toString()}
-						, logger);
-				}else{
-					SystemUtil.executeCommand(new String[]{"java",
-							"-jar", "SolrMarc.jar" , 
-							new File("../../sites/" + serverName + "/conf/import.properties").getAbsoluteFile().getAbsolutePath() ,
-							curFile.getAbsolutePath()}
-							, logger);
-				}
-				/*MarcImporter importer = new MarcImporter();
-				importer.init(new String[]{"../../conf/" + serverName + "/import.properties", curFile.toString()});
-				int numProcessed = importer.handleAll();*/
-				
-			} catch (Exception e) {
-				logger.error("Error running importScript", e);
-			}
-			
-		}
-		
-		// Reload biblio 2 again so the optimzation can cleanup files
-		reloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=biblio2", null, logger);
-		logger.info("Response for reloading biblio2 " + reloadBiblio2Response);
 	}
 
 	private static void runExportScript() {
@@ -530,6 +460,10 @@ public class ReindexProcess {
 		if (loadEContentFromMarcStr != null){
 			loadEContentFromMarc = Boolean.parseBoolean(loadEContentFromMarcStr);
 		}
+		String updateAlphaBrowseStr  = configIni.get("Reindex", "updateAlphaBrowse");
+		if (updateAlphaBrowseStr != null){
+			updateAlphaBrowse = Boolean.parseBoolean(updateAlphaBrowseStr);
+		}
 		
 		logger.info("Setting up database connections");
 		//Setup connections to vufind and econtent databases
@@ -573,80 +507,17 @@ public class ReindexProcess {
 		}
 		
 	}
-
-	private static ArrayList<File> loadMarcFilesToProcess(String marcFilePath, int numFilesToImport) {
-		ArrayList<File> filesToProcess = new ArrayList<File>(); 
-		File marcFilePathFile = new File(marcFilePath);
-		if (marcFilePathFile.exists()){
-			File[] files = marcFilePathFile.listFiles(new FilenameFilter() {
-				public boolean accept(File arg0, String arg1) {
-					return arg1.endsWith("marc") || arg1.endsWith("mrc");
-				}
-			});
-			
-			for (File curFile : files){
-				filesToProcess.add(curFile);
-			}
-		}else{
-			logger.error("marc file path " + marcFilePath + " does not exist, halting reindex.");
-			System.exit(1);
-		}
-		return filesToProcess;
-	}
 	
-	private static void getSolrmarcStats(File fileToRead){
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(fileToRead));
-			String curLine = reader.readLine();
-			Pattern errorPattern = Pattern.compile(".*ERROR:\\s*(.*)", Pattern.CANON_EQ);
-			Pattern severePattern = Pattern.compile(".*ERROR:\\s*(.*)", Pattern.CANON_EQ);
-			Pattern exceptionPattern  = Pattern.compile(".*Exception:\\s*(.*)", Pattern.CANON_EQ);
-			while (curLine != null){
-				Matcher errorMatcher = errorPattern.matcher(curLine);
-				Matcher severeMatcher = severePattern.matcher(curLine);
-				Matcher exceptionMatcher = exceptionPattern.matcher(curLine);
-				if (errorMatcher.matches()){
-					numErrors++;
-					distinctErrors.add(errorMatcher.group(1));
-				}else if (severeMatcher.matches()){
-					numSevereErrors++;
-					distinctSevereErrors.add(severeMatcher.group(1));
-				}else if (exceptionMatcher.matches()){
-					numExceptions++;
-					distinctExceptions.add(exceptionMatcher.group(1));
-				}else if (curLine.matches(".*Added.*")){
-					numAdded++;
-				}
-				curLine = reader.readLine();
-			}
-		} catch (Exception e) {
-			logger.error("Unable to get stats from Solrmarc log file", e);
-		}
-	}
-	
-	private static void sendCompletionMessage(boolean passed){
-		/*StringBuffer completionNotes = new StringBuffer();
-		if (passed){
-			logger.info("Reindex completed successfully");
-		}else{
-			logger.info("Index failed, not using updated index.");
-		}
-		logger.info("Number of records added: " + numAdded );
-		logger.info("Number of severe errors: " + numSevereErrors + " (" + distinctSevereErrors.size() + " distinct)"  );
-		for (String curError : distinctSevereErrors){
-			logger.info(curError);
-		}
-		logger.info("Number of errors: " + numErrors + " (" + distinctErrors.size() + " distinct)");
-		for (String curError : distinctErrors){
-			logger.info(curError);
-		}
-		logger.info("Number of exceptions: " + numExceptions + " (" + distinctExceptions.size() + " distinct)");
-		for (String curError : distinctExceptions){
-			logger.info(curError);
+	private static void sendCompletionMessage(ArrayList<IRecordProcessor> recordProcessors){
+		logger.info("Reindex Results");
+		logger.info("Processor, Records Processed, eContent Processed, Resources Processed, Errors, Added, Updated, Deleted, Skipped");
+		for (IRecordProcessor curProcessor : recordProcessors){
+			ProcessorResults results = curProcessor.getResults();
+			logger.info(results.toCsv());
 		}
 		long elapsedTime = endTime - startTime;
 		float elapsedMinutes = (float)elapsedTime / (float)(60000); 
-		logger.info("Time elpased: " + elapsedMinutes + " minutes");*/
+		logger.info("Time elpased: " + elapsedMinutes + " minutes");
 		
 		try {
 			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, notes = ? WHERE id=?");
