@@ -26,6 +26,7 @@
 	  	{css filename="reports.css"}
 	  	{css filename="prospector.css"}
 	  	{css filename="marmot.css"}
+	  	{css filename="extra_styles.css"}
     {/if}
     {css media="print" filename="print.css"}
     	

@@ -10,9 +10,24 @@
     {if $consolidateCss}
       {css filename="consolidated_css.css"}
     {else}
+	    {css filename="basicHtml.css"}
 	    {css filename="jqueryui.css"}
     	{css media="screen" filename="styles.css"}
     	{css media ="screen" filename="book-bag.css"}
+    	{css filename="title-scroller.css"}
+	  	{css filename="my-account.css"}
+	  	{css filename="holdingsSummary.css"}
+	  	{css filename="ratings.css"}
+	  	{css filename="book-bag.css"}
+	  	{css filename="jquery.tooltip.css"}
+	  	{css filename="tooltip.css"}
+	  	{css filename="record.css"}
+	  	{css filename="search-results.css"}
+	  	{css filename="suggestions.css"}
+	  	{css filename="reports.css"}
+	  	{css filename="prospector.css"}
+	  	{css filename="marmot.css"}
+	  	{css filename="extra_styles.css"}
     {/if}
     {if $addHeader}{$addHeader}{/if}
     <link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" >
@@ -29,8 +44,8 @@
     <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 
     
-    <script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
+	  <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
     <script src="http://www.coloradomesa.edu/js/megamenu.js" type="text/javascript"></script>
     
     {if $enableBookCart}
@@ -56,10 +71,18 @@
   <script type="text/javascript" src="{$path}/js/autofill.js"></script>
 
   <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
-  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.dimensions.js"></script>
   <script type="text/javascript" src="{$path}/js/tooltip/jquery.tooltip.js"></script>
   
   <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
+  
+  <script type="text/javascript" src="{$path}/js/jquery.waitforimages.js"></script>
+		  <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
+      <script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
+			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
+			<script type="text/javascript" src="{$path}/js/description.js"></script>
+			
+			<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
   
   
     

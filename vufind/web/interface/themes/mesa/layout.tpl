@@ -9,61 +9,78 @@
     {if $consolidateCss}
       {css filename="consolidated_css.css"}
     {else}
+	    {css filename="basicHtml.css"}
+	    {css filename="layout.css"}
 	    {css filename="jqueryui.css"}
     	{css media="screen" filename="styles.css"}
     	{css media ="screen" filename="book-bag.css"}
+    	{css filename="title-scroller.css"}
+	  	{css filename="my-account.css"}
+	  	{css filename="holdingsSummary.css"}
+	  	{css filename="ratings.css"}
+	  	{css filename="book-bag.css"}
+	  	{css filename="jquery.tooltip.css"}
+	  	{css filename="tooltip.css"}
+	  	{css filename="record.css"}
+	  	{css filename="search-results.css"}
+	  	{css filename="suggestions.css"}
+	  	{css filename="reports.css"}
+	  	{css filename="prospector.css"}
+	  	{css filename="marmot.css"}
+	  	{css filename="extra_styles.css"}
+	  	<link rel="stylesheet" type="text/css" href="http://mesacountylibraries.org/wp-content/themes/mcpl/styles/superfish.css" />
     {/if}
     {css media="print" filename="print.css"}
     	
-    <script  type="text/javascript">
-      path = '{$url}';
+    <script type="text/javascript">
+      path = '{$path}';
+      url = '{$url}';
       loggedIn = {if $user}true{else}false{/if}
     </script>
-    	<link rel="stylesheet" type="text/css" media="all" href="http://mesacountylibraries.org/wp-content/themes/mcpl/styles/superfish.css" />      
-	<script type="text/javascript" src="http://mesacountylibraries.org/wp-content/themes/mcpl/js/jquery-ui-1.8.13.custom.min.js"></script>
-	<script type="text/javascript" src="http://mesacountylibraries.org/wp-content/themes/mcpl/js/jquery.tools.min.js"></script>
-	<script type="text/javascript" src="http://mesacountylibraries.org/wp-content/themes/mcpl/js/superfish.js"></script>
+    
     {if $consolidateJs}
     	<script type="text/javascript" src="{$path}/API/ConsolidatedJs"></script>
     {else}
-	    <script  type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/scripts.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/rc4.js"></script>
+	    <script type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
+	    <script type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
+	    <script type="text/javascript" src="{$path}/js/rc4.js"></script>
 	
 	    
-	    <script  type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
+	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
 	    
 	    {if $enableBookCart}
-	    <script  type="text/javascript" src="{$path}/js/bookcart/jquery.blockUI.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/bookcart/jquery.cookie.js"></script>
-		  <script  type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
+	    <script type="text/javascript" src="{$path}/js/bookcart/jquery.blockUI.js"></script>
+	    <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
+	    <script type="text/javascript" src="{$path}/js/bookcart/jquery.cookie.js"></script>
+		  <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
 		  {/if}
 	    
-	    <script  type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
-	    <script  type="text/javascript" src="{$path}/js/tabs/tabcontent.js"></script>
+	    <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
+	    <script type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
+	    <script type="text/javascript" src="{$path}/js/tabs/tabcontent.js"></script>
 
 		  <script type="text/javascript" src="{$path}/js/starrating/jquery.rater.js"></script>
 		  
 		  <script type="text/javascript" src="{$path}/js/autofill.js"></script>
 		
 		  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
-		  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.dimensions.js"></script>
 		  <script type="text/javascript" src="{$path}/js/tooltip/jquery.tooltip.js"></script>
 		  
 		  <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 		  
-			<script  type="text/javascript" src="{$path}/js/jcarousel/lib/jquery.jcarousel.min.js"></script>
-			<script  type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-			<script  type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-			<script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-			<script  type="text/javascript" src="{$path}/js/description.js"></script>
+			<script type="text/javascript" src="{$path}/js/jquery.waitforimages.js"></script>
+		  <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
+      <script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
+			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
+			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
+			<script type="text/javascript" src="{$path}/js/description.js"></script>
+			
+			<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
 		  
     {/if}
     

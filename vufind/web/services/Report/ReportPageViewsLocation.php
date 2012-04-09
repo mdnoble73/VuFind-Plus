@@ -36,21 +36,33 @@ class ReportPageViewsLocation extends Report{
 		$today = getdate();
 		//Grab the Selected Date Start
 		if (isset($_REQUEST['dateFilterStart'])){
-			$selectedDateStart = $_REQUEST['dateFilterStart'];
+			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterStart'])){
+				$selectedDateStart = DateTime::createFromFormat('m/d/Y', $_REQUEST['dateFilterStart']);
+				$selectedDateStart = $selectedDateStart->getTimestamp();
+			}else{
+				$selectedDateStart = strtotime($_REQUEST['dateFilterStart']);
+			}
 		} else {
 			$selectedDateStart = strtotime('-30 days');
-			$selectedDateStart = date('m/d/Y', $selectedDateStart);
 		}
+		$selectedDateStartTime = $selectedDateStart;
+		$selectedDateStart = date('Y-m-d', $selectedDateStart);
 		$interface->assign('selectedDateStart', $selectedDateStart);
 
 		//Populate the Date Filter End
 		//Grab the Selected End Date
 		if (isset($_REQUEST['dateFilterEnd'])){
-			$selectedDateEnd = $_REQUEST['dateFilterEnd'];
+			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterEnd'])){
+				$selectedDateEnd = DateTime::createFromFormat('m/d/Y', $_REQUEST['dateFilterEnd']);
+				$selectedDateEnd = $selectedDateEnd->getTimestamp();
+			}else{
+				$selectedDateEnd = strtotime($_REQUEST['dateFilterEnd']);
+			}
 		} else {
 			$selectedDateEnd = strtotime('today');
-			$selectedDateEnd = date('m/d/Y', $selectedDateEnd);
 		}
+		$selectedDateEndTime = $selectedDateEnd;
+		$selectedDateEnd = date('Y-m-d', $selectedDateEnd);
 		$interface->assign('selectedDateEnd', $selectedDateEnd);
 
 		//////////Populate the Locations Filter
@@ -96,8 +108,7 @@ class ReportPageViewsLocation extends Report{
 				"sum(ut.numPageViews) AS PageViews, sum(ut.numHolds) Holds, ".
 				"sum(ut.numRenewals) AS Renewals  ".
 				"FROM usageTracking ut ".
-				"WHERE (DATE_FORMAT(DATE(FROM_UNIXTIME(ut.trackingDate)), '%m/%d/%Y')) ".
-				"BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' "; 
+				"WHERE ut.trackingDate BETWEEN '". $selectedDateStartTime . "' AND '". $selectedDateEndTime . "' "; 
 		if (count($selectedLocationsFilter) > 0) {
 			$ipIds = join(",",$selectedLocationsFilter);
 			$baseQueryPageViews .= "AND (ut.ipId IN (". $ipIds . ") ";
@@ -312,11 +323,11 @@ class ReportPageViewsLocation extends Report{
 		
 		//////////CHART
 		//Create the chart and load data into the results.
-		$queryDailyPageViews = "SELECT (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%m/%d/%Y')) AS TrackingDate, ".
+		$queryDailyPageViews = "SELECT (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%Y-%m-%d')) AS TrackingDate, ".
 				"SUM(numPageViews) AS PageViews, SUM(numHolds) AS Holds, ".
 				"SUM(numRenewals) AS Renewals ".
 				"FROM usageTracking ".
-				"WHERE (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%m/%d/%Y')) ".
+				"WHERE (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%Y-%m-%d')) ".
 				"BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' "; 
 		if (count($selectedLocationsFilter) > 0) {
 			$ipIds = join(",",$selectedLocationsFilter);
@@ -331,7 +342,7 @@ class ReportPageViewsLocation extends Report{
 		$pageViewsByLocationByDay = array();
 		
 		while ($check_date != $selectedDateEnd) {
-			$check_date = date ("m/d/Y", strtotime ("+1 day", strtotime($check_date)));
+			$check_date = date ("Y-m-d", strtotime ("+1 day", strtotime($check_date)));
 			$datesInReport[] = $check_date;
 			//Default number of purchases for the day to 0
 			$pageViewsByLocationByDay['Page Views'][$check_date] = 0;

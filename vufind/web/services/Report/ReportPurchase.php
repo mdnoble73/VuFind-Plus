@@ -36,21 +36,31 @@ class ReportPurchase extends Report{
 		$today = getdate();
 		//Grab the Selected Date Start
 		if (isset($_REQUEST['dateFilterStart'])){
-			$selectedDateStart = $_REQUEST['dateFilterStart'];
+			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterStart'])){
+				$selectedDateStart = DateTime::createFromFormat('m/d/Y', $_REQUEST['dateFilterStart']);
+				$selectedDateStart = $selectedDateStart->getTimestamp();
+			}else{
+				$selectedDateStart = strtotime($_REQUEST['dateFilterStart']);
+			}
 		} else {
 			$selectedDateStart = strtotime('-30 days');
-			$selectedDateStart = date('Y-m-d', $selectedDateStart);
 		}
+		$selectedDateStart = date('Y-m-d', $selectedDateStart);
 		$interface->assign('selectedDateStart', $selectedDateStart);
 
 		//Populate the Date Filter End
 		//Grab the Selected End Date
 		if (isset($_REQUEST['dateFilterEnd'])){
-			$selectedDateEnd = $_REQUEST['dateFilterEnd'];
+			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterEnd'])){
+				$selectedDateEnd = DateTime::createFromFormat('m/d/Y', $_REQUEST['dateFilterEnd']);
+				$selectedDateEnd = $selectedDateEnd->getTimestamp();
+			}else{
+				$selectedDateEnd = strtotime($_REQUEST['dateFilterEnd']);
+			}
 		} else {
 			$selectedDateEnd = strtotime('today');
-			$selectedDateEnd = date('Y-m-d', $selectedDateEnd);
 		}
+		$selectedDateEnd = date('Y-m-d', $selectedDateEnd);
 		$interface->assign('selectedDateEnd', $selectedDateEnd);
 
 		//////////Populate the Stores Filter
@@ -273,13 +283,15 @@ class ReportPurchase extends Report{
 		foreach ($allStores as $storeName){
 			$purchasesByStoreByDay[$storeName] = array();
 		}
-		while ($check_date != $selectedDateEnd) {
+		$numDatesChecked = 0; //Prevent infinite loops
+		while ($check_date != $selectedDateEnd && $numDatesChecked < 3000) {
 			$check_date = date ("Y-m-d", strtotime ("+1 day", strtotime($check_date)));
 			$datesInReport[] = $check_date;
 			//Default number of purchases for the day to 0
 			foreach ($allStores as $storeName){
 				$purchasesByStoreByDay[$storeName][$check_date] = 0;
 			}
+			$numDatesChecked++;
 		}
 		
 		//Chart section

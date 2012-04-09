@@ -306,6 +306,9 @@ html {
 /* end-footer */
 
 /* sidebar and widgets */
+#main-content{
+	width:678px;
+}
 #sidebar {
 	width: 220px;
 	margin-top:30px;
@@ -845,4 +848,12 @@ ul.menu li, ul.menu {
     margin: 0 auto;
     padding: 0 10px;
     width: 940px;
+}
+
+.searchcontent {
+    margin: 0 auto;
+    width: 73.076em;
+}
+#record-details-column{
+	width: 464px;
 }

@@ -3,13 +3,13 @@
 <div class="imageColumn"> 
     {if $user->disableCoverArt != 1}  
     <div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
-    <a href="{$url}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
+    <a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
     <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
     {/if}
     {* Place hold link *}
     <div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-      <a href="{$url}/EcontentRecord/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+      <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
     </div>
     
     {* Checkout link *}
@@ -29,7 +29,7 @@
 
 <div class="resultDetails">
   <div class="resultItemLine1">
-  <a href="{$url}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+  <a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
   {if $summTitleStatement}
     <div class="searchResultSectionInfo">
       {$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -42,10 +42,10 @@
       {translate text='by'}
       {if is_array($summAuthor)}
         {foreach from=$summAuthor item=author}
-          <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+          <a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
         {/foreach}
       {else}
-        <a href="{$url}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+        <a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
       {/if}
     {/if}
  
@@ -87,7 +87,7 @@
         </script>
       {/if}
       {if $showFavorites == 1} 
-        <a href="{$url}/EcontentRecord/{$summId|escape:"url"}/Save" onclick="getLightbox('EcontentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Save" onclick="getLightbox('EcontentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
     {include file="EcontentRecord/title-review.tpl" id=$summId}
@@ -95,7 +95,7 @@
   <script type="text/javascript">
     $(
        function() {literal} { {/literal}
-           $('.rateEContent{$summId|escape}').rater({literal}{ {/literal}recordId: {$summId},  rating:0.0, postHref: '{$url}/EcontentRecord/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+           $('.rateEContent{$summId|escape}').rater({literal}{ {/literal}recordId: {$summId},  rating:0.0, postHref: '{$path}/EcontentRecord/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
        {literal} } {/literal}
     );
   </script>

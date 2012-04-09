@@ -26,6 +26,7 @@ class UInterface extends Smarty
 {
 	public $lang;
 	private $vufindTheme;   // which theme(s) are active?
+	private $themes; // The themes that are active
 	private $isMobile = false;
 
 	function UInterface()
@@ -70,6 +71,7 @@ class UInterface extends Smarty
 		} else {
 			$this->template_dir  = "$local/interface/themes/{$this->vufindTheme}";
 		}
+		$this->themes = $themeArray;
 		$timer->logTime('Set theme');
 
 		// Create an MD5 hash of the theme name -- this will ensure that it's a
@@ -165,6 +167,15 @@ class UInterface extends Smarty
 	public function getVuFindTheme()
 	{
 		return $this->vufindTheme;
+	}
+	
+	/*
+	 * Get a list of themes that are active in the interface
+	 * 
+	 * @return array
+	 */
+	public function getThemes(){
+		return $this->themes;
 	}
 
 	function setTemplate($tpl)

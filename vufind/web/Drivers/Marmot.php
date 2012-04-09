@@ -1374,7 +1374,7 @@ class Marmot implements DriverInterface
 		return $sresult;
 	}
 
-	public function getMyTransactions($patron)
+	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
 	{
 		$id2= $patron['id'];
 		$patronDump = $this->_getPatronDump($id2);
@@ -1395,7 +1395,7 @@ class Marmot implements DriverInterface
 		$srows = preg_split("/<tr([^>]*)>/",$s);
 		$scount = 0;
 		$skeys = array_pad(array(),10,"");
-		$sret = array();
+		$checkedOutTitles = array();
 
 		//Get patron's location to determine if renewals are allowed.
 		global $locationSingleton;
@@ -1426,53 +1426,105 @@ class Marmot implements DriverInterface
 					if (stripos($skeys[$i],"TITLE") > -1) {
 
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+							$shortId = $matches[1];
 							$bibid = '.' . $matches[1];
 							$title = $matches[2];
 						}else{
 							$title = $scols[$i];
+							$shortId = '';
 							$bibid = '';
 						}
-						$sret[$scount-2]['id'] = $bibid;
-						$sret[$scount-2]['title'] = $title;
+						$curTitle['shortId'] = $shortId;
+						$curTitle['id'] = $bibid;
+						$curTitle['title'] = $title;
 					}
 
 					if (stripos($skeys[$i],"STATUS") > -1) {
 						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
 						$due = str_replace("DUE", "", strip_tags($scols[$i]));
-						$sret[$scount-2]['duedate'] = $due;
+						$dueTime = strtotime($due);
+						$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
+						$overdue = $daysUntilDue < 0;
+						$curTitle['duedate'] = $due;
+						$curTitle['overdue'] = $overdue;
+						$curTitle['daysUntilDue'] = $daysUntilDue;
 					}
 
 					if (stripos($skeys[$i],"BARCODE") > -1) {
-						$sret[$scount-2]['barcode'] = strip_tags($scols[$i]);
+						$curTitle['barcode'] = strip_tags($scols[$i]);
 					}
 
 
 					if (stripos($skeys[$i],"RENEW") > -1) {
 						$matches = array();
 						if (preg_match('/<input\s*type="checkbox"\s*name="renew(\d+)"\s*id="renew(\d+)"\s*value="(.*?)"\s*\/>/', $scols[$i], $matches)){
-							$sret[$scount-2]['canrenew'] = $patronCanRenew;
-							$sret[$scount-2]['itemindex'] = $matches[1];
-							$sret[$scount-2]['itemid'] = $matches[3];
+							$curTitle['canrenew'] = $patronCanRenew;
+							$curTitle['itemindex'] = $matches[1];
+							$curTitle['itemid'] = $matches[3];
 						}else{
-							$sret[$scount-2]['canrenew'] = false;
+							$curTitle['canrenew'] = false;
 						}
 
 					}
 
 
 					if (stripos($skeys[$i],"CALL NUMBER") > -1) {
-						$sret[$scount-2]['request'] = "null";
+						$curTitle['request'] = "null";
 					}
 				}
 
 			}
-
+			if ($scount > 1){
+				//Get additional information from resources table
+				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
+					$resource = new Resource();
+					$resource->shortId = $curTitle['shortId'];
+					if ($resource->find(true)){
+						$curTitle = array_merge($curTitle, get_object_vars($resource));
+						$curTitle['recordId'] = $resource->record_id;
+					}else{
+						//echo("Warning did not find resource for {$historyEntry['shortId']}");
+					}
+					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+					$sortKey = $sortTitle;
+					if ($sortOption == 'title'){
+						$sortKey = $sortTitle;
+					}elseif ($sortOption == 'author'){
+						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($sortOption == 'dueDate'){
+						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+						} else {
+							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+						}
+					}elseif ($sortOption == 'format'){
+						$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+					}elseif ($sortOption == 'renewed'){
+						$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
+					}elseif ($sortOption == 'holdQueueLength'){
+						$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
+					}
+					$sortKey .= "_$scount";
+					print_r("$sortKey<br/>");
+					$checkedOutTitles[$sortKey] = $curTitle;
+				}
+				
+			}
+			
 			$scount++;
-
 		}
+		ksort($checkedOutTitles);
+		
+		$numTransactions = count($checkedOutTitles);
+		//Process pagination
+		if ($recordsPerPage != -1){
+			$startRecord = ($page - 1) * $recordsPerPage;
+			$checkedOutTitles = array_slice($checkedOutTitles, $startRecord, $recordsPerPage);
+		}
+		
 		return array(
-			'transactions' => $sret,
-			'numTransactions' => count($srows)
+			'transactions' => $checkedOutTitles,
+			'numTransactions' => $numTransactions
 		);
 		
 	}
@@ -1542,13 +1594,15 @@ class Marmot implements DriverInterface
 
 			if ($scount > 1){
 				//Get additional information from resources table
-				$resource = new Resource();
-				$resource->shortId = $historyEntry['shortId'];
-				if ($resource->find(true)){
-					$historyEntry = array_merge($historyEntry, get_object_vars($resource));
-					$historyEntry['recordId'] = $resource->record_id;
-				}else{
-					//echo("Warning did not find resource for {$historyEntry['shortId']}");
+				if ($historyEntry['shortId'] && strlen($historyEntry['shortId']) > 0){
+					$resource = new Resource();
+					$resource->shortId = $historyEntry['shortId'];
+					if ($resource->find(true)){
+						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
+						$historyEntry['recordId'] = $resource->record_id;
+					}else{
+						//echo("Warning did not find resource for {$historyEntry['shortId']}");
+					}
 				}
 				$titleKey = '';
 				if ($sortOption == "title"){

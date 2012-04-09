@@ -11,35 +11,36 @@
  *                  interface/themes/[theme]/images/ folder.
  * -------------------------------------------------------------
  */
-function smarty_function_image($params, &$smarty)
+function smarty_function_img($params, &$smarty)
 {
 	// Extract details from the config file and parameters so we can find CSS files:
 	global $configArray;
+	global $interface;
 	$path = $configArray['Site']['path'];
 	$local = $configArray['Site']['local'];
-	$themes = explode(',', $configArray['Site']['theme']);
-	$themes[] = 'default';
+	
+	$themes = $interface->getThemes();
 	$filename = $params['filename'];
 
 	// Loop through the available themes looking for the requested CSS file:
-	$imgSrc = false;
 	foreach ($themes as $theme) {
 		$theme = trim($theme);
-
+		
 		// If the file exists on the local file system, set $css to the relative
 		// path needed to link to it from the web interface.
 		if (file_exists("{$local}/interface/themes/{$theme}/images/{$filename}")) {
-			$imgSrc = "{$path}/interface/themes/{$theme}/images/{$filename}";
-			break;
+			return "{$path}/interface/themes/{$theme}/images/{$filename}";
 		}
 	}
-
-	// If we couldn't find the file, we shouldn't try to link to it:
-	if (!$imgSrc) {
-		return '';
+	
+	//Didn't find a theme specific image, try the images directory
+	if (file_exists("{$local}/images/{$filename}")) {
+		return "{$path}/images/{$filename}";
+		break;
 	}
 
-	// We found the file -- build the link tag:
-	return $imgSrc;
+	// We couldn't find the file, return an empty value:
+	return $filename;
+	
 }
 ?>

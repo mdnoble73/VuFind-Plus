@@ -37,21 +37,31 @@ class ReportExternalLinks extends Report{
 		$today = getdate();
 		//Grab the Selected Date Start
 		if (isset($_REQUEST['dateFilterStart'])){
-			$selectedDateStart = date('Y-m-d', strtotime($_REQUEST['dateFilterStart']));
+			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterStart'])){
+				$selectedDateStart = DateTime::createFromFormat('m/d/Y', $_REQUEST['dateFilterStart']);
+				$selectedDateStart = $selectedDateStart->getTimestamp();
+			}else{
+				$selectedDateStart = strtotime($_REQUEST['dateFilterStart']);
+			}
 		} else {
 			$selectedDateStart = strtotime('-30 days');
-			$selectedDateStart = date('Y-m-d', $selectedDateStart);
 		}
+		$selectedDateStart = date('Y-m-d', $selectedDateStart);
 		$interface->assign('selectedDateStart', $selectedDateStart);
 
 		//Populate the Date Filter End
 		//Grab the Selected End Date
 		if (isset($_REQUEST['dateFilterEnd'])){
-			$selectedDateEnd = date('Y-m-d', strtotime($_REQUEST['dateFilterEnd']));
+			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterEnd'])){
+				$selectedDateEnd = DateTime::createFromFormat('m/d/Y', $_REQUEST['dateFilterEnd']);
+				$selectedDateEnd = $selectedDateEnd->getTimestamp();
+			}else{
+				$selectedDateEnd = strtotime($_REQUEST['dateFilterEnd']);
+			}
 		} else {
 			$selectedDateEnd = strtotime('today');
-			$selectedDateEnd = date('Y-m-d', $selectedDateEnd);
 		}
+		$selectedDateEnd = date('Y-m-d', $selectedDateEnd);
 		$interface->assign('selectedDateEnd', $selectedDateEnd);
 
 		//////////Populate the Stores Filter

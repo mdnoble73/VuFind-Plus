@@ -336,9 +336,9 @@ class CatalogConnection
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($patron)
+	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
 	{
-		return $this->driver->getMyTransactions($patron);
+		return $this->driver->getMyTransactions($patron, $page, $recordsPerPage, $sortOption);
 	}
 
 	/**
