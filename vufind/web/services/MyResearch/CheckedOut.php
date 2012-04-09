@@ -101,9 +101,19 @@ class CheckedOut extends MyResearch{
 				}
 			}
 		}
+		
+		//Determine which columns to show 
+		$ils = $configArray['Catalog']['ils'];
+		$showOut = ($ils == 'Horizon');
+		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium');
+		$showWaitList = ($ils == 'Horizon');
+		
+		$interface->assign('showOut', $showOut);
+		$interface->assign('showRenewed', $showRenewed);
+		$interface->assign('showWaitList', $showWaitList);
 
 		if (isset($_GET['exportToExcel'])) {
-			$this->exportToExcel($result['transactions']);
+			$this->exportToExcel($result['transactions'], $showOut, $showRenewed, $showWaitList);
 		}
 
 		$interface->setTemplate('checkedout.tpl');
@@ -111,29 +121,33 @@ class CheckedOut extends MyResearch{
 		$interface->display('layout.tpl');
 	}
 
-	public function exportToExcel($checkedOutItems) {
+	public function exportToExcel($checkedOutItems, $showOut, $showRenewed, $showWaitList) {
 		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
 
 		// Set properties
-		$objPHPExcel->getProperties()->setCreator("DCL")
-		->setLastModifiedBy("DCL")
+		$objPHPExcel->getProperties()->setCreator("VuFind Plus")
+		->setLastModifiedBy("VuFind Plus")
 		->setTitle("Office 2007 XLSX Document")
 		->setSubject("Office 2007 XLSX Document")
 		->setDescription("Office 2007 XLSX, generated using PHP.")
 		->setKeywords("office 2007 openxml php")
 		->setCategory("Checked Out Items");
 
-		$objPHPExcel->setActiveSheetIndex(0)
-		->setCellValue('A1', 'Checked Out Items')
-		->setCellValue('A3', 'Title')
-		->setCellValue('B3', 'Author')
-		->setCellValue('C3', 'Format')
-		->setCellValue('D3', 'Out')
-		->setCellValue('E3', 'Due')
-		->setCellValue('F3', 'Renewed')
-		->setCellValue('G3', 'Wait List');
+		$activeSheet = $objPHPExcel->setActiveSheetIndex(0);
+		$curRow = 1;
+		$curCol = 0;
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol, 'Checked Out Items');
+		$curRow = 3;
+		$curCol = 0;
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Title');
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Author');
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Format');
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Out');
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Due');
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Renewed');
+		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Wait List');
 
 
 		$a=4;

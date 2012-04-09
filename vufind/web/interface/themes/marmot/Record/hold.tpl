@@ -18,7 +18,15 @@
 	    <div id='holdOptions' {if (!isset($profile)) }style='display:none'{/if}>
 	    <div id='pickupLocationOptions'>
 	    <b>{translate text="I want to pick this up at"}:</b>
-	    {html_options name="campus" options=$pickupLocations selected=$profile.homeLocationId}
+	    <select name="campus" id="campus">
+			    {if count($pickupLocations) > 0}
+			    	{foreach from=$pickupLocations item=location}
+			    		<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+			    	{/foreach}
+			    {else} 
+			    	<option>placeholder</option>
+			  	{/if}
+			  </select>
 	    </div>
 	    {if $showHoldCancelDate == 1}
 	    <div id='cancelHoldDate'><b>{translate text="Automatically cancel this hold if not filled by"}:</b>

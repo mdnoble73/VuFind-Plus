@@ -534,9 +534,9 @@ function redrawSaveStatus() {literal}{{/literal}
       
       {if $showComments == 1}
         <div id = "readertab" >
-          <div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$id}').slideDown();">Add a Review</span></div>
-          <div id="userreview{$id}" class="userreview">
-            <span class ="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
+          <div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
+          <div id="userreview{$shortId}" class="userreview">
+            <span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
             <div class='addReviewTitle'>Add your Review</div>
             {assign var=id value=$id}
             {include file="$module/submit-comments.tpl"}

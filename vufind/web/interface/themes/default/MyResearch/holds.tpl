@@ -109,7 +109,7 @@
           <table class="myAccountTable" id="holdsTable{$sectionKey}">
             <thead>
               <tr>
-                <th><input id='selectAll{$sectionKey}' type='checkbox' onclick="$('.titleSelect{$sectionKey}').attr('checked', $('#selectAll{$sectionKey}').attr('checked'));" title="Select All/Deselect All"/></th>
+                <th><input id='selectAll{$sectionKey}' type='checkbox' onclick="toggleCheckboxes('.titleSelect{$sectionKey}', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
                 <th>{translate text='Title'}</th>
                 <th>{translate text='Format'}</th>
                 <th>{translate text='Placed'}</th>

@@ -1441,10 +1441,21 @@ class Marmot implements DriverInterface
 
 					if (stripos($skeys[$i],"STATUS") > -1) {
 						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
-						$due = str_replace("DUE", "", strip_tags($scols[$i]));
-						$dueTime = strtotime($due);
+						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
+						$renewCount = 0;
+						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
+							$due = trim($matches[1]);
+							$renewCount = $matches[2];
+						}
+						if (preg_match('/\d{2}-\d{2}-\d{2}/', $due)){
+							$dateDue = DateTime::createFromFormat('m-d-y', $due);
+							$dueTime = $dateDue->getTimestamp();
+						}else{ 
+							$dueTime = strtotime($due);
+						}
 						$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
 						$overdue = $daysUntilDue < 0;
+						$curTitle['renewCount'] = $renewCount;
 						$curTitle['duedate'] = $due;
 						$curTitle['overdue'] = $overdue;
 						$curTitle['daysUntilDue'] = $daysUntilDue;
@@ -1482,6 +1493,7 @@ class Marmot implements DriverInterface
 					if ($resource->find(true)){
 						$curTitle = array_merge($curTitle, get_object_vars($resource));
 						$curTitle['recordId'] = $resource->record_id;
+						$curTitle['id'] = $resource->record_id;
 					}else{
 						//echo("Warning did not find resource for {$historyEntry['shortId']}");
 					}
@@ -1518,6 +1530,10 @@ class Marmot implements DriverInterface
 		//Process pagination
 		if ($recordsPerPage != -1){
 			$startRecord = ($page - 1) * $recordsPerPage;
+			if ($startRecord > $numTransactions){
+				$page = 0;
+				$startRecord = 0;
+			}
 			$checkedOutTitles = array_slice($checkedOutTitles, $startRecord, $recordsPerPage);
 		}
 		

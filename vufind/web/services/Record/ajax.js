@@ -93,9 +93,9 @@ function GetTags(id, elemId, strings) {
 	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params, callback, null);
 }
 
-function SaveComment(id, strings) {
-	$('#userreview' + id).slideUp();
-	var comment = $('#comment' + id).val();
+function SaveComment(id, shortId, strings) {
+	$('#userreview' + shortId).slideUp();
+	var comment = $('#comment' + shortId).val();
 
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
@@ -109,7 +109,7 @@ function SaveComment(id, strings) {
 			if (result && result.length > 0) {
 				result = result.item(0).firstChild.nodeValue;
 				if (result == "Done") {
-					$('#comment' + id).val('');
+					$('#comment' + shortId).val('');
 					if ($('#commentList').length > 0) {
 						LoadComments(id, strings);
 					} else {

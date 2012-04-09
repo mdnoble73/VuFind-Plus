@@ -372,3 +372,11 @@ function saveRecordToList(recordId, recordSource){
 		});
 	}
 } 
+
+function toggleCheckboxes(checkboxSelector, value){
+	if (value == undefined){
+		$(checkboxSelector).removeAttr('checked');
+	}else{
+		$(checkboxSelector).attr('checked', value);
+	}
+}

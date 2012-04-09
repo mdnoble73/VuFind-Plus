@@ -81,7 +81,7 @@
           <table class="myAccountTable" id="readingHistoryTable">
             <thead>
               <tr>
-                <th><input id='selectAll' type='checkbox' onclick="$('.titleSelect').attr('checked', $('#selectAll').attr('checked'));" title="Select All/Deselect All"/></th>
+                <th><input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
                 <th>{translate text='Title'}</th>
                 <th>{translate text='Format'}</th>
                 <th>{translate text='Out'}</th>

@@ -73,6 +73,7 @@ class AJAX extends Action {
 	function SaveRecord()
 	{
 		require_once 'services/Record/Save.php';
+		require_once 'services/MyResearch/lib/User_list.php';
 
 		if (UserAccount::isLoggedIn()) {
 			$saveService = new Save();

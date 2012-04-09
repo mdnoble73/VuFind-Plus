@@ -52,10 +52,10 @@
 						Records Per Page:
 						<select id="pagesize" class="pagesize" onchange="changePageSize()">
 							<option value="10" {if $recordsPerPage == 10}selected="selected"{/if}>10</option>
-							<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>20</option>
-							<option value="50" {if $recordsPerPage == 50}selected="selected"{/if}>30</option>
-							<option value="75" {if $recordsPerPage == 75}selected="selected"{/if}>40</option>
-							<option value="100" {if $recordsPerPage == 100}selected="selected"{/if}>50</option>
+							<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>25</option>
+							<option value="50" {if $recordsPerPage == 50}selected="selected"{/if}>50</option>
+							<option value="75" {if $recordsPerPage == 75}selected="selected"{/if}>75</option>
+							<option value="100" {if $recordsPerPage == 100}selected="selected"{/if}>100</option>
 						</select>
 						</span>
 		        <div class='sortOptions'>
@@ -73,13 +73,19 @@
           <table class="myAccountTable" id="checkedOutTable">
             <thead>
               <tr>
-                <th><input id='selectAll' type='checkbox' onclick="$('.titleSelect').attr('checked', $('#selectAll').attr('checked'));" title="Select All/Deselect All"/></th>
+                <th><input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
                 <th>{translate text='Title'}</th>
                 <th>{translate text='Format'}</th>
+                {if $showOut}
                 <th>{translate text='Out'}</th>
+                {/if}
                 <th>{translate text='Due'}</th>
+                {if $showRenewed}
                 <th>{translate text='Renewed'}</th>
+                {/if}
+                {if $showWaitList}
                 <th>{translate text='Wait List'}</th>
+                {/if}
                 <th>{translate text='Rating'}</th>
               </tr>
             </thead>
@@ -145,12 +151,14 @@
                 {translate text=$record.format}
               {/if}
             </td>
+            {if $showOut}
             <td class="myAccountCell">      
 				       {$record.checkoutdate|date_format}
-		        </td>            
+		        </td>
+		        {/if}
 		        <td class="myAccountCell">
-		          {$record.duedate|date_format}
-              {if $record.overdue}
+		        	{$record.duedate|date_format}
+		        	{if $record.overdue}
                 <span class='overdueLabel'>OVERDUE</span>
               {elseif $record.daysUntilDue == 0}
                 <span class='dueSoonLabel'>(Due today)</span>
@@ -160,7 +168,7 @@
                 <span class='dueSoonLabel'>(Due in {$record.daysUntilDue} days)</span>
               {/if}
             </td>  
-		                    
+		        {if $showRenewed}
 		        <td class="myAccountCell">
 		          {$record.renewCount}
               {if $record.renewMessage}
@@ -169,11 +177,13 @@
                 </div>
               {/if}
             </td>
-            
+            {/if}
+            {if $showWaitList}
             <td class="myAccountCell">
               {* Wait List goes here *}
               {$record.holdQueueLength}
             </td>
+            {/if}
 		                  
             <td class="myAccountCell">                        
 						<div id ="searchStars{$record.id|escape}" class="resultActions">
@@ -181,7 +191,7 @@
 							  <div class="statVal">
 							    <span class="ui-rater">
 							      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-							      (<span class="ui-rater-rateCount-{$record.id|escape} ui-rater-rateCount">0</span>)
+							      (<span class="ui-rater-rateCount-{$record.shortId|escape} ui-rater-rateCount">0</span>)
 							    </span>
 							  </div>
 						      <div id="saveLink{$record.id|escape}">
@@ -201,7 +211,7 @@
 						    <script type="text/javascript">
 						      $(
 						         function() {literal} { {/literal}
-						             $('.rate{$record.id|escape}').rater({literal}{ {/literal}module: 'Record', recordId: {$record.id}, rating:0.0, postHref: '{$url}/Record/{$record.id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+						             $('.rate{$record.shortId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$record.id}', rating:0.0, postHref: '{$url}/Record/{$record.id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 						         {literal} } {/literal}
 						      );
 						    </script>
