@@ -1032,13 +1032,13 @@ class Solr implements IndexEngine {
 	
 				if (isset($searchLibrary)){
 					if (strlen($searchLibrary->defaultLibraryFacet) > 0){
-						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\")";
+						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\" OR recordtype:\"econtentRecord\")";
 					}
 				}
 	
 				if ($searchLocation != null){
 					if (strlen($searchLocation->defaultLocationFacet)){
-						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\")";
+						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\" OR recordtype:\"econtentRecord\")";
 					}
 				}
 	

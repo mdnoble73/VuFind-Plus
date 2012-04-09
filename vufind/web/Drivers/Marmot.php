@@ -1505,7 +1505,6 @@ class Marmot implements DriverInterface
 						$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
 					}
 					$sortKey .= "_$scount";
-					print_r("$sortKey<br/>");
 					$checkedOutTitles[$sortKey] = $curTitle;
 				}
 				
