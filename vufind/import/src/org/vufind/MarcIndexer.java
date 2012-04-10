@@ -57,7 +57,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<optimize />", logger);
 		
 		if (checkMarcImport()){
-			moveBiblio2ToBiblio();
+			Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
 		}
 	}
 
@@ -121,66 +121,6 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		return null;
 	}
 	
-	private void moveBiblio2ToBiblio() {
-		//Wait for 120 seconds to give the optimization time to complete
-		for (int i = 0; i < 12; i++){
-			//wait for 10 seconds
-			logger.info("Pausing to allow commit to finish before copying cores");
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		// 7) Unload the main index
-		String unloadBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio2", null, logger);
-		logger.info("Response for unloading biblio 2 core " + unloadBiblio2Response);
-		
-		String unloadBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio", null, logger);
-		logger.info("Response for unloading biblio core " + unloadBiblioResponse);
-		
-		//Wait for 60 seconds to make sure that both cores are unloaded
-		for (int i = 0; i < 6; i++){
-			//wait for 10 seconds
-			logger.info("Pausing to allow unload to finish before copying cores");
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		// 8) Copy files from the backup index to the main index
-		// Remove all files from biblio (index, spellchecker, spellShingle)
-		File biblioIndexDir = new File ("../../sites/" + serverName + "/solr/biblio/index");
-		File biblio2IndexDir = new File ("../../sites/" + serverName + "/solr/biblio2/index");
-		File biblioSpellcheckerDir = new File ("../../sites/" + serverName + "/solr/biblio/spellchecker");
-		File biblio2SpellcheckerDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellchecker");
-		File biblioSpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio/spellShingle");
-		File biblio2SpellShingleDir = new File ("../../sites/" + serverName + "/solr/biblio2/spellShingle");
-		logger.info("Deleting directory " + biblioIndexDir.getAbsolutePath());
-		if (!Util.deleteDirectory(biblioIndexDir)){
-			logger.error("Could not delete directory " + biblioIndexDir);
-		}
-		if (!Util.deleteDirectory(biblioSpellcheckerDir)){
-			logger.error("Could not delete directory " + biblioSpellcheckerDir);
-		}
-		if (!Util.deleteDirectory(biblioSpellShingleDir)){
-			logger.error("Could not delete directory " + biblioSpellShingleDir);
-		}
-		Util.copyDir(biblio2IndexDir, biblioIndexDir);
-		Util.copyDir(biblio2SpellcheckerDir, biblioSpellcheckerDir);
-		Util.copyDir(biblio2SpellShingleDir, biblioSpellShingleDir);
-		
-		// 9) Reload the indexes
-		String createBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio&instanceDir=biblio", null, logger);
-		logger.info("Response for creating biblio2 core " + createBiblioResponse);
-		
-		String createBiblio2Response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=CREATE&name=biblio2&instanceDir=biblio2", null, logger);
-		logger.info("Response for creating biblio2 core " + createBiblio2Response);
-	}
-
 	private boolean checkMarcImport() {
 		return true;
 	}
