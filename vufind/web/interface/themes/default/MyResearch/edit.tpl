@@ -6,7 +6,7 @@
 
         <div class="record">
         
-          <h1>{$record.title|escape:"html"}</h1>
+          <h1>{$resource->title|escape:"html"}</h1>
 
           <form method="post" name="editForm">
           {if empty($savedData)}

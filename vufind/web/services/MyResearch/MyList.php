@@ -21,7 +21,9 @@
 require_once 'Action.php';
 require_once 'services/MyResearch/lib/FavoriteHandler.php';
 require_once 'services/MyResearch/lib/User_list_solr.php';
-
+require_once 'services/MyResearch/lib/Resource.php';
+require_once 'services/MyResearch/lib/User_resource.php';
+require_once 'services/MyResearch/lib/Resource_tags.php';
 
 /**
  * This class does not use MyResearch base class (we don't need to connect to
@@ -142,10 +144,11 @@ class MyList extends Action {
 
 		// Send list to template so title/description can be displayed:
 		$interface->assign('favList', $list);
+		$interface->assign('listSelected', $list->id);
 
 		// Build Favorites List
 		$favorites = $list->getResources(isset($_GET['tag']) ? $_GET['tag'] : null);
-
+		
 		// Load the User object for the owner of the list (if necessary):
 		if ($user && ($user->id == $list->user_id)) {
 			$listUser = $user;

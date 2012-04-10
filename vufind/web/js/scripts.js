@@ -89,10 +89,9 @@ function hideSelects(visibility)
 	}
 }
 
-function toggleMenu(elemId)
-{
-    var o = document.getElementById(elemId);
-    o.style.display = o.style.display == 'block' ? 'none' : 'block';
+function toggleMenu(elemId){
+	var o = document.getElementById(elemId);
+	o.style.display = o.style.display == 'block' ? 'none' : 'block';
 }
 
 function getElem(id)
@@ -291,9 +290,13 @@ function ajaxLogin(callback){
 function processAjaxLogin(){
 	var username = $("#username").val();
 	var password = $("#password").val();
+	if (!username || !password){
+		alert("Please enter both the username and password");
+		return false;
+	}
 	var url = path + "/AJAX/JSON?method=loginUser"
 	$.ajax({url: url,
-			data: {username: $('#username').val(), password: $('#password').val()},
+			data: {username: username, password: password.val()},
 			success: function(response){
 				if (response.result.success == true){
 					loggedIn = true;

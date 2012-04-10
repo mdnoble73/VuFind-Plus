@@ -49,7 +49,7 @@ class Save extends Action
 				$interface->assign('followup', true);
 				$interface->assign('followupModule', 'Record');
 				$interface->assign('followupAction', 'Save');
-				return $interface->fetch('AJAX/login.tpl');
+				return $interface->fetch('MyResearch/ajax-login.tpl');
 			} else {
 				$interface->assign('followup', true);
 				$interface->assign('followupModule', 'Record');

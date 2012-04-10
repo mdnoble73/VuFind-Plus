@@ -101,7 +101,13 @@ $timer->logTime("Include Usage Tracking");
 $timer->logTime('Startup');
 // Set up autoloader (needed for YAML)
 function vufind_autoloader($class) {
-	require str_replace('_', '/', $class) . '.php';
+	if (file_exists('sys/' . $class . '.php')){
+		require_once 'sys/' . $class . '.php';
+	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
+		require_once 'services/MyResearch/lib/' . $class . '.php';
+	}else{
+		require_once str_replace('_', '/', $class) . '.php';
+	}
 }
 spl_autoload_register('vufind_autoloader');
 

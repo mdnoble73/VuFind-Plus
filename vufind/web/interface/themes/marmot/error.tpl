@@ -88,7 +88,7 @@ function addCloud(randomLeft) {
 	if (Math.random() < cloudiness) {
 		newCloud = {
 			x: randomLeft ? randomPosition(document.documentElement.clientWidth) : -400,
-			el: makeCloud();
+			el: makeCloud()
 		}
 
 		newCloud.el.style.top = randomPosition(document.documentElement.clientHeight) + 'px';

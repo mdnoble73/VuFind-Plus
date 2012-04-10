@@ -130,6 +130,8 @@ class User_list extends DB_DataObject
 	function removeResource($resource)
 	{
 		// Remove the Saved Resource
+		require_once 'services/MyResearch/lib/User_list.php';
+		require_once 'services/MyResearch/lib/Resource.php';
 		$join = new User_resource();
 		$join->user_id = $this->user_id;
 		$join->resource_id = $resource->id;

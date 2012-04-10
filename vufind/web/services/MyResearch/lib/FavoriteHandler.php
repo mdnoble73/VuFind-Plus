@@ -78,10 +78,20 @@ class FavoriteHandler
 	public function assign()
 	{
 		global $interface;
+		
+		$resourceList = array();
+		if (is_array($this->favorites)) {
+			foreach($this->favorites as $currentResource) {
+				$interface->assign('resource', $currentResource);
+				$resourceEntry = $interface->fetch('RecordDrivers/Resource/listentry.tpl');
+				$resourceList[] = $resourceEntry; 
+			}
+		}
+		$interface->assign('resourceList', $resourceList);
 
 		// Initialise from the current search globals
 		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
+		/*$searchObject->init();
 		$interface->assign('sortList', $searchObject->getSortList());
 
 		// Retrieve records from index (currently, only Solr IDs supported):
@@ -102,7 +112,7 @@ class FavoriteHandler
 			$eContentList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
 		}
 		$resourceList = array_merge($vuFindList, $eContentList);
-		$interface->assign('resourceList', $resourceList);
+		$interface->assign('resourceList', $resourceList);*/
 
 		// Set up paging of list contents:
 		$summary = $searchObject->getResultSummary();
@@ -111,7 +121,7 @@ class FavoriteHandler
 		$interface->assign('recordEnd',   $summary['endRecord']);
 
 		$link = $searchObject->renderLinkPageTemplate();
-		$options = array('totalItems' => $summary['resultTotal'],
+		$options = array('totalItems' => count($this->favorites),
                          'perPage' => $summary['perPage'],
                          'fileName' => $link);
 		$pager = new VuFindPager($options);

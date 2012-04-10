@@ -1,6 +1,7 @@
+AJAX Login
 {if $message}<div class="error">{$message|translate}</div>{/if}
 <form method="post" action="{$url}/MyResearch/Home" name="loginForm"
-      onSubmit="SaltedLogin(this, '{$followupModule}', '{$followupAction}', '{$recordId}', null, '{$title|escape}'); {$followUp} return false;">
+      onSubmit="Login(this, '{$followupModule}', '{$followupAction}', '{$recordId}', null, '{$title|escape}'); {$followUp} return false;">
 <input type="hidden" name="salt" value="">
 <table class="citation">
   <tr>

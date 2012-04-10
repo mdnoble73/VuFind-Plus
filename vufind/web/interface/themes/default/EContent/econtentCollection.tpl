@@ -1,3 +1,4 @@
+<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 <div id="page-content" class="content">
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}

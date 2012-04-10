@@ -234,7 +234,7 @@ class AJAX extends Action {
 				if ($record->find(true)){
 					$titles[] = array(
 						'id' => $record->id,
-						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record->id . "&isn=" . $record->isbn . "&size=small&upc=" . $record->upc . "&category=EMedia",
+						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record->id . "&isn=" . $record->getIsbn() . "&size=small&upc=" . $record->upc . "&category=EMedia",
 						'title' => $record->title,
 						'author' => $record->author,
 						'source' => 'eContent',

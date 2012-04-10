@@ -23,6 +23,5 @@ For more information about our codebase please contact <a href='mailto:cj@marmot
 <ul>
 <li><a href='http://www.famfamfam.com/archive/silk-icons-thats-your-lot/' target='_blank'>FamFamFam Silk Icons</a></li>
 <li><a href='http://jquery.com' target='_blank'>jQuery</a></li>
-<li><a href='http://www.dynamicdrive.com/dynamicindex4/stepcarousel.htm' target='_blank'>Step Carousel Viewer</a></li>
 </ul>
 </div>

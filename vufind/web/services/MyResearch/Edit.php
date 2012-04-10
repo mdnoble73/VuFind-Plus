@@ -101,14 +101,19 @@ class Edit extends Action
 		}
 
 		// Get Record Information
-		$details = $db->getRecord($_GET['id']);
-		$interface->assign('record', $details);
+		$resource = new Resource();
+		$resource->record_id = $_GET['id'];
+		$resource->source = $_GET['source'];
+		if ($resource->find(true)){
+			$interface->assign('record', $resource);
+		}
 
 		// Record ID
+		
 		$interface->assign('recordId', $_GET['id']);
 
 		// Retrieve saved information about record
-		$saved = $user->getSavedData($_GET['id']);
+		$saved = $user->getSavedData($_GET['id'], $_GET['source']);
 
 		// Add tag information
 		$savedData = array();

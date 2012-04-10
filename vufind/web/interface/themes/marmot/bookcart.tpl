@@ -33,7 +33,7 @@
               <input type="password" name="password" id="bag_password" size="25"/>
               <br />
               <a href="#" class="button round less-round" id="bag_login_submit">Login</a>
-              <a href="#" class="button round less-round bag_hide_button">Cancel</a>
+              <a href="#" class="button round less-round bag_hide_button" id="bag_login_cancel">Cancel</a>
               </div>
            </form>
          </div>

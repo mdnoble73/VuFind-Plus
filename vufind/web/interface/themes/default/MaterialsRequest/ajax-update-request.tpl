@@ -1,3 +1,4 @@
+<script type="text/javascript" src="{$path}/js/validate/jquery.validate.js" ></script>
 <div id='materials_request_details'>
 	<div class='header'>
 		Materials Request Details

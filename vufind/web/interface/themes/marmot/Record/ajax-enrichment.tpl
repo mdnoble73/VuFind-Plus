@@ -1,5 +1,6 @@
 <SimilarAuthors>
 <![CDATA[{if $enrichment.novelist.similarAuthorCount != 0}
+  <script type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
   <a href ="#" class="cite" id="similarAuthorLink" rel="similarAuthor">Similar Authors</a>
   <DIV id="similarAuthor" style="position:absolute; -moz-border-radius: 5px; -webkit-border-radius: 5px; -webkit-box-shadow: 5px 5px 7px 0 #888; padding: 5px; -moz-box-shadow: 5px 5px 7px 0 #888; visibility: hidden; border: 2px solid darkgrey; background-color: white; width: 300px; height:150px;z-index:100;">
   <span class ="alignright"><a href="javascript:dropdowncontent.hidediv('similarAuthor')" class="unavailable">Close</a></span><br />

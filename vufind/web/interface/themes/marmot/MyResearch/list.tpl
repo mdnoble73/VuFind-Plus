@@ -40,8 +40,8 @@
           </form>
           {/if}
 	        {if $resourceList}
-          <div class="yui-gd resulthead">
-            <div class="yui-u">
+          <div class="resulthead">
+            <div >
             {if $recordCount}
               {translate text="Showing"}
               <b>{$recordStart}</b> - <b>{$recordEnd}</b>
@@ -49,7 +49,7 @@
             {/if}
             </div>
     
-            <div class="yui-u toggle">
+            <div class="toggle">
               {translate text='Sort'}
               <select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
               {foreach from=$sortList item=sortData key=sortLabel}
@@ -115,4 +115,11 @@
       <!-- End of Internal Grid -->
 
 </div>
+
+<script type="text/javascript">
+$(document).ready(function() {literal} { {/literal}
+  doGetStatusSummaries();
+  doGetRatings();
+{literal} }); {/literal}
+</script>
 

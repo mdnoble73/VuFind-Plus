@@ -116,10 +116,3 @@
           </form>
   </div>
 </div>
-<script>
-{literal}
-$(document).ready(function() {
-  //$('.adminTableRegion').fixedHeaderTable({footer:true,cloneHeaderToFooter:false, autoResize:true, fixCol1:true});
-});
-{/literal}
-</script>

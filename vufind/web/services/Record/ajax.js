@@ -14,11 +14,22 @@ function getSaveStatus(id, elemId) {
 }
 
 function saveRecord(id, formElem, strings) {
-	successCallback = function() {
-		// Highlight the save link to indicate that the content is saved:
-		$('#saveLink').addClass('savedFavorite');
-	};
-	performSaveRecord(id, formElem, strings, 'VuFind', successCallback);
+	if (loggedIn){
+		ajax
+		successCallback = function() {
+			// Highlight the save link to indicate that the content is saved:
+			$('#saveLink').addClass('savedFavorite');
+
+			// Redraw tag list:
+			GetTags(id, 'tagList', strings);
+		};
+		performSaveRecord(id, formElem, strings, 'VuFind', successCallback);
+	}else{
+		ajaxLogin(function (){
+			saveRecord(id, formElem, strings);
+		});
+	}
+	return false;
 }
 
 function SendEmail(id, to, from, message, strings) {
@@ -32,6 +43,8 @@ function SendSMS(id, to, provider, strings) {
 	var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
 	sendAJAXSMS(url, params, strings);
 }
+
+
 
 function SaveTag(id, formElem, strings) {
 	var tags = formElem.elements['tag'].value;

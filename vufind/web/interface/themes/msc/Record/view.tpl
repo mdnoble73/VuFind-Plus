@@ -1,6 +1,7 @@
 <script  type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 <script  type="text/javascript" src="{$path}/js/jcarousel/lib/jquery.jcarousel.min.js"></script>
+<script type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
 
 {if !empty($addThis)}
 <script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
@@ -341,25 +342,25 @@ function redrawSaveStatus() {literal}{{/literal}
        
     <div class="clearer">&nbsp;</div>
             <div id="seriesPlaceholder"></div>
-            {if $tabbedDetails}
-            <div id = "tabrowse" class="indentmenu tabStrip">
-            <span class="indentmenu detailsTab"><a href="#" rel="holdingstab" class="selected">Copies</a></span>
+      <div id="moredetails-tabs">
+      {* Define tabs for the display *}
+      <ul>
+            <li><a href="#holdingstab" class="selected">Copies</a></li>
             {if $notes}
-            <span class="indentmenu detailsTab"><a href="#" rel="notestab">Notes</a></span>
+            <li><a href="#notestab">Notes</a></li>
             {/if}
             {if ($showAmazonReviews || $showStandardReviews) && $isbn}
-            <span class="indentmenu detailsTab"><a href="#" rel="reviewtab">Editorial Reviews</a></span>
+            <li><a href="#reviewtab">Editorial Reviews</a></li>
             {/if}
             {if $showComments == 1}
-            <span class="indentmenu detailsTab"><a href="#" rel="readertab">Reader Reviews</a></span>
+            <li><a href="#readertab">Reader Reviews</a></li>
             {/if}
-            <span class="indentmenu detailsTab"><a href="#" rel="citetab">Citation</a></span>
-            <span class="indentmenu detailsTab"><a href="#" rel="stafftab">Staff View</a></span>
-            </div>
-            {/if}
+            <li><a href="#citetab">Citation</a></li>
+            <li><a href="#stafftab">Staff View</a></li>
+            </ul>
             
             {if $notes}
-            <div id ="notestab" {if $tabbedDetails}class="tabcontent"{/if}>
+            <div id ="notestab">
             {if !$tabbedDetails}
             <div class = "blockhead">{translate text='Notes'}</div>
             {/if}
@@ -373,14 +374,14 @@ function redrawSaveStatus() {literal}{{/literal}
             
             {if ($showAmazonReviews || $showStandardReviews) && $isbn}
             <a name = "reviews"></a>
-						<div id = "reviewtab" {if $tabbedDetails}class="tabcontent"{/if}>
+						<div id = "reviewtab">
 						{if !$tabbedDetails}<div class = "blockhead">{translate text='Editorial Reviews'}</div>{/if}
 						  <div id='reviewPlaceholder'></div>
 						</div>
             {/if}
                
             {if $showComments == 1}
-            <div id = "readertab" {if $tabbedDetails}class="tabcontent"{/if}>
+            <div id = "readertab">
               {if !$tabbedDetails}
 	            <div class = "blockhead">Reader Reviews 
 	            <span style ="font-size:12px;" class ="alignright"><a href="#" id="userreviewlink" class="add" rel="userreview">Add a Review</a></span></div>
@@ -399,13 +400,13 @@ function redrawSaveStatus() {literal}{{/literal}
             {/if}
             
             {if $tabbedDetails}
-            <div id = "citetab" class="tabcontent">
+            <div id = "citetab">
             {if !$tabbedDetails}<div class = "blockhead">Citation </div>{/if}
               {include file="$module/cite.tpl"}
             </div>
             {/if}
             
-            <div id = "holdingstab" {if $tabbedDetails}class="tabcontent"{/if}>
+            <div id = "holdingstab" >
 	            <a name = "holdings"></a>
 	            {if !$tabbedDetails}<div class = "blockhead">{translate text='Holdings'}</div>{/if}
             
@@ -424,11 +425,10 @@ function redrawSaveStatus() {literal}{{/literal}
               <div id="prospectorHoldingsPlaceholder"></div>
             </div>
             
-            {if $tabbedDetails}
-            <div id = "stafftab" class="tabcontent">
+            <div id = "stafftab">
               {include file=$staffDetails}
             </div>
-            {/if}
+         </div>
        </div>     
    </div>
    
@@ -441,15 +441,13 @@ function redrawSaveStatus() {literal}{{/literal}
        
    </div>
    
-{if $tabbedDetails}
 <script type="text/javascript">
-var tabrowse=new ddtabcontent("tabrowse") //enter ID of Tab Container
-tabrowse.setpersist(true) //toogle persistence of the tabs' state
-tabrowse.setselectedClassTarget("linkparent") //"link" or "linkparent"
-tabrowse.init()
-
+{literal}
+$(function() {
+$("#moredetails-tabs").tabs();
+});
+{/literal}
 </script> 
-{/if}
    
     <div id='similarTitles' class="left_sidebar" style='display:none'>
      {* Display either similar tiles from novelist or from the catalog*}

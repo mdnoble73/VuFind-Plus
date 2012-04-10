@@ -77,7 +77,7 @@
     		</script>
       {/if}
       {if $showFavorites == 1} 
-        <a href="{$url}/Record/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$url}/Record/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="saveRecord('{$summId}', this, ''); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
     {assign var=id value=$summShortId}

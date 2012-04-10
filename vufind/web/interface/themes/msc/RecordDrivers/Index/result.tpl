@@ -7,7 +7,7 @@
 	<div class="yui-ge">
     
     <div id='descriptionPlaceholder{$summShortId|escape}'  style='display:none'></div>
-    <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="pretty{$summShortId|escape:"url"}">
+    <a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="pretty{$summShortId|escape:"url"}">
     	
     {if $summISBN || $summUPC}
     <img src="{$path}/bookcover.php?isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
@@ -20,7 +20,7 @@
     <div class="resultitem">
       <div class="resultItemLine1">
         {if $summScore}({$summScore}) {/if}
-	      <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	      <a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	      {if $summTitleStatement}
           <div class="searchResultSectionInfo">
           {$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -40,10 +40,10 @@
 	        <span class="resultValue">
             {if is_array($summAuthor)}
 	            {foreach from=$summAuthor item=author}
-	              <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+	              <a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
 	            {/foreach}
 	          {else}
-	            <a href="{$url}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+	            <a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
 	          {/if}
 	        </span>
 	      </div>
@@ -91,10 +91,10 @@
           {* Remove download links for now since we are pulling them from item records 
           {if is_array($record.url)}
             {foreach from=$record.url item=recordurl}
-              <br /><a href="{$recordurl|escape}" class="fulltext" target="_new"><img height="" width="" src={$url}/interface/themes/marmot/images/download.jpg></a>
+              <br /><a href="{$recordurl|escape}" class="fulltext" target="_new"><img height="" width="" src={$path}/interface/themes/marmot/images/download.jpg></a>
             {/foreach}
           {else}
-            <br /><a href="{$recordurl|escape}" class="fulltext" target="_new"><img src={$url}/interface/themes/marmot/images/download.jpg></a>
+            <br /><a href="{$recordurl|escape}" class="fulltext" target="_new"><img src={$path}/interface/themes/marmot/images/download.jpg></a>
           {/if}
           *}
         {else}

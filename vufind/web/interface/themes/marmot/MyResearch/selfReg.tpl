@@ -1,3 +1,4 @@
+<script type="text/javascript" src="{$path}/js/validate/jquery.validate.js" ></script>
 <div id="bd">
   <div id="yui-main" class="content">
     <div class="yui-b first">

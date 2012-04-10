@@ -52,10 +52,6 @@ class ConsolidatedJs extends Action {
     $fullJs .= file_get_contents('/js/jqueryui/jquery-ui-1.8.11.custom.min.js', true);
     $fullJs .= "\r\n/* scripts.js */\r\n";
     $fullJs .= file_get_contents('/js/scripts.js', true);
-    $fullJs .= "\r\n/* rc4.js */\r\n";
-    $fullJs .= file_get_contents('/js/rc4.js', true);
-    $fullJs .= "\r\n/* jquery.tablesorter.min.js */\r\n";
-    $fullJs .= file_get_contents('/js/tablesorter/jquery.tablesorter.min.js', true);
     $fullJs .= "\r\n/* jquery.blockUI.js */\r\n";
     $fullJs .= file_get_contents('/js/bookcart/jquery.blockUI.js', true);
     $fullJs .= "\r\n/* json2.js */\r\n";
@@ -64,8 +60,6 @@ class ConsolidatedJs extends Action {
     $fullJs .= file_get_contents('/js/bookcart/jquery.cookie.js', true);
     $fullJs .= "\r\n/* bookcart.js */\r\n";
     $fullJs .= file_get_contents('/js/bookcart/bookcart.js', true);
-    $fullJs .= "\r\n/* dropdowncontent.js */\r\n";
-    $fullJs .= file_get_contents('/js/dropdowncontent.js', true);
     
     $fullJs .= "\r\n/* jquery.rater.js */\r\n";
     $fullJs .= file_get_contents('/js/starrating/jquery.rater.js', true);

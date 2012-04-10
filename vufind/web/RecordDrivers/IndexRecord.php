@@ -677,7 +677,7 @@ class IndexRecord implements RecordInterface
 		$upcs = $this->getUPCs();
 		$upc = count($upcs) > 0 ? $upcs[0] : null;
 		$interface->assign('summUPC', $upc);
-		if ($configArray['System']['debug'] == 1){
+		if ($configArray['System']['debugSolr'] == 1){
 			$interface->assign('summScore', $this->getScore());
 			$interface->assign('summExplain', $this->getExplain());
 		}

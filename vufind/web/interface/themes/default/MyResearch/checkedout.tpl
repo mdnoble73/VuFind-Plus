@@ -242,7 +242,6 @@
       <script type="text/javascript">
         $(document).ready(function() {literal} { {/literal}
           doGetRatings();
-          //$("#checkedOutTable").tablesorter({literal}{cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 3: { sorter: 'date' }, 4: { sorter: 'date' }, 7: { sorter: false} } }{/literal});
         {literal} }); {/literal}
       </script>
     {else}
