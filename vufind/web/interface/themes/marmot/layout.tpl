@@ -39,11 +39,6 @@
     {if $consolidateJs}
     	<script type="text/javascript" src="{$path}/API/ConsolidatedJs"></script>
     {else}
-	    <script type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
-	    <script type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
-	    <script type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
-	    <script type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
-	    <script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
 	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
 	    
 	    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>

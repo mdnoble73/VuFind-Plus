@@ -281,12 +281,11 @@ function saveRecord(id, formElem)
                  "mytags=" + encodeURIComponent(tags) + "&" +
                  "list=" + list + "&" +
                  "notes=" + encodeURIComponent(notes);
-    var callback =
-    {
-        success: function(transaction) {
-            var response = transaction.responseXML.documentElement;
-            if (response.getElementsByTagName('result')) {
-                var value = response.getElementsByTagName('result').item(0).firstChild.nodeValue;
+    $.ajax({
+    		url: url+'?'+params,
+        success: function(data) {
+            if (data.result) {
+                var value = data.result;
                 if (value == "Done") {
                     // Redraw the statuses to reflect the change:
                     doGetSaveStatuses();
@@ -303,8 +302,7 @@ function saveRecord(id, formElem)
             document.getElementById('popupbox').innerHTML = 'Error: Record not saved';
             setTimeout("hideLightbox();", 3000);
         }
-    };
-    var transaction = YAHOO.util.Connect.asyncRequest('GET', url+'?'+params, callback, null);
+    });
 }
 
 function getSaveStatuses(id)

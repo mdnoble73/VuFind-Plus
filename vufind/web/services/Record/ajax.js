@@ -52,12 +52,12 @@ function SaveTag(id, formElem, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SaveTag&tag=" + encodeURIComponent(tags);
 
-	var callback = {
-		success : function(transaction) {
-			var response = transaction.responseXML ? transaction.responseXML.documentElement : false;
-			var result = response ? response.getElementsByTagName('result') : false;
+	$.ajax({
+		url: url + '?' + params,
+		success : function(data) {
+			var result = data ? data.result : false;
 			if (result && result.length > 0) {
-				if (result.item(0).firstChild.nodeValue == "Unauthorized") {
+				if (result == "Unauthorized") {
 					document.forms['loginForm'].elements['followup'].value = 'SaveRecord';
 					popupMenu('loginBox');
 				} else {
@@ -69,21 +69,20 @@ function SaveTag(id, formElem, strings) {
 				document.getElementById('popupbox').innerHTML = strings.save_error;
 			}
 		},
-		failure : function(transaction) {
+		error : function() {
 			document.getElementById('popupbox').innerHTML = strings.save_error;
 		}
-	};
-	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params, callback, null);
+	});
 }
 
 function GetTags(id, elemId, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetTags";
-	var callback = {
-		success : function(transaction) {
-			var response = transaction.responseXML ? transaction.responseXML.documentElement : false;
-			if (response && response.getElementsByTagName('result')) {
-				var tags = response.getElementsByTagName("Tag");
+	$.ajax({
+		url: url + '?' + params,
+		success : function(data) {
+			if (data.result) {
+				var tags = data.result.Tag;
 				var output = "";
 				if (tags && tags.length > 0) {
 					for (i = 0; i < tags.length; i++) {
@@ -99,11 +98,10 @@ function GetTags(id, elemId, strings) {
 				document.getElementById(elemId).innerHTML = strings.load_error;
 			}
 		},
-		failure : function(transaction) {
+		error : function() {
 			document.getElementById(elemId).innerHTML = strings.load_error;
 		}
-	};
-	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params, callback, null);
+	});
 }
 
 function SaveComment(id, shortId, strings) {
@@ -112,15 +110,14 @@ function SaveComment(id, shortId, strings) {
 
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
-	var callback = {
-		success : function(transaction) {
-			var response = transaction.responseXML ? transaction.responseXML.documentElement : false;
+	$.ajax({
+		url: url + '?' + params,
+		success : function(data) {
 			var result = false;
-			if (response) {
-				result = response.getElementsByTagName('result')
+			if (data) {
+				result = data.result;
 			}
 			if (result && result.length > 0) {
-				result = result.item(0).firstChild.nodeValue;
 				if (result == "Done") {
 					$('#comment' + shortId).val('');
 					if ($('#commentList').length > 0) {
@@ -135,15 +132,14 @@ function SaveComment(id, shortId, strings) {
 				alert(strings.save_error);
 			}
 		},
-		failure : function(transaction) {
+		error : function() {
 			if (strings.save_error.length == 0){
 				alert("Unable to save your comment.");
 			}else{
 				alert(strings.save_error);
 			}
 		}
-	};
-	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params, callback, null);
+	});
 }
 
 function deleteComment(id, commentId, strings) {

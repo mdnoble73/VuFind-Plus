@@ -22,51 +22,51 @@ require_once 'Action.php';
 
 class AJAX extends Action {
 
-    private $db;
-    private $searchObject;
+	private $db;
+	private $searchObject;
 
-    function __construct()
-    {
-        $this->searchObject = SearchObjectFactory::initSearchObject();
-    }
+	function __construct()
+	{
+		$this->searchObject = SearchObjectFactory::initSearchObject();
+	}
 
-    function launch()
-    {
-        header ('Content-type: application/json');
-        $response = array();
-        if (is_callable(array($this, $_GET['method']))) {
-            $this->searchObject->initBrowseScreen();
-            $this->searchObject->disableLogging();
-            $this->$_GET['method']();
-            $result = $this->searchObject->processSearch();
-            $response['AJAXResponse'] = $result['facet_counts']['facet_fields'];
-        } else {
-            $response['AJAXResponse'] = array('Error' => 'Invalid Method');
-        }
-        // Shutdown the search object
-        $this->searchObject->close();
+	function launch()
+	{
+		header ('Content-type: application/json');
+		$response = array();
+		if (is_callable(array($this, $_GET['method']))) {
+			$this->searchObject->initBrowseScreen();
+			$this->searchObject->disableLogging();
+			$this->$_GET['method']();
+			$result = $this->searchObject->processSearch();
+			$response['AJAXResponse'] = $result['facet_counts']['facet_fields'];
+		} else {
+			$response['AJAXResponse'] = array('Error' => 'Invalid Method');
+		}
+		// Shutdown the search object
+		$this->searchObject->close();
 
-        echo json_encode($response);
-    }
+		echo json_encode($response);
+	}
 
-    function GetOptions()
-    {
-        if (isset($_GET['field']))        $this->searchObject->addFacet($_GET['field']);
-        if (isset($_GET['facet_prefix'])) $this->searchObject->addFacetPrefix($_GET['facet_prefix']);
-        if (isset($_GET['query']))        $this->searchObject->setQueryString($_GET['query']);
-    }
+	function GetOptions()
+	{
+		if (isset($_GET['field']))        $this->searchObject->addFacet($_GET['field']);
+		if (isset($_GET['facet_prefix'])) $this->searchObject->addFacetPrefix($_GET['facet_prefix']);
+		if (isset($_GET['query']))        $this->searchObject->setQueryString($_GET['query']);
+	}
 
-    function GetAlphabet()
-    {
-        if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
-        if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
-        $this->searchObject->setFacetSortOrder(false);
-    }
+	function GetAlphabet()
+	{
+		if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
+		if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
+		$this->searchObject->setFacetSortOrder(false);
+	}
 
-    function GetSubjects()
-    {
-        if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
-        if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
-    }
+	function GetSubjects()
+	{
+		if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
+		if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
+	}
 }
 ?>

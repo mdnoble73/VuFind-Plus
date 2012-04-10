@@ -33,15 +33,15 @@ function getLightbox(module, action, id, lookfor, message, followupModule,
 			+ '&followupModule=' + encodeURIComponent(followupModule)
 			+ '&followupAction=' + encodeURIComponent(followupAction)
 			+ '&followupId=' + encodeURIComponent(followupId);
-	var callback = {
-		success : function(transaction) {
-			var response = transaction.responseXML.documentElement;
-			if (response && response.getElementsByTagName('result')) {
-				if (response.getElementsByTagName('redirect').length > 0) {
-					window.location = response.getElementsByTagName('redirect').item(0).firstChild.nodeValue;
+	
+	$.ajax({
+		url: url + '?' + params,
+		success : function(data) {
+			if (data && data.result) {
+				if (data.redirect && data.redirect.length() > 0) {
+					window.location = data.redirect;
 				} else {
-					document.getElementById('popupbox').innerHTML = response
-							.getElementsByTagName('result').item(0).firstChild.nodeValue;
+					$('$popupbox').innerHTML = data.result;
 
 					// set focus to the default location
 					if (document.loginForm != null) {
@@ -65,24 +65,19 @@ function getLightbox(module, action, id, lookfor, message, followupModule,
 			setTimeout(focusIt, 250);
 
 		},
-		failure : function(transaction) {
+		error : function() {
 			document.getElementById('popupbox').innerHTML = document
 					.getElementById('lightboxError').innerHTML;
 		}
-	};
-	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params,
-			callback, null);
-
-	// Make Popup Box Draggable
-	var dd = new YAHOO.util.DD("popupbox");
-	dd.setHandleElId("popupboxHeader");
+	});
 }
 
 function SaltedLogin(elems, module, action, id, lookfor, message) {
 	// Load Popup Box Content from AJAX Server
 	var url = path + "/AJAX/Home";
 	var params = 'method=GetSalt';
-	var callback = {
+	$.ajax({
+		url: url + '?' + params,
 		success : function(transaction) {
 			var response = transaction.responseXML.documentElement;
 			if (response.getElementsByTagName('result')) {
@@ -93,9 +88,7 @@ function SaltedLogin(elems, module, action, id, lookfor, message) {
 
 			}
 		}
-	};
-	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params,
-			callback, null);
+	})
 }
 
 function Login(elems, salt, module, action, id, lookfor, message) {

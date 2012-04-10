@@ -21,11 +21,6 @@
       path = '{$url}';
     </script>
 
-    <script type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
-    <script type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
-    <script type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
-    <script type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
-    <script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
     <script type="text/javascript" src="{$path}/js/scripts.js"></script>
     <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
   </head>

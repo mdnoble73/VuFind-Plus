@@ -1,4 +1,4 @@
-<div id="record{$summId|escape}" class="gridRecordBox" onmouseover="YAHOO.util.Dom.addClass(this, 'gridMouseOver');" onmouseout="YAHOO.util.Dom.removeClass(this, 'gridMouseOver');">
+<div id="record{$summId|escape}" class="gridRecordBox" onmouseover="$(this).addClass('gridMouseOver');" onmouseout="$(this).removeClass('gridMouseOver');">
     <span class="gridImageBox" >
     <a href="{$url}/Record/{$summId|escape:"url"}">
     {if $summThumbLarge}

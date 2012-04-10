@@ -71,12 +71,12 @@ function SaveEContentTag(id, formElem, strings) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SaveTag&tag=" + encodeURIComponent(tags);
 
-	var callback = {
-		success : function(transaction) {
-			var response = transaction.responseXML ? transaction.responseXML.documentElement : false;
-			var result = response ? response.getElementsByTagName('result') : false;
+	$.ajax({
+		url: url,
+		success : function(data) {
+			var result = data ? data.result : false;
 			if (result && result.length > 0) {
-				if (result.item(0).firstChild.nodeValue == "Unauthorized") {
+				if (result == "Unauthorized") {
 					document.forms['loginForm'].elements['followup'].value = 'SaveRecord';
 					popupMenu('loginBox');
 				} else {
@@ -88,11 +88,10 @@ function SaveEContentTag(id, formElem, strings) {
 				document.getElementById('popupbox').innerHTML = strings.save_error;
 			}
 		},
-		failure : function(transaction) {
+		error : function() {
 			document.getElementById('popupbox').innerHTML = strings.save_error;
 		}
-	};
-	var transaction = YAHOO.util.Connect.asyncRequest('GET', url + '?' + params, callback, null);
+	});
 }
 
 function SaveEContentComment(id, strings) {

@@ -36,11 +36,6 @@
 		url = '{$url}';
 		loggedIn = {if $user}true{else}false{/if}
 		</script>
-		<script type="text/javascript" src="{$path}/js/yui/yahoo-dom-event.js"></script>
-		<script type="text/javascript" src="{$path}/js/yui/yahoo-min.js"></script>
-		<script type="text/javascript" src="{$path}/js/yui/event-min.js"></script>
-		<script type="text/javascript" src="{$path}/js/yui/connection-min.js"></script>
-		<script type="text/javascript" src="{$path}/js/yui/dragdrop-min.js"></script>
 		<script type="text/javascript" src="{$path}/js/scripts.js"></script>
 		<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 
