@@ -40,7 +40,7 @@ class MarcRecord extends IndexRecord
 		require_once 'sys/MarcLoader.php';
 		$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 		if (!$this->marcRecord) {
-			PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record'));
+			PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
 		}
 	}
 

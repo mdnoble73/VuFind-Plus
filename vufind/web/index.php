@@ -50,7 +50,7 @@ $timer->logTime("Initialize Memcache");
 //This ensures that we don't have to change the http-vufind.conf file when new types are added.
 $dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
 $dataObjectsStr = implode('|', $dataObjects);
-if (preg_match("/($dataObjectsStr)\/((?:\.b)?\d++)\/([^\/?]+)/", $_SERVER['REQUEST_URI'], $matches)){
+if (preg_match("/($dataObjectsStr)\/((?:\.b)?\d++x?)\/([^\/?]+)/", $_SERVER['REQUEST_URI'], $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[2];
 	$_GET['action'] = $matches[3];
@@ -475,6 +475,9 @@ if ($action == "AJAX" || $action == "JSON"){
 	//Add browse types as well.
 	$includeAlphaBrowse = true;
 	if (isset($library) && $library->enableAlphaBrowse == false){
+		$includeAlphaBrowse = false;
+	}
+	if ($interface->isMobile()){
 		$includeAlphaBrowse = false;
 	}
 	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();

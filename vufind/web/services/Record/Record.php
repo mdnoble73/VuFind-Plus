@@ -78,7 +78,7 @@ class Record extends Action
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR::raiseError(new PEAR_Error("Record {$this->id} Does Not Exist"));
 		}
 		$this->record = $record;
 		$interface->assign('record', $record);
