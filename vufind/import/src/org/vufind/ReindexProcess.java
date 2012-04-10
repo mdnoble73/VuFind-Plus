@@ -370,7 +370,7 @@ public class ReindexProcess {
 		if (extractScript.length() > 0) {
 			logger.info("Running export script");
 			try {
-				String reindexResult = SystemUtil.executeCommand(extractScript, "", logger);
+				String reindexResult = SystemUtil.executeCommand(extractScript, logger);
 				logger.info("Result of extractScript (" + extractScript + ") was " + reindexResult);
 			} catch (IOException e) {
 				logger.error("Error running extract script, stopping reindex process", e);
