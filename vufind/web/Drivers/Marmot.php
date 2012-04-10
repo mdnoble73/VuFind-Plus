@@ -1456,7 +1456,7 @@ class Marmot implements DriverInterface
 						$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
 						$overdue = $daysUntilDue < 0;
 						$curTitle['renewCount'] = $renewCount;
-						$curTitle['duedate'] = $due;
+						$curTitle['duedate'] = $dueTime;
 						$curTitle['overdue'] = $overdue;
 						$curTitle['daysUntilDue'] = $daysUntilDue;
 					}
