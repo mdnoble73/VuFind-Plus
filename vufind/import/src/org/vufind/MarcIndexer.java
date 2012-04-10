@@ -140,6 +140,17 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		String unloadBiblioResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=UNLOAD&core=biblio", null, logger);
 		logger.info("Response for unloading biblio core " + unloadBiblioResponse);
 		
+		//Wait for 60 seconds to make sure that both cores are unloaded
+		for (int i = 0; i < 6; i++){
+			//wait for 10 seconds
+			logger.info("Pausing to allow unload to finish before copying cores");
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		// 8) Copy files from the backup index to the main index
 		// Remove all files from biblio (index, spellchecker, spellShingle)
 		File biblioIndexDir = new File ("../../sites/" + serverName + "/solr/biblio/index");
