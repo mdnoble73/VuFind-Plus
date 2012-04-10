@@ -71,14 +71,15 @@ class Administrators extends ObjectEditor
 		global $interface;
 		global $configArray;
 		$login = $_REQUEST['login'];
-		$user = new User();
+		$newAdmin = new User();
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-		$user->barcodeProperty = $login;
-		$user->find();
-		if ($user->N == 1){
-			$user->fetch();
-			$user->roles = $_REQUEST['roles'];
-			$user->update();
+		
+		$newAdmin->$barcodeProperty = $login;
+		$newAdmin->find();
+		if ($newAdmin->N == 1){
+			$newAdmin->fetch();
+			$newAdmin->roles = $_REQUEST['roles'];
+			$newAdmin->update();
 			global $configArray;
 			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
 				header("Location: " . $_SESSION['redirect_location']);
