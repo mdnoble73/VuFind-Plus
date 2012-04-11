@@ -131,9 +131,9 @@ class SideFacets implements RecommendationInterface
 		}
 		
 		//Check to see if there is a facet for ratings
-		if (isset($sideFacetSet['rating_facet'])){
+		if (isset($sideFacets['rating_facet'])){
 			$ratingApplied = false;
-			foreach ($sideFacetSet['rating_facet']['list'] as $facetValue ){
+			foreach ($sideFacets['rating_facet']['list'] as $facetValue ){
 				if ($facetValue['isApplied']){
 					$ratingApplied = true;
 					$ratingLabels = array($facetValue['value']);

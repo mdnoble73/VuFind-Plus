@@ -80,9 +80,10 @@ public class MarcProcessor {
 	protected int													maxRecordsToProcess	= -1;
 	private PreparedStatement							insertChecksumStmt;
 	private PreparedStatement							updateChecksumStmt;
-	private PreparedStatement	recordRatingStmt;
 	
-	private HashSet<String> existingEContentIds = new HashSet<String>(); 
+	private HashSet<String> existingEContentIds			= new HashSet<String>(); 
+	private HashMap<String, Float> printRatings 		= new HashMap<String, Float>();
+	private HashMap<String, Float> econtentRatings	= new HashMap<String, Float>();
 
 	public static final int								RECORD_CHANGED			= 1;
 	public static final int								RECORD_UNCHANGED		= 2;
@@ -158,11 +159,27 @@ public class MarcProcessor {
 			return false;
 		}
 		
+		// Load ratings for print and eContent titles
+		try{
+			PreparedStatement printRatingsStmt = vufindConn.prepareStatement("SELECT record_id, avg(rating) as rating from resource inner join user_rating on user_rating.resourceid = resource.id where source = 'VuFind' GROUP BY record_id");
+			ResultSet printRatingsRS = printRatingsStmt.executeQuery();
+			while (printRatingsRS.next()){
+				printRatings.put(printRatingsRS.getString("record_id"), printRatingsRS.getFloat("rating"));
+			}
+			PreparedStatement econtentRatingsStmt = econtentConn.prepareStatement("SELECT ilsId, avg(rating) as rating from econtent_record inner join econtent_rating on econtent_rating.recordId = econtent_record.id WHERE ilsId <> '' GROUP BY ilsId");
+			ResultSet econtentRatingsRS = econtentRatingsStmt.executeQuery();
+			while (econtentRatingsRS.next()){
+				econtentRatings.put(econtentRatingsRS.getString("ilsId"), econtentRatingsRS.getFloat("rating"));
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to load ratings for resource", e);
+			return false;
+		}
+		
 		// Setup additional statements 
 		try {
 			insertChecksumStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum) VALUES (?, ?)");
 			updateChecksumStmt = vufindConn.prepareStatement("UPDATE marc_import SET checksum = ? WHERE id = ?");
-			recordRatingStmt = vufindConn.prepareStatement("SELECT avg(rating) from resource inner join user_rating on user_rating.resourceid = resource.id where record_id = ? and source = 'VuFind'");
 		} catch (SQLException e) {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
@@ -174,12 +191,12 @@ public class MarcProcessor {
 		return existingEContentIds;
 	}
 
-	public PreparedStatement getRecordRatingStmt() {
-		return recordRatingStmt;
+	public HashMap<String, Float> getPrintRatings() {
+		return printRatings;
 	}
 
-	public void setRecordRatingStmt(PreparedStatement recordRatingStmt) {
-		this.recordRatingStmt = recordRatingStmt;
+	public HashMap<String, Float> getEcontentRatings() {
+		return econtentRatings;
 	}
 
 	/**

@@ -6,13 +6,13 @@
     {if $authMethod != 'Shibboleth'}
     <form method="post" action="{$path}/MyResearch/Home" name="loginForm" data-ajax="false">
       <div data-role="fieldcontain">
-        <label for="login_username">{translate text='Username'}:</label>
-        <input id="login_username" type="text" name="username" value="{$username|escape}"/>
+        <label for="username">{translate text='Username'}:</label>
+        <input id="username" type="text" name="username" value="{$username|escape}"/>
       </div>
       <div data-role="fieldcontain">
-        <label for="login_password">{translate text='Password'}:</label>
-        <input id="login_password" type="password" name="password"/>
-        <a href="#" onclick="return pwdToText('login_password')">{translate text="Show Contents"}</a>
+        <label for="password">{translate text='Password'}:</label>
+        <input id="password" type="password" name="password"/>
+        <input type="checkbox" id="showPwd" name="showPwd" onchange="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
       </div>
       <div data-role="fieldcontain">
         <input type="submit" name="submit" value="{translate text='Login'}"/>

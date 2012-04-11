@@ -1393,31 +1393,15 @@ public class MarcRecordDetails {
 
 	public String getRating(String recordIdSpec) {
 		if (rating == null) {
-			Set<String> fields = getFieldList(record, recordIdSpec);
-			Iterator<String> fieldsIter = fields.iterator();
-			if (fields != null) {
-				while (fieldsIter.hasNext()) {
-					try {
-						// Get the current string to work on:
-						String recordId = fieldsIter.next();
-						// Check to see if the record has an eContent Record
-						PreparedStatement recordRatingStmt = marcProcessor.getRecordRatingStmt();
-						recordRatingStmt.setString(1, recordId);
-						ResultSet ratingResults = marcProcessor.getRecordRatingStmt().executeQuery();
-						while (ratingResults.next()) {
-							float rating = ratingResults.getFloat(1);
-							if (Math.abs(rating) < 0.0001) {
-								rating = -2.5f;
-							}
-						}
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+			String recordId = getId();
+			logger.info("Getting rating for " + recordId);
+			// Check to see if the record has an eContent Record
+			rating = marcProcessor.getPrintRatings().get(recordId);
+			if (rating == null) {
+				rating = -2.5f;
 			}
-
-			rating = -2.5f;
+			
+			//logger.info("Rating = " + rating.toString());
 		}
 		return Float.toString(rating);
 	}

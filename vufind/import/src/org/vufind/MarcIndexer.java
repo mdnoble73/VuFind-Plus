@@ -1,6 +1,5 @@
 package org.vufind;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -16,14 +15,12 @@ import com.jamesmurty.utils.XMLBuilder;
 public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private String solrPort;
 	private Logger logger;
-	private String serverName;
 	private boolean reindexUnchangedRecords;
 	private ProcessorResults results = new ProcessorResults("Marc Indexer");
 	
 	@Override
 	public boolean init(Ini configIni, String serverName, Logger logger) {
 		this.logger = logger;
-		this.serverName = serverName;
 		solrPort = configIni.get("Reindex", "solrPort");
 
 		//Check to see if we should clear the existing index

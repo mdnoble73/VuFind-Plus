@@ -36,6 +36,7 @@ function pwdToText(fieldId){
 	var elem = document.getElementById(fieldId);
 	var input = document.createElement('input');
 	input.id = elem.id;
+	input.name = elem.name;
 	input.value = elem.value;
 	input.size = elem.size;
 	input.onfocus = elem.onfocus;
