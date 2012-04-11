@@ -1200,7 +1200,7 @@ public class MarcRecordDetails {
 	}
 
 	public String getAuthor() {
-		return (String) fields.get("author");
+		return (String) fields.get("auth_author");
 	}
 
 	public String getSortTitle() {
@@ -2505,11 +2505,22 @@ public class MarcRecordDetails {
 
 	public Set<String> getAuthors() {
 		Set<String> result = new HashSet<String>();
-		String author = getAuthor();
+		Object author = fields.get("author");
 		if (author != null){
-			result.add(author);
+			if (author instanceof String){
+				result.add((String)author);
+			}else{
+				result.addAll((Set)author);
+			}
 		}
-		result.addAll(getAuthors());
+		Object author2 = fields.get("author2");
+		if (author2 != null){
+			if (author2 instanceof String){
+				result.add((String)author2);
+			}else{
+				result.addAll((Set)author2);
+			}
+		}
 		return result;
 	}
 }

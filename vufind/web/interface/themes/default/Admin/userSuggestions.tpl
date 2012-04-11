@@ -1,10 +1,11 @@
-<div id="bd">
-  <div id="yui-main" class="content">
-    <div class="yui-b first contentbox">
-      <b class="btop"><b></b></b>
-      <div class="yui-gf resulthead">
-        {include file="Admin/menu.tpl"}
-        <div class="yui-u">
+<div id="page-content" class="content">
+  <div id="sidebar">
+    {include file="MyResearch/menu.tpl"}
+    
+    {include file="Admin/menu.tpl"}
+  </div>
+  
+  <div id="main-content">
           <h1>User Suggestions</h1>
           {if $showHidden == false}
           <a href='{$url}/Admin/UserSuggestions'>Hide Hidden Suggestions</a>
@@ -45,9 +46,5 @@
           </div>
           <input type="submit" name="submit" value="Save Changes"/>
           </form>
-        </div>
-      </div>
-      <b class="bbot"><b></b></b>      
-    </div>
   </div>
 </div>

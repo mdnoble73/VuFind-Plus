@@ -178,7 +178,6 @@ window.onload = start;
 			<h2>This error has been logged and we are working on a fix.</h2>
 			<h4>{$error->getMessage()}</h4>
 			<h4>{translate text="Please contact the Library Reference Department for assistance"}<br /></h4>
-    	<h4><a href="mailto:{$supportEmail}">{$supportEmail}</a></h4>
 			<h3> ___ </h3>
 			<h3 id="message"></h3>
 		</div>

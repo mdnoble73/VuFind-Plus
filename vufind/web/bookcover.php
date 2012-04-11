@@ -364,7 +364,7 @@ function dieWithFailImage($bookCoverPath, $size, $category, $id){
 			$useDefaultNoCover = false;
 		}elseif (is_readable("interface/themes/{$configArray['Site']['theme']}/images/$category.png")){
 			$nocoverurl = "interface/themes/{$configArray['Site']['theme']}/images/$category.png";
-			$localFile = 'images/covers/' . $_GET['size'] . '/' . $id . '.png';
+			$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $id . '.png';
 			header('Content-type: image/png');
 			$useDefaultNoCover = false;
 		}elseif (is_readable("interface/themes/default/images/{$category}_{$size}.png")){
@@ -375,7 +375,7 @@ function dieWithFailImage($bookCoverPath, $size, $category, $id){
 			$useDefaultNoCover = false;
 		}elseif (is_readable("interface/themes/default/images/$category.png")){
 			$nocoverurl = "interface/themes/default/images/$category.png";
-			$localFile = 'images/covers/' . $_GET['size'] . '/' . $id . '.png';
+			$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $id . '.png';
 			header('Content-type: image/png');
 			$useDefaultNoCover = false;
 		}

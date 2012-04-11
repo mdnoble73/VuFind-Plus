@@ -87,9 +87,9 @@ class AlphaBrowse{
 				if ($browseType=="author"){
 					$searchLink = "/Author/Home?author=" . urlencode($browseResult['value']);
 				}else if ($browseType=="callnumber"){
-					$searchLink = "/Search/Results?basicType=AllFields&amp;lookfor=" . urlencode($browseResult['value']);
+					$searchLink = "/Search/Results?basicType=AllFields&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
 				}else{
-					$searchLink = "/Search/Results?basicType=" . ucfirst($browseType) . "&amp;lookfor=" . urlencode($browseResult['value']);
+					$searchLink = "/Search/Results?basicType=" . ucfirst($browseType) . "&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
 				}
 			}
 			$browseResult['searchLink'] = $searchLink;
