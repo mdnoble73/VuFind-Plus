@@ -14,3 +14,6 @@
 #loginFormWrapper{
 	width: 350px;
 }
+.ui-autocomplete{
+	font-size:10px;
+}

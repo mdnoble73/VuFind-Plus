@@ -77,6 +77,6 @@ class Edit extends Admin {
   }
 
   function getAllowableRoles(){
-  	return array('epubAdmin');
+  	return array('opacAdmin');
   }
 }
