@@ -326,6 +326,7 @@ class AJAX extends Action {
 
 	function GetEnrichmentInfo(){
 		require_once 'Enrichment.php';
+		global $configArray;
 		$isbn = $_REQUEST['isbn'];
 		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];
@@ -355,9 +356,19 @@ class AJAX extends Action {
 				if (strpos($isbn, ' ') > 0){
 					$isbn = substr($isbn, 0, strpos($isbn, ' '));
 				}
+				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
+				if (isset($record['id'])){
+					$cover .= "&id=" . $record['id'];
+				}
+				if (isset($record['upc'])){
+					$cover .= "&upc=" . $record['upc'];
+				}
+				if (isset($record['format_category'])){
+					$cover .= "&category=" . $record['format_category'][0];
+				}
 				$titles[] = array(
-	        	  'id' => $record['id'],
-			    		'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'] . "&category=" . $record['format_category'][0],
+	        	  'id' => isset($record['id']) ? $record['id'] : '',
+			    		'image' => $cover, 
 			    		'title' => $record['title'],
 			    		'author' => $record['author']
 				);

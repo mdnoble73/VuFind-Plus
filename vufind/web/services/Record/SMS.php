@@ -57,8 +57,9 @@ class SMS extends Record {
 
 		if (isset($_GET['lightbox'])) {
 			// Use for lightbox
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('Record/sms.tpl');
+			$interface->assign('lightbox', true);
+			$interface->assign('title', translate('Text Title'));
+			echo $interface->fetch('Record/sms.tpl');
 		} else {
 			// Display Page
 			$interface->setPageTitle('Text this');

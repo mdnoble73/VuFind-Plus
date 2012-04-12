@@ -121,7 +121,12 @@ function Login(elems, salt, module, action, id, lookfor, message) {
 
 }
 
-function lightbox(){
+function lightbox(left, width, top, height){
+	if (!left) left = '100px';
+	if (!top) top = '100px';
+	if (!width) width = 'auto';
+	if (!height) height = 'auto';
+	
 	var loadMsg = $('#lightboxLoading').html();
 
 	$('#popupbox').html('<div class="lightboxLoadingContents"><div class="lightboxLoadingMessage">' + loadMsg + '</div><img src="' + path + '/images/loading_bar.gif" class="lightboxLoadingImage"/></div>');
@@ -138,13 +143,14 @@ function lightbox(){
 	$('#lightbox').css('height', documentHeight + 'px');
 
 	$('#popupbox').show();
-	$('#popupbox').css('top', new_top + 200 + 'px');
-	$('#popupbox').css('left', '25%');
-	$('#popupbox').css('width', '50%');
-	$('#popupbox').css('height', '50%');
+	$('#popupbox').css('top', top);
+	$('#popupbox').css('left', left);
+	$('#popupbox').css('width', width);
+	$('#popupbox').css('height', height);
 }
 
-function ajaxLightbox(urlToLoad){
+function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
+	
 	var loadMsg = $('#lightboxLoading').html();
 
 	$('#popupbox').innerHTML = '<img src="' + path + '/images/loading.gif" /><br />' + loadMsg;
@@ -159,15 +165,33 @@ function ajaxLightbox(urlToLoad){
 
 	$('#lightbox').show();
 	$('#lightbox').css('height', documentHeight + 'px');
-
-	$('#popupbox').show();
-	$('#popupbox').css('top', new_top + 200 + 'px');
-	$('#popupbox').css('left', '25%');
-	$('#popupbox').css('width', 'auto');
-	$('#popupbox').css('height', 'auto');
 	
 	$.get(urlToLoad, function(data) {
 		$('#popupbox').html(data);
+		
+		$('#popupbox').show();
+		if (parentId){
+			//Automatically position the lightbox over the cursor
+			$("#popupbox").position({
+				my: "top right",
+				at: "top right",
+				of: parentId,
+				collision: "flip"
+			});
+		}else{
+			if (!left) left = '100px';
+			if (!top) top = '100px';
+			if (!width) width = 'auto';
+			if (!height) height = 'auto';
+			
+			$('#popupbox').css('top', top);
+			$('#popupbox').css('left', left);
+			$('#popupbox').css('width', width);
+			$('#popupbox').css('height', height);
+			
+			$(document).scrollTop(0);
+		}
+		$("#popupbox").draggable();
 	});
 }
 
@@ -182,8 +206,8 @@ function showElementInLightbox(title, elementSelector){
 	$('#lightbox').css('height', documentHeight + 'px');
 
 	$('#popupbox').show();
-	$('#popupbox').css('top', new_top + 200 + 'px');
-	$('#popupbox').css('left', '25%');
+	$('#popupbox').css('top', '100px');
+	$('#popupbox').css('left', '100px');
 	$('#popupbox').css('width', 'auto');
 	$('#popupbox').css('height', 'auto');
 	

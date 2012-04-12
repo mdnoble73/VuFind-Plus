@@ -1,3 +1,10 @@
+{if $lightbox}
+<div onmouseup="this.style.cursor='default';" id="popupboxHeader" class="header">
+  <a onclick="hideLightbox(); return false;" href="">close</a>
+  {translate text='Email Title'}
+</div>
+<div id="popupboxContent" class="content">
+{/if}
 <div align="left">
   {if $message}<div class="error">{$message|translate}</div>{/if}
 
@@ -20,3 +27,6 @@
     </div>
   </form>
 </div>
+{if $lightbox}
+</div>
+{/if}

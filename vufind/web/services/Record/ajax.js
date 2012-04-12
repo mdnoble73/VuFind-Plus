@@ -13,9 +13,6 @@ function getSaveStatus(id, elemId) {
 	});
 }
 
-
-
-
 function SendEmail(id, to, from, message, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendEmail&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to) + "&" + "message=" + encodeURIComponent(message);
@@ -206,10 +203,10 @@ function getGoDeeperData(dataType, id, isbn, upc) {
 	var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType) + "&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 	var fullUrl = url + "?" + params;
 	$.ajax( {
-		url : fullUrl,
-		success : function(data) {
-			$('#goDeeperOutput').html(data);
-		}
+	  url : fullUrl,
+	  success : function(data) {
+		  $('#goDeeperOutput').html(data);
+	  }
 	});
 }
 

@@ -266,7 +266,7 @@ function redrawSaveStatus() {literal}{{/literal}
             <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
           </a>
           <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="getLightbox('Record', 'GoDeeper', '{$id|escape}', null, '{translate text="Go Deeper"}', undefined, undefined, undefined, '5%', '90%', 50, '85%'); return false;">
+            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
             <img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
           </div>
         </div>
@@ -309,13 +309,13 @@ function redrawSaveStatus() {literal}{{/literal}
 		    <ul>
 		      
 		      {if !$tabbedDetails}
-		        <li><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" onclick='getLightbox("Record", "Cite", "{$id|escape}", null, "{translate text='Cite this'}"); return false;'>{translate text="Cite this"}</a></li>
+		        <li><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></li>
 		      {/if}
 		      {if $showTextThis == 1}
-		        <li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+		        <li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
 		      {/if}
 		      {if $showEmailThis == 1}
-		        <li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('Record', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+		        <li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
 		      {/if}
 		      {if is_array($exportFormats) && count($exportFormats) > 0}
 		        <li>

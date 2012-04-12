@@ -58,11 +58,6 @@ $timer->logTime("Initialize Memcache");
 
 global $logger;
 $logger = new Logger();
-/*if ($configArray['System']['debug']){
- $inputVariables = print_r($_GET, true);
- $logger->log("Loading bookcovers $inputVariables", PEAR_LOG_INFO);
- }*/
-//$logger->log("Starting to load bookcover", PEAR_LOG_INFO);
 
 if (!function_exists('vufind_autoloader')){
 	// Set up autoloader (needed for YAML)
@@ -716,12 +711,8 @@ function setupHeaders($filename){
 	header("Last-Modified: $last_modified");
 	header("ETag: $etag");
 	// See if the client has provided the required headers
-	$if_modified_since = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ?
-	stripslashes($_SERVER['HTTP_IF_MODIFIED_SINCE']) :
-	false;
-	$if_none_match = isset($_SERVER['HTTP_IF_NONE_MATCH']) ?
-	stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) :
-	false;
+	$if_modified_since = isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) ?stripslashes($_SERVER['HTTP_IF_MODIFIED_SINCE']) : false;
+	$if_none_match = isset($_SERVER['HTTP_IF_NONE_MATCH']) ? 	stripslashes($_SERVER['HTTP_IF_NONE_MATCH']) : 	false;
 	if (!$if_modified_since && !$if_none_match) {
 		return;
 	}

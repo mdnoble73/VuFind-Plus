@@ -41,8 +41,8 @@ class Email extends Record
 
 		// Display Page
 		if (isset($_GET['lightbox'])) {
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('Record/email.tpl');
+			$interface->assign('lightbox', true);
+			echo $interface->fetch('Record/email.tpl');
 		} else {
 			$interface->setPageTitle('Email Record');
 			$interface->assign('subTemplate', 'email.tpl');

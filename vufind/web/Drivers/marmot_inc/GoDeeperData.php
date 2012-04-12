@@ -2,7 +2,7 @@
 require_once('Drivers/marmot_inc/ISBNConverter.php') ;
 
 class GoDeeperData{
-	function getGoDeeperOptions($isbn, $upc, $getDefaultData){
+	function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
 		global $configArray;
 		global $memcache;
 		global $timer;
@@ -15,7 +15,7 @@ class GoDeeperData{
 			return $validEnrichmentTypes;
 		}
 		
-		$goDeeperOptions = $memcache->get("go_deeper_options_$isbn_$upc");
+		$goDeeperOptions = $memcache->get("go_deeper_options_{$isbn}_{$upc}");
 		if (!$goDeeperOptions){
 
 			//Marmot is maybe planning on using Syndetics Go-Deeper Data right now.
@@ -102,7 +102,7 @@ class GoDeeperData{
 			if (count($validEnrichmentTypes) > 0){
 				$goDeeperOptions['defaultOption'] = $defaultOption;
 			}
-			$memcache->set("go_deeper_options_$isbn_$upc", $goDeeperOptions, 0, $configArray['Caching']['go_deeper_options']);
+			$memcache->set("go_deeper_options_{$isbn}_{$upc}", $goDeeperOptions, 0, $configArray['Caching']['go_deeper_options']);
 		}
 
 		return $goDeeperOptions;
@@ -153,7 +153,7 @@ class GoDeeperData{
 	function getTableOfContents($isbn, $upc){
 		global $configArray;
 		global $memcache;
-		$tocData = $memcache->get("syndetics_summary_{$isbn}_{$upc}");
+		$tocData = $memcache->get("syndetics_toc_{$isbn}_{$upc}");
 			
 		if (!$tocData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -184,7 +184,7 @@ class GoDeeperData{
 						}
 					}
 				}
-	
+				
 			}catch (Exception $e) {
 				$logger = new Logger();
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERROR);
@@ -363,7 +363,7 @@ class GoDeeperData{
 					}
 				}
 	
-				$memcache->set("syndetics_excerpt_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_excerpt']);
+				$memcache->set("syndetics_excerpt_{$isbn}_{$upc}", $excerptData, 0, $configArray['Caching']['syndetics_excerpt']);
 			}catch (Exception $e) {
 				$logger = new Logger();
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERROR);

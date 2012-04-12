@@ -35,8 +35,8 @@ class GoDeeper extends Record
 		}
 
 		if (isset($_GET['lightbox'])) {
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('Record/goDeeper.tpl');
+			$interface->assign('title', translate("Additional information about this title"));
+			echo $interface->fetch('Record/goDeeper.tpl');
 
 		} else {
 			$interface->setPageTitle(translate('Go Deeper'));

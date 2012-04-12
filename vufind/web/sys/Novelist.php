@@ -171,7 +171,7 @@ class Novelist{
                 'publicationDate' => (string)$item->PublicationDate,
                 'isbn' => $isbn13,
                 'isbn10' => $isbn10,
-                'upc' => $ownedRecord['upc'][0],
+                'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
                 'recordId' => $ownedRecord['id'],
                 'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
                 'libraryOwned' => true,
