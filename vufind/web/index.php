@@ -714,9 +714,11 @@ function handlePEARError($error, $method = null){
 		$errorAlreadyOccurred = true;
 	}
 
-	//Clear any output that has been generated so far so the user just gets the error message. 
-	@ob_clean();
-	header("Content-Type: text/html");
+	//Clear any output that has been generated so far so the user just gets the error message.
+	if (!$configArray['System']['debug']){ 
+		@ob_clean();
+		header("Content-Type: text/html");
+	}
 	
 	// Display an error screen to the user:
 	global $interface;

@@ -368,6 +368,16 @@ function checkAll(){
 		}
 	}
 }
+function enableSearchTypes(){
+	var searchSource = $("#searchSource");
+	if (searchSource.val() != 'genealogy'){
+		$("#basicSearchTypes").show();
+		$("#genealogySearchTypes").hide();
+	}else{
+		$("#genealogySearchTypes").show();
+		$("#basicSearchTypes").hide();
+	}
+}
 
 function startSearch(){
 	// Stop auto complete since there is a search running already

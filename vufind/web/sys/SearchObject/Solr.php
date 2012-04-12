@@ -241,6 +241,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->initAdvancedSearch();
 		}
 
+		$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
 		//********************
 		// Author screens - handled slightly differently
 		if ($module == 'Author') {
@@ -259,7 +260,7 @@ class SearchObject_Solr extends SearchObject_Base
 				// Prepare the search as a normal author search
 				$this->searchTerms[] = array(
                     'index'   => 'Author',
-                    'lookfor' => strip_tags($_REQUEST['author'])
+                    'lookfor' => trim(strip_tags($_REQUEST['author']))
 				);
 			}
 
@@ -302,7 +303,7 @@ class SearchObject_Solr extends SearchObject_Base
 		if (isset($_REQUEST['q'])) {
 			$this->query = strip_tags($_REQUEST['q']);
 		}
-
+		
 		return true;
 	} // End init()
 
@@ -1081,7 +1082,12 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->stopQueryTimer();
 
 		// How many results were there?
-		$this->resultsTotal = $this->indexResult['response']['numFound'];
+		if (!isset($this->indexResult['response']['numFound'])){
+			//An error occurred
+			$this->resultsTotal = 0;
+		}else{
+			$this->resultsTotal = $this->indexResult['response']['numFound'];
+		}
 
 		// Process spelling suggestions if no index error resulted from the query
 		if ($this->spellcheck && !isset($this->indexResult['error'])) {
@@ -1314,7 +1320,9 @@ class SearchObject_Solr extends SearchObject_Base
 		$list = array();
 
 		// If we have no facets to process, give up now
-		if (!is_array($this->indexResult['facet_counts']['facet_fields']) && !is_array($this->indexResult['facet_counts']['facet_dates'])) {
+		if (!isset($this->indexResult['facet_counts'])){
+			return $list;
+		}elseif (!is_array($this->indexResult['facet_counts']['facet_fields']) && !is_array($this->indexResult['facet_counts']['facet_dates'])) {
 			return $list;
 		}
 
