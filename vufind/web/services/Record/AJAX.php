@@ -32,12 +32,12 @@ class AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if ($method == 'RateTitle' || $method == 'GetSeriesTitles' || $method == 'GetComments' || $method == 'checkPurchaseLinks'){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'checkPurchaseLinks', 'SaveComment', 'SaveTag', 'SaveRecord'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if ($method == 'GetGoDeeperData'){
+		}else if (in_array($method, array('GetGoDeeperData'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -75,17 +75,19 @@ class AJAX extends Action {
 		require_once 'services/Record/Save.php';
 		require_once 'services/MyResearch/lib/User_list.php';
 
+		$result = array();
 		if (UserAccount::isLoggedIn()) {
 			$saveService = new Save();
 			$result = $saveService->saveRecord();
 			if (!PEAR::isError($result)) {
-				return "<result>Done</result>";
+				$result['result'] = "Done";
 			} else {
-				return "<result>Error</result>";
+				$result['result'] = "Error";
 			}
 		} else {
-			return "<result>Unauthorized</result>";
+			$result['result'] = "Unauthorized";
 		}
+		return json_encode($result);
 	}
 
 	function GetSaveStatus()
@@ -156,38 +158,6 @@ class AJAX extends Action {
 		}
 	}
 
-	function GetTags()
-	{
-		require_once 'services/MyResearch/lib/Resource.php';
-
-		$return = "<result>\n";
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		if ($resource->find(true)) {
-			$tagList = $resource->getTags();
-			foreach ($tagList as $tag) {
-				$return .= "  <Tag count=\"" . $tag->cnt . "\">" . htmlspecialchars($tag->tag) . "</Tag>\n";
-			}
-		}
-
-		$return .= '</result>';
-		return $return;
-	}
-
-	function SaveTag()
-	{
-		$user = UserAccount::isLoggedIn();
-		if ($user === false) {
-			return "<result>Unauthorized</result>";
-		}
-
-		require_once 'AddTag.php';
-		AddTag::save();
-
-		return '<result>Done</result>';
-	}
-
 	function SaveComment()
 	{
 		require_once 'services/MyResearch/lib/Resource.php';
@@ -204,7 +174,7 @@ class AJAX extends Action {
 		}
 		$resource->addComment($_REQUEST['comment'], $user);
 
-		return '<result>Done</result>';
+		return json_encode(array('result' => 'Done'));
 	}
 
 	function DeleteComment()
@@ -336,6 +306,8 @@ class AJAX extends Action {
 			$resource->insert();
 		}
 		$resource->addRating($rating, $user);
+		global $memcache;
+		$memcache->delete('rating_' . $_GET['id']);
 
 		return $rating;
 	}

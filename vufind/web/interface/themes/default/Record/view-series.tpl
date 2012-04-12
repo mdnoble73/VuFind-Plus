@@ -1,8 +1,3 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-<script type="text/javascript" src="{$path}/js/description.js"></script>
-
 {* Main Listing *}
 {if (isset($title)) }
 <script type="text/javascript">
@@ -107,7 +102,7 @@
 					  </div>
 				      <div id="saveLink{$record.recordId|escape}">
 				        {if $showFavorites == 1} 
-				        <a href="{$path}/Record/{$record.recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+				        <a href="{$path}/Resource/Save?id={$record.recordId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.recordId|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 				        {/if}
 				        {if $user}
 				        	<div id="lists{$record.recordId|escape}"></div>

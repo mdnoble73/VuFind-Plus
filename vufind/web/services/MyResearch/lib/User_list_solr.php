@@ -38,7 +38,7 @@ class User_list_solr{
 		$timer->logTime('loaded resources so it can be saved to solr');
 		$doc = array();
 		$doc['id'] = 'list' . $fullList->id;
-		$doc['id_sort'] = -1;
+		//$doc['id_sort'] = -1;
 		$doc['recordtype'] = 'list';
 		$doc['title'] = $fullList->title;
 		$doc['title_proper'] = $fullList->title;

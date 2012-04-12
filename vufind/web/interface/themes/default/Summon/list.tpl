@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script type="text/javascript" src="{$path}/services/Summon/ajax.js"></script>
 
 {* Main Listing *}

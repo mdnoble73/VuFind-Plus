@@ -125,7 +125,7 @@ class Horizon implements DriverInterface{
 				$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
 				$statusSubfield     = $configArray['Catalog']['statusSubfield'];
 				foreach ($items as $itemIndex => $item){
-					$barcode = $item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '';
+					$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 					//Check to see if we already have data for this barcode 
 					global $memcache;
 					$itemData = $memcache->get('item_data_' . $barcode);
@@ -133,19 +133,19 @@ class Horizon implements DriverInterface{
 						//No data exists
 					
 						$itemData = array();
-						$itemId = $item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '';
+						$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
 						//Get the barcode from the horizon database
-						$itemData['locationCode'] = strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' );
+						$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 						$itemData['location'] = $this->translateLocation($itemData['locationCode']);
 						
 						if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 							$itemData['callnumber'] = $callNumber;
 						}else{
-							$itemData['callnumber'] = ($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
+							$itemData['callnumber'] = trim($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
 						}
 						$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
 						//Set default status
-						$itemData['status'] = $item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '';
+						$itemData['status'] = trim($item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '');
 						if ($this->useDb){
 							//Get updated status from database
 							//Query the database for realtime availability
@@ -157,7 +157,7 @@ class Horizon implements DriverInterface{
 								$timer->logTime("Got status from database item $itemIndex");
 							}
 						}
-						$itemData['availability'] = preg_match("/({$configArray['Catalog']['availableStatuses']})/i", $itemData['status']);
+						$itemData['availability'] = preg_match("/^({$configArray['Catalog']['availableStatuses']})$/i", $itemData['status']);
 						//Make the item holdable by default.  Then check rules to make it non-holdable.
 						$itemData['holdable'] = true;
 						//Make lucky day items not holdable
@@ -172,7 +172,7 @@ class Horizon implements DriverInterface{
 							}
 						}
 						//Online items are not holdable.
-						if (!preg_match("/({$configArray['Catalog']['nonHoldableStatuses']})/i", $itemData['status'])){
+						if (preg_match("/^({$configArray['Catalog']['nonHoldableStatuses']})$/i", $itemData['status'])){
 							$itemData['holdable'] = false;
 						}
 	
@@ -330,6 +330,7 @@ class Horizon implements DriverInterface{
 					foreach($holdSections as $key => $hold){
 						$hold['recordId'] = $hold['id'];
 						if ($hold['id'] == $resourceInfo->record_id){
+							$hold['shortId'] = $hold['id'];
 							//Load title, author, and format information about the title
 							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
 							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';
@@ -1533,6 +1534,7 @@ private $transactions = array();
 				while ($resourceInfo->fetch()){
 					foreach ($transactions as $key => $transaction){
 						if ($transaction['id'] == $resourceInfo->record_id){
+							$transaction['shortId'] = $transaction['id'];
 							//Load title, author, and format information about the title
 							$transaction['recordId'] = $transaction['id'];
 							$transaction['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';

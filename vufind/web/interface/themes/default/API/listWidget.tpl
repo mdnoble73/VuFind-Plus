@@ -13,17 +13,13 @@
   {* Link in jquery first *}
   <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
   <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
+  <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
   
   {css filename="title-scroller.css"}
   {css filename="jquery.tooltip.css"}
   {css filename="tooltip.css"}
-  <script type="text/javascript" src="{$path}/js/jquery.waitforimages.js"></script>
   
   {* Code for description pop-up and other tooltips.*}
-  <script type="text/javascript" src="{$path}/js/description.js"></script>
-  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
-  <script type="text/javascript" src="{$path}/js/tooltip/jquery.tooltip.js"></script>
-      
   <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
   {if $widget->customCss}
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />

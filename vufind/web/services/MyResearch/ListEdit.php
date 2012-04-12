@@ -44,6 +44,7 @@ class ListEdit extends Action
 			$_GET['id'] = $_REQUEST['recordId'];
 		}
 		$interface->assign('recordId', isset($_GET['id']) ? $_GET['id'] : false);
+		$interface->assign('source', isset($_GET['source']) ? $_GET['source'] : false);
 
 		// Check if user is logged in
 		if (!$this->user) {
@@ -60,8 +61,8 @@ class ListEdit extends Action
 
 		// Display Page
 		if (isset($_GET['lightbox'])) {
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('MyResearch/list-form.tpl');
+			$interface->assign('title', translate('Create new list'));
+			echo $interface->fetch('MyResearch/list-form.tpl');
 		} else {
 			if (isset($_REQUEST['submit'])) {
 				$result = $this->addList();

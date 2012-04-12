@@ -186,7 +186,7 @@
                 </div>
                   <div id="saveLink{$record.recordId|escape}">
                     {if $showFavorites == 1} 
-                    <a href="{$url}/Record/{$record.recordId|escape:"url"}/Save" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+                    <a href="{$url}/Resource/Save?id={$record.recordId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$record.recordId|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
                     {/if}
                     {if $user}
                       <div id="lists{$record.recordId|escape}"></div>
@@ -238,7 +238,7 @@
       {translate text='You do not have any items checked out'}.
     {/if}
   {else}
-    {include file="MyResearch/catalog-login.tpl"}
+    You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
   {/if}
   </div>
 </div>

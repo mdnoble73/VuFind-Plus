@@ -97,6 +97,7 @@ class AddTag extends Action {
 		// existing one):
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
+		$resource->source = $_REQUEST['source'];
 		if (!$resource->find(true)) {
 			$resource->insert();
 		}

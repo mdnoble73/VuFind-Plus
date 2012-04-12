@@ -1,6 +1,12 @@
-<h2>{translate text='add_favorite_prefix'} {$record.title|escape:"html"} {translate text='add_favorite_suffix'}</h2>
-<form onSubmit="saveRecord('{$id|escape}', this, {literal}{{/literal}add: '{translate text='Add to favorites'}', error: '{translate text='add_favorite_fail'}'{literal}}{/literal}); return false;">
+<div onmouseup="this.style.cursor='default';" id="popupboxHeader" class="header">
+	<a onclick="hideLightbox(); return false;" href="">close</a>
+	{translate text='add_favorite_prefix'} {$record->title|escape:"html"} {translate text='add_favorite_suffix'}
+</div>
+<div id="popupboxContent" class="content">
+<form onSubmit="saveRecord('{$id|escape}', '{$source|escape}', this, {literal}{{/literal}add: '{translate text='Add to favorites'}', error: '{translate text='add_favorite_fail'}'{literal}}{/literal}); return false;">
 <input type="hidden" name="submit" value="1" />
+<input type="hidden" name="record_id" value="{$id|escape}" />
+<input type="hidden" name="source" value="{$source|escape}" />
 {if !empty($containingLists)}
   <p>
   {translate text='This item is already part of the following list/lists'}:<br />
@@ -35,8 +41,8 @@
         {/foreach}
       </select>
       {/if}
-      <a href="{$path}/MyResearch/ListEdit?id={$id|escape:"url"}"
-         onclick="getLightbox('MyResearch', 'ListEdit', '{$id|escape}', '', 'Create new list', 'Record', 'Save', '{$id|escape}'); return false;">{translate text="or create a new list"}</a>
+      <a href="{$path}/MyResearch/ListEdit?id={$id|escape:"url"}&amp;source={$source|escape}"
+         onclick="ajaxLightbox('{$path}/MyResearch/ListEdit?id={$id|escape}&source={$source|escape}&lightbox'); return false;">{translate text="or create a new list"}</a>
     </td>
   </tr>
   {if $showLists}
@@ -49,3 +55,4 @@
   {/if}
 </table>
 </form>
+</div>

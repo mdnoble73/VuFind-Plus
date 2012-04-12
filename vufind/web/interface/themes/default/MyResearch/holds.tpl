@@ -243,7 +243,7 @@
       							  </div>
       						      <div id="saveLink{$record.recordId|escape}">
       						        {if $showFavorites == 1} 
-      						        <a href="{$url}/Record/{$record.recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+      						        <a href="{$url}/Resource/Save?id={$record.recordId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.recordId|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       						        {/if}
       						        {if $user}
       						        	<div id="lists{$record.recordId|escape}"></div>
@@ -262,6 +262,7 @@
       						    </script>
       						    
                       {assign var=id value=$record.recordId}
+                      {assign var=shortId value=$record.shortId}
                       {include file="Record/title-review.tpl"}
       						  </div>
                     
@@ -327,7 +328,7 @@
 				{literal} }); {/literal}
 			</script>
 		{else} {* Check to see if user is logged in *}
-			{include file="MyResearch/catalog-login.tpl"}
+			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}
 	</div>
 </div>

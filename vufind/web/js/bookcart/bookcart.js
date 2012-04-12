@@ -76,31 +76,34 @@ $(document).ready(function() {
 function bagLoginUser(){
 	var url = path + "/AJAX/JSON?method=loginUser"
 	$.ajax({url: url,
-		    data: {username: $('#bag_username').val(), password: $('#bag_password').val()},
+			data: {username: $('#bag_username').val(), password: $('#bag_password').val()},
 			success: function(response){
-		    	if (response.result.success == true){
-		    		//Get all of the lists for the user. 
-		    		loadListsForUser(); 
-		    		//Update the main display to show the user is logged in
-	                // Hide "log in" options and show "log out" options:
-                    $('.loginOptions').hide();
-                    $('.logoutOptions').show();
-                    $('#myAccountNameLink').html(response.result.name);
-	                // Update user save statuses if the current context calls for it:
-	                if (typeof(doGetSaveStatuses) == 'function') {
-	                    doGetSaveStatuses();
-	                } else if (typeof(redrawSaveStatus) == 'function') {
-	                    redrawSaveStatus();
-	                }
+				if (response.result.success == true){
+					//Get all of the lists for the user. 
+					loadListsForUser(); 
+					//Update the main display to show the user is logged in
+					// Hide "log in" options and show "log out" options:
+					$('.loginOptions').hide();
+					$('.logoutOptions').show();
+					$('#myAccountNameLink').html(response.result.name);
+					// Update user save statuses if the current context calls for it:
+					if (typeof(doGetSaveStatuses) == 'function') {
+						doGetSaveStatuses();
+					} else if (typeof(redrawSaveStatus) == 'function') {
+						redrawSaveStatus();
+					}
 
-		    		//Update the book cart display to show that the user is logged in 
+					//Update the book cart display to show that the user is logged in 
 					$(".logged-in-button, .email-search").show(); $(".logged-out-button, .login-button").hide();
 					//show controls to add to a list
 					toggleBagActionItems(true); 
 					$('#save_to_my_list_tags').show();  
-		    	}else{
-		    		alert("That login was not recognized.  Please try again.");
-		    	}
+				}else{
+					alert("That login was not recognized.  Please try again.");
+				}
+			},
+			error: function(){
+				alert("We were unable to process your information.  Please try again.");
 			},
 			dataType: 'json',
 			type: 'post' 
@@ -111,12 +114,12 @@ function loadListsForUser(){
 	try{
 		var url = path + "/AJAX/JSON?method=getUserLists";
 		$.getJSON(url,
-			    function(data){
+				function(data){
 					var sel = $("#bookbag_list_select");
-				    sel.empty();
-				    for (var i=0; i<data.result.length; i++) {
-				      sel.append('<option value="' + data.result[i].id + '">' + data.result[i].title + '</option>');
-				    }
+					sel.empty();
+					for (var i=0; i<data.result.length; i++) {
+					  sel.append('<option value="' + data.result[i].id + '">' + data.result[i].title + '</option>');
+					}
 				} 
 		);
 	}catch (err){
@@ -178,15 +181,15 @@ function toggleInBag(id, title, checkBox) {
 /** Create a list and then save all items in the book cart to it */
 function bagAddList(form, failMsg){
 	for (var i = 0; i < form.public.length; i++) {
-        if (form.public[i].checked) {
-            var isPublic = form.public[i].value;
-        }
-    }
+		if (form.public[i].checked) {
+			var isPublic = form.public[i].value;
+		}
+	}
 	var url = path + "/MyResearch/AJAX";
 	var params = "method=AddList&" +
-	    "title=" + encodeURIComponent(form.title.value) + "&" +
-	    "public=" + isPublic + "&" +
-	    "desc=" + encodeURIComponent(form.desc.value);
+		"title=" + encodeURIComponent(form.title.value) + "&" +
+		"public=" + isPublic + "&" +
+		"desc=" + encodeURIComponent(form.desc.value);
 	try{
 		$.get(url + "?" + params, function(data){
 			var result = $(data).find("result").text();
@@ -195,8 +198,8 @@ function bagAddList(form, failMsg){
 				var newId = $(data).find("newId").text();
 				//Add the new list to the list of valid lists, and select it
 				var sel = $("#bookbag_list_select");
-			    sel.append('<option value="' + newId + '" selected="selected">' + form.title.value + '</option>');
-			    //Add all items to the list
+				sel.append('<option value="' + newId + '" selected="selected">' + form.title.value + '</option>');
+				//Add all items to the list
 				saveToMyList();
 			}else{
 				alert(result > 0 ? result : failMsg);
@@ -265,7 +268,7 @@ function _saveBagAsCookie() {
 	var bag = JSON.stringify(bookBag);
 	var date = new Date();
 	//Save as a session cookie
-    $.cookie(BAG_COOKIE, bag, {path: '/'});
+	$.cookie(BAG_COOKIE, bag, {path: '/'});
 }
 
 /** Empties the bag */

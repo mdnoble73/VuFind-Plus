@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script type="text/javascript" src="{$path}/services/Worldcat/ajax.js"></script>
 
 {* Main Listing *}

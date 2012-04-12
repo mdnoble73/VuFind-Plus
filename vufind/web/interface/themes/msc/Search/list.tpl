@@ -1,8 +1,3 @@
-<script  type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-<script  type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-<script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-<script  type="text/javascript" src="{$path}/js/description.js"></script>
-
 {* Main Listing *}
 {if (isset($title)) }
 <script type="text/javascript">

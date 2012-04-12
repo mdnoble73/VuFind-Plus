@@ -1,4 +1,3 @@
-<script  type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
     alert("{$title}");

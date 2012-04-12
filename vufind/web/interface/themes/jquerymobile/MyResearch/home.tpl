@@ -28,7 +28,7 @@
 	    	<a href="{$path}/MyResearch/OverdriveWishList" data-role="button" rel="external">{translate text='Wish List'} (<span id="wishlistOverDrivePlaceholder">?</span>)</a>
 	    </div>
 		{else}
-			{include file="MyResearch/catalog-login.tpl"}
+			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}
 	</div>
 	{include file="footer.tpl"}

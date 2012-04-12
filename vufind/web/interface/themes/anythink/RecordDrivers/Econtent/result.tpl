@@ -87,7 +87,7 @@
         </script>
       {/if}
       {if $showFavorites == 1} 
-        <a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Save" onclick="getLightbox('EcontentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
     {include file="EcontentRecord/title-review.tpl" id=$summId}

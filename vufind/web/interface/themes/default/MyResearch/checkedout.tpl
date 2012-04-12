@@ -196,7 +196,7 @@
 							  </div>
 						      <div id="saveLink{$record.id|escape}">
 						        {if $showFavorites == 1} 
-						        <a href="{$url}/Record/{$record.id|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.id|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.id|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+						        <a href="{$url}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 						        {/if}
 						        {if $user}
 						        	<div id="lists{$record.id|escape}"></div>
@@ -206,12 +206,13 @@
   						        {/if}
   						    </div>
                   {assign var=id value=$record.id}
+                  {assign var=shortId value=$record.shortId}
                   {include file="Record/title-review.tpl"}
 						    </div>
 						    <script type="text/javascript">
 						      $(
 						         function() {literal} { {/literal}
-						             $('.rate{$record.shortId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$record.id}', rating:0.0, postHref: '{$url}/Record/{$record.id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+						             $('.rate{$record.shortId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$record.id}', rating:0.0, postHref: '{$path}/Record/{$record.id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 						         {literal} } {/literal}
 						      );
 						    </script>
@@ -248,7 +249,7 @@
 	    {translate text='You do not have any items checked out'}.
     {/if}
   {else}
-    {include file="MyResearch/catalog-login.tpl"}
+    You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
   {/if}
   </div>
 </div>

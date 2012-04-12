@@ -1,4 +1,3 @@
-{js filename="ajax_common.js"}
 
 {* Main Listing *}
 <div id="bd">

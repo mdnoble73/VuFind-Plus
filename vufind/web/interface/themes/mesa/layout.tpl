@@ -45,29 +45,16 @@
 	    
 	    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
 	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
-	    
+	    <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
+      
 	    {if $enableBookCart}
-	    <script type="text/javascript" src="{$path}/js/bookcart/jquery.blockUI.js"></script>
 	    <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-	    <script type="text/javascript" src="{$path}/js/bookcart/jquery.cookie.js"></script>
-		  <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
+	    <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
 		  {/if}
 	    
-	    <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
-
-		  <script type="text/javascript" src="{$path}/js/starrating/jquery.rater.js"></script>
-		  
-		  <script type="text/javascript" src="{$path}/js/autofill.js"></script>
-		
-		  <script type="text/javascript" src="{$path}/js/tooltip/lib/jquery.bgiframe.js"></script>
-		  <script type="text/javascript" src="{$path}/js/tooltip/jquery.tooltip.js"></script>
-		  
-			<script type="text/javascript" src="{$path}/js/jquery.waitforimages.js"></script>
 		  <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
-      <script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
-			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
+      <script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
 			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-			<script type="text/javascript" src="{$path}/js/description.js"></script>
 			
 			<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
 		  
@@ -75,7 +62,6 @@
     
     {* Files that should not be combined *}
     {if $includeAutoLogoutCode == true}
-    <script  type="text/javascript" src="{$path}/js/jquery.idle-timer.js"></script>
     <script  type="text/javascript" src="{$path}/js/autoLogout.js"></script>
     {/if}
   

@@ -1,8 +1,8 @@
-<div id="page-content" class="content">
-	{if $message}<div class="error">{$message|translate}</div>{/if}
-	<div class="resulthead">
-	<h3>{translate text='Login to your account'}</h3>
-	</div>
+<div onmouseup="this.style.cursor='default';" id="popupboxHeader" class="header">
+	<a onclick="hideLightbox(); return false;" href="">close</a>
+	{translate text='Login to your account'}
+</div>
+<div id="popupboxContent" class="content">
 	<div id='ajaxLoginForm'>
 		<form method="post" action="{$path}/MyResearch/Home" id="loginForm">
 			<div id='loginFormFields'>

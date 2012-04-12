@@ -1,6 +1,6 @@
 {if (isset($title)) }
 <script type="text/javascript">
-    alert("{$title}");
+	alert("{$title}");
 </script>
 {/if}
 <script type="text/javascript" src="{$path}/js/readingHistory.js" ></script>
@@ -180,10 +180,10 @@
           </div>
         {else}
           <div class="page">
-            {include file="MyResearch/catalog-login.tpl"}
+            You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
           </div>
         {/if}
+	</div>
 </div>
-  </div>
 
 

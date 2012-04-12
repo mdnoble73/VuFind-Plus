@@ -35,11 +35,7 @@ class ConsolidatedJs extends Action {
 		header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');
 
     $fullJs .= "\r\n/* jquery-1.5.1-min.js */\r\n";
-    $fullJs .= file_get_contents('/js/jquery-1.5.1.min.js', true);
-		$fullJs .= "\r\n/* yahoo-dom-event.js */\r\n";
-    $fullJs .= file_get_contents('/js/yui/yahoo-dom-event.js', true);
-    $fullJs .= "\r\n/* yahoo-min.js.js */\r\n";
-    $fullJs .= file_get_contents('/js/yui/yahoo-min.js', true);
+    $fullJs .= file_get_contents('/js/jquery-1.7.1.min.js', true);
     $fullJs .= "\r\n/* event-min.js */\r\n";
     $fullJs .= file_get_contents('/js/yui/event-min.js', true);
     $fullJs .= "\r\n/* connection-min.js */\r\n";
@@ -76,8 +72,6 @@ class ConsolidatedJs extends Action {
     $fullJs .= file_get_contents('/js/tooltip/jquery.tooltip.js', true);
     $fullJs .= "\r\n/* title-scroller.js */\r\n";
     $fullJs .= file_get_contents('/js/title-scroller.js', true);
-    $fullJs .= "\r\n/* ajax_common.js */\r\n";
-    $fullJs .= file_get_contents('/js/ajax_common.js', true);
     $fullJs .= "\r\n/* record ajax.js */\r\n";
     $fullJs .= file_get_contents('/services/Record/ajax.js', true);
     $fullJs .= "\r\n/* search ajax.js */\r\n";

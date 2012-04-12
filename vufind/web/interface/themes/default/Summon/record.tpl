@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script type="text/javascript" src="{$path}/services/Summon/ajax.js"></script>
 
 <div id="bd">
@@ -174,7 +173,7 @@
               <td>
                 <span style="float:right;">
                   <a href="{$url}/Record/{$id}/AddTag" class="tool add"
-                     onclick="getLightbox('Record', 'AddTag', '{$id}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add"}</a>
+                     onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
                 </span>
                 <div id="tagList">
                   {if $tagList}

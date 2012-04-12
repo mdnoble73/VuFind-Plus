@@ -13,24 +13,8 @@ function getSaveStatus(id, elemId) {
 	});
 }
 
-function saveRecord(id, formElem, strings) {
-	if (loggedIn){
-		ajax
-		successCallback = function() {
-			// Highlight the save link to indicate that the content is saved:
-			$('#saveLink').addClass('savedFavorite');
 
-			// Redraw tag list:
-			GetTags(id, 'tagList', strings);
-		};
-		performSaveRecord(id, formElem, strings, 'VuFind', successCallback);
-	}else{
-		ajaxLogin(function (){
-			saveRecord(id, formElem, strings);
-		});
-	}
-	return false;
-}
+
 
 function SendEmail(id, to, from, message, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
@@ -46,100 +30,52 @@ function SendSMS(id, to, provider, strings) {
 
 
 
-function SaveTag(id, formElem, strings) {
-	var tags = formElem.elements['tag'].value;
-
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=SaveTag&tag=" + encodeURIComponent(tags);
-
-	$.ajax({
-		url: url + '?' + params,
-		success : function(data) {
-			var result = data ? data.result : false;
-			if (result && result.length > 0) {
-				if (result == "Unauthorized") {
-					document.forms['loginForm'].elements['followup'].value = 'SaveRecord';
-					popupMenu('loginBox');
-				} else {
-					GetTags(id, 'tagList', strings);
-					document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
-					setTimeout("hideLightbox();", 3000);
-				}
-			} else {
-				document.getElementById('popupbox').innerHTML = strings.save_error;
-			}
-		},
-		error : function() {
-			document.getElementById('popupbox').innerHTML = strings.save_error;
-		}
-	});
-}
-
-function GetTags(id, elemId, strings) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetTags";
-	$.ajax({
-		url: url + '?' + params,
-		success : function(data) {
-			if (data.result) {
-				var tags = data.result.Tag;
-				var output = "";
-				if (tags && tags.length > 0) {
-					for (i = 0; i < tags.length; i++) {
-						if (i > 0) {
-							output = output + ", ";
-						}
-						output = output + '<a href="' + path + '/Search/Results?tag=' + encodeURIComponent(tags.item(i).childNodes[0].nodeValue) + '">'
-								+ jsEntityEncode(tags.item(i).childNodes[0].nodeValue) + '</a> (' + tags.item(i).getAttribute('count') + ")";
-					}
-				}
-				document.getElementById(elemId).innerHTML = output;
-			} else {
-				document.getElementById(elemId).innerHTML = strings.load_error;
-			}
-		},
-		error : function() {
-			document.getElementById(elemId).innerHTML = strings.load_error;
-		}
-	});
-}
-
 function SaveComment(id, shortId, strings) {
-	$('#userreview' + shortId).slideUp();
-	var comment = $('#comment' + shortId).val();
-
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
-	$.ajax({
-		url: url + '?' + params,
-		success : function(data) {
-			var result = false;
-			if (data) {
-				result = data.result;
-			}
-			if (result && result.length > 0) {
-				if (result == "Done") {
-					$('#comment' + shortId).val('');
-					if ($('#commentList').length > 0) {
-						LoadComments(id, strings);
-					} else {
-						alert('Thank you for your review.');
+	if (loggedIn){
+		if (shortId == null || shortId == ''){
+			shortId = id;
+		}
+		$('#userreview' + shortId).slideUp();
+		var comment = $('#comment' + shortId).val();
+	
+		var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
+		$.ajax({
+			url: url + '?' + params,
+			dataType: 'json',
+			success : function(data) {
+				var result = false;
+				if (data) {
+					result = data.result;
+				}
+				if (result && result.length > 0) {
+					if (result == "Done") {
+						$('#comment' + shortId).val('');
+						if ($('#commentList').length > 0) {
+							LoadComments(id, strings);
+						} else {
+							alert('Thank you for your review.');
+						}
+					}else{
+						alert("Error: Your review was not saved successfully");
 					}
 				} else {
-					getLightbox('AJAX', 'Login', id, null, strings.save_title, '', '', '', '10%', '80%', '50%', '300');
+					alert("Error: Your review was not saved successfully");
 				}
-			} else {
-				alert(strings.save_error);
+			},
+			error : function() {
+				if (strings.save_error.length == 0){
+					alert("Unable to save your comment.");
+				}else{
+					alert(strings.save_error);
+				}
 			}
-		},
-		error : function() {
-			if (strings.save_error.length == 0){
-				alert("Unable to save your comment.");
-			}else{
-				alert(strings.save_error);
-			}
-		}
-	});
+		});
+	}else{
+		ajaxLogin(function(){
+			SaveComment(id, shortId, strings);
+		});
+	}
 }
 
 function deleteComment(id, commentId, strings) {
@@ -147,20 +83,20 @@ function deleteComment(id, commentId, strings) {
 	$.ajax( {
 		url : url,
 		success : function(data) {
+			alert("Your review was deleted.");
 			LoadComments(id, strings);
+		},
+		error: function(){
+			alert("There was an error deleting the comment");
 		}
 	});
 }
 
 function LoadComments(id, strings) {
-	var output = '';
-
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetComments";
 	var output = '';
 
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetComments";
 	$.getJSON(url + "?" + params, function(data) {
 		var result = data.userComments;
 		if (result && result.length > 0) {

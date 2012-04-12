@@ -64,7 +64,11 @@ class Save extends Action
 
 		if (isset($_GET['submit'])) {
 			$this->saveRecord();
-			header('Location: ' . $configArray['Site']['url'] . '/Record/' . urlencode($_GET['id']));
+			if ($_REQUEST['source'] == 'VuFind'){
+				header('Location: ' . $configArray['Site']['path'] . '/Record/' . urlencode($_GET['id']));
+			}else{
+				header('Location: ' . $configArray['Site']['path'] . '/EcontentRecord/' . urlencode($_GET['id']));
+			}
 			exit();
 		}
 
@@ -76,11 +80,14 @@ class Save extends Action
 		}
 
 		// Get Record Information
-		$details = $db->getRecord($_GET['id']);
-		$interface->assign('record', $details);
+		$resource = new Resource();
+		$resource->record_id = $_GET['id'];
+		$resource->source = $_GET['source'];
+		$resource->find(true);
+		$interface->assign('record', $resource);
 
 		// Find out if the item is already part of any lists; save list info/IDs
-		$saved = $this->user->getSavedData($_GET['id'], 'VuFind');
+		$saved = $this->user->getSavedData($_GET['id'], $_GET['source']);
 		$containingLists = array();
 		$containingListIds = array();
 		foreach($saved as $current) {
@@ -102,10 +109,11 @@ class Save extends Action
 		$interface->assign('nonContainingLists', $nonContainingLists);
 
 		// Display Page
-		$interface->assign('id', $_GET['id']);
+		$interface->assign('id', $_REQUEST['id']);
+		$interface->assign('source', $_REQUEST['source']);
 		if (isset($_GET['lightbox'])) {
 			$interface->assign('title', translate('Save Record To List'));
-			return $interface->fetch('Record/save.tpl');
+			echo $interface->fetch('Resource/save.tpl');
 		} else {
 			$interface->setPageTitle('Add to favorites');
 			$interface->assign('subTemplate', 'save.tpl');
@@ -128,9 +136,9 @@ class Save extends Action
 			
 			$resource = new Resource();
 			$resource->record_id = $_GET['id'];
-			$resource->source = $_GET['service'];
+			$resource->source = $_GET['source'];
 			if (!$resource->find(true)) {
-				$resource->insert();
+				return false;
 			}
 
 			preg_match_all('/"[^"]*"|[^,]+/', $_GET['mytags'], $tagArray);

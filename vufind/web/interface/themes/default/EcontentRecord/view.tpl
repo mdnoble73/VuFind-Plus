@@ -143,6 +143,7 @@ function redrawSaveStatus() {literal}{{/literal}
     {if $showTagging == 1}
     <div class="sidegroup" id="tagsSidegroup">
       <h4>{translate text="Tags"}</h4>
+      <div id="tagList">
       {if $tagList}
         {foreach from=$tagList item=tag name=tagLoop}
           <div class="sidebarValue"><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</div>
@@ -150,9 +151,10 @@ function redrawSaveStatus() {literal}{{/literal}
       {else}
         <div class="sidebarValue">{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</div>
       {/if}
+      </div>
       <div class="sidebarValue">
-        <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddTag" class="tool add"
-           onclick="getLightbox('EcontentRecord', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add Tag"}</a>
+        <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=eContent" class="tool add"
+           onclick="GetAddTagForm('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
       </div>
     </div>
     {/if}
@@ -356,7 +358,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		        </li>
 		      {/if}
 		      {if $showFavorites == 1}
-		        <li id="saveLink"><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SaveToList" class="fav" onclick="getLightbox('EcontentRecord', 'SaveToList', '{$id|escape}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
+		        <li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></li>
 		      {/if}
 		      {if !empty($addThis)}
 		        <li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>

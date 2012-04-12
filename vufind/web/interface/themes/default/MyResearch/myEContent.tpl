@@ -222,7 +222,7 @@
     {/if}
 	    
   {else}
-    {include file="MyResearch/catalog-login.tpl"}
+    You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
   {/if}
   </div>
 </div>

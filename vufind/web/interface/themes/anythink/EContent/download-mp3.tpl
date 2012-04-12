@@ -9,10 +9,9 @@
 		/>
 		<title>{$bookTitle} - Douglas County Libraries E-Book Reader</title>
 
-		<script type="text/javascript" src="{$path}/js/jquery-1.5.1.min.js"></script>
+		<script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
 		<script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
 		<script type="text/javascript" src="{$path}/js/bookcart/jquery.cookie.js"></script>
-		<script type="text/javascript" src="{$path}/js/mousewheel/jquery.mousewheel.min.js"></script>
 		<script type="text/javascript" src="{$path}/js/jplayer/jquery.jplayer.min.js"></script>
 	  
 		{css filename="styles.css"}

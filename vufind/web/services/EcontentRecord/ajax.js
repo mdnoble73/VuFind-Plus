@@ -65,68 +65,45 @@ function GetEContentHoldingsInfo(id, type) {
 	});
 }
 
-function SaveEContentTag(id, formElem, strings) {
-	var tags = formElem.elements['tag'].value;
-
-	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=SaveTag&tag=" + encodeURIComponent(tags);
-
-	$.ajax({
-		url: url,
-		success : function(data) {
-			var result = data ? data.result : false;
-			if (result && result.length > 0) {
-				if (result == "Unauthorized") {
-					document.forms['loginForm'].elements['followup'].value = 'SaveRecord';
-					popupMenu('loginBox');
-				} else {
-					GetTags(id, 'tagList', strings);
-					document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
-					setTimeout("hideLightbox();", 3000);
-				}
-			} else {
-				document.getElementById('popupbox').innerHTML = strings.save_error;
-			}
-		},
-		error : function() {
-			document.getElementById('popupbox').innerHTML = strings.save_error;
-		}
-	});
-}
-
 function SaveEContentComment(id, strings) {
-	$('#userecontentreview' + id).slideUp();
-	var comment = $('#econtentcomment' + id).val();
-
-	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
-	var fullUrl = url + "?" + params;
-	$.ajax({
-		url: fullUrl,
-		dataType: 'json',
-		success : function(data) {
-			if (data.result == 'Unauthorized'){
-				getLightbox('AJAX', 'Login', id, null, strings.save_title, '', '', '', '10%', '80%', '50%', '300');
-			}else if (data.result == 'true') {
-				$('#userreview' + id).slideUp();
-				$('#econtentcomment' + id).val('');
-				if ($('#commentList').length > 0) {
-					LoadEContentComments(id, strings);
+	if (loggedIn){
+		$('#userecontentreview' + id).slideUp();
+		var comment = $('#econtentcomment' + id).val();
+	
+		var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
+		var fullUrl = url + "?" + params;
+		$.ajax({
+			url: fullUrl,
+			dataType: 'json',
+			success : function(data) {
+				if (data.result == 'Unauthorized'){
+					getLightbox('AJAX', 'Login', id, null, strings.save_title, '', '', '', '10%', '80%', '50%', '300');
+				}else if (data.result == 'true') {
+					$('#userreview' + id).slideUp();
+					$('#econtentcomment' + id).val('');
+					if ($('#commentList').length > 0) {
+						LoadEContentComments(id, strings);
+					} else {
+						alert('Thank you for your review.');
+					}
 				} else {
-					alert('Thank you for your review.');
+					alert(strings.save_error);
 				}
-			} else {
-				alert(strings.save_error);
+			},
+			error : function() {
+				if (strings.save_error.length == 0){
+					alert("Unable to save your comment.");
+				}else{
+					alert(strings.save_error);
+				}
 			}
-		},
-		error : function() {
-			if (strings.save_error.length == 0){
-				alert("Unable to save your comment.");
-			}else{
-				alert(strings.save_error);
-			}
-		}
-	});
+		});
+	}else{
+		ajaxLogin(function(){
+			SaveEContentComment(id, strings);
+		});
+	}
 }
 
 function deleteEContentComment(id, commentId, strings) {

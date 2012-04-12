@@ -1,4 +1,3 @@
-<script  type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
@@ -21,7 +20,7 @@
                 {* not implemented yet: <li><a href="{$url}/Record/{$id|escape:"url"}/Export?style=zotero">{translate text="Import to"} Zotero</a></li> *}
               </ul>
             </li>
-            <li id="saveLink"><a href="{$url}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getLightbox('Record', 'Save', '{$id|escape}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
+            <li id="saveLink"><a href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
           	<li id="Holdings"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
           </ul>
         </div>

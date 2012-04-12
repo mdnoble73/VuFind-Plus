@@ -5,7 +5,7 @@
 				
 	<div class="imageColumn"> 
 		 {if $user->disableCoverArt != 1}
-			<a href="{$url}/Record/{$resource->record_id|escape:"url"}" id="descriptionTrigger{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
+		 <a href="{$url}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" id="descriptionTrigger{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
 			<img src="{$path}/bookcover.php?id={$resource->record_id}&amp;isn={$resource->isbn|@formatISBN}&amp;size=small&amp;upc={$resource->upc}&amp;category={$resource->format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 			<div id='descriptionPlaceholder{$resource->record_id|regex_replace:"/\./":""|escape}' style='display:none'></div>
@@ -13,13 +13,13 @@
 			
 			{* Place hold link *}
 			<div class='requestThisLink' id="placeHold{$resource->record_id|escape:"url"}" style="display:none">
-				<a href="{$url}/Record/{$resource->record_id|escape:"url"}/Hold"><img src="{img filename="place_hold.png"}" alt="Place Hold"/></a>
+				<a href="{$url}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold"><img src="{img filename="place_hold.png"}" alt="Place Hold"/></a>
 			</div>
 	</div>
 
 	<div class="resultDetails">
 		<div class="resultItemLine1">
-		<a href="{$url}/Record/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+		<a href="{$url}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 		{if $listTitleStatement}
 			<div class="searchResultSectionInfo">
 				{$listTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -93,7 +93,7 @@
 		<script type="text/javascript">
 			$(
 				 function() {literal} { {/literal}
-						 $('.rate{$resource->record_id|regex_replace:"/\./":""|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$resource->record_id}',	rating:0.0, postHref: '{$url}/Record/{$resource->record_id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+						 $('.rate{$resource->record_id|regex_replace:"/\./":""|escape}').rater({literal}{ {/literal}module: '{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}', recordId: '{$resource->record_id}',	rating:0.0, postHref: '{$url}/Record/{$resource->record_id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 				 {literal} } {/literal}
 			);
 		</script>

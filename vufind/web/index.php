@@ -344,7 +344,7 @@ if ($user) {
 } else if (// Special case for Shibboleth:
 ($configArray['Authentication']['method'] == 'Shibboleth' && $module == 'MyResearch') ||
 // Default case for all other authentication methods:
-((isset($_POST['username']) && isset($_POST['password'])) && ($_GET['action'] != 'Account'))) {
+((isset($_POST['username']) && isset($_POST['password'])) && ($action != 'Account' && $module != 'AJAX'))) {
 	$user = UserAccount::login();
 	if (PEAR::isError($user)) {
 		require_once 'services/MyResearch/Login.php';

@@ -127,7 +127,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	      {/if}
 	      <div class="sidebarValue">
 	        <a href="{$path}/Record/{$id|escape:"url"}/AddTag" class="tool add"
-	           onclick="getLightbox('Record', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add Tag"}</a>
+	           onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
 	      </div>
 	    </div>
 	    {/if}
@@ -280,7 +280,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			    <div class='eAudioLink' id="eAudioLink{$id|escape:"url"}" style="display:none">
 			    </div>
           <div id="saveLink{$id|escape}">
-		        <a href="{$url}/Record/{$id|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$id|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$id|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+		        <a href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
           </div>
           <div id="lists{$id|escape}"></div>
           <script type="text/javascript">

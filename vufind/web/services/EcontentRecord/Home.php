@@ -204,10 +204,8 @@ class Home extends Action{
 			$resource = new Resource();
 			$resource->record_id = $_GET['id'];
 			$resource->source = 'eContent';
-			$tags = array();
-			if ($tags = $resource->getTags()) {
-				array_slice($tags, 0, $limit);
-			}
+			$resource->find(true);
+			$tags = $resource->getTags($limit);
 			$interface->assign('tagList', $tags);
 			$timer->logTime('Got tag list');
 

@@ -22,7 +22,6 @@
     </script>
 
     <script type="text/javascript" src="{$path}/js/scripts.js"></script>
-    <script type="text/javascript" src="{$path}/js/ajax.yui.js"></script>
   </head>
 
   <body>

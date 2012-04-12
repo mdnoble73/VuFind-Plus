@@ -501,10 +501,10 @@ class Record extends Action
 		$limit = 5;
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
+		$resource->source = 'VuFind';
+		$resource->find(true);
 		$tags = array();
-		if ($tags = $resource->getTags($limit)) {
-			array_slice($tags, 0, $limit);
-		}
+		$tags = $resource->getTags($limit);
 		$interface->assign('tagList', $tags);
 		$timer->logTime('Got tag list');
 

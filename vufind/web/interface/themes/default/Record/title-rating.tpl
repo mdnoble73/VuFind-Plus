@@ -8,7 +8,7 @@
     </div>
     {if $showFavorites == 1} 
     <div id="saveLink{$recordId|escape}">
-      <a href="{$path}/Record/{$recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$recordId|escape}'); return false;">{translate text='Add to favorites'}</a>
+      <a href="{$path}/Resource/Save?id={$recordId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$recordId|escape}', 'VuFind'); return false;">{translate text='Add to favorites'}</a>
       {if $user}
       <script type="text/javascript">
         getSaveStatuses('{$recordId|escape:"javascript"}');

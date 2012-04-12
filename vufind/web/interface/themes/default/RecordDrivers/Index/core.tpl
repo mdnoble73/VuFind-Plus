@@ -170,7 +170,7 @@
     <td>
       <span style="float:right;">
         <a href="{$url}/Record/{$id|escape:"url"}/AddTag" class="tool add"
-           onclick="getLightbox('Record', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add"}</a>
+           onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
       </span>
       <div id="tagList">
         {if $tagList}

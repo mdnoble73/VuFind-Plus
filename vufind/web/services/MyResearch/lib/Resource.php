@@ -36,7 +36,7 @@ class Resource extends DB_DataObject {
 	 * @param   int     $limit          Max. number of tags to return (0 = no limit)
 	 * @return  array
 	 */
-	function getTags($limit = 0)
+	function getTags($limit = 10)
 	{
 		//Get a reference to the scope we are in.
 		global $library;
@@ -45,11 +45,8 @@ class Resource extends DB_DataObject {
 		$tagList = array();
 
 		$query = "SELECT MIN(tags.id) as id, tags.tag, COUNT(*) as cnt " .
-                 "FROM tags, resource_tags, resource " .
-                 "WHERE tags.id = resource_tags.tag_id " .
-                 "AND resource.id = resource_tags.resource_id " .
-                 "AND resource.record_id = '" . $this->escape($this->record_id) . "' " .
-                 "AND resource.source = '" . $this->escape($this->source) . "' " .
+                 "FROM tags inner join resource_tags on tags.id = resource_tags.tag_id " .
+                 "WHERE resource_id = '{$this->id}' " .
                  "GROUP BY tags.tag " .
                  "ORDER BY cnt DESC, tags.tag LIMIT 0, $limit";
 		$tag = new Tags();
@@ -250,7 +247,6 @@ class Resource extends DB_DataObject {
 			$rating->rating = $ratingValue;
 			$rating->insert();
 		}
-
 
 		return true;
 	}

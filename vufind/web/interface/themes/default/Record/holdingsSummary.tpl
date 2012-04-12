@@ -12,7 +12,7 @@
       
   {elseif $holdingsSummary.status != 'Available online'}
     <div class="availability">
-      <a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if strlen($holdingsSummary.unavailableStatus) > 0 && ($holdingsSummary.class == 'checkedOut') && ($holdingsSummary.statusfull != $holdingsSummary.unavailableStatus) }({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
+      <a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status}</a>
     </div>
   {/if}
   {if $holdingsSummary.isDownloadable}

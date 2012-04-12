@@ -93,7 +93,7 @@
 				</script>
 			{/if}
 			{if $showFavorites == 1} 
-				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('EcontentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+				<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" style="padding-left:8px;" onclick="getSaveToListForm('{$summId|escape}', 'eContent'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 			{/if}
 		</div>
 		{include file="EcontentRecord/title-review.tpl" id=$summId}

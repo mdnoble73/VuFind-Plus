@@ -1,4 +1,3 @@
-<script  type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 <script  type="text/javascript" src="{$path}/js/jcarousel/lib/jquery.jcarousel.min.js"></script>
 <script type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
@@ -61,7 +60,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</li>
 		{/if}
 		{if $showFavorites == 1}
-			<li id="saveLink"><a href="{$url}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getLightbox('Record', 'Save', '{$id|escape}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
+			<li id="saveLink"><a href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
 		{/if}
 		{if !empty($addThis)}
 			<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
@@ -312,7 +311,7 @@ function redrawSaveStatus() {literal}{{/literal}
               <td>
                 <span style="float:right;">
                   <a href="{$url}/Record/{$id|escape:"url"}/AddTag" class="tool add"
-                     onclick="getLightbox('Record', 'AddTag', '{$id|escape}', null, '{translate text="Add Tag"}'); return false;">{translate text="Add"}</a>
+                     onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
                 </span>
                 <div id="tagList">
                   {if $tagList}

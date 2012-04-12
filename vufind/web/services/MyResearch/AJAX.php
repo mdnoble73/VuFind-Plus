@@ -32,7 +32,7 @@ class AJAX extends Action {
 	function launch()
 	{
 		$method = $_GET['method'];
-		if ($method == 'GetSuggestions' || $method == 'GetListTitles' || $method == 'getOverDriveSummary'){
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -63,25 +63,25 @@ class AJAX extends Action {
 	function AddList()
 	{
 		require_once 'services/MyResearch/ListEdit.php';
-
+		$return = array();
 		if (UserAccount::isLoggedIn()) {
 			$listService = new ListEdit();
 			$result = $listService->addList();
 			if (!PEAR::isError($result)) {
-				$xml = "<result>Done</result>";
-				$xml .= "<newId>$result</newId>";
+				$return['result'] = 'Done';
+				$return['newId'] = $result;
 			} else {
 				$error = $result->getMessage();
 				if (empty($error)) {
 					$error = 'Error';
 				}
-				$xml = "<result>" . htmlspecialchars(translate($error)) . "</result>";
+				$return['result'] = translate($error);
 			}
 		} else {
-			$xml = "<result>Unauthorized</result>";
+			$return['result'] = "Unauthorized";
 		}
 
-		return $xml;
+		return json_encode($return);
 	}
 
 	/**

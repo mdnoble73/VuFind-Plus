@@ -189,4 +189,3 @@
 		{/if}
 	</div>
 </div>
-<script type="text/javascript" src="{$path}/js/jquery.printelement.min.js"></script>

@@ -17,13 +17,7 @@
          <a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if strlen($holdingsSummary.unavailableStatus) > 0 && ($holdingsSummary.class == 'checkedOut') && ($holdingsSummary.statusfull != $holdingsSummary.unavailableStatus) }({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
        </div>
      {/if}
-     {if $holdingsSummary.hasEpub}
-       {if $holdingsSummary.epubHasDRM == 0}
-	       <div onclick="getLightbox('Record', 'ViewEPub', '{$holdingsSummary.recordId|escape}', null, '{translate text="Read Book Online"}'); return false;" class='epubLink button'>Read Online Now</div>
-       {else}
-         {* User has to login to download the title *}
-       {/if}
-	   {elseif $holdingsSummary.isDownloadable}
+     {if $holdingsSummary.isDownloadable}
          <div><a href='{$holdingsSummary.downloadLink}'  target='_blank'>{$holdingsSummary.downloadText}</a></div>
      {else}
 		     <div class="holdableCopiesSummary">

@@ -46,7 +46,7 @@
         <p>{translate text='You do not have any items checked out'}.</p>
       {/if}
     {else}
-      {include file="MyResearch/catalog-login.tpl"}
+      You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
     {/if}
   </div>
   {include file="footer.tpl"}

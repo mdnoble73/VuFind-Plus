@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 <div id="page-content" class="content">
     <div class="resulthead">

@@ -77,7 +77,7 @@
     		</script>
       {/if}
       {if $showFavorites == 1} 
-        <a href="{$url}/Record/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="saveRecord('{$summId}', this, ''); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
     {assign var=id value=$summShortId}

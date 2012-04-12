@@ -268,43 +268,6 @@ function doGetRatings(){
 	);
 }
 
-
-function saveRecord(id, formElem)
-{
-    var tags = formElem.elements['mytags'].value;
-    var notes = formElem.elements['notes'].value;
-    var list = formElem.elements['list'].options[formElem.elements['list'].selectedIndex].value;
-
-    var url = path + "/Record/" + id + "/AJAX";
-    var params = "method=SaveRecord&" +
-                 "service=VuFind&" +
-                 "mytags=" + encodeURIComponent(tags) + "&" +
-                 "list=" + list + "&" +
-                 "notes=" + encodeURIComponent(notes);
-    $.ajax({
-    		url: url+'?'+params,
-        success: function(data) {
-            if (data.result) {
-                var value = data.result;
-                if (value == "Done") {
-                    // Redraw the statuses to reflect the change:
-                    doGetSaveStatuses();
-                    hideLightbox();
-                } else {
-                    getLightbox('Record', 'Save', id, null, 'Add to Favorites');
-                }
-            } else {
-                document.getElementById('popupbox').innerHTML = 'Error: Record not saved';
-                setTimeout("hideLightbox();", 3000);
-            }
-        },
-        failure: function(transaction) {
-            document.getElementById('popupbox').innerHTML = 'Error: Record not saved';
-            setTimeout("hideLightbox();", 3000);
-        }
-    });
-}
-
 function getSaveStatuses(id)
 {
     GetSaveStatusList[GetSaveStatusList.length] = id;

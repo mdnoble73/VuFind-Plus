@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/ajax_common.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
   alert("{$title}");
@@ -113,7 +112,7 @@ $(function() {
 				
         
       {else}
-        {include file="MyResearch/login.tpl"}
+        You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
       {/if}
   </div>
 </div>

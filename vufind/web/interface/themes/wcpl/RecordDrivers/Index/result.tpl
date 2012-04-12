@@ -66,7 +66,7 @@
     <div class="ratings">
     
       <div id="saveLink{$summId|escape}">
-        <a href="{$url}/Record/{$summId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$summId|escape}'); return false;" class="saveToListLink">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;" class="saveToListLink">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
         {if $user}
         	<div id="lists{$summId|escape}"></div>
 					<script type="text/javascript">
