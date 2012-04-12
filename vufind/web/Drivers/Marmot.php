@@ -1472,6 +1472,7 @@ class Marmot implements DriverInterface
 							$curTitle['canrenew'] = $patronCanRenew;
 							$curTitle['itemindex'] = $matches[1];
 							$curTitle['itemid'] = $matches[3];
+							$curTitle['renewIndicator'] = $curTitle['itemid'] . '|' . $curTitle['itemindex'];
 						}else{
 							$curTitle['canrenew'] = false;
 						}

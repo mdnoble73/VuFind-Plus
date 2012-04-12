@@ -93,7 +93,7 @@
 	        {foreach from=$transList item=record name="recordLoop"}
 				    <tr id="record{$record.id|escape}" class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} {if ($smarty.foreach.recordLoop.iteration % 16) == 0}newpage{/if} record{$smarty.foreach.recordLoop.iteration}">
 					  <td class="titleSelectCheckedOut myAccountCell">
-						  <input type="checkbox" name="selected[{$record.barcode|escape:"url"}|{$record.itemindex}]" class="titleSelect" id="selected{$record.barcode|escape:"url"}" />
+						  <input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}" />
 						</td>
 				    
             <td class="myAccountCell">

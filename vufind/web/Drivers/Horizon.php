@@ -1544,6 +1544,7 @@ private $transactions = array();
 							$transaction['isbn'] = isset($resourceInfo->isbn) ? $resourceInfo->isbn : '';
 							$transaction['upc'] = isset($resourceInfo->upc) ? $resourceInfo->upc : '';
 							$transaction['format_category'] = isset($resourceInfo->format_category) ? $resourceInfo->format_category : '';
+							$transaction['renewIndicator'] = $transaction['barcode'] . '|';
 							$transactions[$key] = $transaction;
 						}
 					}
