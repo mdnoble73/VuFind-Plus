@@ -37,18 +37,18 @@ function redrawSaveStatus() {literal}{{/literal}
       <h4>{translate text="Title Details"}</h4>
     	{if $mainAuthor}
           <div class="sidebarLabel">{translate text='Main Author'}:</div>
-          <div class="sidebarValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></div>
+          <div class="sidebarValue"><a href="{$path}/Author/Home?author={$mainAuthor|trim|escape:"url"}">{$mainAuthor|escape}</a></div>
           {/if}
           
           {if $corporateAuthor}
           <div class="sidebarLabel">{translate text='Corporate Author'}:</div>
-          <div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a>a></div>
+          <div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a>a></div>
           {/if}
           
           {if $contributors}
           <div class="sidebarLabel">{translate text='Contributors'}:</div>
           {foreach from=$contributors item=contributor name=loop}
-            <div class="sidebarValue"><a href="{$path}/Author/Home?author={$contributor|escape:"url"}">{$contributor|escape}</a></div>
+            <div class="sidebarValue"><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></div>
           {/foreach}
           {/if}
           
