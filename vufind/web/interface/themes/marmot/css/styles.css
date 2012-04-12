@@ -1557,30 +1557,35 @@ position: absolute;
 right:-9px;
 bottom:-20px;
 }
-#goDeeperContent{
-	position: relative;
-	height: 90%;
-	width: 100%;
+#goDeeperContent {
+	position: absolute;
+	left: 0px;
+	right: 0px;
+	top: 30px;
+	bottom: 0px;
+	padding: 5px;
 }
-#goDeeperLinks{
+#goDeeperLinks {
 	width: 150px;
-	border-right: solid 1px black;
+	border-right: solid 1px #011753;
 	text-align: left;
-	height: 98%;
-	float: left;
+	position: absolute;
+	left: 5px;
+	bottom: 0px;
+	top: 0px;
 }
 .goDeeperLink{
 	width: 150px;
     text-align: left;
 }
-#goDeeperOutput{
+#goDeeperOutput {
 	position: absolute;
-	height: 95%;
-    left: 165px;
-	right: -10px;
+	left: 165px;
+	right: 0px;
 	bottom: 0px;
-	top: 10px;
+	top: 0px;
 	text-align: left;
+	overflow: auto;
 }
 
 .selectTitle{
