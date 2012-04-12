@@ -521,7 +521,7 @@ class Record extends Action
 				$similar = $similar['response']['docs'];
 			}else{
 				$similar = array();
-				$logger->logTime("Did not find any similar records");
+				$timer->logTime("Did not find any similar records");
 			}
 			$memcache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
 		}
