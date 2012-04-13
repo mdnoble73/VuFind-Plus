@@ -1948,13 +1948,19 @@ class Marmot implements DriverInterface
 								$curPickupBranch->fetch();
 								$curHold['currentPickupId'] = $curPickupBranch->locationId;
 								$curHold['currentPickupName'] = $curPickupBranch->displayName;
+								$curHold['location'] = $curPickupBranch->displayName;
 							}
 							$curHold['locationUpdateable'] = true;
+							
 							//Return the full select box for reference.
-							$curHold['location'] = $scols[$i];
+							$curHold['locationSelect'] = $scols[$i];
 						}else{
 							$curHold['location'] = $scols[$i];
-							$curHold['currentPickupName'] = $scols[$i];
+							//Trim the carrier code if any
+							if (preg_match('/.*\s[\w\d]{4}/', $curHold['location'])){
+								$curHold['location'] = substr($curHold['location'], 0, strlen($curHold['location']) - 5);
+							}
+							$curHold['currentPickupName'] = $curHold['location'];
 							$curHold['locationUpdateable'] = false;
 						}
 					}
