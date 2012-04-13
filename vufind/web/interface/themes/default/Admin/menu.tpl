@@ -71,8 +71,8 @@
 <div class="sidegroup">  
 	<h4>Genealogy</h4>
 	<ul id="genealogyMenu">
-		<li{if $action == "GenealogyImport"} class="active"{/if} style="float: none;"><a href="GenealogyImport">Import Information</a></li>
-		<li{if $action == "GenealogyFixDates"} class="active"{/if} style="float: none;"><a href="GenealogyFixDates">Fix Dates</a></li>
+		<li{if $action == "GenealogyImport"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/GenealogyImport">Import Information</a></li>
+		<li{if $action == "GenealogyFixDates"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/GenealogyFixDates">Fix Dates</a></li>
 	</ul>
 	</div>
 {/if}

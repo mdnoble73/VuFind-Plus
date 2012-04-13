@@ -33,7 +33,7 @@ $(document).ready(function() {
 	$("#bag_add_to_my_list_button").click( function() {  toggleBagActionItems(true); $('#save_to_my_list_tags').show(); return false; });
 	$("#save_to_my_list_tags .bag_perform_action_button").click(function() { saveToMyList(); });	
 	$("#save_to_my_list_tags .bag_hide_button").click(function() { $('#save_to_my_list_tags').hide();  toggleBagActionItems(); return false; });
-	$("#new_list").click(function(){$('#existing_list_controls').hide();$('#new_list').hide(); $('#listFormBookCart').show; $('#new_list_controls').fadeIn();});
+	$("#new_list").click(function(){$('#existing_list_controls').hide();$('#new_list').hide(); $('#new_list_controls').fadeIn();$('#listForm').fadeIn()});
 	$("#choose_existing_list").click(function(){$('#new_list_controls').hide(); $('#existing_list_controls').fadeIn();$('#new_list').fadeIn();})
 	// export button
 	$("#bag_request_button").click(function() { requestBag(); return false; });
@@ -191,18 +191,22 @@ function bagAddList(form, failMsg){
 		"public=" + isPublic + "&" +
 		"desc=" + encodeURIComponent(form.desc.value);
 	try{
-		$.get(url + "?" + params, function(data){
-			var result = $(data).find("result").text();
-			if (result == "Done"){
-				//Get the new id of the list
-				var newId = $(data).find("newId").text();
-				//Add the new list to the list of valid lists, and select it
-				var sel = $("#bookbag_list_select");
-				sel.append('<option value="' + newId + '" selected="selected">' + form.title.value + '</option>');
-				//Add all items to the list
-				saveToMyList();
-			}else{
-				alert(result > 0 ? result : failMsg);
+		$.ajax({
+			url: url + "?" + params, 
+			dataType: "json", 
+			success: function(data){
+				var result = data.result;
+				if (result == "Done"){
+					//Get the new id of the list
+					var newId = data.newId;
+					//Add the new list to the list of valid lists, and select it
+					var sel = $("#bookbag_list_select");
+					sel.append('<option value="' + newId + '" selected="selected">' + form.title.value + '</option>');
+					//Add all items to the list
+					saveToMyList();
+				}else{
+					alert(result > 0 ? result : failMsg);
+				}
 			}
 		});
 	}catch (err){
@@ -419,7 +423,7 @@ function emailBag() {
 		return;
 	}
 	
-	var url = path + '/AJAX/JSON?method=emailItems&to=' + to + '&' + url;
+	var url = path + '/AJAX/JSON?method=emailCartItems&to=' + to + '&' + url;
 	
 	// do the sending progress thing
 	_bagActionInProgress("Sending email to ... " + to);
@@ -432,7 +436,7 @@ function emailBag() {
 				bookBag = new Array();
 				// email was sent to the user, inform them				
 				updateBag();
-				_bagActionInProgress("Sent to " + response.result.sent_to);	
+				_bagActionInProgress("Email sent.");	
 				$("#email_to_box").hide();
 			} else {
 				bagErrors.push("<strong>" + response.message + "</strong>");	
@@ -489,4 +493,12 @@ function requestBag(){
 		url += "selected[" + shortId + "]=on";
 	});
 	window.location = url;
+}
+
+function checkEmail(address){
+	if (address.match(/^[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i)) {
+		return true;
+	}else{
+		return false;
+	}
 }
