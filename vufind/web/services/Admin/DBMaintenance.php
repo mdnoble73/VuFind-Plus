@@ -156,6 +156,14 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `useHomeLinkInBreadcrumbs` TINYINT(4) NOT NULL DEFAULT '0';",
 				),
 			),
+			'library_7' => array(
+				'title' => 'Library 7',
+				'description' => 'Allow materials request to be enabled or disabled by library',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
+				),
+			),
 		
       'user_display_name' => array(
         'title' => 'User display name',

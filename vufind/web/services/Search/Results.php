@@ -334,21 +334,7 @@ class Results extends Action {
 		}
 		
 		//Determine whether or not materials request functionality should be enabled
-		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
-			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
-			if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
-				//Check to see if we need to do additonal restrictions by patron type
-				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
-				if (strlen($allowablePatronTypes) > 0 && $user){
-					if (preg_match("/^{$allowablePatronTypes}$/i", $user->patronType) == 0){
-						$enableMaterialsRequest = false;
-					}
-				}
-			}
-		}else{
-			$enableMaterialsRequest = false;
-		}
-		$interface->assign('enableMaterialsRequest', $enableMaterialsRequest);
+		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
 			require_once('Drivers/marmot_inc/SearchStat.php');

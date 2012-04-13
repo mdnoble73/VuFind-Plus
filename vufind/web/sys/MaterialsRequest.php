@@ -80,9 +80,12 @@ class MaterialsRequest extends DB_DataObject
 	static function enableMaterialsRequest(){
 		global $configArray;
 		global $user;
+		global $library;
 		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
 			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
-			if ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
+			if ($enableMaterialsRequest && isset($library) && $library->enableMaterialsRequest == 0){
+				$enableMaterialsRequest = false;
+			}elseif ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
 				//Check to see if we need to do additonal restrictions by patron type
 				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
 				if (strlen($allowablePatronTypes) > 0 && $user){
