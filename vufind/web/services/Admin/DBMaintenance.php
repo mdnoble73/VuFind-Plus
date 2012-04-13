@@ -406,6 +406,16 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'resource_update6' => array(
+				'title' => 'Update resource table 6',
+				'description' => 'Add a deleted column to determine if a resource has been removed from the catalog',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `resource` ADD deleted TINYINT DEAULT 0",
+					"ALTER TABLE `resource` ADD INDEX (deleted)", 
+				),
+			),
+			
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
 				'description' => 'Create table to store call numbers for resources',

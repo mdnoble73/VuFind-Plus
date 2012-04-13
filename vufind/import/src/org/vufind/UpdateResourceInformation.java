@@ -19,9 +19,11 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	private Logger logger;
 	private Connection conn = null;
 	
+	private boolean updateUnchangedResources = false;
+	
 	private PreparedStatement resourceUpdateStmt = null;
 	private PreparedStatement resourceInsertStmt = null;
-	private PreparedStatement existingResourceStmt = null;
+	private PreparedStatement deleteResourceStmt = null;
 	
 	//Code related to subjects of resources
 	private HashMap<String, Long> existingSubjects;
@@ -40,6 +42,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	private String itemTag;
 	private String callNumberSubfield;
 	private String locationSubfield;
+	
+	//A list of existing resources so we can mark records as deleted if they no longer exist
+	private HashMap<String, BasicResourceInfo> existingResources = new HashMap<String, BasicResourceInfo>();
 	
 	private ProcessorResults results = new ProcessorResults("Update Resources");
 	
@@ -63,11 +68,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 		}
 		
+		String updateUnchangedResourcesVal = configIni.get("Reindex", "updateUnchangedResources");
+		if (updateUnchangedResourcesVal != null && updateUnchangedResourcesVal.length() > 0){
+			updateUnchangedResources = Boolean.parseBoolean(updateUnchangedResourcesVal);
+		}
+		
+		
 		try {
 			// Check to see if the record already exists
-			existingResourceStmt = conn.prepareStatement("SELECT id, marc_checksum from resource where record_id = ? and source = 'VuFind'");
-			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=? WHERE id = ?");
-			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
+			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
+			deleteResourceStmt = conn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			getExistingSubjectsStmt = conn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -95,6 +106,15 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			callNumberSubfield = configIni.get("Reindex", "callNumberSubfield");
 			locationSubfield = configIni.get("Reindex", "locationSubfield");
 			
+			//Get a list of resources that have already been installed. 
+			PreparedStatement existingResourceStmt = conn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'");
+			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
+			while (existingResourceRS.next()){
+				String ilsId = existingResourceRS.getString("record_id");
+				BasicResourceInfo resourceInfo = new BasicResourceInfo(ilsId, existingResourceRS.getLong("id"), existingResourceRS.getLong("marc_checksum"), existingResourceRS.getBoolean("deleted"));
+				existingResources.put(ilsId, resourceInfo);
+			}
+			
 		} catch (SQLException ex) {
 			// handle any errors
 			logger.error("Unable to setup prepared statements", ex);
@@ -109,38 +129,49 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		Long resourceId = -1L;
 		
+		boolean updateSubjectAndCallNumber = true;
+		
 		try {
-			existingResourceStmt.setString(1, recordInfo.getId());
-			ResultSet existingResourceResult = existingResourceStmt.executeQuery();
-			if (existingResourceResult.next()) {
+			//Check to see if we have an existing resource
+			if (existingResources.containsKey(recordInfo.getId())){
 				results.incRecordsProcessed();
-				resourceId = existingResourceResult.getLong(1);
-				
-				// Update the existing record
-				String title = recordInfo.getTitle();
-				String author = recordInfo.getAuthor();
-				
-				// Update resource SQL
-				resourceUpdateStmt.setString(1, Util.trimTo(200, title));
-				resourceUpdateStmt.setString(2, Util.trimTo(200, recordInfo.getSortTitle()));
-				resourceUpdateStmt.setString(3, Util.trimTo(255, author));
-				resourceUpdateStmt.setString(4, Util.trimTo(13, recordInfo.getIsbn()));
-				resourceUpdateStmt.setString(5, Util.trimTo(13, recordInfo.getFirstFieldValueInSet("upc")));
-				resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
-				resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
-				resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
-				resourceUpdateStmt.setBytes(9, recordInfo.getRawRecord().getBytes());
-				resourceUpdateStmt.setString(10, recordInfo.getShortId());
-				resourceUpdateStmt.setLong(11, new Date().getTime() / 1000);
-				resourceUpdateStmt.setLong(12, resourceId);
+				BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
+				resourceId = basicResourceInfo.getResourceId();
+				//Remove the resource from the existingResourcesList so 
+				//We can determine which resources no longer exist
+				existingResources.remove(recordInfo.getId());
+				if (updateUnchangedResources || (basicResourceInfo.getMarcChecksum() != recordInfo.getChecksum())){
+					// Update the existing record
+					String title = recordInfo.getTitle();
+					String author = recordInfo.getAuthor();
+					
+					// Update resource SQL
+					resourceUpdateStmt.setString(1, Util.trimTo(200, title));
+					resourceUpdateStmt.setString(2, Util.trimTo(200, recordInfo.getSortTitle()));
+					resourceUpdateStmt.setString(3, Util.trimTo(255, author));
+					resourceUpdateStmt.setString(4, Util.trimTo(13, recordInfo.getIsbn()));
+					resourceUpdateStmt.setString(5, Util.trimTo(13, recordInfo.getFirstFieldValueInSet("upc")));
+					resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
+					resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
+					resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
+					resourceUpdateStmt.setBytes(9, recordInfo.getRawRecord().getBytes());
+					resourceUpdateStmt.setString(10, recordInfo.getShortId());
+					resourceUpdateStmt.setLong(11, new Date().getTime() / 1000);
+					resourceUpdateStmt.setLong(12, resourceId);
 
-				int rowsUpdated = resourceUpdateStmt.executeUpdate();
-				if (rowsUpdated == 0) {
-					logger.debug("Unable to update resource for record " + recordInfo.getId() + " " + resourceId);
-					results.incErrors();
+					int rowsUpdated = resourceUpdateStmt.executeUpdate();
+					if (rowsUpdated == 0) {
+						logger.debug("Unable to update resource for record " + recordInfo.getId() + " " + resourceId);
+						results.incErrors();
+					}else{
+						results.incUpdated();
+					}
 				}else{
-					results.incUpdated();
+					updateSubjectAndCallNumber = false;
+					results.incSkipped();
 				}
+				
+
 			} else {
 				String author = recordInfo.getAuthor();
 				// Update resource SQL
@@ -171,7 +202,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				}
 			}
 			
-			if (resourceId != -1){
+			if (resourceId != -1 && updateSubjectAndCallNumber){
 				clearResourceSubjectsStmt.setLong(1, resourceId);
 				clearResourceSubjectsStmt.executeUpdate();
 				clearResourceCallnumbersStmt.setLong(1, resourceId);
@@ -235,6 +266,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 
 	@Override
 	public void finish() {
+		//Mark any resources that no longer exist as deleted.
+		logger.info("Deleting resources that no longer from resources table.");
+		for (BasicResourceInfo resourceInfo : existingResources.values()){
+			try {
+				deleteResourceStmt.setLong(1, resourceInfo.getResourceId());
+				deleteResourceStmt.executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Unable to delete "  + resourceInfo.getResourceId(), e);
+			}
+			results.incDeleted();
+		}
 		try {
 			conn.close();
 		} catch (SQLException e) {

@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -80,10 +81,6 @@ public class ReindexProcess {
 		//Process all reords (marc records, econtent that has been added to the database, and resources)
 		ArrayList<IRecordProcessor> recordProcessors = loadRecordProcesors();
 		if (recordProcessors.size() > 0){
-			logger.info("Initializing record processors");
-			for (IRecordProcessor processor : recordProcessors){
-				processor.init(configIni, serverName, logger);
-			}
 			//Do processing of marc records with record processors loaded above. 
 			// includes indexing records
 			// extracting eContent from records
@@ -116,57 +113,124 @@ public class ReindexProcess {
 		
 	private static void buildAlphaBrowseTables() {
 		logger.info("Building Alphabetic Browse tables");
+		
 		//Run queries to create alphabetic browse tables from resources table
 		try {
-			//Setup title browse
+			//Clear the current browse table
+			logger.info("Truncating title table");
 			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE title_browse");
 			truncateTable.executeUpdate();
-			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
-			setRowNumberStatement.execute();
-			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO title_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.numResults, baseQuery.title FROM (SELECT count(id) as numResults, title, title_sort FROM `resource` WHERE title_sort is not null and CHAR_LENGTH(title_sort) > 0 and title_sort != 'null' group by title) baseQuery order by title_sort asc");
-			int numBrowseRows = createBrowseTable.executeUpdate();
-			logger.info("Added " + numBrowseRows + " to title browse table");
+			
+			//Get all resources
+			logger.info("Loading titles for browsing");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, title, title_sort FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY title_sort ORDER BY title_sort");
+			ResultSet resourcesByTitleRS = resourcesByTitleStmt.executeQuery();
+
+			logger.info("Saving titles to database");
+			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO title_browse (id, numResults, value) VALUES (?, ?, ?)");
+			int curRow = 1;
+			while (resourcesByTitleRS.next()){
+				String titleSort = resourcesByTitleRS.getString("title_sort");
+				if (titleSort != null && titleSort.length() > 0){
+					insertBrowseRow.setLong(1, curRow++);
+					insertBrowseRow.setLong(2, resourcesByTitleRS.getLong("numResults"));
+					insertBrowseRow.setString(3, resourcesByTitleRS.getString("title"));
+					insertBrowseRow.executeUpdate();
+					//System.out.print(".");
+				}
+			}
+			
+			logger.info("Added " + (curRow -1) + " rows to title browse table");
 		} catch (SQLException e) {
 			logger.error("Error creating title browse table", e);
 		}
 		
 		try {
-			//Setup author browse
+			//Clear the current browse table
+			logger.info("Truncating author table");
 			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE author_browse");
 			truncateTable.executeUpdate();
-			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
-			setRowNumberStatement.execute();
-			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO author_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.* FROM (SELECT count(id) as numResults, author FROM `resource` WHERE author is not null and CHAR_LENGTH(author) > 0 and author != 'null' group by author) baseQuery order by author asc");
-			int numBrowseRows = createBrowseTable.executeUpdate();
-			logger.info("Added " + numBrowseRows + " to author browse table");
+			
+			//Get all resources
+			logger.info("Loading authors for browsing");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, author FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY lower(author) ORDER BY lower(author)");
+			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
+
+			logger.info("Saving authors to database");
+			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO author_browse (id, numResults, value) VALUES (?, ?, ?)");
+			int curRow = 1;
+			while (groupedSortedRS.next()){
+				String sortKey = groupedSortedRS.getString("author");
+				if (sortKey != null && sortKey.length() > 0){
+					insertBrowseRow.setLong(1, curRow++);
+					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
+					insertBrowseRow.setString(3, groupedSortedRS.getString("author"));
+					insertBrowseRow.executeUpdate();
+					//System.out.print(".");
+				}
+			}
+			
+			logger.info("Added " + (curRow -1) + " rows to author browse table");
 		} catch (SQLException e) {
 			logger.error("Error creating author browse table", e);
 		}
 
 		//Setup subject browse
 		try {
-			//Setup subject browse
+			//Clear the subject browse table
+			logger.info("Truncating subject table");
 			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE subject_browse");
 			truncateTable.executeUpdate();
-			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
-			setRowNumberStatement.execute();
-			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO subject_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.* FROM (SELECT count(resource.id) as numResults, subject from resource inner join resource_subject on resource.id = resource_subject.resourceId inner join subject on subjectId = subject.id group by subjectId) baseQuery order by subject asc");
-			int numBrowseRows = createBrowseTable.executeUpdate();
-			logger.info("Added " + numBrowseRows + " to subject browse table");
+			
+			//Get all resources
+			logger.info("Loading subjects for browsing");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, subject from resource inner join resource_subject on resource.id = resource_subject.resourceId inner join subject on subjectId = subject.id WHERE (deleted = 0 OR deleted is NULL) group by subjectId ORDER BY lower(subject)");
+			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
+
+			logger.info("Saving subjects to database");
+			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO subject_browse (id, numResults, value) VALUES (?, ?, ?)");
+			int curRow = 1;
+			while (groupedSortedRS.next()){
+				String sortKey = groupedSortedRS.getString("subject");
+				if (sortKey != null && sortKey.length() > 0){
+					insertBrowseRow.setLong(1, curRow++);
+					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
+					insertBrowseRow.setString(3, groupedSortedRS.getString("subject"));
+					insertBrowseRow.executeUpdate();
+					//System.out.print(".");
+				}
+			}
+			logger.info("Added " + (curRow -1) + " rows to subject browse table");
 		} catch (SQLException e) {
 			logger.error("Error creating subject browse table", e);
 		}
 		
 	//Setup call number browse
 		try {
-			//Setup callnumber browse
+			//Clear the call number browse table
+			logger.info("Truncating callnumber_browse table");
 			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE callnumber_browse");
 			truncateTable.executeUpdate();
-			PreparedStatement setRowNumberStatement = vufindConn.prepareStatement("SELECT 0 INTO @rn");
-			setRowNumberStatement.execute();
-			PreparedStatement createBrowseTable = vufindConn.prepareStatement("INSERT INTO callnumber_browse (id, numResults, value) SELECT @rn:=@rn+1 AS id, baseQuery.* FROM (SELECT count(resource.id) as numResults, callnumber from resource inner join (select resourceId, callnumber FROM resource_callnumber group by resourceId, callnumber) titleCallNumber on resource.id = resourceId group by callnumber) baseQuery order by callnumber asc");
-			int numBrowseRows = createBrowseTable.executeUpdate();
-			logger.info("Added " + numBrowseRows + " to callnumber browse table");
+			
+			//Get all resources
+			logger.info("Loading call numbers for browsing");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, callnumber from resource inner join (select resourceId, callnumber FROM resource_callnumber group by resourceId, callnumber) titleCallNumber on resource.id = resourceId where (deleted = 0 OR deleted is NULL) group by callnumber ORDER BY lower(callnumber)");
+			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
+
+			logger.info("Saving call numbers to database");
+			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO callnumber_browse (id, numResults, value) VALUES (?, ?, ?)");
+			int curRow = 1;
+			while (groupedSortedRS.next()){
+				String sortKey = groupedSortedRS.getString("callnumber");
+				if (sortKey != null && sortKey.length() > 0){
+					insertBrowseRow.setLong(1, curRow++);
+					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
+					insertBrowseRow.setString(3, groupedSortedRS.getString("subject"));
+					insertBrowseRow.executeUpdate();
+					//System.out.print(".");
+				}
+			}
+			logger.info("Added " + (curRow -1) + " rows to call number browse table");
 		} catch (SQLException e) {
 			logger.error("Error creating callnumber browse table", e);
 		}
