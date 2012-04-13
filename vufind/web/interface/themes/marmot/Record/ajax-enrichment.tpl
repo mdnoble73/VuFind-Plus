@@ -52,7 +52,7 @@
 {/if}]]></Series>
 <SeriesDefaultIndex>{$enrichment.novelist.seriesDefaultIndex}</SeriesDefaultIndex>
 <SimilarTitles><![CDATA[{if $showSimilarTitles}
-<h4>{translate text="Novelist Recommends"}</h4>
+<h4>{translate text="NoveList Recommends"}</h4>
 <ul class="similar">
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}

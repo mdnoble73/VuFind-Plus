@@ -41,12 +41,12 @@
     {if $consolidateJs}
     	<script type="text/javascript" src="{$path}/API/ConsolidatedJs"></script>
     {else}
-	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
-	    
 	    <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
 	    <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
 	    <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
       
+	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
+	    
 	    {if $enableBookCart}
 	    <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
 	    <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
