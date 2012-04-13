@@ -47,6 +47,10 @@
 
 }
 
+#bag_open_button{
+	z-index: 20000; 
+}
+
 #book_bag #bag_open_button .plus {
   background-image:url(../../../../images/silk/img_icon_plus.png);
   background-repeat:no-repeat;

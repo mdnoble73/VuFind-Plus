@@ -245,6 +245,7 @@ function GetEnrichmentInfo(id, isbn, upc) {
 				seriesData = $.parseJSON(seriesData);
 				if (seriesData.titles.length > 0){
 					$('#list-series-tab').show();
+					$('#relatedTitleInfo').show();
 					seriesScroller.loadTitlesFromJsonData(seriesData);
 				}
 			}

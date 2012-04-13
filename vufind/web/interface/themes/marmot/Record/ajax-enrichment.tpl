@@ -1,35 +1,11 @@
 <SimilarAuthors>
 <![CDATA[{if $enrichment.novelist.similarAuthorCount != 0}
-  <script type="text/javascript" src="{$path}/js/dropdowncontent.js"></script>
-  <a href ="#" class="cite" id="similarAuthorLink" rel="similarAuthor">Similar Authors</a>
-  <DIV id="similarAuthor" style="position:absolute; -moz-border-radius: 5px; -webkit-border-radius: 5px; -webkit-box-shadow: 5px 5px 7px 0 #888; padding: 5px; -moz-box-shadow: 5px 5px 7px 0 #888; visibility: hidden; border: 2px solid darkgrey; background-color: white; width: 300px; height:150px;z-index:100;">
-  <span class ="alignright"><a href="javascript:dropdowncontent.hidediv('similarAuthor')" class="unavailable">Close</a></span><br />
-    <center>
-      <table width="290">
-      <tr><td colspan="2"><center>Similar Authors</center></td></tr>
-        <tr>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.0|escape:"url"}>{$enrichment.novelist.authors.0}</a></td>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.1|escape:"url"}>{$enrichment.novelist.authors.1}</a></td>
-        </tr>
-        <tr>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.2|escape:"url"}>{$enrichment.novelist.authors.2}</a></td>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.3|escape:"url"}>{$enrichment.novelist.authors.3}</a></td>
-        </tr>
-        <tr>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.4|escape:"url"}>{$enrichment.novelist.authors.4}</a></td>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.5|escape:"url"}>{$enrichment.novelist.authors.5}</a></td>
-        </tr>                 
-        <tr>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.6|escape:"url"}>{$enrichment.novelist.authors.6}</a></td>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.7|escape:"url"}>{$enrichment.novelist.authors.7}</a></td>
-        </tr>                 
-        <tr>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.8|escape:"url"}>{$enrichment.novelist.authors.8}</a></td>
-          <td><a href={$url}/Author/Home?author={$enrichment.novelist.authors.9|escape:"url"}>{$enrichment.novelist.authors.9}</a></td>
-        </tr>
-      </table>
-    </center>
-  </div>
+  <h4 id="similarAuthorTitle" >Similar Authors</h4>
+  {foreach from=$enrichment.novelist.authors item=similarAuthor}
+    <div class="sidebarLabel">
+      <a href={$path}/Author/Home?author={$similarAuthor|escape:"url"}&lookfor=>{$similarAuthor}</a>
+    </div>
+  {/foreach}
 {/if}]]>
 </SimilarAuthors>
 <SeriesInfo><![CDATA[{$seriesInfo}]]></SeriesInfo>
@@ -76,7 +52,7 @@
 {/if}]]></Series>
 <SeriesDefaultIndex>{$enrichment.novelist.seriesDefaultIndex}</SeriesDefaultIndex>
 <SimilarTitles><![CDATA[{if $showSimilarTitles}
-<h4>{translate text="Similar Titles"}</h4>
+<h4>{translate text="Novelist Recommends"}</h4>
 <ul class="similar">
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}
