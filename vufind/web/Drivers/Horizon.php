@@ -68,22 +68,6 @@ class Horizon implements DriverInterface{
 
 		$allItems = array();
 
-		if ($record == null){
-			// Get the item information from the Marc File
-			$searchObject = SearchObjectFactory::initSearchObject();
-			global $configArray;
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			$index = new $class($url);
-			if ($configArray['System']['debugSolr']) {
-				$index->debug = true;
-			}
-			$timer->logTime('Setup Search Object');
-
-			$record = $index->getRecord($id);
-			$timer->logTime('Retrieved record from search object Object');
-		}
-
 		$sipInitialized = $mysip != null;
 
 		global $locationSingleton;
@@ -93,142 +77,138 @@ class Horizon implements DriverInterface{
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
-		if ($record) {
-			require_once 'sys/MarcLoader.php';
-			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-			if ($marcRecord) {
-				$timer->logTime('Loaded MARC record from search object');
-				if (!$configArray['Catalog']['itemLevelCallNumbers']){
-					$callNumber = '';
-					$callNumberField = $marcRecord->getField('92', true);
-					if ($callNumberField != null){
-						$callNumberA = $callNumberField->getSubfield('a');
-						$callNumberB = $callNumberField->getSubfield('b');
-						if ($callNumberA != null){
-							$callNumber = $callNumberA->getData();
+		require_once 'sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		if ($marcRecord) {
+			$timer->logTime('Loaded MARC record from search object');
+			if (!$configArray['Catalog']['itemLevelCallNumbers']){
+				$callNumber = '';
+				$callNumberField = $marcRecord->getField('92', true);
+				if ($callNumberField != null){
+					$callNumberA = $callNumberField->getSubfield('a');
+					$callNumberB = $callNumberField->getSubfield('b');
+					if ($callNumberA != null){
+						$callNumber = $callNumberA->getData();
+					}
+					if ($callNumberB != null){
+						if (strlen($callNumber) > 0){
+							$callNumber .= ' ';
 						}
-						if ($callNumberB != null){
-							if (strlen($callNumber) > 0){
-								$callNumber .= ' ';
-							}
-							$callNumber .= $callNumberB->getData();
+						$callNumber .= $callNumberB->getData();
+					}
+				}
+				$timer->logTime('Got call number');
+			}
+			
+			//Get the item records from the 949 tag
+			$items = $marcRecord->getFields('949');
+			$barcodeSubfield    = $configArray['Catalog']['barcodeSubfield'];
+			$locationSubfield   = $configArray['Catalog']['locationSubfield'];
+			$itemSubfield       = $configArray['Catalog']['itemSubfield'];
+			$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
+			$statusSubfield     = $configArray['Catalog']['statusSubfield'];
+			foreach ($items as $itemIndex => $item){
+				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
+				//Check to see if we already have data for this barcode 
+				global $memcache;
+				$itemData = $memcache->get('item_data_' . $barcode);
+				if ($itemData == false){
+					//No data exists
+				
+					$itemData = array();
+					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
+					//Get the barcode from the horizon database
+					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
+					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
+					
+					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
+						$itemData['callnumber'] = $callNumber;
+					}else{
+						$itemData['callnumber'] = trim($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
+					}
+					$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
+					//Set default status
+					$itemData['status'] = trim($item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '');
+					if ($this->useDb){
+						//Get updated status from database
+						//Query the database for realtime availability
+						$query = "select item_status from item where item# = " . $itemId;
+						$itemStatusResult = $this->_query($query);
+						$itemsStatus = $this->_fetch_assoc($itemStatusResult);
+						if (isset($itemsStatus['item_status']) && strlen($itemsStatus['item_status']) > 0){
+							$itemData['status'] = $itemsStatus['item_status'];
+							$timer->logTime("Got status from database item $itemIndex");
 						}
 					}
-					$timer->logTime('Got call number');
-				}
-				
-				//Get the item records from the 949 tag
-				$items = $marcRecord->getFields('949');
-				$barcodeSubfield    = $configArray['Catalog']['barcodeSubfield'];
-				$locationSubfield   = $configArray['Catalog']['locationSubfield'];
-				$itemSubfield       = $configArray['Catalog']['itemSubfield'];
-				$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
-				$statusSubfield     = $configArray['Catalog']['statusSubfield'];
-				foreach ($items as $itemIndex => $item){
-					$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
-					//Check to see if we already have data for this barcode 
-					global $memcache;
-					$itemData = $memcache->get('item_data_' . $barcode);
-					if ($itemData == false){
-						//No data exists
+					$itemData['availability'] = preg_match("/^({$configArray['Catalog']['availableStatuses']})$/i", $itemData['status']);
+					//Make the item holdable by default.  Then check rules to make it non-holdable.
+					$itemData['holdable'] = true;
+					//Make lucky day items not holdable
+					$itemData['luckyDay'] = ($item->getSubfield('t') != null ? preg_match('/^yld.*$/i', $item->getSubfield('t')->getData()) == 1 : false);
 					
-						$itemData = array();
-						$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
-						//Get the barcode from the horizon database
-						$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
-						$itemData['location'] = $this->translateLocation($itemData['locationCode']);
-						
-						if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
-							$itemData['callnumber'] = $callNumber;
-						}else{
-							$itemData['callnumber'] = trim($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
-						}
-						$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
-						//Set default status
-						$itemData['status'] = trim($item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '');
-						if ($this->useDb){
-							//Get updated status from database
-							//Query the database for realtime availability
-							$query = "select item_status from item where item# = " . $itemId;
-							$itemStatusResult = $this->_query($query);
-							$itemsStatus = $this->_fetch_assoc($itemStatusResult);
-							if (isset($itemsStatus['item_status']) && strlen($itemsStatus['item_status']) > 0){
-								$itemData['status'] = $itemsStatus['item_status'];
-								$timer->logTime("Got status from database item $itemIndex");
-							}
-						}
-						$itemData['availability'] = preg_match("/^({$configArray['Catalog']['availableStatuses']})$/i", $itemData['status']);
-						//Make the item holdable by default.  Then check rules to make it non-holdable.
-						$itemData['holdable'] = true;
-						//Make lucky day items not holdable
-						$itemData['luckyDay'] = ($item->getSubfield('t') != null ? preg_match('/^yld.*$/i', $item->getSubfield('t')->getData()) == 1 : false);
-						
-						$subfield_t = $item->getSubfield('t');
-						if ($subfield_t != null){
-							$subfield_t = strtolower($subfield_t->getData());
-							if (in_array($subfield_t, array('cp', 'lh', 'ill'))){
-								//Make local history items and ill items not-holdable
-								$itemData['holdable'] = false;
-							}
-						}
-						//Online items are not holdable.
-						if (preg_match("/^({$configArray['Catalog']['nonHoldableStatuses']})$/i", $itemData['status'])){
+					$subfield_t = $item->getSubfield('t');
+					if ($subfield_t != null){
+						$subfield_t = strtolower($subfield_t->getData());
+						if (in_array($subfield_t, array('cp', 'lh', 'ill'))){
+							//Make local history items and ill items not-holdable
 							$itemData['holdable'] = false;
 						}
-	
-						$itemData['barcode'] = $barcode;
-						$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
-						$itemData['holdQueueLength'] = 0;
-						if (strlen($itemData['barcode']) > 0){
-							$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status']);
-							$itemData = array_merge($itemData, $itemSip2Data);
-						}
+					}
+					//Online items are not holdable.
+					if (preg_match("/^({$configArray['Catalog']['nonHoldableStatuses']})$/i", $itemData['status'])){
+						$itemData['holdable'] = false;
+					}
 
-						$itemData['collection'] = $this->translateCollection($item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
-	
-						$itemData['statusfull'] = $this->translateStatus($itemData['status']);
-						//Suppress items based on status
-						$memcache->set('item_data_' . $barcode, $itemData, 0, $configArray['Caching']['item_data']);
+					$itemData['barcode'] = $barcode;
+					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
+					$itemData['holdQueueLength'] = 0;
+					if (strlen($itemData['barcode']) > 0){
+						$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status']);
+						$itemData = array_merge($itemData, $itemSip2Data);
 					}
-					
-					$suppressItem = false;
-					$statusesToSuppress = $configArray['Catalog']['statusesToSuppress'];
-					if (strlen($statusesToSuppress) > 0 && preg_match("/^($statusesToSuppress)$/i", $itemData['status'])){
+
+					$itemData['collection'] = $this->translateCollection($item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
+
+					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
+					//Suppress items based on status
+					$memcache->set('item_data_' . $barcode, $itemData, 0, $configArray['Caching']['item_data']);
+				}
+				
+				$suppressItem = false;
+				$statusesToSuppress = $configArray['Catalog']['statusesToSuppress'];
+				if (strlen($statusesToSuppress) > 0 && preg_match("/^($statusesToSuppress)$/i", $itemData['status'])){
+					$suppressItem = true; 
+				}
+				//Suppress items based on location
+				$locationsToSuppress = $configArray['Catalog']['locationsToSuppress'];
+				if (strlen($locationsToSuppress) > 0 && preg_match("/^($locationsToSuppress)$/i", $itemData['locationCode'])){
+					//Make sure that the active branch is not the suppresed location
+					global $locationSingleton;
+					$branch = $locationSingleton->getBranchLocationCode();
+					if (!preg_match("/^($locationsToSuppress)$/i", $branch)){
 						$suppressItem = true; 
-					}
-					//Suppress items based on location
-					$locationsToSuppress = $configArray['Catalog']['locationsToSuppress'];
-					if (strlen($locationsToSuppress) > 0 && preg_match("/^($locationsToSuppress)$/i", $itemData['locationCode'])){
-						//Make sure that the active branch is not the suppresed location
-						global $locationSingleton;
-						$branch = $locationSingleton->getBranchLocationCode();
-						if (!preg_match("/^($locationsToSuppress)$/i", $branch)){
-							$suppressItem = true; 
-						}
-					}
-					//Suppress staff items
-					$isStaff = false;
-					$subfieldO = $item->getSubfield('o');
-					if (isset($subfieldO) && is_object($subfieldO) && $subfieldO->getData() == 1){
-						$isStaff = true;
-						$suppressItem = true; 
-					}
-						
-					if (!$suppressItem){
-						$sortString = $itemData['location'] . $itemData['callnumber'] . (count($allItems) + 1);
-						if ($physicalLocation != null && strcasecmp($physicalLocation->code, $itemData['locationCode']) == 0){
-							$sortString = "1" . $sortString;
-						}elseif ($homeLocation != null && strcasecmp($homeLocation->code, $itemData['locationCode']) == 0){
-							$sortString = "2" . $sortString;
-						}
-						$allItems[$sortString] = $itemData;
-					}else{
-						$logger = new Logger();
-						$logger->log("item suppressed for barcode $barcode", PEAR_LOG_INFO);
 					}
 				}
-			} else {
-				//Can't process the marc record, ignore it.
+				//Suppress staff items
+				$isStaff = false;
+				$subfieldO = $item->getSubfield('o');
+				if (isset($subfieldO) && is_object($subfieldO) && $subfieldO->getData() == 1){
+					$isStaff = true;
+					$suppressItem = true; 
+				}
+					
+				if (!$suppressItem){
+					$sortString = $itemData['location'] . $itemData['callnumber'] . (count($allItems) + 1);
+					if ($physicalLocation != null && strcasecmp($physicalLocation->code, $itemData['locationCode']) == 0){
+						$sortString = "1" . $sortString;
+					}elseif ($homeLocation != null && strcasecmp($homeLocation->code, $itemData['locationCode']) == 0){
+						$sortString = "2" . $sortString;
+					}
+					$allItems[$sortString] = $itemData;
+				}else{
+					$logger = new Logger();
+					$logger->log("item suppressed for barcode $barcode", PEAR_LOG_INFO);
+				}
 			}
 		}
 		$timer->logTime("Finished loading status information");
@@ -715,7 +695,7 @@ public function getMyHoldsViaDB($patron)
 		return $holdList;
 	}
 	
-/**
+	/**
 	 * Returns a summary of the holdings information for a single id. Used to display
 	 * within the search results and at the top of a full record display to ensure
 	 * the holding information makes sense to all users.
@@ -728,192 +708,178 @@ public function getMyHoldsViaDB($patron)
 		global $library;
 		global $locationSingleton;
 		global $configArray;
-
-		$location = $locationSingleton->getPhysicalLocation();
-		if (!isset($location) && $location == null){
-			$location = $locationSingleton->getUserHomeLocation();
-		}
-		$canShowHoldButton = true;
-		if ($library && $library->showHoldButton == 0){
-			$canShowHoldButton = false;
-		}
-		if ($location != null && $location->showHoldButton == 0){
-			$canShowHoldButton = false;
-		}
-
-		$holdings = $this->getStatus($id, $record, $mysip, true);
-		$timer->logTime('Retrieved Status of holding');
-
-		$counter = 0;
-		$summaryInformation = array();
-		$summaryInformation['recordId'] = $id;
-		$summaryInformation['shortId'] = $id;
-		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
-		$summaryInformation['holdQueueLength'] = 0;
-
-		//Check to see if we are getting issue summaries or actual holdings
-		$isIssueSummary = false;
-		$numSubscriptions = 0;
-		if (count($holdings) > 0){
-			$lastHolding = end($holdings);
-			if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
-				$isIssueSummary = true;
-				$issueSummaries = $holdings;
-				$numSubscriptions = count($issueSummaries);
-				$holdings = array();
-				foreach ($issueSummaries as $issueSummary){
-					if (isset($issueSummary['holdings'])){
-						$holdings = array_merge($holdings, $issueSummary['holdings']);
-					}else{
-						//Create a fake holding for subscriptions so something
-						//will be displayed in the holdings summary.
-						$holdings[$issueSummary['location']] = array(
-                            'availability' => '1',
-                            'location' => $issueSummary['location'],
-                            'libraryDisplayName' => $issueSummary['location'],
-                            'callnumber' => $issueSummary['cALL'],
-                            'status' => 'Lib Use Only',
-                            'statusfull' => 'In Library Use Only',
-						);
+		global $memcache;
+		$summaryInformation = $memcache->get('holdings_summary_' . $id);
+		if ($summaryInformation == false){
+	
+			$location = $locationSingleton->getPhysicalLocation();
+			if (!isset($location) && $location == null){
+				$location = $locationSingleton->getUserHomeLocation();
+			}
+			$canShowHoldButton = true;
+			if ($library && $library->showHoldButton == 0){
+				$canShowHoldButton = false;
+			}
+			if ($location != null && $location->showHoldButton == 0){
+				$canShowHoldButton = false;
+			}
+	
+			$holdings = $this->getStatus($id, $record, $mysip, true);
+			$timer->logTime('Retrieved Status of holding');
+	
+			$counter = 0;
+			$summaryInformation = array();
+			$summaryInformation['recordId'] = $id;
+			$summaryInformation['shortId'] = $id;
+			$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
+			$summaryInformation['holdQueueLength'] = 0;
+	
+			//Check to see if we are getting issue summaries or actual holdings
+			$isIssueSummary = false;
+			$numSubscriptions = 0;
+			if (count($holdings) > 0){
+				$lastHolding = end($holdings);
+				if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
+					$isIssueSummary = true;
+					$issueSummaries = $holdings;
+					$numSubscriptions = count($issueSummaries);
+					$holdings = array();
+					foreach ($issueSummaries as $issueSummary){
+						if (isset($issueSummary['holdings'])){
+							$holdings = array_merge($holdings, $issueSummary['holdings']);
+						}else{
+							//Create a fake holding for subscriptions so something
+							//will be displayed in the holdings summary.
+							$holdings[$issueSummary['location']] = array(
+	                            'availability' => '1',
+	                            'location' => $issueSummary['location'],
+	                            'libraryDisplayName' => $issueSummary['location'],
+	                            'callnumber' => $issueSummary['cALL'],
+	                            'status' => 'Lib Use Only',
+	                            'statusfull' => 'In Library Use Only',
+							);
+						}
 					}
 				}
 			}
-		}
-		$timer->logTime('Processed for subscriptions');
-
-		//Valid statuses are:
-		//Available by Request
-		//  - not at the user's home branch or preferred location, but at least one copy is not checked out
-		//  - do not show the call number
-		//  - show place hold button
-		//Checked Out
-		//  - all copies are checked out
-		//  - show the call number for the local library if any
-		//  - show place hold button
-		//Downloadable
-		//  - there is at least one download link for the record.
-		$numAvailableCopies = 0;
-		$numHoldableCopies = 0;
-		$numCopies = 0;
-		$numCopiesOnOrder = 0;
-		$availableLocations = array();
-		$unavailableStatus = null;
-		//The status of all items.  Will be set to an actual status if all are the same
-		//or null if the item statuses are inconsistent
-		$allItemStatus = '';
-		$firstAvailableBarcode = '';
-		$availableHere = false;
-		foreach ($holdings as $holdingKey => $holding){
-			if (is_null($allItemStatus)){
-				//Do nothing, the status is not distinct
-			}else if ($allItemStatus == ''){
-				$allItemStatus = $holding['statusfull'];
-			}elseif($allItemStatus != $holding['statusfull']){
-				$allItemStatus = null;
-			}
-			if ($holding['availability'] == true){
-				if ($location && strcasecmp($holding['locationCode'], $location->code) == 0){
-					$availableHere = true;
+			$timer->logTime('Processed for subscriptions');
+	
+			//Valid statuses are:
+			//Available by Request
+			//  - not at the user's home branch or preferred location, but at least one copy is not checked out
+			//  - do not show the call number
+			//  - show place hold button
+			//Checked Out
+			//  - all copies are checked out
+			//  - show the call number for the local library if any
+			//  - show place hold button
+			//Downloadable
+			//  - there is at least one download link for the record.
+			$numAvailableCopies = 0;
+			$numHoldableCopies = 0;
+			$numCopies = 0;
+			$numCopiesOnOrder = 0;
+			$availableLocations = array();
+			$unavailableStatus = null;
+			//The status of all items.  Will be set to an actual status if all are the same
+			//or null if the item statuses are inconsistent
+			$allItemStatus = '';
+			$firstAvailableBarcode = '';
+			$availableHere = false;
+			foreach ($holdings as $holdingKey => $holding){
+				if (is_null($allItemStatus)){
+					//Do nothing, the status is not distinct
+				}else if ($allItemStatus == ''){
+					$allItemStatus = $holding['statusfull'];
+				}elseif($allItemStatus != $holding['statusfull']){
+					$allItemStatus = null;
 				}
-				$numAvailableCopies++;
-				$addToAvailableLocation = false;
-				$addToAdditionalAvailableLocation = false;
-				//Check to see if the location should be listed in the list of locations that the title is available at.
-				//Can only be in this system if there is a system active.
-				if (!in_array($holding['locationCode'], array_keys($availableLocations))){
-					$locationMapLink = $this->getLocationMapLink($holding['locationCode']);
-					if (strlen($locationMapLink) > 0){
-						$availableLocations[$holding['locationCode']] = "<a href='$locationMapLink' target='_blank'>" . preg_replace('/\s/', '&nbsp;', $holding['location']) . "</a>";
-					}else{
-						$availableLocations[$holding['locationCode']] =  $holding['location'];
+				if ($holding['availability'] == true){
+					if ($location && strcasecmp($holding['locationCode'], $location->code) == 0){
+						$availableHere = true;
 					}
-				}
-			}else{
-				if ($unavailableStatus == null){
-					$unavailableStatus = $holding['statusfull'];
-				}
-			}
-
-			if (isset($holding['holdable']) && $holding['holdable'] == 1){
-				$numHoldableCopies++;
-			}
-			$numCopies++;
-			//Check to see if the holding has a download link and if so, set that info.
-			if (isset($holding['link'])){
-				foreach ($holding['link'] as $link){
-					if ($link['isDownload']){
-						$summaryInformation['status'] = "Available for Download";
-						$summaryInformation['class'] = 'here';
-						$summaryInformation['isDownloadable'] = true;
-						$summaryInformation['downloadLink'] = $link['link'];
-						$summaryInformation['downloadText'] = $link['linkText'];
+					$numAvailableCopies++;
+					$addToAvailableLocation = false;
+					$addToAdditionalAvailableLocation = false;
+					//Check to see if the location should be listed in the list of locations that the title is available at.
+					//Can only be in this system if there is a system active.
+					if (!in_array($holding['locationCode'], array_keys($availableLocations))){
+						$locationMapLink = $this->getLocationMapLink($holding['locationCode']);
+						if (strlen($locationMapLink) > 0){
+							$availableLocations[$holding['locationCode']] = "<a href='$locationMapLink' target='_blank'>" . preg_replace('/\s/', '&nbsp;', $holding['location']) . "</a>";
+						}else{
+							$availableLocations[$holding['locationCode']] =  $holding['location'];
+						}
 					}
-				}
-			}
-			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
-			if (!isset($summaryInformation['callnumber'])){
-				$summaryInformation['callnumber'] = $holding['callnumber'];
-			}
-			if ($holding['availability'] == 1){
-				//The item is available within the physical library.  Patron should go get it off the shelf
-				$summaryInformation['status'] = "Available At";
-				if ($numHoldableCopies > 0){
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
 				}else{
-					$summaryInformation['showPlaceHold'] = 0;
+					if ($unavailableStatus == null){
+						$unavailableStatus = $holding['statusfull'];
+					}
 				}
-				$summaryInformation['class'] = 'available';
-			}
-			if ($holding['holdQueueLength'] > $summaryInformation['holdQueueLength']){
-				$summaryInformation['holdQueueLength'] = $holding['holdQueueLength'];
-			}
-			if ($firstAvailableBarcode == '' && $holding['availability'] == true){
-				$firstAvailableBarcode = $holding['barcode'];
-			}
-		}
-		$timer->logTime('Processed copies');
-
-		//If all items are checked out the status will still be blank
-		$summaryInformation['availableCopies'] = $numAvailableCopies;
-		$summaryInformation['holdableCopies'] = $numHoldableCopies;
-
-		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
-		//Do some basic sanity checking to make sure that we show the total copies
-		//With at least as many copies as the number of copies on order.
-		if ($numCopies < $numCopiesOnOrder){
-			$summaryInformation['numCopies'] = $numCopiesOnOrder;
-		}else{
-			$summaryInformation['numCopies'] = $numCopies;
-		}
-
-		if ($unavailableStatus != 'ONLINE'){
-			$summaryInformation['unavailableStatus'] = $unavailableStatus;
-		}
-
-		//Status is not set, check to see if the item is downloadable
-		if (!isset($summaryInformation['status']) && !isset($summaryInformation['downloadLink'])){
-			if ($record == null){
-				//Check to see if there is a download link in the 856 field
-				//Make sure that the search engine has been setup.  It may not be if the
-				//this is an AJAX request where the search engine is not needed otherwise.
-				$searchObject = SearchObjectFactory::initSearchObject();
-				global $configArray;
-				$class = $configArray['Index']['engine'];
-				$url = $configArray['Index']['url'];
-				$this->db = new $class($url);
-				if ($configArray['System']['debugSolr']) {
-					$this->db->debug = true;
+	
+				if (isset($holding['holdable']) && $holding['holdable'] == 1){
+					$numHoldableCopies++;
 				}
-
-				$record = $this->db->getRecord($id);
+				$numCopies++;
+				//Check to see if the holding has a download link and if so, set that info.
+				if (isset($holding['link'])){
+					foreach ($holding['link'] as $link){
+						if ($link['isDownload']){
+							$summaryInformation['status'] = "Available for Download";
+							$summaryInformation['class'] = 'here';
+							$summaryInformation['isDownloadable'] = true;
+							$summaryInformation['downloadLink'] = $link['link'];
+							$summaryInformation['downloadText'] = $link['linkText'];
+						}
+					}
+				}
+				//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
+				if (!isset($summaryInformation['callnumber'])){
+					$summaryInformation['callnumber'] = $holding['callnumber'];
+				}
+				if ($holding['availability'] == 1){
+					//The item is available within the physical library.  Patron should go get it off the shelf
+					$summaryInformation['status'] = "Available At";
+					if ($numHoldableCopies > 0){
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					}else{
+						$summaryInformation['showPlaceHold'] = 0;
+					}
+					$summaryInformation['class'] = 'available';
+				}
+				if ($holding['holdQueueLength'] > $summaryInformation['holdQueueLength']){
+					$summaryInformation['holdQueueLength'] = $holding['holdQueueLength'];
+				}
+				if ($firstAvailableBarcode == '' && $holding['availability'] == true){
+					$firstAvailableBarcode = $holding['barcode'];
+				}
 			}
-
-			// Retrieve Full Marc Record
-			$recordURL = null;
-			if ($record) {
+			$timer->logTime('Processed copies');
+	
+			//If all items are checked out the status will still be blank
+			$summaryInformation['availableCopies'] = $numAvailableCopies;
+			$summaryInformation['holdableCopies'] = $numHoldableCopies;
+	
+			$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
+			//Do some basic sanity checking to make sure that we show the total copies
+			//With at least as many copies as the number of copies on order.
+			if ($numCopies < $numCopiesOnOrder){
+				$summaryInformation['numCopies'] = $numCopiesOnOrder;
+			}else{
+				$summaryInformation['numCopies'] = $numCopies;
+			}
+	
+			if ($unavailableStatus != 'ONLINE'){
+				$summaryInformation['unavailableStatus'] = $unavailableStatus;
+			}
+	
+			//Status is not set, check to see if the item is downloadable
+			if (!isset($summaryInformation['status']) && !isset($summaryInformation['downloadLink'])){
+				// Retrieve Full Marc Record
+				$recordURL = null;
 				// Process MARC Data
 				require_once 'sys/MarcLoader.php';
-				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+				$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 				if ($marcRecord) {
 					//Check the 856 tag to see if there is a URL
 					if ($linkField = $marcRecord->getField('856')) {
@@ -931,119 +897,126 @@ public function getMyHoldsViaDB($patron)
 				} else {
 					//Can't process the marc record, ignore it.
 				}
-			}
-
-			//If there is a link, add that status information.
-			if (isset($linkURL) ) {
-				$isImageLink = preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/i' , $linkURL);
-				$isInternalLink = preg_match('/vufind|catalog/i', $linkURL);
-				$isPurchaseLink = preg_match('/amazon|barnesandnoble/i', $linkURL);
-				if ($isImageLink == 0 && $isInternalLink == 0 && $isPurchaseLink == 0){
-					$linkTestText = $linkText . ' ' . $linkURL;
-					$isDownload = preg_match('/SpringerLink|NetLibrary|digital media)|Online version\.|ebrary|gutenberg|emedia2go/i', $linkTestText);
-					if ($linkTestText == 'digital media') $linkText = 'OverDrive';
-					if (preg_match('/netlibrary/i', $linkURL)){
-						$isDownload = true;
-						$linkText = 'NetLibrary';
-					}elseif(preg_match('/ebscohost/i', $linkURL)){
-						$isDownload = true;
-						$linkText = 'Ebsco';
-					}elseif(preg_match('/overdrive|emedia2go/i', $linkURL)){
-						$isDownload = true;
-						$linkText = 'OverDrive';
-					}elseif(preg_match('/ebrary/i', $linkURL)){
-						$isDownload = true;
-						$linkText = 'ebrary';
-					}elseif(preg_match('/gutenberg/i', $linkURL)){
-						$isDownload = true;
-						$linkText = 'Gutenberg Project';
-					}elseif(preg_match('/ezproxy/i', $linkURL)){
-						$isDownload = true;
-					}elseif(preg_match('/.*\.[pdf]/', $linkURL)){
-						$isDownload = true;
-					}
-					if ($isDownload){
-						$summaryInformation['status'] = "Available for Download";
-						$summaryInformation['class'] = 'here';
-						$summaryInformation['isDownloadable'] = true;
-						$summaryInformation['downloadLink'] = $linkURL;
-						$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
-						//Check to see if this is an eBook or eAudio book.  We can get this from the 245h tag
-						$isEBook = true;
-						$formatCategory = isset($record['format_category'])? $record['format_category'][0] : '';
-						if (strcasecmp($formatCategory, 'eBooks') === 0){
-							$summaryInformation['eBookLink'] = $linkURL;
-						}elseif (strcasecmp($formatCategory, 'eAudio') === 0){
-							$summaryInformation['eAudioLink'] = $linkURL;
+				
+				//If there is a link, add that status information.
+				if (isset($linkURL) ) {
+					$isImageLink = preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/i' , $linkURL);
+					$isInternalLink = preg_match('/vufind|catalog/i', $linkURL);
+					$isPurchaseLink = preg_match('/amazon|barnesandnoble/i', $linkURL);
+					if ($isImageLink == 0 && $isInternalLink == 0 && $isPurchaseLink == 0){
+						$linkTestText = $linkText . ' ' . $linkURL;
+						$isDownload = preg_match('/SpringerLink|NetLibrary|digital media)|Online version\.|ebrary|gutenberg|emedia2go/i', $linkTestText);
+						if ($linkTestText == 'digital media') $linkText = 'OverDrive';
+						if (preg_match('/netlibrary/i', $linkURL)){
+							$isDownload = true;
+							$linkText = 'NetLibrary';
+						}elseif(preg_match('/ebscohost/i', $linkURL)){
+							$isDownload = true;
+							$linkText = 'Ebsco';
+						}elseif(preg_match('/overdrive|emedia2go/i', $linkURL)){
+							$isDownload = true;
+							$linkText = 'OverDrive';
+						}elseif(preg_match('/ebrary/i', $linkURL)){
+							$isDownload = true;
+							$linkText = 'ebrary';
+						}elseif(preg_match('/gutenberg/i', $linkURL)){
+							$isDownload = true;
+							$linkText = 'Gutenberg Project';
+						}elseif(preg_match('/ezproxy/i', $linkURL)){
+							$isDownload = true;
+						}elseif(preg_match('/.*\.[pdf]/', $linkURL)){
+							$isDownload = true;
+						}
+						if ($isDownload){
+							$summaryInformation['status'] = "Available for Download";
+							$summaryInformation['class'] = 'here';
+							$summaryInformation['isDownloadable'] = true;
+							$summaryInformation['downloadLink'] = $linkURL;
+							$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
+							//Check to see if this is an eBook or eAudio book.  We can get this from the 245h tag
+							$isEBook = true;
+							$resource = new Resource();
+							$resource->record_id = $id;
+							$resource->source = 'VuFind';
+							if ($resource->find(true)){
+								$formatCategory = $resource->format_category;
+								if (strcasecmp($formatCategory, 'eBooks') === 0){
+									$summaryInformation['eBookLink'] = $linkURL;
+								}elseif (strcasecmp($formatCategory, 'eAudio') === 0){
+									$summaryInformation['eAudioLink'] = $linkURL;
+								}
+							}
 						}
 					}
 				}
+				$timer->logTime('Checked for downloadable link in 856 tag');
 			}
-			$timer->logTime('Checked for downloadable link in 856 tag');
-		}
-
-		if ($availableHere){
-			$summaryInformation['status'] = "It's Here";
-			$summaryInformation['class'] = 'here';
-			unset($availableLocations[$location->code]);
-			$summaryInformation['currentLocation'] = $location->displayName;
-			$summaryInformation['availableAt'] = join(', ', $availableLocations);
-			$summaryInformation['numAvailableOther'] = count($availableLocations);
-		}else{
-			//Replace all spaces in the name of a location with no break spaces
-			$summaryInformation['availableAt'] = join(', ', $availableLocations);
-			$summaryInformation['numAvailableOther'] = count($availableLocations);
-		}
-
-		//If Status is still not set, apply some logic based on number of copies
-		if (!isset($summaryInformation['status'])){
-			if ($numCopies == 0){
-				if ($numCopiesOnOrder > 0){
-					//No copies are currently available, but we do have some that are on order.
-					//show the status as on order and make it available.
-					$summaryInformation['status'] = "On Order";
-					$summaryInformation['class'] = 'available';
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-				}else{
-					//Deal with weird cases where there are no items by saying it is unavailable
-					$summaryInformation['status'] = "Unavailable";
-					$summaryInformation['showPlaceHold'] = false;
-					$summaryInformation['class'] = 'unavailable';
-				}
+	
+			if ($availableHere){
+				$summaryInformation['status'] = "It's Here";
+				$summaryInformation['class'] = 'here';
+				unset($availableLocations[$location->code]);
+				$summaryInformation['currentLocation'] = $location->displayName;
+				$summaryInformation['availableAt'] = join(', ', $availableLocations);
+				$summaryInformation['numAvailableOther'] = count($availableLocations);
 			}else{
-				if ($numHoldableCopies == 0 && $canShowHoldButton && (isset($summaryInformation['showPlaceHold']) && $summaryInformation['showPlaceHold'] != true)){
-					$summaryInformation['status'] = "Not Available For Checkout";
-					$summaryInformation['showPlaceHold'] = false;
-					$summaryInformation['class'] = 'reserve';
+				//Replace all spaces in the name of a location with no break spaces
+				$summaryInformation['availableAt'] = join(', ', $availableLocations);
+				$summaryInformation['numAvailableOther'] = count($availableLocations);
+			}
+	
+			//If Status is still not set, apply some logic based on number of copies
+			if (!isset($summaryInformation['status'])){
+				if ($numCopies == 0){
+					if ($numCopiesOnOrder > 0){
+						//No copies are currently available, but we do have some that are on order.
+						//show the status as on order and make it available.
+						$summaryInformation['status'] = "On Order";
+						$summaryInformation['class'] = 'available';
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					}else{
+						//Deal with weird cases where there are no items by saying it is unavailable
+						$summaryInformation['status'] = "Unavailable";
+						$summaryInformation['showPlaceHold'] = false;
+						$summaryInformation['class'] = 'unavailable';
+					}
 				}else{
-					$summaryInformation['status'] = "Checked Out";
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-					$summaryInformation['class'] = 'checkedOut';
+					if ($numHoldableCopies == 0 && $canShowHoldButton && (isset($summaryInformation['showPlaceHold']) && $summaryInformation['showPlaceHold'] != true)){
+						$summaryInformation['status'] = "Not Available For Checkout";
+						$summaryInformation['showPlaceHold'] = false;
+						$summaryInformation['class'] = 'reserve';
+					}else{
+						$summaryInformation['status'] = "Checked Out";
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+						$summaryInformation['class'] = 'checkedOut';
+					}
 				}
 			}
-		}
-
-		//Reset status if the status for all items is consistent.
-		//That way it will jive with the actual full record display.
-		if ($allItemStatus != null && $allItemStatus != ''){
-			//Only override this for statuses that don't have special meaning
-			if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At'){
-				$summaryInformation['status'] = $allItemStatus;
+	
+			//Reset status if the status for all items is consistent.
+			//That way it will jive with the actual full record display.
+			if ($allItemStatus != null && $allItemStatus != ''){
+				//Only override this for statuses that don't have special meaning
+				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At'){
+					$summaryInformation['status'] = $allItemStatus;
+				}
 			}
+			if ($allItemStatus == 'In Library Use Only'){
+				$summaryInformation['inLibraryUseOnly'] = true;
+			}else{
+				$summaryInformation['inLibraryUseOnly'] = false;
+			}
+	
+	
+			if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
+				$summaryInformation['showAvailabilityLine'] = false;
+			}else{
+				$summaryInformation['showAvailabilityLine'] = true;
+			}
+			$timer->logTime('Finished building summary');
+			
+			$memcache->set('holdings_summary_' . $id, $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
 		}
-		if ($allItemStatus == 'In Library Use Only'){
-			$summaryInformation['inLibraryUseOnly'] = true;
-		}else{
-			$summaryInformation['inLibraryUseOnly'] = false;
-		}
-
-
-		if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
-			$summaryInformation['showAvailabilityLine'] = false;
-		}else{
-			$summaryInformation['showAvailabilityLine'] = true;
-		}
-		$timer->logTime('Finished building summary');
 		return $summaryInformation;
 	}
 
@@ -1057,19 +1030,6 @@ public function getMyHoldsViaDB($patron)
 	public function getStatusSummaries($ids){
 		global $timer;
 		global $configArray;
-
-		//Create a connection to Solr
-		$searchObject = SearchObjectFactory::initSearchObject();
-		global $configArray;
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$index = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$index->debug = true;
-		}
-		$timer->logTime('Setup Search Object');
-
-		$records = $searchObject->getRecords($ids);
 
 		//setup connection to SIP2 server
 		$mysip = new sip2();
@@ -1093,8 +1053,8 @@ public function getMyHoldsViaDB($patron)
 
 		$items = array();
 		$count = 0;
-		foreach ($records as $key => $record){
-			$items[$count] = $this->getStatusSummary($record['id'], $record, $mysip);
+		foreach ($ids as $recordId){
+			$items[$count] = $this->getStatusSummary($recordId, null, $mysip);
 			$count++;
 		}
 		return $items;
@@ -1612,7 +1572,6 @@ private $transactions = array();
 			//Check to see if the SIP2 information is already cached
 			if ($this->sipInitialized == false){
 				//setup connection to SIP2 server
-				$this->mysip = new sip2();
 				$this->mysip = new sip2();
 				$this->mysip->hostname = $configArray['SIP2']['host'];
 				$this->mysip->port = $configArray['SIP2']['port'];
