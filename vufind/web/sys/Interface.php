@@ -104,7 +104,11 @@ class UInterface extends Smarty
 
 		$this->assign('site', $configArray['Site']);
 		$this->assign('path', $configArray['Site']['path']);
-		$this->assign('url', $configArray['Site']['url']);
+		$url = $_SERVER['SERVER_NAME'];
+		if (strlen($configArray['Site']['path']) > 0){
+			$url .= '/' . $configArray['Site']['path'];
+		}
+		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
 		$this->assign('consolidateCss', isset($configArray['Site']['consolidateCss']) ? $configArray['Site']['consolidateCss'] : false);
 		$this->assign('consolidateJs', isset($configArray['Site']['consolidateJs']) ? $configArray['Site']['consolidateJs'] : false);
