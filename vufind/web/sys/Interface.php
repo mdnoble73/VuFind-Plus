@@ -104,7 +104,13 @@ class UInterface extends Smarty
 
 		$this->assign('site', $configArray['Site']);
 		$this->assign('path', $configArray['Site']['path']);
+		$defaultConfig = $configArray['Site']['path'];
 		$url = $_SERVER['SERVER_NAME'];
+		if (isset($_SERVER['HTTPS'])){
+			$url = "https://" . $url;
+		}else{
+			$url = "http://" . $url;
+		}
 		if (strlen($configArray['Site']['path']) > 0){
 			$url .= '/' . $configArray['Site']['path'];
 		}
