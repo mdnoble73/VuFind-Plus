@@ -82,30 +82,34 @@ class Holds extends MyResearch
 		$profile = $this->catalog->getMyProfile($user);
 
 		$today = time();
-		$todaysLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'], $today);
-		if (isset($todaysLibraryHours)){
-			if (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
-				//Library is closed now
-				$nextDay = time() + (24 * 60 * 60);
-				$nextDayHours = $this->catalog->getLibraryHours($profile->homeLocationId,  $nextDay);
-				while (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
-					$nextDay += (24 * 60 * 60);
+		if ($this->catalog->checkFunction('getLibraryHours')){
+			$todaysLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'], $today);
+			if (isset($todaysLibraryHours) && is_array($todaysLibraryHours)){
+				if (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
+					//Library is closed now
+					$nextDay = time() + (24 * 60 * 60);
 					$nextDayHours = $this->catalog->getLibraryHours($profile->homeLocationId,  $nextDay);
-				}
-	
-				$nextDayOfWeek = strftime ('%a', $nextDay);
-				$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
-			}else{
-				//Library is open
-				$currentHour = strftime ('%H', $today);
-				if ($currentHour < $todaysLibraryHours['open']){
-					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
-				}else if ($currentHour > $todaysLibraryHours['close']){
-					$tomorrowsLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'],  time() + (24 * 60 * 60));
-					$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+					while (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
+						$nextDay += (24 * 60 * 60);
+						$nextDayHours = $this->catalog->getLibraryHours($profile->homeLocationId,  $nextDay);
+					}
+		
+					$nextDayOfWeek = strftime ('%a', $nextDay);
+					$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
 				}else{
-					$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+					//Library is open
+					$currentHour = strftime ('%H', $today);
+					if ($currentHour < $todaysLibraryHours['open']){
+						$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+					}else if ($currentHour > $todaysLibraryHours['close']){
+						$tomorrowsLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'],  time() + (24 * 60 * 60));
+						$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+					}else{
+						$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+					}
 				}
+			}else{
+				$libraryHoursMessage = null;
 			}
 		}else{
 			$libraryHoursMessage = null;
@@ -183,6 +187,17 @@ class Holds extends MyResearch
 				}
 			}
 		}
+		
+		$ils = $configArray['Catalog']['ils'];
+		$allowChangeLocation = ($ils == 'Millennium');
+		$interface->assign('allowChangeLocation', $allowChangeLocation);
+		$showPlacedColumn = ($ils == 'Horizon');
+		$interface->assign('showPlacedColumn', $showPlacedColumn);
+		$showDateWhenSuspending = ($ils == 'Horizon');
+		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
+		$showPosition = ($ils == 'Horizon');
+		$interface->assign('showPosition', $showPosition);
+		
 		//print_r($patron);
 		$interface->assign('patron',$patron);
 		$interface->setTemplate('holds.tpl');

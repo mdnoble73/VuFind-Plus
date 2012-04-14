@@ -641,17 +641,22 @@ class Record extends Action
 							if (isset($nextResults)){
 								$nextRecord = $nextResults[0];
 							}else{
-								$nextRecord = $recordSet[$currentResultIndex + 1 - (($currentPage -1) * $recordsPerPage)];
+								$nextRecordIndex = $currentResultIndex + 1 - (($currentPage -1) * $recordsPerPage);
+								if (isset($recordSet[$nextRecordIndex])){
+									$nextRecord = $recordSet[$nextRecordIndex];
+								}
 							}
 							//Convert back to 1 based index
-							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-							$interface->assign('nextTitle', $nextRecord['title']);
-							if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('nextType', 'EcontentRecord');
-								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-							}else{
-								$interface->assign('nextType', 'Record');
-								$interface->assign('nextId', $nextRecord['id']);
+							if (isset($nextRecord)){
+								$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
+								$interface->assign('nextTitle', $nextRecord['title']);
+								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
+									$interface->assign('nextType', 'EcontentRecord');
+									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
+								}else{
+									$interface->assign('nextType', 'Record');
+									$interface->assign('nextId', $nextRecord['id']);
+								}
 							}
 						}
 

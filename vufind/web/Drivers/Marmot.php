@@ -1971,8 +1971,18 @@ class Marmot implements DriverInterface
 						$status = ucwords($status);
 						if ($status !="&nbsp"){
 							$curHold['status'] = $status;
+							if (preg_match('/READY.*(\d{2}-\d{2}-\d{2})/i', $status, $matches)){
+								$curHold['status'] = 'Ready';
+								//Get expiration date
+								$exipirationDate = $matches[1];
+								$expireDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
+								$curHold['expire'] = $expireDate->getTimestamp();
+								
+							}else{
+								$curHold['status'] = $status;
+							}
 						}else{
-							$curHold['status'] = "Pending";
+							$curHold['status'] = "Pending $status";
 						}
 						$matches = array();
 						$curHold['renewError'] = false;
@@ -1988,7 +1998,7 @@ class Marmot implements DriverInterface
 						$logger->log('Status for item ' . $curHold['id'] . '=' . $scols[$i], PEAR_LOG_INFO);
 					}
 					if (stripos($skeys[$i],"CANCEL IF NOT FILLED BY") > -1) {
-						$curHold['expire'] = strip_tags($scols[$i]);
+						//$curHold['expire'] = strip_tags($scols[$i]);
 					}
 					if (stripos($skeys[$i],"FREEZE") > -1) {
 						$matches = array();
@@ -1997,6 +2007,7 @@ class Marmot implements DriverInterface
 							$curHold['freezeable'] = true;
 							if (strlen($matches[2]) > 0){
 								$curHold['frozen'] = true;
+								$curHold['status'] = 'Frozen';
 							}
 						}elseif (preg_match('/This hold can\s?not be frozen/i', $scols[$i], $matches)){
 							//If we detect an error Freezing the hold, save it so we can report the error to the user later.
@@ -2011,7 +2022,7 @@ class Marmot implements DriverInterface
 			} //End of columns
 			
 			if ($scount > 1) {
-				if (!isset($curHold['status']) || $curHold['status'] == "Pending"){
+				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
 					$holds['unavailable'][] = $curHold;
 				}else{
 					$holds['available'][] = $curHold;
