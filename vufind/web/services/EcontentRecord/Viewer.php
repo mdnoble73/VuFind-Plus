@@ -158,9 +158,9 @@ class Viewer extends Action
 		$interface->assign('errorOccurred', $errorOccurred);
 
 		if ($viewer == 'mp3'){
-			$interface->display('EContentRecord/viewer-mp3.tpl');
+			$interface->display('EcontentRecord/viewer-mp3.tpl');
 		}else{
-			$interface->display('EContentRecord/viewer-custom.tpl');
+			$interface->display('EcontentRecord/viewer-custom.tpl');
 		}
 	}
 
