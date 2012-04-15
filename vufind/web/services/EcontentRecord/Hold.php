@@ -18,7 +18,7 @@
  *
  */
 
-require_once '/Drivers/EContentDriver.php';
+require_once 'Drivers/EContentDriver.php';
 
 require_once 'Action.php';
 
