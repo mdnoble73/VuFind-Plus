@@ -1446,19 +1446,28 @@ class Marmot implements DriverInterface
 						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
 							$due = trim($matches[1]);
 							$renewCount = $matches[2];
+						}else if (preg_match('/(.*)\+\d+ HOLD.*/i', $due, $matches)){
+							$due = trim($matches[1]);
 						}
 						if (preg_match('/\d{2}-\d{2}-\d{2}/', $due)){
 							$dateDue = DateTime::createFromFormat('m-d-y', $due);
-							$dueTime = $dateDue->getTimestamp();
+							if ($dateDue){
+								$dueTime = $dateDue->getTimestamp();
+							}else{
+								$dueTime = null;
+							}
 						}else{ 
 							$dueTime = strtotime($due);
 						}
-						$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-						$overdue = $daysUntilDue < 0;
+						if ($dueTime != null){
+							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
+							$overdue = $daysUntilDue < 0;
+							$curTitle['duedate'] = $dueTime;
+							$curTitle['overdue'] = $overdue;
+							$curTitle['daysUntilDue'] = $daysUntilDue;
+						}
 						$curTitle['renewCount'] = $renewCount;
-						$curTitle['duedate'] = $dueTime;
-						$curTitle['overdue'] = $overdue;
-						$curTitle['daysUntilDue'] = $daysUntilDue;
+						
 					}
 
 					if (stripos($skeys[$i],"BARCODE") > -1) {
@@ -1908,8 +1917,9 @@ class Marmot implements DriverInterface
 						if ($numMatches > 0){
 							$curHold['renew'] = "BOX";
 							$curHold['cancelable'] = true;
-							$curHold['cancelId'] = $matches[1][0];
+							$curHold['itemId'] = $matches[1][0];
 							$curHold['xnum'] = $matches[2][0];
+							$curHold['cancelId'] = $matches[1][0] . '~' . $matches[2][0];
 						}else{
 							$curHold['cancelable'] = false;
 						}
@@ -2297,7 +2307,11 @@ class Marmot implements DriverInterface
 		//Recall Holds
 		$bib = $cancelId;
 
-
+		if (!isset($xnum) ){
+			$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
+			$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
+			$xnum = array_merge($waitingHolds, $availableHolds);
+		}
 		$location = new Location();
 		if (isset($locationId) && is_numeric($locationId)){
 			$location->whereAdd("locationId = '$locationId'");
@@ -2312,17 +2326,17 @@ class Marmot implements DriverInterface
 		$id=$patronDump['RECORD_#'];
 
 		$cancelValue = ($type == 'cancel' || $type == 'recall') ? 'on' : 'off';
-
+		
 		if (is_array($xnum)){
 			$extraGetInfo = array(
                 'updateholdssome' => 'YES',
                 'currentsortorder' => 'current_pickup',
 			);
-			foreach ($xnum as $key=>$tmpXnum){
-				$tmpBib = $cancelId[$key];
-				$extraGetInfo['cancel' . $tmpBib . $tmpXnum] = $cancelValue;
+			foreach ($xnum as $tmpXnumInfo){
+				list($tmpBib, $tmpXnum) = split("~", $tmpXnumInfo);
+				$extraGetInfo['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
 				if ($paddedLocation){
-					$extraGetInfo['loc' . $tmpBib . $tmpXnum] = $paddedLocation;
+					$extraGetInfo['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
 				}
 				if (strlen($freezeValue) > 0){
 					$extraGetInfo['freeze' . $tmpBib] = $freezeValue;

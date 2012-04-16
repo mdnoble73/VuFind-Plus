@@ -23,18 +23,24 @@ function freezeSelectedHolds(){
 		return false;
 	}
 	var suspendDate = '';
-	if ($('#suspendDateTop').val().length > 0){
-		var suspendDate = $('#suspendDateTop').val();
+	//Check to se whether or not we are using a suspend date.
+	if ($('#suspendDateTop').length){
+		if ($('#suspendDateTop').val().length > 0){
+			var suspendDate = $('#suspendDateTop').val();
+		}else{
+			var suspendDate = $('#suspendDateBottom').val();
+		}	
+		
+		if (suspendDate.length == 0){
+			alert("Please select the date when the hold should be reactivated.");
+			return false;
+		}
+		var url = path + '/MyResearch/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+		window.location = url;
 	}else{
-		var suspendDate = $('#suspendDateBottom').val();
-	}	
-	
-	if (suspendDate.length == 0){
-		alert("Please select the date when the hold should be reactivated.");
-		return false;
+		var url = path + '/MyResearch/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+		window.location = url;
 	}
-	var url = path + '/MyResearch/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-	window.location = url;
 	return false;
 }
 function thawSelectedHolds(){

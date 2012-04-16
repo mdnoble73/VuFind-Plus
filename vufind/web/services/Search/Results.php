@@ -261,12 +261,12 @@ class Results extends Action {
 			$record = reset($recordSet);
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
-				header("Location: " . $configArray['Site']['url'] . "/MyResearch/MyList/{$listId}");
+				header("Location: " . $interface->getUrl() . "/MyResearch/MyList/{$listId}");
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
-				header("Location: " . $configArray['Site']['url'] . "/EcontentRecord/$shortId/Home");
+				header("Location: " . $interface->getUrl() . "/EcontentRecord/$shortId/Home");
 			}else{
-				header("Location: " . $configArray['Site']['url'] . "/Record/{$record['id']}/Home");
+				header("Location: " . $interface->getUrl() . "/Record/{$record['id']}/Home");
 			}
 			
 		} else {
