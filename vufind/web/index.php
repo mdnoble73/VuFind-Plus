@@ -53,7 +53,14 @@ $timer->logTime("Initialize Memcache");
 //Deal with old path based urls by removing the leading path.
 $requestURI = $_SERVER['REQUEST_URI'];
 $requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
-if (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
+if (preg_match("/(MyResearch)\/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
+	$_GET['module'] = $matches[1];
+	$_GET['id'] = $matches[3];
+	$_GET['action'] = $matches[2];
+	$_REQUEST['module'] = $matches[1];
+	$_REQUEST['id'] = $matches[3];
+	$_REQUEST['action'] = $matches[2];
+}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[2];
 	$_GET['action'] = $matches[3];
