@@ -133,9 +133,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		
 		try {
 			//Check to see if we have an existing resource
-			if (existingResources.containsKey(recordInfo.getId())){
+			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
+			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null){
 				results.incRecordsProcessed();
-				BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 				resourceId = basicResourceInfo.getResourceId();
 				//Remove the resource from the existingResourcesList so 
 				//We can determine which resources no longer exist
@@ -257,7 +257,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			}
 		} catch (SQLException ex) {
 			// handle any errors
-			logger.error("Error updating resource for record " + recordInfo.getId() + " " + ex.toString());
+			logger.error("Error updating resource for record " + recordInfo.getId(), ex);
 			System.out.println(recordInfo.getTitle());
 			results.incErrors();
 		}
