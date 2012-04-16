@@ -186,7 +186,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				resourceInsertStmt.setString(9, recordInfo.getShortId());
 				resourceInsertStmt.setLong(10, recordInfo.getChecksum());
 				resourceInsertStmt.setBytes(11, recordInfo.getRawRecord().getBytes());
-				resourceInsertStmt.setString(11, "VuFind");
+				resourceInsertStmt.setString(12, "VuFind");
 
 				int rowsUpdated = resourceInsertStmt.executeUpdate();
 				if (rowsUpdated == 0) {
