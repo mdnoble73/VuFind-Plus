@@ -28,6 +28,7 @@ class UInterface extends Smarty
 	private $vufindTheme;   // which theme(s) are active?
 	private $themes; // The themes that are active
 	private $isMobile = false;
+	private $url;
 
 	function UInterface()
 	{
@@ -114,6 +115,7 @@ class UInterface extends Smarty
 		if (strlen($configArray['Site']['path']) > 0){
 			$url .= '/' . $configArray['Site']['path'];
 		}
+		$this->url = $url;
 		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
 		$this->assign('consolidateCss', isset($configArray['Site']['consolidateCss']) ? $configArray['Site']['consolidateCss'] : false);
@@ -166,6 +168,10 @@ class UInterface extends Smarty
 			$this->assign('sessionInitiator', $sessionInitiator);
 
 		}
+	}
+	
+	public function getUrl(){
+		return $this->url;
 	}
 
 	/**

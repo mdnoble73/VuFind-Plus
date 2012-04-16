@@ -522,7 +522,7 @@ if ($action == "AJAX" || $action == "JSON"){
 		if (isset($library) && $library != false && $library->useHomeLinkInBreadcrumbs){
 			$interface->assign('homeBreadcrumbLink', $library->homeLink);
 		}else{
-			$interface->assign('homeBreadcrumbLink', $configArray['Site']['url']);
+			$interface->assign('homeBreadcrumbLink', $interface->getUrl());
 		}
 	}
 	//Load user list for book bag
