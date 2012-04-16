@@ -29,7 +29,7 @@
             <a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{$holdingsSummary.callnumber}</a>
          </div>
      {/if}
-     {if $holdingsSummary.showPlaceHold}
+     {if false && $holdingsSummary.showPlaceHold}
          <div class='requestThisLink'>
             <a href="{$url}/Record/{$holdingsSummary.recordId|escape:"url"}/Hold" class="holdRequest" style="display:inline-block;font-size:11pt;">{translate text="Request This Title"}</a><br />
          </div>
