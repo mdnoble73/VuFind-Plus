@@ -48,26 +48,26 @@ $timer->logTime("Initialize Memcache");
 
 //Cleanup method information so module, action, and id are set properly.
 //This ensures that we don't have to change the http-vufind.conf file when new types are added.
-$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
-$dataObjectsStr = implode('|', $dataObjects);
+//$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
+//$dataObjectsStr = implode('|', $dataObjects);
 //Deal with old path based urls by removing the leading path.
 $requestURI = $_SERVER['REQUEST_URI'];
-$requestURI = preg_replace("/^vufind\//", "", $requestURI);
-if (preg_match("/($dataObjectsStr)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
+$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
+if (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[2];
 	$_GET['action'] = $matches[3];
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['id'] = $matches[2];
 	$_REQUEST['action'] = $matches[3];
-}elseif (preg_match("/($dataObjectsStr)\/((?:\.b)?\d+x?)/", $requestURI, $matches)){
+}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[2];
 	$_GET['action'] = 'Home';
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['id'] = $matches[2];
 	$_REQUEST['action'] = 'Home';
-}elseif (preg_match("/($dataObjectsStr)\/([^\/?]+)/", $requestURI, $matches)){
+}elseif (preg_match("/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['action'] = $matches[2];
 	$_REQUEST['module'] = $matches[1];
