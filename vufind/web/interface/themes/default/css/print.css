@@ -143,7 +143,7 @@ width: 90px; /*Width of each panel holding each content. If removed, widths shou
 .resultDetails{
   width: 615px !important;
 }
-#searchResultTopTools, #searchInfo, #formatCategories{
+#searchResultTopTools, #formatCategories{
   display: none;
 }
 
