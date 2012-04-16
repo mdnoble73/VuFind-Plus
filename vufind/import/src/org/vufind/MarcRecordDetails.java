@@ -1141,7 +1141,14 @@ public class MarcRecordDetails {
 	}
 
 	public String getId() {
-		return (String) fields.get("id");
+		Object idField = fields.get("id");
+		if (idField instanceof String){
+			return (String)idField;
+		}else if (idField instanceof Set){
+			return (String)(((Set<String>)fields).iterator().next());
+		}else{
+			return null;
+		}
 	}
 	
 	public String getShortId() {
@@ -1393,8 +1400,8 @@ public class MarcRecordDetails {
 
 	public String getRating(String recordIdSpec) {
 		if (rating == null) {
-			String recordId = getId();
-			logger.info("Getting rating for " + recordId);
+			String recordId = getFirstFieldVal(recordIdSpec);
+			//logger.info("Getting rating for " + recordId);
 			// Check to see if the record has an eContent Record
 			rating = marcProcessor.getPrintRatings().get(recordId);
 			if (rating == null) {
@@ -2256,8 +2263,7 @@ public class MarcRecordDetails {
 
 	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
 			String branchCodes) {
-		// System.out.println("Branch Codes for " + activeSystem + " are " +
-		// branchCodes);
+		//System.out.println("Branch Codes for " + activeSystem + " are " +  branchCodes);
 		Set<String> result = new LinkedHashSet<String>();
 		// Get a list of all 989 tags that store per item information
 		@SuppressWarnings("unchecked")
@@ -2268,19 +2274,16 @@ public class MarcRecordDetails {
 		Date dateAddedDate = null;
 		char locationChar = locationSubfield.charAt(0);
 		char dateChar = dateSubfield.charAt(0);
-		// System.out.println("Active System: " + activeSystem);
+		//System.out.println("Active System: " + activeSystem);
 		while (iter.hasNext()) {
 			DataField curField = (DataField) iter.next();
 			try {
 				String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
-				// System.out.println("Testing branch code (" + branchCode + ") for " +
-				// activeSystem);
+				//System.out.println("Testing branch code (" + branchCode + ") for " + activeSystem);
 				if (branchCode.matches(branchCodes)) {
-					// System.out.println("Testing branch code (" + branchCode + ") for "
-					// + activeSystem);
+					//System.out.println("Testing branch code (" + branchCode + ") for " + activeSystem);
 					String dateAddedCurStr = curField.getSubfield(dateChar).getData();
-					// System.out.println("Branch: " + branchCode + " - " +
-					// dateAddedCurStr);
+					//System.out.println("Branch: " + branchCode + " - " + dateAddedCurStr);
 					Date dateAddedCurDate = formatter.parse(dateAddedCurStr);
 					if (dateAddedStr == null) {
 						dateAddedStr = dateAddedCurStr;
@@ -2296,9 +2299,12 @@ public class MarcRecordDetails {
 		}
 
 		if (dateAddedDate != null) {
-			// System.out.println("Date Added Date: " + dateAddedStr);
+			//System.out.println("Date Added String:" + dateAddedStr + " Date: " + dateAddedDate.toString());
 			addTimeSinceAddedForDateToResults(dateAddedDate, result);
 		}
+		/*for (String curResult :  result){
+			System.out.println("  " + curResult);
+		}*/
 		return result;
 	}
 
