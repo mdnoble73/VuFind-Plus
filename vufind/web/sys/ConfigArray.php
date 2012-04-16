@@ -34,7 +34,7 @@ function getExtraConfigArrayFile($name)
 	$filename = isset($configArray['Extra_Config'][$name]) ? $configArray['Extra_Config'][$name] : $name . '.ini';
 
 	//Check to see if there is a domain name based subfolder for he configuration
-	$servername = $_SERVER['SERVER_NAME'];
+	global $servername;
 	if (file_exists("../../sites/$servername/conf/$filename")){
 		// Return the file path (note that all ini files are in the conf/ directory)
 		return "../../sites/$servername/conf/$filename";
