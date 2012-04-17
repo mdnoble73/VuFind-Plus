@@ -49,7 +49,7 @@ class DBMaintenance extends Admin {
 					$updateOk = true;
 					foreach ($sqlStatements as $sql){
 						//Give enough time for long queries to run
-						set_time_limit(120);
+						$this->setTimeLimit(120);
 						if (method_exists($this, $sql)){
 							$this->$sql();
 						}else{
@@ -845,8 +845,48 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'addTablelistWidgetListsLinks' => array(
+				'title' => 'Widget Lists',
+				'description' => 'Add a new table: list_widget_lists_links',
+				'dependencies' => array(),
+				'sql' => array('addTableListWidgetListsLinks'),
+		),
+		
+		
 		);
 	}
+	
+	private function setTimeLimit($time = 120)
+	{
+		set_time_limit(120);
+	}
+	private function freeMysqlResult($result)
+	{
+		mysql_free_result($result);
+	}
+	
+	
+	public function addTableListWidgetListsLinks()
+	{
+		$this->setTimeLimit(120);
+		$sql =	'CREATE TABLE IF NOT EXISTS `list_widget_lists_links`( '.
+				'`id` int(11) NOT NULL AUTO_INCREMENT, '.
+				'`listWidgetListsId` int(11) NOT NULL, '.
+				'`name` varchar(50) NOT NULL, '.
+				'`link` text NOT NULL, '.
+				'PRIMARY KEY (`id`) '.
+				') ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
+		mysql_query($sql);
+		$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists`');
+		while($row = mysql_fetch_assoc($result))
+		{
+			$sqlInsert = 'INSERT INTO `list_widget_lists_links` (`id`,`listWidgetListsId`,`name`,`link`) VALUES (NULL,\''.$row['id'].'\',\'Full List Link\',\''.$row['fullListLink'].'\') ';
+			mysql_query($sqlInsert);
+		}
+		$this->freeMysqlResult($result);
+		mysql_query('ALTER TABLE `list_widget_lists` DROP `fullListLink`');
+	}
+	
 
 	private function checkWhichUpdatesHaveRun($availableUpdates){
 		foreach ($availableUpdates as $key=>$update){
