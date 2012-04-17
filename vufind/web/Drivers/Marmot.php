@@ -1182,7 +1182,7 @@ class Marmot implements DriverInterface
 		$numHoldsRequested = 0;
 		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
 			foreach ($patronDump['HOLD'] as $hold){
-				if (preg_match('/TP=i,/', $hold)){
+				if (preg_match('/ST=105,/', $hold)){
 					$numHoldsAvailable++;
 				}else{
 					$numHoldsRequested++;
