@@ -23,4 +23,4 @@ solr-data  - contains solr index data for each library.  Will not be checked int
            - default contains files to help setup a new instance.  Should be copied to new instance directory
 startup    - contains startup scripts to start vufind customized by library domain.
 vufind     - contains all vufind code (website, cron, and load tester).  Checked in to version control.
-
+  
