@@ -127,7 +127,8 @@ function readConfig()
 	$mainArray = parse_ini_file($configFile, true);
 	
 	global $servername;
-	$server = $_SERVER['SERVER_NAME'];
+	$serverUrl = $_SERVER['SERVER_NAME'];
+	$server = $serverUrl;
 	$serverParts = explode('.', $server);
 	$servername = 'default';
 	while (count($serverParts) > 0){
@@ -143,6 +144,12 @@ function readConfig()
 	
 	if ($mainArray == false){
 		echo("Unable to parse configuration file $configFile, please check syntax");
+	}
+	//If we are accessing the site via a subdomain, need to preserve the subdomain
+	if ($_SERVER['HTTPS']){
+		$mainArray['Site']['url'] = "https://" . $serverUrl;
+	}else{
+		$mainArray['Site']['url'] = "http://" . $serverUrl;
 	}
 	
 	if (isset($mainArray['Extra_Config']) &&
