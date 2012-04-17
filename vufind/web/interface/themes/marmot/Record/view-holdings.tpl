@@ -80,7 +80,7 @@
 			   <span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='showCheckinGrid'>Show Check-in Grid</span>
          <script  type="text/javascript">
            $('#showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}
-             getLightbox('Record', 'CheckInGrid', '.b26935041', '{$issueSummary.checkInGridId}', 'Check-in Grid', undefined, undefined, undefined, '5%', '90%', 50, '85%');
+             ajaxLightbox('{$path}/Record/{$id}/CheckInGrid?lookfor={$issueSummary.checkInGridId}', null, '5%', '90%', '5%', '90%');
            {literal} }); {/literal}
          </script>
 			   {/if}

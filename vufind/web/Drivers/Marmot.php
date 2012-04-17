@@ -667,7 +667,7 @@ class Marmot implements DriverInterface
                             'availability' => '1',
                             'location' => $issueSummary['location'],
                             'libraryDisplayName' => $issueSummary['location'],
-                            'callnumber' => $issueSummary['cALL'],
+                            'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
                             'status' => 'Lib Use Only',
                             'statusfull' => 'In Library Use Only',
 						);
@@ -755,7 +755,7 @@ class Marmot implements DriverInterface
 				}
 			}
 
-			if ($holding['holdable'] == 1){
+			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$numHoldableCopies++;
 			}
 			$numCopies++;

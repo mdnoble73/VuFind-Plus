@@ -27,13 +27,11 @@ class CheckInGrid extends Action {
 	{
 		global $interface;
 
-		if (isset($_GET['lightbox'])) {
-			require_once('Drivers/Marmot.php');
-			$driver = new Marmot();
-			$checkInGrid = $driver->getCheckInGrid(strip_tags($_REQUEST['id']), strip_tags($_REQUEST['lookfor']));
-			$interface->assign('checkInGrid', $checkInGrid);
-			// Use for lightbox
-			return $interface->fetch('Record/checkInGrid.tpl');
-		}
+		require_once('Drivers/Marmot.php');
+		$driver = new Marmot();
+		$checkInGrid = $driver->getCheckInGrid(strip_tags($_REQUEST['id']), strip_tags($_REQUEST['lookfor']));
+		$interface->assign('checkInGrid', $checkInGrid);
+		// Use for lightbox
+		echo $interface->fetch('Record/checkInGrid.tpl');
 	}
 }
