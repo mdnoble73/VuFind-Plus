@@ -6,8 +6,6 @@ import java.util.*;
 import java.io.*;
 import java.util.regex.*;
 
-org.solrmarc.index.SolrIndexer indexer = null;
-
 /**
  * Determine the system lists to add the record to based on lists exported.
  *
@@ -15,9 +13,9 @@ org.solrmarc.index.SolrIndexer indexer = null;
  * @return String   Rating or null if not set.
  */
 Hashtable listTitlesByRecord = null;
-public Set getSystemLists(Record record) {
+public Set getSystemLists(Record record, String configFile) {
     if (listTitlesByRecord == null){
-    	loadTitlesByRecord();
+    	loadTitlesByRecord(configFile);
     }
     DataField recordIdField = (DataField) record.getVariableField("950");
     String recordId = recordIdField.getSubfield('a').getData();
@@ -29,12 +27,13 @@ public Set getSystemLists(Record record) {
     }
 }
 
-private void loadTitlesByRecord(){
+private void loadTitlesByRecord(String configFilename){
 	System.out.println("Starting loadTitlesByRecord");
 	listTitlesByRecord = new Hashtable();
 	//Load all of the lists in the directory. 
 	Properties props = new Properties();
-	File configFile = new File("/web/dcl/vufind/import/index_scripts/systemListConfig.ini");
+	File configFile = new File(configFilename);
+	System.out.println("configFile = " + configFile.getAbsolutePath());
 	FileReader configFileReader = new FileReader(configFile);
 	props.load(configFileReader);
 	String configDirectory = props.getProperty("listDirectory");
@@ -46,8 +45,12 @@ private void loadTitlesByRecord(){
 		}
 	});
 	
-	for (File fileToImport : filesToImport){
-		loadTitlesFromFile(props, fileToImport);
+	if (filesToImport == null){
+		System.out.println("Warning, no system lists found");
+	}else{
+		for (File fileToImport : filesToImport){
+			loadTitlesFromFile(props, fileToImport);
+		}
 	}
 }
 
