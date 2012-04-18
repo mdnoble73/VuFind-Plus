@@ -877,7 +877,7 @@ class DBMaintenance extends Admin {
 				'PRIMARY KEY (`id`) '.
 				') ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
 		mysql_query($sql);
-		$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists`');
+		$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists` WHERE `fullListLink` != "" ');
 		while($row = mysql_fetch_assoc($result))
 		{
 			$sqlInsert = 'INSERT INTO `list_widget_lists_links` (`id`,`listWidgetListsId`,`name`,`link`) VALUES (NULL,\''.$row['id'].'\',\'Full List Link\',\''.$row['fullListLink'].'\') ';
