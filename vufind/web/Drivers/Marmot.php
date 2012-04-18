@@ -1988,6 +1988,8 @@ class Marmot implements DriverInterface
 								$expireDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
 								$curHold['expire'] = $expireDate->getTimestamp();
 								
+							}elseif (preg_match('/READY FOR PICKUP/i', $status, $matches)){
+								$curHold['status'] = 'Ready';
 							}else{
 								$curHold['status'] = $status;
 							}
