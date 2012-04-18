@@ -1414,6 +1414,7 @@ class Marmot implements DriverInterface
 
 		foreach ($srows as $srow) {
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+			$curTitle = array();
 			for ($i=0; $i < sizeof($scols); $i++) {
 				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
 				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
@@ -1507,28 +1508,28 @@ class Marmot implements DriverInterface
 					}else{
 						//echo("Warning did not find resource for {$historyEntry['shortId']}");
 					}
-					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
-					$sortKey = $sortTitle;
-					if ($sortOption == 'title'){
-						$sortKey = $sortTitle;
-					}elseif ($sortOption == 'author'){
-						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($sortOption == 'dueDate'){
-						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
-							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-						} else {
-							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
-						}
-					}elseif ($sortOption == 'format'){
-						$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
-					}elseif ($sortOption == 'renewed'){
-						$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
-					}elseif ($sortOption == 'holdQueueLength'){
-						$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
-					}
-					$sortKey .= "_$scount";
-					$checkedOutTitles[$sortKey] = $curTitle;
 				}
+				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+				$sortKey = $sortTitle;
+				if ($sortOption == 'title'){
+					$sortKey = $sortTitle;
+				}elseif ($sortOption == 'author'){
+					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+				}elseif ($sortOption == 'dueDate'){
+					if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+						$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+					} else {
+						$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+					}
+				}elseif ($sortOption == 'format'){
+					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+				}elseif ($sortOption == 'renewed'){
+					$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
+				}elseif ($sortOption == 'holdQueueLength'){
+					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
+				}
+				$sortKey .= "_$scount";
+				$checkedOutTitles[$sortKey] = $curTitle;
 				
 			}
 			
