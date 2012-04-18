@@ -4,6 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
+require_once 'sys/ListWidgetListsLinks.php';
 
 class ListWidgetList extends DB_DataObject
 {
@@ -39,9 +40,9 @@ class ListWidgetList extends DB_DataObject
       	'description' => 'The widget this list is associated with.' 
       ),
       'name' => array(
-        'property'=>'name', 
-        'type'=>'text', 
-        'label'=>'Name', 
+        'property'=>'name',
+        'type'=>'text',
+        'label'=>'Name',
         'description'=>'The name of the list to display in the tab.',
       	'required' => true,
       ),
@@ -53,19 +54,25 @@ class ListWidgetList extends DB_DataObject
       	'description' => 'Who this list should be displayed for.'
       ),
       'source' => array(
-        'property'=>'source', 
-        'type'=>'text', 
-        'label'=>'Source', 
-        'description'=>'The source of the list.', 
+        'property'=>'source',
+        'type'=>'text',
+        'label'=>'Source',
+        'description'=>'The source of the list.',
         'serverValidation' => 'validateSource',
         'required'=> true
       ),
-      'fullListLink' => array(
-        'property'=>'fullListLink', 
-        'type'=>'text', 
-        'label'=>'Full List Link', 
-        'description'=>'The URL to see the entire list (optional).', 
-        'required'=> false
+      'links' => array(
+        'property' => 'links',
+        'type'=> 'oneToMany',
+        'keyThis' => 'id',
+        'keyOther' => 'listWidgetListsId',
+        'subObjectType' => 'ListWidgetListLinks',
+        'structure' => ListWidgetListsLinks::getObjectStructure(),
+        'label' => 'Links',
+        'description' => 'The links to be displayed within the widget.',
+        'sortable' => true,
+        'storeDb' => true,
+        //'serverValidation' => 'validateLists',
       ),
       
       'weight' => array(
