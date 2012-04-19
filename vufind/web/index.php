@@ -901,7 +901,7 @@ function updateConfigForScoping($configArray) {
 		
 		//Update the searches file
 		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim('../../conf/searches/' . $library->searchesFile . '.ini');
+			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
 			if (file_exists($file)) {
 				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
 			}
