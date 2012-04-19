@@ -1,6 +1,22 @@
 <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js" ></script>
  {literal}
-  <script type="text/javascript">
+<script type="text/javascript">
+  $(document).ready(function(){
+		$('#widgetsListLinks tbody').sortable({
+			update: function(event, ui){
+				$.each($(this).sortable('toArray'), function(index, value)
+				{
+					$('#' + value + ' input.weightValue').val(index);
+				});
+			}
+		});
+	});
+ 
+  
+  	$(document).ready(function(){
+    	$("#objectEditor").validate();
+  	});
+  
   	function deleteLink(linkId)
   	{
   		if(confirm('Are you sure you want to delete this link?'))
@@ -14,13 +30,17 @@
   	
   	function addNewLink()
   	{
-  		var htmlLink =  "<tr'>";
+  		var htmlLink =  "<tr id='newLinkId_" + numNewLink + "'>";
+  		    htmlLink += "	<td>";
+  		    htmlLink += "		<span class='ui-icon ui-icon-arrowthick-2-n-s' style='pointer:cursor;'></span>";
+  		    htmlLink += "		<input class='weightValue' type='hidden' name='weightNewLink[" + numNewLink + "]' value='900'/>";
+  		    htmlLink += "	</td>";
 	  	   	htmlLink += "	<td>";
 	  	   	htmlLink += "		<input type='hidden' name='newLink[" + numNewLink + "]' value='" + numNewLink + "'/>";
-	  	   	htmlLink += "		<input type='text' size='40' name='nameNewLink[" + numNewLink + "]' value=''/>";
+	  	   	htmlLink += "		<input class='required' type='text' size='40' name='nameNewLink[" + numNewLink + "]' value=''/>";
 	  	   	htmlLink += "	</td>";
 	  	   	htmlLink += "	<td>";
-	  	   	htmlLink += "		<input type='text' size='40' name='linkNewLink[" + numNewLink + "]' value=''/>";
+	  	   	htmlLink += "		<input class='required' type='text' size='40' name='linkNewLink[" + numNewLink + "]' value=''/>";
 	  	   	htmlLink += "	</td>";
 	  	   	htmlLink += "	<td>";
 			htmlLink += "		&nbsp;";
@@ -51,6 +71,7 @@
 	  	   <table id='widgetsListLinks'>
 	  	   <thead>
 	  	   	<tr>
+	  	   		<th>Weight</th>
 	  	   		<th>Name</th>
 	  	   		<th>Link</th>
 	  	   		<th>&nbsp;</th>
@@ -60,13 +81,17 @@
 	  	   {foreach from=$availableLinks item=link}
 	  	   		<tr id='linkId_{$link->id}'>
 	  	   			<td>
+						<span class="ui-icon ui-icon-arrowthick-2-n-s" style='pointer:cursor;'></span>
+						<input class='weightValue' type="hidden" id="Weight[{$link->id}]" name="weight[{$link->id}]" value="{$link->weight}"/>
+					</td>
+	  	   			<td>
 	  	   				<input type='hidden' id='toDelete_{$link->id}' name='toDelete_{$link->id}' value='0'/>
 	  	   				<input type='hidden' name='id[{$link->id}]' value='{$link->id}'/>
 	  	   				<input type='hidden' name='listWidgetListsId[{$link->id}]' value='{$link->listWidgetListsId}'/>
-	  	   				<input type='text' size='40' name='name[{$link->id}]' value='{$link->name}'/>
+	  	   				<input class='required' type='text' size='40' name='name[{$link->id}]' value='{$link->name}'/>
 	  	   			</td>
 	  	   			<td>
-	  	   				<input type='text' size='40' name='link[{$link->id}]' value='{$link->link}'/>
+	  	   				<input class='required'  type='text' size='40' name='link[{$link->id}]' value='{$link->link}'/>
 	  	   			</td>
 	  	   			<td>
 						<a href="#" onclick='deleteLink({$link->id});'>
@@ -80,6 +105,7 @@
 	  	   <div class="Actions">
 				<a href="#" onclick="addNewLink();return false;"  class="button">Add New</a>
 			</div>
+			<br/>
 	  	   <input type='hidden' name='objectAction' value='save' />
 	  	   <input type="submit" name="submit" value="Save Changes"/>
 	  	   </form>

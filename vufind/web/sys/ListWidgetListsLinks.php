@@ -33,7 +33,14 @@ class ListWidgetListsLinks extends DB_DataObject
 						'description'=>'The unique id of the list widget file.',
 						'primaryKey' => true,
 						'storeDb' => true
-						
+				),
+				'weight' => array(
+						'property' => 'weight',
+						'type' => 'text',
+						'label' => 'Weight',
+						'description' => '',
+						'required' => true,
+						'storeDb' => true
 				),
 				'listWidgetId' => array(
 						'property' => 'listWidgetListsId',

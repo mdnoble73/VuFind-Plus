@@ -53,6 +53,17 @@
 	color: #00125E;
 	font-size: 12px;
 	font-weight: bold;
+	height: 15px;
+}
+.titleScrollerHeader .linkTab
+{
+	padding-right: 10px;
+	float: left;
+	
+}
+.titleScrollerHeader .linkTab .first
+{
+	padding-right: 0px;
 }
 
 #listSelection{
@@ -63,6 +74,7 @@
 
 .titleScrollerBody{
 	background-color: white;
+	clear: both;
 }
 
 .leftScrollerButton{

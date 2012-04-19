@@ -874,6 +874,7 @@ class DBMaintenance extends Admin {
 				'`listWidgetListsId` int(11) NOT NULL, '.
 				'`name` varchar(50) NOT NULL, '.
 				'`link` text NOT NULL, '.
+				'`weight` int(3) NOT NULL DEFAULT \'0\','.
 				'PRIMARY KEY (`id`) '.
 				') ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
 		mysql_query($sql);

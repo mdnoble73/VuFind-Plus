@@ -67,7 +67,7 @@
 				{
 					if($DATA['toDelete_'.$key]!=1)
 					{
-						$this->setRequestValues($key, $DATA['name'][$key], $DATA['listWidgetListsId'][$key], $DATA['link'][$key]);
+						$this->setRequestValues($key, $DATA['name'][$key], $DATA['listWidgetListsId'][$key], $DATA['link'][$key], $DATA['weight'][$key]);
 						$this->saveElement();
 					}
 					else
@@ -88,7 +88,7 @@
 				{
 					if(!empty($DATA['nameNewLink'][$key]) && !empty($DATA['linkNewLink'][$key]) )
 					{
-						$this->setRequestValues('', $DATA['nameNewLink'][$key],$DATA['widgetListId'], $DATA['linkNewLink'][$key]);
+						$this->setRequestValues('', $DATA['nameNewLink'][$key],$DATA['widgetListId'], $DATA['linkNewLink'][$key], $DATA['weightNewLink'][$key]);
 						$this->saveElement();
 						unset($_REQUEST, $listWidgetLinks);
 					}
@@ -123,7 +123,7 @@
 			$availableLinks = array();
 			$listWidgetLinks = new ListWidgetListsLinks();
 			$listWidgetLinks->whereAdd('listWidgetListsId = '.$widgetListId);
-			$listWidgetLinks->orderBy('name ASC');
+			$listWidgetLinks->orderBy('weight ASC');
 			$listWidgetLinks->find();
 			while ($listWidgetLinks->fetch()){
 				$availableLinks[$listWidgetLinks->id] = clone($listWidgetLinks);
@@ -132,12 +132,13 @@
 			$interface->setTemplate('listWidgetListLinks.tpl');
 		}
 		
-		private function setRequestValues($id, $name, $listWidgetListsId, $link)
+		private function setRequestValues($id, $name, $listWidgetListsId, $link, $weight)
 		{
 			$_REQUEST['id'] = $id;
 			$_REQUEST['name'] = $name;
 			$_REQUEST['listWidgetListsId'] = $listWidgetListsId;
 			$_REQUEST['link'] = $link;
+			$_REQUEST['weight'] = $weight;
 		}
 		
 		private function deleteLink($linkId)

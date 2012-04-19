@@ -14,7 +14,6 @@ class ListWidgetList extends DB_DataObject
 	public $name;
 	public $displayFor;
 	public $source;                    //varchar(255)
-	public $fullListLink;
 	public $weight;
 	
 	/* Static get */
@@ -71,10 +70,8 @@ class ListWidgetList extends DB_DataObject
         'label' => 'Links',
         'description' => 'The links to be displayed within the widget.',
         'sortable' => true,
-        'storeDb' => true,
-        //'serverValidation' => 'validateLists',
+        'storeDb' => true
       ),
-      
       'weight' => array(
       	'property' => 'weight',
       	'type' => 'numeric',
@@ -90,6 +87,25 @@ class ListWidgetList extends DB_DataObject
 		}
 		return $structure;
 	}
+	
+	public function __get($name){
+		if ($name == "links") {
+			if (!isset($this->links)){
+				//Get the list of lists that are being displayed for the widget
+				$this->links = array();
+				$listWidgetListLinks = new ListWidgetListsLinks();
+				$listWidgetListLinks->listWidgetListsId = $this->id;
+				$listWidgetListLinks->orderBy('weight ASC');
+				$listWidgetListLinks->find();
+				while($listWidgetListLinks->fetch()){
+					$this->links[$listWidgetListLinks->id] = clone($listWidgetListLinks);
+				}
+			}
+			return $this->links;
+		}
+	}
+	
+	
 	
 	function validateName(){
     //Setup validation return array
