@@ -96,6 +96,7 @@ public class ReindexProcess {
 			
 			for (IRecordProcessor processor : recordProcessors){
 				processor.finish();
+				saveProcessorResults(processor.getResults());
 			}
 		}
 		
@@ -110,7 +111,33 @@ public class ReindexProcess {
 
 		logger.info("Finished Reindex for " + serverName);
 	}
-		
+	
+	/**
+	 * Save the results of a process to the database for display to administrators later. 
+	 * 
+	 * @param results
+	 */
+	private static void saveProcessorResults(ProcessorResults results) {
+		try {
+			PreparedStatement saveResultsStmt = vufindConn.prepareStatement("INSERT INTO reindex_process_log (reindex_id, processName, recordsProcessed, eContentRecordsProcessed, resourcesProcessed, numErrors, numAdded, numUpdated, numDeleted, numSkipped, notes ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
+			saveResultsStmt.setLong(1, reindexLogId);
+			saveResultsStmt.setString(2, results.getProcessorName());
+			saveResultsStmt.setLong(3, results.getRecordsProcessed());
+			saveResultsStmt.setLong(4, results.geteContentRecordsProcessed());
+			saveResultsStmt.setLong(5, results.getResourcesProcessed());
+			saveResultsStmt.setLong(6, results.getNumErrors());
+			saveResultsStmt.setLong(7, results.getNumAdded());
+			saveResultsStmt.setLong(8, results.getNumUpdated());
+			saveResultsStmt.setLong(9, results.getNumDeleted());
+			saveResultsStmt.setLong(10, results.getNumSkipped());
+			saveResultsStmt.setString(11, results.getNotesHtml());
+			saveResultsStmt.executeUpdate();
+			logger.info("Saved results for process " + results.getProcessorName());
+		} catch (SQLException e) {
+			logger.error("Unable to save results of process to database", e);
+		}
+	}
+
 	private static void buildAlphaBrowseTables() {
 		logger.info("Building Alphabetic Browse tables");
 		
@@ -205,7 +232,7 @@ public class ReindexProcess {
 			logger.error("Error creating subject browse table", e);
 		}
 		
-	//Setup call number browse
+		//Setup call number browse
 		try {
 			//Clear the call number browse table
 			logger.info("Truncating callnumber_browse table");
@@ -584,10 +611,9 @@ public class ReindexProcess {
 		logger.info("Time elpased: " + elapsedMinutes + " minutes");
 		
 		try {
-			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, notes = ? WHERE id=?");
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, WHERE id=?");
 			finishedStatement.setLong(1, new Date().getTime() / 1000);
-			finishedStatement.setString(2, "");
-			finishedStatement.setLong(3, reindexLogId);
+			finishedStatement.setLong(2, reindexLogId);
 			finishedStatement.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Unable to update reindex log with completion time.", e);

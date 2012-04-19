@@ -762,22 +762,35 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
-		'indexLog' => array(
+		'reindexLog' => array(
       'title' => 'Reindex Log table',
       'description' => 'Create Reindex Log table to track reindexing.',
       'dependencies' => array(),
       'sql' => array(
 		    'DROP TABLE IF EXISTS reindex_log;',
+		    'DROP TABLE IF EXISTS reindex_process_log;',
 		    "CREATE TABLE IF NOT EXISTS reindex_log(" .
-			    "`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
 					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
 					"`endTime` INT(11) NULL COMMENT 'The timestamp when the reindex process ended', " .
-					"`numRecordsAddedToSolr` INT(11), " .
-					"`numRecordsRemovedFromSolr` INT(11), " .
-					"`numUnchangedRecords` INT(11), " .
-					"`notes` LONGTEXT COMMENT 'Detailed information about the reindex process.', " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = MYISAM;",
+				"CREATE TABLE IF NOT EXISTS reindex_process_log(" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex process', " .
+					"`reindex_id` INT(11) NOT NULL COMMENT 'The id of the reindex log this process ran during', " .
+					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
+					"`recordsProcessed` INT(11) NOT NULL COMMENT 'The number of records processed from marc files', "  . 
+					"`eContentRecordsProcessed` INT(11) NOT NULL COMMENT 'The number of econtent records processed from the database', "  . 
+					"`resourcesProcessed` INT(11) NOT NULL COMMENT 'The number of resources processed from the database', "  . 
+					"`numErrors` INT(11) NOT NULL COMMENT 'The number of errors that occurred during the process', "  . 
+					"`numAdded` INT(11) NOT NULL COMMENT 'The number of additions that occurred during the process', " .
+					"`numUpdated` INT(11) NOT NULL COMMENT 'The number of items updated during the process', " .
+					"`numDeleted` INT(11) NOT NULL COMMENT 'The number of items deleted during the process', " .
+					"`numSkipped` INT(11) NOT NULL COMMENT 'The number of items skipped during the process', " .
+					"`notes` TEXT COMMENT 'Additional information about the process', " .
+					"PRIMARY KEY ( `id` ), INDEX ( `reindex_id` ), INDEX ( `processName` )" .
+				") ENGINE = MYISAM;",
+				
       ),
 		),
 		
