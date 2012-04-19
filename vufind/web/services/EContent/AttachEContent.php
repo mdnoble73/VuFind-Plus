@@ -89,6 +89,8 @@ class AttachEContent extends Admin
 				$econtentItem->link = $sourceUrl;
 				$econtentItem->insert();
 				$eContentAttachmentLogEntry->recordsProcessed++;
+				//Increase processing time since this can take awhile
+				set_time_limit(30);
 			}
 		}
 		$eContentAttachmentLogEntry->dateFinished = time();
