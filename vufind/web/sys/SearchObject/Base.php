@@ -803,12 +803,14 @@ abstract class SearchObject_Base
 		// Loop through all the current limits
 		$valid = $this->getLimitOptions();
 		$list = array();
-		foreach ($valid as $limit) {
-			$list[$limit] = array(
-                'limitUrl' => $this->renderLinkWithLimit($limit),
-                'desc' => $limit,
-                'selected' => ($limit == $this->limit)
-			);
+		if (is_array($valid) && count($valid) > 0){
+			foreach ($valid as $limit) {
+				$list[$limit] = array(
+	                'limitUrl' => $this->renderLinkWithLimit($limit),
+	                'desc' => $limit,
+	                'selected' => ($limit == $this->limit)
+				);
+			}
 		}
 		return $list;
 	}
