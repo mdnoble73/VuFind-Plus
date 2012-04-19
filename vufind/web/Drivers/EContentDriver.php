@@ -285,14 +285,16 @@ class EContentDriver implements DriverInterface{
 
 	public function getStatusSummaries($ids){
 		$summaries = array();
-		foreach ($ids as $id){
-			$holdings = $this->getHolding($id);
-			//Load status summary
-			$result = $this->getStatusSummary($id, $holdings);
-			if (PEAR::isError($result)) {
-				PEAR::raiseError($result);
+		if (is_array($ids) && count($ids) > 0){
+			foreach ($ids as $id){
+				$holdings = $this->getHolding($id);
+				//Load status summary
+				$result = $this->getStatusSummary($id, $holdings);
+				if (PEAR::isError($result)) {
+					PEAR::raiseError($result);
+				}
+				$summaries[$id] = $result;
 			}
-			$summaries[$id] = $result;
 		}
 		return $summaries;
 	}
