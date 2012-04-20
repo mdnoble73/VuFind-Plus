@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -18,6 +21,8 @@ public class Cron {
 
 	private static Logger logger = Logger.getLogger(Cron.class);
 	private static String serverName;
+	
+	private static Connection vufindConn;
 
 	/**
 	 * @param args
@@ -50,8 +55,7 @@ public class Cron {
 			return;
 		}
 
-		// Read the INI file to detemine what processes should be run.
-		// INI File is in the conf directory (current directory/cron/config.ini)
+		// Read the base INI file to get information about the server (current directory/cron/config.ini)
 		Ini ini = new Ini();
 		File configFile = new File("../../conf/" + serverName + "/config.ini");
 		try {
@@ -64,6 +68,41 @@ public class Cron {
 			logger.error("Configuration file could not be read.");
 		}
 		
+		//Connect to the database
+		String databaseConnectionInfo = ini.get("Database","database_vufind_jdbc");
+		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
+			logger.error("Database connection information not found in General Settings.  Please specify connection information in a database key.");
+			return;
+		}
+		
+		try {
+			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
+		} catch (SQLException ex) {
+			// handle any errors
+			logger.error("Error establishing connection to database " + databaseConnectionInfo, ex);
+			return;
+		}
+		
+		//Create a log entry for the cron process
+		CronLogEntry cronEntry = new CronLogEntry();
+		if (!cronEntry.saveToDatabase(vufindConn)){
+			logger.error("Could not save log entry to datbase, quitting");
+			return;
+		}
+		
+		// Read the cron INI file to get information about the processes to run
+		Ini cronIni = new Ini();
+		File cronConfigFile = new File("../../conf/" + serverName + "/config.cron.ini");
+		try {
+			cronIni.load(new FileReader(cronConfigFile));
+		} catch (InvalidFileFormatException e) {
+			logger.error("Cron Configuration file is not valid.  Please check the syntax of the file.");
+		} catch (FileNotFoundException e) {
+			logger.error("Cron Configuration file (" + cronConfigFile.getPath() + ") could not be found.  You must supply a configuration file in conf called config.ini.");
+		} catch (IOException e) {
+			logger.error("Cron Configuration file could not be read.");
+		}
+		
 		
 		//Check to see if a specific task has been specified to be run
 		ArrayList<ProcessToRun> processesToRun = new ArrayList<ProcessToRun>();
@@ -71,7 +110,7 @@ public class Cron {
 		// The processes are in the format:
 		// name = handler class
 		boolean updateConfig = false;
-		Section processes = ini.get("CronHandlers");
+		Section processes = cronIni.get("CronHandlers");
 		if (args.length >= 1){
 			logger.info("Found " + args.length + " arguments ");
 			String processName = args[0];
@@ -113,13 +152,14 @@ public class Cron {
 			}
 			// Load the class for the process using reflection
 			try {
+				@SuppressWarnings("rawtypes")
 				Class processHandlerClass = Class.forName(processToRun.getProcessClass());
 				Object processHandlerClassObject;
 				try {
 					processHandlerClassObject = processHandlerClass.newInstance();
 					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
 					
-					processHandlerInstance.doCronProcess(ini, logger);
+					processHandlerInstance.doCronProcess(ini, processSettings, logger);
 					//Log how long the process took
 					Date endTime = new Date();
 					long elapsedMillis = endTime.getTime() - currentTime.getTime();

@@ -1,6 +1,7 @@
 package org.douglascountylibraries;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,9 +14,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -45,22 +43,22 @@ public class UpdateReadingHistory implements IProcessHandler {
 	private boolean loadEcontentHistory = true;
 	private boolean loadOverdriveHistory = false;
 	
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
+	public void doCronProcess(Ini configIni, Section processSettings, Logger logger) {
 		this.logger = logger;
 		logger.info("Updating Reading History");
 
-		String databaseConnectionInfo = generalSettings.get("database");
+		String databaseConnectionInfo = configIni.get("Database","database_vufind_jdbc");
 		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
 			logger.error("Database connection information not found in General Settings.  Please specify connection information in a database key.");
 			return;
 		}
 
-		vufindUrl = generalSettings.get("vufindUrl");
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 		}
 
-		strandsApid = generalSettings.get("strandsApid");
+		strandsApid = configIni.get("Strands", "APID");
 		
 		String loadPrintSetting = processSettings.get("loadPrint");
 		if (loadPrintSetting != null){
