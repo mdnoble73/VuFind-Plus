@@ -685,6 +685,14 @@ class ListAPI extends Action {
 				'cacheName' => 'list_recommendations_' . $listId . '_' . $user->id,
 				'cacheLength' => $configArray['Caching']['list_recommendations']
 			);
+		}elseif (preg_match('/^search:/', $listId)){
+			$requestUri = $_SERVER['REQUEST_URI'];
+			$requestUri = str_replace("&reload", "", $requestUri);
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_general_search_' . md5($requestUri),
+				'cacheLength' => $configArray['Caching']['list_general']
+			);
 		}else{
 			return array(
 				'cacheType' => 'general',
