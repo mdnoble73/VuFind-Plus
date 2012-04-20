@@ -127,12 +127,12 @@ public class ProcessorResults {
 		StringBuffer notesText = new StringBuffer("<ol class='processNotes'>");
 		for (String curNote : notes){
 			String cleanedNote = curNote;
-			cleanedNote.replaceAll("<pre>", "<code>");
-			cleanedNote.replaceAll("</pre>", "</code>");
+			cleanedNote = cleanedNote.replaceAll("<pre>", "<code>");
+			cleanedNote = cleanedNote.replaceAll("</pre>", "</code>");
 			//Replace multiple line breaks
-			cleanedNote.replaceAll("(?:<br?>\\s*)+", "<br/>");
-			cleanedNote.replaceAll("<meta.*?>", "");
-			cleanedNote.replaceAll("<title>.*?</title>", "");
+			cleanedNote = cleanedNote.replaceAll("(?:<br?>\\s*)+", "<br/>");
+			cleanedNote = cleanedNote.replaceAll("<meta.*?>", "");
+			cleanedNote = cleanedNote.replaceAll("<title>.*?</title>", "");
 			notesText.append("<li>").append(curNote).append("</li>");
 		}
 		notesText.append("</ol>");

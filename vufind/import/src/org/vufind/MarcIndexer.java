@@ -1,5 +1,6 @@
 package org.vufind;
 
+import java.sql.Connection;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private ProcessorResults results = new ProcessorResults("Marc Indexer");
 	
 	@Override
-	public boolean init(Ini configIni, String serverName, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		solrPort = configIni.get("Reindex", "solrPort");
 
