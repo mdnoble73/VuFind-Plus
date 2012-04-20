@@ -10,7 +10,7 @@
 		<div id="econtentAttachLogContainer">
 			<table class="logEntryDetails">
 				<thead>
-					<tr><th>Id</th><th>Started</th><th>Finished</th></tr>
+					<tr><th>Id</th><th>Started</th><th>Finished</th><th>Elapsed</th></tr>
 				</thead>
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
@@ -18,6 +18,7 @@
 							<td>{$logEntry->id}</td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
+							<td>{$logEntry->getElapsedTime()}</td>
 						</tr>
 						<tr colspan="3" id="processInfo{$logEntry->id}">
 							<table class="logEntryProcessDetails">

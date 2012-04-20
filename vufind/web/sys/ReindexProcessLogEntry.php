@@ -5,7 +5,7 @@
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 
-class ReindexProcessLogEntry extends DB_DataObject 
+class ReindexProcessLogEntry extends DB_DataObject
 {
 	public $__table = 'reindex_process_log';   // table name
 	public $id;
@@ -20,11 +20,12 @@ class ReindexProcessLogEntry extends DB_DataObject
 	public $numDeleted;
 	public $numSkipped;
 	public $notes;
-	
+
 	/* Static get */
-  function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReindexProcessLogEntry',$k,$v); }
-    
+	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReindexProcessLogEntry',$k,$v); }
+
 	function keys() {
-	    return array('id');
- 	}
+		return array('id');
+	}
+	
 }
