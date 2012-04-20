@@ -1052,10 +1052,12 @@ public function getMyHoldsViaDB($patron)
 		$timer->logTime('Connected to SIP2 server');
 
 		$items = array();
-		$count = 0;
-		foreach ($ids as $recordId){
-			$items[$count] = $this->getStatusSummary($recordId, null, $mysip);
-			$count++;
+		if (is_array($ids)){
+			$count = 0;
+			foreach ($ids as $recordId){
+				$items[$count] = $this->getStatusSummary($recordId, null, $mysip);
+				$count++;
+			}
 		}
 		return $items;
 	}

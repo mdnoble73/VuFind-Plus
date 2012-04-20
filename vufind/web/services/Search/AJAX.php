@@ -197,12 +197,6 @@ class AJAX extends Action {
 		$result = $catalog->getStatusSummaries($_GET['id']);
 		$timer->logTime("Retrieved status summaries");
 
-		// In order to detect IDs missing from the status response, create an
-		// array with a key for every requested ID.  We will clear keys as we
-		// encounter IDs in the response -- anything left will be problems that
-		// need special handling.
-		$missingIds = array_flip($_GET['id']);
-
 		// Loop through all the status information that came back
 		foreach ($result as $record) {
 			// If we encountered errors, skip those problem records.
