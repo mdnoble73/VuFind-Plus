@@ -3,10 +3,6 @@ package org.vufind;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 
@@ -35,7 +31,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			logger.info("Clearing existing marc records from index");
 			results.addNote("clearing existing marc records");
 			URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/?commit=true", "<delete><query>recordtype:marc</query></delete>", logger);
-			if (response.isSuccess()){
+			if (!response.isSuccess()){
 				results.addNote("Error clearing existing marc records " + response.getMessage());
 			}
 		}
@@ -56,18 +52,18 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		//Make sure that the index is good and swap indexes
 		results.addNote("calling final commit on index");
 		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit />", logger);
-		if (response.isSuccess()){
+		if (!response.isSuccess()){
 			results.addNote("Error committing changes " + response.getMessage());
 		}
 		results.addNote("optimizing index");
 		response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<optimize />", logger);
-		if (response.isSuccess()){
+		if (!response.isSuccess()){
 			results.addNote("Error optimizing index " + response.getMessage());
 		}
 		if (checkMarcImport()){
 			results.addNote("index passed checks, swapping cores so new index is active.");
 			response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
-			if (response.isSuccess()){
+			if (!response.isSuccess()){
 				results.addNote("Error swapping cores " + response.getMessage());
 			}
 		}else{

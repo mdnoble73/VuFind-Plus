@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -611,7 +610,7 @@ public class ReindexProcess {
 		logger.info("Time elpased: " + elapsedMinutes + " minutes");
 		
 		try {
-			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, WHERE id=?");
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ? WHERE id = ?");
 			finishedStatement.setLong(1, new Date().getTime() / 1000);
 			finishedStatement.setLong(2, reindexLogId);
 			finishedStatement.executeUpdate();

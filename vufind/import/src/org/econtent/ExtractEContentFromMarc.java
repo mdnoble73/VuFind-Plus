@@ -81,8 +81,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			String source = null;
 			String accessType = null;
 			boolean addRecordToEContent = false;
+			results.incRecordsProcessed();
 			if (sourceUrl == null){
 				//logger.debug("Title does not appear to be econtent");
+				results.incSkipped();
 			}else{
 				//logger.info("Checking source url " + sourceUrl);
 				if (sourceUrl.matches("(?i).*gutenberg.*")){
@@ -97,6 +99,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					addRecordToEContent = true;
 				}else{
 					//logger.info("Title does not appear to be econtent " + sourceUrl);
+					results.incSkipped();
 				}
 			}
 			
@@ -126,7 +129,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				
 				boolean recordAdded = false;
 				if (importRecordIntoDatabase){
-					
 					//Add to database
 					logger.info("Adding ils id " + ilsId + " to the database.");
 					createEContentRecord.setString(1, recordInfo.getId());
@@ -161,11 +163,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					int rowsInserted = createEContentRecord.executeUpdate();
 					if (rowsInserted != 1){
 						logger.error("Could not insert row into the database");
+						results.incErrors();
+						results.addNote("Error inserting econtent record for id " + ilsId + " number of rows updated was not 1");
 					}else{
 						ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
 						while (generatedKeys.next()){
 							eContentRecordId = generatedKeys.getLong(1);
 							recordAdded = true;
+							results.incAdded();
 						}
 					}
 				}else{
@@ -204,8 +209,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					int rowsInserted = updateEContentRecord.executeUpdate();
 					if (rowsInserted != 1){
 						logger.error("Could not insert row into the database");
+						results.incErrors();
+						results.addNote("Error updating econtent record for id " + ilsId + " number of rows updated was not 1");
 					}else{
 						recordAdded = true;
+						results.incUpdated();
 					}
 				}
 				
@@ -230,6 +238,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 		} catch (Exception e) {
 			logger.error("Error importing marc record ", e);
+			results.incErrors();
+			results.addNote("Error extracting eContent for record " + recordInfo.getId() + " " + e.toString());
 			return false;
 		}
 	}
