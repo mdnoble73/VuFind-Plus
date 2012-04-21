@@ -4,9 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -1140,6 +1137,7 @@ public class MarcRecordDetails {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	public String getId() {
 		Object idField = fields.get("id");
 		if (idField instanceof String){
@@ -2509,6 +2507,7 @@ public class MarcRecordDetails {
 		return result;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<String> getAuthors() {
 		Set<String> result = new HashSet<String>();
 		Object author = fields.get("author");

@@ -1,7 +1,6 @@
 package org.vufind;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,7 +16,6 @@ import org.solrmarc.tools.Utils;
 
 public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordProcessor{
 	private Logger logger;
-	private Connection conn = null;
 	
 	private boolean updateUnchangedResources = false;
 	
@@ -48,7 +46,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	
 	private ProcessorResults results = new ProcessorResults("Update Resources");
 	
-	public boolean init(Ini configIni, String serverName, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		// Load configuration
 		String databaseConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_vufind_jdbc"));
@@ -56,13 +54,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			logger.error("Database connection information not found in General Settings.  Please specify connection information in a database key.");
 			return false;
 		}
-		try {
-			conn = DriverManager.getConnection(databaseConnectionInfo);
-		} catch (SQLException e) {
-			logger.error("Could not connect to database", e);
-			return false;
-		}
-
+		
 		String vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
@@ -76,30 +68,30 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		
 		try {
 			// Check to see if the record already exists
-			resourceUpdateStmt =conn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
-			resourceInsertStmt = conn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
-			deleteResourceStmt = conn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			resourceUpdateStmt = vufindConn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
+			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
+			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
 			
-			getExistingSubjectsStmt = conn.prepareStatement("SELECT * FROM subject");
+			getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
 			existingSubjects = new HashMap<String, Long>();
 			while (existingSubjectsRS.next()){
 				existingSubjects.put(existingSubjectsRS.getString("subject"),existingSubjectsRS.getLong("id") );
 			}
 			existingSubjectsRS.close();
-			insertSubjectStmt = conn.prepareStatement("INSERT INTO subject (subject) VALUES (?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			clearResourceSubjectsStmt = conn.prepareStatement("DELETE FROM resource_subject WHERE resourceId = ?");
-			linkResourceToSubjectStmt = conn.prepareStatement("INSERT INTO resource_subject (subjectId, resourceId) VALUES (?, ?)");
+			insertSubjectStmt = vufindConn.prepareStatement("INSERT INTO subject (subject) VALUES (?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			clearResourceSubjectsStmt = vufindConn.prepareStatement("DELETE FROM resource_subject WHERE resourceId = ?");
+			linkResourceToSubjectStmt = vufindConn.prepareStatement("INSERT INTO resource_subject (subjectId, resourceId) VALUES (?, ?)");
 			
-			getLocationsStmt = conn.prepareStatement("SELECT locationId, code FROM location");
+			getLocationsStmt = vufindConn.prepareStatement("SELECT locationId, code FROM location");
 			ResultSet locationsRS = getLocationsStmt.executeQuery();
 			locations = new HashMap<String, Long>();
 			while (locationsRS.next()){
 				locations.put(locationsRS.getString("code").toLowerCase(),locationsRS.getLong("locationId") );
 			}
 			
-			clearResourceCallnumbersStmt = conn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
-			addCallnumberToResourceStmt = conn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
+			clearResourceCallnumbersStmt = vufindConn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
+			addCallnumberToResourceStmt = vufindConn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
 			
 			//Load field information for local call numbers
 			itemTag = configIni.get("Reindex", "itemTag");
@@ -107,7 +99,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			locationSubfield = configIni.get("Reindex", "locationSubfield");
 			
 			//Get a list of resources that have already been installed. 
-			PreparedStatement existingResourceStmt = conn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'");
+			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'");
 			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
 			while (existingResourceRS.next()){
 				String ilsId = existingResourceRS.getString("record_id");
@@ -276,11 +268,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 				logger.error("Unable to delete "  + resourceInfo.getResourceId(), e);
 			}
 			results.incDeleted();
-		}
-		try {
-			conn.close();
-		} catch (SQLException e) {
-			logger.error("Unable to close connection", e);
 		}
 	}
 
