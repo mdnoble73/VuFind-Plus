@@ -56,9 +56,14 @@ class DBMaintenanceEContent extends Admin {
 						}else{
 							$result = mysql_query($sql);
 							if ($result == 0 || $result == false){
-								$update['status'] = 'Update failed ' . mysql_error();
-								$updateOk = false;
-								break;
+								if (isset($update['continueOnError']) && $update['continueOnError']){
+									if (!isset($update['status'])) $update['status'] = '';
+									$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
+								}else{
+									$update['status'] = 'Update failed ' . mysql_error();
+									$updateOk = false;
+									break;
+								}
 							}else{
 								$update['status'] = 'Update succeeded';
 							}
@@ -429,6 +434,7 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Add eContent indexes',
 			'description' => 'Add indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `econtent_checkout` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `econtent_history` ADD INDEX `RecordId` ( `recordId` ) ',
@@ -442,6 +448,7 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Add eContent indexes 2',
 			'description' => 'Add additional indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `econtent_rating` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `econtent_hold` ADD INDEX `UserStatus` ( `userId`, `status` ) ',

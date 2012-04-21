@@ -7,7 +7,7 @@ require_once 'DB/DataObject/Cast.php';
 
 class CirculationStatus extends DB_DataObject
 {
-	public $__table = 'circulationStatus';   // table name
+	public $__table = 'circulation_status';   // table name
 	public $circulationStatusId;				//int(11)
 	public $millenniumName;					//varchar(25)
 	public $displayName;			//varchar(40)
