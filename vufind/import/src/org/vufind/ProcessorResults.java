@@ -60,6 +60,14 @@ public class ProcessorResults {
 	public void setNumDeleted(int numDeleted) {
 		this.numDeleted = numDeleted;
 	}
+	public int getNumSkipped() {
+		return numSkipped;
+	}
+
+	public void setNumSkipped(int numSkipped) {
+		this.numSkipped = numSkipped;
+	}
+
 	public ArrayList<String> getNotes() {
 		return notes;
 	}
@@ -113,5 +121,21 @@ public class ProcessorResults {
 	}
 	public void incSkipped() {
 		numSkipped++;
+	}
+
+	public String getNotesHtml() {
+		StringBuffer notesText = new StringBuffer("<ol class='processNotes'>");
+		for (String curNote : notes){
+			String cleanedNote = curNote;
+			cleanedNote = cleanedNote.replaceAll("<pre>", "<code>");
+			cleanedNote = cleanedNote.replaceAll("</pre>", "</code>");
+			//Replace multiple line breaks
+			cleanedNote = cleanedNote.replaceAll("(?:<br?>\\s*)+", "<br/>");
+			cleanedNote = cleanedNote.replaceAll("<meta.*?>", "");
+			cleanedNote = cleanedNote.replaceAll("<title>.*?</title>", "");
+			notesText.append("<li>").append(curNote).append("</li>");
+		}
+		notesText.append("</ol>");
+		return notesText.toString();
 	}
 }

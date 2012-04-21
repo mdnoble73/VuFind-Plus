@@ -1,11 +1,8 @@
 package org.vufind;
 
+import java.sql.Connection;
 import java.util.Iterator;
 import java.util.Set;
-
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -19,7 +16,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private ProcessorResults results = new ProcessorResults("Marc Indexer");
 	
 	@Override
-	public boolean init(Ini configIni, String serverName, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		solrPort = configIni.get("Reindex", "solrPort");
 
@@ -33,7 +30,11 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		}
 		if (clearMarcRecordsAtStartOfIndex){
 			logger.info("Clearing existing marc records from index");
-			Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/?commit=true", "<delete><query>recordtype:marc</query></delete>", logger);
+			results.addNote("clearing existing marc records");
+			URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/?commit=true", "<delete><query>recordtype:marc</query></delete>", logger);
+			if (!response.isSuccess()){
+				results.addNote("Error clearing existing marc records " + response.getMessage());
+			}
 		}
 		
 		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
@@ -50,31 +51,63 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	@Override
 	public void finish() {
 		//Make sure that the index is good and swap indexes
-		Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit />", logger);
-		Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<optimize />", logger);
-		
+		results.addNote("calling final commit on index");
+		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit />", logger);
+		if (!response.isSuccess()){
+			results.addNote("Error committing changes " + response.getMessage());
+		}
+		results.addNote("optimizing index");
+		response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<optimize />", logger);
+		if (!response.isSuccess()){
+			results.addNote("Error optimizing index " + response.getMessage());
+		}
 		if (checkMarcImport()){
-			Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
+			results.addNote("index passed checks, swapping cores so new index is active.");
+			response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
+			if (!response.isSuccess()){
+				results.addNote("Error swapping cores " + response.getMessage());
+			}
+		}else{
+			results.addNote("index did not pass check, not swapping");
 		}
 	}
 
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
+		results.incRecordsProcessed();
 		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
 			logger.info("Skipping record because it hasn't changed");
+			results.incSkipped();
 		}
 		try {
 			//Create the XML document for the record
 			String xmlDoc = createXmlDocForRecord(recordInfo);
-			//Post to the Solr instance
-			Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
+			if (xmlDoc != null){
+				//Post to the Solr instance
+				URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
+				if (response.isSuccess()){
+					if (recordStatus == MarcProcessor.RECORD_NEW){
+						results.incAdded();
+					}else{
+						results.incUpdated();
+					}
+					return true;
+				}else{
+					results.incErrors();
+					results.addNote(response.getMessage());
+					return false;
+				}
+			}else{
+				results.incErrors();
+				return false;
+			}
 		} catch (Exception ex) {
 			// handle any errors
 			logger.error("Error indexing marc record " + recordInfo.getId() + " " + ex.toString());
-			System.out.println(recordInfo.getTitle());
+			results.addNote("Error indexing marc record " + recordInfo.getId() + " " + ex.toString());
+			results.incErrors();
+			return false;
 		}
-		// TODO Auto-generated method stub
-		return true;
 	}
 
 	private String createXmlDocForRecord(MarcRecordDetails recordInfo) {
@@ -105,21 +138,20 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			}
 			
 			return builder.asString();
-		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
+			results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
 			e.printStackTrace();
-		} catch (FactoryConfigurationError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 	
 	private boolean checkMarcImport() {
-		return true;
+		//Do not pass the import if more than 1% of the records have errors 
+		if (results.getNumErrors() > results.getRecordsProcessed() * .01){
+			return false;
+		}else{
+			return true;
+		}
 	}
 
 	@Override

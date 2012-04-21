@@ -9,10 +9,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
@@ -30,7 +28,6 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	private BufferedWriter writer;
 	private String vufindUrl;
 	private String bookcoverUrl;
-	private Connection econtentConn;
 	private PreparedStatement getFormatsForRecord = null;
 	private File tempFile;
 	private String strandsCatalogFile;
@@ -39,7 +36,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	/**
 	 * Build a csv file to import into strands
 	 */
-	public boolean init(Ini configIni, String serverName, Logger logger) {
+	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		logger.info("Creating Catalog File for Strands");
 
@@ -61,16 +58,9 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			return false;
 		}
 		
-		String econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
 		//Connect to the eContent database
 		try {
 			//Connect to the vufind database
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
 			getFormatsForRecord = econtentConn.prepareStatement("SELECT distinct item_type from econtent_item where recordId = ?");
 			
 		} catch (Exception ex) {
@@ -136,6 +126,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	@Override
 	public boolean processEContentRecord(ResultSet eContentRecord) {
 		try {
+			results.incEContentRecordsProcessed();
 			// Write the id
 			String id = eContentRecord.getString("id");
 			logger.info("Processing eContentRecord " + id);
@@ -193,9 +184,12 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("|'EMedia'");
 
 			writer.write("\r\n");
+			results.incAdded();
 			
 			return true;
 		} catch (Exception e) {
+			results.incErrors();
+			results.addNote("Error processing eContent record " + e.toString());
 			logger.error("Error processing eContent record", e);
 			return false;
 		}
@@ -204,6 +198,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
+			results.incRecordsProcessed();
 			// Write the id
 			writer.write("'" + recordInfo.getId() + "'");
 			// Write a link to the title
@@ -249,10 +244,12 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("|'" + categories.toString() + "'");
 
 			writer.write("\r\n");
+			results.incAdded();
 			
 			return true;
 		} catch (IOException e) {
 			logger.error("Error writing to catalog file, " + e.toString());
+			results.addNote("Error writing to catalog file, " + e.toString());
 			return false;
 		}
 	}
@@ -275,11 +272,9 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 				logger.info("Output file has been created as " + strandsCatalogFile);
 			}
 			
-			econtentConn.close();
 		} catch (IOException e) {
+			results.addNote("Error saving strands catalog " + e.toString());
 			logger.error("Error saving strands catalog", e);
-		} catch (SQLException e) {
-			logger.error("Error closing database", e);
 		}
 	}
 	@Override

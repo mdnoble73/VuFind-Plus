@@ -5,20 +5,21 @@ import java.io.FilenameFilter;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
 public class BookcoverCleanup  implements IProcessHandler{
-  public void doCronProcess(Section processSettings, Section generalSettings, Logger logger ){
+  public void doCronProcess(Ini configIni, Logger logger ){
     System.out.println("Removing old bookcovers");
     
-    String localDir = generalSettings.get("local");
-    String[] coverPaths = new String[]{"/web/images/covers/small", "/web/images/covers/medium", "/web/images/covers/large"};
+    String coverPath = configIni.get("Site", "coverPath");
+    String[] coverPaths = new String[]{"/small", "/medium", "/large"};
     Long currentTime = new Date().getTime();
     
     for (String path : coverPaths){
       int numFilesDeleted = 0;
       
-      String fullPath = localDir + path;
+      String fullPath = coverPath + path;
       File coverDirectoryFile = new File(fullPath);
       if (!coverDirectoryFile.exists()){
         System.out.println("Directory " + coverDirectoryFile.getAbsolutePath() + " does not exist.  Please check configuration file.");

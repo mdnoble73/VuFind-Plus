@@ -265,6 +265,15 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'eContentRecord_3'  => array(
+			'title' => 'eContent Record Update 3',
+			'description' => 'Increase length of isbn field ',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_record CHANGE `isbn` `isbn` VARCHAR(500) NULL",
+		),
+		),
+		
 		'notices_1'  => array(
 			'title' => 'eContent Notices Update 1',
 			'description' => 'Adds notices fields so each notice is tracked explicitly',
@@ -458,7 +467,7 @@ class DBMaintenanceEContent extends Admin {
 		),
 		
 		'add_indexes_3' => array(
-			'title' => 'Add eContent indexes 2',
+			'title' => 'Add eContent indexes 3',
 			'description' => 'Add additional indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
 			'sql' => array(

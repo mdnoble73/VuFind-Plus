@@ -231,7 +231,8 @@ public class Util {
 		return formatMap;
 	}
 
-	public static String postToURL(String url, String postData, Logger logger) {
+	public static URLPostResponse postToURL(String url, String postData, Logger logger) {
+		URLPostResponse retVal;
 		try {
 			URL emptyIndexURL = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
@@ -259,6 +260,7 @@ public class Util {
 				}
 
 				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
 				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
 				logger.info(postData);
@@ -270,17 +272,17 @@ public class Util {
 				}
 
 				rd.close();
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
 			}
 
-			return response.toString();
 		} catch (MalformedURLException e) {
 			logger.error("URL to post (" + url + ") is malformed", e);
-			return "";
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
 		} catch (IOException e) {
 			logger.error("Error posting to url \r\n" + url, e);
-			System.exit(1);
-			return "";
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
 		}
+		return retVal;
 	}
 
 	public static boolean deleteDirectory(File dirToDelete) {
