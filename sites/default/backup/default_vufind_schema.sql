@@ -784,25 +784,6 @@ CREATE TABLE IF NOT EXISTS `title_browse` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `usagetracking_old`
---
-
-CREATE TABLE IF NOT EXISTS `usagetracking_old` (
-  `usageId` int(11) NOT NULL AUTO_INCREMENT,
-  `ipId` int(11) NOT NULL,
-  `locationId` int(11) NOT NULL,
-  `numPageViews` int(11) NOT NULL DEFAULT '0',
-  `numHolds` int(11) NOT NULL DEFAULT '0',
-  `numRenewals` int(11) NOT NULL DEFAULT '0',
-  `trackingDate` bigint(20) NOT NULL,
-  PRIMARY KEY (`usageId`),
-  KEY `usageId` (`usageId`),
-  KEY `IP_DATE` (`ipId`,`trackingDate`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=132 ;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `usage_tracking`
 --
 
