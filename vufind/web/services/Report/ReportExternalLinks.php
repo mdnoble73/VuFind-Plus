@@ -65,7 +65,7 @@ class ReportExternalLinks extends Report{
 		$interface->assign('selectedDateEnd', $selectedDateEnd);
 
 		//////////Populate the Stores Filter
-		$queryHostsFilter = "SELECT DISTINCT linkHost AS linkHost FROM externalLinkTracking ORDER BY linkHost ASC";
+		$queryHostsFilter = "SELECT DISTINCT linkHost AS linkHost FROM external_link_tracking ORDER BY linkHost ASC";
 		$externalLinkTracking = new ExternalLinkTracking();
 		$externalLinkTracking->query($queryHostsFilter);
 
@@ -238,7 +238,7 @@ class ReportExternalLinks extends Report{
 			
 		//////////CHART
 		//Create the chart and load data into the results.
-		$queryDailyPurchases = "SELECT DATE_FORMAT(trackingDate, '%Y-%m-%d') as date, COUNT(externalLinkId) AS timesFollowed, linkHost FROM externalLinkTracking  ".
+		$queryDailyPurchases = "SELECT DATE_FORMAT(trackingDate, '%Y-%m-%d') as date, COUNT(externalLinkId) AS timesFollowed, linkHost FROM external_link_tracking  ".
 			"WHERE (DATE_FORMAT(trackingDate, '%Y-%m-%d')) BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' " ;	
 		if (count($selectedHosts) > 0) {
 			$hosts = join("','",$selectedHosts);

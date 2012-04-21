@@ -7,7 +7,7 @@ require_once 'DB/DataObject/Cast.php';
 
 class NonHoldableLocation extends DB_DataObject 
 {
-	public $__table = 'nonHoldableLocations';   // table name
+	public $__table = 'non_holdable_locations';   // table name
 	public $locationId;				//int(11)
 	public $millenniumCode;			//varchar(5)
 	public $holdingDisplay;         //varchar(30)

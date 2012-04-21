@@ -107,7 +107,7 @@ class ReportPageViewsLocation extends Report{
 				"(SELECT location FROM ip_lookup WHERE id = ut.ipId LIMIT 1) AS Location, ". 
 				"sum(ut.numPageViews) AS PageViews, sum(ut.numHolds) Holds, ".
 				"sum(ut.numRenewals) AS Renewals  ".
-				"FROM usageTracking ut ".
+				"FROM usage_tracking ut ".
 				"WHERE ut.trackingDate BETWEEN '". $selectedDateStartTime . "' AND '". $selectedDateEndTime . "' "; 
 		if (count($selectedLocationsFilter) > 0) {
 			$ipIds = join(",",$selectedLocationsFilter);
@@ -326,7 +326,7 @@ class ReportPageViewsLocation extends Report{
 		$queryDailyPageViews = "SELECT (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%Y-%m-%d')) AS TrackingDate, ".
 				"SUM(numPageViews) AS PageViews, SUM(numHolds) AS Holds, ".
 				"SUM(numRenewals) AS Renewals ".
-				"FROM usageTracking ".
+				"FROM usage_tracking ".
 				"WHERE (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%Y-%m-%d')) ".
 				"BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' "; 
 		if (count($selectedLocationsFilter) > 0) {
