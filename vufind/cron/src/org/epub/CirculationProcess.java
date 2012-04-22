@@ -1,7 +1,6 @@
 package org.epub;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,65 +9,56 @@ import java.util.Date;
 import java.util.Properties;
 
 import javax.mail.*;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 
 
 public class CirculationProcess implements IProcessHandler{
 
-	private String vufindDBConnectionInfo;
-	private String econtentDBConnectionInfo;
+	private Logger logger;
+	private CronProcessLogEntry processLog;
 	private Connection vufindConn = null;
 	private Connection econtentConn = null;
 	
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
-		logger.info("Converting eContent from old format to new format");
+	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		this.logger = logger;
+		this.vufindConn = vufindConn;
+		this.econtentConn = econtentConn;
 		
-		//Load configuration
-		if (!loadConfig(processSettings, generalSettings, logger)){
-			return;
-		}
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "eContent circulation");
+		processLog.saveToDatabase(vufindConn, logger);
+		logger.info("Running circulation process for eContent");
 		
-		try {
-			//Connect to the vufind database
-			vufindConn = DriverManager.getConnection(vufindDBConnectionInfo);
-			//Connect to the eContent database
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
-			
-			//Activate suspended holds that have hit their activation date.
-			activateSuspendedHolds(logger);
-			
-			//Automatically return overdue items
-			returnOverdueItems(logger);
-			
-			//Cancel holds that have not been picked up after 5 days
-			abandonHolds(logger);
-			
-			//Place holds for wishlist records that were purchased
-			processWishlist(logger);
-			
-			//Send notices for items that are available that haven't had notices printed for them yet
-			sendNotices(logger);
-			
-			// Disconnect from the database
-			vufindConn.close();
-			econtentConn.close();
-		} catch (SQLException ex) {
-			// handle any errors
-			logger.error("Error establishing connection to database ", ex);
-			return;
-		}
+		//Activate suspended holds that have hit their activation date.
+		activateSuspendedHolds();
 		
+		//Automatically return overdue items
+		returnOverdueItems();
+		
+		//Cancel holds that have not been picked up after 5 days
+		abandonHolds();
+		
+		//Place holds for wishlist records that were purchased
+		processWishlist();
+		
+		//Send notices for items that are available that haven't had notices printed for them yet
+		sendNotices();
+		
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 	
-	private void processWishlist(Logger logger) {
+	private void processWishlist() {
 		logger.info("Processing the wishlist.");
+		processLog.addNote("Processing the wishlist.");
 		try {
 			//Get a list of all eContent Records that have a wishlist and that also have items
 			PreparedStatement recordsToProcess = econtentConn.prepareStatement("SELECT econtent_record.id, title, author, source, count(DISTINCT econtent_wishlist.userId) as numWishList, count(DISTINCT econtent_item.id) as numItems, availableCopies FROM econtent_record INNER JOIN econtent_wishlist on econtent_record.id = econtent_wishlist.recordId INNER JOIN econtent_item on econtent_record.id = econtent_item.recordId WHERE econtent_wishlist.status = 'active' GROUP BY econtent_record.id");
@@ -111,16 +101,20 @@ public class CirculationProcess implements IProcessHandler{
 					logger.info("Adding holds for user " + userId);
 					markWishlistFilled.setLong(1, wishlistId);
 					markWishlistFilled.executeUpdate();
+					processLog.incUpdated();
 					
 				}
 				
 			}
 		} catch (SQLException e) {
 			logger.error("Error processing wish list.", e);
+			processLog.incErrors();
+			processLog.addNote("Error processing wish list. " + e.toString());
 		}
 	}
 
-	private void activateSuspendedHolds(Logger logger) {
+	private void activateSuspendedHolds() {
+		processLog.addNote("Activating suspended eContent holds");
 		long curTime = new Date().getTime() ;
 		long curTimeSeconds = curTime/ 1000;
 		try {
@@ -129,24 +123,28 @@ public class CirculationProcess implements IProcessHandler{
 			activateSuspendedHolds.setLong(2, curTimeSeconds);
 			long numHoldsActvated = activateSuspendedHolds.executeUpdate();
 			logger.info("Activated " + numHoldsActvated + " suspended holds");
+			processLog.addNote("Activated " + numHoldsActvated + " suspended holds");
 		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Error activating suspended holds. " + e.toString());
 			logger.error("Error activating suspended holds.", e);
 		}
 	}
 
-	private void sendNotices(Logger logger) {
-		sendHoldAvailableNotices(logger);
+	private void sendNotices() {
+		sendHoldAvailableNotices();
 		
-		sendHoldReminderNotices(logger);
+		sendHoldReminderNotices();
 		
-		sendHoldAbandonedNotices(logger);
+		sendHoldAbandonedNotices();
 		
-		sendReturnReminderNotices(logger);
+		sendReturnReminderNotices();
 	}
 
 
-	private void sendReturnReminderNotices(Logger logger) {
+	private void sendReturnReminderNotices() {
 		logger.info("Sending return reminder notices");
+		processLog.addNote("Sending return reminder notices");
 		try{
 			PreparedStatement usersToSendReturnReminderNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_checkout WHERE status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
@@ -207,6 +205,10 @@ public class CirculationProcess implements IProcessHandler{
 							int numRecordsUpdated = updateNoticeSent.executeUpdate();
 							if (numRecordsUpdated != 1){
 								logger.error("Updated that the notice was sent.");
+								processLog.incErrors();
+								processLog.addNote("Error updating that the notice was sent for " + checkoutId);
+							}else{
+								processLog.incUpdated();
 							}
 						}
 					}
@@ -214,11 +216,14 @@ public class CirculationProcess implements IProcessHandler{
 			}
 		} catch (SQLException e) {
 			logger.error("Error sending notices", e);
+			processLog.incErrors();
+			processLog.addNote("Error sending notices " + e.toString());
 		}
 	}
 
-	private void sendHoldAbandonedNotices(Logger logger) {
+	private void sendHoldAbandonedNotices() {
 		logger.info("Sending hold abandoned notices");
+		processLog.addNote("Sending hold abandoned notices");
 		try{
 			PreparedStatement usersToSendAbandonedNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE status ='abandoned' AND holdAbandonedNoticeSent = 0");
 			ResultSet usersToSendNoticesTo = usersToSendAbandonedNoticesTo.executeQuery();
@@ -271,6 +276,10 @@ public class CirculationProcess implements IProcessHandler{
 							int numRecordsUpdated = updateNoticeSent.executeUpdate();
 							if (numRecordsUpdated != 1){
 								logger.error("Updated that the notice was sent.");
+								processLog.incErrors();
+								processLog.addNote("Error updating that the notice was sent for " + holdId);
+							}else{
+								processLog.incUpdated();
 							}
 						}
 					}
@@ -278,12 +287,15 @@ public class CirculationProcess implements IProcessHandler{
 			}
 		} catch (SQLException e) {
 			logger.error("Error sending notices", e);
+			processLog.incErrors();
+			processLog.addNote("Error sending notices " + e.toString());
 		}
 	}
 
-	private void sendHoldReminderNotices(Logger logger) {
+	private void sendHoldReminderNotices() {
 		//Send a reminder to users that have holds that will expire in the next 2 days
 		logger.info("Sending hold reminder notices");
+		processLog.addNote("Sending hold reminder notices");
 		long curTime = new Date().getTime() ;
 		long curTimeSeconds = curTime/ 1000;
 		long latestDateToRemainActive = curTimeSeconds - (2 * 24 * 60 * 60);
@@ -346,6 +358,10 @@ public class CirculationProcess implements IProcessHandler{
 							int numRecordsUpdated = updateNoticeSent.executeUpdate();
 							if (numRecordsUpdated != 1){
 								logger.error("Updated that the notice was sent.");
+								processLog.incErrors();
+								processLog.addNote("Error updating that the notice was sent for " + holdId);
+							}else{
+								processLog.incUpdated();
 							}
 						}
 					}
@@ -355,11 +371,14 @@ public class CirculationProcess implements IProcessHandler{
 			
 		} catch (SQLException e) {
 			logger.error("Error sending notices", e);
+			processLog.incErrors();
+			processLog.addNote("Error sending notices " + e.toString());
 		}
 	}
 
-	private void sendHoldAvailableNotices(Logger logger) {
+	private void sendHoldAvailableNotices() {
 		logger.info("Sending hold available notices");
+		processLog.addNote("Sending hold available notices");
 		try {
 			//Send notices to any users that have available holds where the notice has not been sent
 			//Get a list of records to send notices for
@@ -418,6 +437,10 @@ public class CirculationProcess implements IProcessHandler{
 							int numRecordsUpdated = updateNoticeSent.executeUpdate();
 							if (numRecordsUpdated != 1){
 								logger.error("Updated that the notice was sent.");
+								processLog.incErrors();
+								processLog.addNote("Unable to update that the notice was sent for holdId " + holdId);
+							}else{
+								processLog.incUpdated();
 							}
 						}
 					}
@@ -427,6 +450,8 @@ public class CirculationProcess implements IProcessHandler{
 			
 		} catch (SQLException e) {
 			logger.error("Error sending notices", e);
+			processLog.incErrors();
+			processLog.addNote("Error sending notices " + e.toString());
 		}
 	}
 
@@ -465,8 +490,9 @@ public class CirculationProcess implements IProcessHandler{
 		
 	}
 
-	private void abandonHolds(Logger logger) {
+	private void abandonHolds() {
 		//Check for any holds that were made available more than 5 days ago
+		processLog.addNote("Abandoning holds that were nto picked up.");
 		long curTime = new Date().getTime() ;
 		long curTimeSeconds = curTime/ 1000;
 		long latestDateToRemainActive = curTimeSeconds - (5 * 24 * 60 * 60);
@@ -485,12 +511,17 @@ public class CirculationProcess implements IProcessHandler{
 				
 				if (recordsAbandoned != 1){
 					logger.info("Unable to abandon hold " + id);
+					processLog.addNote("Unable to abandon hold " + id);
+					processLog.incErrors();
 				}else{
+					processLog.incUpdated();
 					processHoldQueue(recordId, curTimeSeconds, logger);
 				}
 			}
 		} catch (SQLException e) {
 			logger.error("Error abandoning holds", e);
+			processLog.addNote("Error abandoning holds " + e.toString());
+			processLog.incErrors();
 		}
 	}
 
@@ -520,7 +551,8 @@ public class CirculationProcess implements IProcessHandler{
 		}
 	}
 
-	private void returnOverdueItems(Logger logger) {
+	private void returnOverdueItems() {
+		processLog.addNote("Returning overdue eContent");
 		long curTime = new Date().getTime() ;
 		long curTimeSeconds = curTime/ 1000;
 		//Get a list of all items that are overdue from the database
@@ -533,38 +565,26 @@ public class CirculationProcess implements IProcessHandler{
 				long recordId = overdueItems.getLong("recordId");
 				long userId = overdueItems.getLong("userId");
 				long dueDate = overdueItems.getLong("dateDue");
-				logger.info("Record " + recordId + " is checked out to " + userId + " and is overdue was due at " + dueDate + " it is now n" + curTimeSeconds);
+				logger.info("Record " + recordId + " is checked out to " + userId + " and is overdue was due at " + dueDate + " it is now " + curTimeSeconds);
 				//Mark that the item is returned
 				returnOverdueItem.setLong(1, curTimeSeconds);
 				returnOverdueItem.setLong(2, id);
 				int numRowReturned = returnOverdueItem.executeUpdate();
 				if (numRowReturned != 1){
 					logger.error("Unable to return record " + recordId + " checked out to " + userId);
+					processLog.incErrors();
+					processLog.addNote("Unable to return record " + recordId + " checked out to " + userId);
 				}else{
 					processHoldQueue(recordId, curTimeSeconds, logger);
-					
+					processLog.incUpdated();
 				}
 			}
 		} catch (SQLException e) {
 			logger.error("Error returning overdue items", e);
+			processLog.incErrors();
+			processLog.addNote("Error returning overdue items " + e.toString());
 		}
 		
-	}
-
-	private boolean loadConfig(Section processSettings, Section generalSettings, Logger logger) {
-		vufindDBConnectionInfo = generalSettings.get("database");
-		if (vufindDBConnectionInfo == null || vufindDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for vufind database not found in General Settings.  Please specify connection information in a database key.");
-			return false;
-		}
-		
-		econtentDBConnectionInfo = generalSettings.get("econtentDatabase");
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
-		return true;
 	}
 
 }

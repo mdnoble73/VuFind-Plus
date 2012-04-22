@@ -1,50 +1,54 @@
 package org.vufind;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 public class CronProcessLogEntry {
-	private long logEntryId;
-	private String processName;
-	private Date started;
+	private Long cronLogId;
+	private Long logProcessId;
+	private String processName = null;
+	private Date startTime;
 	private Date lastUpdate; //The last time the log entry was updated so we can tell if a process is stuck 
-	private Date finished;
-	private boolean hasErrors;
+	private Date endTime;
+	private int numErrors;
+	private int numUpdates; 
 	private ArrayList<String> notes = new ArrayList<String>();
+	
+	public CronProcessLogEntry(Long cronLogId, String processName){
+		this.cronLogId = cronLogId;
+		this.processName = processName;
+		this.startTime = new Date();
+	}
 	public Date getLastUpdate() {
 		lastUpdate = new Date();
 		return lastUpdate;
 	}
-	public long getLogEntryId() {
-		return logEntryId;
-	}
-	public void setLogEntryId(long logEntryId) {
-		this.logEntryId = logEntryId;
-	}
+	
 	public String getProcessName() {
 		return processName;
+	}
+	public int getNumErrors() {
+		return numErrors;
+	}
+	public int getNumUpdates() {
+		return numUpdates;
+	}
+	public void incErrors() {
+		numErrors++;
+	}
+	public void incUpdated() {
+		numUpdates++;
 	}
 	public void setProcessName(String processName) {
 		this.processName = processName;
 	}
-	public Date getStarted() {
-		return started;
-	}
-	public void setStarted(Date started) {
-		this.started = started;
-	}
-	public Date getFinished() {
-		return finished;
-	}
-	public void setFinished(Date finished) {
-		this.finished = finished;
-	}
-	public boolean isHasErrors() {
-		return hasErrors;
-	}
-	public void setHasErrors(boolean hasErrors) {
-		this.hasErrors = hasErrors;
-	}
+	
 	public ArrayList<String> getNotes() {
 		return notes;
 	}
@@ -62,9 +66,55 @@ public class CronProcessLogEntry {
 			cleanedNote = cleanedNote.replaceAll("(?:<br?>\\s*)+", "<br/>");
 			cleanedNote = cleanedNote.replaceAll("<meta.*?>", "");
 			cleanedNote = cleanedNote.replaceAll("<title>.*?</title>", "");
-			notesText.append("<li>").append(curNote).append("</li>");
+			notesText.append("<li>").append(cleanedNote).append("</li>");
 		}
 		notesText.append("</ol>");
 		return notesText.toString();
+	}
+	
+	private static boolean statementsPrepared = false;
+	private static PreparedStatement insertLogEntry;
+	private static PreparedStatement updateLogEntry;
+	public boolean saveToDatabase(Connection vufindConn, Logger logger) {
+		try {
+			if (!statementsPrepared){
+				insertLogEntry = vufindConn.prepareStatement("INSERT into cron_process_log (cronId, processName, startTime) VALUES (?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+				updateLogEntry = vufindConn.prepareStatement("UPDATE cron_process_log SET lastUpdate = ?, endTime = ?, numErrors = ?, numUpdates = ?, notes = ? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			}
+		} catch (SQLException e) {
+			logger.error("Error creating prepared statements to update log", e);
+			return false;
+		}
+		try{
+			if (logProcessId == null){
+				insertLogEntry.setLong(1, cronLogId);
+				insertLogEntry.setString(2,processName);
+				insertLogEntry.setLong(3, startTime.getTime() / 1000);
+				insertLogEntry.executeUpdate();
+				ResultSet generatedKeys = insertLogEntry.getGeneratedKeys();
+				if (generatedKeys.next()){
+					logProcessId = generatedKeys.getLong(1);
+				}
+			}else{
+				updateLogEntry.setLong(1, getLastUpdate().getTime() / 1000);
+				if (endTime == null){
+					updateLogEntry.setNull(2, java.sql.Types.INTEGER);
+				}else{
+					updateLogEntry.setLong(2, endTime.getTime() / 1000);
+				}
+				updateLogEntry.setLong(3, numErrors);
+				updateLogEntry.setLong(4, numUpdates);
+				updateLogEntry.setString(5, getNotesHtml());
+				updateLogEntry.setLong(6, logProcessId);
+				updateLogEntry.executeUpdate();
+			}
+			return true;
+		} catch (SQLException e) {
+			logger.error("Error creating prepared statements to update log", e);
+			return false;
+		}
+	}
+	public void setFinished() {
+		this.endTime = new Date();
 	}
 }

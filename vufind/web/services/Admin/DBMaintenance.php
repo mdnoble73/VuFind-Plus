@@ -794,6 +794,37 @@ class DBMaintenance extends Admin {
       ),
 		),
 		
+		'cronLog' => array(
+      'title' => 'Cron Log table',
+      'description' => 'Create Cron Log table to track reindexing.',
+      'dependencies' => array(),
+      'sql' => array(
+		    'DROP TABLE IF EXISTS cron_log;',
+		    'DROP TABLE IF EXISTS cron_process_log;',
+		    "CREATE TABLE IF NOT EXISTS cron_log(" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
+					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the cron run started', " .
+					"`endTime` INT(11) NULL COMMENT 'The timestamp when the cron run ended', " .
+					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the cron run last updated (to check for stuck processes)', " .
+					"`notes` TEXT COMMENT 'Additional information about the cron run', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = MYISAM;",
+				"CREATE TABLE IF NOT EXISTS cron_process_log(" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of cron process', " .
+					"`cronId` INT(11) NOT NULL COMMENT 'The id of the cron run this process ran during', " .
+					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
+					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the process started', "  . 
+					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the process last updated (to check for stuck processes)', " .
+					"`endTime` INT(11) NULL COMMENT 'The timestamp when the process ended', "  . 
+					"`numErrors` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of errors that occurred during the process', "  . 
+					"`numUpdates` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of updates, additions, etc. that occurred', " .
+					"`notes` TEXT COMMENT 'Additional information about the process', " .
+					"PRIMARY KEY ( `id` ), INDEX ( `cronId` ), INDEX ( `processName` )" .
+				") ENGINE = MYISAM;",
+				
+      ),
+		),
+		
 		'marcImport' => array(
       'title' => 'Marc Import table',
       'description' => 'Create a table to store information about marc records that are being imported.',
