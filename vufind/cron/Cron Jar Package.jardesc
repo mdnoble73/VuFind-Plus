@@ -11,27 +11,9 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="false" exportJavaFiles="false" exportOutputFolder="true">
-        <file path="/VuFind+ Cron/lib/marc4j.jar"/>
-        <file path="/VuFind+ Cron/lib/dsn.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind"/>
-        <file path="/VuFind+ Cron/lib/httpclient-4.1.2.jar"/>
-        <file path="/VuFind+ Cron/lib/httpclient-cache-4.1.2.jar"/>
-        <file path="/VuFind+ Cron/lib/imap.jar"/>
-        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.douglascountylibraries"/>
-        <file path="/VuFind+ Cron/lib/commons-logging-1.1.1.jar"/>
-        <file path="/VuFind+ Cron/lib/smtp.jar"/>
-        <file path="/VuFind+ Cron/lib/log4j-1.2.15.jar"/>
-        <file path="/VuFind+ Cron/lib/commons-io-2.1.jar"/>
-        <file path="/VuFind+ Cron/lib/mysql-connector-java-5.1.15-bin.jar"/>
-        <file path="/VuFind+ Cron/lib/pop3.jar"/>
         <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.epub"/>
+        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.vufind"/>
         <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.json"/>
-        <file path="/VuFind+ Cron/lib/normalizer.jar"/>
-        <file path="/VuFind+ Cron/lib/httpcore-4.1.2.jar"/>
-        <file path="/VuFind+ Cron/lib/pdfbox-1.6.0.jar"/>
-        <file path="/VuFind+ Cron/lib/opencsv-2.2.jar"/>
-        <file path="/VuFind+ Cron/lib/mailapi.jar"/>
-        <file path="/VuFind+ Cron/lib/ini4j-0.5.2.jar"/>
-        <file path="/VuFind+ Cron/lib/httpmime-4.1.2.jar"/>
+        <javaElement handleIdentifier="=VuFind+ Cron/src&lt;org.douglascountylibraries"/>
     </selectedElements>
 </jardesc>

@@ -4,10 +4,8 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -31,9 +29,7 @@ import au.com.bytecode.opencsv.CSVReader;
  */
 
 public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordProcessor{
-	private Logger logger;
 	private String econtentDBConnectionInfo;
-	private Connection econtentConn = null;
 	private String overdriveUrl;
 	private ArrayList<GutenbergItemInfo> gutenbergItemInfo = null;
 	
@@ -48,8 +44,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	public ProcessorResults results = new ProcessorResults("Extract eContent from ILS");
 	
-	public boolean init(Ini configIni, String serverName, Logger logger) {
-		this.logger = logger;
+	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
 		//Import a marc record into the eContent core. 
 		if (!loadConfig(configIni, logger)){
 			return false;
@@ -57,7 +52,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		try {
 			//Connect to the vufind database
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
 			doesIlsIdExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
@@ -81,8 +75,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			String source = null;
 			String accessType = null;
 			boolean addRecordToEContent = false;
+			results.incRecordsProcessed();
 			if (sourceUrl == null){
 				//logger.debug("Title does not appear to be econtent");
+				results.incSkipped();
 			}else{
 				//logger.info("Checking source url " + sourceUrl);
 				if (sourceUrl.matches("(?i).*gutenberg.*")){
@@ -97,6 +93,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					addRecordToEContent = true;
 				}else{
 					//logger.info("Title does not appear to be econtent " + sourceUrl);
+					results.incSkipped();
 				}
 			}
 			
@@ -126,7 +123,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				
 				boolean recordAdded = false;
 				if (importRecordIntoDatabase){
-					
 					//Add to database
 					logger.info("Adding ils id " + ilsId + " to the database.");
 					createEContentRecord.setString(1, recordInfo.getId());
@@ -161,11 +157,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					int rowsInserted = createEContentRecord.executeUpdate();
 					if (rowsInserted != 1){
 						logger.error("Could not insert row into the database");
+						results.incErrors();
+						results.addNote("Error inserting econtent record for id " + ilsId + " number of rows updated was not 1");
 					}else{
 						ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
 						while (generatedKeys.next()){
 							eContentRecordId = generatedKeys.getLong(1);
 							recordAdded = true;
+							results.incAdded();
 						}
 					}
 				}else{
@@ -204,8 +203,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					int rowsInserted = updateEContentRecord.executeUpdate();
 					if (rowsInserted != 1){
 						logger.error("Could not insert row into the database");
+						results.incErrors();
+						results.addNote("Error updating econtent record for id " + ilsId + " number of rows updated was not 1");
 					}else{
 						recordAdded = true;
+						results.incUpdated();
 					}
 				}
 				
@@ -230,6 +232,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 		} catch (Exception e) {
 			logger.error("Error importing marc record ", e);
+			results.incErrors();
+			results.addNote("Error extracting eContent for record " + recordInfo.getId() + " " + e.toString());
 			return false;
 		}
 	}
@@ -350,11 +354,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 
 	@Override
 	public void finish() {
-		try {
-			econtentConn.close();
-		} catch (SQLException e) {
-			logger.error("Unable to close connection", e);
-		}
+		
 	}
 	
 	@Override

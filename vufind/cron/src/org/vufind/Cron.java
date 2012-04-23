@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -18,6 +21,9 @@ public class Cron {
 
 	private static Logger logger = Logger.getLogger(Cron.class);
 	private static String serverName;
+	
+	private static Connection vufindConn;
+	private static Connection econtentConn;
 
 	/**
 	 * @param args
@@ -31,7 +37,7 @@ public class Cron {
 		args = Arrays.copyOfRange(args, 1, args.length);
 		
 		Date currentTime = new Date();
-		File log4jFile = new File("../../conf/" + serverName + "/log4j.cron.properties");
+		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.cron.properties");
 		if (log4jFile.exists()){
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		}else{
@@ -50,10 +56,9 @@ public class Cron {
 			return;
 		}
 
-		// Read the INI file to detemine what processes should be run.
-		// INI File is in the conf directory (current directory/cron/config.ini)
+		// Read the base INI file to get information about the server (current directory/cron/config.ini)
 		Ini ini = new Ini();
-		File configFile = new File("../../conf/" + serverName + "/config.ini");
+		File configFile = new File("../../sites/" + serverName + "/conf/config.ini");
 		try {
 			ini.load(new FileReader(configFile));
 		} catch (InvalidFileFormatException e) {
@@ -64,6 +69,53 @@ public class Cron {
 			logger.error("Configuration file could not be read.");
 		}
 		
+		//Connect to the database
+		String databaseConnectionInfo = Util.cleanIniValue(ini.get("Database","database_vufind_jdbc"));
+		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
+			logger.error("VuFind Database connection information not found in General Settings.  Please specify connection information in a database key.");
+			return;
+		}
+		String econtentConnectionInfo = Util.cleanIniValue(ini.get("Database","database_econtent_jdbc"));
+		if (econtentConnectionInfo == null || econtentConnectionInfo.length() == 0) {
+			logger.error("eContent Database connection information not found in General Settings.  Please specify connection information in a database key.");
+			return;
+		}
+		
+		try {
+			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
+		} catch (SQLException ex) {
+			// handle any errors
+			logger.error("Error establishing connection to database " + databaseConnectionInfo, ex);
+			return;
+		}
+		try {
+			econtentConn = DriverManager.getConnection(econtentConnectionInfo);
+		} catch (SQLException ex) {
+			// handle any errors
+			logger.error("Error establishing connection to database " + econtentConnectionInfo, ex);
+			return;
+		}
+		
+		//Create a log entry for the cron process
+		CronLogEntry cronEntry = new CronLogEntry();
+		if (!cronEntry.saveToDatabase(vufindConn, logger)){
+			logger.error("Could not save log entry to database, quitting");
+			return;
+		}
+		
+		// Read the cron INI file to get information about the processes to run
+		Ini cronIni = new Ini();
+		File cronConfigFile = new File("../../sites/" + serverName + "/conf/config.cron.ini");
+		try {
+			cronIni.load(new FileReader(cronConfigFile));
+		} catch (InvalidFileFormatException e) {
+			logger.error("Cron Configuration file is not valid.  Please check the syntax of the file.");
+		} catch (FileNotFoundException e) {
+			logger.error("Cron Configuration file (" + cronConfigFile.getPath() + ") could not be found.  You must supply a configuration file in conf called config.ini.");
+		} catch (IOException e) {
+			logger.error("Cron Configuration file could not be read.");
+		}
+		
 		
 		//Check to see if a specific task has been specified to be run
 		ArrayList<ProcessToRun> processesToRun = new ArrayList<ProcessToRun>();
@@ -71,11 +123,11 @@ public class Cron {
 		// The processes are in the format:
 		// name = handler class
 		boolean updateConfig = false;
-		Section processes = ini.get("CronHandlers");
+		Section processes = cronIni.get("Processes");
 		if (args.length >= 1){
 			logger.info("Found " + args.length + " arguments ");
 			String processName = args[0];
-			String processHandler = ini.get("CronHandlers", processName);
+			String processHandler = cronIni.get("Processes", processName);
 			if (processHandler == null){
 				processHandler = processName;
 			}
@@ -87,7 +139,7 @@ public class Cron {
 			processesToRun.add(process);
 		}else{
 			//Load processes to run
-			processesToRun = loadProcessesToRun(ini, processes);
+			processesToRun = loadProcessesToRun(cronIni, processes);
 			updateConfig = true;
 		}
 		
@@ -98,33 +150,36 @@ public class Cron {
 				for (String argument : processToRun.getArguments() ){
 					String[] argumentOptions = argument.split("=");
 					logger.info("Adding section setting " + argumentOptions[0] + " = " + argumentOptions[1]);
-					ini.put("runtimeArguments", argumentOptions[0], argumentOptions[1]);
+					cronIni.put("runtimeArguments", argumentOptions[0], argumentOptions[1]);
 				}
-				processSettings = ini.get("runtimeArguments");
+				processSettings = cronIni.get("runtimeArguments");
 			}else{
-				processSettings = ini.get(processToRun.getProcessName());
+				processSettings = cronIni.get(processToRun.getProcessName());
 			}
 		
 			currentTime = new Date();
-			System.out.println(currentTime.toString() + ": Running Process " + processToRun.getProcessName());
+			logger.info(currentTime.toString() + ": Running Process " + processToRun.getProcessName());
 			if (processToRun.getProcessClass() == null){
 				logger.error("Could not run process " + processToRun.getProcessName() + " because there is not a class for the process.");
+				cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because there is not a class for the process.");
 				continue;
 			}
 			// Load the class for the process using reflection
 			try {
+				@SuppressWarnings("rawtypes")
 				Class processHandlerClass = Class.forName(processToRun.getProcessClass());
 				Object processHandlerClassObject;
 				try {
 					processHandlerClassObject = processHandlerClass.newInstance();
 					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
-					
-					processHandlerInstance.doCronProcess(ini, logger);
+					cronEntry.addNote("Starting cron process " + processToRun.getProcessName());
+					processHandlerInstance.doCronProcess(serverName, ini, processSettings, vufindConn, econtentConn, cronEntry, logger);
 					//Log how long the process took
 					Date endTime = new Date();
 					long elapsedMillis = endTime.getTime() - currentTime.getTime();
 					float elapsedMinutes = (elapsedMillis) / 60000;
 					logger.info("Finished process " + processToRun.getProcessName() + " in " + elapsedMinutes + " minutes (" + elapsedMillis + " milliseconds)");
+					cronEntry.addNote("Finished process " + processToRun.getProcessName() + " in " + elapsedMinutes + " minutes (" + elapsedMillis + " milliseconds)");
 					// Update that the process was run.
 					currentTime = new Date();
 					if (updateConfig){
@@ -133,12 +188,15 @@ public class Cron {
 					}
 				} catch (InstantiationException e) {
 					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
+					cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
 				} catch (IllegalAccessException e) {
 					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " generated an Illegal Access Exception.");
+					cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " generated an Illegal Access Exception.");
 				}
 
 			} catch (ClassNotFoundException e) {
 				logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be found.");
+				cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be found.");
 			}
 		}
 			
@@ -150,6 +208,10 @@ public class Cron {
 				logger.error("Unable to update configuration file.");
 			}
 		}
+		
+		cronEntry.setFinished();
+		cronEntry.addNote("Cron run finished");
+		cronEntry.saveToDatabase(vufindConn, logger);
 	}
 
 	private static ArrayList<ProcessToRun> loadProcessesToRun(Ini ini, Section processes) {
