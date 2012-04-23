@@ -685,6 +685,14 @@ class ListAPI extends Action {
 				'cacheName' => 'list_recommendations_' . $listId . '_' . $user->id,
 				'cacheLength' => $configArray['Caching']['list_recommendations']
 			);
+		}elseif (preg_match('/^search:/', $listId)){
+			$requestUri = $_SERVER['REQUEST_URI'];
+			$requestUri = str_replace("&reload", "", $requestUri);
+			return array(
+				'cacheType' => 'general',
+				'cacheName' => 'list_general_search_' . md5($requestUri),
+				'cacheLength' => $configArray['Caching']['list_general']
+			);
 		}else{
 			return array(
 				'cacheType' => 'general',
@@ -773,13 +781,15 @@ class ListAPI extends Action {
 		global $memcache;
 		global $configArray;
 		$listTitles = $memcache->get('system_list_titles_' . $listName);
-		if ($listTitles == false){
+		if ($listTitles == false || isset($_REQUEST['reload'])){
 			require_once('services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
 			$searchObj = SearchObjectFactory::initSearchObject();
 			$searchObj->init();
 			$searchObj->setBasicQuery("*:*");
-			$searchObj->addFilter("system_list:$listName");
+			if (!preg_match('/^search:/', $listName)){
+				$searchObj->addFilter("system_list:$listName");
+			}
 			$seed = rand(0, 1000);
 			$searchObj->setSort("random" . $seed);
 			$searchObj->setLimit(50);

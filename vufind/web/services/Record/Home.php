@@ -73,6 +73,7 @@ class Home extends Record{
 			$interface->assign('showEmailThis', $library->showEmailThis);
 			$interface->assign('showFavorites', $library->showFavorites);
 			$interface->assign('linkToAmazon', $library->linkToAmazon);
+			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
 			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
 			if ($location != null){
 				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
@@ -94,6 +95,7 @@ class Home extends Record{
 			$interface->assign('showFavorites', 1);
 			$interface->assign('linkToAmazon', 1);
 			$interface->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
+			$interface->assign('enablePurchaseLinks', 1);
 			if ($location != null){
 				$interface->assign('showAmazonReviews', $location->showAmazonReviews);
 				$interface->assign('showStandardReviews', $location->showStandardReviews);

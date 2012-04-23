@@ -833,7 +833,7 @@ function checkAvailabilityMode() {
 function updateConfigForScoping($configArray) {
 	global $timer;
 	//Get the subdomain for the request
-	$serverName = $_SERVER['SERVER_NAME'];
+	global $servername;
 
 	//Default dynamic logos
 	$configArray['Site']['smallLogo'] = "/interface/themes/{$configArray['Site']['theme']}/images/logo_small.png";
@@ -841,8 +841,8 @@ function updateConfigForScoping($configArray) {
 
 	//split the servername based on
 	$subdomain = null;
-	if(strpos($serverName, '.')){
-		$serverComponents = explode('.', $serverName);
+	if(strpos($_SERVER['SERVER_NAME'], '.')){
+		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);
 		if (count($serverComponents) >= 3){
 			//URL is probably of the form subdomain.marmot.org or subdomain.opac.marmot.org
 			$subdomain = $serverComponents[0];
@@ -893,7 +893,7 @@ function updateConfigForScoping($configArray) {
 		$configArray['Site']['title'] = $library->displayName;
 		//Update the facets file
 		if (strlen($library->facetFile) > 0 && $library->facetFile != 'default'){
-			$file = trim('../../conf/facets/' . $library->facetFile . '.ini');
+			$file = trim("../../sites/$servername/conf/facets/" . $library->facetFile . '.ini');
 			if (file_exists($file)) {
 				$configArray['Extra_Config']['facets'] = 'facets/' . $library->facetFile . '.ini';
 			}
@@ -901,7 +901,7 @@ function updateConfigForScoping($configArray) {
 		
 		//Update the searches file
 		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim('../../conf/searches/' . $library->searchesFile . '.ini');
+			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
 			if (file_exists($file)) {
 				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
 			}
