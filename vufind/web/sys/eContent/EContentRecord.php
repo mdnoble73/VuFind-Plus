@@ -915,7 +915,7 @@ class EContentRecord extends SolrDataObject {
 
 	function econtentText(){
 		$eContentText = "";
-		if (strcasecmp($this->source, 'OverDrive') != 0){
+		if (!$this->_quickReindex && strcasecmp($this->source, 'OverDrive') != 0){
 			//Load items for the record
 			$items = $this->getItems();
 			//Load full text of each item if possible
@@ -945,7 +945,7 @@ class EContentRecord extends SolrDataObject {
 					}
 				}
 
-				if (count($cachedItems) == 0 || $reload){
+				if (count($cachedItems) == 0 || ($reload && !$this->_quickReindex)){
 					$dataChanged = false;
 					//For performance, need to store overdrive items since we fetch items
 					//to get common things like list the formats.

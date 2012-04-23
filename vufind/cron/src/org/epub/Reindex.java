@@ -34,13 +34,13 @@ public class Reindex implements IProcessHandler {
 			//TODO: Drop existing records from Solr index.
 			
 			//Reindexing all records
-			PreparedStatement eContentRecordStmt = econtentConn.prepareStatement("SELECT id from econtent_record");
+			PreparedStatement eContentRecordStmt = econtentConn.prepareStatement("SELECT id from econtent_record where status ='active' ");
 			ResultSet eContentRecordRS = eContentRecordStmt.executeQuery();
 			while (eContentRecordRS.next()){
 				long startTime = new Date().getTime();
 				String econtentRecordId = eContentRecordRS.getString("id");
 				try {
-					URL updateIndexURL = new URL(vufindUrl + "/EcontentRecord/" + econtentRecordId + "/Reindex");
+					URL updateIndexURL = new URL(vufindUrl + "/EcontentRecord/" + econtentRecordId + "/Reindex?quick=true");
 					Object updateIndexDataRaw = updateIndexURL.getContent();
 					if (updateIndexDataRaw instanceof InputStream) {
 						String updateIndexResponse = Util.convertStreamToString((InputStream) updateIndexDataRaw);
