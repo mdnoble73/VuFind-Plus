@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 public class UpdateReadingHistory implements IProcessHandler {
+	private CronProcessLogEntry processLog;
 	private PreparedStatement getUsersStmt;
 	private PreparedStatement getResourceStmt;
 	private PreparedStatement readingHistoryStatement;
@@ -45,7 +46,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 	private boolean loadOverdriveHistory = false;
 	
 	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
-		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Update Reading History");
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Update Reading History");
 		processLog.saveToDatabase(vufindConn, logger);
 		
 		this.logger = logger;
@@ -143,14 +144,19 @@ public class UpdateReadingHistory implements IProcessHandler {
 							long resourceId = getResourceForBib(bibId, "VuFind");
 							if (resourceId == -1){
 								logger.error("Could not retrieve or create resource for bib Id " + bibId);
+								processLog.incErrors();
+								processLog.addNote("Could not retrieve or create resource for bib Id " + bibId);
 								continue;
 							}else{
 								// Update the reading history
 								try {
 									Date checkoutDate = checkoutDateFormat.parse(checkoutDateStr);
 									updateReadingHistory(userId, bibId, resourceId, checkoutDate);
+									processLog.incUpdated();
 								} catch (ParseException e) {
 									logger.error("Could not parse checkout date " + e.toString());
+									processLog.incErrors();
+									processLog.addNote("Could not parse checkout date " + e.toString());
 								}
 							}
 						}
@@ -159,15 +165,20 @@ public class UpdateReadingHistory implements IProcessHandler {
 					}
 				} catch (JSONException e) {
 					logger.error("Unable to load patron information from for " + cat_username + " exception loading response ", e);
+					processLog.incErrors();
+					processLog.addNote("Unable to load patron information from for " + cat_username + " exception loading response " + e.toString());
 				}
 			} else {
 				logger.error("Unable to load patron information from for " + cat_username + ": expected to get back an input stream, received a "
 						+ patronDataRaw.getClass().getName());
+				processLog.incErrors();
 			}
 		} catch (MalformedURLException e) {
 			logger.error("Bad url for patron API " + e.toString());
+			processLog.incErrors();
 		} catch (IOException e) {
 			logger.error("Unable to retrieve information from patron API for " + cat_username + ": " + e.toString());
+			processLog.incErrors();
 		}
 	}
 
@@ -291,6 +302,10 @@ public class UpdateReadingHistory implements IProcessHandler {
 				updateReadingHistoryStmt.setLong(3, userId);
 				updateReadingHistoryStmt.setLong(4, resourceId);
 				int updateOk = updateReadingHistoryStmt.executeUpdate();
+				if (updateOk != 1) {
+					logger.error("Failed to add item to reading history");
+					
+				}
 			}
 
 			// Increment the number of days the item has been

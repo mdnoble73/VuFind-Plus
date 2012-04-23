@@ -15,8 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.vufind.BasicMarcInfo;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 import org.vufind.MarcProcessorBase;
 import org.vufind.Util;
@@ -24,8 +27,8 @@ import org.vufind.Util;
 import au.com.bytecode.opencsv.CSVReader;
 
 public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandler{
-	private String econtentDBConnectionInfo;
 	private Connection econtentConn = null;
+	private CronProcessLogEntry processLog;
 	private String source;
 	private String accessType;
 	
@@ -46,9 +49,12 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 	private long logEntryId = -1;
 	
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
+	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Import eContent Marc Records");
+		processLog.saveToDatabase(vufindConn, logger);
+		this.econtentConn = econtentConn;
 		//Import a marc record into the eContent core. 
-		if (!loadConfig(processSettings, generalSettings, logger)){
+		if (!loadConfig(configIni, processSettings, logger)){
 			return;
 		}
 		
@@ -290,18 +296,12 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 		}
 	}
 
-	protected boolean loadConfig(Section processSettings, Section generalSettings, Logger logger) {
-		if (!super.loadConfig(processSettings, generalSettings, logger)){
+	protected boolean loadConfig(Ini configIni, Section processSettings, Logger logger) {
+		if (!super.loadConfig(configIni, processSettings, logger)){
 			return false;
 		}
 		
-		econtentDBConnectionInfo = generalSettings.get("econtentDatabase");
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
-		vufindUrl = generalSettings.get("vufindUrl");
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;

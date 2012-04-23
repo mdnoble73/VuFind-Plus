@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
@@ -29,7 +30,7 @@ public abstract class MarcProcessorBase {
 	protected int recordsProcessed = 0;
 	protected int maxRecordsToProcess = -1;
 	
-	protected boolean loadConfig(Section processSettings, Section generalSettings, Logger logger){
+	protected boolean loadConfig(Ini configIni, Section processSettings, Logger logger){
 		// Get the directory where the marc records are stored.
 		marcRecordPath = generalSettings.get("marcRecordPath");
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
@@ -37,7 +38,7 @@ public abstract class MarcProcessorBase {
 			return false;
 		}
 		
-	// Read the format map
+		// Read the format map
 		String formatMapFileString = generalSettings.get("formatMapFile");
 		File formatMapFile = null;
 		if (formatMapFileString == null || formatMapFileString.length() == 0) {
