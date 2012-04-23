@@ -1,11 +1,18 @@
 <div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
-		{if $scrollerTitle || $fullListLink}
+		{if $scrollerTitle || $Links}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
 			<span class="listTitle resultInformationLabel">{if $scrollerTitle}{$scrollerTitle|escape:"html"}{/if}</span>
-			{if $fullListLink}
-			<a href='{$fullListLink}'><span class='seriesLink'>View as List</span></a>
+			
+      
+			{if $Links}
+				{foreach from=$Links item=link}
+					<div class='linkTab'>
+						<a href='{$link->link}'><span class='seriesLink'>{$link->name}</span></a>
+					</div>
+				{/foreach}
 			{/if}
+			
 		</div>
 		{/if}
 		<div id="titleScroller{$scrollerName}" class="titleScrollerBody">
