@@ -33,7 +33,8 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetReindexProcessDetails'))){
+		}else if (in_array($method, array('getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes'))){
+			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -56,8 +57,7 @@ class AJAX extends Action {
 		}
 	}
 
-	// Create new list
-	function GetReindexProcessDetails()
+	function getReindexProcessNotes()
 	{
 		$id = $_REQUEST['id'];
 		$reindexProcess = new ReindexProcessLogEntry();
@@ -68,6 +68,36 @@ class AJAX extends Action {
 			return "We could not find a process with that id.  No notes available.";
 		}
 	}
+	
+	function getCronProcessNotes()
+	{
+		$id = $_REQUEST['id'];
+		$cronProcess = new CronProcessLogEntry();
+		$cronProcess->id = $id;
+		if ($cronProcess->find(true)){
+			if (strlen($cronProcess->notes) == 0){
+				return "No notes have been entered for this process";
+			}else{
+				return $cronProcess->notes;
+			}
+		}else{
+			return "We could not find a process with that id.  No notes available.";
+		}
+	}
+	
+	function getCronNotes()
+	{
+		$id = $_REQUEST['id'];
+		$cronLog = new CronLogEntry();
+		$cronLog->id = $id;
+		if ($cronLog->find(true)){
+			if (strlen($cronLog->notes) == 0){
+				return "No notes have been entered for this cron run";
+			}else{
+				return $cronLog->notes;
+			}
+		}else{
+			return "We could not find a cron entry with that id.  No notes available.";
+		}
+	}
 }
-?>
-

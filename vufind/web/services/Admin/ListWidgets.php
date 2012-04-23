@@ -92,6 +92,7 @@ class ListWidgets extends Admin {
 			$interface->setTemplate('listWidgets.tpl');
 		}else{
 			if ($objectAction == 'edit' || $objectAction == 'add'){
+				$interface->assign('widgetid',$_REQUEST['id']);
 				$editForm = DataObjectUtil::getEditForm($listWidget->getObjectStructure());
 				$interface->assign('editForm', $editForm);
 				$interface->setTemplate('listWidgetEdit.tpl');

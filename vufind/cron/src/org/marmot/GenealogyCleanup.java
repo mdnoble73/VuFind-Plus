@@ -90,10 +90,10 @@ public class GenealogyCleanup implements IProcessHandler {
 
 			return true;
 		} catch (MalformedURLException e) {
-			System.out.println("Invalid url optimizing genealogy index " + e.toString());
+			System.out.println("Invalid url updating index " + e.toString());
 			return false;
 		} catch (IOException e) {
-			System.out.println("IO Exception optimizing genealogy index " + e.toString());
+			System.out.println("IO Exception updating index " + e.toString());
 			e.printStackTrace();
 			return false;
 		}

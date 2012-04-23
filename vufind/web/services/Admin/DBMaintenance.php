@@ -49,7 +49,7 @@ class DBMaintenance extends Admin {
 					$updateOk = true;
 					foreach ($sqlStatements as $sql){
 						//Give enough time for long queries to run
-						set_time_limit(120);
+						$this->setTimeLimit(120);
 						if (method_exists($this, $sql)){
 							$this->$sql();
 						}else{
@@ -853,6 +853,37 @@ class DBMaintenance extends Admin {
       ),
 		),
 		
+		'cronLog' => array(
+      'title' => 'Cron Log table',
+      'description' => 'Create Cron Log table to track reindexing.',
+      'dependencies' => array(),
+      'sql' => array(
+		    'DROP TABLE IF EXISTS cron_log;',
+		    'DROP TABLE IF EXISTS cron_process_log;',
+		    "CREATE TABLE IF NOT EXISTS cron_log(" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
+					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the cron run started', " .
+					"`endTime` INT(11) NULL COMMENT 'The timestamp when the cron run ended', " .
+					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the cron run last updated (to check for stuck processes)', " .
+					"`notes` TEXT COMMENT 'Additional information about the cron run', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = MYISAM;",
+				"CREATE TABLE IF NOT EXISTS cron_process_log(" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of cron process', " .
+					"`cronId` INT(11) NOT NULL COMMENT 'The id of the cron run this process ran during', " .
+					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
+					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the process started', "  . 
+					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the process last updated (to check for stuck processes)', " .
+					"`endTime` INT(11) NULL COMMENT 'The timestamp when the process ended', "  . 
+					"`numErrors` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of errors that occurred during the process', "  . 
+					"`numUpdates` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of updates, additions, etc. that occurred', " .
+					"`notes` TEXT COMMENT 'Additional information about the process', " .
+					"PRIMARY KEY ( `id` ), INDEX ( `cronId` ), INDEX ( `processName` )" .
+				") ENGINE = MYISAM;",
+				
+      ),
+		),
+		
 		'marcImport' => array(
       'title' => 'Marc Import table',
       'description' => 'Create a table to store information about marc records that are being imported.',
@@ -934,8 +965,47 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'addTablelistWidgetListsLinks' => array(
+				'title' => 'Widget Lists',
+				'description' => 'Add a new table: list_widget_lists_links',
+				'dependencies' => array(),
+				'sql' => array('addTableListWidgetListsLinks'),
+		),
 		);
 	}
+	
+	private function setTimeLimit($time = 120)
+	{
+		set_time_limit(120);
+	}
+	private function freeMysqlResult($result)
+	{
+		mysql_free_result($result);
+	}
+	
+	
+	public function addTableListWidgetListsLinks()
+	{
+		$this->setTimeLimit(120);
+		$sql =	'CREATE TABLE IF NOT EXISTS `list_widget_lists_links`( '.
+				'`id` int(11) NOT NULL AUTO_INCREMENT, '.
+				'`listWidgetListsId` int(11) NOT NULL, '.
+				'`name` varchar(50) NOT NULL, '.
+				'`link` text NOT NULL, '.
+				'`weight` int(3) NOT NULL DEFAULT \'0\','.
+				'PRIMARY KEY (`id`) '.
+				') ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
+		mysql_query($sql);
+		$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists` WHERE `fullListLink` != "" ');
+		while($row = mysql_fetch_assoc($result))
+		{
+			$sqlInsert = 'INSERT INTO `list_widget_lists_links` (`id`,`listWidgetListsId`,`name`,`link`) VALUES (NULL,\''.$row['id'].'\',\'Full List Link\',\''.$row['fullListLink'].'\') ';
+			mysql_query($sqlInsert);
+		}
+		$this->freeMysqlResult($result);
+		mysql_query('ALTER TABLE `list_widget_lists` DROP `fullListLink`');
+	}
+	
 
 	private function checkWhichUpdatesHaveRun($availableUpdates){
 		foreach ($availableUpdates as $key=>$update){

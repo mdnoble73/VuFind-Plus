@@ -227,6 +227,7 @@ class SearchAPI extends Action {
 		//Load the widget configuration
 		require_once 'sys/ListWidget.php';
 		require_once 'sys/ListWidgetList.php';
+		require_once 'sys/ListWidgetListsLinks.php';
 		$widget = new ListWidget();
 		$id = $_REQUEST['id'];
 

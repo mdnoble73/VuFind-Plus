@@ -1,4 +1,4 @@
-<table id="{$propName}" class="{if $property.sortable}sortableProperty{/if}">
+<table id="{$propName}" class="{if $property.sortable}sortableProperty{/if}" >
 <thead>
 	<tr>
 		{if $property.sortable}
@@ -43,6 +43,11 @@
 		{* link to delete*}
 		<input type="hidden" id="{$propName}Deleted_{$subObject->id}" name="{$propName}Deleted[{$subObject->id}]" value="false"/>
 		<a href="#" onclick="if (confirm('Are you sure you want to delete this?')){literal}{{/literal}$('#{$propName}Deleted_{$subObject->id}').val('true');$('#{$propName}{$subObject->id}').hide(){literal}}{/literal};return false;"><img src="{$path}/images/silk/delete.png" alt="delete" /></a>{* link to delete *}
+		{if $property.editLink neq ''}
+			<a href='{$property.editLink}?objectAction=edit&widgetListId={$subObject->id}&widgetId={$widgetid}' alt='Edit SubLinks' title='Edit SubLinks'>
+				<img src="{$path}/images/silk/link.png" alt="delete" />
+			</a>
+		{/if}
 		</td>
 	</tr>
 {/foreach}

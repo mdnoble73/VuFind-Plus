@@ -133,7 +133,7 @@ public class ProcessorResults {
 			cleanedNote = cleanedNote.replaceAll("(?:<br?>\\s*)+", "<br/>");
 			cleanedNote = cleanedNote.replaceAll("<meta.*?>", "");
 			cleanedNote = cleanedNote.replaceAll("<title>.*?</title>", "");
-			notesText.append("<li>").append(curNote).append("</li>");
+			notesText.append("<li>").append(cleanedNote).append("</li>");
 		}
 		notesText.append("</ol>");
 		return notesText.toString();
