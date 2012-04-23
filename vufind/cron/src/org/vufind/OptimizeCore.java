@@ -9,7 +9,7 @@ import org.ini4j.Profile.Section;
 public class OptimizeCore implements IProcessHandler {
 
 	@Override
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Optimize Core");
 		processLog.saveToDatabase(vufindConn, logger);
 

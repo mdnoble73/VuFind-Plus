@@ -49,7 +49,7 @@ public class MaterialsRequest implements IProcessHandler{
 	private String emailFrom;
 	
 	@Override
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Materials Request");
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;

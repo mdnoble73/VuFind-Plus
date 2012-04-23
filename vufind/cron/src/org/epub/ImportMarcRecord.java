@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,7 +26,6 @@ import org.vufind.Util;
 import au.com.bytecode.opencsv.CSVReader;
 
 public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandler{
-	private Connection econtentConn = null;
 	private CronProcessLogEntry processLog;
 	private String source;
 	private String accessType;
@@ -49,18 +47,16 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 	private long logEntryId = -1;
 	
 	@Override
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Import eContent Marc Records");
 		processLog.saveToDatabase(vufindConn, logger);
-		this.econtentConn = econtentConn;
 		//Import a marc record into the eContent core. 
-		if (!loadConfig(configIni, processSettings, logger)){
+		if (!loadConfig(servername, configIni, processSettings, logger)){
 			return;
 		}
 		
 		try {
 			//Connect to the vufind database
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
 			doesControlNumberExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE marcControlField = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
@@ -122,6 +118,8 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 			} catch (SQLException e) {
 				logger.error("Error importing marking log as finished ", e);
 			}
+			processLog.setFinished();
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 	}
 	
@@ -296,8 +294,8 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 		}
 	}
 
-	protected boolean loadConfig(Ini configIni, Section processSettings, Logger logger) {
-		if (!super.loadConfig(configIni, processSettings, logger)){
+	protected boolean loadConfig(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		if (!super.loadConfig(servername, configIni, processSettings, logger)){
 			return false;
 		}
 		

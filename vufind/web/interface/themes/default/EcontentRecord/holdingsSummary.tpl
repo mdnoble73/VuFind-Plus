@@ -11,7 +11,7 @@
 			{if strcasecmp($holdingsSummary.source, 'OverDrive') == 0}
 				Available for use from OverDrive.
 			{elseif $holdingsSummary.source == 'Freegal'}
-				Downoadable from Freegal.
+				Downloadable from Freegal.
 			{elseif $holdingsSummary.accessType == 'free'}
 				Available for multiple simultaneous usage. 
 			{elseif $holdingsSummary.onHold}

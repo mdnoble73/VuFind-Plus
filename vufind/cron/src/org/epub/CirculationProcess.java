@@ -28,7 +28,7 @@ public class CirculationProcess implements IProcessHandler{
 	private Connection econtentConn = null;
 	
 	@Override
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		this.logger = logger;
 		this.vufindConn = vufindConn;
 		this.econtentConn = econtentConn;

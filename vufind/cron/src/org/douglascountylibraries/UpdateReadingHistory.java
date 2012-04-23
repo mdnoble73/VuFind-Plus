@@ -45,7 +45,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 	private boolean loadEcontentHistory = true;
 	private boolean loadOverdriveHistory = false;
 	
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Update Reading History");
 		processLog.saveToDatabase(vufindConn, logger);
 		

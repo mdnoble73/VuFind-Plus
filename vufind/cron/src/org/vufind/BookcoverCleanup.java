@@ -10,7 +10,7 @@ import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 
 public class BookcoverCleanup implements IProcessHandler {
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Bookcover Cleanup");
 		processLog.saveToDatabase(vufindConn, logger);
 

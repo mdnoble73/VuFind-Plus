@@ -173,7 +173,7 @@ public class Cron {
 					processHandlerClassObject = processHandlerClass.newInstance();
 					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
 					cronEntry.addNote("Starting cron process " + processToRun.getProcessName());
-					processHandlerInstance.doCronProcess(ini, processSettings, vufindConn, econtentConn, cronEntry, logger);
+					processHandlerInstance.doCronProcess(serverName, ini, processSettings, vufindConn, econtentConn, cronEntry, logger);
 					//Log how long the process took
 					Date endTime = new Date();
 					long elapsedMillis = endTime.getTime() - currentTime.getTime();

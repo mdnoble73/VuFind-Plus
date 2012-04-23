@@ -47,7 +47,7 @@ public class AttachEContent implements IProcessHandler {
 	protected ArrayList<ImportResult> importResults = new ArrayList<ImportResult>();
 	
 	@Override
-	public void doCronProcess(Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Attach eContent Items");
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
