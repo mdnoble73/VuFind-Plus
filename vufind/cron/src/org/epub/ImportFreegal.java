@@ -183,7 +183,7 @@ public class ImportFreegal implements IProcessHandler {
 						}
 						
 						//Reindex the record
-						URL reindexURL = new URL (vufindUrl + "/EContentRecord/" + album.getRecordId() + "/Reindex");
+						URL reindexURL = new URL (vufindUrl + "/EContentRecord/" + album.getRecordId() + "/Reindex?quick");
 						Object reindexResult = reindexURL.getContent();
 						logger.info("Record ID : " + album.getRecordId() + " Reindex result: " + Util.convertStreamToString((InputStream)reindexResult));
 						
