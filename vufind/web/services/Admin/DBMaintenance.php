@@ -971,6 +971,7 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array('addTableListWidgetListsLinks'),
 		),
+		
 		);
 	}
 	
