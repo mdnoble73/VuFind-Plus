@@ -14,7 +14,8 @@
  </tr>
  </thead>
  <tbody>
- {foreach from=$holdings item=holding}
+{foreach from=$holdings item=holding1}
+ {foreach from=$holding1 item=holding}
   {if $lastSection != $holding.section}
     {if strlen($holding.section) > 0}
     <tr class='holdings-section'>
@@ -72,7 +73,7 @@
     	{/if}
     </td>
   </tr>
-
+  {/foreach}
   {/foreach}
   
  {elseif isset($issueSummaries) && count($issueSummaries) > 0}
