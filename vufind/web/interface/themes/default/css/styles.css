@@ -2358,3 +2358,14 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 .requiredIndicator{
 	color:red;
 }
+
+/* Styles for cron and reindex reports */
+.logEntryProcessDetails {
+	border: 1px solid black;
+}
+.logEntryDetails{
+	width: 100%;
+}
+.logEntryProcessDetails{
+	width: 100%;
+}
