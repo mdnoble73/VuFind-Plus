@@ -234,24 +234,28 @@ public class ReindexProcess {
 				}
 				String sortTitle = title.toLowerCase().replaceAll("^(the|an|a|el|la)\\s", "");
 				String isbn = allEContent.getString("isbn");
-				if (isbn.indexOf(' ') > 0){
-					isbn = isbn.substring(0, isbn.indexOf(' '));
-				}
-				if (isbn.indexOf("\r") > 0){
-					isbn = isbn.substring(0,isbn.indexOf("\r"));
-				}
-				if (isbn.indexOf("\n") > 0){
-					isbn = isbn.substring(0,isbn.indexOf("\n"));
+				if (isbn != null){
+					if (isbn.indexOf(' ') > 0){
+						isbn = isbn.substring(0, isbn.indexOf(' '));
+					}
+					if (isbn.indexOf("\r") > 0){
+						isbn = isbn.substring(0,isbn.indexOf("\r"));
+					}
+					if (isbn.indexOf("\n") > 0){
+						isbn = isbn.substring(0,isbn.indexOf("\n"));
+					}
 				}
 				String upc = allEContent.getString("upc");
-				if (upc.indexOf(' ') > 0){
-					upc = upc.substring(0, upc.indexOf(' '));
-				}
-				if (upc.indexOf("\r") > 0){
-					upc = upc.substring(0,upc.indexOf("\r"));
-				}
-				if (upc.indexOf("\n") > 0){
-					upc = upc.substring(0,upc.indexOf("\n"));
+				if (upc != null){
+					if (upc.indexOf(' ') > 0){
+						upc = upc.substring(0, upc.indexOf(' '));
+					}
+					if (upc.indexOf("\r") > 0){
+						upc = upc.substring(0,upc.indexOf("\r"));
+					}
+					if (upc.indexOf("\n") > 0){
+						upc = upc.substring(0,upc.indexOf("\n"));
+					}
 				}
 				//System.out.println("UPC: " + upc);
 				
