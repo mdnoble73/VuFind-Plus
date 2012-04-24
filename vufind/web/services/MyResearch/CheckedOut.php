@@ -82,9 +82,9 @@ class CheckedOut extends MyResearch{
 
 					$transList = array();
 					foreach ($result['transactions'] as $i => $data) {
-						$itemBarcode = $data['barcode'];
+						$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
 						$itemId = isset($data['itemid']) ? $data['itemid'] : null;
-						if (isset($_SESSION['renewResult'][$itemBarcode])){
+						if ($itemBarcode != null && isset($_SESSION['renewResult'][$itemBarcode])){
 							$renewMessage = $_SESSION['renewResult'][$itemBarcode]['message'];
 							$renewResult = $_SESSION['renewResult'][$itemBarcode]['result'];
 							$data['renewMessage'] = $renewMessage;
