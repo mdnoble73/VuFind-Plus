@@ -17,7 +17,7 @@
 				<form action="{$path}/MaterialsRequest/ManageRequests" method="get">
 					<div>
 					<div>
-						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="$('.statusFilter').attr('checked', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
+						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onchange="toggleCheckboxes('.statusFilter', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
 						{foreach from=$availableStatuses item=statusLabel key=status}
 							<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
 						{/foreach}
@@ -28,7 +28,7 @@
 						<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
 					</div>
 					<div>
-						Format:<input type="checkbox" name="selectAllFormatFilter" id="selectAllFormatFilter" onclick="$('.formatFilter').attr('checked', $('#selectAllFormatFilter').attr('checked'));"/> <label for="selectAllFormatFilter">Select All</label> <br/>
+						Format:<input type="checkbox" name="selectAllFormatFilter" id="selectAllFormatFilter" onchange="toggleCheckboxes('.formatFilter', $('#selectAllFormatFilter').attr('checked'));"/> <label for="selectAllFormatFilter">Select All</label> <br/>
 						{foreach from=$availableFormats item=formatLabel key=format}
 							<input type="checkbox" name="formatFilter[]" value="{$format}" {if in_array($format, $formatFilter)}checked="checked"{/if} class="formatFilter"/>{$formatLabel}<br/>
 						{/foreach}
