@@ -2570,7 +2570,7 @@ public function renewItem($patronId, $itemId){
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Start at My Account Page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$this->hipProfile}&menu=account";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -2602,7 +2602,7 @@ public function renewItem($patronId, $itemId){
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => $configArray['Catalog']['hipProfile'],
+      'profile' => $this->hipProfile,
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -2622,7 +2622,7 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'cancelhold' => 'Cancel Request',
         'menu' => 'account',
-        'profile' => $configArray['Catalog']['hipProfile'],
+        'profile' => $this->hipProfile,
         'session' => $sessionId,
         'submenu' => 'holds',
         'suspend_date' => '',
@@ -2668,7 +2668,7 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'changestatus' => 'Change Status',
         'menu' => 'account',
-        'profile' => $configArray['Catalog']['hipProfile'],
+        'profile' => $this->hipProfile,
         'select1' => $dateParts['month'],
         'select2' => $dateParts['day'],
         'select3' => $dateParts['year'] ,
