@@ -56,9 +56,14 @@ class DBMaintenanceEContent extends Admin {
 						}else{
 							$result = mysql_query($sql);
 							if ($result == 0 || $result == false){
-								$update['status'] = 'Update failed ' . mysql_error();
-								$updateOk = false;
-								break;
+								if (isset($update['continueOnError']) && $update['continueOnError']){
+									if (!isset($update['status'])) $update['status'] = '';
+									$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
+								}else{
+									$update['status'] = 'Update failed ' . mysql_error();
+									$updateOk = false;
+									break;
+								}
 							}else{
 								$update['status'] = 'Update succeeded';
 							}
@@ -390,6 +395,16 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'econtent_attach_update_1' => array(
+			'title' => 'EContent Attachment Log',
+			'description' => 'Create table to store log of attaching eContent to records.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_attach ADD numErrors INT(11) DEFAULT 0;",
+				"ALTER TABLE econtent_attach ADD notes TEXT ;",
+		),
+		),
+		
 		'overdrive_record_cache'  => array(
 			'title' => 'OverDrive Record Cache',
 			'description' => 'Create table to cache page information from OverDrive.',
@@ -438,6 +453,7 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Add eContent indexes',
 			'description' => 'Add indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `econtent_checkout` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `econtent_history` ADD INDEX `RecordId` ( `recordId` ) ',
@@ -451,6 +467,7 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Add eContent indexes 2',
 			'description' => 'Add additional indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `econtent_rating` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `econtent_hold` ADD INDEX `UserStatus` ( `userId`, `status` ) ',

@@ -22,15 +22,13 @@ require_once 'Action.php';
 
 class AJAX extends Action {
 
-	function AJAX()
-	{
-	}
 
-	function launch()
-	{
+	function launch() {
+		global $timer;
 		$method = $_GET['method'];
+		$timer->logTime("Starting method $method");
 		if (in_array($method, array())){
-			//JSON responses
+			//JSON Responses
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -102,5 +100,4 @@ class AJAX extends Action {
 			return "We could not find a cron entry with that id.  No notes available.";
 		}
 	}
-
 }
