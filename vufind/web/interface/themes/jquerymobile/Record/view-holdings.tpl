@@ -10,7 +10,8 @@
  </tr>
  </thead>
  <tbody>
-{foreach from=$holdings item=holding}
+{foreach from=$holdings item=holding1}
+ {foreach from=$holding1 item=holding}
   <tr >
   	{* Location *}
   	<td style = "padding-bottom:5px;"><span><strong>
@@ -49,7 +50,7 @@
     
   </tr>
 
-  
+   {/foreach}
  {foreachelse}
    No Copies Found
  {/foreach}
