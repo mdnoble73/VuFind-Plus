@@ -413,7 +413,7 @@ class DCL extends Horizon {
         'wsd'      => 'Waiting at Service',
         'xcdrm'    => 'No Holds'
         );
-        return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown (' . $statusCode . ')';
+        return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown';
 	}
 	
 	public function getLocationMapLink($locationCode){

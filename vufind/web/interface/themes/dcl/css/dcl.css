@@ -24,6 +24,9 @@
 	background-image: url(/interface/themes/dcl/images/searchbar-gradient.png);
 	background-repeat: repeat-x;
 }
+#searchbar #lookfor {
+	width: 275px;
+}
 #sidebar-wrapper{
 	border-right: 1px solid #5D8EAC;
 	display: inline-block;
