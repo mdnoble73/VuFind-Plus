@@ -63,7 +63,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		}
 		if (checkMarcImport()){
 			results.addNote("index passed checks, swapping cores so new index is active.");
-			response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
+			response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
 			if (!response.isSuccess()){
 				results.addNote("Error swapping cores " + response.getMessage());
 			}else{

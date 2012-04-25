@@ -254,7 +254,7 @@ public class AttachEContent implements IProcessHandler {
 	}
 	
 	protected boolean loadConfig(Ini configIni, Section processSettings) {
-		vufindUrl = configIni.get("Site", "vufindUrl");
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;
