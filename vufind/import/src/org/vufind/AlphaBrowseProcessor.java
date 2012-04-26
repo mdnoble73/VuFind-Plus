@@ -148,7 +148,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 				if (sortKey != null && sortKey.length() > 0){
 					insertBrowseRow.setLong(1, curRow++);
 					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
-					insertBrowseRow.setString(3, groupedSortedRS.getString("subject"));
+					insertBrowseRow.setString(3, groupedSortedRS.getString("callnumber"));
 					insertBrowseRow.executeUpdate();
 					//System.out.print(".");
 				}

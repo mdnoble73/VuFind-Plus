@@ -37,7 +37,6 @@ class DataObjectUtil
 
 		//Define the structure of the object.
 		$interface->assign('structure', $objectStructure);
-
 		return  $interface->fetch('DataObjectUtil/objectEditForm.tpl');
 	}
 

@@ -16,7 +16,7 @@
 	{if $user}
 	  redrawSaveStatus();
 	{/if}
-	{if !$purchaseLinks}
+	{if $enablePurchaseLinks == 1 && !$purchaseLinks}
 		checkPurchaseLinks('{$id|escape:"url"}');
 	{/if}
 	{if (isset($title)) }
@@ -566,7 +566,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/foreach}
 		{/if}
         <div id="holdingsPlaceholder"></div>
-        {if $purchaseLinks}
+        {if $enablePurchaseLinks == 1 && $purchaseLinks}
           <div id="purchaseTitleLinks">
           <h3>Get a copy for yourself</h3>
           {foreach from=$purchaseLinks item=purchaseLink}

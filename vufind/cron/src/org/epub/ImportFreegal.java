@@ -1,28 +1,23 @@
 package org.epub;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.StringReader;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.vufind.Base64Coder;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 import org.vufind.Util;
 import org.w3c.dom.Document;
@@ -34,8 +29,6 @@ import org.xml.sax.InputSource;
 import org.apache.commons.io.IOUtils;
 
 public class ImportFreegal implements IProcessHandler {
-	private String econtentDBConnectionInfo;
-	private Connection econtentConn = null;
 	private String freegalUrl;
 	private String freegalUser;
 	private String freegalPIN;
@@ -44,20 +37,22 @@ public class ImportFreegal implements IProcessHandler {
 	private String vufindUrl;
 	
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Import Freegal Content");
+		processLog.saveToDatabase(vufindConn, logger);
 		logger.info("Importing Freegal content.");
 		
 		//Load configuration
-		if (!loadConfig(processSettings, generalSettings, logger)){
+		if (!loadConfig(configIni, processSettings, logger)){
 			return;
 		}
 		
 		try {
 			//Connect to the eContent database
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
 			PreparedStatement getEContentRecord = econtentConn.prepareStatement("SELECT id FROM econtent_record WHERE title = ? AND author = ?");
 			PreparedStatement addAlbumToDatabase = econtentConn.prepareStatement("INSERT INTO econtent_record (title, author, author2, accessType, availableCopies, contents, language, genre, source, collection, date_added, addedBy, cover) VALUES (?, ?, ?, 'free', 1, ?, ?, ?, 'Freegal', ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			PreparedStatement updateAlbumInDatabase = econtentConn.prepareStatement("UPDATE econtent_record SET title = ?, author = ?, author2 = ?, contents = ?, language = ?, genre = ?, collection = ?, date_updated = ?, cover = ? WHERE id = ?");
+			PreparedStatement removeSongsForAlbum = econtentConn.prepareStatement("DELETE FROM econtent_item WHERE recordId = ?");
 			PreparedStatement addSongToDatabase = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, link, item_type, notes, addedBy, date_added, date_updated) VALUES (?, ?, 'externalMP3', ?, ?, ?, ?)");
 		
 			//Get a list of all genres in the freegal site
@@ -84,6 +79,8 @@ public class ImportFreegal implements IProcessHandler {
 					continue;
 				}
 				logger.info("procesing genre " + genre);
+				processLog.addNote("procesing genre " + genre);
+				processLog.saveToDatabase(vufindConn, logger);
 				//For each genre, load a list of songs. 
 				String base64Genre = Base64Coder.encodeString(genre);
 				String songUrl = freegalUrl + "/services/genre/" + freegalAPIkey+ "/" + freegalLibrary + "/" + freegalUser + "/" + freegalPIN + "/" + base64Genre;
@@ -163,6 +160,11 @@ public class ImportFreegal implements IProcessHandler {
 							updateAlbumInDatabase.setString(9, album.getCoverUrl());
 							updateAlbumInDatabase.setInt(10, (int)album.getRecordId());
 							updateAlbumInDatabase.executeUpdate();
+							
+							//Remove all existing songs for the album from the database since freegal doesn't keep unique ids
+							removeSongsForAlbum.setLong(1, album.getRecordId());
+							removeSongsForAlbum.executeUpdate();
+							
 						}
 						
 						//Add songs to the database
@@ -181,11 +183,16 @@ public class ImportFreegal implements IProcessHandler {
 						}
 						
 						//Reindex the record
-						URL reindexURL = new URL (vufindUrl + "/EContentRecord/" + album.getRecordId() + "/Reindex");
+						URL reindexURL = new URL (vufindUrl + "/EContentRecord/" + album.getRecordId() + "/Reindex?quick");
 						Object reindexResult = reindexURL.getContent();
 						logger.info("Record ID : " + album.getRecordId() + " Reindex result: " + Util.convertStreamToString((InputStream)reindexResult));
+						
+						processLog.incUpdated();
 					} catch (Exception e) {
 						logger.error("Error adding album to database, skipping.");
+						processLog.incErrors();
+						processLog.addNote("Error adding album to database, skipping " + e.toString());
+						processLog.saveToDatabase(vufindConn, logger);
 					}
 					
 				}
@@ -195,17 +202,14 @@ public class ImportFreegal implements IProcessHandler {
 			// handle any errors
 			logger.error("Error loading content from Freegal. ", ex);
 			return;
+		} finally {
+			processLog.setFinished();
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 
 	}
 
-	private boolean loadConfig(Section processSettings, Section generalSettings, Logger logger) {
-		econtentDBConnectionInfo = generalSettings.get("econtentDatabase");
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
+	private boolean loadConfig(Ini configIni, Section processSettings, Logger logger) {
 		freegalUrl = processSettings.get("freegalUrl");
 		if (freegalUrl == null || freegalUrl.length() == 0) {
 			logger.error("Freegal API URL not found in Process Settings.  Please specify url in freegalUrl key.");
@@ -233,7 +237,7 @@ public class ImportFreegal implements IProcessHandler {
 			logger.error("Freegal Library Id not found in Process Settings.  Please specify the Library for the Freegal webservices the freegalLibrary key.");
 			return false;
 		}
-		vufindUrl = generalSettings.get("vufindUrl");
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;

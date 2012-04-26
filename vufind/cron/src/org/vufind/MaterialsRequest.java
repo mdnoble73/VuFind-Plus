@@ -1,22 +1,10 @@
 package org.vufind;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Properties;
-
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -49,8 +37,8 @@ import org.json.JSONObject;
  * 
  */
 public class MaterialsRequest implements IProcessHandler{
-	private String vufindDBConnectionInfo;
 	private Connection vufindConn = null;
+	private CronProcessLogEntry processLog;
 	private String vufindUrl;
 	private Logger logger;
 	private String installPath;
@@ -59,112 +47,28 @@ public class MaterialsRequest implements IProcessHandler{
 	private String circulationEmail;
 	private String circulationUrl;
 	private String emailFrom;
-	private Emailer emailer;
 	
 	@Override
-	public void doCronProcess(Ini ini, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Materials Request");
+		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
-		if (!loadConfig(ini, logger)){
+		this.vufindConn = vufindConn;
+		if (!loadConfig(configIni, logger)){
 			return;
 		}
-		emailer = new Emailer(ini, logger);
 		
-		try {
-			//Connect to the vufind database
-			vufindConn = DriverManager.getConnection(vufindDBConnectionInfo);
-			
-			sendEmailNotifications();
-			
-			generateHolds();
-			
-			// Disconnect from the database
-			vufindConn.close();
-		} catch (SQLException ex) {
-			// handle any errors
-			logger.error("Error establishing connection to database ", ex);
-			return;
-		}
+		generateHolds();
+		
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 	
-	/**
-	 * Send notifications to patrons based on actions performed by the cataloging group. 
-	 */
-	private void sendEmailNotifications(){
-		//Get a list of requests that need notifications sent
-		try {
-			PreparedStatement requestsToEmailStmt = vufindConn.prepareStatement("SELECT * FROM materials_request inner join user on user.id = materials_request.createdBy WHERE emailSent = 0 AND status IN ('owned', 'purchased', 'ILLplaced', 'notEnoughInfo')");
-			PreparedStatement setEmailSentStmt = vufindConn.prepareStatement("UPDATE materials_request SET emailSent=1 where id =?");
-			ResultSet requestsToEmail = requestsToEmailStmt.executeQuery();
-			//For each request, 
-			while (requestsToEmail.next()){
-				boolean emailSent = true;
-				//Get information about the patron to send the notification to
-				String requestId = requestsToEmail.getString("id");
-				String firstName = requestsToEmail.getString("firstName");
-				String lastName = requestsToEmail.getString("lastName");
-				String emailTo = requestsToEmail.getString("email");
-			
-				if (emailTo != null && emailTo.length() > 0){
-					//Get the template to use while sending the notification
-					String status = requestsToEmail.getString("status");
-					File emailTemplate = new File(installPath + "/cron/templates/" + status + ".tpl");
-					if (!emailTemplate.exists()){
-						emailTemplate = new File(installPath + "/cron/templates/materialsRequest.tpl");
-					}
-					if (!emailTemplate.exists()){
-						logger.error("Could not find template for email text to send to patron");
-					}
-				
-					BufferedReader reader = new BufferedReader(new FileReader(emailTemplate));
-					StringBuffer emailBody = new StringBuffer();
-					String curLine = reader.readLine();
-					while (curLine != null){
-						emailBody.append(curLine + "\r\n" );
-						curLine = reader.readLine();
-					}
-					
-					String emailBodyStr = emailBody.toString();
-					//Replace variables as needed
-					emailBodyStr = emailBodyStr.replaceAll("\\{firstName\\}", firstName);
-					emailBodyStr = emailBodyStr.replaceAll("\\{lastName\\}", lastName);
-					emailBodyStr = emailBodyStr.replaceAll("\\{email\\}", emailTo);
-					emailBodyStr = emailBodyStr.replaceAll("\\{status\\}", status);
-					if (libraryName != null){
-						emailBodyStr = emailBodyStr.replaceAll("\\{libraryName\\}", libraryName);
-					}
-					if (circulationPhone != null){
-						emailBodyStr = emailBodyStr.replaceAll("\\{circulationPhone\\}", circulationPhone);
-					}
-					if (circulationEmail != null){
-						emailBodyStr = emailBodyStr.replaceAll("\\{circulationEmail\\}", circulationEmail);
-					}
-					if (circulationUrl != null){
-						emailBodyStr = emailBodyStr.replaceAll("\\{circulationUrl\\}", circulationUrl);
-					}
-				
-					//Send the email
-					String emailSubject = "Your materials request was processed.";
-					emailSent = emailer.sendEmail(emailTo, emailFrom, emailSubject, emailBodyStr, null);
-					
-				}else{
-					logger.warn("Not sending email for request " + requestId + " because email field was not set.");
-				}
-				if (emailSent){
-					//Mark that the email was sent
-					setEmailSentStmt.setString(1, requestId);
-					setEmailSentStmt.executeUpdate();
-				}
-				
-			}
-		} catch (Exception e) {
-			logger.error("Error sending emails for materials requests", e);
-		}
-	}
-
 	/**
 	 * If a title has been added to the catalog, add 
 	 */
 	private void generateHolds(){
+		processLog.addNote("Generating holds for materials requests that have arrived");
 		//Get a list of requests to generate holds for
 		try {
 			PreparedStatement requestsToEmailStmt = vufindConn.prepareStatement("SELECT materials_request.*, cat_username, cat_password FROM materials_request inner join user on user.id = materials_request.createdBy WHERE placeHoldWhenAvailable = 1 and holdsCreated = 0 and status IN ('owned', 'purchased')");
@@ -210,9 +114,13 @@ public class MaterialsRequest implements IProcessHandler{
 							}
 						} catch (JSONException e) {
 							logger.error("Unable to load search result", e);
+							processLog.incErrors();
+							processLog.addNote("Unable to load search result " + e.toString());
 						}
 					}else{
 						logger.error("Error searching for isbn " + requestIsbn);
+						processLog.incErrors();
+						processLog.addNote("Error searching for isbn " + requestIsbn);
 					}
 				}
 				
@@ -234,11 +142,16 @@ public class MaterialsRequest implements IProcessHandler{
 							holdCreated = result.getBoolean("success");
 							if (holdCreated){
 								logger.info("hold was created successfully.");
+								processLog.incUpdated();
 							}else{
 								logger.info("hold could not be created " + result.getString("holdMessage"));
+								processLog.incErrors();
+								processLog.addNote("hold could not be created " + result.getString("holdMessage"));
 							}
 						} catch (JSONException e) {
 							logger.error("Unable to load results of placing the hold", e);
+							processLog.incErrors();
+							processLog.addNote("Unable to load results of placing the hold " + e.toString());
 						}
 					}
 				}
@@ -252,15 +165,12 @@ public class MaterialsRequest implements IProcessHandler{
 			
 		} catch (Exception e) {
 			logger.error("Error generating holds for purchased requests ", e);
+			processLog.incErrors();
+			processLog.addNote("Error generating holds for purchased requests " + e.toString());
 		}
 	}
 	
 	protected boolean loadConfig(Ini ini, Logger logger) {
-		vufindDBConnectionInfo = Util.cleanIniValue(ini.get("Database", "database_vufind_jdbc"));
-		if (vufindDBConnectionInfo == null || vufindDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for vufind database not found in General Settings.  Please specify connection information in a database key.");
-			return false;
-		}
 		vufindUrl = Util.cleanIniValue(ini.get("Site", "url"));
 		
 		installPath = ini.get("Site", "installPath");

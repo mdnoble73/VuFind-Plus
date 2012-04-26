@@ -122,12 +122,11 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		Long resourceId = -1L;
 		
 		boolean updateSubjectAndCallNumber = true;
-		
+		results.incRecordsProcessed();
 		try {
 			//Check to see if we have an existing resource
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null){
-				results.incRecordsProcessed();
 				resourceId = basicResourceInfo.getResourceId();
 				//Remove the resource from the existingResourcesList so 
 				//We can determine which resources no longer exist

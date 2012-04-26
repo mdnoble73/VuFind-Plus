@@ -66,6 +66,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
 			if (!response.isSuccess()){
 				results.addNote("Error swapping cores " + response.getMessage());
+			}else{
+				results.addNote("Result of swapping cores " + response.getMessage());
 			}
 		}else{
 			results.addNote("index did not pass check, not swapping");

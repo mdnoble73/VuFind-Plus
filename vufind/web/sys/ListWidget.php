@@ -102,6 +102,7 @@ class ListWidget extends DB_DataObject
         'sortable' => true,
         'storeDb' => true, 
         'serverValidation' => 'validateLists',
+      	'editLink' => 'ListWidgetsListsLinks'
       ),
 		);
 		foreach ($structure as $fieldName => $field){

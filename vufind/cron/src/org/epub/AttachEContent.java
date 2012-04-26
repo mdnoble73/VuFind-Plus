@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,9 +16,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
-import org.json.JSONArray;
 import org.json.JSONObject;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 import org.vufind.Util;
 
@@ -30,9 +31,7 @@ public class AttachEContent implements IProcessHandler {
 	private String sourceDirectory;
 	protected String libraryDirectory;
 	private String vufindUrl;
-	
-	private String econtentDBConnectionInfo;
-	private Connection econtentConn = null;
+	private CronProcessLogEntry processLog;
 	
 	//Saved settings
 	private PreparedStatement getRelatedRecords;
@@ -48,11 +47,13 @@ public class AttachEContent implements IProcessHandler {
 	protected ArrayList<ImportResult> importResults = new ArrayList<ImportResult>();
 	
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Attach eContent Items");
+		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
 		logger.info("Loading files from folders");
 
-		boolean configLoaded = loadConfig(processSettings, generalSettings);
+		boolean configLoaded = loadConfig(configIni, processSettings);
 		if (!configLoaded){
 			System.out.println("Configuration could not be loaded, see log file");
 			return;
@@ -60,8 +61,6 @@ public class AttachEContent implements IProcessHandler {
 
 		// Connect to the VuFind MySQL database
 		try {
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
-			
 			//Setup prepared statements for processing the folder
 			createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_attach (sourcePath, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
 			markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_attach SET dateFinished = ?, recordsProcessed = ?, status = 'finished' WHERE id = ?");
@@ -86,7 +85,8 @@ public class AttachEContent implements IProcessHandler {
 			
 		} catch (SQLException ex) {
 			// handle any errors
-			logger.error("Error establishing connection to database " + econtentDBConnectionInfo, ex);
+			logger.error("Error establishing attaching items to eContent records ", ex);
+			processLog.addNote("Error establishing attaching items to eContent records " + ex.toString());
 			return;
 		}finally {
 			logger.info("Marking log entry finished");
@@ -99,6 +99,8 @@ public class AttachEContent implements IProcessHandler {
 				logger.error("Error importing marking log as finished ", e);
 			}
 		}
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	private void processFolder(File folder) {
@@ -237,20 +239,14 @@ public class AttachEContent implements IProcessHandler {
 		
 	}
 	
-	protected boolean loadConfig(Section processSettings, Section generalSettings) {
-		econtentDBConnectionInfo = generalSettings.get("econtentDatabase");
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
-		vufindUrl = generalSettings.get("vufindUrl");
+	protected boolean loadConfig(Ini configIni, Section processSettings) {
+		vufindUrl = configIni.get("Site", "vufindUrl");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;
 		}
 		
-		libraryDirectory = generalSettings.get("eContentLibrary");
+		libraryDirectory = configIni.get("EContent", "library");
 		if (libraryDirectory == null || libraryDirectory.length() == 0) {
 			logger.error("Library not found in process Settings.  Please specify the path to the eContent library as the eContentLibrary key.");
 			return false;
