@@ -22,6 +22,7 @@ require_once 'Action.php';
 require_once 'sys/SolrStats.php';
 require_once 'sys/Pager.php';
 require_once 'services/MyResearch/lib/User_list.php';
+require_once dirname(__FILE__).'/../../sys/Utils/SwitchDatabase.php';
 
 class ListAPI extends Action {
 
@@ -377,13 +378,17 @@ class ListAPI extends Action {
 	 * Returns information about the titles within a list including:
 	 * - Title, Author, Bookcover URL, description, record id
 	 */
-	function getListTitles() {
+	function getListTitles($listId = NULL) {
 		global $interface;
 		global $configArray;
 		global $timer;
 
-		if (!isset($_REQUEST['id'])){
-			return array('success'=>false, 'message'=>'The id of the list to load must be provided as the id parameter.');
+		if(!$listId)
+		{
+			if (!isset($_REQUEST['id'])){
+				return array('success'=>false, 'message'=>'The id of the list to load must be provided as the id parameter.');
+			}
+			$listId = $_REQUEST['id'];
 		}
 
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
@@ -398,8 +403,7 @@ class ListAPI extends Action {
 		if ($user){
 			$userId = $user->id;
 		}
-
-		$listId = $_REQUEST['id'];
+		
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
 				$listId = $listInfo[1];
@@ -431,19 +435,36 @@ class ListAPI extends Action {
 				return array('success'=>false, 'message'=>'The specified list could not be found.');
 			}
 		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
-			//Load the data from strands
 			$strandsTemplate = $strandsInfo[1];
-			$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
-			$userId = $user ? $user->id : '';
-			$strandsUrl = "http://bizsolutions.strands.com/api2/recs/item/get.sbs?apid={$configArray['Strands']['APID']}&user={$userId}&tpl={$strandsTemplate}&format=json&amount=25&metadata=false&explanation=true&item={$recordId}";
-			$results = json_decode(file_get_contents($strandsUrl));
-			$ids = array();
-			foreach ($results->result->recommendations as $recommendation){
-				$ids[] = $recommendation->itemId;
-			}
+			$results = $this->loadDataFromStrands($strandsTemplate, $user);
+			$ids = $this->getIdsFromStrandsResults($results);
 			$titles = $this->loadTitleInformationForIds($ids);
-			
 			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
+
+		}elseif (preg_match('/EContentStrands:(.*)/', $listId, $strandsInfo)){
+			require_once ('sys/eContent/EContentRecord.php');
+			$strandsTemplate = $strandsInfo[1];
+			$results = $this->loadDataFromStrands($strandsTemplate, $user);
+			$ids = $this->getIdsFromStrandsResults($results);
+			if(!empty($ids))
+			{
+				SwitchDatabase::switchToEcontent();
+				$econtentList = array();
+				foreach($ids as $id)
+				{
+					$eContentRecord = new EContentRecord();
+					$eContentRecord->get($id);
+					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
+					unset($eContentRecord);
+				}
+				SwitchDatabase::restoreDatabase(); //Do not forget it!!!!!!!!!!!
+				return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
+			}
+			else {
+				return array('success'=>false, 'message'=>'The specified list is empty');
+			}
+			
+			
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			require_once '/services/MyResearch/lib/Comments.php';
 			require_once '/services/MyResearch/lib/User_resource.php';
@@ -526,20 +547,23 @@ class ListAPI extends Action {
 				$eContentRecord->find();
 				$titles = array();
 				while($eContentRecord->fetch()){
-					$titles[] = array(
-            'id' => 'econtentRecord' . $eContentRecord->id,
-            'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=medium&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-            'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=large&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-            'title' => $eContentRecord->title,
-            'author' => $eContentRecord->author,
-				    'description' => $eContentRecord->description,
-	          'length' => '',
-	          'publisher' => $eContentRecord->publisher,
-						'dateSaved' => $eContentRecord->date_added,
-					);
+					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
 				}
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			}elseif ($listId == 'highestRated'){
+			}elseif ($listId == 'freeEbooks'){
+				$query = "SELECT * FROM `econtent_record` ".
+    				   "WHERE `accessType` = \'free\' ".
+    				   "ORDER BY `date_added` DESC ".
+    				   "LIMIT 30";
+				$result = mysql_query($query);
+				$ids = array();
+				while ($epubInfo = mysql_fetch_assoc($result)){
+					$ids[] = $epubInfo['record_id'];
+				}
+				$titles = $this->loadTitleInformationForIds($ids);
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
+			}
+			elseif ($listId == 'highestRated'){
 				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT 30";
 				$result = mysql_query($query);
 				$ids = array();
@@ -548,7 +572,23 @@ class ListAPI extends Action {
 				}
 				$titles = $this->loadTitleInformationForIds($ids);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			}elseif ($listId == 'recentlyReviewed'){
+			}
+			elseif ($listId == 'highestRatedEContent')
+			{
+				require_once dirname(__FILE__).'/../../sys/eContent/EContentRating.php';
+				$econtentRating = new EContentRating();
+				$records=$econtentRating->getRecordsListAvgRating("DESC",30);
+				if(!empty($records))
+				{
+					$titles = array();
+					foreach ($records as $eContentRecord)
+					{
+						$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
+					}
+				}
+				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
+			}
+			elseif ($listId == 'recentlyReviewed'){
 				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT 30";
 				$result = mysql_query($query);
 				$ids = array();
@@ -592,6 +632,46 @@ class ListAPI extends Action {
 			}
 		}
 	}
+	
+
+	private function getIdsFromStrandsResults($results)
+	{
+		$ids = array();
+		//print_r($results);die();
+		foreach ($results->result->recommendations as $recommendation){
+			$ids[] = $recommendation->itemId;
+		}
+		return $ids;
+	}
+	
+	private function loadDataFromStrands($strandsTemplate, $user)
+	{
+		global $configArray;
+		//Load the data from strands
+		$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
+		$userId = $user ? $user->id : '';
+		$strandsUrl = "http://bizsolutions.strands.com/api2/recs/item/get.sbs?apid={$configArray['Strands']['APID']}&user={$userId}&tpl={$strandsTemplate}&format=json&amount=25&metadata=false&explanation=true&item={$recordId}";
+		$results = json_decode(file_get_contents($strandsUrl));
+		return $results;
+	}
+	
+	private function setEcontentRecordInfoForList($eContentRecord)
+	{
+		global $configArray;
+		return array(
+				'id' => 'econtentRecord' . $eContentRecord->id,
+				'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=medium&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
+				'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=large&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
+				'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=small&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
+				'title' => $eContentRecord->title,
+				'author' => $eContentRecord->author,
+				'description' => $eContentRecord->description,
+				'length' => '',
+				'publisher' => $eContentRecord->publisher,
+				'dateSaved' => $eContentRecord->date_added
+		);
+	}
+	
 	
 	/**
 	 * Loads caching information to determine what the list should be cached as 

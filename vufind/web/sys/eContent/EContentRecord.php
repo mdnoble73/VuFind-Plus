@@ -55,6 +55,13 @@ class EContentRecord extends SolrDataObject {
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentRecord',$k,$v); }
 
+	
+	public function get()
+	{
+		
+		
+	}
+	
 	function keys() {
 		return array('id', 'filename');
 	}
@@ -1186,5 +1193,334 @@ class EContentRecord extends SolrDataObject {
 		}else{
 			return substr($overdriveUrl, -36);
 		}
+	}
+	
+	//setters and getters
+	public function getid(){
+		return $this->id;
+	}
+	
+	public function setid($id){
+		$this->id = $id;
+	}
+	
+	public function getcover(){
+		return $this->cover;
+	}
+	
+	public function setcover($cover){
+		$this->cover = $cover;
+	}
+	
+	public function gettitle(){
+		return $this->title;
+	}
+	
+	public function settitle($title){
+		$this->title = $title;
+	}
+	
+	public function getsubtitle(){
+		return $this->subtitle;
+	}
+	
+	public function setsubtitle($subtitle){
+		$this->subtitle = $subtitle;
+	}
+	
+	public function getauthor(){
+		return $this->author;
+	}
+	
+	public function setauthor($author){
+		$this->author = $author;
+	}
+	
+	public function getauthor2(){
+		return $this->author2;
+	}
+	
+	public function setauthor2($author2){
+		$this->author2 = $author2;
+	}
+	
+	public function getdescription(){
+		return $this->description;
+	}
+	
+	public function setdescription($description){
+		$this->description = $description;
+	}
+	
+	public function getcontents(){
+		return $this->contents;
+	}
+	
+	public function setcontents($contents){
+		$this->contents = $contents;
+	}
+	
+	public function getsubject(){
+		return $this->subject;
+	}
+	
+	public function setsubject($subject){
+		$this->subject = $subject;
+	}
+	
+	public function getlanguage(){
+		return $this->language;
+	}
+	
+	public function setlanguage($language){
+		$this->language = $language;
+	}
+	
+	public function getpublisher(){
+		return $this->publisher;
+	}
+	
+	public function setpublisher($publisher){
+		$this->publisher = $publisher;
+	}
+	
+	public function getpublishdate(){
+		return $this->publishdate;
+	}
+	
+	public function setpublishdate($publishdate){
+		$this->publishdate = $publishdate;
+	}
+	
+	public function getedition(){
+		return $this->edition;
+	}
+	
+	public function setedition($edition){
+		$this->edition = $edition;
+	}
+	
+	public function getissn(){
+		return $this->issn;
+	}
+	
+	public function setissn($issn){
+		$this->issn = $issn;
+	}
+	
+	public function getlccn(){
+		return $this->lccn;
+	}
+	
+	public function setlccn($lccn){
+		$this->lccn = $lccn;
+	}
+	
+	public function getseries(){
+		return $this->series;
+	}
+	
+	public function setseries($series){
+		$this->series = $series;
+	}
+	
+	public function gettopic(){
+		return $this->topic;
+	}
+	
+	public function settopic($topic){
+		$this->topic = $topic;
+	}
+	
+	public function getgenre(){
+		return $this->genre;
+	}
+	
+	public function setgenre($genre){
+		$this->genre = $genre;
+	}
+	
+	public function getregion(){
+		return $this->region;
+	}
+	
+	public function setregion($region){
+		$this->region = $region;
+	}
+	
+	public function getera(){
+		return $this->era;
+	}
+	
+	public function setera($era){
+		$this->era = $era;
+	}
+	
+	public function gettarget_audience(){
+		return $this->target_audience;
+	}
+	
+	public function settarget_audience($target_audience){
+		$this->target_audience = $target_audience;
+	}
+	
+	public function getdate_added(){
+		return $this->date_added;
+	}
+	
+	public function setdate_added($date_added){
+		$this->date_added = $date_added;
+	}
+	
+	public function getdate_updated(){
+		return $this->date_updated;
+	}
+	
+	public function setdate_updated($date_updated){
+		$this->date_updated = $date_updated;
+	}
+	
+	public function getnotes(){
+		return $this->notes;
+	}
+	
+	public function setnotes($notes){
+		$this->notes = $notes;
+	}
+	
+	public function getilsid(){
+		return $this->ilsid;
+	}
+	
+	public function setilsid($ilsid){
+		$this->ilsid = $ilsid;
+	}
+	
+	public function getsource(){
+		return $this->source;
+	}
+	
+	public function setsource($source){
+		$this->source = $source;
+	}
+	
+	public function getsourceurl(){
+		return $this->sourceurl;
+	}
+	
+	public function setsourceurl($sourceurl){
+		$this->sourceurl = $sourceurl;
+	}
+	
+	public function getpurchaseurl(){
+		return $this->purchaseurl;
+	}
+	
+	public function setpurchaseurl($purchaseurl){
+		$this->purchaseurl = $purchaseurl;
+	}
+	
+	public function getaddedby(){
+		return $this->addedby;
+	}
+	
+	public function setaddedby($addedby){
+		$this->addedby = $addedby;
+	}
+	
+	public function getreviewedby(){
+		return $this->reviewedby;
+	}
+	
+	public function setreviewedby($reviewedby){
+		$this->reviewedby = $reviewedby;
+	}
+	
+	public function getreviewstatus(){
+		return $this->reviewstatus;
+	}
+	
+	public function setreviewstatus($reviewstatus){
+		$this->reviewstatus = $reviewstatus;
+	}
+	
+	public function getreviewnotes(){
+		return $this->reviewnotes;
+	}
+	
+	public function setreviewnotes($reviewnotes){
+		$this->reviewnotes = $reviewnotes;
+	}
+	
+	public function getaccesstype(){
+		return $this->accesstype;
+	}
+	
+	public function setaccesstype($accesstype){
+		$this->accesstype = $accesstype;
+	}
+	
+	public function getavailablecopies(){
+		return $this->availablecopies;
+	}
+	
+	public function setavailablecopies($availablecopies){
+		$this->availablecopies = $availablecopies;
+	}
+	
+	public function getonordercopies(){
+		return $this->onordercopies;
+	}
+	
+	public function setonordercopies($onordercopies){
+		$this->onordercopies = $onordercopies;
+	}
+	
+	public function gettrialtitle(){
+		return $this->trialtitle;
+	}
+	
+	public function settrialtitle($trialtitle){
+		$this->trialtitle = $trialtitle;
+	}
+	
+	public function getmarccontrolfield(){
+		return $this->marccontrolfield;
+	}
+	
+	public function setmarccontrolfield($marccontrolfield){
+		$this->marccontrolfield = $marccontrolfield;
+	}
+	
+	public function getcollection(){
+		return $this->collection;
+	}
+	
+	public function setcollection($collection){
+		$this->collection = $collection;
+	}
+	
+	public function getliterary_form_full(){
+		return $this->literary_form_full;
+	}
+	
+	public function setliterary_form_full($literary_form_full){
+		$this->literary_form_full = $literary_form_full;
+	}
+	
+	public function getmarcrecord(){
+		return $this->marcrecord;
+	}
+	
+	public function setmarcrecord($marcrecord){
+		$this->marcrecord = $marcrecord;
+	}
+	
+	public function getstatus(){
+		return $this->status;
+	}
+	
+	public function setstatus($status){
+		$this->status = $status;
 	}
 }

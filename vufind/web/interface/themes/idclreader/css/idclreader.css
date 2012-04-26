@@ -1,0 +1,53 @@
+@CHARSET "ISO-8859-1";
+
+div.itemsInside
+{
+	position: block;
+	height: 250px;
+	width:100%;
+	padding-top:10px;
+	margin-bottom:-9px;
+}
+
+div.item_wrapper
+{
+	width:180px;
+	height: 240px;	
+}
+
+div.item_wrapper img
+{
+	margin:auto;
+	display:block;
+}
+
+div.item_wrapper div.eContentTitle
+{
+	width: 150px;
+	margin:auto;
+}
+
+div.widthEContentTitle
+{
+	text-align: center;
+}
+
+h3.titleNE
+{
+	text-align: center;
+}
+
+div#imageGallery_NE div.jcarousel-container
+{
+	width:100%;
+}
+
+ul#carousel_NE
+{
+	height: 240px;
+}
+
+div#imageGallery_NE div.jcarousel-clip-horizontal
+{
+	height: 240px;
+}
