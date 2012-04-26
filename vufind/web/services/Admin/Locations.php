@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
- 
+
 require_once 'Action.php';
 require_once 'services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
@@ -25,40 +25,40 @@ require_once 'XML/Unserializer.php';
 class Locations extends ObjectEditor
 {
 
-    function getObjectType(){
-        return 'Location';
-    }
-    function getToolName(){
-        return 'Locations';
-    }
-    function getPageTitle(){
-        return 'Locations (Branches)';
-    }
-    function getAllObjects(){
-        //Look lookup information for display in the user interface
-        $location = new Location();
-        $location->orderBy('displayName');
-        $location->find();
-        $locationList = array();
-        while ($location->fetch()){
-            $locationList[$location->locationId] = clone $location;
-        }
-        return $locationList;
-    }
-    
-    function getObjectStructure(){
-        return Location::getObjectStructure();
-    }
-    
-    function getPrimaryKeyColumn(){
-        return 'code';
-    }
-    
-    function getIdKeyColumn(){
-        return 'locationId';
-    }
-    function getAllowableRoles(){
-        return array('opacAdmin');
-    }
-    
+	function getObjectType(){
+		return 'Location';
+	}
+	function getToolName(){
+		return 'Locations';
+	}
+	function getPageTitle(){
+		return 'Locations (Branches)';
+	}
+	function getAllObjects(){
+		//Look lookup information for display in the user interface
+		$location = new Location();
+		$location->orderBy('displayName');
+		$location->find();
+		$locationList = array();
+		while ($location->fetch()){
+			$locationList[$location->locationId] = clone $location;
+		}
+		return $locationList;
+	}
+
+	function getObjectStructure(){
+		return Location::getObjectStructure();
+	}
+
+	function getPrimaryKeyColumn(){
+		return 'code';
+	}
+
+	function getIdKeyColumn(){
+		return 'locationId';
+	}
+	function getAllowableRoles(){
+		return array('opacAdmin');
+	}
+
 }

@@ -132,7 +132,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			logger.info("Processing eContentRecord " + id);
 			writer.write("'econtentRecord" + id + "'");
 			// Write a link to the title
-			writer.write("|'" + vufindUrl + "EContentRecord/" + id + "'");
+			writer.write("|'" + vufindUrl + "/EContentRecord/" + id + "'");
 			writer.write("|'" + prepForCsv(eContentRecord.getString("title"), true, false) + "'");
 			StringBuffer authors = new StringBuffer();
 			authors.append(prepForCsv(eContentRecord.getString("author"), true, false));
@@ -148,7 +148,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			// Get the image link
 			String isbn = eContentRecord.getString("isbn");
 			String upc = eContentRecord.getString("upc");
-			writer.write("|'" + bookcoverUrl + "bookcover.php?isn=" + isbn + "&amp;upc=" + upc + "&amp;id=econtentRecord" + id + "&amp;size=small&econtent=true'");
+			writer.write("|'" + bookcoverUrl + "/bookcover.php?isn=" + isbn + "&upc=" + upc + "&id=econtentRecord" + id + "&size=small&econtent=true'");
 
 			// Get the publisher
 			String publisher = eContentRecord.getString("publisher");
@@ -202,7 +202,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			// Write the id
 			writer.write("'" + recordInfo.getId() + "'");
 			// Write a link to the title
-			writer.write("|'" + vufindUrl + "Record/" + recordInfo.getId() + "'");
+			writer.write("|'" + vufindUrl + "/Record/" + recordInfo.getId() + "'");
 			writer.write("|'" + prepForCsv(recordInfo.getTitle(), true, false) + "'");
 			StringBuffer authors = new StringBuffer();
 			for (String author : recordInfo.getAuthors()) {
@@ -214,7 +214,7 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("|'" + authors.toString() + "'");
 
 			// Get the image link
-			writer.write("|'" + bookcoverUrl + "bookcover.php?isn=" + recordInfo.getIsbn() + "&amp;upc=" + recordInfo.getFirstFieldValueInSet("upc") + "&amp;id="
+			writer.write("|'" + bookcoverUrl + "/bookcover.php?isn=" + recordInfo.getIsbn() + "&upc=" + recordInfo.getFirstFieldValueInSet("upc") + "&id="
 					+ recordInfo.getId() + "&amp;size=small'");
 
 			// Get the publisher

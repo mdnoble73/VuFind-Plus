@@ -641,7 +641,7 @@ class ListAPI extends Action {
 			if (isset($configArray['StrandsCaching'][$strandsTemplate])){
 				$cacheType = $configArray['StrandsCaching'][$strandsTemplate];
 			}else{
-				$cacheType = $configArray['StrandsCaching']['general'];
+				$cacheType = 'general';
 			}
 			$cacheLength = $configArray['Caching']['strands_' . $cacheType] ;
 			$cacheName = "strands_{$cacheType}_{$strandsTemplate}";

@@ -163,8 +163,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 
 	@Override
 	public ProcessorResults getResults() {
-		// TODO Auto-generated method stub
-		return null;
+		return results;
 	}
 
 }

@@ -130,6 +130,7 @@ public class ImportFreegal implements IProcessHandler {
 				for (Album album : albums.values()){
 					try {
 						//Check to see if the cover is already downloaded and if not, download it.
+						logger.info("Processing album " + album.getTitle() + " the album has " + album.getSongs().size() + " songs");
 						if (album.getRecordId() == -1){
 							//Add the record to the database
 							addAlbumToDatabase.setString(1, album.getTitle());
