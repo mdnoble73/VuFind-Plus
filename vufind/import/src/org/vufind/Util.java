@@ -312,6 +312,17 @@ public class Util {
 				}
 
 				rd.close();
+				
+				if (response.length() == 0){
+					//Try to load the regular body as well
+					// Get the response
+					BufferedReader rd2 = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					while ((line = rd2.readLine()) != null) {
+						response.append(line);
+					}
+
+					rd.close();
+				}
 				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
 			}
 

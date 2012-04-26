@@ -25,7 +25,6 @@ require_once 'XML/Unserializer.php';
 
 class RecordDetectionSettings extends ObjectEditor
 {
-
 	function getObjectType(){
 		return 'EContentRecordDetectionSettings';
 	}
