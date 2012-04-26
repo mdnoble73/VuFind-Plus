@@ -9,7 +9,11 @@
 						<li>
 							<div class='item_wrapper'>
 								<img src='{$record.image}' />
-								
+								<div class='eContentTitle'>
+									<div class='widthEContentTitle'>
+										{$record.title}
+									</div>
+								</div>
 							</div>
 						</li>
 					{/foreach}
