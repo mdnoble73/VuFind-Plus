@@ -183,8 +183,8 @@ public class Cron {
 					// Update that the process was run.
 					currentTime = new Date();
 					if (updateConfig){
-						ini.put(processToRun.getProcessName(), "lastRun", currentTime.getTime());
-						ini.put(processToRun.getProcessName(), "lastRunFormatted", currentTime.toString());
+						cronIni.put(processToRun.getProcessName(), "lastRun", currentTime.getTime());
+						cronIni.put(processToRun.getProcessName(), "lastRunFormatted", currentTime.toString());
 					}
 				} catch (InstantiationException e) {
 					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
@@ -202,7 +202,7 @@ public class Cron {
 			
 		if (updateConfig){
 			try {
-				ini.store(configFile);
+				cronIni.store(cronConfigFile);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				logger.error("Unable to update configuration file.");

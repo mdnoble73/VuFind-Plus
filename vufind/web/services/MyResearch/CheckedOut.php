@@ -82,14 +82,23 @@ class CheckedOut extends MyResearch{
 
 					$transList = array();
 					foreach ($result['transactions'] as $i => $data) {
-						$itemBarcode = $data['barcode'];
-						if (isset($_SESSION['renewResult'][$itemBarcode])){
+						$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
+						$itemId = isset($data['itemid']) ? $data['itemid'] : null;
+						if ($itemBarcode != null && isset($_SESSION['renewResult'][$itemBarcode])){
 							$renewMessage = $_SESSION['renewResult'][$itemBarcode]['message'];
 							$renewResult = $_SESSION['renewResult'][$itemBarcode]['result'];
 							$data['renewMessage'] = $renewMessage;
 							$data['renewResult']  = $renewResult;
 							$result['transactions'][$i] = $data;
 							unset($_SESSION['renewResult'][$itemBarcode]);
+							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+						}else if ($itemId != null && isset($_SESSION['renewResult'][$itemId])){
+							$renewMessage = $_SESSION['renewResult'][$itemId]['message'];
+							$renewResult = $_SESSION['renewResult'][$itemId]['result'];
+							$data['renewMessage'] = $renewMessage;
+							$data['renewResult']  = $renewResult;
+							$result['transactions'][$i] = $data;
+							unset($_SESSION['renewResult'][$itemId]);
 							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
 						}else{
 							$renewMessage = null;

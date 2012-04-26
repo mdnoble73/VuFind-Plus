@@ -63,17 +63,20 @@ class Enrichment extends Record
 		global $interface;
 		global $configArray;
 
+		$enrichment = array();
 		// Fetch from provider
 		if (isset($configArray['Content']['enrichment'])) {
 			$providers = explode(',', $configArray['Content']['enrichment']);
 			foreach ($providers as $provider) {
 				$provider = explode(':', trim($provider));
 				$func = strtolower($provider[0]);
-				$enrichment[$func] = Enrichment::$func($isbn);
-
-				// If the current provider had no valid reviews, store nothing:
-				if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
-					unset($enrichment[$func]);
+				if (method_exists(new Enrichment(), $func)){
+					$enrichment[$func] = Enrichment::$func($isbn);
+	
+					// If the current provider had no valid reviews, store nothing:
+					if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+						unset($enrichment[$func]);
+					}
 				}
 			}
 		}

@@ -395,6 +395,16 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'econtent_attach_update_1' => array(
+			'title' => 'EContent Attachment Log',
+			'description' => 'Create table to store log of attaching eContent to records.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_attach ADD numErrors INT(11) DEFAULT 0;",
+				"ALTER TABLE econtent_attach ADD notes TEXT ;",
+		),
+		),
+		
 		'overdrive_record_cache'  => array(
 			'title' => 'OverDrive Record Cache',
 			'description' => 'Create table to cache page information from OverDrive.',
@@ -425,6 +435,25 @@ class DBMaintenanceEContent extends Admin {
 					"`bookshelfPageLastLoaded` INT(11) NOT NULL DEFAULT 0, ".
 					"`wishlistPage` LONGTEXT, ".
 					"`wishlistPageLastLoaded` INT(11) NOT NULL DEFAULT 0 ".
+				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
+		),
+		),
+		
+		'econtent_record_detection_settings' => array(
+			'title' => 'EContent Record Detection Settings',
+			'description' => 'Create table to store information about how to determine if a record in the marc export is print or eContent.',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS econtent_record_detection_settings;",
+				"CREATE TABLE IF NOT EXISTS  econtent_record_detection_settings(".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+					"`fieldSpec` VARCHAR(100), ".
+					"`valueToMatch` VARCHAR(100), ".
+					"`source` VARCHAR(100), ".
+					"`accessType` VARCHAR(30), ".
+					"`item_type` VARCHAR(30), ".
+					"`add856FieldsAsExternalLinks` TINYINT NOT NULL DEFAULT 0, ".
+					"INDEX(source) ".
 				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
 		),
 		),

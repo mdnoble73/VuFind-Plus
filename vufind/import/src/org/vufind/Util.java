@@ -230,6 +230,46 @@ public class Util {
 		}
 		return formatMap;
 	}
+	
+	public static URLPostResponse getURL(String url, Logger logger) {
+		URLPostResponse retVal;
+		try {
+			URL emptyIndexURL = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			
+			StringBuffer response = new StringBuffer();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " getting " + url);
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
+			}
+
+		} catch (MalformedURLException e) {
+			logger.error("URL to post (" + url + ") is malformed", e);
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
+		} catch (IOException e) {
+			logger.error("Error posting to url \r\n" + url, e);
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}
+		return retVal;
+	}
 
 	public static URLPostResponse postToURL(String url, String postData, Logger logger) {
 		URLPostResponse retVal;
@@ -272,6 +312,17 @@ public class Util {
 				}
 
 				rd.close();
+				
+				if (response.length() == 0){
+					//Try to load the regular body as well
+					// Get the response
+					BufferedReader rd2 = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					while ((line = rd2.readLine()) != null) {
+						response.append(line);
+					}
+
+					rd.close();
+				}
 				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
 			}
 
@@ -361,5 +412,7 @@ public class Util {
 
 		return stringBuffer.toString();
 	}
+
+
 
 }

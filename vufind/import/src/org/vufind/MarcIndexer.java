@@ -63,7 +63,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		}
 		if (checkMarcImport()){
 			results.addNote("index passed checks, swapping cores so new index is active.");
-			response = Util.postToURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio&other=biblio", null, logger);
+			response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
 			if (!response.isSuccess()){
 				results.addNote("Error swapping cores " + response.getMessage());
 			}else{
@@ -82,25 +82,31 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			results.incSkipped();
 		}
 		try {
-			//Create the XML document for the record
-			String xmlDoc = createXmlDocForRecord(recordInfo);
-			if (xmlDoc != null){
-				//Post to the Solr instance
-				URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
-				if (response.isSuccess()){
-					if (recordStatus == MarcProcessor.RECORD_NEW){
-						results.incAdded();
+			if (!recordInfo.isEContent()){
+				//Create the XML document for the record
+				String xmlDoc = createXmlDocForRecord(recordInfo);
+				if (xmlDoc != null){
+					//Post to the Solr instance
+					URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
+					if (response.isSuccess()){
+						if (recordStatus == MarcProcessor.RECORD_NEW){
+							results.incAdded();
+						}else{
+							results.incUpdated();
+						}
+						return true;
 					}else{
-						results.incUpdated();
+						results.incErrors();
+						results.addNote(response.getMessage());
+						return false;
 					}
-					return true;
 				}else{
 					results.incErrors();
-					results.addNote(response.getMessage());
 					return false;
 				}
 			}else{
-				results.incErrors();
+				logger.info("Skipping record because it is eContent");
+				results.incSkipped();
 				return false;
 			}
 		} catch (Exception ex) {
