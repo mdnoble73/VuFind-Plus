@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.solrmarc.tools.Utils;
 
-public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordProcessor{
+public class UpdateResourceInformation implements IMarcRecordProcessor, IEContentProcessor, IRecordProcessor{
 	private Logger logger;
 	
 	private boolean updateUnchangedResources = false;
@@ -29,6 +29,12 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	private PreparedStatement insertSubjectStmt = null;
 	private PreparedStatement clearResourceSubjectsStmt = null;
 	private PreparedStatement linkResourceToSubjectStmt = null;
+	
+	//Setup prepared statements that we will use
+	PreparedStatement existingResourceStmt;
+	PreparedStatement addResourceStmt;
+	PreparedStatement updateResourceStmt;
+	
 	
 	//Code related to call numbers
 	private HashMap<String, Long> locations;
@@ -67,7 +73,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 		
 		
 		try {
-			// Check to see if the record already exists
+			// Setup prepared statements
 			resourceUpdateStmt = vufindConn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
 			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
 			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
@@ -92,6 +98,11 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 			
 			clearResourceCallnumbersStmt = vufindConn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
 			addCallnumberToResourceStmt = vufindConn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
+			
+			//Setup prepared statements that we will use
+			existingResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated from resource where record_id = ? and source = 'eContent'");
+			addResourceStmt = vufindConn.prepareStatement("INSERT INTO resource (record_id, title, source, author, title_sort, isbn, upc, format, format_category, marc_checksum, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			updateResourceStmt = vufindConn.prepareStatement("UPDATE resource SET record_id = ?, title = ?, source = ?, author = ?, title_sort = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum = ?, date_updated = ? WHERE id = ?");
 			
 			//Load field information for local call numbers
 			itemTag = configIni.get("Reindex", "itemTag");
@@ -273,5 +284,114 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IRecordP
 	@Override
 	public ProcessorResults getResults() {
 		return results;
+	}
+
+	@Override
+	public boolean processEContentRecord(ResultSet allEContent) {
+		try {
+			results.incEContentRecordsProcessed();
+			String econtentId = allEContent.getString("id");
+			
+			//Load title information so we have access regardless of 
+			String title = allEContent.getString("title");
+			String subTitle = allEContent.getString("subTitle");
+			if (subTitle.length() > 0){
+				title += ": " + subTitle;
+			}
+			String sortTitle = title.toLowerCase().replaceAll("^(the|an|a|el|la)\\s", "");
+			String isbn = allEContent.getString("isbn");
+			if (isbn != null){
+				if (isbn.indexOf(' ') > 0){
+					isbn = isbn.substring(0, isbn.indexOf(' '));
+				}
+				if (isbn.indexOf("\r") > 0){
+					isbn = isbn.substring(0,isbn.indexOf("\r"));
+				}
+				if (isbn.indexOf("\n") > 0){
+					isbn = isbn.substring(0,isbn.indexOf("\n"));
+				}
+			}
+			String upc = allEContent.getString("upc");
+			if (upc != null){
+				if (upc.indexOf(' ') > 0){
+					upc = upc.substring(0, upc.indexOf(' '));
+				}
+				if (upc.indexOf("\r") > 0){
+					upc = upc.substring(0,upc.indexOf("\r"));
+				}
+				if (upc.indexOf("\n") > 0){
+					upc = upc.substring(0,upc.indexOf("\n"));
+				}
+			}
+			//System.out.println("UPC: " + upc);
+			
+			//Check to see if we have an existing resource
+			existingResourceStmt.setString(1, econtentId);
+			ResultSet existingResource = existingResourceStmt.executeQuery();
+			if (existingResource.next()){
+				//Check the date resource was updated and update if it was updated before the record was changed last
+				boolean updateResource = false;
+				long resourceUpdateTime = existingResource.getLong("date_updated");
+				long econtentUpdateTime = allEContent.getLong("date_updated");
+				if (econtentUpdateTime > resourceUpdateTime){
+					updateResource = true;
+				}
+				if (updateResource){
+					logger.debug("Updating Resource for eContentRecord " + econtentId);
+					updateResourceStmt.setString(1, econtentId);
+					updateResourceStmt.setString(2, Util.trimTo(255, title));
+					updateResourceStmt.setString(3, "eContent");
+					updateResourceStmt.setString(4, Util.trimTo(255, allEContent.getString("author")));
+					updateResourceStmt.setString(5, Util.trimTo(255, sortTitle));
+					updateResourceStmt.setString(6, Util.trimTo(13, isbn));
+					updateResourceStmt.setString(7, Util.trimTo(13, upc));
+					updateResourceStmt.setString(8, "");
+					updateResourceStmt.setString(9, "emedia");
+					updateResourceStmt.setLong(10, 0);
+					updateResourceStmt.setLong(11, new Date().getTime() / 1000);
+					updateResourceStmt.setLong(12, existingResource.getLong("id"));
+					
+					int numUpdated = updateResourceStmt.executeUpdate();
+					if (numUpdated != 1){
+						logger.error("Resource not updated for econtent record " + econtentId);
+						results.incErrors();
+						results.addNote("Resource not updated for econtent record " + econtentId);
+					}else{
+						results.incUpdated();
+					}
+				}else{
+					logger.debug("Not updating resource for eContentRecord " + econtentId + ", it is already up to date");
+					results.incSkipped();
+				}
+			}else{
+				//Insert a new resource
+				System.out.println("Adding resource for eContentRecord " + econtentId);
+				addResourceStmt.setString(1, econtentId);
+				addResourceStmt.setString(2, Util.trimTo(255, title));
+				addResourceStmt.setString(3, "eContent");
+				addResourceStmt.setString(4, Util.trimTo(255, allEContent.getString("author")));
+				addResourceStmt.setString(5, Util.trimTo(255, sortTitle));
+				addResourceStmt.setString(6, Util.trimTo(13, isbn));
+				addResourceStmt.setString(7, Util.trimTo(13, upc));
+				addResourceStmt.setString(8, "");
+				addResourceStmt.setString(9, "emedia");
+				addResourceStmt.setLong(10, 0);
+				addResourceStmt.setLong(11, new Date().getTime() / 1000);
+				int numAdded = addResourceStmt.executeUpdate();
+				if (numAdded != 1){
+					logger.error("Resource not added for econtent record " + econtentId);
+					results.incErrors();
+					results.addNote("Resource not added for econtent record");
+				}else{
+					results.incAdded();
+				}
+			}
+			return true;
+		} catch (SQLException e) {
+			logger.error("Error updating resources for eContent", e);
+			results.incErrors();
+			results.addNote("Error updating resources for eContent " + e.toString());
+			return false;
+		}
 	}
 }

@@ -212,108 +212,28 @@ public class ReindexProcess {
 	}
 
 	private static void processEContentRecords(ArrayList<IRecordProcessor> supplementalProcessors) {
+		logger.info("Processing econtent records");
+		ArrayList<IEContentProcessor> econtentProcessors = new ArrayList<IEContentProcessor>();
+		for (IRecordProcessor processor: supplementalProcessors){
+			if (processor instanceof IEContentProcessor){
+				econtentProcessors.add((IEContentProcessor)processor);
+			}
+		}
+		if (econtentProcessors.size() == 0){
+			return;
+		}
+		//Check to see if the record already exists
 		try {
-			logger.info("Processing econtent records");
-			
-			//Setup prepared statements that we will use
 			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'");
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated from resource where record_id = ? and source = 'eContent'");
-			PreparedStatement addResourceStmt = vufindConn.prepareStatement("INSERT INTO resource (record_id, title, source, author, title_sort, isbn, upc, format, format_category, marc_checksum, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			PreparedStatement updateResourceStmt = vufindConn.prepareStatement("UPDATE resource SET record_id = ?, title = ?, source = ?, author = ?, title_sort = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum = ?, date_updated = ? WHERE id = ?");
-			
-			//Check to see if the record already exists
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			while (allEContent.next()){
-				String econtentId = allEContent.getString("id");
-				
-				//Load title information so we have access regardless of 
-				String title = allEContent.getString("title");
-				String subTitle = allEContent.getString("subTitle");
-				if (subTitle.length() > 0){
-					title += ": " + subTitle;
-				}
-				String sortTitle = title.toLowerCase().replaceAll("^(the|an|a|el|la)\\s", "");
-				String isbn = allEContent.getString("isbn");
-				if (isbn != null){
-					if (isbn.indexOf(' ') > 0){
-						isbn = isbn.substring(0, isbn.indexOf(' '));
-					}
-					if (isbn.indexOf("\r") > 0){
-						isbn = isbn.substring(0,isbn.indexOf("\r"));
-					}
-					if (isbn.indexOf("\n") > 0){
-						isbn = isbn.substring(0,isbn.indexOf("\n"));
-					}
-				}
-				String upc = allEContent.getString("upc");
-				if (upc != null){
-					if (upc.indexOf(' ') > 0){
-						upc = upc.substring(0, upc.indexOf(' '));
-					}
-					if (upc.indexOf("\r") > 0){
-						upc = upc.substring(0,upc.indexOf("\r"));
-					}
-					if (upc.indexOf("\n") > 0){
-						upc = upc.substring(0,upc.indexOf("\n"));
-					}
-				}
-				//System.out.println("UPC: " + upc);
-				
-				//Check to see if we have an existing resource
-				existingResourceStmt.setString(1, econtentId);
-				ResultSet existingResource = existingResourceStmt.executeQuery();
-				if (existingResource.next()){
-					//Check the date resource was updated and update if it was updated before the record was changed last
-					boolean updateResource = false;
-					long resourceUpdateTime = existingResource.getLong("date_updated");
-					long econtentUpdateTime = allEContent.getLong("date_updated");
-					if (econtentUpdateTime > resourceUpdateTime){
-						updateResource = true;
-					}
-					if (updateResource){
-						logger.debug("Updating Resource for eContentRecord " + econtentId);
-						updateResourceStmt.setString(1, econtentId);
-						updateResourceStmt.setString(2, Util.trimTo(255, title));
-						updateResourceStmt.setString(3, "eContent");
-						updateResourceStmt.setString(4, Util.trimTo(255, allEContent.getString("author")));
-						updateResourceStmt.setString(5, Util.trimTo(255, sortTitle));
-						updateResourceStmt.setString(6, Util.trimTo(13, isbn));
-						updateResourceStmt.setString(7, Util.trimTo(13, upc));
-						updateResourceStmt.setString(8, "");
-						updateResourceStmt.setString(9, "emedia");
-						updateResourceStmt.setLong(10, 0);
-						updateResourceStmt.setLong(11, new Date().getTime() / 1000);
-						updateResourceStmt.setLong(12, existingResource.getLong("id"));
-						
-						int numUpdated = updateResourceStmt.executeUpdate();
-						if (numUpdated != 1){
-							logger.error("Reource not updated for econtent record " + econtentId);
-						}
-					}else{
-						logger.debug("Not updating resource for eContentRecord " + econtentId + ", it is already up to date");
-					}
-				}else{
-					//Insert a new resource
-					System.out.println("Adding resource for eContentRecord " + econtentId);
-					addResourceStmt.setString(1, econtentId);
-					addResourceStmt.setString(2, Util.trimTo(255, title));
-					addResourceStmt.setString(3, "eContent");
-					addResourceStmt.setString(4, Util.trimTo(255, allEContent.getString("author")));
-					addResourceStmt.setString(5, Util.trimTo(255, sortTitle));
-					addResourceStmt.setString(6, Util.trimTo(13, isbn));
-					addResourceStmt.setString(7, Util.trimTo(13, upc));
-					addResourceStmt.setString(8, "");
-					addResourceStmt.setString(9, "emedia");
-					addResourceStmt.setLong(10, 0);
-					addResourceStmt.setLong(11, new Date().getTime() / 1000);
-					int numAdded = addResourceStmt.executeUpdate();
-					if (numAdded != 1){
-						logger.error("Reource not added for econtent record " + econtentId);
-					}
+				for (IEContentProcessor econtentProcessor : econtentProcessors){
+					econtentProcessor.processEContentRecord(allEContent);
 				}
 			}
-		} catch (SQLException e) {
-			logger.error("Error updating resources for eContent", e);
+		} catch (SQLException ex) {
+			// handle any errors
+			logger.error("Unable to load econtent records from database", ex);
 		}
 	}
 

@@ -294,7 +294,7 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 		}
 	}
 
-	protected boolean loadConfig(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	protected boolean loadConfig(String servername, Ini configIni, Section processSettings, Logger logger) {
 		if (!super.loadConfig(servername, configIni, processSettings, logger)){
 			return false;
 		}

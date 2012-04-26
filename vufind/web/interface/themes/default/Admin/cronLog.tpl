@@ -15,34 +15,36 @@
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
 						<tr>
-							<td>{$logEntry->id}</td>
+							<td><a href="#" class="collapsed" id="cronEntry{$logEntry->id}" onclick="toggleProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
 							<td><a href="#" onclick="return showCronNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
-						<tr colspan="3" id="processInfo{$logEntry->id}">
-							<table class="logEntryProcessDetails">
-								<thead>
-									<tr><th>Process Name</th><th>Started</th><th>Last Updated</th><th>End Time</th><th>Errors</th><th>Updates</th><th>Notes</th></tr>
-								</thead>
-								<tbody>
-								{foreach from=$logEntry->processes() item=process}
-									<tr>
-										<td>{$process->processName}</td>
-										<td>{$process->startTime|date_format:"%D %T"}</td>
-										<td>{$process->lastUpdate|date_format:"%D %T"}</td>
-										<td>{$process->endTime|date_format:"%D %T"}</td>
-										<td>{$process->getElapsedTime()}</td>
-										<td>{$process->numErrors}</td>
-										<td>{$process->numUpdates}</td>
-										<td><a href="#" onclick="return showCronProcessNotes('{$process->id}');">Show Notes</a></td>
-									</tr>
-								{/foreach}
-								</tbody>
-							</table>
-						</tr>
+						<tr><td></td><td colspan="5">
+							<div class="logEntryProcessDetails" id="processInfo{$logEntry->id}" style="display:none">
+								<table>
+									<thead>
+										<tr><th>Process Name</th><th>Started</th><th>Last Updated</th><th>End Time</th><th>Elapsed</th><th>Errors</th><th>Updates</th><th>Notes</th></tr>
+									</thead>
+									<tbody>
+									{foreach from=$logEntry->processes() item=process}
+										<tr>
+											<td>{$process->processName}</td>
+											<td>{$process->startTime|date_format:"%D %T"}</td>
+											<td>{$process->lastUpdate|date_format:"%D %T"}</td>
+											<td>{$process->endTime|date_format:"%D %T"}</td>
+											<td>{$process->getElapsedTime()}</td>
+											<td>{$process->numErrors}</td>
+											<td>{$process->numUpdates}</td>
+											<td><a href="#" onclick="return showCronProcessNotes('{$process->id}');">Show Notes</a></td>
+										</tr>
+									{/foreach}
+									</tbody>
+								</table>
+							</div>
+						</td></tr>
 					{/foreach}
 				</tbody>
 			</table>
@@ -61,5 +63,10 @@
 	function showCronProcessNotes(id){
 		ajaxLightbox("/Admin/AJAX?method=getCronProcessNotes&id=" + id);
 		return false;
-	}{/literal}
+	}
+	function toggleProcessInfo(id){
+		$("#cronEntry" + id).toggleClass("expanded collapsed");
+		$("#processInfo" + id).toggle();
+	}
+	{/literal}
 </script>

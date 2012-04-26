@@ -395,6 +395,16 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'econtent_attach_update_1' => array(
+			'title' => 'EContent Attachment Log',
+			'description' => 'Create table to store log of attaching eContent to records.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_attach ADD numErrors INT(11) DEFAULT 0;",
+				"ALTER TABLE econtent_attach ADD notes TEXT ;",
+		),
+		),
+		
 		'overdrive_record_cache'  => array(
 			'title' => 'OverDrive Record Cache',
 			'description' => 'Create table to cache page information from OverDrive.',

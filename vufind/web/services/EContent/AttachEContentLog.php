@@ -36,6 +36,7 @@ class AttachEContentLog extends Admin
 		
 		$logEntries = array();
 		$eContentAttachmentLog = new EContentAttachmentLogEntry();
+		$eContentAttachmentLog->orderBy('dateStarted DESC');
 		$eContentAttachmentLog->find();
 		while ($eContentAttachmentLog->fetch()){
 			$logEntries[] = clone($eContentAttachmentLog);
