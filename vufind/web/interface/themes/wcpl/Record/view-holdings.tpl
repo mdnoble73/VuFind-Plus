@@ -12,7 +12,8 @@
  <tbody>
 {assign var=lastSection value=''}
 {if isset($holdings) && count($holdings) > 0}
-{foreach from=$holdings item=holding}
+{foreach from=$holdings item=holding1}
+ {foreach from=$holding1 item=holding}
   <tr >
   	{* Location *}
   	<td style = "padding-bottom:5px;"><span><strong>
@@ -55,7 +56,7 @@
     </td>
     
   </tr>
-
+	{/foreach}
   {/foreach}
   
  {elseif isset($issueSummaries) && count($issueSummaries) > 0}

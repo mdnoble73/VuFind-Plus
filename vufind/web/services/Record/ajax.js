@@ -253,7 +253,10 @@ function GetEnrichmentInfo(id, isbn, upc) {
 			if (showGoDeeperData) {
 				$('#goDeeperLink').show();
 			}
-		}
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+		  alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
+	  }
 	});
 }
 
