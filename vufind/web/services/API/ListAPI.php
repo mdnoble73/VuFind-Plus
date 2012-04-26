@@ -22,7 +22,7 @@ require_once 'Action.php';
 require_once 'sys/SolrStats.php';
 require_once 'sys/Pager.php';
 require_once 'services/MyResearch/lib/User_list.php';
-require_once dirname(__FILE__).'/../../sys/Utils/SwitchDatabase.php';
+require_once 'sys/Utils/SwitchDatabase.php';
 
 class ListAPI extends Action {
 
@@ -575,7 +575,7 @@ class ListAPI extends Action {
 			}
 			elseif ($listId == 'highestRatedEContent')
 			{
-				require_once dirname(__FILE__).'/../../sys/eContent/EContentRating.php';
+				require_once 'sys/eContent/EContentRating.php';
 				$econtentRating = new EContentRating();
 				$records=$econtentRating->getRecordsListAvgRating("DESC",30);
 				if(!empty($records))

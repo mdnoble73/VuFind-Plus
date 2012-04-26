@@ -4,8 +4,8 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once dirname(__FILE__).'/../Utils/SwitchDatabase.php';
-require_once dirname(__FILE__).'/EContentRecord.php';
+require_once 'sys/Utils/SwitchDatabase.php';
+require_once 'EContentRecord.php';
 
 class EContentRating extends DB_DataObject 
 {

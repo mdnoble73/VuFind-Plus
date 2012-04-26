@@ -24,9 +24,9 @@
 		</div>
 		
         	<ul data-role="listview" data-theme="a" data-inset="true">
-	            <li><a href="/Mobile/HighestRated/" rel="external">Highest Rated</a></li>
-		        <li><a href="/Mobile/MostPopular/" rel="external">Most Popular</a></li>
-		        <li><a href="/Mobile/FreeEbooks/" rel="external">Free eBooks</a></li>
+	            <li><a href="/Mobile/HighestRated" rel="external">Highest Rated</a></li>
+		        <li><a href="/Mobile/MostPopular" rel="external">Most Popular</a></li>
+		        <li><a href="/Mobile/FreeEbooks" rel="external">Free eBooks</a></li>
        		</ul>
    	 	
 

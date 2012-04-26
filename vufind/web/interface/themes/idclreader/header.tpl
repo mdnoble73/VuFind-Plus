@@ -23,6 +23,10 @@
 		{/literal}
 	</head>
 	<body>
-<div data-role="page" data-theme="a" >
-	<div data-role="header"></div> 
+<div data-role="page" data-theme="a">
+	<div data-role="header">
+		{if $MobileTitle neq ""} 
+			<h1>{$MobileTitle}</h1>
+		{/if}	
+	</div> 
 	<div data-role="content">
