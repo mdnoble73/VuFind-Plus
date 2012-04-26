@@ -3,7 +3,7 @@
 class SwitchDatabase
 {	
 	
-	static public $changedDB = false;
+	static private $changedDB = false;
 	
 	static public function switchToVuFind()
 	{
