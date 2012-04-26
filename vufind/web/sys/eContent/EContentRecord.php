@@ -163,7 +163,7 @@ class EContentRecord extends SolrDataObject {
 		'accessType' => array(
       'property'=>'accessType', 
       'type'=>'enum',
-		  'values' => array('free' => 'No Usage Restrictions', 'acs' => 'Adobe Content Server', 'singleUse' => 'Single use per copy'),
+		  'values' => EContentRecord::getValidAccessTypes(),
       'label'=>'Access Type', 
       'description'=>'The type of access control to apply to the record.',
       'storeDb' => true,
@@ -693,6 +693,10 @@ class EContentRecord extends SolrDataObject {
 		);
 
 		return $structure;
+	}
+	
+	static function getValidAccessTypes(){
+		return array('free' => 'No Usage Restrictions', 'acs' => 'Adobe Content Server', 'singleUse' => 'Single use per copy');
 	}
 	function title_sort(){
 		$tmpTitle = $this->title;
