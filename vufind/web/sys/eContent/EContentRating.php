@@ -4,6 +4,8 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
+require_once dirname(__FILE__).'/../Utils/SwitchDatabase.php';
+require_once dirname(__FILE__).'/EContentRecord.php';
 
 class EContentRating extends DB_DataObject 
 {
@@ -21,7 +23,36 @@ class EContentRating extends DB_DataObject
 	    return array('id', 'userId', 'recordId');
  	}
  	
- 	function getRatingData($user, $showGraph = false){
+ 	
+ 	/*
+ 	 * Returns an array of records DB_OBJECTS of recordId by AVG Rating ordered and Limited
+ 	 */
+ 	public function getRecordsListAvgRating($orderBy = "DESC", $limit = 30)
+ 	{
+ 		SwitchDatabase::switchToEcontent();
+ 		$records = array();
+ 		
+ 		$sql = "SELECT ei.*, AVG(rating) as rate
+				FROM econtent_rating er join econtent_item ei on er.recordId = ei.id
+				WHERE 1 GROUP BY recordId ORDER BY rate ".$orderBy.", recordId DESC LIMIT ".$limit;
+ 		
+ 		$result = mysql_query($sql);
+ 		while ($row = mysql_fetch_assoc($result)){
+ 			unset($row['rate']);
+ 			$econtentRecord = new EContentRecord();
+ 			$econtentRecord->get($row['id']);
+ 			$econtentRecord->setFrom($row,'');
+ 			$records[] = $econtentRecord;
+ 			unset($econtentRecord);
+ 		}
+ 		
+ 		SwitchDatabase::restoreDatabase();
+ 		
+ 		return $records;
+ 	}
+ 	
+ 	function getRatingData($user, $showGraph = false)
+ 	{
  		require_once 'Drivers/marmot_inc/UserRating.php';
 
 		//Set default rating data

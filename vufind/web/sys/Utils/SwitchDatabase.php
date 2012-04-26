@@ -9,10 +9,13 @@ class SwitchDatabase
 	{
 		global $configArray;
 		
-		if(SwitchDatabase::isEcontentDatabase())
+		if(!SwitchDatabase::$changedDB)
 		{
-			mysql_selectdb($configArray['Database']['database_vufind_dbname']);
-			SwitchDatabase::$changedDB = true;
+			if(SwitchDatabase::isEcontentDatabase())
+			{
+				mysql_selectdb($configArray['Database']['database_vufind_dbname']);
+				SwitchDatabase::$changedDB = true;
+			}
 		}
 		
 	}
@@ -21,10 +24,13 @@ class SwitchDatabase
 	{
 		global $configArray;
 		
-		if(SwitchDatabase::isVuFindDatabase())
+		if(!SwitchDatabase::$changedDB)
 		{
-			mysql_selectdb($configArray['Database']['database_econtent_dbname']);
-			SwitchDatabase::$changedDB = true;
+			if(SwitchDatabase::isVuFindDatabase())
+			{
+				mysql_selectdb($configArray['Database']['database_econtent_dbname']);
+				SwitchDatabase::$changedDB = true;
+			}
 		}
 	}
 	
