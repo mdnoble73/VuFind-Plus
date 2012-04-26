@@ -509,8 +509,26 @@ class DBMaintenanceEContent extends Admin {
 				"DROP TABLE IF EXISTS overdrive_record_cache",
 			),
 		),
+		'addIndexDateAddedEcontentRecordTable' => array(
+			'title' => 'Add an Index',
+			'description' => 'Add an index to econtent_record table',
+			'dependencies' => array(),
+			'sql' => array('addDateAddIndexToEContentRecord'),
+		),
 		
 		);
+	}
+	
+	public function addDateAddIndexToEContentRecord()
+	{
+		$query = "SHOW INDEX FROM econtent_record WHERE Key_name = 'ECDateAdded'";
+		$result = mysql_query($query);
+		$numRows = mysql_num_rows($result);
+		if($numRows !== 1)
+		{
+			$sql = 'ALTER TABLE `econtent_record` ADD INDEX `ECDateAdded` ( `date_added` )';
+			mysql_query($sql);
+		}
 	}
 
 	private function checkWhichUpdatesHaveRun($availableUpdates){
