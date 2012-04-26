@@ -127,7 +127,7 @@ public class ReindexProcess {
 			saveResultsStmt.setString(11, results.getNotesHtml());
 			saveResultsStmt.executeUpdate();
 			logger.info("Saved results for process " + results.getProcessorName());
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			logger.error("Unable to save results of process to database", e);
 		}
 	}

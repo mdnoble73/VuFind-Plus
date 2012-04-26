@@ -35,6 +35,7 @@ class ReindexLog extends Admin
 		$logEntries = array();
 		$logEntry = new ReindexLogEntry();
 		$logEntry->orderBy('startTime DESC');
+		$logEntry->limit(0, 30);
 		$logEntry->find();
 		while ($logEntry->fetch()){
 			$logEntries[] = clone($logEntry);

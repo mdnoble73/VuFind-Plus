@@ -45,16 +45,7 @@ class EContentItem extends DB_DataObject {
 		  'property' => 'item_type',
 		  'type' => 'enum',
 		  'label' => 'Type',
-		  'values' => array(
-		  	'epub' => 'E-Pub', 
-		  	'kindle' => 'Kindle', 
-		  	'mp3' => 'MP3 Audio', 
-		  	'pdf' => 'PDF', 
-		  	'plucker' => 'Plucker', 
-		  	'externalMP3' => 'External MP3',
-		  	'interactiveBook' => 'Interactive Book',
-				'externalLink' => 'External Link',
-			), 
+		  'values' => EContentItem::getValidItemTypes(), 
 		  'description' => 'The type of file being added',
 		  'required'=> true,
 		  'storeDb' => true,
@@ -157,6 +148,18 @@ class EContentItem extends DB_DataObject {
 		return $validationResults;
 	}
 
+	static function getValidItemTypes(){
+		return array(
+			'epub' => 'E-Pub', 
+			'kindle' => 'Kindle', 
+			'mp3' => 'MP3 Audio', 
+			'pdf' => 'PDF', 
+			'plucker' => 'Plucker', 
+			'externalMP3' => 'External MP3',
+			'interactiveBook' => 'Interactive Book',
+				'externalLink' => 'External Link',
+		);
+	} 
 	function validateCover(){
 		//Setup validation return array
 		$validationResults = array(

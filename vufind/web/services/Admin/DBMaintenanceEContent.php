@@ -439,6 +439,25 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'econtent_record_detection_settings' => array(
+			'title' => 'EContent Record Detection Settings',
+			'description' => 'Create table to store information about how to determine if a record in the marc export is print or eContent.',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS econtent_record_detection_settings;",
+				"CREATE TABLE IF NOT EXISTS  econtent_record_detection_settings(".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+					"`fieldSpec` VARCHAR(100), ".
+					"`valueToMatch` VARCHAR(100), ".
+					"`source` VARCHAR(100), ".
+					"`accessType` VARCHAR(30), ".
+					"`item_type` VARCHAR(30), ".
+					"`add856FieldsAsExternalLinks` TINYINT NOT NULL DEFAULT 0, ".
+					"INDEX(source) ".
+				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
+		),
+		),
+		
 		'remove_gale_pdfs'  => array(
 			'title' => 'Remove Gale PDF Files',
 			'description' => 'Remove Gale PDF files from the catalog.',

@@ -20,45 +20,41 @@
 
 require_once 'Action.php';
 require_once 'services/Admin/ObjectEditor.php';
+require_once 'sys/eContent/EContentRecordDetectionSettings.php';
 require_once 'XML/Unserializer.php';
 
-class Locations extends ObjectEditor
+class RecordDetectionSettings extends ObjectEditor
 {
-
 	function getObjectType(){
-		return 'Location';
+		return 'EContentRecordDetectionSettings';
 	}
 	function getToolName(){
-		return 'Locations';
+		return 'RecordDetectionSettings';
 	}
 	function getPageTitle(){
-		return 'Locations (Branches)';
+		return 'eContent Record Detection Settings';
 	}
 	function getAllObjects(){
-		//Look lookup information for display in the user interface
-		$location = new Location();
-		$location->orderBy('displayName');
-		$location->find();
-		$locationList = array();
-		while ($location->fetch()){
-			$locationList[$location->locationId] = clone $location;
+		$object = new EContentRecordDetectionSettings();
+		$object->orderBy('source');
+		$object->find();
+		$objectList = array();
+		while ($object->fetch()){
+			$objectList[$object->id] = clone $object;
 		}
-		return $locationList;
+		return $objectList;
 	}
-
 	function getObjectStructure(){
-		return Location::getObjectStructure();
+		return EContentRecordDetectionSettings::getObjectStructure();
 	}
-
 	function getPrimaryKeyColumn(){
-		return 'code';
+		return 'id';
 	}
-
 	function getIdKeyColumn(){
-		return 'locationId';
+		return 'id';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('epubAdmin');
 	}
 
 }

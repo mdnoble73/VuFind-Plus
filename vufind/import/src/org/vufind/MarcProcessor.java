@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.econtent.DetectionSettings;
 import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
@@ -84,6 +85,7 @@ public class MarcProcessor {
 	private HashSet<String> existingEContentIds			= new HashSet<String>(); 
 	private HashMap<String, Float> printRatings 		= new HashMap<String, Float>();
 	private HashMap<String, Float> econtentRatings	= new HashMap<String, Float>();
+	private ArrayList<DetectionSettings> detectionSettings = new ArrayList<DetectionSettings>(); 
 
 	public static final int								RECORD_CHANGED			= 1;
 	public static final int								RECORD_UNCHANGED		= 2;
@@ -159,6 +161,25 @@ public class MarcProcessor {
 			return false;
 		}
 		
+		// Load detection settings to determine if a record is eContent. 
+		try {
+			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings");
+			ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
+			while (eContentDetectionSettingsRS.next()) {
+				DetectionSettings settings = new DetectionSettings();
+				settings.setFieldSpec(eContentDetectionSettingsRS.getString("fieldSpec"));
+				settings.setValueToMatch(eContentDetectionSettingsRS.getString("valueToMatch"));
+				settings.setSource(eContentDetectionSettingsRS.getString("source"));
+				settings.setAccessType(eContentDetectionSettingsRS.getString("accessType"));
+				settings.setItem_type(eContentDetectionSettingsRS.getString("item_type"));
+				settings.setAdd856FieldsAsExternalLinks(eContentDetectionSettingsRS.getBoolean("add856FieldsAsExternalLinks"));
+				detectionSettings.add(settings);
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to load detection settings for eContent.", e);
+			return false;
+		}
+		
 		// Load ratings for print and eContent titles
 		try{
 			PreparedStatement printRatingsStmt = vufindConn.prepareStatement("SELECT record_id, avg(rating) as rating from resource inner join user_rating on user_rating.resourceid = resource.id where source = 'VuFind' GROUP BY record_id");
@@ -197,6 +218,10 @@ public class MarcProcessor {
 
 	public HashMap<String, Float> getEcontentRatings() {
 		return econtentRatings;
+	}
+	
+	public ArrayList<DetectionSettings> getDetectionSettings(){
+		return detectionSettings;
 	}
 
 	/**
