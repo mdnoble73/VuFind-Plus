@@ -23,6 +23,7 @@ require_once 'sys/SolrStats.php';
 require_once 'sys/Pager.php';
 require_once 'services/MyResearch/lib/User_list.php';
 require_once 'sys/Utils/SwitchDatabase.php';
+require_once 'sys/Utils/Pagination.php';
 
 class ListAPI extends Action {
 
@@ -378,7 +379,7 @@ class ListAPI extends Action {
 	 * Returns information about the titles within a list including:
 	 * - Title, Author, Bookcover URL, description, record id
 	 */
-	function getListTitles($listId = NULL) {
+	function getListTitles($listId = NULL, Pagination $pagination = NULL) {
 		global $interface;
 		global $configArray;
 		global $timer;
@@ -441,31 +442,40 @@ class ListAPI extends Action {
 			$titles = $this->loadTitleInformationForIds($ids);
 			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
 
-		}elseif (preg_match('/EContentStrands:(.*)/', $listId, $strandsInfo)){
+		}
+		elseif (preg_match('/EContentStrands:(.*)/', $listId, $strandsInfo))
+		{
 			require_once ('sys/eContent/EContentRecord.php');
 			$strandsTemplate = $strandsInfo[1];
 			$results = $this->loadDataFromStrands($strandsTemplate, $user);
 			$ids = $this->getIdsFromStrandsResults($results);
+			$titles = array();
 			if(!empty($ids))
 			{
 				SwitchDatabase::switchToEcontent();
-				$econtentList = array();
+				
 				foreach($ids as $id)
 				{
 					$eContentRecord = new EContentRecord();
-					$eContentRecord->get($id);
-					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
+					$numRows = $eContentRecord->get($id);
+					print_r($id);die();
+					if($numRows==1)
+					{
+						$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
+					}
 					unset($eContentRecord);
 				}
+				
 				SwitchDatabase::restoreDatabase(); //Do not forget it!!!!!!!!!!!
+			}
+			
+			if(!empty($titles))
+			{
 				return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
 			}
-			else {
-				return array('success'=>false, 'message'=>'The specified list is empty');
-			}
-			
-			
-		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
+			return array('success'=>false, 'message'=>'The specified list is empty');
+		}
+		elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			require_once '/services/MyResearch/lib/Comments.php';
 			require_once '/services/MyResearch/lib/User_resource.php';
 			//Load the data from strands
@@ -551,16 +561,19 @@ class ListAPI extends Action {
 				}
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'freeEbooks'){
-				$query = "SELECT * FROM `econtent_record` ".
-    				   "WHERE `accessType` = \'free\' ".
-    				   "ORDER BY `date_added` DESC ".
-    				   "LIMIT 30";
-				$result = mysql_query($query);
-				$ids = array();
-				while ($epubInfo = mysql_fetch_assoc($result)){
-					$ids[] = $epubInfo['record_id'];
+				
+				if(!$pagination) $pagination = new Pagination();
+				
+				require_once ('sys/eContent/EContentRecord.php');
+				$eContentRecord = new EContentRecord;
+				$eContentRecord->orderBy('date_added DESC');
+				$eContentRecord->whereAdd('accessType = \'free\'');
+				$eContentRecord->limit($pagination->getOffset(), $pagination->getNumItemsPerPage());
+				$eContentRecord->find();
+				$titles = array();
+				while($eContentRecord->fetch()){
+					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
 				}
-				$titles = $this->loadTitleInformationForIds($ids);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}
 			elseif ($listId == 'highestRated'){
