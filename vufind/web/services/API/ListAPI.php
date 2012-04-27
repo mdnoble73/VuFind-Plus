@@ -792,7 +792,11 @@ class ListAPI extends Action {
 			}
 			$seed = rand(0, 1000);
 			$searchObj->setSort("random" . $seed);
-			$searchObj->setLimit(50);
+			if (isset($_REQUEST['numTitles'])){
+				$searchObj->setLimit($_REQUEST['numTitles']);
+			}else{
+				$searchObj->setLimit(25);
+			}
 			$searchObj->processSearch(false, false);
 			$matchingRecords = $searchObj->getResultRecordSet();
 	
@@ -808,6 +812,8 @@ class ListAPI extends Action {
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
+				}else{
+					$descriptiveInfo = array();
 				}
 	
 				$listTitles[] = array(
@@ -815,7 +821,7 @@ class ListAPI extends Action {
 	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
 	          'title' => $record['title'],
 	          'author' => isset($record['author']) ? $record['author'] : '',
-				    'description' => $descriptiveInfo['description'],
+				    'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['length'] : null,
 	          'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
 	          'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
 				);
