@@ -30,13 +30,23 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 
 TitleScroller.prototype.loadTitlesFrom = function(jsonUrl) {
 	var scroller = this;
+	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
+	scrollerBody.hide();
+	$("#titleScrollerSelectedTitle" + this.scrollerShortName).html("");
+	$("#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
+	$(".scrollerLoadingContainer").show();
 	$.getJSON(jsonUrl, function(data) {
 		scroller.loadTitlesFromJsonData(data);
+	}).error(function(){
+		scrollerBody.html("Unable to load titles.  Please try again later.");
+		scrollerBody.show();
+		$(".scrollerLoadingContainer").hide();
 	});
 };
 
 TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 	var scroller = this;
+	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
 		scroller.scrollerTitles = new Array();
 		var i = 0;
@@ -52,18 +62,16 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 		TitleScroller.prototype.updateScroller.call(scroller);
 	} catch (err) {
 		//alert("error loading titles from data " + err.description);
+		scrollerBody.html("error loading titles from data " + err.description + ".  Please try again later.");
+		scrollerBody.show();
+		$(".scrollerLoadingContainer").hide();
 	}
 }
 
 TitleScroller.prototype.updateScroller = function() {
+	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
-		var scrollerBody = $('#' + this.scrollerId
-				+ " .scrollerBodyContainer .scrollerBody");
-		scrollerBody.hide();
-		$("#titleScrollerSelectedTitle" + this.scrollerShortName).html("");
-		$("#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
-		$(".scrollerLoadingContainer").show();
-
+		
 		var scrollerBodyContents = "";
 		for ( var i in this.scrollerTitles) {
 			scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
@@ -78,6 +86,9 @@ TitleScroller.prototype.updateScroller = function() {
 		});
 	} catch (err) {
 		//alert("error in updateScroller " + err.description);
+		scrollerBody.html("error loading titles from data " + err.description + ".  Please try again later.");
+		scrollerBody.show();
+		$(".scrollerLoadingContainer").hide();
 	}
 
 };
