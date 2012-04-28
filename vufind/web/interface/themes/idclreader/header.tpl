@@ -25,8 +25,14 @@
 	<body>
 <div data-role="page" data-theme="a">
 	<div data-role="header">
+		{if $ButtonBack}
+			<a href="#" data-icon="back" data-rel="back">Back</a>
+		{/if}
 		{if $MobileTitle neq ""} 
 			<h1>{$MobileTitle}</h1>
 		{/if}	
+		{if $ButtonHome}
+			<a href="/"  data-icon="home">Home</a>
+		{/if}
 	</div> 
 	<div data-role="content">

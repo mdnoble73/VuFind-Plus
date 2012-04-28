@@ -1,35 +1,31 @@
-<label for="search-basic">Search Input:</label>
-<input type="search" name="search" id="searc-basic" value="" data-theme='a'/>
-
-		<h3 class='titleNE'>New Ebooks</h3>
-		<div id='imageGallery_NE' {if $NE neq ""} class='itemsInside' {/if}>
-			{if $NE neq ""}
-					<ul id="carousel_NE" class="jcarousel-skin-tango">
-					{foreach from=$NE item=record}
-						<li>
-							<div class='item_wrapper'>
-								<img src='{$record.image}' />
-								<div class='eContentTitle'>
-									<div class='widthEContentTitle'>
-										{$record.title}
-									</div>
-								</div>
+{include file="Mobile/searchBar.tpl"}
+<h3 class='titleNE'>New Ebooks</h3>
+<div id='imageGallery_NE' {if $NE neq ""} class='itemsInside' {/if}>
+	{if $NE neq ""}
+			<ul id="carousel_NE" class="jcarousel-skin-tango">
+			{foreach from=$NE item=record}
+				<li>
+					<div class='item_wrapper'>
+						<img src='{$record.image}' />
+						<div class='eContentTitle'>
+							<div class='widthEContentTitle'>
+								{$record.title}
 							</div>
-						</li>
-					{/foreach}
-					</ul>
-				{else}
-					<p> There are no items in this category </p>
-				{/if}
-		</div>
-		
-        	<ul data-role="listview" data-theme="a" data-inset="true">
-	            <li><a href="/Mobile/HighestRated" rel="external">Highest Rated</a></li>
-		        <li><a href="/Mobile/MostPopular" rel="external">Most Popular</a></li>
-		        <li><a href="/Mobile/FreeEbooks" rel="external">Free eBooks</a></li>
-       		</ul>
-   	 	
+						</div>
+					</div>
+				</li>
+			{/foreach}
+			</ul>
+		{else}
+			<p> There are no items in this category </p>
+		{/if}
+</div>
 
+<ul data-role="listview" data-theme="a" data-inset="true">
+    <li><a href="/Mobile/HighestRated" data-transition="slidefade" > Highest Rated </a></li>
+    <li><a href="/Mobile/MostPopular" data-transition="slidefade"  > Most Popular  </a></li>
+    <li><a href="/Mobile/FreeEbooks" data-transition="slidefade"   > Free eBooks   </a></li>
+</ul>
 {literal}
 	<script type="text/javascript">
 		$(document).ready(function()

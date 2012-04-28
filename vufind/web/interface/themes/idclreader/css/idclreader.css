@@ -51,3 +51,37 @@ div#imageGallery_NE div.jcarousel-clip-horizontal
 {
 	height: 240px;
 }
+.ui-list-item-center
+{
+	text-align: center;
+}
+
+.item-list-idclreader
+{
+	margin-left: 80px;
+}
+
+/*Image centered*/
+.list-item-img
+{
+   position:absolute;
+   margin:auto;
+}
+.my_icon_wrapper {
+	float: left; 
+	width: 80px; height: 80px;
+	text-align: center; 
+	vertical-align: middle;
+	
+}
+.noFloated
+{
+	width: 80px;
+	height: 70px;
+}
+.my_icon_wrapper .noFloated img
+{
+	margin: 0 auto;
+	max-width: 80px;
+	max-height: 80px;
+}
