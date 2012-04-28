@@ -1933,7 +1933,11 @@ public function renewItem($patronId, $itemId){
 					$hold_result['message'] = $result['variable']['AF'][0];
 					
 					//If the renew fails, check to see if we need to override the SIP port
-					if ($hold_result['result'] == false && $useAlternateSIP == false){
+					$alternatePortSet = false;
+					if (isset($configArray['SIP2']['alternate_port']) && strlen($configArray['SIP2']['alternate_port']) > 0 && $configArray['SIP2']['alternate_port'] != $configArray['SIP2']['port']){
+						$alternatePortSet = true;
+					}
+					if ($alternatePortSet && $hold_result['result'] == false && $useAlternateSIP == false){
 						//Can override the SIP port if there are sufficient copies on the shelf to cover any holds
 						
 						//Get the id for the item 

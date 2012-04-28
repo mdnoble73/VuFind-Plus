@@ -55,17 +55,10 @@ class EContentRecord extends SolrDataObject {
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentRecord',$k,$v); }
 
-	
-	public function get()
-	{
-		
-		
-	}
-	
 	function keys() {
 		return array('id', 'filename');
 	}
-
+	
 	function cores(){
 		return array('econtent');
 	}

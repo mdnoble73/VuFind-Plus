@@ -1182,7 +1182,7 @@ class Marmot implements DriverInterface
 		$numHoldsRequested = 0;
 		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
 			foreach ($patronDump['HOLD'] as $hold){
-				if (preg_match('/ST=105,/', $hold)){
+				if (preg_match('/ST=(105|98),/', $hold)){
 					$numHoldsAvailable++;
 				}else{
 					$numHoldsRequested++;
@@ -1516,10 +1516,12 @@ class Marmot implements DriverInterface
 				}elseif ($sortOption == 'author'){
 					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
 				}elseif ($sortOption == 'dueDate'){
-					if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
-						$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-					} else {
-						$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+					if (isset($curTitle['duedate'])){
+						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+						} else {
+							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+						}
 					}
 				}elseif ($sortOption == 'format'){
 					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
@@ -2427,6 +2429,12 @@ class Marmot implements DriverInterface
 				$success = true;
 			}
 		}
+		
+		//Make sure to clear any cached data
+		global $memcache;
+		$memcache->delete("patron_dump_$patronId");
+		//Clear holds for the patron
+		unset($this->holds[$patronId]);
 
 		if ($type == 'cancel' || $type == 'recall'){
 			if ($success){
