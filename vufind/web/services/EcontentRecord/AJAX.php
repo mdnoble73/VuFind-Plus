@@ -1,6 +1,7 @@
 <?php
 require_once 'Action.php';
 require_once 'sys/Proxy_Request.php';
+require_once 'sys/eContent/EContentRecord.php';
 
 global $configArray;
 
@@ -11,12 +12,12 @@ class AJAX extends Action {
 
 	function launch() {
 		$method = $_GET['method'];
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'checkPurchaseLinks', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -402,5 +403,48 @@ class AJAX extends Action {
 		}else{
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to cancel holds.'));
 		}
+	}
+	
+	function getPurchaseOptions(){
+		global $interface;
+		if (isset($_REQUEST['id'])){
+			$id = $_REQUEST['id'];
+			$interface->assign('id', $id);
+			$eContentRecord = new EContentRecord();
+			$eContentRecord->id = $id;
+			if ($eContentRecord->find(true)){
+				$purchaseLinks = array();
+				if ($eContentRecord->purchaseUrl != null){
+					$purchaseLinks[]  = array(
+						'link' => $eContentRecord->purchaseUrl,
+						'linkText' => 'Buy from ' . $eContentRecord->publisher,
+						'storeName' => $eContentRecord->publisher, 
+						'field856Index' => 1,
+					);
+				}
+				
+				if (count($purchaseLinks) > 0){
+					$interface->assign('purchaseLinks', $purchaseLinks);
+				}else{
+					$title = $eContentRecord->title;
+					require_once 'services/Record/Purchase.php';
+					$purchaseLinks = Purchase::getStoresForTitle($title);
+					
+					if (count($purchaseLinks) > 0){
+						$interface->assign('purchaseLinks', $purchaseLinks);
+					}else{
+						$interface->assign('errors', array("Sorry we couldn't find any stores that offer this title."));
+					}
+				}
+			}else{
+				$errors = array("Could not load record for that id.");
+				$interface->assign('errors', $errors);
+			}
+		}else{
+			$errors = array("You must provide the id of the title to be purchased. ");
+			$interface->assign('errors', $errors);
+		}
+		
+		echo $interface->fetch('EcontentRecord/ajax-purchase-options.tpl');
 	}
 }

@@ -32,12 +32,12 @@ class AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'checkPurchaseLinks', 'SaveComment', 'SaveTag', 'SaveRecord'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -59,6 +59,101 @@ class AJAX extends Action {
 
 			echo $xmlResponse;
 		}
+	}
+
+	function getPurchaseOptions(){
+		global $interface;
+		if (isset($_REQUEST['id'])){
+			$id = $_REQUEST['id'];
+			$interface->assign('id', $id);
+			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+			if ($marcRecord){
+				$linkFields = $marcRecord->getFields('856') ;
+				$purchaseLinks = array();
+				if ($linkFields){
+					$field856Index = 0;
+					foreach ($linkFields as $marcField){
+						$field856Index++;
+						//Get the link
+						if ($marcField->getSubfield('u')){
+							$link = $marcField->getSubfield('u')->getData();
+							if ($marcField->getSubfield('3')){
+								$linkText = $marcField->getSubfield('3')->getData();
+							}elseif ($marcField->getSubfield('y')){
+								$linkText = $marcField->getSubfield('y')->getData();
+							}elseif ($marcField->getSubfield('z')){
+								$linkText = $marcField->getSubfield('z')->getData();
+							}else{
+								$linkText = $link;
+							}
+							$showLink = true;
+							//Process some links differently so we can either hide them
+							//or show them in different areas of the catalog.
+							if (preg_match('/purchase/i', $linkText) ||
+							preg_match('/barnesandnoble|tatteredcover|amazon\.com/i', $link)){
+								if (preg_match('/barnesandnoble/i', $link)){
+									$purchaseLinks[] = array(
+		        		  	  'link' => $link,
+	                    'linkText' => 'Buy from Barnes & Noble',
+		        		  		'storeName' => 'Barnes & Noble',
+											'field856Index' => $field856Index,
+									);
+								}else if (preg_match('/tatteredcover/i', $link)){
+									$purchaseLinks[] = array(
+	                    'link' => $link,
+	                    'linkText' => 'Buy from Tattered Cover',
+		        		  		'storeName' => 'Tattered Cover',
+											'field856Index' => $field856Index,
+									);
+								}else if (preg_match('/amazon\.com/i', $link)){
+									$purchaseLinks[] = array(
+	                    'link' => $link,
+	                    'linkText' => 'Buy from Amazon',
+	                  	'storeName' => 'Amazon',
+											'field856Index' => $field856Index,
+									);
+								}else if (preg_match('/smashwords\.com/i', $link)){
+									$purchaseLinks[] = array(
+	                    'link' => $link,
+	                    'linkText' => 'Buy from Smashwords',
+	                  	'storeName' => 'Smashwords', 
+											'field856Index' => $field856Index,
+									);
+								}
+								$showLink = false;
+							}
+						}
+					}
+				} //End checking for purchase information in the marc record
+				
+				
+				if (count($purchaseLinks) > 0){
+					$interface->assign('purchaseLinks', $purchaseLinks);
+				}else{
+					$resource = new Resource();
+					$resource->record_id = $id;
+					$resource->fetch(true);
+					
+					$title = $resource->title;
+					require_once 'services/Record/Purchase.php';
+					$purchaseLinks = Purchase::getStoresForTitle($title);
+					
+					if (count($purchaseLinks) > 0){
+						$interface->assign('purchaseLinks', $purchaseLinks);
+					}else{
+						$interface->assign('errors', array("Sorry we couldn't find any stores that offer this title."));
+					}
+				}
+			}else{
+				$errors = array("Could not load marc information for that id.");
+				$interface->assign('errors', $errors);
+			}
+		}else{
+			$errors = array("You must provide the id of the title to be purchased. ");
+			$interface->assign('errors', $errors);
+		}
+		
+		echo $interface->fetch('Record/ajax-purchase-options.tpl');
 	}
 
 	function IsLoggedIn()
@@ -215,77 +310,10 @@ class AJAX extends Action {
 		$userComments = $interface->fetch('Record/view-comments-list.tpl');
 		$interface->assign('staffCommentList', $commentList['staff']);
 		$staffComments = $interface->fetch('Record/view-staff-reviews-list.tpl');
-		
+
 		return json_encode(array(
 			'staffComments' => $staffComments,
 			'userComments' => $userComments,
-		));
-	}
-	
-	function checkPurchaseLinks()
-	{
-
-		global $configArray;
-		global $interface;
-
-		//get the title based on the record ID
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
-
-		// Retrieve Full Marc Record
-		if (!($record = $this->db->getRecord($_REQUEST['id']))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
-		}
-		$this->record = $record;
-		//$interface->assign('record', $record);
-
-		$titleTerm = $record["title"];
-		$title = str_replace("/", "", $titleTerm);
-		$id = $_REQUEST['id'];
-		$interface->assign('id', $id);
-		
-		$tatteredCoverUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title);
-		$input = file_get_contents($tatteredCoverUrl);
-		$regexp = "/Your search yielded no results/i";
-	  if(!preg_match($regexp, $input)) {
-	  	$linkText = 'Buy from Tattered Cover';
-      $storeName = 'Tattered Cover';
-	  	$interface->assign('storeName', $storeName);
-			$interface->assign('linkText', $linkText);
-	  	$tatteredCover = $interface->fetch('Record/purchaseLinks.tpl');
-	  }
-
-		$amazonUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title);
-		$input = file_get_contents($amazonUrl);
-		$regexp = "/did not match any products/i";
-	  if(!preg_match($regexp, $input)) {
-	  	$linkText = 'Buy from Amazon';
-      $storeName = 'Amazon';
-	  	$interface->assign('storeName', $storeName);
-			$interface->assign('linkText', $linkText);
-	  	$amazon = $interface->fetch('Record/purchaseLinks.tpl');
-	  }
-
-		$barnesAndNobleUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title);
-		$input = file_get_contents($barnesAndNobleUrl);
-		$regexp = "/Please try another search/i";
-	  if(!preg_match($regexp, $input)) {
-	  	$linkText = 'Buy from Barnes &amp; Noble';
-      $storeName = 'Barnes and Noble';
-	  	$interface->assign('storeName', $storeName);
-			$interface->assign('linkText', $linkText);
-	  	$barnesAndNoble = $interface->fetch('Record/purchaseLinks.tpl');
-	  }	  
-	
-		return json_encode(array(
-			'tatteredCover' => $tatteredCover,
-			'amazon' => $amazon,
-			'barnesAndNoble' => $barnesAndNoble,
 		));
 	}
 
@@ -373,7 +401,7 @@ class AJAX extends Action {
 			    		'author' => $record['author']
 				);
 			}
-	
+
 			foreach ($titles as $key => $rawData){
 				$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
 	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
@@ -471,7 +499,7 @@ class AJAX extends Action {
 		$interface->assign('enrichment', $enrichmentData);
 		return $interface->fetch('Record/ajax-reviews.tpl');
 	}
-	
+
 	function getDescription(){
 		global $memcache;
 		global $configArray;
@@ -482,7 +510,7 @@ class AJAX extends Action {
 			require_once 'Description.php';
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init();
-	
+
 			global $interface;
 			$description = new Description(true, $id);
 			$descriptionArray = $description->loadData();
@@ -497,7 +525,7 @@ class AJAX extends Action {
 		$output .= "	<publisher><![CDATA[" . $descriptionArray['publisher'] . "]]></publisher>\n";
 
 		$output .= "</result>\n";
-		 
+			
 		return $output;
 	}
 }

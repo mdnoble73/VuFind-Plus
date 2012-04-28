@@ -169,3 +169,7 @@ function editItem(id, itemId){
 	ajaxLightbox(url+ "?" + params);
 	return false;
 }
+function showEcontentPurchaseOptions(id){
+	var url = path + "/EContentRecord/" + id + "/AJAX?method=getPurchaseOptions";
+	ajaxLightbox(url)
+}
