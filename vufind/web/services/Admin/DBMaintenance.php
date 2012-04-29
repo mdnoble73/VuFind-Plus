@@ -475,7 +475,7 @@ class DBMaintenance extends Admin {
 			
 			'resource_update7' => array(
 				'title' => 'Update resource table 7',
-				'description' => 'Increase the size of the ',
+				'description' => 'Increase the size of the marc field to avoid indexing errors updating the resources table. ',
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `resource` CHANGE marc marc LONGBLOB",
