@@ -192,27 +192,27 @@
             {/if}
 		                  
             <td class="myAccountCell">                        
-						<div id ="searchStars{$record.id|escape}" class="resultActions">
-						  <div class="rate{$record.id|escape} stat">
+						<div id ="searchStars{$record.shortId|escape}" class="resultActions">
+						  <div class="rate{$record.shortId|escape} stat">
 							  <div class="statVal">
 							    <span class="ui-rater">
 							      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
 							      (<span class="ui-rater-rateCount-{$record.shortId|escape} ui-rater-rateCount">0</span>)
 							    </span>
 							  </div>
-						      <div id="saveLink{$record.id|escape}">
+						      <div id="saveLink{$record.shortId|escape}">
 						        {if $showFavorites == 1} 
 						        <a href="{$url}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 						        {/if}
 						        {if $user}
-						        	<div id="lists{$record.id|escape}"></div>
+						        	<div id="lists{$record.shortId|escape}"></div>
     									<script type="text/javascript">
     									  getSaveStatuses('{$record.id|escape:"javascript"}');
     									</script>
-  						        {/if}
+  						      {/if}
   						    </div>
-                  {assign var=id value=$record.id}
-                  {assign var=shortId value=$record.shortId}
+                  {assign var=id value=$record.id scope="global"}
+                  {assign var=shortId value=$record.shortId scope="global"}
                   {include file="Record/title-review.tpl"}
 						    </div>
 						    <script type="text/javascript">

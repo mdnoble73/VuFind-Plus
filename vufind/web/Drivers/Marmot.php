@@ -1785,6 +1785,8 @@ class Marmot implements DriverInterface
 					foreach($holdSections as $key => $hold){
 						$hold['recordId'] = $hold['id'];
 						if ($hold['shortId'] == $resourceInfo->shortId){
+							$hold['recordId'] = $resourceInfo->record_id;
+							$hold['id'] = $resourceInfo->record_id;
 							//Load title, author, and format information about the title
 							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
 							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';

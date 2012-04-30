@@ -431,7 +431,7 @@ function redrawSaveStatus() {literal}{{/literal}
        </div>     
    </div>
    
-   <div id = "classicViewLink"><a href ="http://www.millennium.marmot.org/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
+   <div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
    {if $linkToAmazon == 1 && $isbn}
    <div class="titledetails">
         <a href="http://amazon.com/dp/{$isbn|@formatISBN}" target="_blank" class='amazonLink'> {translate text = "View on Amazon"}</a>
