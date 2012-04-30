@@ -709,9 +709,9 @@ function sendAJAXEmail(url, params, strings){
 	$.ajax({
 		url: url+'?'+params,
 		success: function(data) {
-			var value = data.result;
+			var value = $(data).find('result');
 			if (value) {
-					if (value == "Done") {
+					if (value.text() == "Done") {
 							document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
 							setTimeout("hideLightbox();", 3000);
 					} else {
@@ -772,10 +772,11 @@ function sendAJAXSMS(url, params, strings) {
 
 	$.ajax({
 		url: url+'?'+params,
+		
 		success: function(data) {
-			var value = data.result;
+			var value = $(data).find('result');
 			if (value) {
-					if (value == "Done") {
+					if (value.text() == "Done") {
 							document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
 							setTimeout("hideLightbox();", 3000);
 					} else {
