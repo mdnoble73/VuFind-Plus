@@ -92,37 +92,6 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	static final Pattern utf8Regex = Pattern.compile("([\\x00-\\x7F]|[\\xC0-\\xDF][\\x80-\\xBF]|[\\xE0-\\xEF][\\x80-\\xBF]{2}|[\\xF0-\\xF7][\\x80-\\xBF]{3})",
 			Pattern.CANON_EQ);
 
-	private String prepForCsv(String input, boolean trimTrailingPunctuation, boolean crSeparatedFields) {
-		if (input == null){
-			return "";
-		}
-		if (trimTrailingPunctuation) {
-			input = trimTrailingPunctuation(input);
-		}
-		input = input.replaceAll("'", "`");
-		input = input.replaceAll("\\|", " ");
-		input = input.replaceAll(";", " ");
-		if (crSeparatedFields){
-			input = input.replaceAll("[\\t]", " ");
-			input = input.replaceAll("\\r\\n|\\r|\\n", ";");
-		}else{
-			input = input.replaceAll("[\\r\\n\\t]", " ");
-		}
-		
-		// input = regex.matcher(input).replaceAll("");
-		return input;
-	}
-
-	private String trimTrailingPunctuation(String format) {
-		if (format == null){
-			return "";
-		}
-		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".")) {
-			format = format.substring(0, format.length() - 1);
-		}
-		return format.trim();
-	}
-
 	@Override
 	public boolean processEContentRecord(ResultSet eContentRecord) {
 		try {
@@ -133,10 +102,10 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("'econtentRecord" + id + "'");
 			// Write a link to the title
 			writer.write("|'" + vufindUrl + "/EContentRecord/" + id + "'");
-			writer.write("|'" + prepForCsv(eContentRecord.getString("title"), true, false) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("title"), true, false) + "'");
 			StringBuffer authors = new StringBuffer();
-			authors.append(prepForCsv(eContentRecord.getString("author"), true, false));
-			String author2 = prepForCsv(eContentRecord.getString("author2"), true,true);
+			authors.append(Util.prepForCsv(eContentRecord.getString("author"), true, false));
+			String author2 = Util.prepForCsv(eContentRecord.getString("author2"), true,true);
 			if (author2.length() > 0){
 				if (authors.length() > 0){
 					authors.append(";");
@@ -152,13 +121,13 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 
 			// Get the publisher
 			String publisher = eContentRecord.getString("publisher");
-			writer.write("|'" + prepForCsv(publisher, true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(publisher, true, true) + "'");
 
 			// Get the description
-			writer.write("|'" + prepForCsv(eContentRecord.getString("description"), false, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("description"), false, true) + "'");
 
 			// Get the genre
-			writer.write("|'" + prepForCsv(eContentRecord.getString("genre"), true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("genre"), true, true) + "'");
 
 			// Get the format
 			StringBuffer formats = new StringBuffer();
@@ -170,15 +139,15 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 				if (formats.length() > 0) {
 					formats.append(";");
 				}
-				formats.append(prepForCsv(format, true, true));
+				formats.append(Util.prepForCsv(format, true, true));
 			}
 			writer.write("|'" + formats.toString() + "'");
 
 			// Get the subjects
-			writer.write("|'" + prepForCsv(eContentRecord.getString("subject"), true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("subject"), true, true) + "'");
 
 			// Get the audiences
-			writer.write("|'" + prepForCsv(eContentRecord.getString("target_audience"), true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("target_audience"), true, true) + "'");
 
 			// Get the format categories
 			writer.write("|'EMedia'");
@@ -203,13 +172,13 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("'" + recordInfo.getId() + "'");
 			// Write a link to the title
 			writer.write("|'" + vufindUrl + "/Record/" + recordInfo.getId() + "'");
-			writer.write("|'" + prepForCsv(recordInfo.getTitle(), true, false) + "'");
+			writer.write("|'" + Util.prepForCsv(recordInfo.getTitle(), true, false) + "'");
 			StringBuffer authors = new StringBuffer();
 			for (String author : recordInfo.getAuthors()) {
 				if (authors.length() > 0) {
 					authors.append(";");
 				}
-				authors.append(prepForCsv(author, true, false));
+				authors.append(Util.prepForCsv(author, true, false));
 			}
 			writer.write("|'" + authors.toString() + "'");
 
@@ -218,29 +187,29 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 					+ recordInfo.getId() + "&amp;size=small'");
 
 			// Get the publisher
-			writer.write("|'" + prepForCsv(recordInfo.getFirstFieldValueInSet("publisher"), true, false) + "'");
+			writer.write("|'" + Util.prepForCsv(recordInfo.getFirstFieldValueInSet("publisher"), true, false) + "'");
 
 			// Get the description
-			writer.write("|'" + prepForCsv(recordInfo.getDescription(), false, false) + "'");
+			writer.write("|'" + Util.prepForCsv(recordInfo.getDescription(), false, false) + "'");
 
 			// Get the genre
-			String genres = Util.getSemiColonSeparatedString(recordInfo.getFields().get("genre"));
+			String genres = Util.getSemiColonSeparatedString(recordInfo.getFields().get("genre"), true);
 			writer.write("|'" + genres + "'");
 
 			// Get the format
-			String formats = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format"));
+			String formats = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format"), true);
 			writer.write("|'" + formats.toString() + "'");
 
 			// Get the subjects
-			String subjects = Util.getSemiColonSeparatedString(recordInfo.getFields().get("topic"));
+			String subjects = Util.getSemiColonSeparatedString(recordInfo.getFields().get("topic"), true);
 			writer.write("|'" + subjects.toString() + "'");
 
 			// Get the audiences
-			String audiences = Util.getSemiColonSeparatedString(recordInfo.getFields().get("target_audience"));
+			String audiences = Util.getSemiColonSeparatedString(recordInfo.getFields().get("target_audience"), true);
 			writer.write("|'" + audiences.toString() + "'");
 
 			// Get the format categories
-			String categories = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format_category"));
+			String categories = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format_category"), true);
 			writer.write("|'" + categories.toString() + "'");
 
 			writer.write("\r\n");
