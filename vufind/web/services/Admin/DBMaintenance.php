@@ -534,7 +534,6 @@ class DBMaintenance extends Admin {
         'description' => 'Update reading History to include an id table',
         'dependencies' => array(),
         'sql' => array(
-			    'DROP TABLE IF EXISTS user_reading_history;',
 			    "CREATE TABLE IF NOT EXISTS  user_reading_history(" .
 				    "`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', " .
 						"`resourceId` INT NOT NULL COMMENT 'The record id of the item that was checked out', " .
@@ -979,6 +978,39 @@ class DBMaintenance extends Admin {
 				'description' => 'Add a new table: list_widget_lists_links',
 				'dependencies' => array(),
 				'sql' => array('addTableListWidgetListsLinks'),
+		),
+		
+		
+		'millenniumTables' => array(
+				'title' => 'Millennium table setup',
+				'description' => 'Add new tables for millennium installations',
+				'dependencies' => array(),
+				'sql' => array(
+				"CREATE TABLE `millennium_cache` (
+				    `recordId` VARCHAR( 20 ) NOT NULL COMMENT 'The recordId being checked',
+				    `scope` int(16) NOT NULL COMMENT 'The scope that was loaded',
+				    `holdingsInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium for holdings',
+				    `framesetInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium on the frameset page',
+				    `cacheDate` int(16) NOT NULL COMMENT 'When the entry was recorded in the cache'
+				) ENGINE = MYISAM COMMENT = 'Caches information from Millennium so we do not have to continually load it.';
+				ALTER TABLE `millennium_cache` ADD PRIMARY KEY ( `recordId` , `scope` ) ;",
+		
+				"CREATE TABLE IF NOT EXISTS `ptype_restricted_locations` (
+				  `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
+				  `millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
+				  `holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
+				  `allowablePtypes` varchar(50) NOT NULL COMMENT 'A list of PTypes that are allowed to place holds on items with this location separated with pipes (|).',
+				  PRIMARY KEY (`locationId`)
+				) ENGINE=MyISAM",
+		
+				"CREATE TABLE IF NOT EXISTS `non_holdable_locations` (
+				  `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
+				  `millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
+				  `holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
+				  `availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
+				  PRIMARY KEY (`locationId`)
+				) ENGINE=MyISAM"
+		),
 		),
 		
 		);
