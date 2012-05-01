@@ -22,7 +22,8 @@
         <a class="button" href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;">{translate text='Add to list...'}</a>
       {/if}
     </div>
-    {assign var=id value=$summId}
+    {assign var=id value=$summId scope="global"}
+    {assign var=shortId value=$summShortId scope="global"}
     {*include file="Record/title-review.tpl"*}
   </div>
   <div class="details">

@@ -53,6 +53,7 @@ class Home extends Action{
 			$interface->assign('showEmailThis', $library->showEmailThis);
 			$interface->assign('showFavorites', $library->showFavorites);
 			$interface->assign('linkToAmazon', $library->linkToAmazon);
+			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
 			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
 			if ($location != null){
 				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
@@ -72,6 +73,7 @@ class Home extends Action{
 			$interface->assign('showEmailThis', 1);
 			$interface->assign('showFavorites', 1);
 			$interface->assign('linkToAmazon', 1);
+			$interface->assign('enablePurchaseLinks', 1);
 			$interface->assign('enablePospectorIntegration', 0);
 			if ($location != null){
 				$interface->assign('showAmazonReviews', $location->showAmazonReviews);

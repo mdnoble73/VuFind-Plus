@@ -16,9 +16,7 @@
 	{if $user}
 	  redrawSaveStatus();
 	{/if}
-	{if $enablePurchaseLinks == 1 && !$purchaseLinks}
-		checkPurchaseLinks('{$id|escape:"url"}');
-	{/if}
+	
 	{if (isset($title)) }
 	  alert("{$title}");
 	{/if}
@@ -218,6 +216,10 @@ function redrawSaveStatus() {literal}{{/literal}
     <div class="titledetails">
       <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
     </div>
+    {/if}
+    
+    {if $classicId}
+    <div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
     {/if}
   </div> {* End sidebar *}
   
@@ -566,18 +568,9 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/foreach}
 		{/if}
         <div id="holdingsPlaceholder"></div>
-        {if $enablePurchaseLinks == 1 && $purchaseLinks}
-          <div id="purchaseTitleLinks">
-          <h3>Get a copy for yourself</h3>
-          {foreach from=$purchaseLinks item=purchaseLink}
-            <div class='purchaseTitle button'><a href="/Record/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}" target="_blank">{$purchaseLink.linkText}</a></div>
-          {/foreach}
-          </div>
-        {else}
-         <div id="purchaseTitleLinks">
-        <div id="purchaseLinkButtons"></div>
-        </div>
-        {/if}
+        {if $enablePurchaseLinks == 1 && !$purchaseLinks}
+					<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+				{/if}
         
       </div>
     </div> {* End of tabs*}

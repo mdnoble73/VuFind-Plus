@@ -141,7 +141,7 @@ class EContentRecord extends SolrDataObject {
 		'title' => array(
 		  'property' => 'title',
 		  'type' => 'text',
-		  'size' => 255,
+		  'size' => 100,
 		  'maxLength'=>255, 
 		  'label' => 'Title',
 		  'description' => 'The title of the item.',

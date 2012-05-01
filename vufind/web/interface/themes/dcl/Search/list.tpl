@@ -38,6 +38,7 @@
           {translate text='of'} <b>{$recordCount}</b>
           {if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
         {/if}
+        {translate text='query time'}: {$qtime}s
         <select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
         {foreach from=$sortList item=sortData key=sortLabel}
           <option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text='Sort by '} {translate text=$sortData.desc}</option>

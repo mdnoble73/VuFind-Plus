@@ -572,26 +572,28 @@ try{
 	$(document).ready(
 	function() {
 		try{
-			$("#lookfor").autocomplete({
-				source: function(request, response){
-					var url = path + "/Search/AJAX?method=GetAutoSuggestList&type=" + $("#type").val() + "&searchTerm=" +  $("#lookfor").val();
-					$.ajax({
-						url: url,
-						dataType: "json",
-						success: function(data){
-							response(data);
-						}
-					});
-				},
-				position: {
-					my: "left top",
-					at: "left bottom",
-					of: "#lookfor",
-					collision: "fit"
-				},
-				minLength: 4,
-				delay: 600
-			});
+			if ($("#lookfor")){
+				$("#lookfor").autocomplete({
+					source: function(request, response){
+						var url = path + "/Search/AJAX?method=GetAutoSuggestList&type=" + $("#type").val() + "&searchTerm=" +  $("#lookfor").val();
+						$.ajax({
+							url: url,
+							dataType: "json",
+							success: function(data){
+								response(data);
+							}
+						});
+					},
+					position: {
+						my: "left top",
+						at: "left bottom",
+						of: "#lookfor",
+						collision: "fit"
+					},
+					minLength: 4,
+					delay: 600
+				});
+			}
 		} catch (e) {
 			alert("error during autocomplete setup" + e);
 		}
@@ -707,9 +709,9 @@ function sendAJAXEmail(url, params, strings){
 	$.ajax({
 		url: url+'?'+params,
 		success: function(data) {
-			var value = data.result;
+			var value = $(data).find('result');
 			if (value) {
-					if (value == "Done") {
+					if (value.text() == "Done") {
 							document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
 							setTimeout("hideLightbox();", 3000);
 					} else {
@@ -770,10 +772,11 @@ function sendAJAXSMS(url, params, strings) {
 
 	$.ajax({
 		url: url+'?'+params,
+		
 		success: function(data) {
-			var value = data.result;
+			var value = $(data).find('result');
 			if (value) {
-					if (value == "Done") {
+					if (value.text() == "Done") {
 							document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
 							setTimeout("hideLightbox();", 3000);
 					} else {
@@ -936,4 +939,8 @@ function GetTags(id, elemId, strings) {
 			$("#" + elemId).html(strings.load_error);
 		}
 	});
+}
+
+function loadOtherEditionSummaries(id, isEcontent){
+	$("#otherEditionsGroup").slideDown();
 }

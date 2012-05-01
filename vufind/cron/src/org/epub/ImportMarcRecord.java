@@ -60,7 +60,7 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 			doesControlNumberExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE marcControlField = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
-			createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_marc_import (filename, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
+			createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_marc_import (filename, supplementalFilename, source, accessType, dateStarted, status) VALUES (?, ?, ?, ?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
 			markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_marc_import SET dateFinished = ?, recordsProcessed = ?, status = 'finished' WHERE id = ?");
 			updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_marc_import SET recordsProcessed = ? WHERE id = ?");
 			updateCollection = econtentConn.prepareStatement("UPDATE econtent_record set collection = ? WHERE id = ? and (collection is null or collection = '')");
@@ -68,7 +68,10 @@ public class ImportMarcRecord extends MarcProcessorBase implements IProcessHandl
 			
 			//Add a log entry to indicate that the marc file is being imported
 			createLogEntry.setString(1, this.marcRecordPath);
-			createLogEntry.setLong(2, new Date().getTime() / 1000);
+			createLogEntry.setString(2, this.supplementalFilePath);
+			createLogEntry.setString(3, this.source);
+			createLogEntry.setString(4, this.accessType);
+			createLogEntry.setLong(5, new Date().getTime() / 1000);
 			createLogEntry.executeUpdate();
 			ResultSet logResult = createLogEntry.getGeneratedKeys();
 			if (logResult.next()){

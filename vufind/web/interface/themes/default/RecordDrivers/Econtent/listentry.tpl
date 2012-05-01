@@ -77,7 +77,7 @@
 	      (<span class="ui-rater-rateCount-{$listId|escape} ui-rater-rateCount">0</span>)
 	    </span>
 	  </div>
-    {assign var=id value=$listId}
+    {assign var=id value=$listId scope="global"}
     {include file="EcontentRecord/title-review.tpl"}
       
     </div>

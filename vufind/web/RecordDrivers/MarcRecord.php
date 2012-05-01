@@ -783,13 +783,13 @@ class MarcRecord extends IndexRecord
 		}
 
 		$email = "  " . $this->getTitle() . "\n";
-		if ($holdingsSummary['callnumber']){
+		if (isset($holdingsSummary['callnumber'])){
 			$email .= "  Call Number: " . $holdingsSummary['callnumber'] . "\n";
 		}
-		if ($holdingsSummary['availableAt']){
+		if (isset($holdingsSummary['availableAt'])){
 			$email .= "  Available At: " . $holdingsSummary['availableAt'] . "\n";
 		}
-		if ($holdingsSummary['isDownloadable']){
+		if (isset($holdingsSummary['downloadLink'])){
 			$email .= "  Download from: " . $holdingsSummary['downloadLink'] . "\n";
 		}
 

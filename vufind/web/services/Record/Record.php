@@ -67,6 +67,10 @@ class Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		if ($configArray['Catalog']['ils'] == 'Millennium'){
+			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
+			$interface->assign('classicUrl', $configArray['Catalog']['url']);
+		}
 		 
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
@@ -386,37 +390,8 @@ class Record extends Action
 					$showLink = true;
 					//Process some links differently so we can either hide them
 					//or show them in different areas of the catalog.
-					if (preg_match('/purchase/i', $linkText) ||
-						preg_match('/barnesandnoble|tatteredcover|amazon\.com/i', $link)){
-						if (preg_match('/barnesandnoble/i', $link)){
-							$purchaseLinks[] = array(
-	        		  	  'link' => $link,
-                    'linkText' => 'Buy from Barnes & Noble',
-	        		  		'storeName' => 'Barnes & Noble',
-										'field856Index' => $field856Index,
-							);
-						}else if (preg_match('/tatteredcover/i', $link)){
-							$purchaseLinks[] = array(
-                    'link' => $link,
-                    'linkText' => 'Buy from Tattered Cover',
-	        		  		'storeName' => 'Tattered Cover',
-										'field856Index' => $field856Index,
-							);
-						}else if (preg_match('/amazon\.com/i', $link)){
-							$purchaseLinks[] = array(
-                    'link' => $link,
-                    'linkText' => 'Buy from Amazon',
-                  	'storeName' => 'Amazon',
-										'field856Index' => $field856Index,
-							);
-						}else if (preg_match('/smashwords\.com/i', $link)){
-							$purchaseLinks[] = array(
-                    'link' => $link,
-                    'linkText' => 'Buy from Smashwords',
-                  	'storeName' => 'Smashwords', 
-										'field856Index' => $field856Index,
-							);
-						}
+					if (preg_match('/purchase/buyi', $linkText) ||
+						preg_match('/barnesandnoble|tatteredcover|amazon|smashwords\.com/i', $link)){
 						$showLink = false;
 					}
 					$isBookLink = preg_match('/acs\.dcl\.lan|vufind\.douglascountylibraries\.org|catalog\.douglascountylibraries\.org/i', $link);

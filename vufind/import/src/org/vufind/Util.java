@@ -110,7 +110,7 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 	
-	public static String getSemiColonSeparatedString(Object values) {
+	public static String getSemiColonSeparatedString(Object values, boolean prepForCsv) {
 		StringBuffer crSeparatedString = new StringBuffer();
 		if (values instanceof String){
 			crSeparatedString.append((String)values);
@@ -121,7 +121,11 @@ public class Util {
 				if (crSeparatedString.length() > 0) {
 					crSeparatedString.append(";");
 				}
-				crSeparatedString.append(curValue);
+				if (prepForCsv){
+					crSeparatedString.append(prepForCsv(curValue, true, false));
+				}else{
+					crSeparatedString.append(curValue);
+				}
 			}
 		}
 		return crSeparatedString.toString();
@@ -413,6 +417,35 @@ public class Util {
 		return stringBuffer.toString();
 	}
 
+	public static String prepForCsv(String input, boolean trimTrailingPunctuation, boolean crSeparatedFields) {
+		if (input == null){
+			return "";
+		}
+		if (trimTrailingPunctuation) {
+			input = trimTrailingPunctuation(input);
+		}
+		input = input.replaceAll("'", "`");
+		input = input.replaceAll("\\|", " ");
+		input = input.replaceAll(";", " ");
+		if (crSeparatedFields){
+			input = input.replaceAll("[\\t]", " ");
+			input = input.replaceAll("\\r\\n|\\r|\\n", ";");
+		}else{
+			input = input.replaceAll("[\\r\\n\\t]", " ");
+		}
+		
+		// input = regex.matcher(input).replaceAll("");
+		return input;
+	}
 
+	public static String trimTrailingPunctuation(String format) {
+		if (format == null){
+			return "";
+		}
+		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".")) {
+			format = format.substring(0, format.length() - 1);
+		}
+		return format.trim();
+	}
 
 }

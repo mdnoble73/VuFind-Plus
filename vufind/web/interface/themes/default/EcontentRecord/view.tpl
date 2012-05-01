@@ -17,9 +17,6 @@
   {if $user}
 	  redrawSaveStatus();
 	{/if}
-	{if !$purchaseLinks}
-		checkPurchaseLinks('{$id|escape:"url"}');
-	{/if}
 	{if (isset($title)) }
 	  //alert("{$title}");
 	{/if}
@@ -572,19 +569,10 @@ function redrawSaveStatus() {literal}{{/literal}
       
       <div id = "holdingstab">
       	<div id="holdingsPlaceholder">Loading...</div>
-        {if $purchaseLinks}
-          <div id="purchaseTitleLinks">
-          <h3>Get a copy for yourself</h3>
-          {foreach from=$purchaseLinks item=purchaseLink}
-            <div class='purchaseTitle button'><a href="/EcontentRecord/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}" target="_blank">{$purchaseLink.linkText}</a></div>
-          {/foreach}
-          </div>
-        {else}
-         <div id="purchaseTitleLinks">
-        <div id="purchaseLinkButtons"></div>
-        </div>
-        {/if}
-        {if $eContentRecord->sourceUrl}
+        {if $enablePurchaseLinks == 1 && !$purchaseLinks}
+					<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+				{/if}
+       {if $eContentRecord->sourceUrl}
       	<div id="econtentSource">
       		<a href="{$eContentRecord->sourceUrl}">Access original files</a>
       	</div>
