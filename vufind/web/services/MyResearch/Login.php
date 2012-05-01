@@ -97,6 +97,13 @@ class Login extends Action
 		}else{
 			$interface->assign('enableSelfRegistration', 0);
 		}
+		
+		//Vars for the IDCLREADER TEMPLATE
+		$interface->assign('ButtonBack',true);
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','&nbsp;');
+		
+		
 		//set focus to the username field by default.
 		$interface->assign('focusElementId', 'username');
 		$interface->setTemplate('login.tpl');
