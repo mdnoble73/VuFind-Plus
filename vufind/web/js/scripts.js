@@ -487,6 +487,7 @@ function showProcessingIndicator(message){
 
 function searchSubmit(){
 	// Stop auto complete since there is a search running already
+	alert('HGOLA@');
 	$('#lookfor').autocomplete( "disable" );
 	
 	document.forms.searchForm.action='/Union/Search'
@@ -572,7 +573,7 @@ try{
 	$(document).ready(
 	function() {
 		try{
-			if ($("#lookfor")){
+			if ($("#lookfor").length==1){
 				$("#lookfor").autocomplete({
 					source: function(request, response){
 						var url = path + "/Search/AJAX?method=GetAutoSuggestList&type=" + $("#type").val() + "&searchTerm=" +  $("#lookfor").val();
