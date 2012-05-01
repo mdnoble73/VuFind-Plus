@@ -167,7 +167,7 @@
 					{/if}
 				</fieldset>
 				<div class="request_detail_field">
-					<div class="request_detail_field_label">Where did you here about this title? </div>
+					<div class="request_detail_field_label">Where did you hear about this title? </div>
 					<div class="request_detail_field_value_long">{$materialsRequest->about}</div>
 				</div>
 				{if $materialsRequest->comments}
