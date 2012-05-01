@@ -101,7 +101,6 @@ class MyResearch extends Action
 					}
 				}
 			}
-
 			//Figure out if we should show a link to classic opac to pay holds.
 			$ecommerceLink = $configArray['Site']['ecommerceLink'];
 			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);

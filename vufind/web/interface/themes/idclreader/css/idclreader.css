@@ -1,5 +1,11 @@
 @CHARSET "ISO-8859-1";
 
+span.warningDueDate
+{
+	color:#E58E29;
+	font-size: small;
+}
+
 div.itemsInside
 {
 	position: block;
@@ -12,7 +18,7 @@ div.itemsInside
 div.item_wrapper
 {
 	width:180px;
-	height: 240px;	
+	height: 240px;
 }
 
 div.item_wrapper img
@@ -84,4 +90,23 @@ div#imageGallery_NE div.jcarousel-clip-horizontal
 	margin: 0 auto;
 	max-width: 80px;
 	max-height: 80px;
+}
+
+div#idclReaderContent div.ui-block-a
+{
+	width:35%;
+}
+div#idclReaderContent div.ui-block-b
+{
+	width:65%;
+}
+
+div#idclReaderContent .ui-block-a img
+{
+	width: 90%;	
+}
+
+div#idclReaderContent .ui-block-b h2
+{
+	margin-top: -5px;
 }
