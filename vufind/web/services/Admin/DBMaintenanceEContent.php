@@ -377,6 +377,16 @@ class DBMaintenanceEContent extends Admin {
 				"ALTER TABLE econtent_marc_import ADD COLUMN errors LONGTEXT",
 		),
 		),
+		'econtent_marc_import_2'  => array(
+			'title' => 'EContent Marc Import Update 2',
+			'description' => 'Updates Log to include supplemental file and source.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_marc_import ADD COLUMN supplementalFilename VARCHAR(255)",
+				"ALTER TABLE econtent_marc_import ADD COLUMN source VARCHAR(100)",
+				"ALTER TABLE econtent_marc_import ADD COLUMN accessType VARCHAR(100)",
+		),
+		),
 		
 		'econtent_attach'  => array(
 			'title' => 'EContent Attachment Log',
