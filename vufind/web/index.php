@@ -63,8 +63,10 @@ if (preg_match("/(MyResearch)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matc
 }elseif (preg_match("/(MyResearch)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['action'] = $matches[2];
+	$_REQUEST['id'] = '';
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['action'] = $matches[2];
+	$_REQUEST['id'] = '';
 }elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[2];
@@ -557,15 +559,14 @@ $ipId = $locationSingleton->getIPid();
 
 if (!is_null($ipLocation) && $user){
 	$interface->assign('onInternalIP', true);
-	if ($user->bypassAutoLogout == 1){
+	if (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1){
 		$interface->assign('includeAutoLogoutCode', false);
 	}else{
 		$includeAutoLogoutCode = true;
-		if ($user){
-			//Get the PType for the user
-			require_once('Drivers/Marmot.php');
-			$marmotDriver = new Marmot();
-			$userIsStaff = $marmotDriver->isUserStaff();
+		//Get the PType for the user
+		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		if ($catalog->checkFunction('isUserStaff')){
+			$userIsStaff = $catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
 			if ($userIsStaff){
 				//Check to see if the user has overridden the auto logout code.
@@ -574,6 +575,7 @@ if (!is_null($ipLocation) && $user){
 				}
 			}
 		}
+		
 		$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 	}
 }else{

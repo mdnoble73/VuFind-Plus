@@ -217,6 +217,10 @@ function redrawSaveStatus() {literal}{{/literal}
       <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
     </div>
     {/if}
+    
+    {if $classicId}
+    <div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
+    {/if}
   </div> {* End sidebar *}
   
   <div id="main-content" class="full-result-content">

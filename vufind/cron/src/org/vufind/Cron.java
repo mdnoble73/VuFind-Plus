@@ -173,6 +173,19 @@ public class Cron {
 					processHandlerClassObject = processHandlerClass.newInstance();
 					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
 					cronEntry.addNote("Starting cron process " + processToRun.getProcessName());
+					
+					if (updateConfig){
+						//Mark the time the run was started rather than finished so really long running processes 
+						//can go on while faster processes execute multiple times in other threads. 
+						cronIni.put(processToRun.getProcessName(), "lastRun", currentTime.getTime());
+						cronIni.put(processToRun.getProcessName(), "lastRunFormatted", currentTime.toString());
+						try {
+							cronIni.store(cronConfigFile);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							logger.error("Unable to update configuration file.");
+						}
+					}
 					processHandlerInstance.doCronProcess(serverName, ini, processSettings, vufindConn, econtentConn, cronEntry, logger);
 					//Log how long the process took
 					Date endTime = new Date();
@@ -182,10 +195,7 @@ public class Cron {
 					cronEntry.addNote("Finished process " + processToRun.getProcessName() + " in " + elapsedMinutes + " minutes (" + elapsedMillis + " milliseconds)");
 					// Update that the process was run.
 					currentTime = new Date();
-					if (updateConfig){
-						cronIni.put(processToRun.getProcessName(), "lastRun", currentTime.getTime());
-						cronIni.put(processToRun.getProcessName(), "lastRunFormatted", currentTime.toString());
-					}
+					
 				} catch (InstantiationException e) {
 					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
 					cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
@@ -214,57 +224,56 @@ public class Cron {
 		cronEntry.saveToDatabase(vufindConn, logger);
 	}
 
-	private static ArrayList<ProcessToRun> loadProcessesToRun(Ini ini, Section processes) {
+	private static ArrayList<ProcessToRun> loadProcessesToRun(Ini cronIni, Section processes) {
 		ArrayList<ProcessToRun> processesToRun = new ArrayList<ProcessToRun>();
 		Date currentTime = new Date();
 		for (String processName : processes.keySet()) {
-			
-			String processHandler = ini.get("Processes", processName);
+			String processHandler = cronIni.get("Processes", processName);
 			// Each process has its own configuration section which can include:
 			// - time last run
 			// - interval to run the process
 			// - additional configuration information for the process
 			// Check to see when the process was last run
-			String lastRun = ini.get(processName, "lastRun");
+			String lastRun = cronIni.get(processName, "lastRun");
 			boolean runProcess = false;
-			if (lastRun == null || lastRun.length() == 0) {
+			String frequencyHours = cronIni.get(processName, "frequencyHours");
+			if (frequencyHours == null || frequencyHours.length() == 0){
+				//If the frequency isn't set, automatically run the process 
 				runProcess = true;
-			} else {
-				// Check the interval to see if the process should be run
-				try {
-					long lastRunTime = Long.parseLong(lastRun);
-					
-					String frequencyHours = ini.get(processName, "frequencyHours");
-					if (frequencyHours == null || frequencyHours.length() == 0){
-						runProcess = true;
-					}else if (frequencyHours.trim().compareTo("0") == 0) {
-						// There should not be a delay between cron runs
-						runProcess = true;
-					}else if (frequencyHours.trim().compareTo("-1") == 0) {
-						// Process has to be run manually
-						runProcess = false;
-						logger.info("Skipping Process " + processName + " because it must be run manually.");
-					} else {
-						int frequencyHoursInt = Integer.parseInt(frequencyHours);
-						if ((double) (currentTime.getTime() - lastRunTime) / (double) (1000 * 60 * 60) >= frequencyHoursInt) {
-							// The elapsed time is greater than the frequency to run
+			}else if (frequencyHours.trim().compareTo("-1") == 0) {
+				// Process has to be run manually
+				runProcess = false;
+				logger.info("Skipping Process " + processName + " because it must be run manually.");
+			}else{
+				//Frequency is a number of hours.  See if we should run based on the last run. 
+				if (lastRun == null || lastRun.length() == 0) {
+					runProcess = true;
+				} else {
+					// Check the interval to see if the process should be run
+					try {
+						long lastRunTime = Long.parseLong(lastRun);
+						if (frequencyHours.trim().compareTo("0") == 0) {
+							// There should not be a delay between cron runs
 							runProcess = true;
-						}else{
-							logger.info("Skipping Process " + processName + " because it has already run in the specified interval.");
+						} else {
+							int frequencyHoursInt = Integer.parseInt(frequencyHours);
+							if ((double) (currentTime.getTime() - lastRunTime) / (double) (1000 * 60 * 60) >= frequencyHoursInt) {
+								// The elapsed time is greater than the frequency to run
+								runProcess = true;
+							}else{
+								logger.info("Skipping Process " + processName + " because it has already run in the specified interval.");
+							}
+	
 						}
-
+					} catch (NumberFormatException e) {
+						logger.warn("Warning: the lastRun setting for " + processName + " was invalid. " + e.toString());
 					}
-				} catch (NumberFormatException e) {
-					logger.warn("Warning: the lastRun setting for " + processName + " was invalid. " + e.toString());
-
 				}
-
 			}
 			if (runProcess) {
+				logger.info("Running process " + processName);
 				processesToRun.add(new ProcessToRun(processName, processHandler));
-				
 			}
-
 		}
 		return processesToRun;
 	}

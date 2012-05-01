@@ -303,7 +303,7 @@ class Location extends DB_DataObject
 		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
 		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
 		
-		if ($this->ipLocation === false || $this->ipId === false){
+		if (!isset($this->ipLocation) || $this->ipLocation === false || $this->ipId === false){
 			//echo("Active IP is $activeIp");
 			require_once './Drivers/marmot_inc/ipcalc.php';
 			require_once './Drivers/marmot_inc/subnet.php';
