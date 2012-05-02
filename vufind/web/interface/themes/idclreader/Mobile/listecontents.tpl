@@ -2,7 +2,7 @@
 {if $LIST neq ''}
 	{foreach from=$LIST item=ebook}
 		<li>
-			<a href="index.html">
+			<a href="/EcontentRecord/{$ebook.id|substr:14:10}">
 				<div class="my_icon_wrapper">
 					<div class='noFloated'>
 						<img src="{$ebook.small_image}" />

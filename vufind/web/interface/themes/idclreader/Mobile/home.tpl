@@ -6,9 +6,9 @@
 			{foreach from=$NE item=record}
 				<li>
 					<div class='item_wrapper'>
-						<img src='{$record.image}' />
+							<img src='{$record.image}' class='linkDetail' titleId='{$record.id}'/>
 						<div class='eContentTitle'>
-							<div class='widthEContentTitle'>
+							<div class='widthEContentTitle linkDetail' titleId='{$record.id}'>
 								{$record.title}
 							</div>
 						</div>
@@ -22,9 +22,10 @@
 </div>
 
 <ul data-role="listview" data-theme="a" data-inset="true">
-    <li><a href="/Mobile/HighestRated" data-transition="slidefade" > Highest Rated </a></li>
-    <li><a href="/Mobile/MostPopular" data-transition="slidefade"  > Most Popular  </a></li>
-    <li><a href="/Mobile/FreeEbooks" data-transition="slidefade"   > Free eBooks   </a></li>
+    <li><a href="/Mobile/HighestRated" data-ajax=false>Highest Rated</a></li>
+    <li><a href="/Mobile/MostPopular" data-ajax=false>Most Popular </a></li>
+    <li><a href="/Mobile/FreeEbooks" data-ajax=false>Free eBooks  </a></li>
+    <li><a href="/MyResearch/Home" data-ajax=false>My Account   </a></li>
 </ul>
 {literal}
 	<script type="text/javascript">
@@ -43,7 +44,7 @@
 				);
 				
 				$("#imageGallery_" + id).touchwipe({
-				    wipeLeft: function() { $('#carousel_' + id).jcarousel('next');},
+				    wipeLeft: function() {$('#carousel_' + id).jcarousel('next');},
 				    wipeRight: function() {$('#carousel_' + id).jcarousel('prev'); },
 				    min_move_x: 20,
 				    min_move_y: 20,
@@ -51,7 +52,9 @@
 				});
 			}
 			{/literal}
-				{if $NE neq ""} setUpCarousels("NE"); {/if}
+				{if $NE neq ""} 
+					setUpCarousels("NE");
+				{/if}
 			{literal}
 		});
 	</script>

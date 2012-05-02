@@ -182,6 +182,12 @@ class Home extends Action{
 
 			$interface->setPageTitle($eContentRecord->title);
 
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','&nbsp;');
+			
+			
 			// Display Page
 			$interface->display('layout.tpl');
 

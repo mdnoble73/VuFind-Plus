@@ -51,6 +51,11 @@ class EContentCheckedOut extends MyResearch {
 				$selectedSortOption = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'dueDate';
 				$interface->assign('defaultSortOption', $selectedSortOption);
 
+				//Vars for the IDCLREADER TEMPLATE
+				$interface->assign('ButtonBack',true);
+				$interface->assign('ButtonHome',true);
+				$interface->assign('MobileTitle','eContents Checked Out');
+				
 				require_once 'Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				
