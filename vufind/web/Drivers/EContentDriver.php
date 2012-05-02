@@ -926,7 +926,7 @@ class EContentDriver implements DriverInterface{
 					//Link to Freegal
 					$links[] = array(
 									'url' => $url,
-									'text' => 'Access&nbsp;on&nbsp;' . $eContentItem->source,
+									'text' => 'Access&nbsp;on&nbsp;' . $eContentRecord->source,
 					);
 				}else{
 					$links[] = array(
@@ -937,13 +937,13 @@ class EContentDriver implements DriverInterface{
 			}else{
 				$links[] = array(
 							'url' => $eContentItem->link,
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentItem->source,
+							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
 				);
 			}
 		}elseif (in_array($eContentItem->item_type, array('externalLink', 'interactiveBook'))){
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentItem->source,
+							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
 			);
 		}
 		return $links;

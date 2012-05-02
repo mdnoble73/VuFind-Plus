@@ -29,6 +29,11 @@
 				<br/>{$holdingsSummary.holdQueueLength} {if $holdingsSummary.holdQueueLength == 1}person is{else}people are{/if} on the wait list.
 			{/if}
 		{/if} 
+		{if $showOtherEditionsPopup}
+		<div class="otherEditions">
+			<a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', true)">Other Formats and Languages</a>
+		</div>
+		{/if}
 	</div>
      
  </div>

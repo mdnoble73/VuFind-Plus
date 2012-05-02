@@ -96,6 +96,7 @@ class AJAX extends Action {
 		        		  	  'link' => $link,
 	                    'linkText' => 'Buy from Barnes & Noble',
 		        		  		'storeName' => 'Barnes & Noble',
+											'image' => '/images/barnes_and_noble.png',
 											'field856Index' => $field856Index,
 									);
 								}else if (preg_match('/tatteredcover/i', $link)){
@@ -103,6 +104,7 @@ class AJAX extends Action {
 	                    'link' => $link,
 	                    'linkText' => 'Buy from Tattered Cover',
 		        		  		'storeName' => 'Tattered Cover',
+											'image' => '/images/tattered_cover.png',
 											'field856Index' => $field856Index,
 									);
 								}else if (preg_match('/amazon\.com/i', $link)){
@@ -110,6 +112,7 @@ class AJAX extends Action {
 	                    'link' => $link,
 	                    'linkText' => 'Buy from Amazon',
 	                  	'storeName' => 'Amazon',
+											'image' => '/images/amazon.png',
 											'field856Index' => $field856Index,
 									);
 								}else if (preg_match('/smashwords\.com/i', $link)){
@@ -117,6 +120,7 @@ class AJAX extends Action {
 	                    'link' => $link,
 	                    'linkText' => 'Buy from Smashwords',
 	                  	'storeName' => 'Smashwords', 
+											'image' => '/images/smashwords.png',
 											'field856Index' => $field856Index,
 									);
 								}
@@ -445,6 +449,8 @@ class AJAX extends Action {
 	function GetHoldingsInfo(){
 		require_once 'Holdings.php';
 		global $interface;
+		global $configArray;
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		$holdings = Holdings::loadHoldings($id);

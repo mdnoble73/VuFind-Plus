@@ -942,5 +942,6 @@ function GetTags(id, elemId, strings) {
 }
 
 function loadOtherEditionSummaries(id, isEcontent){
-	$("#otherEditionsGroup").slideDown();
+	var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
+	ajaxLightbox(url);
 }

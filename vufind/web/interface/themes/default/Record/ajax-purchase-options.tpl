@@ -11,12 +11,23 @@
 				{/foreach}
 			</div>
 		{else}
-			This title is available from the following stores:
-			<div class="purchseOptionLinks">
+			<table class="purchaseOptionLinks">
+				<tbody>
 				{foreach from=$purchaseLinks item=purchaseLink}
-					<div class='purchaseTitle button'><a href='/Record/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>{$purchaseLink.storeName}</a></div>
+					<tr>
+					<td>
+					{if $purchaseLink.image}
+						<img src="{$purchaseLink.image}" alt="{$purchaseLink.storeName}" />
+					{else}
+						{$purchaseLink.storeName}
+					{/if}
+					</td>
+					<td><div class='purchaseTitle button'><a href='/Record/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>Buy Now</a></div></td>
+					
+					</tr>
 				{/foreach}
-			</div>
+				</tbody>
+			</table>
 		{/if}
 	</div>
 </div>
