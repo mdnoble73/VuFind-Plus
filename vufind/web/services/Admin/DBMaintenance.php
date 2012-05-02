@@ -992,8 +992,8 @@ class DBMaintenance extends Admin {
 				    `holdingsInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium for holdings',
 				    `framesetInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium on the frameset page',
 				    `cacheDate` int(16) NOT NULL COMMENT 'When the entry was recorded in the cache'
-				) ENGINE = MYISAM COMMENT = 'Caches information from Millennium so we do not have to continually load it.';
-				ALTER TABLE `millennium_cache` ADD PRIMARY KEY ( `recordId` , `scope` ) ;",
+				) ENGINE = MYISAM COMMENT = 'Caches information from Millennium so we do not have to continually load it.';",
+				"ALTER TABLE `millennium_cache` ADD PRIMARY KEY ( `recordId` , `scope` ) ;",
 		
 				"CREATE TABLE IF NOT EXISTS `ptype_restricted_locations` (
 				  `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
