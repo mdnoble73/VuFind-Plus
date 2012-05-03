@@ -132,7 +132,8 @@ div#idclReaderContent ul#resultSearch div.ui-block-a
 
 div#idclReaderContent ul#resultSearch div.ui-block-b
 {
-	width:85%;
+	width:82%;
+	margin-left: 3%;
 }
 
 div#idclReaderContent ul#resultSearch div.ui-block-a img
@@ -144,17 +145,3 @@ div#idclReaderContent ul#resultSearch .highlight
 	color: #43749C;
 	font-size: small;
 }
-
-div#idclReaderContent ul#resultSearch  div.infoEcontent
-{
-	width:85%;
-}
-div#idclReaderContent ul#resultSearch  div.buttonsEcontent
-{
-	width:10%;
-	margin-left:5%;
-}
-
-
-
-

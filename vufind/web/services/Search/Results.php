@@ -232,6 +232,12 @@ class Results extends Action {
 
 		$numProspectorTitlesToLoad = 0;
 		if ($searchObject->getResultTotal() < 1) {
+			
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','No Results Found');
+			
 			// No record found
 			$interface->setTemplate('list-none.tpl');
 			$interface->assign('recordCount', 0);

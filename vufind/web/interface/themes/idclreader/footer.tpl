@@ -1,8 +1,5 @@
 			</div> <!-- content -->
-			<div data-role="footer" data-position="fixed">
-				{if $Logout}
-					<a href="/MyResearch/Logout" data-theme="b" data-icon='idclreader-logout'>Logout</a>
-				{/if}			
+			<div data-role="footer" data-position="fixed">		
 			</div>
 		</div>
 		

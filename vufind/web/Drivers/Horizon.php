@@ -116,7 +116,8 @@ class Horizon implements DriverInterface{
 					//No data exists
 				
 					$itemData = array();
-					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
+					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');					
+
 					//Get the barcode from the horizon database
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);

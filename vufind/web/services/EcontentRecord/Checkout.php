@@ -103,6 +103,12 @@ class Checkout extends Action{
 				header("Location: " . $configArray['Site']['url'] . '/MyResearch/EContentCheckedOut');
 			}
 		} else {
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','Login to your account');
+			
+			
 			$logger->log('eContent checkout finished, do not need to show a message', PEAR_LOG_INFO);
 			$interface->setPageTitle('Checkout Item');
 			$interface->assign('subTemplate', 'checkout.tpl');
