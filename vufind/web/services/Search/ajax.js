@@ -61,9 +61,9 @@ function addIdToStatusList(id, type) {
 	if (type == undefined){
 		type = 'VuFind';
 	}
-	if (type == 'VuFind'){
+	if (type.toUpperCase() === 'VUFIND'){
 		GetStatusList[GetStatusList.length] = id;
-	}else if (type == 'OverDrive'){
+	}else if (type.toUpperCase() == 'OVERDRIVE'){
 		GetOverDriveStatusList[GetOverDriveStatusList.length] = id;
 	}else{
 		GetEContentStatusList[GetEContentStatusList.length] = id;
@@ -210,6 +210,11 @@ function doGetStatusSummaries()
 			}
 		});
 	}
+	
+	//Clear the status lists so we don't reprocess later if we need more status summaries.. 
+	GetStatusList = new Array();
+	GetEContentStatusList = new Array();
+	GetOverDriveStatusList = new Array();
 }
 
 function addRatingId(id, type){

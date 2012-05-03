@@ -495,7 +495,6 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getResultRecordHTML()
 	{
 		global $interface;
-
 		$html = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];

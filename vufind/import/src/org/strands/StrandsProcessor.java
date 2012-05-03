@@ -31,13 +31,14 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	private PreparedStatement getFormatsForRecord = null;
 	private File tempFile;
 	private String strandsCatalogFile;
-	private ProcessorResults results = new ProcessorResults("Strands Export");
+	private ProcessorResults results;
 	
 	/**
 	 * Build a csv file to import into strands
 	 */
-	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
+	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
+		results = new ProcessorResults("Strands Export", reindexLogId, vufindConn, logger);
 		logger.info("Creating Catalog File for Strands");
 
 		vufindUrl = configIni.get("Site", "url");

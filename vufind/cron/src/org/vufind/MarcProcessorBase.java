@@ -24,8 +24,10 @@ public abstract class MarcProcessorBase {
 	protected HashMap<String, String> targetAudienceMap;
 	protected int recordsProcessed = 0;
 	protected int maxRecordsToProcess = -1;
+	private Logger logger;
 	
 	protected boolean loadConfig(String servername, Ini configIni, Section processSettings, Logger logger){
+		this.logger = logger;
 		// Get the directory where the marc records are stored.
 		marcRecordPath = configIni.get("EContent", "marcPath");
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
@@ -96,7 +98,7 @@ public abstract class MarcProcessorBase {
 		HashMap<String, String> formatMap = new HashMap<String, String>();
 		BufferedReader reader = new BufferedReader(new FileReader(formatMapFile));
 		String inputLine = reader.readLine();
-		System.out.println("Reading properties file " + formatMapFile.getAbsolutePath());
+		logger.info("Reading properties file " + formatMapFile.getAbsolutePath());
 		while (inputLine != null) {
 			inputLine = inputLine.trim();
 			if (inputLine.length() == 0 || inputLine.startsWith("#")) {

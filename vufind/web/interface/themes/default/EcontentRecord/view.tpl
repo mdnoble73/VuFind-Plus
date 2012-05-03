@@ -186,7 +186,7 @@ function redrawSaveStatus() {literal}{{/literal}
       <div id="similarAuthorPlaceholder"></div>
     </div>
     
-    {if is_array($editions)}
+    {if is_array($editions) && !$showOtherEditionsPopup}
     <div class="sidegroup" id="otherEditionsSidegroup">
       <h4>{translate text="Other Editions"}</h4>
         {foreach from=$editions item=edition}
@@ -302,6 +302,12 @@ function redrawSaveStatus() {literal}{{/literal}
 	  <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
 	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/default/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
 	  </div>
+	  
+	  {if $showOtherEditionsPopup}
+		<div id="otherEditionCopies">
+			<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+		</div>
+		{/if}
 
       {if $goldRushLink}
       <div class ="titledetails">
@@ -569,7 +575,12 @@ function redrawSaveStatus() {literal}{{/literal}
       
       <div id = "holdingstab">
       	<div id="holdingsPlaceholder">Loading...</div>
-        {if $enablePurchaseLinks == 1 && !$purchaseLinks}
+      	{if $showOtherEditionsPopup}
+				<div id="otherEditionCopies">
+					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+				</div>
+				{/if}
+        {if $enablePurchaseLinks == 1}
 					<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
 				{/if}
        {if $eContentRecord->sourceUrl}

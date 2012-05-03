@@ -38,18 +38,19 @@ class Home extends Record{
 		$timer->logTime('Loaded Comments');
 		Cite::loadCitation();
 		$timer->logTime('Loaded Citations');
-
+		
+		if (isset($_REQUEST['id'])){
+			$recordId = $_REQUEST['id'];
+		}
+		
 		if (isset($_REQUEST['strandsReqId']) && isset($configArray['Strands']['APID'])){
-			$url = "http://bizsolutions.strands.com/api2/event/clickedrecommendation.sbs?apid={$configArray['Strands']['APID']}&item={$id}&user={$user->id}&rrq={$_REQUEST['strandsReqId']}&tpl={$_REQUEST['strandsTpl']}";
+			$url = "http://bizsolutions.strands.com/api2/event/clickedrecommendation.sbs?apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}&rrq={$_REQUEST['strandsReqId']}&tpl={$_REQUEST['strandsTpl']}";
 			$response = file_get_contents($url);
 		}
 
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId
-		if (isset($_REQUEST['id'])){
-			$recordId = $_REQUEST['id'];
-		}
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
 		$editorialReview->whereAdd("recordId = '".$recordId."'");
@@ -111,6 +112,7 @@ class Home extends Record{
 			$interface->assign('tabbedDetails', !isset($configArray['Content']['tabbedDetails']) || $configArray['Content']['tabbedDetails'] == false ? 0 : 1);
 			$interface->assign('showSeriesAsTab', 0);
 		}
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$timer->logTime('Configure UI for library and location');
 
 		//Build the actual view

@@ -332,7 +332,7 @@ public class BasicMarcInfo {
 				result.add("Unknown");
 			}
 		} catch (Exception e) {
-			System.out.println("ERROR in getTargetAudience " + e.toString());
+			logger.error("ERROR in getTargetAudience " + e.toString());
 			e.printStackTrace();
 			result.add("Unknown");
 		}

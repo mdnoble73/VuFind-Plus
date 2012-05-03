@@ -121,6 +121,7 @@ class Purchase extends Action {
 			$purchaseLinks[] = array(
 				'link' => $tatteredCoverUrl,
 				'linkText' => 'Buy from Tattered Cover',
+				'image' => '/images/tattered_cover.png',
 				'storeName' => 'Tattered Cover', 
 			);
 		}
@@ -132,6 +133,7 @@ class Purchase extends Action {
 			$purchaseLinks[] = array(
 				'link' => $amazonUrl,
 				'linkText' => 'Buy from Amazon',
+				'image' => '/images/amazon.png',
 				'storeName' => 'Amazon', 
 			);
 		}
@@ -143,6 +145,7 @@ class Purchase extends Action {
 			$purchaseLinks[] = array(
 				'link' => $barnesAndNobleUrl,
 				'linkText' => 'Buy from Barnes &amp; Noble',
+				'image' => '/images/barnes_and_noble.png',
 				'storeName' => 'Barnes and Noble', 
 			);
 		}

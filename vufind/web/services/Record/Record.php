@@ -390,7 +390,7 @@ class Record extends Action
 					$showLink = true;
 					//Process some links differently so we can either hide them
 					//or show them in different areas of the catalog.
-					if (preg_match('/purchase/buyi', $linkText) ||
+					if (preg_match('/purchase|buy/i', $linkText) ||
 						preg_match('/barnesandnoble|tatteredcover|amazon|smashwords\.com/i', $link)){
 						$showLink = false;
 					}
@@ -504,7 +504,7 @@ class Record extends Action
 		$timer->logTime('Loaded similar titles');
 		
 		// Find Other Editions
-		$editions = $this->getEditions();
+		$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
 		if (!PEAR::isError($editions)) {
 			$interface->assign('editions', $editions);
 		}else{
@@ -639,172 +639,6 @@ class Record extends Action
 				}
 			}
 			$timer->logTime('Got next/previous links');
-		}
-	}
-
-	function getEditions() {
-		global $configArray;
-		global $memcache;
-		$editions = $memcache->get('other_editions_' . $this->isbn);
-		if (!$editions){
-			if ($this->isbn) {
-				if ($configArray['Content']['otherEditions'] = 'LibraryThing'){
-					$editions = $this->getLibraryThingRelatedRecords($this->isbn);
-				}else{
-					$editions = $this->getXISBN($this->isbn);
-				}
-			} else if (isset($this->record['issn'])) {
-				$editions = $this->getXISSN($this->record['issn']);
-			}else{
-				$editions = null;
-			}
-			$memcache->set('other_editions_' . $this->isbn, $editions, 0, $configArray['Caching']['other_editions']);
-		}
-		return $editions;
-	}
-
-	private function getLibraryThingRelatedRecords($isbn){
-		$url = "http://www.librarything.com/api/thingISBN/$isbn" ;
-
-		//Load data from xml file
-		$xml = simplexml_load_file($url);
-		$query = '';
-		foreach ($xml->isbn as $isbn){
-			if ($query != '') {
-				$query .= ' OR isbn:' . $isbn;
-			} else {
-				$query = 'isbn:' . $isbn;
-			}
-		}
-
-		if (isset($query) && ($query != '')) {
-			// Filter out current record
-			$query .= ' NOT id:' . $this->id;
-
-			$result = $this->db->search($query, null, null, 0, 5);
-			if (!PEAR::isError($result)) {
-				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
-					return $result['response']['docs'];
-				} else {
-					return null;
-				}
-			} else {
-				return $result;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	private function getXISBN($isbn)
-	{
-		global $configArray;
-
-		// Build URL
-		$url = 'http://xisbn.worldcat.org/webservices/xid/isbn/' . urlencode(is_array($isbn) ? $isbn[0] : $isbn) .
-               '?method=getEditions&format=csv';
-		if (isset($configArray['WorldCat']['id'])) {
-			$url .= '&ai=' . $configArray['WorldCat']['id'];
-		}
-
-		// Print Debug code
-		if ($configArray['System']['debug']) {
-			$logger = new Logger();
-			$logger->log("<pre>XISBN: $url</pre>", PEAR_LOG_INFO);
-		}
-
-		// Fetch results
-		if ($fp = @fopen($url, "r")) {
-			$query = '';
-			while (($data = fgetcsv($fp, 1000, ",")) !== FALSE) {
-				// If we got an error message, don't treat it as an ISBN!
-				if ($data[0] == 'overlimit') {
-					continue;
-				}
-				if ($query != '') {
-					$query .= ' OR isbn:' . $data[0];
-				} else {
-					$query = 'isbn:' . $data[0];
-				}
-			}
-		}
-
-		if (isset($query) && ($query != '')) {
-			// Filter out current record
-			$query .= ' NOT id:' . $this->id;
-
-			$result = $this->db->search($query, null, null, 0, 5);
-			if (!PEAR::isError($result)) {
-				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
-					return $result['response']['docs'];
-				} else {
-					return null;
-				}
-			} else {
-				return $result;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	private function getXISSN($issn)
-	{
-		global $configArray;
-
-		// Build URL
-		$url = 'http://xissn.worldcat.org/webservices/xid/issn/' . urlencode(is_array($issn) ? $issn[0] : $issn) .
-		//'?method=getEditions&format=csv';
-               '?method=getEditions&format=xml';
-		if (isset($configArray['WorldCat']['id'])) {
-			$url .= '&ai=' . $configArray['WorldCat']['id'];
-		}
-
-		// Print Debug code
-		if ($configArray['System']['debug']) {
-			$logger = new Logger();
-			$logger->log("<pre>XISSN: $url</pre>", PEAR_LOG_INFO);
-		}
-
-		// Fetch results
-		$query = '';
-		$data = @file_get_contents($url);
-		if (empty($data)) {
-			return null;
-		}
-		$unxml = new XML_Unserializer();
-		$unxml->unserialize($data);
-		$data = $unxml->getUnserializedData($data);
-		if (!empty($data) && isset($data['group']['issn'])) {
-			if (is_array($data['group']['issn'])) {
-				foreach ($data['group']['issn'] as $issn) {
-					if ($query != '') {
-						$query .= ' OR issn:' . $issn;
-					} else {
-						$query = 'issn:' . $issn;
-					}
-				}
-			} else {
-				$query = 'issn:' . $data['group']['issn'];
-			}
-		}
-
-		if ($query) {
-			// Filter out current record
-			$query .= ' NOT id:' . $this->id;
-
-			$result = $this->db->search($query, null, null, 0, 5);
-			if (!PEAR::isError($result)) {
-				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
-					return $result['response']['docs'];
-				} else {
-					return null;
-				}
-			} else {
-				return $result;
-			}
-		} else {
-			return null;
 		}
 	}
 

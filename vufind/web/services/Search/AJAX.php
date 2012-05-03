@@ -30,6 +30,11 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$this->$method();
+		}elseif (in_array($method, array('getOtherEditions'))){
+			header('Content-type: text/html');
+			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+			$this->$method();
 		}else{
 			header('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -187,8 +192,11 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		require_once 'CatalogConnection.php';
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		// Try to find a copy that is available
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
@@ -251,6 +259,8 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		require_once ('Drivers/EContentDriver.php');
 		$driver = new EContentDriver();
@@ -699,6 +709,56 @@ class AJAX extends Action {
 			
 		}
 		echo $listData;
+	}
+	
+	function getOtherEditions(){
+		global $interface;
+		$id = $_REQUEST['id'];
+		$isEContent = $_REQUEST['isEContent'];
+		
+		
+		if ($isEContent == 'true'){
+			require_once 'sys/eContent/EContentRecord.php';
+			$econtentRecord = new EContentRecord();
+			$econtentRecord->id = $id;
+			if ($econtentRecord->find(true)){
+				$otherEditions = OtherEditionHandler::getEditions($econtentRecord->solrId(), $econtentRecord->getIsbn(), $econtentRecord->getIssn(), 10);
+			}
+		}else{
+			$resource = new Resource();
+			$resource->record_id = $id;
+			$resource->source = 'VuFind';
+			$solrId = $id;
+			if ($resource->find(true)){
+				$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
+			}
+		}
+		
+		if ($otherEditions){
+			//Get resource for each edition 
+			$editionResources = array();
+			if (is_array($otherEditions)){
+				foreach ($otherEditions as $edition){
+					$editionResource = new Resource();
+					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
+						$editionResource->source = 'eContent';
+						$editionResource->record_id = $matches[1];
+					}else{
+						$editionResource->record_id = $edition['id'];
+						$editionResource->source = 'VuFind';
+					}
+					if ($editionResource->find(true)){
+						$editionResources[] = clone $editionResource;
+					}else{
+						echo("Could not find resource {$edition['id']}");
+					}
+				}
+			}
+			$interface->assign('otherEditions', $editionResources);
+			echo $interface->fetch('Resource/otherEditions.tpl');
+		}else{
+			echo "Sorry we couldn't find that record in the catalog.";
+		}
 	}
 }
 

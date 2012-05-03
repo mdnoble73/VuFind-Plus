@@ -13,11 +13,12 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private String solrPort;
 	private Logger logger;
 	private boolean reindexUnchangedRecords;
-	private ProcessorResults results = new ProcessorResults("Marc Indexer");
+	private ProcessorResults results;
 	
 	@Override
-	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
+	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
+		results = new ProcessorResults("Update Solr", reindexLogId, vufindConn, logger);
 		solrPort = configIni.get("Reindex", "solrPort");
 
 		//Check to see if we should clear the existing index
@@ -72,6 +73,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		}else{
 			results.addNote("index did not pass check, not swapping");
 		}
+		results.saveResults();
 	}
 
 	@Override
@@ -115,6 +117,10 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			results.addNote("Error indexing marc record " + recordInfo.getId() + " " + ex.toString());
 			results.incErrors();
 			return false;
+		}finally{
+			if (results.getRecordsProcessed() % 100 == 0){
+				results.saveResults();
+			}
 		}
 	}
 

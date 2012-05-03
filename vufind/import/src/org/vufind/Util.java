@@ -113,7 +113,11 @@ public class Util {
 	public static String getSemiColonSeparatedString(Object values, boolean prepForCsv) {
 		StringBuffer crSeparatedString = new StringBuffer();
 		if (values instanceof String){
-			crSeparatedString.append((String)values);
+			if (prepForCsv){
+				crSeparatedString.append(prepForCsv((String)values, true, false));
+			}else{
+				crSeparatedString.append((String)values);
+			}
 		}else if (values instanceof Iterable){
 			@SuppressWarnings("unchecked")
 			Iterable<String> valuesIterable = (Iterable<String>)values;

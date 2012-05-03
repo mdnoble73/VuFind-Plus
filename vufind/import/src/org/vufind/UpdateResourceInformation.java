@@ -50,10 +50,11 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	//A list of existing resources so we can mark records as deleted if they no longer exist
 	private HashMap<String, BasicResourceInfo> existingResources = new HashMap<String, BasicResourceInfo>();
 	
-	private ProcessorResults results = new ProcessorResults("Update Resources");
+	private ProcessorResults results;
 	
-	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
+	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
+		results = new ProcessorResults("Update Resources", reindexLogId, vufindConn, logger);
 		// Load configuration
 		String databaseConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_vufind_jdbc"));
 		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
@@ -122,6 +123,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			// handle any errors
 			logger.error("Unable to setup prepared statements", ex);
 			return false;
+		}finally{
+			if (results.getRecordsProcessed() % 100 == 0){
+				results.saveResults();
+			}
 		}
 		return true;
 		

@@ -42,6 +42,8 @@ class AJAX extends Action {
 	}
 	function GetHoldingsInfo(){
 		global $interface;
+		global $configArray;
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		//Load holdings information from the driver

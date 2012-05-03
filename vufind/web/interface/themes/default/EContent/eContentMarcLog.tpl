@@ -18,12 +18,15 @@ function refreshWindow(){
 		<div id="marcImportLogContainer">
 			<table>
 				<thead>
-					<tr><th>Filename</th><th>Import Started</th><th>Import Finished</th><th>Status</th><th>Records Processed</th><th>Records With Errors</th></tr>
+					<tr><th>Source</th><th>Filename</th><th>Supplemental Filename</th><th>Access Type</th><th>Import Started</th><th>Import Finished</th><th>Status</th><th>Records Processed</th><th>Records With Errors</th></tr>
 				</thead>
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
 						<tr>
+							<td>{$logEntry->source}</td>
 							<td>{$logEntry->filename}</td>
+							<td>{$logEntry->supplementalFilename}</td>
+							<td>{$logEntry->accessType}</td>
 							<td>{$logEntry->dateStarted|date_format:"%D %T"|replace:' ':'&nbsp;'}</td>
 							<td>{$logEntry->dateFinished|date_format:"%D %T"|replace:' ':'&nbsp;'}</td>
 							<td>{$logEntry->status}</td>

@@ -384,6 +384,7 @@ function startSearch(){
 	$('#lookfor').autocomplete( "disable" );
 }
 
+
 function returnEpub(returnUrl){
   $.getJSON(returnUrl, function (data){
     if (data.success == false){
@@ -572,7 +573,7 @@ try{
 	$(document).ready(
 	function() {
 		try{
-			if ($("#lookfor")){
+			if ($("#lookfor").length==1){
 				$("#lookfor").autocomplete({
 					source: function(request, response){
 						var url = path + "/Search/AJAX?method=GetAutoSuggestList&type=" + $("#type").val() + "&searchTerm=" +  $("#lookfor").val();
@@ -942,5 +943,6 @@ function GetTags(id, elemId, strings) {
 }
 
 function loadOtherEditionSummaries(id, isEcontent){
-	$("#otherEditionsGroup").slideDown();
+	var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
+	ajaxLightbox(url);
 }

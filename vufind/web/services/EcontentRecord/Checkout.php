@@ -81,7 +81,7 @@ class Checkout extends Action{
 		if (isset($return) && $showMessage) {
 			$hold_message_data = array(
               'successful' => $return['result'] ? 'all' : 'none',
-              'error' => $return['error'],
+              'error' => isset($return['error']) ? $return['error'] : null,
               'titles' => array(
 			$return,
 			),

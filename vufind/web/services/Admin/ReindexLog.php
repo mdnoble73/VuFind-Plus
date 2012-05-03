@@ -30,7 +30,7 @@ class ReindexLog extends Admin
 
 		global $interface;
 
-		$interface->setPageTitle('Cron Log');
+		$interface->setPageTitle('Reindex Log');
 		
 		$logEntries = array();
 		$logEntry = new ReindexLogEntry();

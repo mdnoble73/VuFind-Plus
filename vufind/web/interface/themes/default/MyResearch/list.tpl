@@ -43,12 +43,6 @@
               <b>{$recordStart}</b> - <b>{$recordEnd}</b>
               {translate text='of'} <b>{$recordCount}</b>
             {/if}
-            
-            <select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
-            {foreach from=$sortList item=sortData key=sortLabel}
-              <option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text='Sort by '} {translate text=$sortData.desc}</option>
-            {/foreach}
-            </select>
     
           </div>
           <form action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormItem">

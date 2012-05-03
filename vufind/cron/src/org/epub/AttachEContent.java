@@ -188,7 +188,7 @@ public class AttachEContent implements IProcessHandler {
 												//Add file to acs server
 												boolean addedToAcs = true;
 												if (accessType.equals("acs")){
-													System.out.println("Adding file to the ACS server");
+													logger.info("Adding file to the ACS server");
 													addedToAcs = addFileToAcsServer(fileType, resultsFile, importResult);
 												}
 												

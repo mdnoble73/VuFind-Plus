@@ -70,6 +70,13 @@ class Home extends MyResearch
 			$interface->setPageTitle('Favorites');
 			$interface->setTemplate('favorites.tpl');
 		}else{
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','&nbsp;');
+			$interface->assign('Logout',true);
+			
+			
 			$interface->setTemplate('home.tpl');
 		}
 		$interface->display('layout.tpl');

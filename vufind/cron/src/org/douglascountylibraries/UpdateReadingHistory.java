@@ -119,7 +119,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 	private void processPrintTitles(Long userId, String cat_username, String cat_password) throws SQLException{
 		try {
 			// Call the patron API to get their checked out items
-			URL patronApiUrl = new URL(vufindUrl + "API/UserAPI?method=getPatronCheckedOutItems&username=" + cat_username + "&password=" + cat_password + "&includeEContent=false");
+			URL patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutItems&username=" + cat_username + "&password=" + cat_password + "&includeEContent=false");
 			Object patronDataRaw = patronApiUrl.getContent();
 			if (patronDataRaw instanceof InputStream) {
 				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
@@ -186,7 +186,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 		try {
 			// Call the patron API to get their checked out items
 			URL patronApiUrl;
-			patronApiUrl = new URL(vufindUrl + "API/UserAPI?method=getPatronCheckedOutEContent&username=" + cat_username + "&password=" + cat_password);
+			patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutEContent&username=" + cat_username + "&password=" + cat_password);
 			Object patronDataRaw = patronApiUrl.getContent();
 			if (patronDataRaw instanceof InputStream) {
 				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
@@ -236,7 +236,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 		try {
 			// Call the patron API to get their checked out items
 			URL patronApiUrl;
-			patronApiUrl = new URL(vufindUrl + "API/UserAPI?method=getPatronCheckedOutItemsOverDrive&username=" + cat_username + "&password=" + cat_password);
+			patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutItemsOverDrive&username=" + cat_username + "&password=" + cat_password);
 			Object patronDataRaw = patronApiUrl.getContent();
 			if (patronDataRaw instanceof InputStream) {
 				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
