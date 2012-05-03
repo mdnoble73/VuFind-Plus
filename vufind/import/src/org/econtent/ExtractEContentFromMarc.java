@@ -47,13 +47,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private PreparedStatement addSourceUrl;
 	private PreparedStatement updateSourceUrl;
 	
-	public ProcessorResults results = new ProcessorResults("Extract eContent from ILS");
+	public ProcessorResults results;
 	
-	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
+	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		//Import a marc record into the eContent core. 
 		if (!loadConfig(configIni, logger)){
 			return false;
 		}
+		results = new ProcessorResults("Extract eContent from ILS", reindexLogId, vufindConn, logger);
 		
 		try {
 			//Connect to the vufind database
@@ -89,8 +90,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			//Record is eContent, get additional details about how to process it.
 			DetectionSettings detectionSettings = recordInfo.getEContentDetectionSettings();
 			if (detectionSettings == null){
-				logger.error("Record was tagged as eContent, but we did not get detection settings for it.");
-				results.addNote("Record was tagged as eContent, but we did not get detection settings for it.");
+				logger.error("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
+				results.addNote("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
 				results.incErrors();
 				return false;
 			}
@@ -234,6 +235,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			results.incErrors();
 			results.addNote("Error extracting eContent for record " + recordInfo.getId() + " " + e.toString());
 			return false;
+		}finally{
+			if (results.getRecordsProcessed() % 100 == 0){
+				results.saveResults();
+			}
 		}
 	}
 

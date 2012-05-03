@@ -11,20 +11,19 @@ import org.ini4j.Ini;
 public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcessor {
 	private Logger logger;
 	private Connection vufindConn;
-	private ProcessorResults results = new ProcessorResults("Alpha Browse Table Update");
+	private ProcessorResults results;
+	
+	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
+		this.logger = logger;
+		this.vufindConn = vufindConn;
+		results = new ProcessorResults("Alpha Browse Table Update", reindexLogId, vufindConn, logger);
+		return true;
+	}
 	
 	@Override
 	public boolean processResource(ResultSet resource) {
 		//For alpha browse processing, everything is handled in the finish method
 		results.incResourcesProcessed();
-		return true;
-	}
-
-	@Override
-	public boolean init(Ini configIni, String serverName, Connection vufindConn, Connection econtentConn, Logger logger) {
-		this.logger = logger;
-		this.vufindConn = vufindConn;
-		
 		return true;
 	}
 
@@ -63,6 +62,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			logger.error("Error creating title browse table", e);
 			results.addNote("Error creating title browse table " + e.toString());
 		}
+		results.saveResults();
 		
 		try {
 			//Clear the current browse table
@@ -95,6 +95,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			logger.error("Error creating author browse table", e);
 			results.addNote("Error creating author browse table " + e.toString());
 		}
+		results.saveResults();
 
 		//Setup subject browse
 		try {
@@ -127,6 +128,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			logger.error("Error creating subject browse table", e);
 			results.addNote("Error creating subject browse table " + e.toString());
 		}
+		results.saveResults();
 		
 		//Setup call number browse
 		try {
@@ -159,6 +161,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			logger.error("Error creating callnumber browse table", e);
 			results.addNote("Error creating call number browse table " + e.toString());
 		}
+		results.saveResults();
 	}
 
 	@Override

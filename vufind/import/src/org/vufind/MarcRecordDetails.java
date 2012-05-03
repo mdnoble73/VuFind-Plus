@@ -2548,7 +2548,6 @@ public class MarcRecordDetails {
 	/*
 	 * Determine if the record is eContent or not. 
 	 */
-	@SuppressWarnings("unchecked")
 	public boolean isEContent(){
 		if (isEContent == null){
 			isEContent = false;

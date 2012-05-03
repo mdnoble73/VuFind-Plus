@@ -95,7 +95,6 @@ public class ReindexProcess {
 			
 			for (IRecordProcessor processor : recordProcessors){
 				processor.finish();
-				saveProcessorResults(processor.getResults());
 			}
 		}
 		
@@ -106,37 +105,11 @@ public class ReindexProcess {
 		logger.info("Finished Reindex for " + serverName);
 	}
 	
-	/**
-	 * Save the results of a process to the database for display to administrators later. 
-	 * 
-	 * @param results
-	 */
-	private static void saveProcessorResults(ProcessorResults results) {
-		try {
-			PreparedStatement saveResultsStmt = vufindConn.prepareStatement("INSERT INTO reindex_process_log (reindex_id, processName, recordsProcessed, eContentRecordsProcessed, resourcesProcessed, numErrors, numAdded, numUpdated, numDeleted, numSkipped, notes ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
-			saveResultsStmt.setLong(1, reindexLogId);
-			saveResultsStmt.setString(2, results.getProcessorName());
-			saveResultsStmt.setLong(3, results.getRecordsProcessed());
-			saveResultsStmt.setLong(4, results.geteContentRecordsProcessed());
-			saveResultsStmt.setLong(5, results.getResourcesProcessed());
-			saveResultsStmt.setLong(6, results.getNumErrors());
-			saveResultsStmt.setLong(7, results.getNumAdded());
-			saveResultsStmt.setLong(8, results.getNumUpdated());
-			saveResultsStmt.setLong(9, results.getNumDeleted());
-			saveResultsStmt.setLong(10, results.getNumSkipped());
-			saveResultsStmt.setString(11, results.getNotesHtml());
-			saveResultsStmt.executeUpdate();
-			logger.info("Saved results for process " + results.getProcessorName());
-		} catch (Exception e) {
-			logger.error("Unable to save results of process to database", e);
-		}
-	}
-	
 	private static ArrayList<IRecordProcessor> loadRecordProcesors(){
 		ArrayList<IRecordProcessor> supplementalProcessors = new ArrayList<IRecordProcessor>();
 		if (updateSolr){
 			MarcIndexer marcIndexer = new MarcIndexer();
-			if (marcIndexer.init(configIni, serverName, vufindConn, econtentConn, logger)){
+			if (marcIndexer.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(marcIndexer);
 			}else{
 				logger.error("Could not initialize marcIndexer");
@@ -145,7 +118,7 @@ public class ReindexProcess {
 		}
 		if (updateResources){
 			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
-			if (resourceUpdater.init(configIni, serverName, vufindConn, econtentConn, logger)){
+			if (resourceUpdater.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(resourceUpdater);
 			}else{
 				logger.error("Could not initialize resourceUpdater");
@@ -154,7 +127,7 @@ public class ReindexProcess {
 		}
 		if (loadEContentFromMarc){
 			ExtractEContentFromMarc econtentExtractor = new ExtractEContentFromMarc();
-			if (econtentExtractor.init(configIni, serverName, vufindConn, econtentConn, logger)){
+			if (econtentExtractor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(econtentExtractor);
 			}else{
 				logger.error("Could not initialize econtentExtractor");
@@ -163,7 +136,7 @@ public class ReindexProcess {
 		}
 		if (exportStrandsCatalog){
 			StrandsProcessor strandsProcessor = new StrandsProcessor();
-			if (strandsProcessor.init(configIni, serverName, vufindConn, econtentConn, logger)){
+			if (strandsProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(strandsProcessor);
 			}else{
 				logger.error("Could not initialize strandsProcessor");
@@ -172,7 +145,7 @@ public class ReindexProcess {
 		}
 		if (updateAlphaBrowse){
 			AlphaBrowseProcessor alphaBrowseProcessor = new AlphaBrowseProcessor();
-			if (alphaBrowseProcessor.init(configIni, serverName, vufindConn, econtentConn, logger)){
+			if (alphaBrowseProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(alphaBrowseProcessor);
 			}else{
 				logger.error("Could not initialize strandsProcessor");
