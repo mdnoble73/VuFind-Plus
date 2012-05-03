@@ -187,7 +187,6 @@ class Home extends Action{
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','&nbsp;');
 			
-			
 			// Display Page
 			$interface->display('layout.tpl');
 
