@@ -216,10 +216,10 @@ class Horizon implements DriverInterface{
 		return $allItems;
 	}
 
-	public function getHoldings($idList)
+	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false)
 	{
 		foreach ($idList as $id) {
-			$holdings[] = $this->getHolding($id);
+			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
 		}
 		return $holdings;
 	}
@@ -231,7 +231,7 @@ class Horizon implements DriverInterface{
 
 	public function getStatuses($idList, $record = null, $mysip = null, $forSummary = false)
 	{
-		return getHoldings($idList, $record = null, $mysip = null, $forSummary = false);
+		return $this->getHoldings($idList, $record, $mysip, $forSummary);
 	}
 
 	public function getPurchaseHistory($id)
