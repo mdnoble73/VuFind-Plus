@@ -96,6 +96,7 @@ div#idclReaderContent div.ui-block-a
 {
 	width:35%;
 }
+
 div#idclReaderContent div.ui-block-b
 {
 	width:65%;
@@ -103,10 +104,57 @@ div#idclReaderContent div.ui-block-b
 
 div#idclReaderContent .ui-block-a img
 {
-	width: 90%;	
+	width: 65%;	
 }
 
 div#idclReaderContent .ui-block-b h2
 {
 	margin-top: -5px;
 }
+
+div#idclReaderContent div#searchForm div.ui-block-a
+{
+	width:45%;
+	margin-right: 10%;
+}
+
+div#idclReaderContent div#searchForm div.ui-block-b
+{
+	width:45%;
+}
+
+
+/*SEARCH*/
+div#idclReaderContent ul#resultSearch div.ui-block-a
+{
+	width:15%;
+}
+
+div#idclReaderContent ul#resultSearch div.ui-block-b
+{
+	width:85%;
+}
+
+div#idclReaderContent ul#resultSearch div.ui-block-a img
+{
+	width:100%;
+}
+div#idclReaderContent ul#resultSearch .highlight
+{
+	color: #43749C;
+	font-size: small;
+}
+
+div#idclReaderContent ul#resultSearch  div.infoEcontent
+{
+	width:85%;
+}
+div#idclReaderContent ul#resultSearch  div.buttonsEcontent
+{
+	width:10%;
+	margin-left:5%;
+}
+
+
+
+

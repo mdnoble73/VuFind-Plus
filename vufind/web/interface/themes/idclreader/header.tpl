@@ -10,6 +10,7 @@
 		{css filename="skin.css"}
 		{css filename="idclreader.css"}
 		{css filename="idclreader-icons.css"}
+		{css filename="formats.css"}
 		
 		{literal}
 			<script type="text/javascript">

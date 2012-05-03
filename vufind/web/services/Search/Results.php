@@ -309,6 +309,12 @@ class Results extends Action {
 			$interface->assign('sitepath', $configArray['Site']['path']);
 			$interface->assign('subpage', 'Search/list-list.tpl');
 			$interface->setTemplate('list.tpl');
+			
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','Search Results');
+			
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();

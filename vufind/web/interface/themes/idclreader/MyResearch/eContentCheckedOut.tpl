@@ -33,14 +33,23 @@
 		              		{/if}
 							<ul data-role="listview" data-theme="a" data-inset="true">
             					<li><a href="/EcontentRecord/{$record.recordId|substr:14:10}">View Item Record</a></li>
-            					<li><a href="#" rel='{$record.recordId|substr:14:10}' class='returnItemCheckedOut'>Return Now</a></li>
             					<li data-role="list-divider" data-divider-theme="b">Access to the eContent</li>
             					{foreach from=$record.links item=link}
             					 	{assign var="returnLink" value=$link.text|contains:"Return"} 
 									{if !$returnLink}
 										<li>
-											<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} rel="external">{$link.text}</a>
+											<a href="{if $link.url}{$link.url}{else}#{/if}" target='_blank' rel="external">
+												<img src="/interface/themes/{$theme}/images/{$link.item_type}.png" alt="France" class="ui-li-icon">{$link.text}
+											</a>
 										</li>
+									{elseif $link.typeReturn == 1}
+										<li>
+											<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} target='_blank' rel="external">
+												{$link.text}
+											</a>
+										</li>
+									{else}
+										<li><a href="#" rel='{$record.recordId|substr:14:10}' class='returnItemCheckedOut'>Return Now</a></li>
 									{/if}
 								{/foreach}
             				</ul>

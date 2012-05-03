@@ -5,6 +5,7 @@ require_once 'sys/eContent/EContentItem.php';
 require_once 'sys/eContent/EContentHold.php';
 require_once 'sys/eContent/EContentCheckout.php';
 require_once 'sys/eContent/EContentWishList.php';
+require_once 'sys/Utils/ArrayUtils.php';
 
 /**
  * Handles processing of account information related to eContent. 
@@ -437,19 +438,22 @@ class EContentDriver implements DriverInterface{
 					//default links to read the title or download
 					$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $item));
 				}
+				$links[ArrayUtils::getLastKey($links)]['item_type'] = $item->item_type;
 			}
 		}
 		
 		//Add a link to return the title
 		if ($eContentCheckout->downloadedToReader == 0){
 			$links[] = array(
-				'text' => 'Return&nbsp;Now',
-				'onclick' => "if (confirm('Are you sure you want to return this title?')){returnEpub('{$configArray['Site']['path']}/EcontentRecord/{$eContentRecord->id}/ReturnTitle')};return false;",
+							'text' => 'Return&nbsp;Now',
+							'onclick' => "if (confirm('Are you sure you want to return this title?')){returnEpub('{$configArray['Site']['path']}/EcontentRecord/{$eContentRecord->id}/ReturnTitle')};return false;",
+							'typeReturn' => 0
 			);
 		}else{
 			$links[] = array(
 				'text' => 'Return&nbsp;Now',
 				'onclick' => "alert('Please return this title from your digital reader.');return false;",
+				'typeReturn' => 1
 			);
 		}
 		return $links;
