@@ -74,7 +74,6 @@ function doGetStatusSummaries()
 {
 	var now = new Date();
 	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-	alert(ts);
 
 	// Modify this to return status summaries one at a time to improve
 	// the perceived performance
