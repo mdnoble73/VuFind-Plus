@@ -198,8 +198,6 @@ class DBMaintenance extends Admin {
         'description' => 'Create tables related to configurable list widgets',
         'dependencies' => array(),
         'sql' => array(
-          "DROP TABLE IF EXISTS list_widgets;",
-          "DROP TABLE IF EXISTS list_widget_lists;",
           "CREATE TABLE IF NOT EXISTS list_widgets (".
             "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
             "`name` VARCHAR(50) NOT NULL, " . 
@@ -268,12 +266,9 @@ class DBMaintenance extends Admin {
 			'genealogy' => array(
 				'title' => 'Genealogy Setup',
 				'description' => 'Initial setup of genealogy information',
+				'continueOnError' => true,
 				'dependencies' => array(),
 				'sql' => array(
-					"DROP TABLE IF EXISTS person;",
-					"DROP TABLE IF EXISTS marriage;",
-					"DROP TABLE IF EXISTS obituary;",
-
 					//-- setup tables related to the genealogy section
 					//-- person table
 					"CREATE TABLE `person` (
@@ -285,7 +280,13 @@ class DBMaintenance extends Admin {
 					`otherName` VARCHAR( 100 ) NULL ,
 					`nickName` VARCHAR( 100 ) NULL ,
 					`birthDate` DATE NULL ,
+					`birthDateDay` INT NULL COMMENT 'The day of the month the person was born empty or null if not known',
+					`birthDateMonth` INT NULL COMMENT 'The month the person was born, null or blank if not known',
+					`birthDateYear` INT NULL COMMENT 'The year the person was born, null or blank if not known',
 					`deathDate` DATE NULL ,
+					`deathDateDay` INT NULL COMMENT 'The day of the month the person died empty or null if not known',
+					`deathDateMonth` INT NULL COMMENT 'The month the person died, null or blank if not known',
+					`deathDateYear` INT NULL COMMENT 'The year the person died, null or blank if not known',
 					`ageAtDeath` TEXT NULL ,
 					`cemeteryName` VARCHAR( 255 ) NULL ,
 					`cemeteryLocation` VARCHAR( 255 ) NULL ,
@@ -301,16 +302,22 @@ class DBMaintenance extends Admin {
 					`spouseName` VARCHAR( 200 ) NULL COMMENT 'The name of the other person in the marriage if they aren''t in the database',
 					`spouseId` INT NULL COMMENT 'A link to the second person in the marriage if the person is in the database',
 					`marriageDate` DATE NULL COMMENT 'The date of the marriage if known.',
+					`marriageDateDay` INT NULL COMMENT 'The day of the month the marriage occurred empty or null if not known',
+					`marriageDateMonth` INT NULL COMMENT 'The month the marriage occurred, null or blank if not known',
+					`marriageDateYear` INT NULL COMMENT 'The year the marriage occurred, null or blank if not known',
 					`comments` MEDIUMTEXT NULL
 					) ENGINE = MYISAM COMMENT = 'Information about a marriage between two people';",
 
 
-					"-- obituary table
-					CREATE TABLE `obituary` (
+					//-- obituary table
+					"CREATE TABLE `obituary` (
 					`obituaryId` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
 					`personId` INT NOT NULL COMMENT 'The person this obituary is for',
 					`source` VARCHAR( 255 ) NULL ,
 					`date` DATE NULL ,
+					`dateDay` INT NULL COMMENT 'The day of the month the obituary came out empty or null if not known',
+					`dateMonth` INT NULL COMMENT 'The month the obituary came out, null or blank if not known',
+					`dateYear` INT NULL COMMENT 'The year the obituary came out, null or blank if not known',
 					`sourcePage` VARCHAR( 25 ) NULL ,
 					`contents` MEDIUMTEXT NULL ,
 					`picture` VARCHAR( 255 ) NULL
@@ -352,7 +359,6 @@ class DBMaintenance extends Admin {
         'description' => 'Create table to store editorial reviews from external reviews, i.e. book-a-day blog',
         'dependencies' => array(),
         'sql' => array(
-          "DROP TABLE IF EXISTS editorial_reviews",
           "CREATE TABLE editorial_reviews (".
             "editorialReviewId int NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
             "recordId VARCHAR(50) NOT NULL, ".
@@ -368,8 +374,6 @@ class DBMaintenance extends Admin {
         'description' => 'Create table to track data about the Purchase Links that were clicked',
         'dependencies' => array(),
         'sql' => array(
-          "DROP TABLE IF EXISTS purchase_link_tracking",
-
 				  'CREATE TABLE IF NOT EXISTS purchase_link_tracking (' .
 				  'purchaseLinkId int(11) NOT NULL AUTO_INCREMENT, '.
 				  'ipAddress varchar(30) NULL, '.
@@ -387,9 +391,6 @@ class DBMaintenance extends Admin {
         'description' => 'Create table to track aggregate page view data',
         'dependencies' => array(),
         'sql' => array(
-          "DROP TABLE IF EXISTS usageTracking",
-					"DROP TABLE IF EXISTS usage_tracking",
-
 				  'CREATE TABLE IF NOT EXISTS usage_tracking (' .
 				  'usageId int(11) NOT NULL AUTO_INCREMENT, '.
 				  'ipId INT NOT NULL, ' .
@@ -487,8 +488,6 @@ class DBMaintenance extends Admin {
 				'description' => 'Create table to store call numbers for resources',
 				'dependencies' => array(),
 				'sql' => array(
-					"DROP TABLE IF EXISTS resource_callnumber",
-
 				  'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
 				  'id int(11) NOT NULL AUTO_INCREMENT, '.
 				  'resourceId INT NOT NULL, ' .
@@ -507,8 +506,6 @@ class DBMaintenance extends Admin {
 				'description' => 'Create table to store subjects for resources',
 				'dependencies' => array(),
 				'sql' => array(
-					"DROP TABLE IF EXISTS subject",
-			
 					'CREATE TABLE IF NOT EXISTS subject (' .
 				  'id int(11) NOT NULL AUTO_INCREMENT, '.
 				  'subject VARCHAR(100) NOT NULL, ' .
@@ -516,8 +513,6 @@ class DBMaintenance extends Admin {
 					'INDEX (`subject`)' .
 					') ENGINE=InnoDB',
 			
-					"DROP TABLE IF EXISTS resource_subject",
-
 				  'CREATE TABLE IF NOT EXISTS resource_subject (' .
 				  'id int(11) NOT NULL AUTO_INCREMENT, '.
 				  'resourceId INT(11) NOT NULL, ' .
@@ -559,8 +554,6 @@ class DBMaintenance extends Admin {
         'description' => 'Create table to track links to external sites from 856 tags or eContent',
         'dependencies' => array(),
         'sql' => array(
-          "DROP TABLE IF EXISTS external_link_tracking",
-
 				  'CREATE TABLE IF NOT EXISTS external_link_tracking (' .
 				  'externalLinkId int(11) NOT NULL AUTO_INCREMENT, '.
 				  'ipAddress varchar(30) NULL, '.
@@ -589,8 +582,6 @@ class DBMaintenance extends Admin {
         'description' => 'Update reading History to include an id table',
         'dependencies' => array(),
         'sql' => array(
-			    "DROP TABLE IF EXISTS materials_request",
-
 				  'CREATE TABLE IF NOT EXISTS materials_request (' .
 				  'id int(11) NOT NULL AUTO_INCREMENT, '.
 				  'title varchar(255), '.
@@ -678,8 +669,6 @@ class DBMaintenance extends Admin {
         'description' => 'Update reading History to include an id table',
         'dependencies' => array(),
         'sql' => array(
-			    "DROP TABLE IF EXISTS materials_request_status",
-
 				  'CREATE TABLE IF NOT EXISTS materials_request_status (' .
 				  'id int(11) NOT NULL AUTO_INCREMENT, '.
 				  'description varchar(80), '.
@@ -794,10 +783,6 @@ class DBMaintenance extends Admin {
 			'description' => 'Create tables to handle alphabetic browse functionality.',
 			'dependencies' => array(),
 			'sql' => array(
-				"DROP TABLE IF EXISTS title_browse",
-				"DROP TABLE IF EXISTS author_browse",
-				"DROP TABLE IF EXISTS callnumber_browse",
-				"DROP TABLE IF EXISTS subject_browse",
 				"CREATE TABLE `title_browse` ( 
 					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
@@ -834,8 +819,6 @@ class DBMaintenance extends Admin {
       'description' => 'Create Reindex Log table to track reindexing.',
       'dependencies' => array(),
       'sql' => array(
-		    'DROP TABLE IF EXISTS reindex_log;',
-		    'DROP TABLE IF EXISTS reindex_process_log;',
 		    "CREATE TABLE IF NOT EXISTS reindex_log(" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
 					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
@@ -866,8 +849,6 @@ class DBMaintenance extends Admin {
       'description' => 'Create Cron Log table to track reindexing.',
       'dependencies' => array(),
       'sql' => array(
-		    'DROP TABLE IF EXISTS cron_log;',
-		    'DROP TABLE IF EXISTS cron_process_log;',
 		    "CREATE TABLE IF NOT EXISTS cron_log(" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
 					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the cron run started', " .
@@ -897,7 +878,6 @@ class DBMaintenance extends Admin {
       'description' => 'Create a table to store information about marc records that are being imported.',
       'dependencies' => array(),
       'sql' => array(
-		    'DROP TABLE IF EXISTS marc_import;',
 		    "CREATE TABLE IF NOT EXISTS marc_import(" .
 			    "`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
 					"`checksum` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
