@@ -134,6 +134,8 @@ class Download extends Action {
 						}
 						$files = readdir($dirHnd);
 						closedir($dirHnd);
+						//Sort the mp3 files by name.
+						asort($mp3Files);
 						$interface->assign('mp3Filenames', $mp3Files);
 						$interface->display('EcontentRecord/download-mp3.tpl');
 						exit();
