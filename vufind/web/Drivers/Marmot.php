@@ -272,22 +272,22 @@ class Marmot implements DriverInterface
 									$linkUrl = $linkParts[1][$index];
 									if (preg_match('/netlibrary/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'NetLibrary';
+										//$linkText = 'NetLibrary';
 									}elseif (preg_match('/ebscohost/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'Ebsco';
+										//$linkText = 'Ebsco';
 									}elseif (preg_match('/overdrive/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'OverDrive';
+										//$linkText = 'OverDrive';
 									}elseif (preg_match('/ebrary/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'ebrary';
+										//$linkText = 'ebrary';
 									}elseif (preg_match('/gutenberg/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'Gutenberg Project';
+										//$linkText = 'Gutenberg Project';
 									}elseif (preg_match('/gale/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'Gale Group';
+										//$linkText = 'Gale Group';
 									}
 									$lastHolding['link'][] = array('link' => $linkUrl,
                                                                    'linkText' => $linkText,
