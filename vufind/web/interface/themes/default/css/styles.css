@@ -2360,11 +2360,10 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 }
 
 /* Styles for cron and reindex reports */
-.logEntryProcessDetails {
-	border: 1px solid black;
-}
 .logEntryProcessDetails td, .logEntryProcessDetails th{
 	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 2px;
 }
 .logEntryDetails{
 	width: 100%;
@@ -2372,10 +2371,13 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 }
 .logEntryDetails td, .logEntryDetails th{
 	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 2px;
 }
 .logEntryProcessDetails table{
-	width: 100%;
+	width: 97%;
 	border-collapse: collapse;
+	margin-left: 16px;
 }
 
 #otherEditionsPopup{
