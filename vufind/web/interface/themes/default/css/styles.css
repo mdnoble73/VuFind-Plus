@@ -2368,12 +2368,14 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 }
 .logEntryDetails{
 	width: 100%;
+	border-collapse: collapse;
 }
 .logEntryDetails td, .logEntryDetails th{
 	border: 1px solid black;
 }
 .logEntryProcessDetails table{
 	width: 100%;
+	border-collapse: collapse;
 }
 
 #otherEditionsPopup{
