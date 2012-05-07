@@ -152,6 +152,7 @@ public class GenealogyCleanup implements IProcessHandler {
 				System.out.println("Reindexing person " + personId);
 				reindexPerson(processSettings, vufindConn, personId);
 				numPeople++;
+				processLog.incUpdated();
 				if (numPeople % 100 == 0){
 					processLog.saveToDatabase(vufindConn, logger);
 				}

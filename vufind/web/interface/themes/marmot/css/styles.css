@@ -1986,13 +1986,20 @@ ul.hold_items li{
 
 .logEntryProcessDetails td, .logEntryProcessDetails th{
 	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 2px;
 }
 .logEntryDetails{
 	width: 100%;
+	border-collapse: collapse;
 }
 .logEntryDetails td, .logEntryDetails th{
 	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 2px;
 }
 .logEntryProcessDetails{
-	width: 100%;
+	width: 97%;
+	border-collapse: collapse;
+	margin-left: 16px;
 }

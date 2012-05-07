@@ -8,7 +8,7 @@
 		<h1>Cron Log</h1>
 		
 		<div id="econtentAttachLogContainer">
-			<table class="logEntryDetails" " cellspacing="0">
+			<table class="logEntryDetails" cellspacing="0">
 				<thead>
 					<tr><th>Id</th><th>Started</th><th>Finished</th><th>Elapsed</th><th>Processes Run</th><th>Had Errors?</th><th>Notes</th></tr>
 				</thead>
@@ -23,7 +23,7 @@
 							<td>{if $logEntry->getHadErrors()}Yes{else}No{/if}</td>
 							<td><a href="#" onclick="return showCronNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
-						<tr><td></td><td colspan="7">
+						<tr><td colspan="8">
 							<div class="logEntryProcessDetails" id="processInfo{$logEntry->id}" style="display:none">
 								<table class="logEntryProcessDetails" cellspacing="0">
 									<thead>
