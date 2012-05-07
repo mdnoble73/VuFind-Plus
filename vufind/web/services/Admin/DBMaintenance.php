@@ -188,6 +188,7 @@ class DBMaintenance extends Admin {
         'title' => 'User Type',
         'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
         'dependencies' => array(),
+				'continueOnError' => true,
         'sql' => array(
           "ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
 		),
@@ -965,6 +966,7 @@ class DBMaintenance extends Admin {
 				'title' => 'Millennium table setup',
 				'description' => 'Add new tables for millennium installations',
 				'dependencies' => array(),
+				'continueOnError' => true,
 				'sql' => array(
 				"CREATE TABLE `millennium_cache` (
 				    `recordId` VARCHAR( 20 ) NOT NULL COMMENT 'The recordId being checked',
