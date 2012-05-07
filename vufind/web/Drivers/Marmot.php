@@ -652,7 +652,7 @@ class Marmot implements DriverInterface
 		$numSubscriptions = 0;
 		if (count($holdings) > 0){
 			$lastHolding = end($holdings);
-			if ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue'){
+			if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
 				$isIssueSummary = true;
 				$issueSummaries = $holdings;
 				$numSubscriptions = count($issueSummaries);
@@ -724,7 +724,7 @@ class Marmot implements DriverInterface
 			}elseif($allItemStatus != $holding['statusfull']){
 				$allItemStatus = null;
 			}
-			if ($holding['availability'] == 1){
+			if (isset($holding['availability']) && $holding['availability'] == 1){
 				$numAvailableCopies++;
 				$addToAvailableLocation = false;
 				$addToAdditionalAvailableLocation = false;
@@ -1452,14 +1452,17 @@ class Marmot implements DriverInterface
 						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
 						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
 						$renewCount = 0;
+						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
+							$curTitle['fine'] = trim($matches[1]);
+						}
 						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
 							$due = trim($matches[1]);
 							$renewCount = $matches[2];
 						}else if (preg_match('/(.*)\+\d+ HOLD.*/i', $due, $matches)){
 							$due = trim($matches[1]);
 						}
-						if (preg_match('/\d{2}-\d{2}-\d{2}/', $due)){
-							$dateDue = DateTime::createFromFormat('m-d-y', $due);
+						if (preg_match('/(\d{2}-\d{2}-\d{2})/', $due, $dueMatches)){
+							$dateDue = DateTime::createFromFormat('m-d-y', $dueMatches[1]);
 							if ($dateDue){
 								$dueTime = $dateDue->getTimestamp();
 							}else{

@@ -75,17 +75,6 @@ function doGetStatusSummaries()
 	var now = new Date();
 	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
 
-	// Modify this to return status summaries one at a time to improve
-	// the perceived performance
-	var http = createRequestObject();
-	var url = path + "/Search/AJAX?method=GetStatusSummaries";
-	
-	var callGetStatusSummaries = false;
-	for (var j=0; j<GetStatusList.length; j++) {
-		url += "&id[]=" + encodeURIComponent(GetStatusList[j]);
-		callGetStatusSummaries = true;
-	}
-	
 	var callGetEContentStatusSummaries = false;
 	var eContentUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
 	for (var j=0; j<GetEContentStatusList.length; j++) {
@@ -93,85 +82,86 @@ function doGetStatusSummaries()
 		callGetEContentStatusSummaries = true;
 	}
 	// url += "&id[]=" + encodeURIComponent($id);
-	url += "&time="+ts;
+	
 	eContentUrl += "&time=" +ts;
 
-	if (callGetStatusSummaries)
-	{
-		http.open("GET", url, true);
-		http.onreadystatechange = function(){
-			if ((http.readyState == 4) && (http.status == 200)) {
-				if (http.responseXML == null){
-					return;
-				}
-				var response = http.responseXML.documentElement;
-				var items = response.getElementsByTagName('item');
-				var elemId;
-				var statusDiv;
-				var status;
-				var reserves;
-				var showPlaceHold;
-				var placeHoldLink;
-				var numHoldable = 0;
-	
-				for (var i=0; i<items.length; i++) {
-					try{
-						elemId = items[i].getAttribute('id');
-	
-						// Place hold link
-						if (items[i].getElementsByTagName('showplacehold').item(0) == null || items[i].getElementsByTagName('showplacehold').item(0).firstChild == null){
-							showPlaceHold = 0;
-						}else{	
-							showPlaceHold = items[i].getElementsByTagName('showplacehold').item(0).firstChild.data;
-						}
-	
-						// Multi select place hold options
-						if (showPlaceHold == '1'){
-							numHoldable++;
-							// show the place hold button
-							var placeHoldButton = $('#placeHold' + elemId );
-							if (placeHoldButton.length > 0){
-								placeHoldButton.show();
-							}
-						}
-	
-						// Change outside border class.
-						var holdingSum= $('#holdingsSummary' + elemId);
-						if (holdingSum.length > 0){
-							divClass= items[i].getElementsByTagName('class').item(0).firstChild.data;
-							holdingSum.addClass(divClass);
-							var formattedHoldingsSummary = items[i].getElementsByTagName('formattedHoldingsSummary').item(0).firstChild.data;
-							holdingSum.replaceWith(formattedHoldingsSummary);
-						}
-						if (items[i].getElementsByTagName("eAudioLink") != null && items[i].getElementsByTagName("eAudioLink").item(0) != null){
-							var eAudioLink = items[i].getElementsByTagName("eAudioLink").item(0).firstChild.data;
-							if (eAudioLink) {
-								if (eAudioLink.length > 0) {
-									$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
-									$("#eAudioLink" + elemId).show();
-								}
-							}
-						}
-						if (items[i].getElementsByTagName("eBookLink") != null && items[i].getElementsByTagName("eBookLink").item(0) != null){
-							var eBookLink = items[i].getElementsByTagName("eBookLink").item(0).firstChild.data;
-							if (eBookLink) {
-								if (eBookLink.length > 0) {
-									$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
-									$("#eBookLink" + elemId).show();
-								}
-							}
-						}
-					}catch (err){
-						alert("Unexpected error " + err);
+	//Since the ILS can be slow, make individual cals to print titles
+	// Modify this to return status summaries one at a time to improve
+	// the perceived performance
+	var callGetStatusSummaries = false;
+	for (var j=0; j<GetStatusList.length; j++) {
+		var url = path + "/Search/AJAX?method=GetStatusSummaries";
+		url += "&id[]=" + encodeURIComponent(GetStatusList[j]);
+		url += "&time="+ts;
+		$.getJSON(url, function(data){
+			var items = data.items;
+			
+			var elemId;
+			var statusDiv;
+			var status;
+			var reserves;
+			var showPlaceHold;
+			var placeHoldLink;
+			var numHoldable = 0;
+
+			for (var i=0; i<items.length; i++) {
+				try{
+					elemId = items[i].shortId;
+
+					// Place hold link
+					if (items[i].showPlaceHold == null){
+						showPlaceHold = 0;
+					}else{	
+						showPlaceHold = items[i].showPlaceHold;
 					}
+
+					// Multi select place hold options
+					if (showPlaceHold == '1' || showPlaceHold == true){
+						numHoldable++;
+						// show the place hold button
+						var placeHoldButton = $('#placeHold' + elemId );
+						if (placeHoldButton.length > 0){
+							placeHoldButton.show();
+						}
+					}
+
+					// Change outside border class.
+					var holdingSum= $('#holdingsSummary' + elemId);
+					if (holdingSum.length > 0){
+						divClass= items[i]['class'];
+						holdingSum.addClass(divClass);
+						var formattedHoldingsSummary = items[i].formattedHoldingsSummary;
+						holdingSum.replaceWith(formattedHoldingsSummary);
+					}
+					if (items[i].eAudioLink != null){
+						var eAudioLink = items[i].eAudioLink;
+						if (eAudioLink) {
+							if (eAudioLink.length > 0) {
+								$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
+								$("#eAudioLink" + elemId).show();
+							}
+						}
+					}
+					if (items[i].eBookLink != null){
+						var eBookLink = items[i].eBookLink;
+						if (eBookLink) {
+							if (eBookLink.length > 0) {
+								$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
+								$("#eBookLink" + elemId).show();
+							}
+						}
+					}
+				}catch (err){
+					alert("Unexpected error " + err);
 				}
-				// Check to see if the Request selected button should show
-				if (numHoldable > 0){
-					$('.requestSelectedItems').show();
-				}	
 			}
-		};
-		http.send(null);
+			// Check to see if the Request selected button should show
+			if (numHoldable > 0){
+				$('.requestSelectedItems').show();
+			}
+		}).error(function(jqXHR, textStatus, errorThrown){
+			alert("Unexpected error trying to get status " + textStatus);
+		});
 	}
     
 	if (callGetEContentStatusSummaries)

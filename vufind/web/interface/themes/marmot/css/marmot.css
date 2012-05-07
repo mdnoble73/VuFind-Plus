@@ -17,3 +17,6 @@
 .ui-autocomplete{
 	font-size:10px;
 }
+.ui-widget-content a {
+	color: #003399;
+}
