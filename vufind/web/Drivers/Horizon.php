@@ -116,7 +116,8 @@ class Horizon implements DriverInterface{
 					//No data exists
 				
 					$itemData = array();
-					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
+					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');					
+
 					//Get the barcode from the horizon database
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
@@ -216,10 +217,10 @@ class Horizon implements DriverInterface{
 		return $allItems;
 	}
 
-	public function getHoldings($idList)
+	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false)
 	{
 		foreach ($idList as $id) {
-			$holdings[] = $this->getHolding($id);
+			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
 		}
 		return $holdings;
 	}
@@ -231,7 +232,7 @@ class Horizon implements DriverInterface{
 
 	public function getStatuses($idList, $record = null, $mysip = null, $forSummary = false)
 	{
-		return getHoldings($idList, $record = null, $mysip = null, $forSummary = false);
+		return $this->getHoldings($idList, $record, $mysip, $forSummary);
 	}
 
 	public function getPurchaseHistory($id)
@@ -1409,7 +1410,7 @@ private $patronProfiles = array();
 						$homeLocationId = $location->locationId;
 					}
 					global $user;
-
+					
 					$profile= array(
             'lastname' => $result['variable']['DJ'][0],
             'firstname' => isset($result['variable']['DH'][0]) ? $result['variable']['DH'][0] : '',
@@ -1438,6 +1439,15 @@ private $patronProfiles = array();
 					$eContentDriver = new EContentDriver(); 
 					$eContentAccountSummary = $eContentDriver->getAccountSummary();
 					$profile = array_merge($profile, $eContentAccountSummary);
+					
+					//Get a count of the materials requests for the user
+					$materialsRequest = new MaterialsRequest();
+					$materialsRequest->createdBy = $user->id;
+					$statusQuery = new MaterialsRequestStatus();
+					$statusQuery->isOpen = 1;
+					$materialsRequest->joinAdd($statusQuery);
+					$materialsRequest->find();
+					$profile['numMaterialsRequests'] = $materialsRequest->N;
 				} else {
 					$profile = new PEAR_Error('patron_info_error_technical');
 				}

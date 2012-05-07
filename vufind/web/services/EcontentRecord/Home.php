@@ -108,6 +108,8 @@ class Home extends Action{
 				}else{
 					$this->isbn = "";
 				}
+			}elseif ($this->isbn == null || strlen($this->isbn) == 0){
+				$interface->assign('showOtherEditionsPopup', false);
 			}
 			$this->issn = $eContentRecord->getPropertyArray('issn');
 			if (is_array($this->issn)){
@@ -153,12 +155,14 @@ class Home extends Action{
 			$timer->logTime('Got More Like This');
 
 			// Find Other Editions
-			$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
-			if (!PEAR::isError($editions)) {
-				$interface->assign('editions', $editions);
+			if ($configArray['Content']['showOtherEditionsPopup'] == false){
+				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
+				if (!PEAR::isError($editions)) {
+					$interface->assign('editions', $editions);
+				}
+				$timer->logTime('Got Other editions');
 			}
-			$timer->logTime('Got Other editions');
-				
+			
 			//Load the citations
 			$this->loadCitation($eContentRecord);
 				

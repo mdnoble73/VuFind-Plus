@@ -2,9 +2,6 @@
   <div id="logoutOptions"{if !$user} style="display: none;"{/if}>
     <a href="{$path}/MyResearch/Home" id="myAccountNameLink">{$user->firstname|capitalize} {$user->lastname|capitalize}</a> | <a href="{$path}/MyResearch/Home">{translate text="Your Account"}</a> |
     <a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a>
-    {if $user && ($user->hasRole('opacAdmin') || $user->hasRole('userAdmin'))}
-      | <a href="{$path}/Admin/Home">{translate text="Administration"}</a>
-    {/if}
   </div>
   <div id="loginOptions"{if $user} style="display: none;"{/if}>
     {if $authMethod == 'Shibboleth'}

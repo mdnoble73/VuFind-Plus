@@ -134,8 +134,10 @@ class Download extends Action {
 						}
 						$files = readdir($dirHnd);
 						closedir($dirHnd);
+						//Sort the mp3 files by name.
+						sort($mp3Files);
 						$interface->assign('mp3Filenames', $mp3Files);
-						$interface->display('EContentRecord/download-mp3.tpl');
+						$interface->display('EcontentRecord/download-mp3.tpl');
 						exit();
 					}
 				}
@@ -146,6 +148,6 @@ class Download extends Action {
 		}
 		$interface->assign('errorOccurred', $errorOccurred);
 
-		$interface->display('EContentRecord/download.tpl');
+		$interface->display('EcontentRecord/download.tpl');
 	}
 }

@@ -84,7 +84,7 @@ class MyResearch extends Action
 		}
 
 		//This code is also in Search/History since that page displays in the My Account menu as well.
-		//It is also in MyList.php
+		//It is also in MyList.php and Admin.php
 		if ($user !== false){
 			$interface->assign('user', $user);
 			// Get My Profile

@@ -716,13 +716,14 @@ class AJAX extends Action {
 		$id = $_REQUEST['id'];
 		$isEContent = $_REQUEST['isEContent'];
 		
-		
 		if ($isEContent == 'true'){
 			require_once 'sys/eContent/EContentRecord.php';
 			$econtentRecord = new EContentRecord();
 			$econtentRecord->id = $id;
 			if ($econtentRecord->find(true)){
 				$otherEditions = OtherEditionHandler::getEditions($econtentRecord->solrId(), $econtentRecord->getIsbn(), $econtentRecord->getIssn(), 10);
+			}else{
+				$error = "Sorry we couldn't find that record in the catalog.";
 			}
 		}else{
 			$resource = new Resource();
@@ -731,10 +732,12 @@ class AJAX extends Action {
 			$solrId = $id;
 			if ($resource->find(true)){
 				$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
+			}else{
+				$error = "Sorry we couldn't find that record in the catalog.";
 			}
 		}
 		
-		if ($otherEditions){
+		if (isset($otherEditions)){
 			//Get resource for each edition 
 			$editionResources = array();
 			if (is_array($otherEditions)){
@@ -756,8 +759,10 @@ class AJAX extends Action {
 			}
 			$interface->assign('otherEditions', $editionResources);
 			echo $interface->fetch('Resource/otherEditions.tpl');
+		}elseif (isset($error)){
+			echo $error;
 		}else{
-			echo "Sorry we couldn't find that record in the catalog.";
+			echo("There are no other editions for this title currently in the catalog.");
 		}
 	}
 }

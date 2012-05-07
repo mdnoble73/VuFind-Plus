@@ -169,7 +169,7 @@
 	{/literal}{/if}  
   
   {* Strands tracking *}
-  {if $user && $user->disableRecommendations == 0}
+  {if $user && $user->disableRecommendations == 0 && $strandsAPID}
 	  {literal}
 	  <script type="text/javascript">
 	
@@ -184,11 +184,13 @@
 	  </script>
 	  {/literal}
   {/if}
+  {if $strandsAPID}
   {literal}
   <!-- Strands Library MUST be included at the end of the HTML Document, before the /body closing tag and JUST ONCE -->
   <script type="text/javascript" src="http://bizsolutions.strands.com/sbsstatic/js/sbsLib-1.0.min.js"></script>
   <script type="text/javascript">
     try{ SBS.Worker.go("vFR4kNOW4b"); } catch (e){};
-  </script>{/literal} 
+  </script>{/literal}
+  {/if} 
   </body>
 </html>{/strip}

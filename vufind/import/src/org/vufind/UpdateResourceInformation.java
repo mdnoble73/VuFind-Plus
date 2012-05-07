@@ -123,10 +123,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			// handle any errors
 			logger.error("Unable to setup prepared statements", ex);
 			return false;
-		}finally{
-			if (results.getRecordsProcessed() % 100 == 0){
-				results.saveResults();
-			}
 		}
 		return true;
 		
@@ -142,12 +138,12 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		try {
 			//Check to see if we have an existing resource
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
-			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null){
+			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
 				resourceId = basicResourceInfo.getResourceId();
 				//Remove the resource from the existingResourcesList so 
 				//We can determine which resources no longer exist
 				existingResources.remove(recordInfo.getId());
-				if (updateUnchangedResources || (basicResourceInfo.getMarcChecksum() != recordInfo.getChecksum())){
+				if (updateUnchangedResources || basicResourceInfo.getMarcChecksum() == null || (basicResourceInfo.getMarcChecksum() != recordInfo.getChecksum())){
 					// Update the existing record
 					String title = recordInfo.getTitle();
 					String author = recordInfo.getAuthor();
@@ -267,6 +263,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			logger.error("Error updating resource for record " + recordInfo.getId(), ex);
 			System.out.println(recordInfo.getTitle());
 			results.incErrors();
+		}finally{
+			if (results.getRecordsProcessed() % 100 == 0){
+				results.saveResults();
+			}
 		}
 		return true;
 	}
@@ -397,6 +397,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			results.incErrors();
 			results.addNote("Error updating resources for eContent " + e.toString());
 			return false;
+		}finally{
+			if (results.getEContentRecordsProcessed() % 100 == 0){
+				results.saveResults();
+			}
 		}
 	}
 }

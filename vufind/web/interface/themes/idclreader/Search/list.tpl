@@ -1,3 +1,4 @@
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
 <div data-role="content">
     {if $recordCount}
 	    <p>

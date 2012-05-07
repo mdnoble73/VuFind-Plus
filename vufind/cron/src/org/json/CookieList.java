@@ -70,7 +70,8 @@ public class CookieList {
      */
     public static String toString(JSONObject jo) throws JSONException {
         boolean      b = false;
-        Iterator     keys = jo.keys();
+        @SuppressWarnings("rawtypes")
+				Iterator     keys = jo.keys();
         String       string;
         StringBuffer sb = new StringBuffer();
         while (keys.hasNext()) {

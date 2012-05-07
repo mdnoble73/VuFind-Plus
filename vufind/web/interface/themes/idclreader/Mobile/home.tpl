@@ -26,6 +26,9 @@
     <li><a href="/Mobile/MostPopular" data-ajax=false>Most Popular </a></li>
     <li><a href="/Mobile/FreeEbooks" data-ajax=false>Free eBooks  </a></li>
     <li><a href="/MyResearch/Home" data-ajax=false>My Account   </a></li>
+	{if $user}   
+    	<li data-icon="delete" data-theme='b'><a href="/MyResearch/Logout" data-ajax=false>Log Out</a></li>
+    {/if}
 </ul>
 {literal}
 	<script type="text/javascript">

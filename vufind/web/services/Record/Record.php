@@ -504,14 +504,15 @@ class Record extends Action
 		$timer->logTime('Loaded similar titles');
 		
 		// Find Other Editions
-		$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
-		if (!PEAR::isError($editions)) {
-			$interface->assign('editions', $editions);
-		}else{
-			$logger->logTime("Did not find any other editions");
+		if ($configArray['Content']['showOtherEditionsPopup'] == false){
+			$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
+			if (!PEAR::isError($editions)) {
+				$interface->assign('editions', $editions);
+			}else{
+				$logger->logTime("Did not find any other editions");
+			}
+			$timer->logTime('Got Other editions');
 		}
-		$timer->logTime('Got Other editions');
-		
 		
 		$interface->assign('showStrands', isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0);
 

@@ -33,7 +33,7 @@ class Reindex extends Action{
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $recordId;
 		if ($eContentRecord->find(true)){
-			$ret = $eContentRecord->saveToSolr($recordId);
+			$ret = $eContentRecord->saveToSolr($quick);
 			if ($ret){
 				echo(json_encode(array("success" => true)));
 			}else{

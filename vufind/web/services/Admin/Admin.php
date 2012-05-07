@@ -45,6 +45,52 @@ abstract class Admin extends Action
 				break;
 			}
 		}
+		
+		$interface->assign('ils', $configArray['Catalog']['ils']);
+		
+		//Determine whether or not materials request functionality should be enabled
+		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
+		
+		//Check to see if we have any acs or single use eContent in the catalog 
+		//to enable the holds and wishlist appropriately
+		if (isset($configArray['EContent']['hasProtectedEContent'])){
+			$interface->assign('hasProtectedEContent', $configArray['EContent']['hasProtectedEContent']);
+		}else{
+			$interface->assign('hasProtectedEContent', false);
+		}
+		
+		//This code is also in Search/History since that page displays in the My Account menu as well.
+		//It is also in MyList.php
+		if ($user !== false){
+			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			
+			$interface->assign('user', $user);
+			// Get My Profile
+			if ($this->catalog->status) {
+				if ($user->cat_username) {
+					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
+					if (PEAR::isError($patron)){
+						PEAR::raiseError($patron);
+					}
+
+					$profile = $this->catalog->getMyProfile($patron);
+					if (!PEAR::isError($profile)) {
+						$interface->assign('profile', $profile);
+					}
+				}
+			}
+			//Figure out if we should show a link to classic opac to pay holds.
+			$ecommerceLink = $configArray['Site']['ecommerceLink'];
+			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
+				$interface->assign('showEcommerceLink', true);
+				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
+				$interface->assign('ecommerceLink', $ecommerceLink);
+			}else{
+				$interface->assign('showEcommerceLink', false);
+				$interface->assign('minimumFineAmount', 0);
+			}
+		}
 
 		if (!$userCanAccess){
 			$interface->setTemplate('noPermission.tpl');
