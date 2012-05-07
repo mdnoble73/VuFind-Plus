@@ -1224,6 +1224,15 @@ class Marmot implements DriverInterface
 		$eContentAccountSummary = $eContentDriver->getAccountSummary();
 		$profile = array_merge($profile, $eContentAccountSummary);
 
+		//Get a count of the materials requests for the user
+		$materialsRequest = new MaterialsRequest();
+		$materialsRequest->createdBy = $user->id;
+		$statusQuery = new MaterialsRequestStatus();
+		$statusQuery->isOpen = 1;
+		$materialsRequest->joinAdd($statusQuery);
+		$materialsRequest->find();
+		$profile['numMaterialsRequests'] = $materialsRequest->N;
+		
 		$timer->logTime("Got Patron Profile");
 		$this->patronProfiles[$patron['id']] = $profile;
 		return $profile;
@@ -1260,6 +1269,7 @@ class Marmot implements DriverInterface
 				return null;
 			}
 			$result = $req->getResponseBody();
+			
 			//Strip the acutal contents out of the body of the page.
 			$r = substr($result, stripos($result, 'BODY'));
 			$r = substr($r,strpos($r,">")+1);
@@ -1277,7 +1287,6 @@ class Marmot implements DriverInterface
 			//Group1 would be the keys and group 2 the values.
 			$rows = preg_replace("/<BR.*?>/","*",$r);
 			$rows = explode("*",$rows);
-	
 			//Add the key and value from each row into an associative array.
 			$ret = array();
 			$patronDump = array();
@@ -1297,7 +1306,6 @@ class Marmot implements DriverInterface
 			$timer->logTime("Got patron information from Patron API");
 			
 			if (isset($configArray['ERRNUM'])){
-				//Could not load the record
 				return null;
 			}else{
 				
