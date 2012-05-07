@@ -22,7 +22,7 @@ class EContentRecordDetectionSettings extends DB_DataObject {
 	}
 	
 	function getObjectStructure(){
-		$itemTypes = EContentItem::getValidItemTypes();
+		$itemTypes = EContentItem::getExternalItemTypes();
 		$accessTypes = EContentRecord::getValidAccessTypes();
 		
 		$structure = array(
@@ -31,8 +31,8 @@ class EContentRecordDetectionSettings extends DB_DataObject {
 			'valueToMatch' => array('property'=>'valueToMatch', 'type'=>'text', 'label'=>'Value To Match', 'description'=>'The value to match to see if the record should be treated as eContent.  Regular expressions are allowed.'),
 			'source' => array('property'=>'source', 'type'=>'text', 'label'=>'Source', 'description'=>'The source to set for the record.'),
 			'accessType' => array('property'=>'accessType', 'type'=>'enum', 'label'=>'Access Type', 'values'=>$accessTypes, 'description'=>'The type to apply to any items that are generated.'),
-			'item_type' => array('property'=>'item_type', 'type'=>'enum', 'label'=>'Item Type', 'values'=>$itemTypes, 'description'=>'The type to apply to any items that are generated.'),
 			'add856FieldsAsExternalLinks' => array('property'=>'add856FieldsAsExternalLinks', 'type'=>'checkbox', 'label'=>'Create Links?', 'description'=>'Whether or not automatic external links should be generated based on the 856 tag.'),
+			'item_type' => array('property'=>'item_type', 'type'=>'enum', 'label'=>'Item Type', 'values'=>$itemTypes, 'description'=>'The type to apply to any items that are generated.'),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';

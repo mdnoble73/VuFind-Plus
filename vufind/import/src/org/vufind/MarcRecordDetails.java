@@ -2559,8 +2559,8 @@ public class MarcRecordDetails {
 				boolean isMatch = false;
 				//logger.debug("Found " + fieldData.size() + " fields matching " + curSettings.getFieldSpec());
 				for (String curField : fieldData){
-					//logger.debug("Testing if value " + curField + " matches " + curSettings.getValueToMatch());
-					isMatch = ((String) curField).matches(".*" + curSettings.getValueToMatch() + ".*");
+					//logger.debug("Testing if value " + curField.toLowerCase() + " matches " + curSettings.getValueToMatch());
+					isMatch = ((String) curField.toLowerCase()).matches(".*" + curSettings.getValueToMatch().toLowerCase() + ".*");
 					if (isMatch) break;
 				}
 				if (isMatch) {
