@@ -94,6 +94,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				results.addNote("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
 				results.incErrors();
 				return false;
+			}else{
+				logger.info("Record " + recordInfo.getId() + " is eContent, source is " + detectionSettings.getSource());
 			}
 			String source = detectionSettings.getSource();
 			String accessType = detectionSettings.getAccessType();
