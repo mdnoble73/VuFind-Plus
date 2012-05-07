@@ -75,7 +75,7 @@ class GetMedia extends Action {
 						}
 					}
 					$files = readdir($dirHnd);
-					sort($files);
+					sort($mp3Files);
 					closedir($dirHnd);
 					$bookFile = "{$libraryPath}/{$econtentItem->folder}/{$mp3Files[$segmentIndex]}";
 						
