@@ -2003,3 +2003,7 @@ ul.hold_items li{
 	border-collapse: collapse;
 	margin-left: 16px;
 }
+
+#otherEditionsPopup{
+	min-width: 530px;
+}

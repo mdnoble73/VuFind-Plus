@@ -2375,3 +2375,7 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 .logEntryProcessDetails table{
 	width: 100%;
 }
+
+#otherEditionsPopup{
+	min-width: 530px;
+}
