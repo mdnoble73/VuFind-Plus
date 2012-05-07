@@ -53,6 +53,9 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 				}else{
 					importRecord(steamboatFile, curRecord, curRow++, false, logger);
 				}
+				if (curRow % 100 == 0){
+					processLog.saveToDatabase(vufindConn, logger);
+				}
 			}
 			
 			//Read Rural File
@@ -67,6 +70,9 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 				}else{
 					importRecord(ruralFile, curRecord, curRow++, true, logger);
 				}
+				if (curRow % 100 == 0){
+					processLog.saveToDatabase(vufindConn, logger);
+				}
 			}
 			
 		} catch (Exception ex) {
@@ -75,6 +81,8 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 			ex.printStackTrace();
 			return;
 		}
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	private void importRecord(String fileName, String[] curRecord, int curRow, boolean isRural, Logger logger){
@@ -198,9 +206,12 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 				URL reindexUrl = new URL(vufindUrl + "Person/" + personId + "/Reindex?quick=true");
 				@SuppressWarnings("unused")
 				Object content = reindexUrl.getContent();
+				processLog.incUpdated();
 			}
 		} catch (Exception e) {
 			logger.error("Error importing row " + curRow, e);
+			processLog.addNote("Error importing row " + curRow + " - " +  e.toString());
+			processLog.incErrors();
 		}
 	}
 	

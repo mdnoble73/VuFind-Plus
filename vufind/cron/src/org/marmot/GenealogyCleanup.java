@@ -48,6 +48,7 @@ public class GenealogyCleanup implements IProcessHandler {
 		processLog.saveToDatabase(vufindConn, logger);
 		
 		optimizeIndex(configIni, processSettings);
+		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}
 
