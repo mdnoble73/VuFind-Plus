@@ -2363,9 +2363,15 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 .logEntryProcessDetails {
 	border: 1px solid black;
 }
+.logEntryProcessDetails td, .logEntryProcessDetails th{
+	border: 1px solid black;
+}
 .logEntryDetails{
 	width: 100%;
 }
-.logEntryProcessDetails{
+.logEntryDetails td, .logEntryDetails th{
+	border: 1px solid black;
+}
+.logEntryProcessDetails table{
 	width: 100%;
 }

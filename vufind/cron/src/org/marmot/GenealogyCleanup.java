@@ -28,16 +28,27 @@ import au.com.bytecode.opencsv.CSVReader;
 
 public class GenealogyCleanup implements IProcessHandler {
 	private Connection vufindConn;
+	private Logger logger;
 	private CronProcessLogEntry processLog;
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		this.vufindConn = vufindConn;
+		this.logger = logger;
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Genealogy Cleanup");
+		processLog.saveToDatabase(vufindConn, logger);
+		
 		deleteDuplicates(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
+		
 		importFiles(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
+		
 		reindexPeople(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
+		
 		optimizeIndex(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	/**
@@ -135,10 +146,15 @@ public class GenealogyCleanup implements IProcessHandler {
 		try {
 			Statement peopleStatement = vufindConn.createStatement();
 			ResultSet personRs = peopleStatement.executeQuery("SELECT personId from person");
+			int numPeople = 0;
 			while (personRs.next()) {
 				int personId = personRs.getInt("personId");
 				System.out.println("Reindexing person " + personId);
 				reindexPerson(processSettings, vufindConn, personId);
+				numPeople++;
+				if (numPeople % 100 == 0){
+					processLog.saveToDatabase(vufindConn, logger);
+				}
 			}
 			personRs.close();
 		} catch (SQLException e) {

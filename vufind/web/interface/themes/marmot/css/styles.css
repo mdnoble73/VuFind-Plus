@@ -1972,3 +1972,27 @@ ul.hold_items li{
 .alphaBrowseRelatedHeading li {
     margin-left: 4em;
 }
+
+.collapsed:before{
+	content: "► ";
+}
+.expanded:before{
+	content: "▼ ";
+}
+.requiredIndicator{
+	color:red;
+}
+/* Styles for cron and reindex reports */
+
+.logEntryProcessDetails td, .logEntryProcessDetails th{
+	border: 1px solid black;
+}
+.logEntryDetails{
+	width: 100%;
+}
+.logEntryDetails td, .logEntryDetails th{
+	border: 1px solid black;
+}
+.logEntryProcessDetails{
+	width: 100%;
+}
