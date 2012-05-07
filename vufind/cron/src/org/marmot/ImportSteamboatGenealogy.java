@@ -1,30 +1,26 @@
 package org.marmot;
 
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
-import org.vufind.Util;
 import org.apache.log4j.Logger;
 
 import au.com.bytecode.opencsv.CSVReader;
 
 public class ImportSteamboatGenealogy implements IProcessHandler{
-	private String databaseConnectionInfo;
+	private CronProcessLogEntry processLog;
 	private String steamboatFile;
 	private String ruralFile;
 	private String vufindUrl;
@@ -33,21 +29,18 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 	private PreparedStatement updatePersonStmt;
 
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
-		if (!loadConfig(processSettings, generalSettings)){
-			System.out.println("Unable to load configuration");
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Import Steamboat Genealogy");
+		if (!loadConfig(configIni, processSettings)){
+			processLog.addNote("Unable to load configuration");
+			processLog.incErrors();
 			return;
 		}
-		
-
-		
-		
-		Connection conn = null;
+				
 		try {
-			conn = DriverManager.getConnection(databaseConnectionInfo);
-			checkForExistingPerson = conn.prepareStatement("SELECT personId FROM person WHERE cemeteryName = ? AND addition = ? AND block = ? and lot = ? AND grave = ? AND importedFrom = ?");
-			addPersonStmt = conn.prepareStatement("INSERT INTO person (firstName, lastName, deathDateDay, deathDateMonth, deathDateYear, birthDateDay, birthDateMonth, birthDateYear, cemeteryName, cemeteryLocation, comments, veteranOf, addition, block, lot, grave, tombstoneInscription, addedBy, dateAdded, privateComments, importedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-			updatePersonStmt = conn.prepareStatement("UPDATE person SET firstName = ?, lastName = ?, deathDateDay = ?, deathDateMonth = ?, deathDateYear = ?, birthDateDay = ?, birthDateMonth = ?, birthDateYear = ?, cemeteryName = ?, cemeteryLocation = ?, comments = ?, veteranOf = ?, addition = ?, block = ?, lot = ?, grave = ?, tombstoneInscription = ?, addedBy = ?, dateAdded = ?, privateComments = ?, importedFrom =? WHERE personId = ?");
+			checkForExistingPerson = vufindConn.prepareStatement("SELECT personId FROM person WHERE cemeteryName = ? AND addition = ? AND block = ? and lot = ? AND grave = ? AND importedFrom = ?");
+			addPersonStmt = vufindConn.prepareStatement("INSERT INTO person (firstName, lastName, deathDateDay, deathDateMonth, deathDateYear, birthDateDay, birthDateMonth, birthDateYear, cemeteryName, cemeteryLocation, comments, veteranOf, addition, block, lot, grave, tombstoneInscription, addedBy, dateAdded, privateComments, importedFrom) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			updatePersonStmt = vufindConn.prepareStatement("UPDATE person SET firstName = ?, lastName = ?, deathDateDay = ?, deathDateMonth = ?, deathDateYear = ?, birthDateDay = ?, birthDateMonth = ?, birthDateYear = ?, cemeteryName = ?, cemeteryLocation = ?, comments = ?, veteranOf = ?, addition = ?, block = ?, lot = ?, grave = ?, tombstoneInscription = ?, addedBy = ?, dateAdded = ?, privateComments = ?, importedFrom =? WHERE personId = ?");
 			//Read Steamboat File
 			CSVReader reader = new CSVReader(new FileReader(steamboatFile));
 			List<String[]> steamboatValues = reader.readAll();
@@ -202,7 +195,8 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 			
 			//Reindex the record
 			if (personId != null){
-				URL reindexUrl = new URL(vufindUrl + "Person/" + personId + "/Reindex");
+				URL reindexUrl = new URL(vufindUrl + "Person/" + personId + "/Reindex?quick=true");
+				@SuppressWarnings("unused")
 				Object content = reindexUrl.getContent();
 			}
 		} catch (Exception e) {
@@ -210,25 +204,20 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 		}
 	}
 	
-	private boolean loadConfig(Section processSettings, Section generalSettings) {
-		databaseConnectionInfo = generalSettings.get("database");
-		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0){
-			System.out.println("Database connection information not found in General Settings.  Please specify connection information in a database key.");
-			return false;
-		}
-		vufindUrl = generalSettings.get("vufindUrl");
+	private boolean loadConfig(Ini configIni, Section processSettings) {
+		vufindUrl = configIni.get("Index", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0){
-			System.out.println("VuFind URL not found in General Settings.  Please specify url to vufind in a vufindUrl key.");
+			processLog.addNote("VuFind URL not found in General Settings.  Please specify url to vufind in a vufindUrl key.");
 			return false;
 		}
 		steamboatFile = processSettings.get("steamboatFile");
 		if (steamboatFile == null || steamboatFile.length() == 0) {
-			System.out.println("Unable to get steamboat file in Process section.  Please specify steamboatFile key.");
+			processLog.addNote("Unable to get steamboat file in Process section.  Please specify steamboatFile key.");
 			return false;
 		}
 		ruralFile = processSettings.get("ruralFile");
 		if (ruralFile == null || ruralFile.length() == 0) {
-			System.out.println("Unable to get rural file in Process section.  Please specify steamboatFile key.");
+			processLog.addNote("Unable to get rural file in Process section.  Please specify steamboatFile key.");
 			return false;
 		}
 		return true;
