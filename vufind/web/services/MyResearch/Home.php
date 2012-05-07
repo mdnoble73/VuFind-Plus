@@ -74,7 +74,6 @@ class Home extends MyResearch
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','&nbsp;');
-			$interface->assign('Logout',true);
 			
 			
 			$interface->setTemplate('home.tpl');

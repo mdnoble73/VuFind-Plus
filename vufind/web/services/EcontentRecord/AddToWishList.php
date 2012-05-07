@@ -40,7 +40,7 @@ class AddToWishList extends Action {
 		// Check if user is logged in
 		if (!$this->user) {
 			$interface->assign('recordId', $id);
-			$interface->assign('followupModule', 'EContentRecord');
+			$interface->assign('followupModule', 'EcontentRecord');
 			$interface->assign('followupAction', 'AddToWishList');
 			$interface->assign('followup', 'AddToWishList');
 			if (isset($_GET['lightbox'])) {
@@ -48,6 +48,12 @@ class AddToWishList extends Action {
 				$interface->assign('message', 'You must be logged in first');
 				return $interface->fetch('AJAX/login.tpl');
 			} else {
+				
+				//Var for the IDCLREADER TEMPLATE
+				$interface->assign('ButtonBack',true);
+				$interface->assign('ButtonHome',true);
+				$interface->assign('MobileTitle','Login to your account');
+				
 				$interface->setPageTitle('You must be logged in first');
 				$interface->assign('subTemplate', '../MyResearch/login.tpl');
 				$interface->setTemplate('view-alt.tpl');

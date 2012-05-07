@@ -26,6 +26,7 @@
 		{js filename="jquery.jcarousel.js"}
 		{js filename="jquery.touchwipe.1.1.1.js"}
 		<script type="text/javascript" src="{$path}/js/scripts.js"></script>
+		<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
 
 	</head>
 	<body>
