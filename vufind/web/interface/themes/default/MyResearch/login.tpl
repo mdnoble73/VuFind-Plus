@@ -23,6 +23,14 @@
 						<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
 					</div>
 				</div>
+				{if !$inLibrary}
+				<div id ='loginPasswordRow3' class='loginFormRow'>
+					<div class='loginLabel'>&nbsp;</div>
+					<div class='loginField'>
+						<input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+					</div>
+				</div>
+				{/if}
 				<div id='loginSubmitButtonRow' class='loginFormRow'>
 					<input type="submit" name="submit" value="Login" />
 					{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}

@@ -43,6 +43,9 @@
         <div class="loginLabelHome">{translate text='Password'}</div>
         <input class="loginFormInput" type="password" name="password" size="15" id="password"/>
         <div class="loginLabelHome"><input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label></div>
+        {if !$inLibrary}
+				<div class="loginLabelHome"><input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label></div>
+				{/if}
         <input id="loginButtonHome" type="image" name="submit" value="Login" src='{$path}/interface/themes/{$theme}/images/login.png' alt='{translate text="Login"}' />
       </div>
       

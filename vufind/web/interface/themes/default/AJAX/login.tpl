@@ -15,6 +15,10 @@ AJAX Login
     	<input type="password" name="password" size="15">
     	<br/>
     	<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+    	{if !$inLibrary}
+    	<br/>
+    	<input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+    	{/if}
     </td>
   </tr>
 

@@ -13,6 +13,9 @@
         <label for="password">{translate text='Password'}:</label>
         <input id="password" type="password" name="password"/>
         <input type="checkbox" id="showPwd" name="showPwd" onchange="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+        {if !$inLibrary}
+        <input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+        {/if}
       </div>
       <div data-role="fieldcontain">
         <input type="submit" name="submit" value="{translate text='Login'}"/>
