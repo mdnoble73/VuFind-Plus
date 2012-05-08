@@ -13,7 +13,7 @@
     <table>
     <thead>
       <tr>
-        <th><input type="checkbox" id="selectAll" onclick="checkAll();"/></th>
+        <th><input type="checkbox" id="selectAll" onclick="toggleCheckboxes('.selectedUpdate', $('#selectAll').attr('checked'));"/></th>
         <th>Name</th>
         <th>Description</th>
         <th>Already Run?</th>
@@ -25,7 +25,7 @@
     <tbody>
       {foreach from=$sqlUpdates item=update key=updateKey}
       <tr class="{if $update.alreadyRun}updateRun{else}updateNotRun{/if}" {if $update.alreadyRun}style="display:none"{/if}>
-        <td><input type="checkbox" name="selected[{$updateKey}]" {if !$update.alreadyRun}checked="checked"{/if}/></td>
+        <td><input type="checkbox" name="selected[{$updateKey}]" {if !$update.alreadyRun}checked="checked"{/if} class="selectedUpdate"/></td>
         <td>{$update.title}</td>
         <td>{$update.description}</td>
         <td>{if $update.alreadyRun}Yes{else}No{/if}</td>

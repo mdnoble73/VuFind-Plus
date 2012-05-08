@@ -17,9 +17,6 @@
   {if $user}
 	  redrawSaveStatus();
 	{/if}
-	{if !$purchaseLinks}
-		checkPurchaseLinks('{$id|escape:"url"}');
-	{/if}
 	{if (isset($title)) }
 	  //alert("{$title}");
 	{/if}
@@ -189,7 +186,7 @@ function redrawSaveStatus() {literal}{{/literal}
       <div id="similarAuthorPlaceholder"></div>
     </div>
     
-    {if is_array($editions)}
+    {if is_array($editions) && !$showOtherEditionsPopup}
     <div class="sidegroup" id="otherEditionsSidegroup">
       <h4>{translate text="Other Editions"}</h4>
         {foreach from=$editions item=edition}
@@ -305,6 +302,12 @@ function redrawSaveStatus() {literal}{{/literal}
 	  <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
 	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/default/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
 	  </div>
+	  
+	  {if $showOtherEditionsPopup}
+		<div id="otherEditionCopies">
+			<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+		</div>
+		{/if}
 
       {if $goldRushLink}
       <div class ="titledetails">
@@ -572,19 +575,15 @@ function redrawSaveStatus() {literal}{{/literal}
       
       <div id = "holdingstab">
       	<div id="holdingsPlaceholder">Loading...</div>
-        {if $purchaseLinks}
-          <div id="purchaseTitleLinks">
-          <h3>Get a copy for yourself</h3>
-          {foreach from=$purchaseLinks item=purchaseLink}
-            <div class='purchaseTitle button'><a href="/EcontentRecord/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}" target="_blank">{$purchaseLink.linkText}</a></div>
-          {/foreach}
-          </div>
-        {else}
-         <div id="purchaseTitleLinks">
-        <div id="purchaseLinkButtons"></div>
-        </div>
-        {/if}
-        {if $eContentRecord->sourceUrl}
+      	{if $showOtherEditionsPopup}
+				<div id="otherEditionCopies">
+					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+				</div>
+				{/if}
+        {if $enablePurchaseLinks == 1}
+					<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+				{/if}
+       {if $eContentRecord->sourceUrl}
       	<div id="econtentSource">
       		<a href="{$eContentRecord->sourceUrl}">Access original files</a>
       	</div>

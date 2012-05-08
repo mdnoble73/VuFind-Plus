@@ -99,18 +99,24 @@
             <td class="myAccountCell">
 				    	{if $user->disableCoverArt != 1}
 				    	<div class="imageColumn"> 
-						    
+						    {if $record.id}
 						    <a href="{$url}/Record/{$record.id|escape:"url"}" id="descriptionTrigger{$record.id|escape:"url"}">
 						    <img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 						    </a>
-						    
+						    {/if}
 						    <div id='descriptionPlaceholder{$record.id|escape}' style='display:none'></div>
 						  </div>
 						  {/if}
 				  
 				      <div class="myAccountTitleDetails">
 						  <div class="resultItemLine1">
-							<a href="{$url}/Record/{$record.id|escape:"url"}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+						  {if $record.id}
+							<a href="{$url}/Record/{$record.id|escape:"url"}" class="title">
+							{/if}
+							{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}
+							{if $record.id}
+							</a>
+							{/if}
 							{if $record.title2}
 						    <div class="searchResultSectionInfo">
 						      {$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -167,6 +173,9 @@
               {elseif $record.daysUntilDue <= 7}
                 <span class='dueSoonLabel'>(Due in {$record.daysUntilDue} days)</span>
               {/if}
+              {if $record.fine}
+              	<span class='overdueLabel'>FINE {$record.fine}</span>
+              {/if}
             </td>  
 		        {if $showRenewed}
 		        <td class="myAccountCell">
@@ -186,27 +195,27 @@
             {/if}
 		                  
             <td class="myAccountCell">                        
-						<div id ="searchStars{$record.id|escape}" class="resultActions">
-						  <div class="rate{$record.id|escape} stat">
+						<div id ="searchStars{$record.shortId|escape}" class="resultActions">
+						  <div class="rate{$record.shortId|escape} stat">
 							  <div class="statVal">
 							    <span class="ui-rater">
 							      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
 							      (<span class="ui-rater-rateCount-{$record.shortId|escape} ui-rater-rateCount">0</span>)
 							    </span>
 							  </div>
-						      <div id="saveLink{$record.id|escape}">
+						      <div id="saveLink{$record.shortId|escape}">
 						        {if $showFavorites == 1} 
 						        <a href="{$url}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 						        {/if}
 						        {if $user}
-						        	<div id="lists{$record.id|escape}"></div>
+						        	<div id="lists{$record.shortId|escape}"></div>
     									<script type="text/javascript">
     									  getSaveStatuses('{$record.id|escape:"javascript"}');
     									</script>
-  						        {/if}
+  						      {/if}
   						    </div>
-                  {assign var=id value=$record.id}
-                  {assign var=shortId value=$record.shortId}
+                  {assign var=id value=$record.id scope="global"}
+                  {assign var=shortId value=$record.shortId scope="global"}
                   {include file="Record/title-review.tpl"}
 						    </div>
 						    <script type="text/javascript">

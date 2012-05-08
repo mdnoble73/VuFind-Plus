@@ -69,12 +69,18 @@ class CheckedOut extends MyResearch{
 				if (!PEAR::isError($result)) {
 
 					$link = $_SERVER['REQUEST_URI'];
-					$link = preg_replace("/[&?]page=\d+/", "", $link);
+					if (preg_match('/[&?]page=/', $link)){
+						$link = preg_replace("/page=\\d+/", "page=%d", $link);
+					}else if (strpos($link, "?") > 0){
+						$link .= "&page=%d";
+					}else{
+						$link .= "?page=%d";
+					}
 					if ($recordsPerPage != '-1'){
 						$options = array('totalItems' => $result['numTransactions'],
 					                 'fileName'   => $link,
 					                 'perPage'    => $recordsPerPage,
-					                 'append'    => true,
+					                 'append'    => false,
 						);
 						$pager = new VuFindPager($options);
 						$interface->assign('pageLinks', $pager->getLinks());
@@ -82,14 +88,23 @@ class CheckedOut extends MyResearch{
 
 					$transList = array();
 					foreach ($result['transactions'] as $i => $data) {
-						$itemBarcode = $data['barcode'];
-						if (isset($_SESSION['renewResult'][$itemBarcode])){
+						$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
+						$itemId = isset($data['itemid']) ? $data['itemid'] : null;
+						if ($itemBarcode != null && isset($_SESSION['renewResult'][$itemBarcode])){
 							$renewMessage = $_SESSION['renewResult'][$itemBarcode]['message'];
 							$renewResult = $_SESSION['renewResult'][$itemBarcode]['result'];
 							$data['renewMessage'] = $renewMessage;
 							$data['renewResult']  = $renewResult;
 							$result['transactions'][$i] = $data;
 							unset($_SESSION['renewResult'][$itemBarcode]);
+							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+						}else if ($itemId != null && isset($_SESSION['renewResult'][$itemId])){
+							$renewMessage = $_SESSION['renewResult'][$itemId]['message'];
+							$renewResult = $_SESSION['renewResult'][$itemId]['result'];
+							$data['renewMessage'] = $renewMessage;
+							$data['renewResult']  = $renewResult;
+							$result['transactions'][$i] = $data;
+							unset($_SESSION['renewResult'][$itemId]);
 							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
 						}else{
 							$renewMessage = null;
@@ -138,16 +153,16 @@ class CheckedOut extends MyResearch{
 		$activeSheet = $objPHPExcel->setActiveSheetIndex(0);
 		$curRow = 1;
 		$curCol = 0;
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol, 'Checked Out Items');
+		$activeSheet->setCellValueByColumnAndRow($curCol, $curRow, 'Checked Out Items');
 		$curRow = 3;
 		$curCol = 0;
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Title');
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Author');
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Format');
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Out');
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Due');
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Renewed');
-		$activeSheet->setCellValueByColumnAndRow($curRow, $curCol++, 'Wait List');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Title');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Author');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Format');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Out');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Due');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Renewed');
+		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Wait List');
 
 
 		$a=4;
@@ -168,7 +183,11 @@ class CheckedOut extends MyResearch{
 			}else{
 				$authorCell = '';
 			}
-			$formatString = implode(', ', $row['format']);
+			if (is_array($row['format'])){
+				$formatString = implode(', ', $row['format']);
+			}else{
+				$formatString = $row['format'];
+			}
 			$objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('A'.$a, $titleCell)
 			->setCellValue('B'.$a, $authorCell)

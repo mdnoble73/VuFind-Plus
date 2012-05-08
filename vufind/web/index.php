@@ -53,13 +53,20 @@ $timer->logTime("Initialize Memcache");
 //Deal with old path based urls by removing the leading path.
 $requestURI = $_SERVER['REQUEST_URI'];
 $requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
-if (preg_match("/(MyResearch)\/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
+if (preg_match("/(MyResearch)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[3];
 	$_GET['action'] = $matches[2];
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['id'] = $matches[3];
 	$_REQUEST['action'] = $matches[2];
+}elseif (preg_match("/(MyResearch)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+	$_GET['module'] = $matches[1];
+	$_GET['action'] = $matches[2];
+	$_REQUEST['id'] = '';
+	$_REQUEST['module'] = $matches[1];
+	$_REQUEST['action'] = $matches[2];
+	$_REQUEST['id'] = '';
 }elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[2];
@@ -552,15 +559,14 @@ $ipId = $locationSingleton->getIPid();
 
 if (!is_null($ipLocation) && $user){
 	$interface->assign('onInternalIP', true);
-	if ($user->bypassAutoLogout == 1){
+	if (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1){
 		$interface->assign('includeAutoLogoutCode', false);
 	}else{
 		$includeAutoLogoutCode = true;
-		if ($user){
-			//Get the PType for the user
-			require_once('Drivers/Marmot.php');
-			$marmotDriver = new Marmot();
-			$userIsStaff = $marmotDriver->isUserStaff();
+		//Get the PType for the user
+		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		if ($catalog->checkFunction('isUserStaff')){
+			$userIsStaff = $catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
 			if ($userIsStaff){
 				//Check to see if the user has overridden the auto logout code.
@@ -569,6 +575,7 @@ if (!is_null($ipLocation) && $user){
 				}
 			}
 		}
+		
 		$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 	}
 }else{
@@ -833,7 +840,7 @@ function checkAvailabilityMode() {
 function updateConfigForScoping($configArray) {
 	global $timer;
 	//Get the subdomain for the request
-	$serverName = $_SERVER['SERVER_NAME'];
+	global $servername;
 
 	//Default dynamic logos
 	$configArray['Site']['smallLogo'] = "/interface/themes/{$configArray['Site']['theme']}/images/logo_small.png";
@@ -841,8 +848,8 @@ function updateConfigForScoping($configArray) {
 
 	//split the servername based on
 	$subdomain = null;
-	if(strpos($serverName, '.')){
-		$serverComponents = explode('.', $serverName);
+	if(strpos($_SERVER['SERVER_NAME'], '.')){
+		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);
 		if (count($serverComponents) >= 3){
 			//URL is probably of the form subdomain.marmot.org or subdomain.opac.marmot.org
 			$subdomain = $serverComponents[0];
@@ -893,7 +900,7 @@ function updateConfigForScoping($configArray) {
 		$configArray['Site']['title'] = $library->displayName;
 		//Update the facets file
 		if (strlen($library->facetFile) > 0 && $library->facetFile != 'default'){
-			$file = trim('../../conf/facets/' . $library->facetFile . '.ini');
+			$file = trim("../../sites/$servername/conf/facets/" . $library->facetFile . '.ini');
 			if (file_exists($file)) {
 				$configArray['Extra_Config']['facets'] = 'facets/' . $library->facetFile . '.ini';
 			}
@@ -901,7 +908,7 @@ function updateConfigForScoping($configArray) {
 		
 		//Update the searches file
 		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim('../../conf/searches/' . $library->searchesFile . '.ini');
+			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
 			if (file_exists($file)) {
 				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
 			}

@@ -32,6 +32,7 @@ class Purchase extends Action {
 		$recordId = $_REQUEST['id'];
 		$ipAddress = $_SERVER['REMOTE_ADDR'];
 		$field856Index = isset($_REQUEST['index']) ? $_REQUEST['index'] : null;
+		$libraryName = $configArray['Site']['title'];
 
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
@@ -54,13 +55,13 @@ class Purchase extends Action {
 		if ($field856Index == null){
 			switch ($store){
 				case "Tattered Cover":
-					$purchaseLinkUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title) . "?source=dcl";
+					$purchaseLinkUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title) . "?source=" . urlencode($libraryName) ;
 					break;
 				case "Barnes and Noble":
-					$purchaseLinkUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title) . "&source=dcl";
+					$purchaseLinkUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title) . "&source=" . urlencode($libraryName);
 					break;
 				case "Amazon":
-					$purchaseLinkUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title) . "&source=dcl";
+					$purchaseLinkUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title) . "&source=" . urlencode($libraryName);
 					break;
 			}
 		}else{
@@ -72,7 +73,7 @@ class Purchase extends Action {
 			} else {
 				PEAR::raiseError(new PEAR_Error("Failed to load the MAC record for this title."));
 			}
-			
+				
 			$linkFields =$marcRecord->getFields('856') ;
 			if ($linkFields){
 				$cur856Index = 0;
@@ -107,6 +108,49 @@ class Purchase extends Action {
 			PEAR::raiseError(new PEAR_Error("Failed to load the store information for this title."));
 		}
 			
+	}
+
+	static function getStoresForTitle($title){
+		$title = str_replace("/", "", $title);
+		$purchaseLinks = array();
+			
+		$tatteredCoverUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title);
+		$input = file_get_contents($tatteredCoverUrl);
+		$regexp = "/Your search yielded no results/i";
+		if(!preg_match($regexp, $input)) {
+			$purchaseLinks[] = array(
+				'link' => $tatteredCoverUrl,
+				'linkText' => 'Buy from Tattered Cover',
+				'image' => '/images/tattered_cover.png',
+				'storeName' => 'Tattered Cover', 
+			);
+		}
+			
+		$amazonUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title);
+		$input = file_get_contents($amazonUrl);
+		$regexp = "/did not match any products/i";
+		if(!preg_match($regexp, $input)) {
+			$purchaseLinks[] = array(
+				'link' => $amazonUrl,
+				'linkText' => 'Buy from Amazon',
+				'image' => '/images/amazon.png',
+				'storeName' => 'Amazon', 
+			);
+		}
+			
+		$barnesAndNobleUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title);
+		$input = file_get_contents($barnesAndNobleUrl);
+		$regexp = "/Please try another search/i";
+		if(!preg_match($regexp, $input)) {
+			$purchaseLinks[] = array(
+				'link' => $barnesAndNobleUrl,
+				'linkText' => 'Buy from Barnes &amp; Noble',
+				'image' => '/images/barnes_and_noble.png',
+				'storeName' => 'Barnes and Noble', 
+			);
+		}
+		
+		return $purchaseLinks;
 	}
 
 }

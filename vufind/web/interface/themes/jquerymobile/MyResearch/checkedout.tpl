@@ -32,13 +32,13 @@
             {/if}
             <p><strong>{translate text='Due'}</strong>: {$resource.duedate|escape}</p>
             {if $resource.renewMessage}
-              <p class='{if $record.renewResult == true}renewPassed{else}renewFailed{/if}'>
+              <p class='{if $resource.renewResult == true}renewPassed{else}renewFailed{/if}'>
                 {$resource.renewMessage|escape}
               </p>
             {/if}
             </div>
             {if !empty($resource.id)}</a>{/if}
-            <a href="{$path}/MyResearch/Renew?itemId={$resource.barcode}&itemIndex={$record.itemindex}" data-role="button" rel="external" data-icon="refresh">Renew Item</a>
+            <a href="{$path}/MyResearch/Renew?itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" data-icon="refresh">Renew Item</a>
           </li>
         {/foreach}
         </ul>

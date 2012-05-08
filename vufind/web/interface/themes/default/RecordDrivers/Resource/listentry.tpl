@@ -57,18 +57,18 @@
 					{/foreach}
 				{/if}
 		
-		<div id = "holdingsSummary{$resource->record_id|regex_replace:"/\./":""|escape:"url"}" class="holdingsSummary">
-			<div class="statusSummary" id="statusSummary{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
+		<div id = "holdingsSummary{$resource->shortId|regex_replace:"/\./":""|escape:"url"}" class="holdingsSummary">
+			<div class="statusSummary" id="statusSummary{$resource->shortId|regex_replace:"/\./":""|escape:"url"}">
 				<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
 			</div>
 		</div>
 	</div>
 
-	<div id ="searchStars{$resource->record_id|regex_replace:"/\./":""|escape}" class="resultActions">
+	<div id ="searchStars{$resource->shortId|regex_replace:"/\./":""|escape}" class="resultActions">
 		<div class="rate{$resource->record_id|regex_replace:"/\./":""|escape} stat">
 			<div id="saveLink{$resource->record_id|regex_replace:"/\./":""|escape}">
 				{if $allowEdit}
-						<a href="{$url}/MyResearch/Edit?id={$resource->id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}" class="edit tool">{translate text='Edit'}</a>
+						<a href="{$url}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}" class="edit tool">{translate text='Edit'}</a>
 						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
 						<a
 						{if is_null($listSelected)}

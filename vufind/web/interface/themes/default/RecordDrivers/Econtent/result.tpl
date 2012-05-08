@@ -96,6 +96,7 @@
 				<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" style="padding-left:8px;" onclick="getSaveToListForm('{$summId|escape}', 'eContent'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 			{/if}
 		</div>
+		{assign var=id value=$summId scope="global"}
 		{include file="EcontentRecord/title-review.tpl" id=$summId}
 	</div>
 	<script type="text/javascript">

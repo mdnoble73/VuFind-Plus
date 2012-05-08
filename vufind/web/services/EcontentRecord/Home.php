@@ -53,6 +53,7 @@ class Home extends Action{
 			$interface->assign('showEmailThis', $library->showEmailThis);
 			$interface->assign('showFavorites', $library->showFavorites);
 			$interface->assign('linkToAmazon', $library->linkToAmazon);
+			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
 			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
 			if ($location != null){
 				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
@@ -72,6 +73,7 @@ class Home extends Action{
 			$interface->assign('showEmailThis', 1);
 			$interface->assign('showFavorites', 1);
 			$interface->assign('linkToAmazon', 1);
+			$interface->assign('enablePurchaseLinks', 1);
 			$interface->assign('enablePospectorIntegration', 0);
 			if ($location != null){
 				$interface->assign('showAmazonReviews', $location->showAmazonReviews);
@@ -87,6 +89,7 @@ class Home extends Action{
 			$interface->assign('showComments', 1);
 			$interface->assign('tabbedDetails', 1);
 		}
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$timer->logTime('Configure UI for library and location');
 
 		UserComments::loadEContentComments();
@@ -105,6 +108,8 @@ class Home extends Action{
 				}else{
 					$this->isbn = "";
 				}
+			}elseif ($this->isbn == null || strlen($this->isbn) == 0){
+				$interface->assign('showOtherEditionsPopup', false);
 			}
 			$this->issn = $eContentRecord->getPropertyArray('issn');
 			if (is_array($this->issn)){
@@ -136,41 +141,6 @@ class Home extends Action{
 			$eContentRating->recordId = $eContentRecord->id;
 			$interface->assign('ratingData', $eContentRating->getRatingData($user, false));
 
-			//Load purchase urls
-			if (isset($eContentRecord->purchaseUrl)){
-				$purchaseLinks = array();
-				if (preg_match('/barnesandnoble/i', $eContentRecord->purchaseUrl)){
-					$purchaseLinks[] = array(
-	        		  	  'link' => $eContentRecord->purchaseUrl,
-                    'linkText' => 'Buy from Barnes & Noble',
-	        		  		'storeName' => 'Barnes & Noble',
-										'eContent' => true,
-					);
-				}else if (preg_match('/tatteredcover/i', $eContentRecord->purchaseUrl)){
-					$purchaseLinks[] = array(
-                    'link' => $eContentRecord->purchaseUrl,
-                    'linkText' => 'Buy from Tattered Cover',
-	        		  		'storeName' => 'Tattered Cover',
-										'eContent' => true,
-					);
-				}else if (preg_match('/amazon\.com/i', $eContentRecord->purchaseUrl)){
-					$purchaseLinks[] = array(
-                    'link' => $eContentRecord->purchaseUrl,
-                    'linkText' => 'Buy from Amazon',
-                  	'storeName' => 'Amazon',
-										'eContent' => true,
-					);
-				}else if (preg_match('/smashwords\.com/i', $eContentRecord->purchaseUrl)){
-					$purchaseLinks[] = array(
-                    'link' => $eContentRecord->purchaseUrl,
-                    'linkText' => 'Buy from Smashwords',
-                  	'storeName' => 'Smashwords', 
-										'eContent' => true,
-					);
-				}
-				$interface->assign('purchaseLinks', $purchaseLinks);
-			}
-
 			//Determine the cover to use
 			$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
 			$interface->assign('bookCoverUrl', $bookCoverUrl);
@@ -185,12 +155,14 @@ class Home extends Action{
 			$timer->logTime('Got More Like This');
 
 			// Find Other Editions
-			$editions = $this->getEditions();
-			if (!PEAR::isError($editions)) {
-				$interface->assign('editions', $editions);
+			if ($configArray['Content']['showOtherEditionsPopup'] == false){
+				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
+				if (!PEAR::isError($editions)) {
+					$interface->assign('editions', $editions);
+				}
+				$timer->logTime('Got Other editions');
 			}
-			$timer->logTime('Got Other editions');
-				
+			
 			//Load the citations
 			$this->loadCitation($eContentRecord);
 				
@@ -214,6 +186,11 @@ class Home extends Action{
 
 			$interface->setPageTitle($eContentRecord->title);
 
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','&nbsp;');
+			
 			// Display Page
 			$interface->display('layout.tpl');
 
@@ -268,124 +245,6 @@ class Home extends Action{
 			$citationCount++;
 		}
 		$interface->assign('citationCount', $citationCount);
-	}
-
-	function getEditions(){
-		if ($this->isbn) {
-			return $this->getXISBN($this->isbn);
-		} else if (isset($this->record['issn'])) {
-			return $this->getXISSN($this->record['issn']);
-		}
-
-		return null;
-	}
-
-	private function getXISBN($isbn){
-		global $configArray;
-
-		// Build URL
-		$url = 'http://xisbn.worldcat.org/webservices/xid/isbn/' . urlencode(is_array($isbn) ? $isbn[0] : $isbn) .
-               '?method=getEditions&format=csv';
-		if (isset($configArray['WorldCat']['id'])) {
-			$url .= '&ai=' . $configArray['WorldCat']['id'];
-		}
-
-		// Print Debug code
-		/*if ($configArray['System']['debug']) {
-		echo "<pre>XISBN: $url</pre>";
-		}*/
-
-		// Fetch results
-		if ($fp = @fopen($url, "r")) {
-			$query = '';
-			while (($data = fgetcsv($fp, 1000, ",")) !== FALSE) {
-				// If we got an error message, don't treat it as an ISBN!
-				if ($data[0] == 'overlimit') {
-					continue;
-				}
-				if ($query != '') {
-					$query .= ' OR isbn:' . $data[0];
-				} else {
-					$query = 'isbn:' . $data[0];
-				}
-			}
-		}
-
-		if (isset($query) && ($query != '')) {
-			// Filter out current record
-			$query .= ' NOT id:' . $this->id;
-
-			$result = $this->db->search($query, null, null, 0, 10);
-			if (!PEAR::isError($result)) {
-				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
-					return $result['response']['docs'];
-				} else {
-					return null;
-				}
-			} else {
-				return $result;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	private function getXISSN($issn){
-		global $configArray;
-
-		// Build URL
-		$url = 'http://xissn.worldcat.org/webservices/xid/issn/' . urlencode(is_array($issn) ? $issn[0] : $issn) .
-		//'?method=getEditions&format=csv';
-               '?method=getEditions&format=xml';
-		if (isset($configArray['WorldCat']['id'])) {
-			$url .= '&ai=' . $configArray['WorldCat']['id'];
-		}
-
-		// Print Debug code
-		if ($configArray['System']['debug']) {
-			echo "<pre>XISSN: $url</pre>";
-		}
-
-		// Fetch results
-		$query = '';
-		$data = @file_get_contents($url);
-		if (empty($data)) {
-			return null;
-		}
-		$unxml = new XML_Unserializer();
-		$unxml->unserialize($data);
-		$data = $unxml->getUnserializedData($data);
-		if (!empty($data) && isset($data['group']['issn'])) {
-			if (is_array($data['group']['issn'])) {
-				foreach ($data['group']['issn'] as $issn) {
-					if ($query != '') {
-						$query .= ' OR issn:' . $issn;
-					} else {
-						$query = 'issn:' . $issn;
-					}
-				}
-			} else {
-				$query = 'issn:' . $data['group']['issn'];
-			}
-		}
-
-		if ($query) {
-			// Filter out current record
-			$query .= ' NOT id:' . $this->id;
-
-			$result = $this->db->search($query, null, null, 0, 10);
-			if (!PEAR::isError($result)) {
-				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
-					return $result['response']['docs'];
-				} else {
-					return null;
-				}
-			} else {
-				return $result;
-			}
-		} else {
-			return null;
-		}
 	}
 
 	function getNextPrevLinks(){

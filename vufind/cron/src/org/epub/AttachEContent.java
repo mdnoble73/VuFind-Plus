@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,9 +16,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
-import org.json.JSONArray;
 import org.json.JSONObject;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 import org.vufind.Util;
 
@@ -30,9 +31,7 @@ public class AttachEContent implements IProcessHandler {
 	private String sourceDirectory;
 	protected String libraryDirectory;
 	private String vufindUrl;
-	
-	private String econtentDBConnectionInfo;
-	private Connection econtentConn = null;
+	private CronProcessLogEntry processLog;
 	
 	//Saved settings
 	private PreparedStatement getRelatedRecords;
@@ -43,16 +42,17 @@ public class AttachEContent implements IProcessHandler {
 	private PreparedStatement updateRecordsProcessed;
 	private long logEntryId = -1;
 	
-	protected int filesProcessed = 0;
 	protected int maxRecordsToProcess = -1;
 	protected ArrayList<ImportResult> importResults = new ArrayList<ImportResult>();
 	
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Attach eContent Items");
+		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
 		logger.info("Loading files from folders");
 
-		boolean configLoaded = loadConfig(processSettings, generalSettings);
+		boolean configLoaded = loadConfig(configIni, processSettings);
 		if (!configLoaded){
 			System.out.println("Configuration could not be loaded, see log file");
 			return;
@@ -60,12 +60,10 @@ public class AttachEContent implements IProcessHandler {
 
 		// Connect to the VuFind MySQL database
 		try {
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
-			
 			//Setup prepared statements for processing the folder
 			createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_attach (sourcePath, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
-			markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_attach SET dateFinished = ?, recordsProcessed = ?, status = 'finished' WHERE id = ?");
-			updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_attach SET recordsProcessed = ? WHERE id = ?");
+			markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_attach SET dateFinished = ?, recordsProcessed = ?, numErrors =?, notes =?, status = 'finished' WHERE id = ?");
+			updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_attach SET recordsProcessed = ?, numErrors = ? WHERE id = ?");
 			getRelatedRecords = econtentConn.prepareStatement("SELECT id, accessType, source FROM econtent_record WHERE isbn like ?");
 			doesItemExist = econtentConn.prepareStatement("SELECT id from econtent_item WHERE filename = ? AND recordId = ?");
 			addEContentItem = econtentConn.prepareStatement("INSERT INTO econtent_item (filename, acsId, recordId, item_type, addedBy, date_added, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -86,19 +84,24 @@ public class AttachEContent implements IProcessHandler {
 			
 		} catch (SQLException ex) {
 			// handle any errors
-			logger.error("Error establishing connection to database " + econtentDBConnectionInfo, ex);
+			logger.error("Error establishing attaching items to eContent records ", ex);
+			processLog.addNote("Error establishing attaching items to eContent records " + ex.toString());
 			return;
 		}finally {
 			logger.info("Marking log entry finished");
 			try {
 				markLogEntryFinished.setLong(1, new Date().getTime() / 1000);
-				markLogEntryFinished.setLong(2, this.filesProcessed);
-				markLogEntryFinished.setLong(3, logEntryId);
+				markLogEntryFinished.setLong(2, processLog.getNumUpdates());
+				markLogEntryFinished.setLong(3, processLog.getNumUpdates());
+				markLogEntryFinished.setString(4, processLog.getNotesHtml());
+				markLogEntryFinished.setLong(5, logEntryId);
 				markLogEntryFinished.executeUpdate();
 			} catch (SQLException e) {
 				logger.error("Error importing marking log as finished ", e);
 			}
 		}
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	private void processFolder(File folder) {
@@ -116,6 +119,7 @@ public class AttachEContent implements IProcessHandler {
 		File[] files = folder.listFiles();
 		for (File file : files) {
 			logger.info("Processing file " + file.getName());
+			processLog.addNote("Processing file " + file.getName());
 			if (file.isDirectory()) {
 				//TODO: Determine how to deal with nested folders?
 				//processFolder(file);
@@ -139,12 +143,16 @@ public class AttachEContent implements IProcessHandler {
 							//No record found 
 							logger.info("Could not find record for ISBN " + isbn);
 							importResult.setStatus(fileType, "failed", "Could not find record for ISBN " + isbn);
+							processLog.incErrors();
+							processLog.addNote("Could not find record for ISBN " + isbn);
 						}else{
 							logger.info("Found at least one record for " + isbn);
 							if (existingRecords.last()){
 								if (existingRecords.getRow() >= 2){
 									logger.info("Multiple records were found for ISBN " + isbn);
 									importResult.setStatus(fileType, "failed", "Multiple records were found for ISBN " + isbn);
+									processLog.incErrors();
+									processLog.addNote("Multiple records were found for ISBN " + isbn);
 								}else{
 									//We have an existing record
 									existingRecords.first();
@@ -158,6 +166,7 @@ public class AttachEContent implements IProcessHandler {
 									if (resultsFile.exists()) {
 										logger.info("Skipping file because it already exists in the library");
 										importResult.setStatus(fileType, "skipped" ,"File has already been copied to library");
+										processLog.addNote("Skipping file " + file.getName() + " because it already exists in the library");
 									} else {
 										logger.info("Importing file " + file.getName());
 										//Check to see if the file has already been added to the library.
@@ -168,6 +177,7 @@ public class AttachEContent implements IProcessHandler {
 											//The item already exists
 											logger.info("  the file has already been attached to this record");
 											importResult.setStatus(fileType, "skipped" ,"The file has already been aded as an eContent Item");
+											processLog.addNote("Skipping file " + file.getName() + " because has already been attached to this record");
 										}else{
 											
 											try {
@@ -178,7 +188,7 @@ public class AttachEContent implements IProcessHandler {
 												//Add file to acs server
 												boolean addedToAcs = true;
 												if (accessType.equals("acs")){
-													System.out.println("Adding file to the ACS server");
+													logger.info("Adding file to the ACS server");
 													addedToAcs = addFileToAcsServer(fileType, resultsFile, importResult);
 												}
 												
@@ -196,11 +206,16 @@ public class AttachEContent implements IProcessHandler {
 													if (rowsInserted == 1){
 														importResult.setStatus(fileType, "success", "");
 														logger.info("  added to the database");
+														
 													}else{
 														logger.info("  file could not be added to the database");
+														processLog.addNote(file.getName() + " could not be added to the database");
+														processLog.incErrors();
 													}
 												}else{
 													logger.info("  the file could not be added to the acs server");
+													processLog.addNote(file.getName() + " could not be added to the acs server");
+													processLog.incErrors();
 												}
 												
 												if (importResult.getSatus(fileType).equals("failed")){
@@ -223,10 +238,11 @@ public class AttachEContent implements IProcessHandler {
 					}
 					importResults.add(importResult);
 					//Update that another file has been processed.
-					filesProcessed++;
+					processLog.incUpdated();
 					try {
-						updateRecordsProcessed.setLong(1, filesProcessed);
-						updateRecordsProcessed.setLong(2, logEntryId);
+						updateRecordsProcessed.setLong(1, processLog.getNumUpdates());
+						updateRecordsProcessed.setLong(2, processLog.getNumErrors());
+						updateRecordsProcessed.setLong(3, logEntryId);
 						updateRecordsProcessed.executeUpdate();
 					} catch (SQLException e) {
 						logger.error("Error updating number of records processed.", e);
@@ -237,20 +253,14 @@ public class AttachEContent implements IProcessHandler {
 		
 	}
 	
-	protected boolean loadConfig(Section processSettings, Section generalSettings) {
-		econtentDBConnectionInfo = generalSettings.get("econtentDatabase");
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
-		vufindUrl = generalSettings.get("vufindUrl");
+	protected boolean loadConfig(Ini configIni, Section processSettings) {
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;
 		}
 		
-		libraryDirectory = generalSettings.get("eContentLibrary");
+		libraryDirectory = configIni.get("EContent", "library");
 		if (libraryDirectory == null || libraryDirectory.length() == 0) {
 			logger.error("Library not found in process Settings.  Please specify the path to the eContent library as the eContentLibrary key.");
 			return false;
@@ -294,6 +304,5 @@ public class AttachEContent implements IProcessHandler {
 			result.setStatus(type, "failed", "Could not add file to ACS server " + e.toString());
 			return false;
 		}
-		
 	}
 }

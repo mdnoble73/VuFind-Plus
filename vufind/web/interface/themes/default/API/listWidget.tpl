@@ -14,6 +14,7 @@
   <script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
   <script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
   <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
+  <script type="text/javascript" src="{$path}/js/description.js"></script>
   
   {css filename="title-scroller.css"}
   {css filename="jquery.tooltip.css"}

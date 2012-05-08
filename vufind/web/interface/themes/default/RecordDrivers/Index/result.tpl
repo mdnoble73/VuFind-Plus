@@ -80,7 +80,8 @@
         <a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
-    {assign var=id value=$summShortId}
+    {assign var=id value=$summId scope="global"}
+    {assign var=shortId value=$summShortId scope="global"}
     {include file="Record/title-review.tpl"}
   </div>
   <script type="text/javascript">

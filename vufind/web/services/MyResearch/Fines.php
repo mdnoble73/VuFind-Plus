@@ -31,8 +31,9 @@ class Fines extends MyResearch
 
 		// Get My Fines
 		if ($patron = $this->catalogLogin()) {
-			if (PEAR::isError($patron))
-			PEAR::raiseError($patron);
+			if (PEAR::isError($patron)){
+				PEAR::raiseError($patron);
+			}
 			if ($this->catalog->checkFunction('getMyFines')){
 				$result = $this->catalog->getMyFines($patron, true);
 				if (!PEAR::isError($result)) {
@@ -64,7 +65,11 @@ class Fines extends MyResearch
 					} else {
 						$interface->assign('finesData', translate('You do not have any fines'));
 					}
+				}else{
+					PEAR::raiseError($result);
 				}
+			}else{
+				$interface->assign('finesData', translate('This catalog does not support listing fines.'));
 			}
 		}
 

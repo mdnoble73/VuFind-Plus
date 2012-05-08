@@ -7,7 +7,7 @@ require_once 'DB/DataObject/Cast.php';
 
 class PurchaseLinkTracking extends DB_DataObject
 {
-	public $__table = 'purchaseLinkTracking';    // table name
+	public $__table = 'purchase_link_tracking';    // table name
 	public $purchaseLinkId;                      //int(25)
 	public $ipAddress;                    //varchar(255)
 	public $recordId;                    //varchar(255)

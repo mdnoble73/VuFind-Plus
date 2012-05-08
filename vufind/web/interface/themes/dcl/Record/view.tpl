@@ -17,9 +17,6 @@
 	{if $user}
 	  redrawSaveStatus();
 	{/if}
-	{if !$purchaseLinks}
-		checkPurchaseLinks('{$id|escape:"url"}');
-	{/if}
 	{if (isset($title)) }
 	  alert("{$title}");
 	{/if}
@@ -186,12 +183,16 @@ function redrawSaveStatus() {literal}{{/literal}
       <div id="similarAuthorPlaceholder"></div>
     </div>
     
-    {if is_array($editions)}
+    {if is_array($editions) && !$showOtherEditionsPopup}
     <div class="sidegroup" id="otherEditionsSidegroup">
       <h4>{translate text="Other Editions"}</h4>
         {foreach from=$editions item=edition}
           <div class="sidebarLabel">
-            <a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          	{if $edition.recordtype == 'econtentRecord'}
+          	<a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          	{else}
+          	<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          	{/if}
           </div>
           <div class="sidebarValue">
           {if is_array($edition.format)}
@@ -207,12 +208,7 @@ function redrawSaveStatus() {literal}{{/literal}
         {/foreach}
     </div>
     {/if}
-    
-    {if $linkToAmazon == 1 && $isbn}
-    <div class="titledetails">
-      <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
-    </div>
-    {/if}
+
   </div> {* End sidebar *}
   
   <div id="main-content" class="full-result-content">
@@ -270,6 +266,11 @@ function redrawSaveStatus() {literal}{{/literal}
 	  <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
 	    <a href="{$path}/Record/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
 	  </div>
+	  {if $showOtherEditionsPopup}
+		<div id="otherEditionCopies">
+			<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+		</div>
+		{/if}
     
       {if $goldRushLink}
       <div class ="titledetails">
@@ -502,22 +503,17 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/if}
 		{/foreach}
 		{/if}
-        <div id="holdingsPlaceholder"></div>
-        {if $purchaseLinks}
-          <div id="purchaseTitleLinks">
-          <h3>Get a copy for yourself</h3>
-          {foreach from=$purchaseLinks item=purchaseLink}
-            <div class='purchaseTitle button'><a href="/Record/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}" target="_blank">{$purchaseLink.linkText}</a></div>
-          {/foreach}
-          </div>
-        {else}
-         <div id="purchaseTitleLinks">
-        <div id="purchaseLinkButtons"></div>
-        </div>
-        {/if}
-        
-      </div>
-    </div> {* End of tabs*}
+		<div id="holdingsPlaceholder"></div>
+			{if $showOtherEditionsPopup}
+			<div id="otherEditionCopies">
+				<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+			</div>
+			{/if}
+			{if $enablePurchaseLinks == 1 && !$purchaseLinks}
+				<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+			{/if}
+		</div>
+	</div> {* End of tabs*}
             
   </div>
     

@@ -4,9 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -24,6 +21,7 @@ import java.util.regex.PatternSyntaxException;
 import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
+import org.econtent.DetectionSettings;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
@@ -1140,6 +1138,7 @@ public class MarcRecordDetails {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
 	public String getId() {
 		Object idField = fields.get("id");
 		if (idField instanceof String){
@@ -1439,7 +1438,9 @@ public class MarcRecordDetails {
 		List<ControlField> controlFields = record.getControlFields();
 		for (Object field : controlFields) {
 			ControlField dataField = (ControlField) field;
-			allFieldData.append(dataField.getData()).append(" ");
+			String data = dataField.getData();
+			data = data.replace( (char)31, ' ');
+			allFieldData.append(data).append(" ");
 		}
 
 		List<DataField> fields = record.getDataFields();
@@ -1633,6 +1634,17 @@ public class MarcRecordDetails {
 			return "750";
 		} else {
 			return "0";
+		}
+	}
+	
+	public Set<String> getFormatFromCollectionOrStd(String collectionFieldSpec, String returnFirst) {
+		String collection = getFirstFieldVal(collectionFieldSpec);
+		if (collection != null){
+			Set<String> result = new LinkedHashSet<String>();
+			result.add(collection);
+			return result;
+		}else{
+			return getFormat(returnFirst);
 		}
 	}
 
@@ -2509,6 +2521,7 @@ public class MarcRecordDetails {
 		return result;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<String> getAuthors() {
 		Set<String> result = new HashSet<String>();
 		Object author = fields.get("author");
@@ -2528,5 +2541,57 @@ public class MarcRecordDetails {
 			}
 		}
 		return result;
+	}
+	
+	private Boolean isEContent = null;
+	private DetectionSettings eContentDetectionSettings = null;
+	/*
+	 * Determine if the record is eContent or not. 
+	 */
+	public boolean isEContent(){
+		if (isEContent == null){
+			isEContent = false;
+			//Treat the record as eContent if the records is:
+			// 1) It is already in the eContent database
+			// 2) It matches criteria in EContentRecordDetectionSettings
+			for (DetectionSettings curSettings : marcProcessor.getDetectionSettings()){
+				Set<String> fieldData = getFieldList(record, curSettings.getFieldSpec());
+				boolean isMatch = false;
+				//logger.debug("Found " + fieldData.size() + " fields matching " + curSettings.getFieldSpec());
+				for (String curField : fieldData){
+					//logger.debug("Testing if value " + curField.toLowerCase() + " matches " + curSettings.getValueToMatch());
+					isMatch = ((String) curField.toLowerCase()).matches(".*" + curSettings.getValueToMatch().toLowerCase() + ".*");
+					if (isMatch) break;
+				}
+				if (isMatch) {
+					isEContent = isMatch;
+					eContentDetectionSettings = curSettings;
+					break; 
+				}
+			}
+			
+			if (!isEContent){
+				String ilsId = this.getId();
+				if (marcProcessor.getExistingEContentIds().contains(ilsId)){
+					logger.info("Suppressing because there is an eContent record for " + ilsId);
+					isEContent = true;
+				}
+			}
+			/*if (isEContent){
+				logger.info("eContent record");
+			}else{
+				logger.info("Print record");
+			}*/
+			return isEContent;
+		}else{
+			return isEContent;
+		}
+	}
+	public DetectionSettings getEContentDetectionSettings(){
+		if (isEContent()){
+			return eContentDetectionSettings;
+		}else{
+			return null;
+		}
 	}
 }

@@ -48,7 +48,7 @@
 				<div>
 					<input type="submit" name="submit" value="Import Marc Records"/>
 				</div>
-				<p>Marc Records will be imported in a batch process.  You can check the status of your import by viewing the <a href="{$path}/Admin/MarcImportLog">import log</a>.</p>
+				<p>Marc Records will be imported in a batch process.  You can check the status of your import by viewing the <a href="{$path}/EContent/MarcImportLog">import log</a>.</p>
 			</form>
 		</div>
 	</div>

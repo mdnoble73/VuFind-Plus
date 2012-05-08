@@ -10,6 +10,7 @@ class MarcLoader{
 			$resource = new Resource;
 			$resource->record_id = $record['id'];
 			$resource->source = 'VuFind';
+			$resource->whereAdd('marc is not null');
 			if ($resource->find(true)){
 				$marc = trim($resource->marc);
 				$marc = preg_replace('/#31;/', "\x1F", $marc);

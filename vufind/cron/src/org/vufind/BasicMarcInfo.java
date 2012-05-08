@@ -35,6 +35,7 @@ public class BasicMarcInfo {
 	
 	private Logger logger;
 	
+	@SuppressWarnings("unchecked")
 	public boolean load(Record record, Logger logger){
 		//Preload basic information that nearly everything will need
 		this.record = record;
@@ -254,8 +255,10 @@ public class BasicMarcInfo {
 	public ArrayList<String> getSubjects() {
 		if (subjects == null){
 			subjects = new ArrayList<String>();
+			@SuppressWarnings("unchecked")
 			List<DataField> subjectFields = (List<DataField>) record.getVariableFields(new String[] { "600", "610", "630", "650", "651", "655" });
 			for (DataField subject : subjectFields) {
+				@SuppressWarnings("rawtypes")
 				List subFields = subject.getSubfields();
 				StringBuffer subjectTitle = new StringBuffer();
 				for (Object subFieldObj : subFields) {
@@ -329,7 +332,7 @@ public class BasicMarcInfo {
 				result.add("Unknown");
 			}
 		} catch (Exception e) {
-			System.out.println("ERROR in getTargetAudience " + e.toString());
+			logger.error("ERROR in getTargetAudience " + e.toString());
 			e.printStackTrace();
 			result.add("Unknown");
 		}
@@ -442,6 +445,7 @@ public class BasicMarcInfo {
 	}
 	public void loadUrls(){
 		if (urlsLoaded) return;
+		@SuppressWarnings("unchecked")
 		List<VariableField> eightFiftySixFields = record.getVariableFields("856");
 		for (VariableField eightFiftySixField : eightFiftySixFields){
 			DataField eightFiftySixDataField = (DataField)eightFiftySixField;

@@ -27,7 +27,8 @@ class Purchase extends Action {
 
 		global $configArray;
 		global $interface;
-
+		$libraryName = $configArray['Site']['title'];
+		
 		//Grab the tracking data
 		$store = urldecode(strip_tags($_GET['store']));
 		$recordId = $_REQUEST['id'];
@@ -45,13 +46,13 @@ class Purchase extends Action {
 		if ($eContentRecord->purchaseUrl == null){
 			switch ($store){
 				case "Tattered Cover":
-					$purchaseLinkUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title). "?source=dcl";
+					$purchaseLinkUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title). "?source=" . urlencode($libraryName);
 					break;
 				case "Barnes and Noble":
-					$purchaseLinkUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title) . "&source=dcl";
+					$purchaseLinkUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title) . "&source=" . urlencode($libraryName);
 					break;
 				case "Amazon":
-					$purchaseLinkUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title) . "&source=dcl";
+					$purchaseLinkUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title) . "&source=" . urlencode($libraryName);
 					break;
 			}
 		}else{

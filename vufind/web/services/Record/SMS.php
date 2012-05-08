@@ -86,13 +86,13 @@ class SMS extends Record {
 			return $holdingsSummary;
 		}
 
-		if ($holdingsSummary['callnumber']){
+		if (isset($holdingsSummary['callnumber'])){
 			$interface->assign('callnumber', $holdingsSummary['callnumber']);
 		}
-		if ($holdingsSummary['availableAt']){
+		if (isset($holdingsSummary['availableAt'])){
 			$interface->assign('availableAt', strip_tags($holdingsSummary['availableAt']));
 		}
-		if ($holdingsSummary['isDownloadable']){
+		if (isset($holdingsSummary['downloadLink'])){
 			$interface->assign('downloadLink', $holdingsSummary['downloadLink']);
 		}
 		$interface->assign('title', $this->recordDriver->getBreadcrumb());

@@ -20,7 +20,7 @@
 require_once 'DB/DataObject.php';
 
 class UsageTracking extends DB_DataObject{
-	public $__table = 'usageTracking';
+	public $__table = 'usage_tracking';
 	public $usageId;
 	public $ipId;
 	public $locationId;
@@ -32,42 +32,50 @@ class UsageTracking extends DB_DataObject{
 	public static function logTrackingData($trackingType, $trackingIncrement = 1, $ipLocation = null, $ipId = null){
 		global $user;
 		global $locationSingleton;
-
-		if ($ipLocation == null){
-			$ipLocation = $locationSingleton->getIPLocation();
-		}
-		if ($ipId == null){
-			$ipId = $locationSingleton->getIPid();
-		}
 		
-		//Usage Tracking Variables
-		$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'none';
-		$pageURL = $_SERVER['REQUEST_URI'];
+		try{
 
-		// If the Subnet (location) is unknown save as a -1
-		if (!isset($ipLocation)) {
-			$ipLocationId = -1;
-			$locationId = -1;
-		} else {
-			$ipLocationId = $ipLocation->locationId;	
-			$locationId = $ipLocationId;
-		}
-		
-		// Set the tracking date for today and format it
-		$trackingDate = strtotime(date('m/d/Y'));
+			if ($ipLocation == null){
+				$ipLocation = $locationSingleton->getIPLocation();
+			}
+			if ($ipId == null){
+				$ipId = $locationSingleton->getIPid();
+			}
 			
-		//Look up the date and the ipId in the usageTracking table and increment the pageView total by 1
-		$usageTracking = new UsageTracking();	
-		$usageTracking->ipId = $ipId;
-		$usageTracking->trackingDate = $trackingDate;
-		if ($usageTracking->find(true)){
-			$usageTracking->$trackingType += $trackingIncrement;
-			return $usageTracking->update();
-		}else{
-			$usageTracking->locationId = $locationId;
-			$usageTracking->$trackingType = $trackingIncrement;
-			return $usageTracking->insert();
+			//Usage Tracking Variables
+			$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'none';
+			$pageURL = $_SERVER['REQUEST_URI'];
+	
+			// If the Subnet (location) is unknown save as a -1
+			if (!isset($ipLocation)) {
+				$ipLocationId = -1;
+				$locationId = -1;
+			} else {
+				$ipLocationId = $ipLocation->locationId;	
+				$locationId = $ipLocationId;
+			}
+			
+			// Set the tracking date for today and format it
+			$trackingDate = strtotime(date('m/d/Y'));
+				
+			//Look up the date and the ipId in the usageTracking table and increment the pageView total by 1
+			disableErrorHandler();
+			$usageTracking = new UsageTracking();	
+			$usageTracking->ipId = $ipId;
+			$usageTracking->trackingDate = $trackingDate;
+			if ($usageTracking->find(true)){
+				$usageTracking->$trackingType += $trackingIncrement;
+				$result = $usageTracking->update();
+			}else{
+				$usageTracking->locationId = $locationId;
+				$usageTracking->$trackingType = $trackingIncrement;
+				$result = $usageTracking->insert();
+			}
+			enableErrorHandler();
+			return $result;
+		}catch (Exception $e){
+			//Ignore errors while logging usage data since this can happen if tables aren't
+			//Setup yet and if we throw an error, we can't do anything else.
 		}
 	}
-
 }

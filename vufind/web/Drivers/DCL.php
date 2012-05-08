@@ -333,7 +333,7 @@ class DCL extends Horizon {
 	}
 	
 	public function translateStatus($statusCode){
-		$statusCode = strtolower($statusCode);
+		$statusCode = trim(strtolower($statusCode));
 		$statusMap = array(
         'a'        => 'Archived',
         'ao'       => 'Acquisitions on',
@@ -413,7 +413,7 @@ class DCL extends Horizon {
         'wsd'      => 'Waiting at Service',
         'xcdrm'    => 'No Holds'
         );
-        return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown (' . $statusCode . ')';
+        return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown';
 	}
 	
 	public function getLocationMapLink($locationCode){
