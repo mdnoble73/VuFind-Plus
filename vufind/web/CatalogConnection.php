@@ -103,13 +103,13 @@ class CatalogConnection
 	public function checkFunction($function)
 	{
 		// Extract the configuration from the driver if available:
-		$functionConfig = method_exists($this->driver, 'getConfig')
-		? $this->driver->getConfig($function) : false;
+		$functionConfig = method_exists($this->driver, 'getConfig') ? $this->driver->getConfig($function) : false;
 
 		// See if we have a corresponding check method to analyze the response:
 		$checkMethod = "_checkMethod".$function;
 		if (!method_exists($this, $checkMethod)) {
-			return false;
+			//Just see if the method exists on the driver
+			return method_exists($this->driver, $function);
 		}
 
 		// Send back the settings:
@@ -352,9 +352,9 @@ class CatalogConnection
 	 * otherwise.
 	 * @access public
 	 */
-	public function getMyFines($patron)
+	public function getMyFines($patron, $includeMessages = false)
 	{
-		return $this->driver->getMyFines($patron);
+		return $this->driver->getMyFines($patron, $includeMessages);
 	}
 
 	/**
