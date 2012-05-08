@@ -25,7 +25,7 @@ class AJAX extends Action {
 	function launch()
 	{
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'GetRatings', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles'))){
+		if (in_array($method, array('GetAutoSuggestList', 'GetRatings', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -202,46 +202,27 @@ class AJAX extends Action {
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 		$timer->logTime("Initialized Catalog Connection");
 
-		$result = $catalog->getStatusSummaries($_GET['id']);
+		$summaries = $catalog->getStatusSummaries($_GET['id']);
 		$timer->logTime("Retrieved status summaries");
+		
+		$result = array();
+		$result['items'] = array();
 
 		// Loop through all the status information that came back
-		foreach ($result as $record) {
+		foreach ($summaries as $record) {
 			// If we encountered errors, skip those problem records.
 			if (PEAR::isError($record)) {
 				continue;
 			}
-
+			$itemResults = $record;
 			$interface->assign('holdingsSummary', $record);
 
 			$formattedHoldingsSummary = $interface->fetch('Record/holdingsSummary.tpl');
-
-			echo ' <item id="' . htmlspecialchars($record['shortId']) . '">';
-			echo '  <id>' . htmlspecialchars($record['shortId']) . '</id>';
-			echo '  <status>' . htmlspecialchars($record['status']) . '</status>';
-			echo '  <callnumber>' . (isset($record['callnumber']) ? htmlspecialchars($record['callnumber']) : '') . '</callnumber>';
-			echo '  <showplacehold>' . htmlspecialchars($record['showPlaceHold']) . '</showplacehold>';
-			echo '  <availablecopies>' . htmlspecialchars($record['availableCopies']) . '</availablecopies>';
-			echo '  <holdablecopies>' . htmlspecialchars($record['holdableCopies']) . '</holdablecopies>';
-			echo '  <numcopies>' . htmlspecialchars($record['numCopies']) . '</numcopies>';
-			echo '  <holdQueueLength>' . (isset($record['holdQueueLength']) ? htmlspecialchars($record['holdQueueLength']) : '') . '</holdQueueLength>';
-			echo '  <class>' . htmlspecialchars($record['class']) . '</class>';
-			echo '  <isDownloadable>' . ($record['isDownloadable'] ? 1 : 0) . '</isDownloadable>';
-			echo '  <downloadLink>' . (isset($record['downloadLink']) ? htmlspecialchars($record['downloadLink']) : '') . '</downloadLink>';
-			echo '  <downloadText>' . (isset($record['downloadText']) ? htmlspecialchars($record['downloadText']) : '') . '</downloadText>';
-			echo '  <showAvailabilityLine>' . ($record['showAvailabilityLine'] ? 1 : 0) . '</showAvailabilityLine>';
-			echo '  <availableAt>' . htmlspecialchars($record['availableAt']) . '</availableAt>';
-			echo '  <numAvailableOther>' . $record['numAvailableOther'] . '</numAvailableOther>';
-			echo '  <formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
-			if (isset($record['eAudioLink'])){
-				echo '  <eAudioLink>' . htmlspecialchars($record['eAudioLink']) . '</eAudioLink>';
-			}
-			if (isset($record['eBookLink'])){
-				echo '  <eBookLink>' . htmlspecialchars($record['eBookLink']) . '</eBookLink>';
-			}
-			echo ' </item>';
+			$itemResults['formattedHoldingsSummary'] = $formattedHoldingsSummary;
+			$result['items'][] = $itemResults;
 
 		}
+		echo json_encode($result);
 		$timer->logTime("Formatted results");
 	}
 	

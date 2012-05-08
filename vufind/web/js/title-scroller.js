@@ -48,18 +48,23 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 	var scroller = this;
 	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
-		scroller.scrollerTitles = new Array();
-		var i = 0;
-		$.each(data.titles, function(key, val) {
-			scroller.scrollerTitles[i++] = val;
-		});
-		if (scroller.container && data.titles.length > 0) {
-			$("#" + scroller.container).fadeIn();
+		if (data.titles.length == 0){
+			scrollerBody.html("No titles were found for this list.  Please try again later.");
+			scrollerBody.show();
+		}else{
+			scroller.scrollerTitles = new Array();
+			var i = 0;
+			$.each(data.titles, function(key, val) {
+				scroller.scrollerTitles[i++] = val;
+			});
+			if (scroller.container && data.titles.length > 0) {
+				$("#" + scroller.container).fadeIn();
+			}
+			scroller.numScrollerTitles = data.titles.length;
+			scroller.currentScrollerIndex = data.currentIndex;
+	
+			TitleScroller.prototype.updateScroller.call(scroller);
 		}
-		scroller.numScrollerTitles = data.titles.length;
-		scroller.currentScrollerIndex = data.currentIndex;
-
-		TitleScroller.prototype.updateScroller.call(scroller);
 	} catch (err) {
 		//alert("error loading titles from data " + err.description);
 		scrollerBody.html("error loading titles from data " + err.description + ".  Please try again later.");
