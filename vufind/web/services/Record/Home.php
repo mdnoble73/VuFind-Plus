@@ -53,7 +53,7 @@ class Home extends Record{
 		//Populate an array of editorialReviewIds that match up with the recordId
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
-		$editorialReview->whereAdd("recordId = '".$recordId."'");
+		$editorialReview->recordId = $recordId;
 		$editorialReview->find();
 		if ($editorialReview->N > 0){
 			while ($editorialReview->fetch()){

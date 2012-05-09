@@ -180,7 +180,20 @@ class Home extends Action{
 			$tags = $resource->getTags($limit);
 			$interface->assign('tagList', $tags);
 			$timer->logTime('Got tag list');
-
+			
+			//Load the Editorial Reviews
+			//Populate an array of editorialReviewIds that match up with the recordId
+			$editorialReview = new EditorialReview();
+			$editorialReviewResults = array();
+			$editorialReview->recordId = $this->id;
+			$editorialReview->find();
+			if ($editorialReview->N > 0){
+				while ($editorialReview->fetch()){
+					$editorialReviewResults[] = clone $editorialReview;
+				}
+			}
+			$interface->assign('editorialReviewResults', $editorialReviewResults);
+			
 			//Build the actual view
 			$interface->setTemplate('view.tpl');
 
