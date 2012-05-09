@@ -45,7 +45,8 @@ public class ReindexProcess {
 	private static long startTime;
 	private static long endTime;
 	
-	//Variables to determine what sub processes to run. 
+	//Variables to determine what sub processes to run.
+	private static boolean reloadDefaultSchema = true;
 	private static boolean updateSolr = true;
 	private static boolean updateResources = true;
 	private static boolean loadEContentFromMarc = false;
@@ -77,6 +78,11 @@ public class ReindexProcess {
 		// Runs the export process to extract marc records from the ILS (if applicable)
 		runExportScript();
 		
+		//Reload schemas
+		if (reloadDefaultSchema){
+			reloadDefaultSchemas();
+		}
+		
 		//Process all reords (marc records, econtent that has been added to the database, and resources)
 		ArrayList<IRecordProcessor> recordProcessors = loadRecordProcesors();
 		if (recordProcessors.size() > 0){
@@ -105,6 +111,37 @@ public class ReindexProcess {
 		logger.info("Finished Reindex for " + serverName);
 	}
 	
+	private static void reloadDefaultSchemas() {
+		logger.info("Reloading schemas from default");
+		//biblio
+		reloadSchema("biblio");
+		//biblio2
+		reloadSchema("biblio2");
+		//econtent
+		reloadSchema("econtent");
+		
+	}
+
+	private static void reloadSchema(String schemaName) {
+		boolean reloadIndex = true;
+		try {
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/schema.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml"))){
+				logger.info("Unable to copy schema for " + schemaName);
+				reloadIndex = false;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			logger.error("error reloading default schema for " + schemaName, e);
+			reloadIndex = false;
+		}
+		if (reloadIndex){
+			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=" + schemaName, logger);
+			if (!response.isSuccess()){
+				logger.error("Error reloading default schema for " + schemaName + " " + response.getMessage());
+			}
+		}
+	}
+
 	private static ArrayList<IRecordProcessor> loadRecordProcesors(){
 		ArrayList<IRecordProcessor> supplementalProcessors = new ArrayList<IRecordProcessor>();
 		if (updateSolr){
@@ -245,7 +282,7 @@ public class ReindexProcess {
 	}
 
 	private static void initializeReindex() {
-		System.out.println("Starting to initialize system");
+		logger.info("Starting to initialize system");
 		// Delete the existing reindex.log file
 		File solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log");
 		if (solrmarcLog.exists()){
@@ -305,6 +342,10 @@ public class ReindexProcess {
 			System.exit(1);
 		}
 		
+		String reloadDefaultSchemaStr = configIni.get("Reindex", "reloadDefaultSchema");
+		if (reloadDefaultSchemaStr != null){
+			reloadDefaultSchema = Boolean.parseBoolean(reloadDefaultSchemaStr);
+		}
 		String updateSolrStr = configIni.get("Reindex", "updateSolr");
 		if (updateSolrStr != null){
 			updateSolr = Boolean.parseBoolean(updateSolrStr);
