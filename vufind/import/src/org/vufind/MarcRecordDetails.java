@@ -2436,17 +2436,20 @@ public class MarcRecordDetails {
 	public String checkSuppression(String locationField, String locationsToSuppress, String manualSuppressionField, String manualSuppressionValue) {
 		// If all locations should be suppressed, then the record should be suppressed.
 		Set<String> input = getFieldList(record, locationField);
-		Iterator<String> iter = input.iterator();
-		boolean suppressRecord = true;
-		while (iter.hasNext()) {
-			String curLocationCode = iter.next();
-			try {
-				if (!curLocationCode.matches("locationsToSuppress")) {
-					suppressRecord = false;
-					break;
+		boolean suppressRecord = false;
+		if (input != null){
+			Iterator<String> iter = input.iterator();
+			suppressRecord = true;
+			while (iter.hasNext()) {
+				String curLocationCode = iter.next();
+				try {
+					if (!curLocationCode.matches("locationsToSuppress")) {
+						suppressRecord = false;
+						break;
+					}
+				} catch (PatternSyntaxException ex) {
+					// Syntax error in the regular expression
 				}
-			} catch (PatternSyntaxException ex) {
-				// Syntax error in the regular expression
 			}
 		}
 
