@@ -57,8 +57,8 @@
 					{/foreach}
 				{/if}
 		
-		<div id = "holdingsSummary{$resource->shortId|regex_replace:"/\./":""|escape:"url"}" class="holdingsSummary">
-			<div class="statusSummary" id="statusSummary{$resource->shortId|regex_replace:"/\./":""|escape:"url"}">
+		<div id = "holdingsSummary{$resource->record_id|regex_replace:"/\./":""|escape:"url"}" class="holdingsSummary">
+			<div class="statusSummary" id="statusSummary{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
 				<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
 			</div>
 		</div>

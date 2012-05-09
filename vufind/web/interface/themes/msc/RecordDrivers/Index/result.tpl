@@ -119,11 +119,10 @@
 </span>
 
 <script type="text/javascript">
-  $(document).ready(function(){literal} { {/literal}
-      getStatusSummaryMSC('{$summId|escape:"javascript"}');
-      resultDescription('{$summShortId}','{$summId}');
-  {literal} }); {/literal}
-  
+	$(document).ready(function(){literal} { {/literal}
+		addIdToStatusList('{$summId|escape:"javascript"}');
+		resultDescription('{$summShortId}','{$summId}');
+	{literal} }); {/literal}
 </script>
 
 
