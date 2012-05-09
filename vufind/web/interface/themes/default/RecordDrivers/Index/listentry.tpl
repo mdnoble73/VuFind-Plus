@@ -92,8 +92,8 @@
   </div>
 <script type="text/javascript">
   addRatingId('{$listId|escape:"javascript"}');
+  addIdToStatusList('{$listId|escape:"javascript"}');
   $(document).ready(function(){literal} { {/literal}
-      addIdToStatusList('{$listId|escape:"javascript"}');
       resultDescription('{$listId}','{$listId}');
   {literal} }); {/literal}
   
