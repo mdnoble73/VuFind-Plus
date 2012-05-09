@@ -157,7 +157,10 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	public static boolean copyFile(File sourceFile, File destFile) throws IOException {
+		if (!sourceFile.exists()){
+			return false;
+		}
 		if (!destFile.exists()) {
 			destFile.createNewFile();
 		}
@@ -177,6 +180,7 @@ public class Util {
 				destination.close();
 			}
 		}
+		return true;
 	}
 
 	public static String encodeString(String originalString) {
