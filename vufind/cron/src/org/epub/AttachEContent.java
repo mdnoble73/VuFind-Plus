@@ -247,6 +247,8 @@ public class AttachEContent implements IProcessHandler {
 					} catch (SQLException e) {
 						logger.error("Error updating number of records processed.", e);
 					}
+				}else{
+					processLog.addNote("  Skipping because the name is not an ISBN");
 				}
 			}
 		}
@@ -281,13 +283,14 @@ public class AttachEContent implements IProcessHandler {
 	protected boolean addFileToAcsServer(String type, File sourceFile, ImportResult result){
 		//Call an API on vufind to make this easier and promote code reuse
 		try {
-			URL apiUrl = new URL(vufindUrl + "API/ItemAPI?method=addFileToAcsServer&filename=" + URLEncoder.encode(sourceFile.getName(), "utf8"));
+			URL apiUrl = new URL(vufindUrl + "/API/ItemAPI?method=addFileToAcsServer&filename=" + URLEncoder.encode(sourceFile.getName(), "utf8"));
 			
 			String responseJson = Util.convertStreamToString((InputStream)apiUrl.getContent());
 			logger.info("ACS Response: " + responseJson);
 			JSONObject responseData = new JSONObject(responseJson);
 			if (responseData.has("error")){
 				result.setStatus(type, "failed", "Error adding to ACS Server " + responseData.getString("error") );
+				processLog.addNote(" - Error adding to ACS Server " + responseData.getString("error"));
 				return false;
 			}else{
 				JSONObject resultObject = responseData.getJSONObject("result");
@@ -296,6 +299,7 @@ public class AttachEContent implements IProcessHandler {
 					return true;
 				}else{
 					result.setStatus(type, "failed", "Unable to retrieve ACS Id" );
+					processLog.addNote(" - Unable to retrieve ACS Id");
 					return true;
 				}
 				
