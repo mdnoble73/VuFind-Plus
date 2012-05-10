@@ -279,7 +279,7 @@ class Horizon implements DriverInterface{
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		global $configArray;
 		global $timer;
-
+		
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
 		}

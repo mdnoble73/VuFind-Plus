@@ -287,12 +287,11 @@ public class Util {
 			conn.setDoInput(true);
 			if (postData != null && postData.length() > 0) {
 				conn.setRequestMethod("POST");
-				conn.setRequestProperty("Content-Type", "text/xml");
-
+				conn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
 				conn.setRequestProperty("Content-Language", "en-US");
 
 				conn.setDoOutput(true);
-				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
 				wr.write(postData);
 				wr.flush();
 				wr.close();

@@ -150,8 +150,9 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 					}
 				}
 			}
-			
-			return builder.asString();
+			String recordXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + builder.asString();
+			//logger.info("XML for " + recordInfo.getId() + "\r\n" + recordXml);
+			return recordXml;
 		} catch (Exception e) {
 			results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
 			e.printStackTrace();
