@@ -188,9 +188,9 @@ class AJAX extends Action {
 		}
 
 		$interface->assign('commentList', $commentList['user']);
-		$userComments = $interface->fetch('EContentRecord/view-comments-list.tpl');
+		$userComments = $interface->fetch('Record/view-comments-list.tpl');
 		$interface->assign('staffCommentList', $commentList['staff']);
-		$staffComments = $interface->fetch('EContentRecord/view-staff-reviews-list.tpl');
+		$staffComments = $interface->fetch('Record/view-staff-reviews-list.tpl');
 
 		return json_encode(array(
 			'staffComments' => $staffComments,
