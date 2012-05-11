@@ -133,7 +133,7 @@ class Marmot implements DriverInterface
 		}else if (isset($searchLibrary) && $searchLibrary->useScope && strlen($searchLibrary->defaultLibraryFacet) > 0) {
 			return $searchLibrary->scope;
 		}else{
-			return '93';
+			return isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
 		}
 	}
 
