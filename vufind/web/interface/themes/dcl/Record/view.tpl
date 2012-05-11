@@ -481,6 +481,21 @@ function redrawSaveStatus() {literal}{{/literal}
             {include file="$module/submit-comments.tpl"}
           </div>
           {include file="$module/view-comments.tpl"}
+          
+					{* Chili Fresh Reviews *}
+					{if $chiliFreshAccount && ($isbn || $upc || $issn)}
+						<h4>Chili Fresh Reviews</h4>
+						{if $isbn}
+						<div class="chili_review" id="isbn_{$isbn10}"></div>
+						<div id="chili_review_{$isbn10}" style="display:none" align="center" width="100%"></div>
+						{elseif $upc}
+						<div class="chili_review_{$upc}" id="isbn"></div>
+						<div id="chili_review_{$upc}" style="display:none" align="center" width="100%"></div>
+						{elseif $issn}
+						<div class="chili_review_{$issn}" id="isbn"></div>
+						<div id="chili_review_{$issn}" style="display:none" align="center" width="100%"></div>
+						{/if}
+					{/if}
         </div>
       {/if}
       
@@ -529,5 +544,14 @@ StrandsTrack.push({
 });
 </script>
 {/literal}
-
-     
+{if $chiliFreshAccount}
+{literal}
+<!-- ChiliFresh code part 3 start -->
+<input type="hidden" id="chilifresh_type" name="chilifresh_profile" value="default" />
+<input type="hidden" id="chilifresh_type" name="chilifresh_location" value="pa" />
+<input type="hidden" id="chilifresh_version" name="chilifresh_version" value="onsite_v1" />
+<input type="hidden" id="chilifresh_account" name="chilifresh_account" value="{/literal}{$chiliFreshAccount}{literal}" />
+<script type="text/javascript" src="http://chilifresh.com/on-site/js/vufind.js" />
+<!-- ChiliFresh code part 3 end -->
+{/literal}
+{/if}

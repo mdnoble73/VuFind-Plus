@@ -116,6 +116,7 @@ class Home extends Record{
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
+		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
 		$timer->logTime('Configure UI for library and location');
 
 		//Build the actual view

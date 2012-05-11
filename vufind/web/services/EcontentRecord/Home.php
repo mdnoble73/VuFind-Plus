@@ -90,6 +90,7 @@ class Home extends Action{
 			$interface->assign('tabbedDetails', 1);
 		}
 		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
 		$timer->logTime('Configure UI for library and location');
 
 		UserComments::loadEContentComments();
