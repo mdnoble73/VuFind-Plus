@@ -10,7 +10,7 @@
 		<form id="loginForm" action="{$path}/MyResearch/Home" method="post">
 			<div id="loginFormContents">
 				<div id="loginTitleHome">Login to view your account, renew books, and more.</div>
-				<div class="loginLabelHome">Barcode from your library card</div>
+				<div class="loginLabelHome">{translate text='Username'}</div>
 				<input class="loginFormInput" type="text" name="username" value="{$username|escape}" size="15"/>
 				<div class="loginLabelHome">{translate text='Password'}</div>
 				<input class="loginFormInput" type="password" name="password" size="15" id="password"/>
