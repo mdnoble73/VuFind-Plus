@@ -133,8 +133,12 @@ class Marmot implements DriverInterface
 		}else if (isset($searchLibrary) && $searchLibrary->useScope && strlen($searchLibrary->defaultLibraryFacet) > 0) {
 			return $searchLibrary->scope;
 		}else{
-			return isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+			return $this->getDefaultScope();
 		}
+	}
+	
+	public function getDefaultScope(){
+		return isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
 	}
 
 	public function getMillenniumRecordInfo($id){
@@ -1339,7 +1343,8 @@ class Marmot implements DriverInterface
 		$logger = new Logger();
 		//$logger->log('PatronInfo cookie ' . $cookie, PEAR_LOG_INFO);
 		global $configArray;
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronInfo['RECORD_#'] ."/$page";
+		$scope = $this->getDefaultScope();
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronInfo['RECORD_#'] ."/$page";
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 		//echo "$curl_url";
 		$this->curl_connection = curl_init($curl_url);
@@ -1696,7 +1701,8 @@ class Marmot implements DriverInterface
 		$id2= $patron['id'];
 		$patronDump = $this->_getPatronDump($id2);
 		//Load the reading history page
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/readinghistory";
+		$scope = $this->getDefaultScope();
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory";
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_connection = curl_init($curl_url);
@@ -1731,13 +1737,13 @@ class Marmot implements DriverInterface
 			//Issue a get request to delete the item from the reading history.
 			//Note: Millennium really does issue a malformed url, and it is required
 			//to make the history delete properly.
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/readinghistory/rsh&" . $title_string;
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rsh&" . $title_string;
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
 		}elseif ($action == 'deleteAll'){
 			//load patron page readinghistory/rah
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/readinghistory/rah";
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rah";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
@@ -1745,13 +1751,13 @@ class Marmot implements DriverInterface
 			//Leave this unimplemented for now.
 		}elseif ($action == 'optOut'){
 			//load patron page readinghistory/OptOut
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/readinghistory/OptOut";
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptOut";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
 		}elseif ($action == 'optIn'){
 			//load patron page readinghistory/OptIn
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/readinghistory/OptIn";
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptIn";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
@@ -2407,8 +2413,9 @@ class Marmot implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
 
+		$scope = $this->getDefaultScope();
 		//go to the holds page and get the number of holds on the account
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/holds";
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
@@ -2416,7 +2423,7 @@ class Marmot implements DriverInterface
 		$numHoldsStart = count($holds);
 
 		//Issue a get request with the information about what to do with the holds
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/holds?" . $holdUpdateParams;
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds?" . $holdUpdateParams;
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
@@ -2424,7 +2431,7 @@ class Marmot implements DriverInterface
 		//At this stage, we get messages if there were any errors freezing holds.
 
 		//Go back to the hold page to check make sure our hold was cancelled
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/holds";
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
@@ -2516,13 +2523,13 @@ class Marmot implements DriverInterface
 		$sresult = curl_exec($curl_connection);
 
 		//Go to the items page
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/items";
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
 
 		//Post renewal information
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/items";
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
@@ -2629,7 +2636,7 @@ class Marmot implements DriverInterface
 		}
 		$patronUpdateParams = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S93/" . $patronDump['RECORD_#'] ."/modpinfo";
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		$sresult = curl_exec($curl_connection);
 
@@ -2806,6 +2813,7 @@ class Marmot implements DriverInterface
 	function _getItemDetails($id, $holdings){
 		$logger = new Logger();
 		global $configArray;
+		$scope = $this->getDefaultScope();
 
 		$shortId = substr(str_replace('.b', 'b', $id), 0, -1);
 
@@ -2833,7 +2841,7 @@ class Marmot implements DriverInterface
 		foreach ($holdings as $itemNumber => $holding){
 			//Get the staff page for the record
 			//$curl_url = "https://www.millennium.marmot.org/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi1~$shortId&FF=Ypig&2,2,";
-			$curl_url = $configArray['Catalog']['url'] . "/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~$shortId&FF=Ypig&2,2,";
+			$curl_url = $configArray['Catalog']['url'] . "/search~S{$scope}?/Ypig&searchscope={$scope}&SORT=D/Ypig&searchscope={$scope}&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~$shortId&FF=Ypig&2,2,";
 			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 			//echo "$curl_url";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
