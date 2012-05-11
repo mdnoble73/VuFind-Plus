@@ -11,27 +11,45 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 
 
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
+import org.vufind.CronLogEntry;
+import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 import org.apache.log4j.Logger;
 
 import au.com.bytecode.opencsv.CSVReader;
 
 public class GenealogyCleanup implements IProcessHandler {
+	private Connection vufindConn;
+	private Logger logger;
+	private CronProcessLogEntry processLog;
 
 	@Override
-	public void doCronProcess(Section processSettings, Section generalSettings, Logger logger) {
-		deleteDuplicates(processSettings, generalSettings);
-		importFiles(processSettings, generalSettings);
-		reindexPeople(processSettings, generalSettings);
-		optimizeIndex(processSettings, generalSettings);
+	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		this.vufindConn = vufindConn;
+		this.logger = logger;
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Genealogy Cleanup");
+		processLog.saveToDatabase(vufindConn, logger);
+		
+		deleteDuplicates(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
+		
+		importFiles(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
+		
+		reindexPeople(configIni, processSettings);
+		processLog.saveToDatabase(vufindConn, logger);
+		
+		optimizeIndex(configIni, processSettings);
+		processLog.setFinished();
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	/**
@@ -40,11 +58,14 @@ public class GenealogyCleanup implements IProcessHandler {
 	 * @param processSettings
 	 * @param generalSettings
 	 */
-	private void optimizeIndex(Section processSettings, Section generalSettings) {
-		System.out.println("Optimizing genealogy index");
+	private void optimizeIndex(Ini configIni, Section processSettings) {
+		processLog.addNote("Optimizing genealogy index");
 		String body = "<optimize/>";
 		if (!doSolrUpdate(processSettings, body)) {
-			System.out.println("Genealogy Optimization Failed.");
+			processLog.addNote("Genealogy Optimization Failed.");
+			processLog.incErrors();
+		}else{
+			processLog.incUpdated();
 		}
 	}
 
@@ -105,55 +126,43 @@ public class GenealogyCleanup implements IProcessHandler {
 	 * @param processSettings
 	 * @param generalSettings
 	 */
-	private void reindexPeople(Section processSettings, Section generalSettings) {
+	private void reindexPeople(Ini configIni, Section processSettings) {
 		String reindexSetting = processSettings.get("reindex");
 		if (reindexSetting == null || !reindexSetting.equals("true")) {
-			System.out.println("Skipping reindexing people becuase reindex was not true.");
+			processLog.addNote("Skipping reindexing people becuase reindex was not true.");
 			return;
 		}
-		String genealogyUrl = processSettings.get("genealogyIndex");
+		String genealogyUrl = configIni.get("Genealogy", "url");
 		if (genealogyUrl == null || genealogyUrl.length() == 0) {
-			System.out.println("Unable to get url for genealogy in GenealogyCleanup section.  Please specify genealogyIndex key.");
+			processLog.addNote("Unable to get url for genealogy in GenealogyCleanup section.  Please specify genealogyIndex key.");
 			return;
 		}
+		
+		// Clear all existing people from the solr index
+		doSolrUpdate(processSettings, "<delete><query>*:*</query></delete>");
+		doSolrUpdate(processSettings, "<commit/>");
+		doSolrUpdate(processSettings, "<optimize/>");
 
-		String databaseConnectionInfo = generalSettings.get("database");
-		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
-			System.out.println("Database connection information not found in General Settings.  Please specify connection information in a database key.");
-			return;
-		}
-
-		Connection conn = null;
+		// Run through all existing people in the database and index them.
 		try {
-			conn = DriverManager.getConnection(databaseConnectionInfo);
-
-			// Clear all existing people from the solr index
-			doSolrUpdate(processSettings, "<delete><query>*:*</query></delete>");
-			doSolrUpdate(processSettings, "<commit/>");
-			doSolrUpdate(processSettings, "<optimize/>");
-
-			// Run through all existing people in the database and index them.
-			try {
-				Statement peopleStatement = conn.createStatement();
-				ResultSet personRs = peopleStatement.executeQuery("SELECT personId from person");
-				while (personRs.next()) {
-					int personId = personRs.getInt("personId");
-					System.out.println("Reindexing person " + personId);
-					reindexPerson(processSettings, conn, personId);
+			Statement peopleStatement = vufindConn.createStatement();
+			ResultSet personRs = peopleStatement.executeQuery("SELECT personId from person");
+			int numPeople = 0;
+			while (personRs.next()) {
+				int personId = personRs.getInt("personId");
+				System.out.println("Reindexing person " + personId);
+				reindexPerson(processSettings, vufindConn, personId);
+				numPeople++;
+				processLog.incUpdated();
+				if (numPeople % 100 == 0){
+					processLog.saveToDatabase(vufindConn, logger);
 				}
-				personRs.close();
-			} catch (SQLException e) {
-				System.out.println("Unable to load people to reindex " + e.toString());
-				e.printStackTrace();
 			}
-
-			conn.close();
-		} catch (SQLException ex) {
-			// handle any errors
-			System.out.println("Error establishing connection to database " + databaseConnectionInfo + " " + ex.toString());
-			return;
+			personRs.close();
+		} catch (SQLException e) {
+			System.out.println("Unable to load people to reindex " + e.toString());
+			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -162,28 +171,65 @@ public class GenealogyCleanup implements IProcessHandler {
 	 * @param processSettings
 	 * @param generalSettings
 	 */
-	private void importFiles(Section processSettings, Section generalSettings) {
+	private void importFiles(Ini configIni, Section processSettings) {
 		String importFile = processSettings.get("importFile");
 		if (importFile == null || importFile.length() == 0) {
-			System.out.println("Skipping importing people becuase no importFile was specified.");
+			processLog.addNote("Skipping importing people becuase no importFile was specified.");
+			processLog.incErrors();
 			return;
 		}
-		String genealogyUrl = processSettings.get("genealogyIndex");
+		String genealogyUrl = configIni.get("Genealogy", "url");
 		if (genealogyUrl == null || genealogyUrl.length() == 0) {
-			System.out.println("Unable to get url for genealogy in GenealogyCleanup section.  Please specify genealogyIndex key.");
+			processLog.addNote("Unable to get url for genealogy in GenealogyCleanup section.  Please specify genealogyIndex key.");
 			return;
 		}
-
-		String databaseConnectionInfo = generalSettings.get("database");
-		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
-			System.out.println("Database connection information not found in General Settings.  Please specify connection information in a database key.");
-			return;
-		}
-
-		Connection conn = null;
+		
+		//Prepare statements
+		PreparedStatement st1;
+		PreparedStatement updatePersonStatement;
+		PreparedStatement insertPersonStatement;
+		PreparedStatement deleteMarriagesStatement;
+		PreparedStatement insertMarriageStmt;
+		PreparedStatement deleteObitsStatement;
+		PreparedStatement insertObitStmt;
 		try {
-			conn = DriverManager.getConnection(databaseConnectionInfo);
+			String personExistsQuery = "SELECT personId, birthDateDay, birthDateMonth, birthDateYear, deathDateDay, deathDateMonth, deathDateYear FROM person where "
+				+ " firstName = ?"
+				+ " AND lastName = ?"
+				+ " AND maidenName = ?"
+				+ " AND birthDateDay = ?"
+				+ " AND birthDateMonth = ?"
+				+ " AND birthDateYear = ?";
+			st1 = vufindConn.prepareStatement(personExistsQuery);
+			String updatePersonQuery = "UPDATE person SET firstName = ?, lastName = ?, maidenName =?, "
+				+ " birthDateDay = ?, birthDateMonth = ?, birthDateYear = ?, " + " deathDateDay = ?, deathDateMonth = ?, deathDateYear = ?, "
+				+ " ageAtDeath = ?, comments = ? WHERE personId = ?;";
+			updatePersonStatement = vufindConn.prepareStatement(updatePersonQuery);
+			String insertPersonQuery = "INSERT INTO person (firstName, lastName, maidenName, " + " birthDateDay, birthDateMonth, birthDateYear, "
+				+ " deathDateDay, deathDateMonth, deathDateYear, " + " ageAtDeath, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+			insertPersonStatement = vufindConn.prepareStatement(insertPersonQuery, Statement.RETURN_GENERATED_KEYS);
+			
+			// delete existing marriages and enter new
+			String deleteMarriagesQuery = "DELETE FROM marriage where personId = ?";
+			deleteMarriagesStatement = vufindConn.prepareStatement(deleteMarriagesQuery);
+			
+			// insert 1st marriage if available
+			String insertMarriageQuery = "INSERT INTO marriage (personId, spouseName, marriageDateDay, marriageDateMonth, marriageDateYear, comments) "
+					+ " VALUES (?, ?, ?, ?, ?, ?);";
+			insertMarriageStmt = vufindConn.prepareStatement(insertMarriageQuery);
+			
+			deleteObitsStatement = vufindConn.prepareStatement("DELETE FROM obituary where personId = ?");
+			
+			String insertObitQuery = "INSERT INTO obituary (personId, source, dateDay, dateMonth, dateYear, sourcePage, contents) "
+				+ " VALUES (?, ?, ?, ?, ?, ?, ?);";
+			insertObitStmt = vufindConn.prepareStatement(insertObitQuery);
+		} catch (SQLException e1) {
+			processLog.addNote("Could not prepare statements for importing people ");
+			processLog.incErrors();
+			return;
+		}	
 
+		try {
 			// Open the file and parse it as CSV
 			try {
 				CSVReader reader = new CSVReader(new FileReader(importFile));
@@ -222,14 +268,7 @@ public class GenealogyCleanup implements IProcessHandler {
 						comments += (birthDate.isNotSet() && birthDate.getOriginalDate().length() > 0 ? ", born: " + birthDate.getOriginalDate() : "");
 						comments += (deathDate.isNotSet() && deathDate.getOriginalDate().length() > 0 ? ", died: " + deathDate.getOriginalDate() : "");
 						// Check to see if the person already exists.
-						String personExistsQuery = "SELECT personId, birthDateDay, birthDateMonth, birthDateYear, deathDateDay, deathDateMonth, deathDateYear FROM person where "
-								+ " firstName = ?"
-								+ " AND lastName = ?"
-								+ " AND maidenName = ?"
-								+ " AND birthDateDay = ?"
-								+ " AND birthDateMonth = ?"
-								+ " AND birthDateYear = ?";
-						PreparedStatement st1 = conn.prepareStatement(personExistsQuery);
+						
 						st1.setString(1, firstName);
 						st1.setString(2, lastName);
 						st1.setString(3, maidenName);
@@ -248,59 +287,48 @@ public class GenealogyCleanup implements IProcessHandler {
 							}
 							if (foundMatch) {
 								// System.out.println("updating person " + personId);
-								String updateQuery = "UPDATE person SET firstName = ?, lastName = ?, maidenName =?, "
-										+ " birthDateDay = ?, birthDateMonth = ?, birthDateYear = ?, " + " deathDateDay = ?, deathDateMonth = ?, deathDateYear = ?, "
-										+ " ageAtDeath = ?, comments = ? WHERE personId = ?;";
-								PreparedStatement updateStatement = conn.prepareStatement(updateQuery);
-								updateStatement.setString(1, firstName);
-								updateStatement.setString(2, lastName);
-								updateStatement.setString(3, maidenName);
-								updateStatement.setInt(4, birthDate.getDay());
-								updateStatement.setInt(5, birthDate.getMonth());
-								updateStatement.setInt(6, birthDate.getYear());
-								updateStatement.setInt(7, deathDate.getDay());
-								updateStatement.setInt(8, deathDate.getMonth());
-								updateStatement.setInt(9, deathDate.getYear());
-								updateStatement.setString(10, ageAtDeath);
-								updateStatement.setString(11, comments);
-								updateStatement.setInt(12, personId);
-								updateStatement.executeUpdate();
-								System.out.print(".");
+								updatePersonStatement.setString(1, firstName);
+								updatePersonStatement.setString(2, lastName);
+								updatePersonStatement.setString(3, maidenName);
+								updatePersonStatement.setInt(4, birthDate.getDay());
+								updatePersonStatement.setInt(5, birthDate.getMonth());
+								updatePersonStatement.setInt(6, birthDate.getYear());
+								updatePersonStatement.setInt(7, deathDate.getDay());
+								updatePersonStatement.setInt(8, deathDate.getMonth());
+								updatePersonStatement.setInt(9, deathDate.getYear());
+								updatePersonStatement.setString(10, ageAtDeath);
+								updatePersonStatement.setString(11, comments);
+								updatePersonStatement.setInt(12, personId);
+								updatePersonStatement.executeUpdate();
+								processLog.incUpdated();
 							} else {
 								// insert information about the person
-								String updateQuery = "INSERT INTO person (firstName, lastName, maidenName, " + " birthDateDay, birthDateMonth, birthDateYear, "
-										+ " deathDateDay, deathDateMonth, deathDateYear, " + " ageAtDeath, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-								PreparedStatement updateStatement = conn.prepareStatement(updateQuery, Statement.RETURN_GENERATED_KEYS);
-								updateStatement.setString(1, firstName);
-								updateStatement.setString(2, lastName);
-								updateStatement.setString(3, maidenName);
-								updateStatement.setInt(4, birthDate.getDay());
-								updateStatement.setInt(5, birthDate.getMonth());
-								updateStatement.setInt(6, birthDate.getYear());
-								updateStatement.setInt(7, deathDate.getDay());
-								updateStatement.setInt(8, deathDate.getMonth());
-								updateStatement.setInt(9, deathDate.getYear());
-								updateStatement.setString(10, ageAtDeath);
-								updateStatement.setString(11, comments);
-								updateStatement.execute();
-								ResultSet generatedKeys = updateStatement.getGeneratedKeys();
+								insertPersonStatement.setString(1, firstName);
+								insertPersonStatement.setString(2, lastName);
+								insertPersonStatement.setString(3, maidenName);
+								insertPersonStatement.setInt(4, birthDate.getDay());
+								insertPersonStatement.setInt(5, birthDate.getMonth());
+								insertPersonStatement.setInt(6, birthDate.getYear());
+								insertPersonStatement.setInt(7, deathDate.getDay());
+								insertPersonStatement.setInt(8, deathDate.getMonth());
+								insertPersonStatement.setInt(9, deathDate.getYear());
+								insertPersonStatement.setString(10, ageAtDeath);
+								insertPersonStatement.setString(11, comments);
+								insertPersonStatement.execute();
+								ResultSet generatedKeys = insertPersonStatement.getGeneratedKeys();
 								if (generatedKeys.next()) {
 									personId = generatedKeys.getInt(1);
 									// System.out.println("Inserted person " + personId);
-									System.out.print("+");
+									processLog.incUpdated();
 								} else {
-									System.out.println("Could not retrieve key for inseerted person");
+									processLog.incErrors();
+									processLog.addNote("Could not retrieve key for inseerted person");
 								}
 								generatedKeys.close();
-								updateStatement.close();
 							}
-							// delete existing marriages and enter new
-							Statement deleteMarriagesStatement = conn.createStatement();
-							deleteMarriagesStatement.execute("DELETE FROM marriage where personId = " + personId);
-							// insert 1st marriage if available
-							String insertMarriageQuery = "INSERT INTO marriage (personId, spouseName, marriageDateDay, marriageDateMonth, marriageDateYear, comments) "
-									+ " VALUES (?, ?, ?, ?, ?, ?);";
-							PreparedStatement insertMarriageStmt = conn.prepareStatement(insertMarriageQuery);
+							
+							deleteMarriagesStatement.setInt(1, personId);
+							deleteMarriagesStatement.execute();
 							if ((spouse1 != null && spouse1.length() > 0) || !marriageDate.isNotSet() || (marriageComment != null && marriageComment.length() > 0)) {
 								insertMarriageStmt.setInt(1, personId);
 								insertMarriageStmt.setString(2, spouse1);
@@ -324,11 +352,9 @@ public class GenealogyCleanup implements IProcessHandler {
 							insertMarriageStmt.close();
 
 							// delete existing obits and enter new
-							Statement deleteObitsStatement = conn.createStatement();
-							deleteObitsStatement.execute("DELETE FROM obituary where personId = " + personId);
-							String insertObitQuery = "INSERT INTO obituary (personId, source, dateDay, dateMonth, dateYear, sourcePage, contents) "
-									+ " VALUES (?, ?, ?, ?, ?, ?, ?);";
-							PreparedStatement insertObitStmt = conn.prepareStatement(insertObitQuery);
+							
+							deleteObitsStatement.setInt(1, personId);
+							deleteObitsStatement.executeUpdate();
 							if (obit1Source.length() > 0 || !obit1Date.isNotSet() || obit1Page.length() > 0) {
 								String obituarySource = getObitSource(obit1Source);
 								insertObitStmt.setInt(1, personId);
@@ -370,26 +396,27 @@ public class GenealogyCleanup implements IProcessHandler {
 							personExistsRs.close();
 
 							// Reindex the person in solr
-							reindexPerson(processSettings, conn, personId);
+							reindexPerson(processSettings, vufindConn, personId);
+							processLog.incUpdated();
 						} catch (Exception e) {
-							System.out.println("Error checking if person exists " + e.toString());
-							System.out.println(st1.toString());
-
+							processLog.addNote("Error checking if person exists " + e.toString());
+							processLog.addNote(st1.toString());
+							processLog.incErrors();
 						}
 						st1.close();
 					}
 				}
 			} catch (FileNotFoundException e) {
-				System.out.println("Could not find the file to import" + e.toString());
+				processLog.addNote("Could not find the file to import" + e.toString());
+				processLog.incErrors();
 			} catch (IOException e) {
-				System.out.println("Error reading import file " + e.toString());
+				processLog.addNote("Error reading import file " + e.toString());
+				processLog.incErrors();
 			}
-
-			conn.close();
 		} catch (SQLException ex) {
 			// handle any errors
-			System.out.println("Error establishing connection to database " + databaseConnectionInfo + " " + ex.toString());
-			return;
+			processLog.addNote("Error importing genealogy data from file" + ex.toString());
+			processLog.incErrors();
 		}
 	}
 
@@ -567,98 +594,26 @@ public class GenealogyCleanup implements IProcessHandler {
 	 * @param processSettings
 	 * @param generalSettings
 	 */
-	private void deleteDuplicates(Section processSettings, Section generalSettings) {
+	private void deleteDuplicates(Ini configIni, Section processSettings) {
 		String deleteDuplicates = processSettings.get("deleteDuplicates");
 		if (deleteDuplicates == null || !deleteDuplicates.equalsIgnoreCase("true")) {
-			System.out.println("Skipping deleting duplicates, to activate set deleteDuplicates key to true.");
+			processLog.addNote("Skipping deleting duplicates, to activate set deleteDuplicates key to true.");
+			processLog.incErrors();
 			return;
 		}
 
-		String genealogyUrl = processSettings.get("genealogyIndex");
+		String genealogyUrl = configIni.get("Genealogy", "url");
 		if (genealogyUrl == null || genealogyUrl.length() == 0) {
-			System.out.println("Unable to get url for genealogy in GenealogyCleanup section.  Please specify genealogyIndex key.");
+			processLog.addNote("Unable to get url for genealogy in GenealogyCleanup section.  Please specify genealogyIndex key.");
+			processLog.incErrors();
 			return;
 		}
 
-		String databaseConnectionInfo = generalSettings.get("database");
-		if (databaseConnectionInfo == null || databaseConnectionInfo.length() == 0) {
-			System.out.println("Database connection information not found in General Settings.  Please specify connection information in a database key.");
-			return;
-		}
-
-		Connection conn = null;
-		// Process for duplicates created as part of the import process (non-exact
-		// duplicates)
-		/*
-		 * try { conn = DriverManager.getConnection(databaseConnectionInfo); //Get a
-		 * list of all people that have a blank death date Statement stmt =
-		 * conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
-		 * ResultSet.CONCUR_READ_ONLY); String query =
-		 * "select personId, firstName, middleName, lastName, birthDateDay, birthDateMonth, birthDateYear from person where deathDateDay IS NULL and deathDateMonth IS NULL and deathDateYear IS NULL;"
-		 * ; ResultSet recordsToCheck = stmt.executeQuery(query); //loop through all
-		 * people and check to see if there is a match with the death date while
-		 * (recordsToCheck.next()){ String personId =
-		 * recordsToCheck.getString("personId"); String firstName =
-		 * recordsToCheck.getString("firstName"); if (recordsToCheck.wasNull())
-		 * firstName = null; String middleName =
-		 * recordsToCheck.getString("middleName"); if (recordsToCheck.wasNull())
-		 * middleName = null; String lastName =
-		 * recordsToCheck.getString("lastName"); if (recordsToCheck.wasNull())
-		 * lastName = null; String birthDateDay =
-		 * recordsToCheck.getString("birthDateDay"); if (recordsToCheck.wasNull())
-		 * birthDateDay = null; String birthDateMonth =
-		 * recordsToCheck.getString("birthDateMonth"); if (recordsToCheck.wasNull())
-		 * birthDateMonth = null; String birthDateYear =
-		 * recordsToCheck.getString("birthDateYear"); if (recordsToCheck.wasNull())
-		 * birthDateYear = null;
-		 * 
-		 * String matchQuery = "select personId from person where " + "personId <> "
-		 * + personId; if (firstName == null){ matchQuery +=
-		 * " AND firstName IS NULL"; }else{ matchQuery += " AND firstName = '" +
-		 * firstName.replaceAll("'", "''") + "'"; } if (middleName == null){
-		 * matchQuery += " AND middleName IS NULL"; }else{ matchQuery +=
-		 * " AND middleName = '" + middleName.replaceAll("'", "''") + "'"; } if
-		 * (lastName == null){ matchQuery += " AND lastName IS NULL"; }else{
-		 * matchQuery += " AND lastName = '" + lastName.replaceAll("'", "''") + "'";
-		 * } if (birthDateDay == null){ matchQuery += " AND birthDateDay IS NULL";
-		 * }else{ matchQuery += " AND birthDateDay = '" + birthDateDay + "'"; } if
-		 * (birthDateMonth == null){ matchQuery += " AND birthDateMonth IS NULL";
-		 * }else{ matchQuery += " AND birthDateMonth = '" + birthDateMonth + "'"; }
-		 * if (birthDateYear == null){ matchQuery += " AND birthDateYear IS NULL";
-		 * }else{ matchQuery += " AND birthDateYear = '" + birthDateYear + "'"; }
-		 * //System.out.println(matchQuery); Statement matchStmt =
-		 * conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
-		 * ResultSet.CONCUR_READ_ONLY); ResultSet matchingRecord =
-		 * matchStmt.executeQuery(matchQuery); if (matchingRecord.next()){ //Found a
-		 * match. String personId2 = matchingRecord.getString("personId");
-		 * System.out.println("Deleting person " + personId + " duplicate is " +
-		 * personId2); //delete from solr String solrDeleteBody =
-		 * "<delete><id>person" + personId + "</id></delete>"; if
-		 * (!doSolrUpdate(processSettings, solrDeleteBody)){
-		 * System.out.println("Failed to delete person from index."); }else{
-		 * //delete from database Statement deleteStatement =
-		 * conn.createStatement();
-		 * deleteStatement.execute("DELETE FROM obituary where personId = " +
-		 * personId);
-		 * deleteStatement.execute("DELETE FROM marriage where personId = " +
-		 * personId); deleteStatement.execute("DELETE FROM person where personId = "
-		 * + personId); } } matchingRecord.close(); matchStmt.close(); }
-		 * recordsToCheck.close();
-		 * 
-		 * //Disconnect from the database conn.close(); } catch (SQLException ex) {
-		 * // handle any errors
-		 * System.out.println("Error establishing connection to database " +
-		 * databaseConnectionInfo + " " + ex.toString()); return; }
-		 */
-
-		// Process for exact duplicates
-		conn = null;
 		// Process for exact duplicates created as part of the import process
 		// (non-exact duplicates)
 		try {
-			conn = DriverManager.getConnection(databaseConnectionInfo);
 			// Get a list of all people where their basic information is identical
-			Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			Statement stmt = vufindConn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			String queryStr = "SELECT MIN(personId) as minPersonId, count(personId), firstName, lastName, middleName, maidenName, otherName, nickName, birthDateDay, birthDateMonth, birthDateYear, deathDateDay, deathDateMonth, deathDateYear, ageAtDeath, cemeteryName, cemeteryLocation, mortuaryName, comments, picture "
 					+ "FROM person "
 					+ "GROUP BY firstName, lastName, middleName, maidenName, otherName, nickName, birthDateDay, birthDateMonth, birthDateYear, deathDateDay, deathDateMonth, deathDateYear, ageAtDeath, cemeteryName, cemeteryLocation, mortuaryName "
@@ -673,7 +628,7 @@ public class GenealogyCleanup implements IProcessHandler {
 				// Get a list of all records that need to be checked.
 				Person duplicatePersonInfo = new Person(recordsToCheck, false);
 				String query2 = duplicatePersonInfo.createMatchingQuery();
-				Statement stmt2 = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				Statement stmt2 = vufindConn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				// System.out.println(query2);
 				ResultSet duplicatePeopleRs = stmt2.executeQuery(query2);
 				Person bestPerson = null;
@@ -684,11 +639,13 @@ public class GenealogyCleanup implements IProcessHandler {
 						bestPerson = new Person(duplicatePeopleRs, true);
 					} else {
 						Person nextPerson = new Person(duplicatePeopleRs, true);
-						if (bestPerson.isBetterRecord(nextPerson, conn)) {
-							nextPerson.delete(conn);
+						if (bestPerson.isBetterRecord(nextPerson, vufindConn)) {
+							nextPerson.delete(vufindConn);
+							processLog.incUpdated();
 						} else {
-							bestPerson.delete(conn);
+							bestPerson.delete(vufindConn);
 							bestPerson = nextPerson;
+							processLog.incUpdated();
 						}
 					}
 				}
@@ -697,11 +654,10 @@ public class GenealogyCleanup implements IProcessHandler {
 			}
 			recordsToCheck.close();
 
-			// Disconnect from the database
-			conn.close();
 		} catch (SQLException ex) {
 			// handle any errors
-			System.out.println("Error establishing connection to database " + databaseConnectionInfo + " " + ex.toString());
+			processLog.addNote("Error establishing connection to database " + ex.toString());
+			processLog.incErrors();
 			ex.printStackTrace();
 			return;
 		}

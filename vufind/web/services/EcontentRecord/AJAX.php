@@ -64,6 +64,9 @@ class AJAX extends Action {
 		}
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
+		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
+			$interface->assign('showOtherEditionsPopup', false);
+		}
 		$interface->assign('holdings', $holdings);
 		//Load status summary
 		$result = $driver->getStatusSummary($id, $holdings);

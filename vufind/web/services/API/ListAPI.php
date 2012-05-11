@@ -893,16 +893,20 @@ class ListAPI extends Action {
 	
 			$listTitles = array();
 			foreach ($matchingRecords as $record){
-				$isbn = $record['isbn'][0];
-				if (strpos($isbn, ' ') > 0){
-					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				if (isset($record['isbn'])){
+					$isbn = $record['isbn'][0];
+					if (strpos($isbn, ' ') > 0){
+						$isbn = substr($isbn, 0, strpos($isbn, ' '));
+					}
+				}else{
+					$isbn = "";
 				}
-	
+				
 				// Process MARC Data
 				require_once 'sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
-					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
+					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
 				}else{
 					$descriptiveInfo = array();
 				}
