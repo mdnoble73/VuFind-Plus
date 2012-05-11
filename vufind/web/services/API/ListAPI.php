@@ -448,27 +448,15 @@ class ListAPI extends Action {
 			require_once ('sys/eContent/EContentRecord.php');
 			$strandsTemplate = $strandsInfo[1];
 			$results = $this->loadDataFromStrands($strandsTemplate, $user);
-			$ids = $this->getIdsFromStrandsResults($results);
+			$ids = $this->getIdsFromStrandsResults($results, 'econtentRecord');
+			$eContentRecord = new EContentRecord();
+			$eContentRecord->whereAdd('id IN ('.implode(',',$ids).')');
+			$eContentRecord->find();
 			$titles = array();
-			if(!empty($ids))
+			while($eContentRecord->fetch())
 			{
-				SwitchDatabase::switchToEcontent();
-				
-				foreach($ids as $id)
-				{
-					$eContentRecord = new EContentRecord();
-					$numRows = $eContentRecord->get($id);
-					print_r($id);die();
-					if($numRows==1)
-					{
-						$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
-					}
-					unset($eContentRecord);
-				}
-				
-				SwitchDatabase::restoreDatabase(); //Do not forget it!!!!!!!!!!!
+				$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
 			}
-			
 			if(!empty($titles))
 			{
 				return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
@@ -647,12 +635,21 @@ class ListAPI extends Action {
 	}
 	
 
-	private function getIdsFromStrandsResults($results)
+	private function getIdsFromStrandsResults($results, $removePrefix = NULL)
 	{
 		$ids = array();
-		//print_r($results);die();
 		foreach ($results->result->recommendations as $recommendation){
-			$ids[] = $recommendation->itemId;
+			if ($removePrefix !== NULL)
+			{
+				if(strpos($recommendation->itemId, $removePrefix) !== false)
+				{
+					$ids[] = substr($recommendation->itemId, strlen($removePrefix));
+				}
+			}
+			else
+			{
+				$ids[] = $recommendation->itemId;
+			}
 		}
 		return $ids;
 	}
@@ -856,13 +853,14 @@ class ListAPI extends Action {
             'id' => $record['id'],
             'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
             'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=large&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+			'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],						
             'title' => $record['title'],
             'author' => isset($record['author']) ? $record['author'] : '',
-				    'description' => $description,
-						'teaser' => $teaser,
-	          'length' => (isset($descriptiveInfo) && isset($descriptiveInfo['length'])) ? $descriptiveInfo['length'] : '', 
-	          'publisher' => (isset($descriptiveInfo) && isset($descriptiveInfo['publisher'])) ? $descriptiveInfo['publisher'] : '',
-						'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
+			'description' => $description,
+			'teaser' => $teaser,
+	        'length' => (isset($descriptiveInfo) && isset($descriptiveInfo['length'])) ? $descriptiveInfo['length'] : '', 
+	        'publisher' => (isset($descriptiveInfo) && isset($descriptiveInfo['publisher'])) ? $descriptiveInfo['publisher'] : '',
+			'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
 
 				);
 			}
