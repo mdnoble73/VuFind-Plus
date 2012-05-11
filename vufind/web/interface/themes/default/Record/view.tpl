@@ -183,7 +183,7 @@ function redrawSaveStatus() {literal}{{/literal}
       <div id="similarAuthorPlaceholder"></div>
     </div>
     
-    {if is_array($editions)}
+    {if is_array($editions) && !$showOtherEditionsPopup}
     <div class="sidegroup" id="otherEditionsSidegroup">
       <h4>{translate text="Other Editions"}</h4>
         {foreach from=$editions item=edition}
@@ -278,6 +278,11 @@ function redrawSaveStatus() {literal}{{/literal}
 	  <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
 	    <a href="{$path}/Record/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
 	  </div>
+	  {if $showOtherEditionsPopup}
+		<div id="otherEditionCopies">
+			<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+		</div>
+		{/if}
     
       {if $goldRushLink}
       <div class ="titledetails">

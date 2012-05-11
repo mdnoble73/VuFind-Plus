@@ -998,12 +998,18 @@ class EContentRecord extends SolrDataObject {
 					if ($item->available){
 						$links[] = array(
 							'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$item->formatId}');",
-							'text' => 'Check Out'
+							'text' => 'Check Out',
+							'overDriveId' => $overDriveId,
+							'formatId' => $item->formatId,
+							'action' => 'CheckOut'
 							);
 					}else{
 						$links[] = array(
 							'onclick' => "return placeOverDriveHold('$overDriveId', '{$item->formatId}');",
-							'text' => 'Place Hold'
+							'text' => 'Place Hold',
+							'overDriveId' => $overDriveId,
+							'formatId' => $item->formatId,
+							'action' => 'Hold'
 							);
 					}
 					$item->links = $links;

@@ -629,6 +629,9 @@ class OverDriveDriver {
 			$addToCartResult['result'] = true;
 			$addToCartResult['message'] = "The title was added to your cart successfully.  You have 30 minutes to check out the title before it is returned to the library's collection.";
 		}else{
+			$logger = new Logger();
+			$logger->log("Adding OverDrive Item to cart. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
+			$logger->log('URL: '.$addToCartUrl,PEAR_LOG_INFO);
 			$addToCartResult['result'] = false;
 			$addToCartResult['message'] = 'There was an error adding the item to your cart.';
 		}

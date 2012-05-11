@@ -5,7 +5,7 @@
   {if $user->disableCoverArt != 1}      
   <div class="imageColumn">
     <a href="{$url}/MyResearch/MyList/{$summShortId}">
-    <img src="{$coverUrl}/bookcover.php?category=lists&amp;size=small" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
+    <img src="{img filename="list.png"}" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
     </a>
   </div>
   {/if}

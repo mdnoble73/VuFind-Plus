@@ -157,7 +157,16 @@ class EContentItem extends DB_DataObject {
 			'plucker' => 'Plucker', 
 			'externalMP3' => 'External MP3',
 			'interactiveBook' => 'Interactive Book',
-				'externalLink' => 'External Link',
+			'externalLink' => 'External Link',
+		);
+	} 
+	
+	static function getExternalItemTypes(){
+		return array(
+			'' => 'N/A', 
+			'externalMP3' => 'External MP3',
+			'interactiveBook' => 'Interactive Book',
+			'externalLink' => 'External Link',
 		);
 	} 
 	function validateCover(){

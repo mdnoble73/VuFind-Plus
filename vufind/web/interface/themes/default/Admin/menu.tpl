@@ -116,9 +116,9 @@
 		<li{if $action == "ListWidgets"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/ListWidgets">List Widgets</a></li>
 		<li{if $action == "UserSuggestions"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></li>
 		{if $ils == 'Millennium'}
-			<li{if $action == "CirculationStatuses"} class="active"{/if} style="float: none;"><a href="{$path}/CirculationStatuses">Circulation Statuses</a></li>
-			<li{if $action == "NonHoldableLocations"} class="active"{/if} style="float: none;"><a href="{$path}/NonHoldableLocations">Non-Holdable Locations</a></li>
-			<li{if $action == "PTypeRestrictedLocations"} class="active"{/if} style="float: none;"><a href="{$path}/PTypeRestrictedLocations">PType Restricted Locations</a></li>
+			<li{if $action == "CirculationStatuses"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></li>
+			<li{if $action == "NonHoldableLocations"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/NonHoldableLocations">Non-Holdable Locations</a></li>
+			<li{if $action == "PTypeRestrictedLocations"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/PTypeRestrictedLocations">PType Restricted Locations</a></li>
 		{/if}
 		{/if}
 	</ul>

@@ -107,11 +107,12 @@ class Horizon implements DriverInterface{
 			$itemSubfield       = $configArray['Catalog']['itemSubfield'];
 			$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
 			$statusSubfield     = $configArray['Catalog']['statusSubfield'];
+			$firstItemWithSIPdata = null;
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode 
 				global $memcache;
-				$itemData = $memcache->get('item_data_' . $barcode);
+				$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
 				if ($itemData == false){
 					//No data exists
 				
@@ -164,15 +165,22 @@ class Horizon implements DriverInterface{
 					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
 					$itemData['holdQueueLength'] = 0;
 					if (strlen($itemData['barcode']) > 0){
-						$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status']);
-						$itemData = array_merge($itemData, $itemSip2Data);
+						if ($forSummary && $firstItemWithSIPdata != null ){
+							$itemData = array_merge($itemData, $firstItemWithSIPdata);
+						}else{
+							$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status'], $forSummary);
+							if ($firstItemWithSIPdata == null){
+								$firstItemWithSIPdata = $itemSip2Data;
+							}
+							$itemData = array_merge($itemData, $itemSip2Data);
+						}
 					}
 
 					$itemData['collection'] = $this->translateCollection($item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
 
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
-					$memcache->set('item_data_' . $barcode, $itemData, 0, $configArray['Caching']['item_data']);
+					$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
 				}
 				
 				$suppressItem = false;
@@ -1410,7 +1418,7 @@ private $patronProfiles = array();
 						$homeLocationId = $location->locationId;
 					}
 					global $user;
-
+					
 					$profile= array(
             'lastname' => $result['variable']['DJ'][0],
             'firstname' => isset($result['variable']['DH'][0]) ? $result['variable']['DH'][0] : '',
@@ -1439,6 +1447,15 @@ private $patronProfiles = array();
 					$eContentDriver = new EContentDriver(); 
 					$eContentAccountSummary = $eContentDriver->getAccountSummary();
 					$profile = array_merge($profile, $eContentAccountSummary);
+					
+					//Get a count of the materials requests for the user
+					$materialsRequest = new MaterialsRequest();
+					$materialsRequest->createdBy = $user->id;
+					$statusQuery = new MaterialsRequestStatus();
+					$statusQuery->isOpen = 1;
+					$materialsRequest->joinAdd($statusQuery);
+					$materialsRequest->find();
+					$profile['numMaterialsRequests'] = $materialsRequest->N;
 				} else {
 					$profile = new PEAR_Error('patron_info_error_technical');
 				}
@@ -1570,7 +1587,7 @@ private $transactions = array();
 		global $memcache;
 		global $configArray;
 		global $timer;
-		$itemSip2Data = $memcache->get("item_sip2_data_$barcode");
+		$itemSip2Data = $memcache->get("item_sip2_data_{$barcode}");
 		if ($itemSip2Data == false){
 			//Check to see if the SIP2 information is already cached
 			if ($this->sipInitialized == false){
@@ -1628,7 +1645,7 @@ private $transactions = array();
 					}
 				}
 			}
-			$memcache->set("item_sip2_data_$barcode", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
+			$memcache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
 			$timer->logTime("Got due date and hold queue length from SIP 2 for barcode $barcode");
 		}
 		return $itemSip2Data;

@@ -1972,3 +1972,38 @@ ul.hold_items li{
 .alphaBrowseRelatedHeading li {
     margin-left: 4em;
 }
+
+.collapsed:before{
+	content: "► ";
+}
+.expanded:before{
+	content: "▼ ";
+}
+.requiredIndicator{
+	color:red;
+}
+/* Styles for cron and reindex reports */
+
+.logEntryProcessDetails td, .logEntryProcessDetails th{
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 2px;
+}
+.logEntryDetails{
+	width: 100%;
+	border-collapse: collapse;
+}
+.logEntryDetails td, .logEntryDetails th{
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 2px;
+}
+.logEntryProcessDetails{
+	width: 97%;
+	border-collapse: collapse;
+	margin-left: 16px;
+}
+
+#otherEditionsPopup{
+	min-width: 530px;
+}

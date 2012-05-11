@@ -24,11 +24,12 @@
 require_once "Action.php";
 require_once 'sys/MaterialsRequest.php';
 require_once 'sys/MaterialsRequestStatus.php';
+require_once 'services/MyResearch/MyResearch.php';
 
 /**
  * MaterialsRequest MyRequests Page, displays materials request information for the active user.
  */
-class MyRequests extends Action
+class MyRequests extends MyResearch
 {
 
 	function launch()

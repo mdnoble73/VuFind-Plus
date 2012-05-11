@@ -272,22 +272,22 @@ class Marmot implements DriverInterface
 									$linkUrl = $linkParts[1][$index];
 									if (preg_match('/netlibrary/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'NetLibrary';
+										//$linkText = 'NetLibrary';
 									}elseif (preg_match('/ebscohost/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'Ebsco';
+										//$linkText = 'Ebsco';
 									}elseif (preg_match('/overdrive/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'OverDrive';
+										//$linkText = 'OverDrive';
 									}elseif (preg_match('/ebrary/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'ebrary';
+										//$linkText = 'ebrary';
 									}elseif (preg_match('/gutenberg/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'Gutenberg Project';
+										//$linkText = 'Gutenberg Project';
 									}elseif (preg_match('/gale/i', $linkUrl)){
 										$isDownload = true;
-										$linkText = 'Gale Group';
+										//$linkText = 'Gale Group';
 									}
 									$lastHolding['link'][] = array('link' => $linkUrl,
                                                                    'linkText' => $linkText,
@@ -652,7 +652,7 @@ class Marmot implements DriverInterface
 		$numSubscriptions = 0;
 		if (count($holdings) > 0){
 			$lastHolding = end($holdings);
-			if ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue'){
+			if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
 				$isIssueSummary = true;
 				$issueSummaries = $holdings;
 				$numSubscriptions = count($issueSummaries);
@@ -724,7 +724,7 @@ class Marmot implements DriverInterface
 			}elseif($allItemStatus != $holding['statusfull']){
 				$allItemStatus = null;
 			}
-			if ($holding['availability'] == 1){
+			if (isset($holding['availability']) && $holding['availability'] == 1){
 				$numAvailableCopies++;
 				$addToAvailableLocation = false;
 				$addToAdditionalAvailableLocation = false;
@@ -1224,6 +1224,15 @@ class Marmot implements DriverInterface
 		$eContentAccountSummary = $eContentDriver->getAccountSummary();
 		$profile = array_merge($profile, $eContentAccountSummary);
 
+		//Get a count of the materials requests for the user
+		$materialsRequest = new MaterialsRequest();
+		$materialsRequest->createdBy = $user->id;
+		$statusQuery = new MaterialsRequestStatus();
+		$statusQuery->isOpen = 1;
+		$materialsRequest->joinAdd($statusQuery);
+		$materialsRequest->find();
+		$profile['numMaterialsRequests'] = $materialsRequest->N;
+		
 		$timer->logTime("Got Patron Profile");
 		$this->patronProfiles[$patron['id']] = $profile;
 		return $profile;
@@ -1260,6 +1269,7 @@ class Marmot implements DriverInterface
 				return null;
 			}
 			$result = $req->getResponseBody();
+			
 			//Strip the acutal contents out of the body of the page.
 			$r = substr($result, stripos($result, 'BODY'));
 			$r = substr($r,strpos($r,">")+1);
@@ -1277,7 +1287,6 @@ class Marmot implements DriverInterface
 			//Group1 would be the keys and group 2 the values.
 			$rows = preg_replace("/<BR.*?>/","*",$r);
 			$rows = explode("*",$rows);
-	
 			//Add the key and value from each row into an associative array.
 			$ret = array();
 			$patronDump = array();
@@ -1297,7 +1306,6 @@ class Marmot implements DriverInterface
 			$timer->logTime("Got patron information from Patron API");
 			
 			if (isset($configArray['ERRNUM'])){
-				//Could not load the record
 				return null;
 			}else{
 				
@@ -1444,14 +1452,17 @@ class Marmot implements DriverInterface
 						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
 						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
 						$renewCount = 0;
+						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
+							$curTitle['fine'] = trim($matches[1]);
+						}
 						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
 							$due = trim($matches[1]);
 							$renewCount = $matches[2];
 						}else if (preg_match('/(.*)\+\d+ HOLD.*/i', $due, $matches)){
 							$due = trim($matches[1]);
 						}
-						if (preg_match('/\d{2}-\d{2}-\d{2}/', $due)){
-							$dateDue = DateTime::createFromFormat('m-d-y', $due);
+						if (preg_match('/(\d{2}-\d{2}-\d{2})/', $due, $dueMatches)){
+							$dateDue = DateTime::createFromFormat('m-d-y', $dueMatches[1]);
 							if ($dateDue){
 								$dueTime = $dateDue->getTimestamp();
 							}else{

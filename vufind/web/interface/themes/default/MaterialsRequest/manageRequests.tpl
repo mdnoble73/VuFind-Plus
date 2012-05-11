@@ -43,7 +43,7 @@
 					<table id="requestedMaterials" class="tablesorter">
 						<thead>
 							<tr>
-								<th><input type="checkbox" name="selectAll" id="selectAll" onclick="$('.select').attr('checked', $('#selectAll').attr('checked'));"/></th>
+								<th><input type="checkbox" name="selectAll" id="selectAll" onchange="toggleCheckboxes('.select', $('#selectAll').attr('checked'));"/></th>
 								<th>Title</th>
 								<th>Author</th>
 								<th>Format</th>

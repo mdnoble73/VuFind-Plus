@@ -113,6 +113,9 @@ class Home extends Record{
 			$interface->assign('showSeriesAsTab', 0);
 		}
 		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+		if (!isset($this->isbn)){
+			$interface->assign('showOtherEditionsPopup', false);
+		}
 		$timer->logTime('Configure UI for library and location');
 
 		//Build the actual view

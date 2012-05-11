@@ -8,9 +8,9 @@
 		<h1>Reindex Log</h1>
 		
 		<div id="econtentAttachLogContainer">
-			<table class="logEntryDetails">
+			<table class="logEntryDetails" cellspacing="0">
 				<thead>
-					<tr><th>Id</th><th>Started</th><th>Finished</th><th>Elapsed</th></tr>
+					<tr><th>Id</th><th>Started</th><th>Finished</th><th>Elapsed</th><th>Processes Run</th><th>Had Errors?</th></tr>
 				</thead>
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
@@ -19,11 +19,12 @@
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
+							<td>{$logEntry->getNumProcesses()}</td>
+							<td>{if $logEntry->getHadErrors()}Yes{else}No{/if}</td>
 						</tr>
 						<tr class="logEntryProcessDetails" id="processInfo{$logEntry->id}" style="display:none">
-							<td></td>
-							<td colspan="3" >
-								<table class="logEntryProcessDetails">
+							<td colspan="6" >
+								<table class="logEntryProcessDetails" cellspacing="0">
 									<thead>
 										<tr><th>Process Name</th><th>Records Processed</th><th>eContent Records Processed</th><th>Resources Processed</th><th>Errors</th><th>Added</th><th>Updated</th><th>Deleted</th><th>Skipped</th><th>Notes</th></tr>
 									</thead>

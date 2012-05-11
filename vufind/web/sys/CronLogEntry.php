@@ -35,6 +35,19 @@ class CronLogEntry extends DB_DataObject
 		}
 		return $this->_processes;
 	}
+	
+	function getNumProcesses(){
+		return count($this->processes());
+	}
+	
+	function getHadErrors(){
+		foreach ($this->processes() as $process){
+			if ($process->numErrors > 0){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	function getElapsedTime(){
 		if (!isset($this->endTime) || is_null($this->endTime)){
