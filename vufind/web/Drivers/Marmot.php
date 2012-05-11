@@ -138,6 +138,7 @@ class Marmot implements DriverInterface
 	}
 	
 	public function getDefaultScope(){
+		global $configArray;
 		return isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
 	}
 
