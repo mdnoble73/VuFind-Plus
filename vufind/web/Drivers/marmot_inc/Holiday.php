@@ -18,13 +18,22 @@ class Holiday extends DB_DataObject
 	}
 	
 	function keys() {
-		return array('date');
+		return array('id');
 	}
 
 	function getObjectStructure(){
+		$library = new Library();
+		$library->orderBy('displayName');
+		$library->find();
+		$libraryList = array();
+		while ($library->fetch()){
+			$libraryList[$library->libraryId] = $library->displayName;
+		}
+		
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the holiday within the database'),
-			'date' => array('property'=>'date', 'type'=>'text', 'label'=>'Date', 'description'=>'The date of a holiday.'),
+			'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library'),
+			'date' => array('property'=>'date', 'type'=>'date', 'label'=>'Date', 'description'=>'The date of a holiday.', 'required'=>true),
 			'name' => array('property'=>'name', 'type'=>'text', 'label'=>'Holiday Name', 'description'=>'The name of a holiday')
 		);
 		foreach ($structure as $fieldName => $field){

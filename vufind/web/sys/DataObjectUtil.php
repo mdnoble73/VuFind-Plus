@@ -333,7 +333,7 @@ class DataObjectUtil
 					}else{
 						//Update properties of each associated object
 						foreach ($subStructure as $subProperty){
-							if (in_array($subProperty['type'], array('text', 'enum') )){
+							if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
 								$subObject->$subProperty['property'] = $_REQUEST[$propertyName . '_' . $subProperty['property']][$id];
 							}
 						}

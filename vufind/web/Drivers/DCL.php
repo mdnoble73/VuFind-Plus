@@ -461,7 +461,7 @@ class DCL extends Horizon {
 			// find library hours for the above day of the week
 			require_once 'Drivers/marmot_inc/LocationHours.php';
 			$hours = new LocationHours();
-			$hours->whereAdd("locationCode='" . $hours->escape($location->code) . "'");
+			$hours->whereAdd('locationId=' . $location->locationId);
 			$hours->whereAdd('day=' . $dayOfWeekToday);
 			$hours->find();
 			if ($hours->N == 1) {

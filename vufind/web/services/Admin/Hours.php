@@ -37,7 +37,7 @@ class Hours extends ObjectEditor
 	}
 	function getAllObjects(){
 		$hours = new LocationHours();
-		$hours->orderBy('locationCode, day');
+		$hours->orderBy('locationId, day');
 		$hours->find();
 		$list = array();
 		while ($hours->fetch()){

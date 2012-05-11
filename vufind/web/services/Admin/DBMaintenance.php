@@ -1002,12 +1002,12 @@ class DBMaintenance extends Admin {
 			'sql' => array(				
 				"CREATE TABLE IF NOT EXISTS location_hours (" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
-					"`locationCode` varchar(10) NOT NULL, " .
+					"`locationId` INT NOT NULL COMMENT 'The location id', " .
 					"`day` INT NOT NULL COMMENT 'Day of the week 0 to 7 (Sun to Monday)', " .
 					"`open` varchar(10) NOT NULL COMMENT 'Open hour (24hr format) HH:MM', " . 
 					"`close` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
 					"PRIMARY KEY ( `id` ), " .
-					"UNIQUE KEY (`locationCode`, `day`) " .
+					"UNIQUE KEY (`locationId`, `day`) " .
 				") ENGINE=InnoDB",
 			),
 		),
@@ -1018,6 +1018,7 @@ class DBMaintenance extends Admin {
 			'sql' => array(				
 				"CREATE TABLE IF NOT EXISTS holiday (" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of holiday', " .
+					"`libraryId` INT NOT NULL COMMENT 'The library system id', " .
 					"`date` date NOT NULL COMMENT 'Date of holiday', " .
 					"`name` varchar(100) NOT NULL COMMENT 'Name of holiday', " .
 					"PRIMARY KEY ( `id` ), " .
