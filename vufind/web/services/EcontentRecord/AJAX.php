@@ -353,6 +353,11 @@ class AJAX extends Action {
 		$overDriveDriver = new OverDriveDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
+		
+		//Var for the IDCLREADER TEMPLATE
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','{translate text="Loan Period"}');
+		
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
 	
