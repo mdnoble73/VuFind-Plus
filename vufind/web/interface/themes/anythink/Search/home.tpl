@@ -16,6 +16,11 @@
     <div class="form-item">
     <input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
     </div>
+    {if !$inLibrary}
+    	<div class="form-item">
+	    <input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+	    </div>
+    {/if}
     <div class="form-item" id="submit-wrapper">
     <input type="submit" name="submit" value="Login" />
     </div>

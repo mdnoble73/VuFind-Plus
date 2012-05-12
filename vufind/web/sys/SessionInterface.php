@@ -5,9 +5,11 @@ require_once 'services/MyResearch/lib/Search.php';
 class SessionInterface {
 
 	static public $lifetime = 3600;
+	static public $rememberMeLifetime = 3600;
 
-	public function init($lt) {
+	public function init($lt, $rememberMeLifetime) {
 		self::$lifetime = $lt;
+		self::$rememberMeLifetime = $rememberMeLifetime;
 		session_set_save_handler(array(get_class($this), 'open'), array(get_class($this),'close'), array(get_class($this),'read'), array(get_class($this),'write'), array(get_class($this),'destroy'), array(get_class($this),'gc'));
 		session_start();
 	}

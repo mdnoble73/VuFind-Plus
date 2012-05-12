@@ -34,21 +34,21 @@
     	<div id="seriesTitles">
 		{foreach from=$recordSet item=record name="recordLoop"}
 		    {if ($smarty.foreach.recordLoop.iteration % 2) == 0}
-			<div id="record{$record.recordId|escape}" class="result alt record{$smarty.foreach.recordLoop.iteration}">
+			<div id="record{$record.shortId|escape}" class="result alt record{$smarty.foreach.recordLoop.iteration}">
 			{else}
-			<div id="record{$record.recordId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
+			<div id="record{$record.shortId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
 			{/if}
 				<div class="selectTitle">
-				  <input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" id="selected{$record.recordId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('{$record.recordId|escape:"url"}', '{$record.title|regex_replace:"/(\/|:)$/":""|escape:"javascript"}', this);"{/if} />&nbsp;
+				  <input type="checkbox" name="selected[{$record.shortId|escape:"url"}]" id="selected{$record.shortId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('{$record.recordId|escape:"url"}', '{$record.title|regex_replace:"/(\/|:)$/":""|escape:"javascript"}', this);"{/if} />&nbsp;
 				</div>
 		    
 		    	<div class="imageColumn"> 
-				    <div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
-				    <a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+				    <div id='descriptionPlaceholder{$record.shortId|escape}' style='display:none'></div>
+				    <a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.shortId|escape:"url"}">
 				    <img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 				    </a>
 				    {* Place hold link *}
-				    <div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
+				    <div class='requestThisLink' id="placeHold{$record.shortId|escape:"url"}" style="display:none">
 				      <a href="{$path}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
 				    </div>
 				</div>
@@ -85,40 +85,41 @@
 		          {else}
 		            <span class="iconlabel {$record.format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$record.format}</span>
 		          {/if}
-				  <div id = "holdingsSummary{$record.recordId|escape:"url"}" class="holdingsSummary">
-				    <div class="statusSummary" id="statusSummary{$record.recordId|escape:"url"}">
+				  <div id = "holdingsSummary{$record.shortId|escape:"url"}" class="holdingsSummary">
+				    <div class="statusSummary" id="statusSummary{$record.shortId|escape:"url"}">
 				      <span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
 				    </div>
 				  </div>
 				</div>
 				
-				<div id ="searchStars{$record.recordId|escape}" class="resultActions">
-				  <div class="rate{$record.recordId|escape} stat">
+				<div id ="searchStars{$record.shortId|escape}" class="resultActions">
+				  <div class="rate{$record.shortId|escape} stat">
 					  <div class="statVal">
 					    <span class="ui-rater">
 					      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-					      (<span class="ui-rater-rateCount-{$record.recordId|escape} ui-rater-rateCount">0</span>)
+					      (<span class="ui-rater-rateCount-{$record.shortId|escape} ui-rater-rateCount">0</span>)
 					    </span>
 					  </div>
 				      <div id="saveLink{$record.recordId|escape}">
 				        {if $showFavorites == 1} 
-				        <a href="{$path}/Resource/Save?id={$record.recordId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.recordId|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+				        <a href="{$path}/Resource/Save?id={$record.shortId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.recordId|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 				        {/if}
 				        {if $user}
-				        	<div id="lists{$record.recordId|escape}"></div>
+				        	<div id="lists{$record.shortId|escape}"></div>
 							<script type="text/javascript">
-							  getSaveStatuses('{$record.recordId|escape:"javascript"}');
+							  getSaveStatuses('{$record.shortId|escape:"javascript"}');
 							</script>
 				        {/if}
 				      </div>
 				    </div>
             {assign var=id value=$record.recordId}
-            {include file="Record/title-review.tpl"}
+            {assign var=shortId value=$record.shortId scope="global"}
+    				{include file="Record/title-review.tpl"}
             
 				    <script type="text/javascript">
 				      $(
 				         function() {literal} { {/literal}
-				             $('.rate{$record.recordId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: {$record.recordId}, rating:0.0, postHref: '{$path}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+				             $('.rate{$record.shortId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$record.recordId}', rating:0.0, postHref: '{$path}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 				         {literal} } {/literal}
 				      );
 				    </script>
@@ -127,10 +128,10 @@
 
 				{if $record.recordId != -1}
 				<script type="text/javascript">
-				  addRatingId('{$record.recordId|escape:"javascript"}');
-				  $(document).ready(function(){literal} { {/literal}
-				  	addIdToStatusList('{$record.recordId|escape:"javascript"}');
-				    resultDescription('{$record.recordId}','{$record.recordId}');
+				  addRatingId('{$record.shortId|escape:"javascript"}');
+				  addIdToStatusList('{$record.recordId|escape:"javascript"}');
+			    $(document).ready(function(){literal} { {/literal}
+				  	resultDescription('{$record.shortId}','{$record.recordId}');
 				  {literal} }); {/literal}
 				</script>
 				{/if}
@@ -144,12 +145,12 @@
 	
 	<script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
-	   doGetRatings();
-	   doGetSaveStatuses();
-	   doGetStatusSummaries();
+		doGetRatings();
+		doGetStatusSummaries();
+		doGetSaveStatuses();
 	{literal} }); {/literal}
 	</script>
 	
-    {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
-    </div>
+	{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
+	</div>
 </div>

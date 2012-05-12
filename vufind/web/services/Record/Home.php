@@ -53,7 +53,7 @@ class Home extends Record{
 		//Populate an array of editorialReviewIds that match up with the recordId
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
-		$editorialReview->whereAdd("recordId = '".$recordId."'");
+		$editorialReview->recordId = $recordId;
 		$editorialReview->find();
 		if ($editorialReview->N > 0){
 			while ($editorialReview->fetch()){
@@ -116,6 +116,7 @@ class Home extends Record{
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
+		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
 		$timer->logTime('Configure UI for library and location');
 
 		//Build the actual view

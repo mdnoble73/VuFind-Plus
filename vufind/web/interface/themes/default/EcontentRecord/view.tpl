@@ -519,19 +519,16 @@ function redrawSaveStatus() {literal}{{/literal}
     <div id="moredetails-tabs">
       {* Define tabs for the display *}
       <ul>
-        <li><a href="#holdingstab">Copies</a></li>
-        {if $notes}
-          <li><a href="#notestab">Notes</a></li>
-        {/if}
-        {if $showAmazonReviews || $showStandardReviews}
-          <li><a href="#reviewtab">Editorial Reviews</a></li>
-        {/if}
-        <li><a href="#staffReviewtab">Staff Reviews</a></li>
-        <li><a href="#readertab">Reader Reviews</a></li>
-        <li><a href="#citetab">Citation</a></li>
-        {if $eContentRecord->marcRecord}
-        	<li><a href="#stafftab">Staff View</a></li>
-        {/if}
+        <li><a href="#holdingstab">{translate text="Copies"}</a></li>
+				{if $notes}
+					<li><a href="#notestab">{translate text="Notes"}</a></li>
+				{/if}
+				{if $showAmazonReviews || $showStandardReviews}
+					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+				{/if}
+				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				<li><a href="#citetab">{translate text="Citation"}</a></li>
+				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
       </ul>
       
       {* Display the content of individual tabs *}
@@ -546,15 +543,16 @@ function redrawSaveStatus() {literal}{{/literal}
       {/if}
       
       
-      {if $showAmazonReviews || $showStandardReviews}
-		<div id="reviewtab">
-		  <div id='reviewPlaceholder'></div>
-		</div>
-      {/if}
-   
-      <div id = "staffReviewtab" >
-        {include file="Record/view-staff-reviews.tpl"}
-      </div>
+			<div id="reviewtab">
+				<div id = "staffReviewtab" >
+				{include file="Record/view-staff-reviews.tpl"}
+				</div>
+				 
+				{if $showAmazonReviews || $showStandardReviews}
+				<h4>Professional Reviews</h4>
+				<div id='reviewPlaceholder'></div>
+				{/if}
+			</div>
       
       {if $showComments == 1}
         <div id = "readertab" >
@@ -566,6 +564,21 @@ function redrawSaveStatus() {literal}{{/literal}
             {include file="EcontentRecord/submit-comments.tpl"}
           </div>
           {include file="EcontentRecord/view-comments.tpl"}
+          
+					{* Chili Fresh Reviews *}
+					{if $chiliFreshAccount && ($isbn || $upc || $issn)}
+						<h4>Chili Fresh Reviews</h4>
+						{if $isbn}
+						<div class="chili_review" id="isbn_{$isbn10}"></div>
+						<div id="chili_review_{$isbn10}" style="display:none" align="center" width="100%"></div>
+						{elseif $upc}
+						<div class="chili_review_{$upc}" id="isbn"></div>
+						<div id="chili_review_{$upc}" style="display:none" align="center" width="100%"></div>
+						{elseif $issn}
+						<div class="chili_review_{$issn}" id="isbn"></div>
+						<div id="chili_review_{$issn}" style="display:none" align="center" width="100%"></div>
+						{/if}
+					{/if}
         </div>
       {/if}
       

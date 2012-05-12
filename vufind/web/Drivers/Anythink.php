@@ -26,7 +26,21 @@ class Anythink extends Horizon {
 	function __construct(){
 		parent::__construct();
 	}
-
+	
+	public function getStatusSummary($id, $record = null, $mysip = null){
+		//Get the word think location to substitute the word think location for the shelved at location
+		$statusSummary = parent::getStatusSummary($id, $record, $mysip);
+		if ($record == null){
+			$record = $record = MarcLoader::loadMarcRecordByILSId($id);
+		}
+		$wordThinkField = $record->getField('690', true);
+		if ($wordThinkField != null){
+			$wordThinkData = $wordThinkField->getSubfield('a');
+			$summaryInformation['callnumber'] = $wordThinkData;
+		}
+		return $statusSummary;
+	}
+	
 	function translateFineMessageType($code){
 		switch ($code){
 			case "abs":       return "Automatic Bill Sent";
@@ -266,7 +280,7 @@ class Anythink extends Horizon {
 	}
 	
 	public function translateStatus($statusCode){
-		$statusCode = strtolower($statusCode);
+		$statusCode = trim(strtolower($statusCode));
 		$statusMap = array(
         'a' => 'Archived',
         'b' => 'Bindery',
@@ -308,7 +322,7 @@ class Anythink extends Horizon {
         'y' => 'On Display',
         );
 
-		return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown (' . $statusCode . ')';
+		return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown ';
 	}
 	
 	public function getLocationMapLink($locationCode){

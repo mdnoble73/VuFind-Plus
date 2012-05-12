@@ -57,9 +57,7 @@
 	{/if}
   </div>
   <script type="text/javascript">
-     $(document).ready(function(){literal} { {/literal}
-         getStatusSummary('{$listId|escape:"javascript"}');
-     {literal} }); {/literal}
-  </script>
+		addIdToStatusList('{$record.id|escape:"javascript"}');
+	</script>
 </div>
 <div class="clearer">&nbsp;</div>

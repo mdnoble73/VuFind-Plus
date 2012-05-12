@@ -15,12 +15,20 @@
 	       	 <div class='loginLabel'>{translate text='Password'}: </div>
 	         <div class='loginField'><input type="password" name="password" id="password" size="15"/></div>
 	       </div>
-	       <div id ='loginPasswordRow2' class='loginFormRow'>
+				<div id ='loginPasswordRow2' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>
 					<div class='loginField'>
 						&nbsp;<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
 					</div>
 				</div>
+				{if !$inLibrary}
+				<div id ='loginPasswordRow3' class='loginFormRow'>
+					<div class='loginLabel'>&nbsp;</div>
+					<div class='loginField'>
+						&nbsp;<input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+					</div>
+				</div>
+				{/if}
 	       <div id='loginSubmitButtonRow' class='loginFormRow'>
 	     	 <input id="loginButton" type="image" name="submit" value="Login" src='{$path}/interface/themes/default/images/login.png' alt='{translate text="Login to your account"}' />
 	       {if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
