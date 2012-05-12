@@ -31,7 +31,7 @@ class Anythink extends Horizon {
 		//Get the word think location to substitute the word think location for the shelved at location
 		$statusSummary = parent::getStatusSummary($id, $record, $mysip);
 		if ($record == null){
-			$record = $record = MarcLoader::loadMarcRecordByILSId($id);
+			$record = MarcLoader::loadMarcRecordByILSId($id);
 		}
 		$wordThinkField = $record->getField('690', true);
 		if ($wordThinkField != null){
