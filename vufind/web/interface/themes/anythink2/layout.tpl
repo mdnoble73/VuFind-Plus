@@ -12,7 +12,6 @@
       {css filename="styles.css"}
       {css filename="basicHtml.css"}
       {css filename="top-menu.css"}
-      {css filename="library-footer.css"}
       {css filename="title-scroller.css"}
       {css filename="my-account.css"}
       {css filename="holdingsSummary.css"}
@@ -27,14 +26,11 @@
       {css filename="dcl.css"}
       {css filename="anythink2.css"}
     {/if}
-
     {css media="print" filename="print.css"}
-
     <script type="text/javascript">
       path = '{$path}';
       loggedIn = {if $user}true{else}false{/if};
     </script>
-
     {if $consolidateJs}
       <script type="text/javascript" src="{$path}/API/ConsolidatedJs"></script>
     {else}
@@ -43,118 +39,140 @@
       <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
       <script type="text/javascript" src="{$path}/js/scripts.js"></script>
       <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
-
       {if $enableBookCart}
       <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
       <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
       {/if}
-
       {* Code for description pop-up and other tooltips.*}
       <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
       <script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
       <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-
       <script type="text/javascript" src="{$path}/js/overdrive.js"></script>
+      {* Formalize *}
+      <script src="{$path}/interface/themes/anythink/js/jquery.formalize.min.js" type="text/javascript"></script>
     {/if}
-
     {* Files that should not be combined *}
     {if $includeAutoLogoutCode == true}
       <script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
     {/if}
-
     {if isset($theme_css)}
     <link rel="stylesheet" type="text/css" href="{$theme_css}" />
     {/if}
-  </head>
-
-  <body class="{$module} {$action}">
-    {*- Set focus to the correct location by default *}
-    <script type="text/javascript">{literal}
-    jQuery(function (){
-      jQuery('#{/literal}{$focusElementId}{literal}').focus();
-    });{/literal}
+    <script type="text/javascript">
+      {literal}
+      (function($) {
+        // General settings for this theme.
+        var Anythink = {settings: {}};
+        // Hold message.
+        Anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
+        // Renew message.
+        Anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
+        $(document).ready(function(){
+          // Show hold message if set.
+          if (Anythink.settings.hold_message != '') {
+            lightbox();
+            $('#popupbox').html(Anythink.settings.hold_message);
+          };
+          // Show renew message if set.
+          if (Anythink.settings.renew_message != '') {
+            lightbox();
+            $('#popupbox').html(Anythink.settings.renew_message);
+          };
+        });
+      })(jQuery);
+      {/literal}
     </script>
-    <!-- Current Physical Location: {$physicalLocation} -->
-    {* LightBox *}
-    <div id="lightboxLoading" class="lightboxLoading" style="display: none;">{translate text="Loading"}...</div>
-    <div id="lightboxError" style="display: none;">{translate text="lightbox_error"}</div>
-    <div id="lightbox" onclick="hideLightbox(); return false;"></div>
-    <div id="popupbox" class="popupBox"></div>
-    {* End LightBox *}
-
-    {include file="bookcart.tpl"}
-
-    <div id="pageBody" class="{$page_body_style}">
-
-    {include file="top-menu.tpl"}
-
-    <div class="searchheader">
-      <div class="searchcontent">
-
-        <a href="{if $homeLink}{$homeLink}{else}{$url}{/if}"><img src="{$path}{$smallLogo}" alt="VuFind" class="alignleft" /></a>
-        {if $pageTemplate != 'advanced.tpl'}
-          {if $module=="Summon"}
-            {include file="Summon/searchbox.tpl"}
-          {elseif $module=="WorldCat"}
-            {include file="WorldCat/searchbox.tpl"}
+  </head>
+  <body class="{$module} {$action} {$module}--{$action}">
+    <div id="container"><div id="inner">
+      <!-- Current Physical Location: {$physicalLocation} -->
+      {* LightBox *}
+      <div id="lightboxLoading" class="lightboxLoading" style="display: none;">{translate text="Loading"}...</div>
+      <div id="lightboxError" style="display: none;">{translate text="lightbox_error"}</div>
+      <div id="lightbox" onclick="hideLightbox(); return false;"></div>
+      <div id="popupbox" class="popupBox"></div>
+      {* End LightBox *}
+      {include file="bookcart.tpl"}
+      <div class="{$page_body_style}">
+        <div id="header">
+          {* This needs to be heavily refactored.
+          {if $user}
+            <span id="myAccountNameLink" class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyResearch/Home">{if $user->displayName}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></span>
+            <span class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></span>
+            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></span>
           {else}
-            {include file="Search/searchbox.tpl"}
+            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></span>
           {/if}
-        {/if}
-
-        <div class="clearer">&nbsp;</div>
+          *}
+          <a id="logo" href="{if $homeLink}{$homeLink}{else}{$url}{/if}">{translate text="Anythink Libraries"}</a>
+          <div id="header-utility-top">
+            <ul class="inline right">
+            {if !empty($allLangs) && count($allLangs) > 1}
+               {foreach from=$allLangs key=langCode item=langName}
+                 <li><a class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath|escape}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
+               {/foreach}
+            {/if}
+            {* Link to Search Tips Help *}
+            <li><a href="{$url}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
+              Help <img id='searchHelpIcon' src="{$path}/interface/themes/default/images/help.png" alt="{translate text='Search Tips'}" />
+            </a><li>
+            </ul>
+          </div>
+          {if $action != 'Home' && $pageTemplate != 'advanced.tpl'}
+            {if $module=="Summon"}
+              {include file="Summon/searchbox.tpl"}
+            {elseif $module=="WorldCat"}
+              {include file="WorldCat/searchbox.tpl"}
+            {else}
+              {include file="Search/searchbox.tpl"}
+            {/if}
+          {/if}
+          <div id="header-utility-bottom">
+            <ul class="inline right">
+              {if !$user}<li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>{/if}
+              <li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li>
+            </ul>
+          </div>
+          {if $showBreadcrumbs}
+            <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
+            {include file="$module/breadcrumbs.tpl"}
+          {/if}
+          {if $useSolr || $useWorldcat || $useSummon}
+            <ul>
+              {if $useSolr}
+              <li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
+              {/if}
+              {if $useWorldcat}
+              <li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
+              {/if}
+              {if $useSummon}
+              <li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
+              {/if}
+            </ul>
+          {/if}
+        </div>
+        <div id="central" class="clearfix{if $module == 'Search' && $action == 'Home'} with-column-outer{/if}">
+          {if $module == 'Search' && $action == 'Home'}
+          <div id="column-outer-wrapper"><div id="column-outer">
+            <iframe width="200" height="600" border="0" src="http://anythink.localhost/vufind/sidebar"></iframe>
+          </div></div>
+          {/if}
+          <div id="column-central">
+            <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
+            <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
+              {include file="$module/$pageTemplate"}
+            </div></div>
+          </div>
+        </div>
+        <div id="footer">
+        </div>
       </div>
-    </div>
+    </div></div>
 
-    {if $showBreadcrumbs}
-    <div class="breadcrumbs">
-      <div class="breadcrumbinner">
-        <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
-        {include file="$module/breadcrumbs.tpl"}
-      </div>
-    </div>
-    {/if}
-
-      {if $useSolr || $useWorldcat || $useSummon}
-      <div id="toptab">
-        <ul>
-          {if $useSolr}
-          <li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
-          {/if}
-          {if $useWorldcat}
-          <li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
-          {/if}
-          {if $useSummon}
-          <li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
-          {/if}
-        </ul>
-      </div>
-      <div style="clear: left;"></div>
-      {/if}
-
-      {include file="$module/$pageTemplate"}
-
-      {if $hold_message}
-        <script type="text/javascript">
-        lightbox();
-        document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
-        </script>
-      {/if}
-
-      {if $renew_message}
-        <script type="text/javascript">
-        lightbox();
-        document.getElementById('popupbox').innerHTML = "{$renew_message|escape:"javascript"}";
-        </script>
-      {/if}
-
-    {include file="library-footer.tpl"}
-    </div> {* End page body *}
-
-    {* add analytics tracking code*}
-  {if $productionServer}{literal}
+  {* Google Analytics *}
+  {if $productionServer}
   <script type="text/javascript">
-
+  {literal}
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-4759493-8']);
     _gaq.push(['_trackPageview']);
@@ -165,14 +183,14 @@
       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
     })();
-
+  {/literal}
   </script>
-  {/literal}{/if}
+  {/if}
 
   {* Strands tracking *}
   {if $user && $user->disableRecommendations == 0}
-    {literal}
     <script type="text/javascript">
+    {literal}
 
     //This code can actually be used anytime to achieve an "Ajax" submission whenever called
     if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
@@ -182,14 +200,15 @@
        user: "{/literal}{$user->id}{literal}"
     });
 
-    </script>
     {/literal}
+    </script>
   {/if}
-  {literal}
   <!-- Strands Library MUST be included at the end of the HTML Document, before the /body closing tag and JUST ONCE -->
   <script type="text/javascript" src="http://bizsolutions.strands.com/sbsstatic/js/sbsLib-1.0.min.js"></script>
   <script type="text/javascript">
+  {literal}
     try{ SBS.Worker.go("vFR4kNOW4b"); } catch (e){};
-  </script>{/literal}
+  {/literal}
+  </script>
   </body>
 </html>{/strip}
