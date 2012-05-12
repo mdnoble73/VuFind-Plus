@@ -1,4 +1,5 @@
-@CHARSET "ISO-8859-1";
+@import 'normalize.css';
+@import 'formalize.css';
 
 /* Local overrides of css */
 #book_bag #bag_open_button {
@@ -87,4 +88,286 @@
 #materialsRequestPrefilterLimit{
 	font-weight: bold;
 	font-style: italic;
+}
+
+
+/**
+ * Overrides and customization.
+ */
+
+h1, h2, h3, h4, h5, h6,
+p, ul, ol, dl, dt, dd, li {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+p, ul, ol, dl, label {
+  font-size: 1.2em;
+  line-height: 1.8em;
+}
+
+input, select {
+  font-size: 1.2em;
+  line-height: 1em;
+}
+
+label {
+  min-width: 0;
+}
+
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+body {
+  background-color: #2F6EB6; /* Blue */
+  font-size: 62.5%;
+  font-family: "Trebuchet MS", Tahoma, Verdana, Arial, Helvetica, "Bitstream Vera Sans", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+#container {
+  background-color: #FFF;
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/squiggle.png);
+  background-repeat: no-repeat;
+  background-position: -70px -154px;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+#inner {
+  padding: 0 20px 0 10px;
+}
+
+#pageBody {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  width: auto;
+}
+
+.searchform {
+  float: none;
+  margin-top: 0;
+  margin-right: 0;
+}
+
+#main #search {
+  width: 600px;
+  margin: 66px auto 40px auto;
+}
+
+#search-input-wrapper {
+  display: inline-block;
+  font-weight: bold;
+}
+
+#search-input {
+  margin-bottom: .667em;
+}
+
+#searchForm {
+  margin-bottom: 1.333em;
+}
+
+#basicType {
+  font-size: 1.4em;
+  margin-top: 4px;
+  margin-right: .643em;
+}
+
+#type {
+  font-size: 1.2em;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+#type-label {
+  color: #666;
+  display: inline-block;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-top: 3px;
+  line-height: 1.444em;
+  min-width: 0;
+  vertical-align: top;
+  margin-right: .5em;
+}
+
+#lookfor {
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-right-radius: 0;
+  -moz-border-radius-topright: 0;
+  -moz-border-radius-bottomright: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  display: block;
+  float: left;
+  font-size: 1.8em;
+}
+
+#submit-wrapper {
+  text-align: center;
+}
+
+#lookfor-submit {
+  -webkit-border-top-left-radius: 0;
+  -webkit-border-bottom-left-radius: 0;
+  -moz-border-radius-topleft: 0;
+  -moz-border-radius-bottomleft: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 0;
+  display: block;
+  font-size: 1.8em;
+  float: left;
+  height: 1.8em;
+}
+
+#shards {
+  padding-left: 0;
+  text-align: inherit;
+}
+
+#shards label {
+  display: inline-block;
+  margin-right: .667em;
+}
+
+#header {
+  height: 136px;
+  position: relative;
+}
+
+#header-utility-top {
+  top: 10px;
+  position: absolute;
+  right: 10px;
+}
+
+#header-utility-bottom {
+  bottom: 10px;
+  position: absolute;
+  right: 10px;
+}
+
+#logo {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/anythink-logo.png);
+  background-repeat: no-repeat;
+  display: block;
+  height: 53px;
+  left: 10px;
+  overflow: hidden;
+  position: absolute;
+  text-indent: 100%;
+  top: 10px;
+  white-space: nowrap;
+  width: 211px;
+}
+
+body.Search--Home #logo {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/anythink-logo-large.png);
+  height: 89px;
+  width: 355px;
+}
+
+#main {
+  background-color: #FFF;
+  border-left: 1px solid #999;
+  margin-left: 12px;
+  padding: 20px;
+}
+
+#main-wrapper {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(../images/flag-shadow.png);
+  background-repeat: no-repeat;
+}
+
+#main-content {
+  margin-left: 20px;
+  min-height: 800px;
+  width: auto;
+  display: block;
+}
+
+#sidebar-wrapper {
+  width: 220px;
+  float: left;
+}
+
+#sidebar {
+  padding: 10px;
+  background-color: #E2F5F5;
+  border: none;
+  width:auto;
+}
+
+#column-outer-wrapper {
+  float: left;
+  width: 200px;
+}
+
+#column-outer iframe {
+  border: 0;
+}
+
+.with-column-outer #column-central {
+  margin-left: 220px;
+}
+
+#flag {
+  background-color: #2F6EB6;
+  color: #FFF;
+  text-shadow: #333 0 1px 0;
+  text-transform: lowercase;
+  margin: 0;
+  font-size: 1.6em;
+  line-height: 1.5em;
+  padding-left: 20px;
+}
+
+
+/**
+ * Utility classes.
+ */
+
+ul.inline {
+  list-style: none;
+  padding: 0;
+}
+
+ul.left {
+  float: left;
+}
+
+ul.right {
+  float: right;
+}
+
+ul.inline li {
+  display: inline-block;
+}
+
+ul.right li {
+  margin: 0 0 0 .75em;
 }
