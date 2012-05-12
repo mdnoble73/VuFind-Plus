@@ -33,10 +33,13 @@ class Anythink extends Horizon {
 		if ($record == null){
 			$record = MarcLoader::loadMarcRecordByILSId($id);
 		}
-		$wordThinkField = $record->getField('690', true);
+		$wordThinkField = $record->getFields('690', false);
 		if ($wordThinkField != null){
-			$wordThinkData = $wordThinkField->getSubfield('a');
-			$summaryInformation['callnumber'] = $wordThinkData;
+			$wordThinkData = array();
+			foreach ($wordThinkField as $field){
+				$wordThinkData[] = $field->getSubfield('a')->getData();
+			}
+			$statusSummary['callnumber'] = implode(", ", $wordThinkData);
 		}
 		return $statusSummary;
 	}
