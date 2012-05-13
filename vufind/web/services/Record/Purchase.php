@@ -113,43 +113,21 @@ class Purchase extends Action {
 	static function getStoresForTitle($title){
 		$title = str_replace("/", "", $title);
 		$purchaseLinks = array();
-			
-		$tatteredCoverUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title);
-		$input = file_get_contents($tatteredCoverUrl);
-		$regexp = "/Your search yielded no results/i";
-		if(!preg_match($regexp, $input)) {
-			$purchaseLinks[] = array(
-				'link' => $tatteredCoverUrl,
-				'linkText' => 'Buy from Tattered Cover',
-				'image' => '/images/tattered_cover.png',
-				'storeName' => 'Tattered Cover', 
-			);
-		}
-			
-		$amazonUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title);
-		$input = file_get_contents($amazonUrl);
-		$regexp = "/did not match any products/i";
-		if(!preg_match($regexp, $input)) {
-			$purchaseLinks[] = array(
-				'link' => $amazonUrl,
-				'linkText' => 'Buy from Amazon',
-				'image' => '/images/amazon.png',
-				'storeName' => 'Amazon', 
-			);
-		}
-			
-		$barnesAndNobleUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title);
-		$input = file_get_contents($barnesAndNobleUrl);
-		$regexp = "/Please try another search/i";
-		if(!preg_match($regexp, $input)) {
-			$purchaseLinks[] = array(
-				'link' => $barnesAndNobleUrl,
-				'linkText' => 'Buy from Barnes &amp; Noble',
-				'image' => '/images/barnes_and_noble.png',
-				'storeName' => 'Barnes and Noble', 
-			);
-		}
 		
+		$stores = Location::getBookStores();
+		foreach ($stores as $store) {
+			$url = $store->link . urlencode($title);
+			$input = file_get_contents($url);
+			$regexp = $store->resultRegEx;
+			if(!preg_match($regexp, $input)) {
+				$purchaseLinks[] = array(
+					'link' => $url,
+					'linkText' => $store->linkText,
+					'image' => $store->image,
+					'storeName' => $store->storeName,
+				);
+			}
+		}
 		return $purchaseLinks;
 	}
 

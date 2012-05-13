@@ -1004,22 +1004,23 @@ class DBMaintenance extends Admin {
 					"`storeName` VARCHAR(100) NOT NULL COMMENT 'The name of the book store', " .
 					"`link` VARCHAR(256) NOT NULL COMMENT 'The URL prefix for searching', " .
 					"`linkText` VARCHAR(100) NOT NULL COMMENT 'The link text', " .
-					"`image` VARCHAR(100) NOT NULL COMMENT 'The URL to the icon/image to display', " .
+					"`image` VARCHAR(256) NOT NULL COMMENT 'The URL to the icon/image to display', " .
+					"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
 			),
 		),
-		'library_book_store' => array(
-			'title' => 'Library book store association',
-			'description' => 'Create a table to store association between library and book stores.',
+		'nearby_book_store' => array(
+			'title' => 'Nearby book stores',
+			'description' => 'Create a table to store book stores near a location.',
 			'dependencies' => array(),
 			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS library_book_store(" .
+				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
 					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
-					"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
+					"`locationId` INT(11) NOT NULL COMMENT 'The id of the location', " .
 					"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
 					"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
-					"KEY ( `libraryId`, `storeId` ), " .
+					"KEY ( `locationId`, `storeId` ), " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
 			),

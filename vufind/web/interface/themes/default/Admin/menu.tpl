@@ -115,6 +115,7 @@
 		<li{if $action == "Locations"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/Locations">Locations</a></li>
 		<li{if $action == "ListWidgets"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/ListWidgets">List Widgets</a></li>
 		<li{if $action == "UserSuggestions"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></li>
+		<li{if $action == "BookStores"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/BookStores">Book Stores</a></li>
 		{if $ils == 'Millennium'}
 			<li{if $action == "CirculationStatuses"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></li>
 			<li{if $action == "NonHoldableLocations"} class="active"{/if} style="float: none;"><a href="{$path}/Admin/NonHoldableLocations">Non-Holdable Locations</a></li>
