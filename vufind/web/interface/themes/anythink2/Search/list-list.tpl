@@ -1,11 +1,13 @@
 <script type="text/javascript">
-$(document).ready(function() {literal} { {/literal}
+{literal}
+$(document).ready(function() { 
   doGetStatusSummaries();
   doGetRatings();
-  {if $user}
+  {/literal}{if $user}{literal}
   doGetSaveStatuses();
-  {/if}
-{literal} }); {/literal}
+  {/literal}{/if}{literal}
+});
+{/literal}
 </script>
 
 <form id="addForm" action="{$url}/MyResearch/HoldMultiple">
@@ -42,17 +44,14 @@ $(document).ready(function() {literal} { {/literal}
 
 {if $showStrands}
 {* Add tracking to strands based on the user search string.  Only track searches that have results. *}
-{literal}
 <script type="text/javascript">
-
+{literal}
 //This code can actually be used anytime to achieve an "Ajax" submission whenever called
 if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
-
 StrandsTrack.push({
    event:"searched",
    searchstring: "{/literal}{$lookfor|escape:"url"}{literal}"
 });
-
-</script>
 {/literal}
+</script>
 {/if}
