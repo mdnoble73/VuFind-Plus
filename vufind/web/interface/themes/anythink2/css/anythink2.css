@@ -165,6 +165,12 @@ body {
   margin: 66px auto 40px auto;
 }
 
+#header #search {
+  position: absolute;
+  right: 0;
+  top: 40px;
+}
+
 #search-input-wrapper {
   display: inline-block;
   font-weight: bold;
@@ -305,7 +311,6 @@ body.Search--Home #logo {
 
 #main-content {
   margin-left: 20px;
-  min-height: 800px;
   width: auto;
   display: block;
 }
@@ -345,6 +350,7 @@ body.Search--Home #logo {
   line-height: 1.5em;
   padding-left: 20px;
 }
+
 
 
 /**
