@@ -476,6 +476,67 @@ body.Search--Home {
   zoom: 1;
 }
 
+#results-actions-wrapper {
+  float: left;
+  width: 100%;
+}
+
+#results-header {
+  float: left;
+  width: 100%;
+  background-image: url(../images/gradient-white-gray.png);
+  background-repeat: repeat-x;
+  background-position: left bottom;
+  padding: 0 10px 20px 10px;
+  margin-bottom: 20px;
+}
+
+#results-header h1 {
+  font-size: 1.5em;
+  font-weight: normal;
+  margin-bottom: .867em;
+}
+
+#results-actions {
+  float: left;
+  margin-right: 1.333em;
+}
+
+#results-actions label {
+  color: #666;
+  text-transform: uppercase;
+  font-weight: normal;
+  display: inline-block;
+  margin-top: 3px;
+}
+
+#utility-links-results {
+  float: left;
+}
+
+#utility-links-results li {
+  margin: 0 10px;
+}
+
+#results-list {
+  float: left;
+  width: 100%;
+}
+
+.email {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/email.png);
+}
+
+.rss {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/feed.png);
+}
+
 /**
  * Utility classes.
  */

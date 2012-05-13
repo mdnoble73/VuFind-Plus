@@ -26,27 +26,29 @@
     {if $recordCount}
       <h1>{$recordStart} - {$recordEnd} of {$recordCount} {translate text='results'} {if $searchType == 'basic'} {translate text='for'} <strong>{$lookfor|escape:"html"}</strong>{/if}</h1>
     {/if}
-    <div id="results-actions">
-      <form action="/Search/Results?lookfor={$lookfor|escape:"url"}">
-        <label for="sort">{translate text='Sort by'}</label>
-        <select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
-        {foreach from=$sortList item=sortData key=sortLabel}
-          <option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
-        {/foreach}
-        </select>
-      </form>
-    </div>
-    <ul id="utility-links-results" class="inline left">
-      {if !empty($user)}
-        {if $savedSearch}
-        <li><a href="{$url}/MyResearch/SaveSearch?delete={$searchId}">{translate text='save_search_remove'}</a></li>
-          {else}
-        <li><a href="{$url}/MyResearch/SaveSearch?save={$searchId}">{translate text='save_search'}</a></li>
+    <div id="results-actions-wrapper">
+      <div id="results-actions">
+        <form action="/Search/Results?lookfor={$lookfor|escape:"url"}">
+          <label for="sort">{translate text='Sort by'}</label>
+          <select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
+          {foreach from=$sortList item=sortData key=sortLabel}
+            <option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
+          {/foreach}
+          </select>
+        </form>
+      </div>
+      <ul id="utility-links-results" class="inline left">
+        {if !empty($user)}
+          {if $savedSearch}
+          <li><a href="{$url}/MyResearch/SaveSearch?delete={$searchId}">{translate text='save_search_remove'}</a></li>
+            {else}
+          <li><a href="{$url}/MyResearch/SaveSearch?save={$searchId}">{translate text='save_search'}</a></li>
+          {/if}
         {/if}
-      {/if}
-      <li><a class="rss" href="{$rssLink|escape}" class="feed">{translate text='RSS feed'}</a></li>
-      <li><a class="email" href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this search'}</a></li>
-    </ul>
+        <li><a class="rss" href="{$rssLink|escape}" class="feed">{translate text='RSS feed'}</a></li>
+        <li><a class="email" href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this search'}</a></li>
+      </ul>
+    </div>
   </div>
 
   <div id="results-facets">
@@ -57,11 +59,13 @@
     {/if}
   </div>
 
+  <div id="results-list">
   {if $subpage}
     {include file=$subpage}
   {else}
     {$pageContent}
   {/if}
+  </div>
 
   {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
 </div>
