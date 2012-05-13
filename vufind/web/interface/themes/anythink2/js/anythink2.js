@@ -42,7 +42,8 @@
             }
           });
           // Append toggle link.
-          facet_group.append(toggle);
+          facet_group.find('ul').append(toggle);
+          toggle.wrap('<li class="toggle"/>');
         };
       });
 
