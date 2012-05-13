@@ -24,12 +24,12 @@ class NearbyBookStore extends DB_DataObject
 	}
 
 	function getObjectStructure(){		
-		$location = new Location();
-		$location->orderBy('displayName');
-		$location->find();
-		$locationList = array();
-		while ($location->fetch()){
-			$locationList[$location->locationId] = $location->displayName;
+		$library = new Library();
+		$library->orderBy('displayName');
+		$library->find();
+		$libraryList = array('-1'=>'Default');
+		while ($library->fetch()){
+			$libraryList[$library->libraryId] = $library->displayName;
 		}
 		
 		$store = new BookStore();
@@ -42,7 +42,7 @@ class NearbyBookStore extends DB_DataObject
 		
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),
-			'locationId' => array('property'=>'locationId', 'type'=>'enum', 'values'=>$locationList, 'label'=>'Location', 'description'=>'The id of a location'),
+			'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'The id of a library'),
 			'storeId' => array('property'=>'storeId', 'type'=>'enum', 'values'=>$storeList, 'label'=>'Book Store', 'description'=>'The id of a book store'),
 			'weight' => array('property'=>'weight', 'type'=>'text', 'label'=>'Weight', 'description'=>'The sort order of the book store'),
 		);
@@ -53,12 +53,12 @@ class NearbyBookStore extends DB_DataObject
 		return $structure;
 	}
 	
-	static function getBookStores($locationId) {		
+	static function getBookStores($libraryId) {		
 		$store = new BookStore();
 		$store->query(
 			"SELECT {$store->__table}.* FROM {$store->__table} " . 
 			"LEFT JOIN nearby_book_store ON ({$store->__table}.id=nearby_book_store.storeId) " . 
-			"WHERE locationId=$locationId"
+			"WHERE libraryId=$libraryId"
 		);
 		$store->find();
 		$list = array();

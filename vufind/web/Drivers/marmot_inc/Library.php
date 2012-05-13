@@ -4,6 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
+require_once 'Drivers/marmot_inc/NearbyBookStore.php';
 
 class Library extends DB_DataObject
 {
@@ -73,6 +74,10 @@ class Library extends DB_DataObject
 	}
 
 	function getObjectStructure(){
+		$nearbyBookStoreStructure = NearbyBookStore::getObjectStructure();
+		unset($nearbyBookStoreStructure['weight']);
+		unset($nearbyBookStoreStructure['libraryId']);
+		
 		$structure = array(
           'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
           'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
@@ -130,6 +135,18 @@ class Library extends DB_DataObject
           'enableMaterialsRequest' => array('property'=>'enableMaterialsRequest', 'type'=>'checkbox', 'label'=>'Enable Materials Request', 'description'=>'Enable Materials Request functionality so patrons can request items not in the catalog.'),
           'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.'),
           'holdDisclaimer' => array('property'=>'holdDisclaimer', 'type'=>'text', 'label'=>'Hold Disclaimer', 'description'=>'A disclaimer to display to patrons when they are placing a hold on items letting them know that their information may be available to other libraries.  Leave blank to not show a discalaimer.'),
+		  'nearbyBookStores' => array(
+				'property'=>'nearbyBookStores',
+				'type'=>'oneToMany',
+				'label'=>'NearbyBookStores',
+				'description'=>'A list of book stores to search',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'NearbyBookStore',
+				'structure' => $nearbyBookStoreStructure,
+				'sortable' => true,
+				'storeDb' => true
+			)		
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -212,5 +229,80 @@ class Library extends DB_DataObject
 		}
 	}
 
-
+	public function __get($name){
+		if ($name == "nearbyBookStores") {
+			if (!isset($this->nearbyBookStores)){
+				$this->nearbyBookStores = array();
+				$store = new NearbyBookStore();
+				$store->libraryId = $this->libraryId;
+				$store->orderBy('weight');
+				$store->find();
+				while($store->fetch()){
+					$this->nearbyBookStores[$store->id] = clone($store);
+				}
+			}
+			return $this->nearbyBookStores;
+		}
+	}
+	
+	public function __set($name, $value){
+		if ($name == "nearbyBookStores") {
+			$this->nearbyBookStores = $value;
+		}
+	}
+	
+	/**
+	 * Override the update functionality to save the hours
+	 *
+	 * @see DB/DB_DataObject::update()
+	 */
+	public function update(){
+		$ret = parent::update();
+		if ($ret === FALSE ){
+			return $ret;
+		}else{
+			$this->saveNearbyBookStores();
+		}
+	}
+	
+	/**
+	 * Override the update functionality to save the hours
+	 *
+	 * @see DB/DB_DataObject::insert()
+	 */
+	public function insert(){
+		$ret = parent::insert();
+		if ($ret === FALSE ){
+			return $ret;
+		}else{
+			$this->saveNearbyBookStores();
+		}
+	}
+	
+	public function saveNearByBookStores(){
+		if (isset ($this->nearbyBookStores)){
+			foreach ($this->nearbyBookStores as $store){
+				if (isset($store->deleteOnSave) && $store->deleteOnSave == true){
+					$store->delete();
+				}else{
+					if (isset($store->id) && is_numeric($store->id)){
+						$store->update();
+					}else{
+						$store->libraryId = $this->libraryId;
+						$store->insert();
+					}
+				}
+			}
+			unset($this->nearbyBookStores);
+		}
+	}
+	
+	static function getBookStores(){
+		$library = Library::getActiveLibrary();
+		if ($library) {
+			return NearbyBookStore::getBookStores($library->libraryId);
+		} else {
+			return NearbyBookStore::getBookStores(-1);
+		}
+	}
 }

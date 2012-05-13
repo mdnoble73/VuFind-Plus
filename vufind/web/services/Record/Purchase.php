@@ -114,7 +114,7 @@ class Purchase extends Action {
 		$title = str_replace("/", "", $title);
 		$purchaseLinks = array();
 		
-		$stores = Location::getBookStores();
+		$stores = Library::getBookStores();
 		foreach ($stores as $store) {
 			$url = $store->link . urlencode($title);
 			$input = file_get_contents($url);

@@ -1017,10 +1017,10 @@ class DBMaintenance extends Admin {
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
 					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
-					"`locationId` INT(11) NOT NULL COMMENT 'The id of the location', " .
+					"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
 					"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
 					"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
-					"KEY ( `locationId`, `storeId` ), " .
+					"KEY ( `libraryId`, `storeId` ), " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
 			),

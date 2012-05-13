@@ -4,7 +4,6 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'Drivers/marmot_inc/NearbyBookStore.php';
 
 class Location extends DB_DataObject
 {
@@ -62,10 +61,6 @@ class Location extends DB_DataObject
 			$locationLookupList[$location->locationId] = $location->displayName;
 			$locationList[$location->locationId] = clone $location;
 		}
-
-		$nearbyBookStoreStructure = NearbyBookStore::getObjectStructure();
-		unset($nearbyBookStoreStructure['weight']);
-		unset($nearbyBookStoreStructure['locationId']);
 		
 		$structure = array(
 		array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
@@ -91,18 +86,6 @@ class Location extends DB_DataObject
 		array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.'),
 		array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.'),
 		array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.'),
-		array(
-			'property'=>'nearbyBookStores',
-			'type'=>'oneToMany',
-			'label'=>'NearbyBookStores',
-			'description'=>'A list of book stores to search',
-			'keyThis' => 'locationId',
-			'keyOther' => 'locationId',
-			'subObjectType' => 'NearbyBookStore',
-			'structure' => $nearbyBookStoreStructure,
-			'sortable' => true,
-			'storeDb' => true
-		)
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -390,89 +373,5 @@ class Location extends DB_DataObject
 			}
 		}
 		return $facets;
-	}
-
-	public function __get($name){
-		if ($name == "nearbyBookStores") {
-			if (!isset($this->nearbyBookStores)){
-				$this->nearbyBookStores = array();
-				$store = new NearbyBookStore();
-				$store->locationId = $this->locationId;
-				$store->orderBy('weight');
-				$store->find();
-				while($store->fetch()){
-					$this->nearbyBookStores[$store->id] = clone($store);
-				}
-			}
-			return $this->nearbyBookStores;
-		}
-	}
-	
-	public function __set($name, $value){
-		if ($name == "nearbyBookStores") {
-			$this->nearbyBookStores = $value;
-		}
-	}
-	
-	/**
-	 * Override the update functionality to save the hours
-	 *
-	 * @see DB/DB_DataObject::update()
-	 */
-	public function update(){
-		$ret = parent::update();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
-			$this->saveNearbyBookStores();
-		}
-	}
-	
-	/**
-	 * Override the update functionality to save the hours
-	 *
-	 * @see DB/DB_DataObject::insert()
-	 */
-	public function insert(){
-		$ret = parent::insert();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
-			$this->saveNearbyBookStores();
-		}
-	}
-	
-	public function saveNearByBookStores(){
-		if (isset ($this->nearbyBookStores)){
-			foreach ($this->nearbyBookStores as $store){
-				if (isset($store->deleteOnSave) && $store->deleteOnSave == true){
-					$store->delete();
-				}else{
-					if (isset($store->id) && is_numeric($store->id)){
-						$store->update();
-					}else{
-						$store->locationId = $this->locationId;
-						$store->insert();
-					}
-				}
-			}
-			unset($this->nearbyBookStores);
-		}
-	}
-	
-	static function getBookStores(){
-		$searchLocation = Location::getSearchLocation();
-		if ($searchLocation) {
-			return NearbyBookStore::getBookStores($searchLocation->locationId);		
-		}
-		require_once 'Drivers/marmot_inc/BookStore.php';
-		$allStores = array();
-		$store = new BookStore();
-		$store->orderBy("storeName");
-		$store->find();
-		while ($store->fetch()) {
-			$allStores[] = clone $store;
-		}
-		return $allStores;
 	}
 }
