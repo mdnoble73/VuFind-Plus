@@ -21,33 +21,12 @@
   display: none;
 }
 
-
 #sidebar-wrapper{
-  border-right: 1px solid #5D8EAC;
-  display: inline-block;
-  padding-right: 20px;
-  vertical-align: top;
-  width: 200px;
-}
-
-.sidegroup {
-  border: 1px solid #949494;
-  margin: 0 0 20px 0;
-  -moz-border-radius: 12px;
-  border-radius: 12px;
-  padding-bottom: 10px;
-}
-.sidegroup h4 {
-  padding: .5em 0 .5em 0;
-  color: white;
-  font-weight: bold;
-  background-color: #e58e29;
-  -moz-border-radius-topleft: 11px;
-  border-top-left-radius: 11px;
-  -moz-border-radius-topright: 11px;
-  border-top-right-radius: 11px;
-  text-align: center;
-  margin-top: 0px;
+/*  border-right: 1px solid #5D8EAC;*/
+/*  display: inline-block;*/
+/*  padding-right: 20px;*/
+/*  vertical-align: top;*/
+/*  width: 200px;*/
 }
 
 #titleDetailsSidegroup h4{
@@ -95,10 +74,30 @@
  * Overrides and customization.
  */
 
+html, body {
+  height: auto;
+}
+
 h1, h2, h3, h4, h5, h6,
 p, ul, ol, dl, dt, dd, li {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2.5em;
+}
+
+h4 {
+  font-size: 2em;
+}
+
+h4, h5, h6 {
+  font-size: 1.5em;
 }
 
 p, ul, ol, dl, label {
@@ -310,9 +309,13 @@ body.Search--Home #logo {
 }
 
 #main-content {
-  margin-left: 20px;
+  margin-left: 240px;
   width: auto;
   display: block;
+}
+
+body.Search--Home {
+  margin-left: 0;
 }
 
 #sidebar-wrapper {
@@ -351,6 +354,25 @@ body.Search--Home #logo {
   padding-left: 20px;
 }
 
+
+.sidegroup {
+  border: 0;
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.sidegroup h4 {
+  padding: 0;
+  color: inherit;
+  font-weight: bold;
+  background-color: transparent;
+  -moz-border-radius-topleft: 0;
+  border-top-left-radius: 0;
+  -moz-border-radius-topright: 0;
+  border-top-right-radius: 0;
+  text-align: left;
+  margin-top: 0px;
+}
 
 
 /**
