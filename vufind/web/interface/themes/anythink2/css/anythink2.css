@@ -85,19 +85,23 @@ p, ul, ol, dl, dt, dd, li {
 }
 
 h1 {
-  font-size: 3em;
+  font-size: 2em;
+  line-height: 1.8em
 }
 
 h2 {
-  font-size: 2.5em;
+  font-size: 1.8em;
+  line-height: 2em;
 }
 
-h4 {
-  font-size: 2em;
+h3 {
+  font-size: 1.5em;
+  line-height: 2.4em;
 }
 
 h4, h5, h6 {
-  font-size: 1.5em;
+  font-size: 1.3em;
+  line-height: 1.286em;
 }
 
 p, ul, ol, dl, label {
@@ -112,6 +116,18 @@ input, select {
 
 label {
   min-width: 0;
+}
+
+li {
+  list-style-type: disc;
+}
+
+li li {
+  list-style-type: square;
+}
+
+li li {
+  list-style-type: circle;
 }
 
 .clearfix:after {
@@ -330,6 +346,13 @@ body.Search--Home {
   width:auto;
 }
 
+#sidebar h1, h2, h3, h4, h5, h6 {
+}
+
+.facet-group {
+  margin-bottom: 20px;
+}
+
 #column-outer-wrapper {
   float: left;
   width: 200px;
@@ -354,7 +377,6 @@ body.Search--Home {
   padding-left: 20px;
 }
 
-
 .sidegroup {
   border: 0;
   margin: 0;
@@ -363,7 +385,7 @@ body.Search--Home {
 
 .sidegroup h4 {
   padding: 0;
-  color: inherit;
+  color: #666;
   font-weight: bold;
   background-color: transparent;
   -moz-border-radius-topleft: 0;
@@ -374,6 +396,85 @@ body.Search--Home {
   margin-top: 0px;
 }
 
+.toggle {
+  list-style: none;
+}
+
+.facet-group {
+  margin-bottom: 20px;
+}
+
+.facet-group ul {
+  margin-bottom: 0;
+}
+
+.facet-toggle {
+  font-weight: bold;
+  margin-left: 1em;
+}
+
+.facet-group label {
+  display: inline-block;
+  margin-top: 3px;
+}
+
+.remove-facet {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/delete.png);
+}
+
+.active-facet {
+  /**
+   * @todo Refactor as sprite.
+   */
+  background-image: url(/images/silk/tick.png);
+}
+
+#active-filters-wrapper {
+  background-color: #FFB;
+  padding: .5em;
+  margin-bottom: 20px;
+}
+
+#active-filters {
+  list-style: none;
+  padding: 0;
+}
+
+#active-filters,
+#active-filters li {
+  list-style: none;
+}
+
+/**
+ * @todo Refactor as sprite.
+ */
+.rss, .email,
+.icon-book,
+.remove-facet,
+.active-facet,
+.loading,
+.rate-this {
+  display: inline-block;
+  padding-left: 1.667em;
+  background-repeat: no-repeat;
+  background-position: left middle;
+  line-height: 18px;
+}
+
+.keepFilters {
+  color: inherit;
+  display: block;
+  margin-top: 0;
+  padding-right: 0;
+  font-size: 1em;
+  font-weight: normal;
+  text-shadow: none;
+  vertical-align: top;
+  zoom: 1;
+}
 
 /**
  * Utility classes.
