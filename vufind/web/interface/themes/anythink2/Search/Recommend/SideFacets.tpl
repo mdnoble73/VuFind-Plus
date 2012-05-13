@@ -32,7 +32,7 @@
   {/if}
   {if $sideFacetSet && $recordCount > 0}
     {foreach from=$sideFacetSet item=cluster key=title}
-    <div id="facet-{$cluster.label|escape:'html'|replace:' ':'-'}" class="facet-group cf">
+    <div id="facet-{$cluster.label|escape:'html'|replace:' ':'-'}" class="facet-group clearfix">
       <h3 >{translate text=$cluster.label}</h3>
       {if $title == 'publishDate' || $title == 'birthYear' || $title == 'deathYear'}
           <form id='{$title}Filter' action='{$fullPath}'>
