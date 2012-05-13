@@ -49,7 +49,8 @@
       <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
       <script type="text/javascript" src="{$path}/js/overdrive.js"></script>
       {* Formalize *}
-      <script src="{$path}/interface/themes/anythink/js/jquery.formalize.min.js" type="text/javascript"></script>
+      <script src="{$path}/interface/themes/anythink2/js/jquery.formalize.min.js" type="text/javascript"></script>
+      <script src="{$path}/interface/themes/anythink2/js/anythink2.js" type="text/javascript"></script>
     {/if}
     {* Files that should not be combined *}
     {if $includeAutoLogoutCode == true}
