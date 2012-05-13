@@ -133,10 +133,6 @@
               <li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li>
             </ul>
           </div>
-          {if $showBreadcrumbs}
-            <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
-            {include file="$module/breadcrumbs.tpl"}
-          {/if}
           {if $useSolr || $useWorldcat || $useSummon}
             <ul>
               {if $useSolr}
@@ -160,6 +156,12 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
+                {if $showBreadcrumbs}
+                  <div id="breadcrumb">
+                    <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
+                    {include file="$module/breadcrumbs.tpl"}
+                  </div>
+                {/if}
               {include file="$module/$pageTemplate"}
             </div></div>
           </div>
