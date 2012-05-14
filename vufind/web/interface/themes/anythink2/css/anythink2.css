@@ -96,12 +96,14 @@ h1 {
 
 h2 {
   font-size: 1.8em;
-  line-height: 2em;
+  line-height: 1em;
+  margin-bottom: 1em;
 }
 
 h3 {
   font-size: 1.5em;
-  line-height: 2.4em;
+  line-height: 1.2em;
+  margin-bottom: .6em;
 }
 
 h4, h5, h6 {
@@ -560,7 +562,7 @@ body.Search--Home #main-content {
 .author,
 .format {
   display: inline-block;
-  margin-right: 10px;
+  margin-right: 20px;
 }
 
 .holdingsSummary {
@@ -574,6 +576,10 @@ body.Search--Home #main-content {
   text-align: left;
 }
 
+.highlight {
+  font-weight: bold;
+  background-color: #FFB;
+}
 
 /**
  * Utility classes.
