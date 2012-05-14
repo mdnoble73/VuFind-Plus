@@ -222,12 +222,12 @@ function redrawSaveStatus() {
 
     {if $linkToAmazon == 1 && $isbn}
     <div class="titledetails">
-      <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
+      <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text="View on Amazon"}</a>
     </div>
     {/if}
 
     {if $classicId}
-    <div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
+    <div id="classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
     {/if}
   </div> {* End sidebar *}
 
@@ -268,7 +268,7 @@ function redrawSaveStatus() {
       <div id="image-column">
       {* Display Book Cover *}
       {if $user->disableCoverArt != 1}
-      <div id = "recordcover">
+      <div id="recordcover">
       <div class="recordcoverWrapper">
 
           <a href="{$bookCoverUrl}">
@@ -535,7 +535,7 @@ function redrawSaveStatus() {
 
 
       <div id="reviewtab">
-        <div id = "staffReviewtab" >
+        <div id="staffReviewtab" >
         {include file="$module/view-staff-reviews.tpl"}
         </div>
 
@@ -546,7 +546,7 @@ function redrawSaveStatus() {
       </div>
 
       {if $showComments == 1}
-        <div id = "readertab" >
+        <div id="readertab" >
           <div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
           <div id="userreview{$shortId}" class="userreview">
             <span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
@@ -558,15 +558,15 @@ function redrawSaveStatus() {
         </div>
       {/if}
 
-      <div id = "citetab" >
+      <div id="citetab" >
         {include file="$module/cite.tpl"}
       </div>
 
-      <div id = "stafftab">
+      <div id="stafftab">
         {include file=$staffDetails}
       </div>
 
-      <div id = "holdingstab">
+      <div id="holdingstab">
     {if $internetLinks}
     <h3>{translate text="Internet"}</h3>
     {foreach from=$internetLinks item=internetLink}
