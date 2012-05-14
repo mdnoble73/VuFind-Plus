@@ -557,6 +557,10 @@ class OverDriveDriver {
 	
 	public function removeOverDriveItemFromWishlist($overDriveId, $user){
 		global $memcache;
+		
+		$logger = new Logger();
+		
+		
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -567,9 +571,11 @@ class OverDriveDriver {
 		
 		//Navigate to hold cancellation page
 		$wishlistCancelUrl = $overDriveInfo['baseLoginUrl'] . "?Action=AuthCheck&ForceLoginFlag=0&URL=BANGCart.dll%3FAction%3DWishListRemove%26ID%3D{$overDriveId}";
+		
 		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $wishlistCancelUrl);
 		$cancellationResult = curl_exec($overDriveInfo['ch']);
-		
+		$logger->log("wishlistCancelUrlID--->". $overDriveId, PEAR_LOG_INFO);
+		$logger->log("wishlistCancelUrl--->". $cancellationResult, PEAR_LOG_INFO);
 		if (!preg_match("/$overDriveId/", $cancellationResult)){
 			$cancelHoldResult['result'] = true;
 			$cancelHoldResult['message'] = 'The title was successfully removed from your wishlist.';
@@ -582,7 +588,6 @@ class OverDriveDriver {
 		}
 		
 		curl_close($overDriveInfo['ch']);
-		
 		return $cancelHoldResult;
 	}
 	
