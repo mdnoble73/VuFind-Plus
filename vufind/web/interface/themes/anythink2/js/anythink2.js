@@ -6,7 +6,7 @@
     // Get status summaries.
     // doGetStatusSummariesAnythink();
     // Setup descriptions
-    // doResultDescriptionsAnythink();
+    doResultDescriptionsAnythink();
 
     // Do facet collapse.
     var facet_groups = $('.facet-group');
@@ -64,78 +64,78 @@
 
 
   // Get a list of the records on the page.
-  // get_records_anythink = function() {
-  //   if (!anythink.settings.records) {
-  //     anythink.settings.records = new Array();
-  //     var records = $('.record');
-  //     if (records.length > 0) {
-  //       records.each(function() {
-  //         var type = $(this).attr('data-type');
-  //         var id = $(this).attr('data-summId');
-  //         anythink.settings.records.push({
-  //           id: id,
-  //           type: type});
-  //       });
-  //     };
-  //   };
-  //   return anythink.settings.records;
-  // }
+  get_records_anythink = function() {
+    if (!anythink.settings.records) {
+      anythink.settings.records = new Array();
+      var records = $('.record');
+      if (records.length > 0) {
+        records.each(function() {
+          var type = $(this).attr('data-type');
+          var id = $(this).attr('data-summId');
+          anythink.settings.records.push({
+            id: id,
+            type: type});
+        });
+      };
+    };
+    return anythink.settings.records;
+  }
 
-  // doResultDescriptionsAnythink = function() {
-  //   // Grab record IDs.
-  //   get_records_anythink();
-  //   if (anythink.settings.records.length > 0) {
-  //     for (var i=0; i < anythink.settings.records.length; i++) {
-  //       var item = anythink.settings.records[i];
-  //       var container = $('#description-' + item.id);
-  //       // Create link.
-  //       var link = $('<a class="read-description" href="#">Read description</a>');
-  //       link.bind('click', {item: item, container: container}, function(event) {
-  //         var id = event.data.item.id;
-  //         var container = event.data.container;
-  //         $(this).remove();
-  //         var loader = $('<em class="fine-print loading">Loading description...</em>');
-  //         loader.hide().appendTo(container).fadeIn('fast', 
-  //           function() {
-  //             var info = resultDescriptionAnythink(id, id);
-  //             container.empty();
-  //             var stuff = $('<div><div><strong>Description</strong>: ' + info.description + '</div>' +
-  //             '<div><strong>Length</strong>: ' + info.length + '</div>' +
-  //             '<div><strong>Publisher</strong>: ' + info.publisher + '</div></div>');
-  //             stuff.hide().appendTo(container).slideDown();
-  //           });
-  //         return false;
-  //       });
-  //       container.append(link);
-  //     };
-  //   };
-  // }
+  doResultDescriptionsAnythink = function() {
+    // Grab record IDs.
+    get_records_anythink();
+    if (anythink.settings.records.length > 0) {
+      for (var i=0; i < anythink.settings.records.length; i++) {
+        var item = anythink.settings.records[i];
+        var container = $('#description-' + item.id);
+        // Create link.
+        var link = $('<a class="read-description" href="#">Read description</a>');
+        link.bind('click', {item: item, container: container}, function(event) {
+          var id = event.data.item.id;
+          var container = event.data.container;
+          $(this).remove();
+          var loader = $('<em class="fine-print loading">Loading description...</em>');
+          loader.hide().appendTo(container).fadeIn('fast', 
+            function() {
+              var info = resultDescriptionAnythink(id, id);
+              container.empty();
+              var stuff = $('<div><div><strong>Description</strong>: ' + info.description + '</div>' +
+              '<div><strong>Length</strong>: ' + info.length + '</div>' +
+              '<div><strong>Publisher</strong>: ' + info.publisher + '</div></div>');
+              stuff.hide().appendTo(container).slideDown();
+            });
+          return false;
+        });
+        container.append(link);
+      };
+    };
+  }
 
-  // // Reimplement resultDescription().
-  // resultDescriptionAnythink = function(shortid, id, type) {
-  //   if (!type) {
-  //     var type = 'VuFind';
-  //   };
-  //   if (type != 'VuFind'){
-  //     var loadDescription = path + "/EcontentRecord/" + id + "/AJAX/?method=getDescription";
-  //   }
-  //   else {
-  //     var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
-  //   }
-  // 
-  //   var rawData = $.ajax(loadDescription,{
-  //     async: false
-  //   }).responseText;
-  //   var xmlDoc = $.parseXML(rawData);
-  //   var data = $(xmlDoc);
-  // 
-  //   return {
-  //     id: id,
-  //     description: data.find('description').text(),
-  //     length: data.find('length').text(),
-  //     publisher: data.find('publisher').text(),
-  //   };
-  // };
+  // Reimplement resultDescription().
+  resultDescriptionAnythink = function(shortid, id, type) {
+    if (!type) {
+      var type = 'VuFind';
+    };
+    if (type != 'VuFind'){
+      var loadDescription = path + "/EcontentRecord/" + id + "/AJAX/?method=getDescription";
+    }
+    else {
+      var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
+    }
+  
+    var rawData = $.ajax(loadDescription,{
+      async: false
+    }).responseText;
+    var xmlDoc = $.parseXML(rawData);
+    var data = $(xmlDoc);
+  
+    return {
+      id: id,
+      description: data.find('description').text(),
+      length: data.find('length').text(),
+      publisher: data.find('publisher').text(),
+    };
+  };
 
   // // Reimplement doGetRatings().
   // doGetRatingsAnythink = function() {

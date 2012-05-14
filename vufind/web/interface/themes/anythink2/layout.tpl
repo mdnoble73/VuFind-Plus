@@ -63,21 +63,21 @@
       {literal}
       (function($) {
         // General settings for this theme.
-        var Anythink = {settings: {}};
+        anythink = {settings: {}};
         // Hold message.
-        Anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
         // Renew message.
-        Anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
         $(document).ready(function(){
           // Show hold message if set.
-          if (Anythink.settings.hold_message != '') {
+          if (anythink.settings.hold_message != '') {
             lightbox();
-            $('#popupbox').html(Anythink.settings.hold_message);
+            $('#popupbox').html(anythink.settings.hold_message);
           };
           // Show renew message if set.
-          if (Anythink.settings.renew_message != '') {
+          if (anythink.settings.renew_message != '') {
             lightbox();
-            $('#popupbox').html(Anythink.settings.renew_message);
+            $('#popupbox').html(anythink.settings.renew_message);
           };
         });
       })(jQuery);

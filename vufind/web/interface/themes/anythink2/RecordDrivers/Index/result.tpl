@@ -1,4 +1,4 @@
-<div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList clearfix">
+<div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList clearfix record" data-summId="{$summId|escape}" data-type="VuFind">
   <div class="imageColumn">
     {if $user->disableCoverArt != 1}
       <div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none'></div>
@@ -92,12 +92,14 @@
         <span class="unknown">{translate text='Loading'}...</span>
       </div>
     </div>
+    <div id="description-{$summId|escape:'url'}" class="description"></div>
   </div>
   <script type="text/javascript">
     addRatingId('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
     addIdToStatusList('{$summId|escape}');
-    $(document).ready(function(){literal} { {/literal}
-      resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}');
-    {literal} }); {/literal}
+    // Reimplemented in anythink2.js
+    // $(document).ready(function(){literal} { {/literal}
+      // resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}');
+    // {literal} }); {/literal}
   </script>
 </div>
