@@ -2,16 +2,22 @@
 <script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
 {/if}
 <script type="text/javascript">
-{literal}$(document).ready(function(){{/literal}
-  GetHoldingsInfo('{$id|escape:"url"}');
+{literal}
+$(document).ready(function(){
+{/literal}
+  var id = {$id|escape:"url"}
+  var isbn10 = {$isbn10|escape:"url"}
+  var upc = {$upc|escape:"url"}
+  GetHoldingsInfo(id);
+
   {if $isbn || $upc}
-    GetEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}');
+    GetEnrichmentInfo(id, isbn10, upc);
   {/if}
   {if $isbn}
-    GetReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}');
+    GetReviewInfo(id, isbn);
   {/if}
   {if $enablePospectorIntegration == 1}
-    GetProspectorInfo('{$id|escape:"url"}');
+    GetProspectorInfo(id);
   {/if}
   {if $user}
     redrawSaveStatus();
@@ -20,11 +26,13 @@
   {if (isset($title)) }
     alert("{$title}");
   {/if}
-{literal}});{/literal}
+{literal}
+});
 
-function redrawSaveStatus() {literal}{{/literal}
-    getSaveStatus('{$id|escape:"javascript"}', 'saveLink');
-{literal}}{/literal}
+function redrawSaveStatus() {
+  getSaveStatus('{/literal}{$id|escape:"javascript"}{literal}', 'saveLink');
+}
+{/literal}
 </script>
 
 <div id="page-content" class="content">
@@ -406,8 +414,8 @@ function redrawSaveStatus() {literal}{{/literal}
         {include file=titleScroller.tpl}
 
       </div>
-      {literal}
       <script type="text/javascript">
+      {literal}
         var similarTitleScroller;
         var alsoViewedScroller;
 
@@ -439,8 +447,8 @@ function redrawSaveStatus() {literal}{{/literal}
             }
           });
         });
+        {/literal}
       </script>
-      {/literal}
     {elseif $showSimilarTitles}
       <div id="relatedTitleInfo" class="ui-tabs">
         <ul>
@@ -460,8 +468,8 @@ function redrawSaveStatus() {literal}{{/literal}
         {include file=titleScroller.tpl}
 
       </div>
-      {literal}
       <script type="text/javascript">
+      {literal}
         var similarTitleScroller;
         var alsoViewedScroller;
 
@@ -484,8 +492,8 @@ function redrawSaveStatus() {literal}{{/literal}
             }
           });
         });
+        {/literal}
       </script>
-      {/literal}
     {else}
       <div id="relatedTitleInfo" style="display:none">
 
@@ -577,26 +585,27 @@ function redrawSaveStatus() {literal}{{/literal}
       </div>
     </div> {* End of tabs*}
 
-    {literal}
     <script type="text/javascript">
+      {literal}
       $(function() {
         $("#moredetails-tabs").tabs();
       });
+      {/literal}
     </script>
-    {/literal}
 
   </div>
 
 </div>
 {if $showStrands}
-{* Strands Tracking *}{literal}
+{* Strands Tracking *}
 <!-- Event definition to be included in the body before the Strands js library -->
 <script type="text/javascript">
+{literal}
 if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
 StrandsTrack.push({
    event:"visited",
    item: "{/literal}{$id|escape}{literal}"
 });
-</script>
 {/literal}
+</script>
 {/if}
