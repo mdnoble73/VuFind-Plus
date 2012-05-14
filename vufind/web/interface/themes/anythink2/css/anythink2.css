@@ -547,6 +547,22 @@ body.Search--Home #main-content {
   margin-top: 3px;
 }
 
+#results-bottom {
+  width: 100%;
+  float: left;
+  text-align: center;
+}
+
+#pagination-bottom {
+  float: none;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.pagination {
+  font-size: 1.333em;
+}
+
 #utility-links-results {
   float: left;
 }
