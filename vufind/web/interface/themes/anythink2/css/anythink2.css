@@ -205,7 +205,7 @@ body {
 #type-label {
   color: #666;
   display: inline-block;
-  font-size: 1.8em;
+  font-size: 1.5em;
   font-weight: bold;
   margin-top: 3px;
   line-height: 1.444em;
@@ -226,7 +226,7 @@ body {
   border-bottom-right-radius: 0;
   display: block;
   float: left;
-  font-size: 1.8em;
+  font-size: 1.5em;
 }
 
 #submit-wrapper {
@@ -242,7 +242,7 @@ body {
   border-bottom-left-radius: 0;
   border-left: 0;
   display: block;
-  font-size: 1.8em;
+  font-size: 1.5em;
   float: left;
   height: 1.8em;
 }
@@ -364,7 +364,7 @@ body.Search--Home #main-content {
   text-shadow: #333 0 1px 0;
   text-transform: lowercase;
   margin: 0;
-  font-size: 1.6em;
+  font-size: 1.5em;
   line-height: 1.5em;
   padding-left: 20px;
 }
@@ -647,6 +647,14 @@ div.record {
   padding: 0;
 }
 
+.holdingsSummary {
+  margin-bottom: 10px;
+}
+
+.holdableCopiesSummary {
+  font-size: inherit;
+}
+
 /**
  * Book bag.
  */
@@ -677,6 +685,10 @@ div.record {
   top: 0;
   left: 50%;
   margin-left: -598px;
+}
+
+body.Search--Home #cart-wrapper {
+  display: none;
 }
 
 #cart-wrapper.cling {
@@ -782,6 +794,16 @@ div.record {
 .book-title-cart {
   display: inline-block;
   width: 70%;
+}
+
+#results-facets {
+  width: 100%;
+  float: left;
+  text-align: center;
+}
+
+#categoryValue {
+  text-align: inherit;
 }
 
 /**
