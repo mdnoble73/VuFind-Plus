@@ -33,7 +33,7 @@ class EmailPin extends Action{
 		global $interface;
 		global $configArray;
 		
-		if ($_REQUEST['submit']){
+		if (isset($_REQUEST['submit'])){
 			require_once 'Drivers/WCPL.php';
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 			$driver = $this->catalog->driver;

@@ -192,9 +192,9 @@ body {
 }
 
 #basicType {
-  font-size: 1.4em;
+  font-size: 1.333em;
   margin-top: 4px;
-  margin-right: .643em;
+  margin-right: 10px;
 }
 
 #type {
@@ -205,7 +205,7 @@ body {
 #type-label {
   color: #666;
   display: inline-block;
-  font-size: 1.8em;
+  font-size: 1.5em;
   font-weight: bold;
   margin-top: 3px;
   line-height: 1.444em;
@@ -226,7 +226,7 @@ body {
   border-bottom-right-radius: 0;
   display: block;
   float: left;
-  font-size: 1.8em;
+  font-size: 1.5em;
 }
 
 #submit-wrapper {
@@ -242,12 +242,14 @@ body {
   border-bottom-left-radius: 0;
   border-left: 0;
   display: block;
-  font-size: 1.8em;
+  font-size: 1.5em;
   float: left;
   height: 1.8em;
 }
 
 #shards {
+  float: left;
+  margin-top: 10px;
   padding-left: 0;
   text-align: inherit;
 }
@@ -364,7 +366,7 @@ body.Search--Home #main-content {
   text-shadow: #333 0 1px 0;
   text-transform: lowercase;
   margin: 0;
-  font-size: 1.6em;
+  font-size: 1.5em;
   line-height: 1.5em;
   padding-left: 20px;
 }
@@ -452,6 +454,7 @@ body.Search--Home #main-content {
 .rss, .email,
 .icon-book,
 .icon-dvd,
+.icon-delete,
 .remove-facet,
 .active-facet,
 .loading,
@@ -483,6 +486,10 @@ body.Search--Home #main-content {
 
 .icon-dvd {
   background-image: url(/images/silk/dvd.png);
+}
+
+.icon-delete {
+  background-image: url(/images/silk/delete.png);
 }
 
 .cart-icon {
@@ -642,6 +649,14 @@ div.record {
   padding: 0;
 }
 
+.holdingsSummary {
+  margin-bottom: 10px;
+}
+
+.holdableCopiesSummary {
+  font-size: inherit;
+}
+
 /**
  * Book bag.
  */
@@ -664,6 +679,27 @@ div.record {
   left: auto;
   bottom: auto;
   z-index: 2;
+}
+
+#cart-wrapper {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 50%;
+  margin-left: -598px;
+}
+
+body.Search--Home #cart-wrapper {
+  display: none;
+}
+
+#cart-wrapper.cling {
+  max-width: 1200px;
+  position: fixed;
+}
+
+#cart-wrapper.cling #book_bag {
+  right: 40px;
 }
 
 #book_bag #bag_open_button {
@@ -720,6 +756,57 @@ div.record {
   text-align: center;
 }
 
+#bag_summary_header:hover {
+  background-color: #FF9;
+  opacity: .8;
+}
+
+#bag-content {
+  padding: 0 20px;
+}
+
+#bag-content-header {
+  text-align: center;
+}
+
+#bag_links {
+  margin-bottom: .5em;
+}
+
+#book_bag #book_bag_canvas #bag_items {
+  color: #CAFF42;
+  height: 150px;
+  padding-bottom: 0;
+  overflow: auto;
+  text-align: left;
+  margin: 0;
+}
+
+#book_bag #book_bag_canvas #bag_items .bag_book_title {
+  font-size: inherit;
+  letter-spacing: inherit;
+  margin: .25em 0;
+  cursor: pointer;
+  margin-left: 0;
+  text-indent: 0;
+  width: auto;
+  float: none;
+}
+
+.book-title-cart {
+  display: inline-block;
+  width: 70%;
+}
+
+#results-facets {
+  width: 100%;
+  float: left;
+  text-align: center;
+}
+
+#categoryValue {
+  text-align: inherit;
+}
 
 /**
  * Utility classes.

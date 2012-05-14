@@ -160,7 +160,9 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
-                {include file="bookcart.tpl"}
+                <div id="cart-wrapper">
+                  {include file="bookcart.tpl"}
+                </div>
                 {if $showBreadcrumbs}
                   <div id="breadcrumb">
                     <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
