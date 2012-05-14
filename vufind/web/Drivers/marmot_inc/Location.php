@@ -106,7 +106,7 @@ class Location extends DB_DataObject
 				'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
-			)
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';

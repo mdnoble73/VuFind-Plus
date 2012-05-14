@@ -1035,6 +1035,37 @@ class DBMaintenance extends Admin {
 				") ENGINE=InnoDB",
 			),
 		),
+		'book_store' => array(
+			'title' => 'Book store table',
+			'description' => 'Create a table to store information about book stores.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS book_store(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the book store', " .
+					"`storeName` VARCHAR(100) NOT NULL COMMENT 'The name of the book store', " .
+					"`link` VARCHAR(256) NOT NULL COMMENT 'The URL prefix for searching', " .
+					"`linkText` VARCHAR(100) NOT NULL COMMENT 'The link text', " .
+					"`image` VARCHAR(256) NOT NULL COMMENT 'The URL to the icon/image to display', " .
+					"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB"
+			),
+		),
+		'nearby_book_store' => array(
+			'title' => 'Nearby book stores',
+			'description' => 'Create a table to store book stores near a location.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
+					"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
+					"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
+					"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
+					"KEY ( `libraryId`, `storeId` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB"
+			),
+		),
 		);
 	}
 	
