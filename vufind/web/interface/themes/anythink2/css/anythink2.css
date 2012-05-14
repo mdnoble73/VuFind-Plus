@@ -90,34 +90,29 @@ li .button:link {
 }
 
 h1 {
-  font-size: 2.2em;
+  font-size: 1.833em;
   line-height: 1.636em
 }
 
 h2 {
-  font-size: 2em;
+  font-size: 1.667em;
   line-height: 1em;
   margin-bottom: .5em;
 }
 
 h3 {
-  font-size: 1.5em;
+  font-size: 1.25em;
   line-height: 1.2em;
   margin-bottom: .6em;
 }
 
 h4, h5, h6 {
-  font-size: 1.3em;
+  font-size: 1.083em;
   line-height: 1.286em;
 }
 
-p, ul, ol, dl, label {
-  font-size: 1.2em;
-  line-height: 1.8em;
-}
-
 input, select {
-  font-size: 1.2em;
+  font-size: 1em;
   line-height: 1em;
 }
 
@@ -163,6 +158,8 @@ body {
   background-position: -70px -154px;
   margin: 0 auto;
   max-width: 1200px;
+  font-size: 1.2em;
+  line-height: 1.5em;
 }
 
 #inner {
@@ -213,7 +210,6 @@ body {
 }
 
 #type {
-  font-size: 1.2em;
   display: inline-block;
   margin-top: 2px;
 }
@@ -616,7 +612,6 @@ body.Search--Home #main-content {
 }
 
 .read-description {
-  font-size: 1.2em;
   display: block;
   line-height: 2em;
 }
