@@ -254,6 +254,7 @@ function _removeFromBag(book) {
     current_book = bookBag[j];
 
     if (current_book.id == book.id) {
+      $('.in-cart[data-summId="' + book.id +'"]').text('Add to cart +').removeClass('in-cart');
       bookBag.splice(j, 1);
     } else { j++; }
 
@@ -270,6 +271,7 @@ function removeFromBagById(bookid) {
     current_book = bookBag[j];
 
     if (current_book.id == bookid) {
+      $('.in-cart[data-summId="' + bookid +'"]').text('Add to cart +').removeClass('in-cart');
       bookBag.splice(j, 1);
     } else { j++; }
 
