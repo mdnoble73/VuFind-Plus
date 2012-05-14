@@ -153,8 +153,6 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 	
 	var loadMsg = $('#lightboxLoading').html();
 
-	$('#popupbox').innerHTML = '<img src="' + path + '/images/loading.gif" /><br />' + loadMsg;
-   
 	hideSelects('hidden');
 
 	// Find out how far down the screen the user has scrolled.
@@ -165,6 +163,11 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 
 	$('#lightbox').show();
 	$('#lightbox').css('height', documentHeight + 'px');
+	
+	$('#popupbox').html('<img src="' + path + '/images/loading.gif" /><br />' + loadMsg);
+	$('#popupbox').show();
+	$('#popupbox').css('top', '50%');
+	$('#popupbox').css('left', '50%');
 	
 	$.get(urlToLoad, function(data) {
 		$('#popupbox').html(data);

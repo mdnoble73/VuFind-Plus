@@ -55,12 +55,17 @@ class NearbyBookStore extends DB_DataObject
 	
 	static function getBookStores($libraryId) {		
 		$store = new BookStore();
-		$store->query(
-			"SELECT {$store->__table}.* FROM {$store->__table} " . 
-			"LEFT JOIN nearby_book_store ON ({$store->__table}.id=nearby_book_store.storeId) " . 
-			"WHERE libraryId=$libraryId"
-		);
-		$store->find();
+		if ($libraryId == -1){
+			$store->query(
+				"SELECT {$store->__table}.* FROM {$store->__table} "
+			);
+		}else{
+			$store->query(
+				"SELECT {$store->__table}.* FROM {$store->__table} " . 
+				"INNER JOIN nearby_book_store ON ({$store->__table}.id=nearby_book_store.storeId) " . 
+				"WHERE libraryId=$libraryId"
+			);
+		}
 		$list = array();
 		while ($store->fetch()){
 			$list[] = clone $store;
