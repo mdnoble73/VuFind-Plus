@@ -5,7 +5,7 @@
 			<th>Weight</th>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date')) }
 				<th>{$subProperty.label}</th>
 			{/if}
 		{/foreach}
@@ -23,16 +23,16 @@
 			</td>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date')) }
 				<td>
 					{assign var=subPropName value=$subProperty.property}
 					{assign var=subPropValue value=$subObject->$subPropName}
-					{if $subProperty.type=='text'}
-					<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" {if $subProperty.required == true}class='required'{/if}/>
+					{if $subProperty.type=='text' || $subProperty.type=='date'}
+					<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{/if}{if $subProperty.required == true} required{/if}"/>
 					{else}
 						<select name='{$propName}_{$subPropName}[{$subObject->id}]' id='{$propName}{$subPropName}_{$subObject->id}' {if $subProperty.required == true}class='required'{/if}>
 						{foreach from=$subProperty.values item=propertyName key=propertyValue}
-							<option value='{$subPropValue}' {if $subPropValue == $propertyValue}selected='selected'{/if}>{$propertyName}</option>
+							<option value='{$propertyValue}' {if $subPropValue == $propertyValue}selected='selected'{/if}>{$propertyName}</option>
 						{/foreach}
 						</select>
 					{/if}
@@ -57,10 +57,10 @@
 	<a href="#" onclick="addNew{$propName}();return false;"  class="button">Add New</a>
 </div>
 
-{if $property.sortable}{literal}
 <script type="text/javascript">
-	$(document).ready(function(){
-		$('#{/literal}{$propName}{literal} tbody').sortable({
+	{literal}$(document).ready(function(){{/literal}
+	{if $property.sortable}
+		{literal}$('#{/literal}{$propName}{literal} tbody').sortable({
 			update: function(event, ui){
 				$.each($(this).sortable('toArray'), function(index, value){
 					var inputId = '#{/literal}{$propName}Weight_' + value.substr({$propName|@strlen}); {literal}
@@ -68,9 +68,12 @@
 				});
 			}
 		});
-	});
-	var numAdditional{/literal}{$property.label}{literal} = 0;
-	function addNew{/literal}{$propName}{literal}(){
+		{/literal}
+	{/if}
+	{literal}$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});{/literal}
+	{literal}});{/literal}
+	var numAdditional{$property.label} = 0;
+	function addNew{$propName}{literal}(){
 		numAdditional{/literal}{$property.label}{literal} = numAdditional{/literal}{$property.label}{literal} -1;
 		var newRow = "<tr>";
 		{/literal}
@@ -81,12 +84,12 @@
 			newRow += "</td>";
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date')) }
 				newRow += "<td>";
 				{assign var=subPropName value=$subProperty.property}
 				{assign var=subPropValue value=$subObject->$subPropName}
-				{if $subProperty.type=='text'}
-					newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' value='' {if $subProperty.required == true}class='required'{/if}/>";
+				{if $subProperty.type=='text' || $subProperty.type=='date'}
+					newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' value='' class='{if $subProperty.type=="date"}datepicker{/if}{if $subProperty.required == true} required{/if}'/>";
 				{else}
 					newRow += "<select name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' id='{$propName}{$subPropName}_" + numAdditional{$property.label} +"' {if $subProperty.required == true}class='required'{/if}>";
 					{foreach from=$subProperty.values item=propertyName key=propertyValue}
@@ -100,6 +103,7 @@
 		newRow += "</tr>";
 		{literal}
 		$('#{/literal}{$propName}{literal} tr:last').after(newRow);
+		$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});
 	}
-</script>{/literal}
-{/if}
+	{/literal}
+</script>

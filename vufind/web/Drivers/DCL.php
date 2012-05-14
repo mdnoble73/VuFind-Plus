@@ -434,18 +434,48 @@ class DCL extends Horizon {
 	}
 
 	public function getLibraryHours($locationId, $timeToCheck){
-		if (false && $this->useDb){
-			//TBD: Could use the database to get this, but it looks like the tables are not completely up to date.
-
+		if ($this->useDb){
 			//get the code for the location
 			$location = Location::staticGet('locationId', $locationId);
-
-			//query the database to determine when the library is open today
-			$query = "SELECT * FROM calendar_week where location = '{$location->code}' AND week_day = '{$dayOfWeek}'";
-			$calendarRs = $this->_query($query);
-			$calendarData = $this->_fetch_assoc($calendarRs);
-			//$libraryHours =
-
+						
+			// get all the holidays
+			require_once 'Drivers/marmot_inc/Holiday.php';
+			$holidays = array();
+			$holiday = new Holiday();
+			$holiday->find();
+			while ($holiday->fetch()) {
+				$holidays[] = $holiday['date'];
+			}
+			
+			// format $timeToCheck according to MySQL default date format
+			$todayFormatted = date('yyyy-mm-dd', $timeToCheck);
+			
+			// check to see if today is a holiday, if it is then return 'closed'
+			if (in_array($todayFormatted, $holidays)) {
+				return array('closed' => true);
+			}
+			
+			// get the day of the week (0=Sunday to 6=Saturday)
+			$dayOfWeekToday = strftime ('%w', $timeToCheck);
+			
+			// find library hours for the above day of the week
+			require_once 'Drivers/marmot_inc/LocationHours.php';
+			$hours = new LocationHours();
+			$hours->whereAdd('locationId=' . $location->locationId);
+			$hours->whereAdd('day=' . $dayOfWeekToday);
+			$hours->find();
+			if ($hours->N == 1) {
+				$hours->fetch();
+				return array(
+					'open' => ltrim($hours->open, '0'),
+					'close' => ltrim($hours->close, '0'),
+					'openFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->open))),
+					'closeFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
+				);
+			}
+			
+			// no hours found
+			return null;	
 		}else{
 			$holidays = array(
         '01/01/2011',
@@ -504,7 +534,6 @@ class DCL extends Horizon {
 			return $selectedHours;
 		}
 	}
-	
 
 }
 ?>
