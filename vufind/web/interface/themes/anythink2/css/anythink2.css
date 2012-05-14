@@ -9,31 +9,6 @@
   display: none;
 }
 
-#sidebar-wrapper{
-/*  border-right: 1px solid #5D8EAC;*/
-/*  display: inline-block;*/
-/*  padding-right: 20px;*/
-/*  vertical-align: top;*/
-/*  width: 200px;*/
-}
-
-#titleDetailsSidegroup h4{
-  background-color: #E58E29;
-}
-
-#tagsSidegroup h4{
-  background-color: #011751;
-}
-#similarTitlesSidegroup h4{
-  background-color: #011751;
-}
-#similarAuthorsSidegroup h4{
-  background-color: #011751;
-}
-#otherEditionsSidegroup h4{
-  background-color: #011751;
-}
-
 #materialsRequestPrefilterBlock{
   text-align: center;
   margin-top: 20px;
@@ -64,6 +39,7 @@
 
 html, body {
   height: auto;
+  background-color: transparent;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -84,7 +60,7 @@ h1 {
 
 h2 {
   font-size: 1.667em;
-  line-height: 1em;
+  line-height: 1.2em;
   margin-bottom: .5em;
 }
 
@@ -334,10 +310,11 @@ body.Search--Home #main-content {
 }
 
 #sidebar {
+  display: block;
   padding: 10px;
   background-color: #E2F5F5;
   border: none;
-  width:auto;
+  width: auto;
 }
 
 #sidebar h1, h2, h3, h4, h5, h6 {
@@ -604,15 +581,26 @@ body.Search--Home #main-content {
   width: 110px;
 }
 
+.result {
+  border-bottom: 0;
+  padding: 20px 0;
+  background-color: #FFF;
+  background-image: url(http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif);
+  background-position: bottom left;
+  background-repeat: repeat-x;
+}
+
+.result {
+  border-bottom: 0;
+  padding: 20px 0;
+  background-color: #FFF;
+}
+
 .resultDetails {
   display: block;
   width: auto;
   margin-left: 120px;
   margin-right: 145px;
-}
-
-.details {
-  margin-bottom: 10px;
 }
 
 .fine-print {
@@ -667,6 +655,7 @@ div.record {
 
 .holdingsSummary {
   margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .holdableCopiesSummary {

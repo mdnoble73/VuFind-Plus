@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html lang="{$userLang}">{strip}
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
@@ -118,7 +118,7 @@
             </a><li>
             </ul>
           </div>
-          {if $action != 'Home' && $pageTemplate != 'advanced.tpl'}
+          {if !($module == 'Search' && $action == 'Home') && $pageTemplate != 'advanced.tpl'}
             {if $module=="Summon"}
               {include file="Summon/searchbox.tpl"}
             {elseif $module=="WorldCat"}
