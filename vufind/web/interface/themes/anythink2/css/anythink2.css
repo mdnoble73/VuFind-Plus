@@ -464,6 +464,7 @@ body.Search--Home #main-content {
  */
 .rss, .email,
 .icon-book,
+.icon-dvd,
 .remove-facet,
 .active-facet,
 .loading,
@@ -546,6 +547,20 @@ body.Search--Home #main-content {
    * @todo Refactor as sprite.
    */
   background-image: url(/images/silk/feed.png);
+}
+
+.icon-book {
+  background-image: url(/images/silk/book.png);
+}
+
+.icon-dvd {
+  background-image: url(/images/silk/dvd.png);
+}
+
+.author,
+.format {
+  display: inline-block;
+  margin-right: 10px;
 }
 
 .holdingsSummary {

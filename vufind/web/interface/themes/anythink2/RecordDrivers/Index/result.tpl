@@ -19,15 +19,28 @@
     {/if}
   </div>
   <div>
-    {if $summAuthor}
-      <p>{translate text='by'}
-      {if is_array($summAuthor)}
-        {foreach from=$summAuthor item=author}
-          <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
-        {/foreach}
-      {else}
-        <a href="{$url}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
-      {/if}
+    <p>
+    {if !empty($summFormats)}
+      <span class="format">
+        {if is_array($summFormats)}
+          {foreach from=$summFormats item=format}
+            <span class="icon-{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+          {/foreach}
+        {else}
+          <span class="icon-{$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$summFormats}</span>
+        {/if}
+      </span>
+    {/if}
+    {if !empty($summAuthor)}
+      <span class="author">
+        {if is_array($summAuthor)}
+          {foreach from=$summAuthor item=author}
+            <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+          {/foreach}
+        {else}
+          <a href="{$url}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+        {/if}
+      </span>
     {/if}
     {if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}</p>
   </div>
@@ -35,13 +48,6 @@
     <p>{if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
     {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}</p>
   </div>
-  {if is_array($summFormats)}
-    {foreach from=$summFormats item=format}
-      <span class="iconlabel">{translate text=$format}</span>&nbsp;
-    {/foreach}
-  {else}
-    <span class="iconlabel">{translate text=$summFormats}</span>
-  {/if}
   <div id="holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">
     <div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
       <span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
