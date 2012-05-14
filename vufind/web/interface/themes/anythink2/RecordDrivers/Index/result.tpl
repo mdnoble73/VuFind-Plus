@@ -2,9 +2,9 @@
 <div class="selectTitle">
   <input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}', this);"{/if} />&nbsp;
 </div>
-        
-<div class="imageColumn"> 
-    {if $user->disableCoverArt != 1}  
+
+<div class="imageColumn">
+    {if $user->disableCoverArt != 1}
     <div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none'></div>
     <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
     <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
@@ -19,8 +19,8 @@
 <div class="resultDetails">
   <div class="resultItemLine1">
   {if $summScore}({$summScore}) {/if}
-	<a href="{$url}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
-	{if $summTitleStatement}
+  <a href="{$url}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+  {if $summTitleStatement}
     <div class="searchResultSectionInfo">
       {$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
     </div>
@@ -38,10 +38,10 @@
         <a href="{$url}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
       {/if}
     {/if}
- 
+
     {if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}
   </div>
-  
+
   <div class="resultItemLine3">
     {if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
     {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
@@ -63,20 +63,20 @@
 
 <div id ="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultActions">
   <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
-	  <div class="statVal">
-	    <span class="ui-rater">
-	      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-	      (<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
-	    </span>
-	  </div>
+    <div class="statVal">
+      <span class="ui-rater">
+        <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
+        (<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
+      </span>
+    </div>
     <div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
       {if $user}
-      	<div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
-    		<script type="text/javascript">
-    		  getSaveStatuses('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
-    		</script>
+        <div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
+        <script type="text/javascript">
+          getSaveStatuses('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
+        </script>
       {/if}
-      {if $showFavorites == 1} 
+      {if $showFavorites == 1}
         <a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
       {/if}
     </div>
@@ -91,7 +91,7 @@
        {literal} } {/literal}
     );
   </script>
-    
+
 </div>
 
 
@@ -99,9 +99,9 @@
   addRatingId('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
   addIdToStatusList('{$summId|escape}');
   $(document).ready(function(){literal} { {/literal}
-  	resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}');
+    resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}');
   {literal} }); {/literal}
-  
+
 </script>
 
 </div>
