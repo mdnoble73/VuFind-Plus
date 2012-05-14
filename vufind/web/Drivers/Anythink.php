@@ -27,23 +27,6 @@ class Anythink extends Horizon {
 		parent::__construct();
 	}
 	
-	public function getStatusSummary($id, $record = null, $mysip = null){
-		//Get the word think location to substitute the word think location for the shelved at location
-		$statusSummary = parent::getStatusSummary($id, $record, $mysip);
-		if ($record == null){
-			$record = MarcLoader::loadMarcRecordByILSId($id);
-		}
-		$wordThinkField = $record->getFields('690', false);
-		if ($wordThinkField != null){
-			$wordThinkData = array();
-			foreach ($wordThinkField as $field){
-				$wordThinkData[] = $field->getSubfield('a')->getData();
-			}
-			$statusSummary['callnumber'] = implode(", ", $wordThinkData);
-		}
-		return $statusSummary;
-	}
-	
 	function translateFineMessageType($code){
 		switch ($code){
 			case "abs":       return "Automatic Bill Sent";
