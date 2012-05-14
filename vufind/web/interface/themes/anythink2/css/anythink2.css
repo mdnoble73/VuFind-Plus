@@ -90,14 +90,14 @@ li .button:link {
 }
 
 h1 {
-  font-size: 2em;
-  line-height: 1.8em
+  font-size: 2.2em;
+  line-height: 1.636em
 }
 
 h2 {
-  font-size: 1.8em;
+  font-size: 2em;
   line-height: 1em;
-  margin: .5em 0;
+  margin-bottom: .5em;
 }
 
 h3 {
@@ -591,6 +591,38 @@ body.Search--Home #main-content {
   width: auto;
   margin-left: 120px;
   margin-right: 145px;
+}
+
+.details {
+  margin-bottom: 10px;
+}
+
+.fine-print {
+  color: #666;
+  font-size: .917em;
+}
+
+.availableAtList {
+  font-weight: bold;
+  color: #AD1D39;
+}
+
+.listed {
+  color: #AD1D39;
+}
+
+.available {
+  color: #629900;
+}
+
+.read-description {
+  font-size: 1.2em;
+  display: block;
+  line-height: 2em;
+}
+
+.read-description:hover {
+  background-color: #FFB;
 }
 
 .resultActions {

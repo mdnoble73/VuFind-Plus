@@ -83,10 +83,12 @@
       {/if}
       {if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}</p>
     </div>
-    <div>
-      <p>{if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
-      {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}</p>
-    </div>
+    {if !empty($summSnippetCaption) || !empty($summSnippet)}
+      <div class="details fine-print">
+        <p>{if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
+        {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}</p>
+      </div>
+    {/if}
     <div id="holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">
       <div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
         <span class="unknown">{translate text='Loading'}...</span>
