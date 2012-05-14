@@ -465,46 +465,89 @@ class Location extends DB_DataObject
 	}
 	
 	public static function getLibraryHours($locationId, $timeToCheck){
-		// get all the holidays
-		require_once 'Drivers/marmot_inc/Holiday.php';
-		$holidays = array();
-		$holiday = new Holiday();
-		$holiday->date = date('yyyy-mm-dd', $timeToCheck);
-		if ($holiday->find(true)){
-			return array(
-				'closed' => true,
-				'closureReason' => $holiday->name
-			);
+		$location = new Location();
+		$location->locationId = $locationId;
+		if ($location->find(true)){
+			// format $timeToCheck according to MySQL default date format
+			$todayFormatted = date('Y-m-d', $timeToCheck);
+			
+			// check to see if today is a holiday
+			require_once 'Drivers/marmot_inc/Holiday.php';
+			$holidays = array();
+			$holiday = new Holiday();
+			$holiday->date = $todayFormatted;
+			$holiday->libraryId = $location->libraryId;
+			if ($holiday->find(true)){
+				return array(
+					'closed' => true,
+					'closureReason' => $holiday->name
+				);
+			}
+			
+			// get the day of the week (0=Sunday to 6=Saturday)
+			$dayOfWeekToday = strftime ('%w', $timeToCheck);
+	
+			// find library hours for the above day of the week
+			require_once 'Drivers/marmot_inc/LocationHours.php';
+			$hours = new LocationHours();
+			$hours->locationId = $locationId;
+			$hours->day = $dayOfWeekToday;
+			if ($hours->find(true)){
+				$hours->fetch();
+				return array(
+					'open' => ltrim($hours->open, '0'),
+					'close' => ltrim($hours->close, '0'),
+					'closed' => $hours->closed ? true : false,
+					'openFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->open))),
+					'closeFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
+				);
+			}
 		}
-
-		// format $timeToCheck according to MySQL default date format
-		$todayFormatted = date('yyyy-mm-dd', $timeToCheck);
-
-		// check to see if today is a holiday, if it is then return 'closed'
-		if (in_array($todayFormatted, $holidays)) {
-			return array('closed' => true);
-		}
-
-		// get the day of the week (0=Sunday to 6=Saturday)
-		$dayOfWeekToday = strftime ('%w', $timeToCheck);
-
-		// find library hours for the above day of the week
-		require_once 'Drivers/marmot_inc/LocationHours.php';
-		$hours = new LocationHours();
-		$hours->locationId = $locationId;
-		$hours->day = $dayOfWeekToday;
-		if ($hours->find(true)){
-			$hours->fetch();
-			return array(
-				'open' => ltrim($hours->open, '0'),
-				'close' => ltrim($hours->close, '0'),
-				'closed' => $hours->closed ? true : false,
-				'openFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->open))),
-				'closeFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
-			);
-		}
+		
 
 		// no hours found
 		return null;
+	}
+	
+	public static function getLibraryHoursMessage($locationId){
+		$today = time();
+		$todaysLibraryHours = Location::getLibraryHours($locationId, $today);
+		if (isset($todaysLibraryHours) && is_array($todaysLibraryHours)){
+			if (isset($todaysLibraryHours['closed']) && ($todaysLibraryHours['closed'] == true || $todaysLibraryHours['closed'] == 1)){
+				if (isset($todaysLibraryHours['closureReason'])){
+					$closureReason = $todaysLibraryHours['closureReason'];
+				}
+				//Library is closed now
+				$nextDay = time() + (24 * 60 * 60);
+				$nextDayHours = Location::getLibraryHours($locationId,  $nextDay);
+				while (isset($nextDayHours['closed']) && $nextDayHours['closed'] == true){
+					$nextDay += (24 * 60 * 60);
+					$nextDayHours = Location::getLibraryHours($locationId,  $nextDay);
+				}
+	
+				$nextDayOfWeek = strftime ('%a', $nextDay);
+				if (isset($closureReason)){
+					$libraryHoursMessage = "The library is closed today for $closureReason. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+				}else{
+					$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+				}
+			}else{
+				//Library is open
+				$currentHour = strftime ('%H', $today);
+				$openHour = strftime ('%H', strtotime($todaysLibraryHours['open']));
+				$closeHour = strftime ('%H', strtotime($todaysLibraryHours['close']));
+				if ($currentHour < $openHour){
+					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+				}else if ($currentHour > $closeHour){
+					$tomorrowsLibraryHours = Location::getLibraryHours($locationId,  time() + (24 * 60 * 60));
+					$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+				}else{
+					$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+				}
+			}
+		}else{
+			$libraryHoursMessage = null;
+		}
+		return $libraryHoursMessage;
 	}
 }
