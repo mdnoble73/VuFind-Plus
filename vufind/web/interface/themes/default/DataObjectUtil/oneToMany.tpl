@@ -5,7 +5,7 @@
 			<th>Weight</th>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum', 'date')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox')) }
 				<th>{$subProperty.label}</th>
 			{/if}
 		{/foreach}
@@ -23,12 +23,14 @@
 			</td>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum', 'date')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox')) }
 				<td>
 					{assign var=subPropName value=$subProperty.property}
 					{assign var=subPropValue value=$subObject->$subPropName}
 					{if $subProperty.type=='text' || $subProperty.type=='date'}
-					<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{/if}{if $subProperty.required == true} required{/if}"/>
+						<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{/if}{if $subProperty.required == true} required{/if}"/>
+					{elseif $subProperty.type=='checkbox'}
+						<input type='checkbox' name='{$propName}_{$subPropName}[{$subObject->id}]' {if $subPropValue == 1}checked='checked'{/if}/>
 					{else}
 						<select name='{$propName}_{$subPropName}[{$subObject->id}]' id='{$propName}{$subPropName}_{$subObject->id}' {if $subProperty.required == true}class='required'{/if}>
 						{foreach from=$subProperty.values item=propertyName key=propertyValue}
@@ -84,12 +86,14 @@
 			newRow += "</td>";
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum', 'date')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox')) }
 				newRow += "<td>";
 				{assign var=subPropName value=$subProperty.property}
 				{assign var=subPropValue value=$subObject->$subPropName}
 				{if $subProperty.type=='text' || $subProperty.type=='date'}
 					newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' value='' class='{if $subProperty.type=="date"}datepicker{/if}{if $subProperty.required == true} required{/if}'/>";
+				{elseif $subProperty.type=='checkbox'}
+					newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' />";
 				{else}
 					newRow += "<select name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' id='{$propName}{$subPropName}_" + numAdditional{$property.label} +"' {if $subProperty.required == true}class='required'{/if}>";
 					{foreach from=$subProperty.values item=propertyName key=propertyValue}

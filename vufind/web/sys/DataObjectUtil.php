@@ -333,8 +333,11 @@ class DataObjectUtil
 					}else{
 						//Update properties of each associated object
 						foreach ($subStructure as $subProperty){
+							$requestKey = $propertyName . '_' . $subProperty['property'];
 							if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
-								$subObject->$subProperty['property'] = $_REQUEST[$propertyName . '_' . $subProperty['property']][$id];
+								$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
+							}elseif (in_array($subProperty['type'], array('checkbox') )){
+								$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
 							}
 						}
 					}

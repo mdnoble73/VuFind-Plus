@@ -1012,6 +1012,7 @@ class DBMaintenance extends Admin {
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
 					"`locationId` INT NOT NULL COMMENT 'The location id', " .
 					"`day` INT NOT NULL COMMENT 'Day of the week 0 to 7 (Sun to Monday)', " .
+					"`closed` TINYINT NOT NULL DEFAULT '0' COMMENT 'Whether or not the library is closed on this day', ".
 					"`open` varchar(10) NOT NULL COMMENT 'Open hour (24hr format) HH:MM', " . 
 					"`close` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
 					"PRIMARY KEY ( `id` ), " .

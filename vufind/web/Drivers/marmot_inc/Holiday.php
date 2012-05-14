@@ -9,6 +9,7 @@ class Holiday extends DB_DataObject
 {
 	public $__table = 'holiday';   // table name
 	public $id;                    // int(11)  not_null primary_key auto_increment
+	public $libraryId;             // int(11)
 	public $date;                  // date
 	public $name;                  // varchar(100)
 	
