@@ -5,16 +5,16 @@
 {literal}
 $(document).ready(function(){
 {/literal}
-  var id = {$id|escape:"url"}
-  var isbn10 = {$isbn10|escape:"url"}
-  var upc = {$upc|escape:"url"}
+  var id = {$id|escape:"url"};
+  var isbn10 = {$isbn10|escape:"url"};
+  var upc = {$upc|escape:"url"};
   GetHoldingsInfo(id);
 
   {if $isbn || $upc}
     GetEnrichmentInfo(id, isbn10, upc);
   {/if}
   {if $isbn}
-    GetReviewInfo(id, isbn);
+    GetReviewInfo(id, isbn10);
   {/if}
   {if $enablePospectorIntegration == 1}
     GetProspectorInfo(id);
