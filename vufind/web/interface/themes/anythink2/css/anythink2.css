@@ -368,7 +368,9 @@ body.Search--Home #main-content {
   -moz-border-radius-topright: 0;
   border-top-right-radius: 0;
   text-align: left;
-  margin-top: 0px;
+  line-height: 1.125em;
+  margin-top: .625em;
+  margin-bottom: .625em;
 }
 
 .toggle {
@@ -581,6 +583,10 @@ body.Search--Home #main-content {
   text-align: left;
 }
 
+.holdingsTable {
+  width: 100%;
+}
+
 .highlight {
   font-weight: bold;
   background-color: #FFB;
@@ -647,7 +653,8 @@ body.Search--Home #main-content {
   width: 125px;
 }
 
-.actions-first {
+.actions-first,
+.actions-second {
   margin-bottom: 20px;
 }
 
@@ -658,6 +665,12 @@ body.Search--Home #main-content {
 
 .requestThisLink a:link {
   font-size: 1.167em;
+  margin: 10px 0;
+}
+
+#sidebar .requestThisLink a:link {
+  font-size: 1.333em;
+  margin: 10px 0;
 }
 
 div.record {
@@ -863,9 +876,32 @@ body.Search--Home #cart-wrapper {
   width: auto;
 }
 
+#cover {
+  position: relative;
+}
+
 #tools-column {
   width: 180px;
   float: right;
+}
+
+ul.menu {
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  display: none;
+  margin-top: 0;
+  height: auto;
+  position: static;
+}
+
+ul.menu li {
+  border-bottom: 0;
+  padding: 0;
+  clear: none;
+  width: auto;
+  text-align: inherit;
+  background: transparent;
 }
 
 #record-details-column {
