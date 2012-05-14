@@ -867,9 +867,32 @@ body.Search--Home #cart-wrapper {
   width: auto;
 }
 
+#cover {
+  position: relative;
+}
+
 #tools-column {
   width: 180px;
   float: right;
+}
+
+ul.menu {
+  border-right: 0;
+  border-left: 0;
+  background: transparent;
+  display: none;
+  margin-top: 0;
+  height: auto;
+  position: static;
+}
+
+ul.menu li {
+  border-bottom: 0;
+  padding: 0;
+  clear: none;
+  width: auto;
+  text-align: inherit;
+  background: transparent;
 }
 
 #record-details-column {
