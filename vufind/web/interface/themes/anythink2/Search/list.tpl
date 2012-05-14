@@ -40,13 +40,13 @@
       <ul id="utility-links-results" class="inline left">
         {if !empty($user)}
           {if $savedSearch}
-          <li><a href="{$url}/MyResearch/SaveSearch?delete={$searchId}">{translate text='save_search_remove'}</a></li>
+          <li><a class="button" href="{$url}/MyResearch/SaveSearch?delete={$searchId}">{translate text='save_search_remove'} -</a></li>
             {else}
-          <li><a href="{$url}/MyResearch/SaveSearch?save={$searchId}">{translate text='save_search'}</a></li>
+          <li><a class="button" href="{$url}/MyResearch/SaveSearch?save={$searchId}">{translate text='save_search'} +</a></li>
           {/if}
         {/if}
+        <li><a class="email" href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this'}</a></li>
         <li><a class="rss" href="{$rssLink|escape}" class="feed">{translate text='RSS feed'}</a></li>
-        <li><a class="email" href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this search'}</a></li>
       </ul>
     </div>
   </div>
