@@ -335,7 +335,7 @@ body.Search--Home #logo {
   display: block;
 }
 
-body.Search--Home {
+body.Search--Home #main-content {
   margin-left: 0;
 }
 
