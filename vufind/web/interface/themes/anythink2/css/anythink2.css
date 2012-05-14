@@ -653,7 +653,8 @@ body.Search--Home #main-content {
   width: 125px;
 }
 
-.actions-first {
+.actions-first,
+.actions-second {
   margin-bottom: 20px;
 }
 
@@ -664,6 +665,12 @@ body.Search--Home #main-content {
 
 .requestThisLink a:link {
   font-size: 1.167em;
+  margin: 10px 0;
+}
+
+#sidebar .requestThisLink a:link {
+  font-size: 1.333em;
+  margin: 10px 0;
 }
 
 div.record {

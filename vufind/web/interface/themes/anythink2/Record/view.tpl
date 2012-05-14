@@ -6,17 +6,17 @@
 $(document).ready(function(){
 {/literal}
   {if !empty($id)}
-    var id = {$id|escape:"url"};
+    var id = '{$id|escape:"url"}';
   {else}
     var id = null;
   {/if}
   {if (!empty($isbn10))}
-    var isbn10 = {$isbn10|escape:"url"};
+    var isbn10 = '{$isbn10|escape:"url"}';
   {else}
     var isbn10 = null;
   {/if}
   {if !empty($upc)}
-    var upc = {$upc|escape:"url"};
+    var upc = '{$upc|escape:"url"}';
   {else}
     var upc = null;
   {/if}
@@ -281,14 +281,15 @@ function redrawSaveStatus() {
 
   {if $enablePospectorIntegration == 1}
   <div class="sidegroup">
-  {* Display in Prospector Sidebar *}
-  <div id="inProspectorPlaceholder"></div>
+    {* Display in Prospector Sidebar *}
+    <div id="inProspectorPlaceholder"></div>
   </div>
   {/if}
 
   {if $linkToAmazon == 1 && $isbn}
-  <div class="titledetails">
-    <a href="http://amazon.com/dp/{$isbn|@formatISBN}"> {translate text="View on Amazon"}</a>
+  <div class="sidegroup">
+    <h4>Elsewhere:</h4>
+    <ul><li><a href="http://amazon.com/dp/{$isbn|@formatISBN}"> {translate text="View on Amazon"}</a></li></ul>
   </div>
   {/if}
 
@@ -344,37 +345,51 @@ function redrawSaveStatus() {
       </div>
       {/if}
     </div>
-    <div id="recordTools">
-      <ul>
+    <div class="actions-second" id="recordTools">
         {if !$tabbedDetails}
-          <li><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></li>
+          <div><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></div>
         {/if}
         {if $showTextThis == 1}
-          <li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
+          <div><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></div>
         {/if}
         {if $showEmailThis == 1}
-          <li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
+          <div><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></div>
         {/if}
         {if is_array($exportFormats) && count($exportFormats) > 0}
-          <li>
-            <a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+            <div><a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>
             <ul class="menu" id="exportMenu">
               {foreach from=$exportFormats item=exportFormat}
                 <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
               {/foreach}
-            </ul>
-          </li>
+            </ul></div>
         {/if}
         {*
         {if $showFavorites == 1}
-          <li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
+          <div id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></div>
         {/if}
         *}
         {if !empty($addThis)}
-          <li id="addThis"><a class="addThis addthis_button" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
+          <div id="addThis"><a class="addThis addthis_button" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></div>
         {/if}
-      </ul>
     </div>
+    {if $showTagging == 1}
+    <div class="actions-third">
+      <h4>{translate text="Tags"}</h4>
+      <div id="tagList">
+        {if $tagList}
+        <ul>
+          {foreach from=$tagList item=tag name=tagLoop}
+            <li><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</li>
+          {/foreach}
+        </ul>
+        {else}
+          {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
+        {/if}
+          <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
+             onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
+      </div>
+    </div>
+    {/if}
   </div>
   <div id="record-details-column">
     <div id="record-details-header">
@@ -387,11 +402,11 @@ function redrawSaveStatus() {
         {if strlen($summary) > 300}
           <span id="shortSummary">
           {$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
-          <a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
+          <a href='#' onclick='{literal}$("#shortSummary").fadeOut(100, function(){ $("#fullSummary").fadeIn(800);});{/literal}'>More</a>
           </span>
           <span id="fullSummary" style="display:none">
           {$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-          <a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
+          <a href='#' onclick='{literal}$("#fullSummary").fadeOut(100, function(){$("#shortSummary").fadeIn(250)});{/literal}'>Less</a>
           </span>
         {else}
           {$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
@@ -407,25 +422,6 @@ function redrawSaveStatus() {
           <li><a href="{$path}/Search/Results?lookfor=%22{$wordThinkHeading.search|escape:"url"}%22&amp;basicType=Subject">{$wordThinkHeading.title|escape}</a></li>
         {/foreach}
       </ul>
-    </div>
-    {/if}
-
-    {if $showTagging == 1}
-    <div class="resultInformation">
-      <h4>{translate text="Tags"}</h4>
-      <div id="tagList">
-        {if $tagList}
-        <ul>
-          {foreach from=$tagList item=tag name=tagLoop}
-            <li><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</li>
-          {/foreach}
-        </ul>
-        {else}
-          {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
-        {/if}
-          <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
-             onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
-      </div>
     </div>
     {/if}
 
