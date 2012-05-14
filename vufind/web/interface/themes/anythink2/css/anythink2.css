@@ -278,6 +278,10 @@ body.Search--Home #logo {
   width: 355px;
 }
 
+#breadcrumb {
+  margin-bottom: 10px;
+}
+
 #main {
   background-color: #FFF;
   border-left: 1px solid #999;
@@ -808,6 +812,8 @@ body.Search--Home #cart-wrapper {
 .book-title-cart {
   display: inline-block;
   width: 70%;
+  vertical-align: top;
+  margin-right: 10px;
 }
 
 #results-facets {
@@ -818,6 +824,73 @@ body.Search--Home #cart-wrapper {
 
 #categoryValue {
   text-align: inherit;
+}
+
+#title-container {
+  margin-right: 200px;
+}
+
+#record-header {
+  border-bottom: 0;
+  margin-bottom: 20px;
+  min-height: 3em;
+  padding-bottom: 0;
+  position: relative;
+}
+
+#record-details-header {
+  border-bottom: 0;
+}
+
+#record-title-nav {
+  right: 0;
+  position: absolute;
+  text-align: center;
+  top: 10px;
+  width: 180px;
+}
+
+.recordcover {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  max-width: 180px;
+}
+
+#image-column {
+  display: block;
+  text-align: center;
+  width: auto;
+}
+
+#tools-column {
+  width: 180px;
+  float: right;
+}
+
+#record-details-column {
+  display: block;
+  width: auto;
+  margin-right: 200px;
+}
+
+.holdingsSummaryRecord {
+  display: block;
+  width: auto;
+}
+
+.resultInformation {
+  padding-top: 0;
+  margin-bottom: 20px;
+}
+
+#recordTools {
+  display: block;
+}
+
+.ui-tabs {
+  float: left;
+  width: 100%;
 }
 
 /**
