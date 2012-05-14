@@ -430,7 +430,9 @@ body.Search--Home #main-content {
  */
 .rss, .email,
 .icon-book,
+.icon-graphicnovel,
 .icon-dvd,
+.icon-musiccd,
 .icon-delete,
 .remove-facet,
 .active-facet,
@@ -457,12 +459,17 @@ body.Search--Home #main-content {
   background-image: url(/images/silk/edit.png);
 }
 
+.icon-graphicnovel,
 .icon-book {
   background-image: url(/images/silk/book.png);
 }
 
 .icon-dvd {
   background-image: url(/images/silk/dvd.png);
+}
+
+.icon-musiccd {
+  background-image: url(/images/silk/cd.png);
 }
 
 .icon-delete {
