@@ -365,15 +365,12 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			{/if}
 			
-			{if $subjects}
+			{if $wordThinkHeadings}
 			<div class="resultInformation">
-				<div class="resultInformationLabel">{translate text='Subjects'}</div>
+				<div class="resultInformationLabel">{translate text='Word Think Headings'}</div>
 				<div class="recordSubjects">
-					{foreach from=$subjects item=subject name=loop}
-						{foreach from=$subject item=subjectPart name=subloop}
-							{if !$smarty.foreach.subloop.first} -- {/if}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
-						{/foreach}
+					{foreach from=$wordThinkHeadings item=wordThinkHeading name=loop}
+						<a href="{$path}/Search/Results?lookfor=%22{$wordThinkHeading.search|escape:"url"}%22&amp;basicType=Subject">{$wordThinkHeading.title|escape}</a>
 						<br />
 					{/foreach}
 				</div>

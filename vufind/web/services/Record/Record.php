@@ -308,6 +308,24 @@ class Record extends Action
 			}
 			$interface->assign('subjects', $subjects);
 		}
+		
+		//Word Think Headings
+		$wordThinkFields = $marcRecord->getFields('690');
+		$wordThinkHeadings = array();
+		foreach ($wordThinkFields as $wordThinkField){
+			$searchSubject = "";
+			$subject = array();
+			$subFieldA = $wordThinkField->getSubField('a');
+			if ($subFieldA){
+				$searchSubject = $subFieldA->getData();
+				$wordThinkHeadings[] = array(
+					'search' => trim($searchSubject),
+					'title'  => $subFieldA->getData(),
+				);
+			}
+		}
+		$interface->assign('wordThinkHeadings', $wordThinkHeadings);
+		
 
 		$format = $record['format'];
 		$interface->assign('recordFormat', $record['format']);

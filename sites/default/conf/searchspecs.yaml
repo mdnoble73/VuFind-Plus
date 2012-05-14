@@ -157,11 +157,16 @@ ISN:
 Subject:
   DismaxFields:
     - topic^100
+    - word_think_heading^100
     - geographic^50
     - genre^50
     - era
   QueryFields:
     - topic:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    - word_think_heading:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
@@ -180,11 +185,16 @@ Subject:
 SubjectProper:
   DismaxFields:
     - topic_proper^100
+    - word_think_heading^100
     - geographic_proper^50
     - genre_proper^50
     - era_proper
   QueryFields:
     - topic_proper:
+      - [onephrase, 300]
+      - [and, 100]
+      - [or, ~]
+    - word_think_heading:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
@@ -326,6 +336,9 @@ Keyword:
       - [and, 50]
     series2:
       - [and, 30]
+    word_think_heading:
+      - [onephrase, 300]
+      - [and, 50]
     author:
       - [onephrase, 250]
       - [and, 200]
@@ -360,6 +373,7 @@ KeywordProper:
   DismaxFields:
     - title_proper^850
     - series_proper^100
+    - word_think_heading^100
     - author^300
     - contents_proper^10
     - topic_proper^500
@@ -375,6 +389,8 @@ KeywordProper:
       - [onephrase, 300]
       - [and, 100]
     series_proper:
+      - [and, 50]
+    word_think_heading:
       - [and, 50]
     author:
       - [onephrase, 300]
