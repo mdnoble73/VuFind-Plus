@@ -5,9 +5,21 @@
 {literal}
 $(document).ready(function(){
 {/literal}
-  var id = {$id|escape:"url"};
-  var isbn10 = {$isbn10|escape:"url"};
-  var upc = {$upc|escape:"url"};
+  {if !empty($id)}
+    var id = {$id|escape:"url"};
+  {else}
+    var id = null;
+  {/if}
+  {if (!empty($isbn10))}
+    var isbn10 = {$isbn10|escape:"url"};
+  {else}
+    var isbn10 = null;
+  {/if}
+  {if !empty($upc)}
+    var upc = {$upc|escape:"url"};
+  {else}
+    var upc = null;
+  {/if}
   GetHoldingsInfo(id);
 
   {if $isbn || $upc}
@@ -51,7 +63,7 @@ function redrawSaveStatus() {
         </div>
       {/if}
       <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-        <a href="{$path}/Record/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+        <a class="button" href="{$path}/Record/{$id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
       </div>
       {if $showOtherEditionsPopup}
       <div id="otherEditionCopies">
@@ -122,12 +134,12 @@ function redrawSaveStatus() {
       {if is_array($recordFormat)}
         <ul>
          {foreach from=$recordFormat item=displayFormat name=loop}
-           <li><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></li>
+           <li><span class="icon-{$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></li>
          {/foreach}
         </ul>
       {else}
         <ul>
-          <li><span class="iconlabel {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$recordFormat}</span></li>
+          <li><span class="icon-{$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$recordFormat}</span></li>
         </ul>
       {/if}
     {/if}

@@ -581,6 +581,10 @@ body.Search--Home #main-content {
   text-align: left;
 }
 
+.holdingsTable {
+  width: 100%;
+}
+
 .highlight {
   font-weight: bold;
   background-color: #FFB;
