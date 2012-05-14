@@ -60,6 +60,38 @@
         });
       };
     };
+
+    // Bag buttons.
+    $('.actions-cart a').each(function() {
+      var $this = $(this);
+      var book = {
+        id: $this.attr('data-summId'),
+        title: $this.attr('data-title')
+      }
+      if (bookInBagAnythink(book)) {
+        $this.text('In cart');
+        $this.addClass('in-cart');
+      };
+      $this.bind('click', {book: book}, function(event) {
+        var $this = $(this);
+        var book = event.data.book;
+        if (!$this.hasClass('in-cart')) {
+          _addToBag(book);
+          $this.text('In cart');
+          $this.addClass('in-cart');
+        }
+        else {
+          _removeFromBag(book);
+          $this.text('Add to cart +');
+          $this.removeClass('in-cart');
+        }
+        _saveBagAsCookie();
+        updateBag();
+        return false;
+      });
+    });
+
+
   });
 
 
@@ -136,6 +168,18 @@
       publisher: data.find('publisher').text(),
     };
   };
+
+
+  bookInBagAnythink = function(book) {
+    var bookInBag = false;
+    for (var i = 0; i < bookBag.length; i++) {
+      if (bookBag[i].id == book.id){
+        bookInBag = true;
+        break;
+      }
+    }
+    return bookInBag;
+  }
 
   // // Reimplement doGetRatings().
   // doGetRatingsAnythink = function() {

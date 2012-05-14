@@ -495,6 +495,11 @@ body.Search--Home #main-content {
   background-image: url(/images/silk/dvd.png);
 }
 
+.loading {
+  background-image: url(/images/loading.gif);
+  line-height: 2em;
+}
+
 .keepFilters {
   color: inherit;
   display: block;
@@ -630,8 +635,17 @@ body.Search--Home #main-content {
   margin-bottom: 20px;
 }
 
-.actions-rate {
+.actions-rate,
+.actions-save {
   margin-bottom: 10px;
+}
+
+.requestThisLink a:link {
+  font-size: 1.167em;
+}
+
+div.record {
+  padding: 0;
 }
 
 /**

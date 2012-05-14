@@ -6,8 +6,8 @@
       <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
       </a>
     {/if}
-    <div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
-      <a href="{$url}/Record/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+    <div class="requestThisLink" id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
+      <a class="button" href="{$url}/Record/{$summId|escape:"url"}/Hold">Hold</a>
     </div>
   </div>
   <div class="resultActions" id="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
@@ -30,7 +30,7 @@
       </div>
     </div>
     <div class="actions-second">
-      <div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
+      <div class="actions-save" id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
         {if $user}
           <div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
           <script type="text/javascript">
@@ -41,6 +41,11 @@
           <a class="button" href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to list...'}</a>
         {/if}
       </div>
+      {if $enableBookCart}
+      <div class="actions-cart">
+        <a href="#" class="button" data-summId="{$summId|escape}" data-title="{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}">Add to cart +</a>
+      </div>
+      {/if}
     </div>
     <script type="text/javascript">
       $(
