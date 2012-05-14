@@ -118,7 +118,7 @@
             </a><li>
             </ul>
           </div>
-          {if $action != 'Home' && $pageTemplate != 'advanced.tpl'}
+          {if !($module == 'Search' && $action == 'Home') && $pageTemplate != 'advanced.tpl'}
             {if $module=="Summon"}
               {include file="Summon/searchbox.tpl"}
             {elseif $module=="WorldCat"}
