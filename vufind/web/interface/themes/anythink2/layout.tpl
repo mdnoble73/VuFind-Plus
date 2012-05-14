@@ -130,7 +130,11 @@
           {/if}
           <div id="header-utility-bottom">
             <ul class="inline right">
-              {if !$user}<li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>{/if}
+              {if !$user}
+                <li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>
+              {else}
+                <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
+              {/if}
               <li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li>
             </ul>
           </div>
