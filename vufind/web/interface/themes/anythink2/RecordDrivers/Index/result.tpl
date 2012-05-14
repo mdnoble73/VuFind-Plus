@@ -80,7 +80,7 @@
     </div>
     <div id="holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">
       <div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-        <span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
+        <span class="unknown">{translate text='Loading'}...</span>
       </div>
     </div>
   </div>
