@@ -146,6 +146,7 @@ class Library extends DB_DataObject
 				'structure' => $holidaysStructure,
 				'label' => 'Holidays',
 				'description' => 'Holidays',
+				'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
 			)

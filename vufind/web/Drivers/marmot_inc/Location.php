@@ -103,6 +103,7 @@ class Location extends DB_DataObject
 				'structure' => $hoursStructure,
 				'label' => 'Hours',
 				'description' => 'Library Hours',
+				'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
 			)
@@ -461,5 +462,49 @@ class Location extends DB_DataObject
 			}
 			unset($this->hours);
 		}
+	}
+	
+	public static function getLibraryHours($locationId, $timeToCheck){
+		// get all the holidays
+		require_once 'Drivers/marmot_inc/Holiday.php';
+		$holidays = array();
+		$holiday = new Holiday();
+		$holiday->date = date('yyyy-mm-dd', $timeToCheck);
+		if ($holiday->find(true)){
+			return array(
+				'closed' => true,
+				'closureReason' => $holiday->name
+			);
+		}
+
+		// format $timeToCheck according to MySQL default date format
+		$todayFormatted = date('yyyy-mm-dd', $timeToCheck);
+
+		// check to see if today is a holiday, if it is then return 'closed'
+		if (in_array($todayFormatted, $holidays)) {
+			return array('closed' => true);
+		}
+
+		// get the day of the week (0=Sunday to 6=Saturday)
+		$dayOfWeekToday = strftime ('%w', $timeToCheck);
+
+		// find library hours for the above day of the week
+		require_once 'Drivers/marmot_inc/LocationHours.php';
+		$hours = new LocationHours();
+		$hours->locationId = $locationId;
+		$hours->day = $dayOfWeekToday;
+		if ($hours->find(true)){
+			$hours->fetch();
+			return array(
+				'open' => ltrim($hours->open, '0'),
+				'close' => ltrim($hours->close, '0'),
+				'closed' => $hours->closed ? true : false,
+				'openFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->open))),
+				'closeFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
+			);
+		}
+
+		// no hours found
+		return null;
 	}
 }

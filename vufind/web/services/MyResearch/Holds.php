@@ -82,34 +82,31 @@ class Holds extends MyResearch
 		$profile = $this->catalog->getMyProfile($user);
 
 		$today = time();
-		if ($this->catalog->checkFunction('getLibraryHours')){
-			$todaysLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'], $today);
-			if (isset($todaysLibraryHours) && is_array($todaysLibraryHours)){
-				if (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
-					//Library is closed now
-					$nextDay = time() + (24 * 60 * 60);
-					$nextDayHours = $this->catalog->getLibraryHours($profile->homeLocationId,  $nextDay);
-					while (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
-						$nextDay += (24 * 60 * 60);
-						$nextDayHours = $this->catalog->getLibraryHours($profile->homeLocationId,  $nextDay);
-					}
-		
-					$nextDayOfWeek = strftime ('%a', $nextDay);
-					$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
-				}else{
-					//Library is open
-					$currentHour = strftime ('%H', $today);
-					if ($currentHour < $todaysLibraryHours['open']){
-						$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
-					}else if ($currentHour > $todaysLibraryHours['close']){
-						$tomorrowsLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'],  time() + (24 * 60 * 60));
-						$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
-					}else{
-						$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
-					}
+		$todaysLibraryHours = Location::getLibraryHours($profile['homeLocationId'], $today);
+		if (isset($todaysLibraryHours) && is_array($todaysLibraryHours)){
+			if (isset($todaysLibraryHours['closed']) && ($todaysLibraryHours['closed'] == true || $todaysLibraryHours['closed'] == 1)){
+				$closureReason = $todaysLibraryHours['closureReason'];
+				//Library is closed now
+				$nextDay = time() + (24 * 60 * 60);
+				$nextDayHours = Location::getLibraryHours($profile->homeLocationId,  $nextDay);
+				while (isset($todaysLibraryHours['closed']) && $todaysLibraryHours['closed'] == true){
+					$nextDay += (24 * 60 * 60);
+					$nextDayHours = Location::getLibraryHours($profile->homeLocationId,  $nextDay);
 				}
+	
+				$nextDayOfWeek = strftime ('%a', $nextDay);
+				$libraryHoursMessage = "The library is closed today for $closureReason. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
 			}else{
-				$libraryHoursMessage = null;
+				//Library is open
+				$currentHour = strftime ('%H', $today);
+				if ($currentHour < $todaysLibraryHours['open']){
+					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+				}else if ($currentHour > $todaysLibraryHours['close']){
+					$tomorrowsLibraryHours = $this->catalog->getLibraryHours($profile['homeLocationId'],  time() + (24 * 60 * 60));
+					$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+				}else{
+					$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+				}
 			}
 		}else{
 			$libraryHoursMessage = null;
