@@ -48,7 +48,7 @@ function redrawSaveStatus() {
     {if $corporateAuthor}
     <h4>{translate text='Corporate Author'}:</h4>
     <ul>
-      <li><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a>a></li>
+      <li><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a></li>
     </ul>
     {/if}
 
