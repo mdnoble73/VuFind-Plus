@@ -41,7 +41,7 @@
       <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
       {if $enableBookCart}
       <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-      <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
+      <script type="text/javascript" src="{$path}/interface/themes/anythink2/js/bookcart-anythink2.js"></script>
       {/if}
       {* Code for description pop-up and other tooltips.*}
       <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
