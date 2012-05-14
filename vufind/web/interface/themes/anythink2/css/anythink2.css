@@ -368,7 +368,9 @@ body.Search--Home #main-content {
   -moz-border-radius-topright: 0;
   border-top-right-radius: 0;
   text-align: left;
-  margin-top: 0px;
+  line-height: 1.125em;
+  margin-top: .625em;
+  margin-bottom: .625em;
 }
 
 .toggle {

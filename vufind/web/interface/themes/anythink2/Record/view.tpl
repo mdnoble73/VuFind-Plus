@@ -226,24 +226,6 @@ function redrawSaveStatus() {
       </ul>
     {/if}
   </div>
-  {if $showTagging == 1}
-  <div class="sidegroup" id="tagsSidegroup">
-    <h4>{translate text="Tags"}</h4>
-    <div id="tagList">
-      {if $tagList}
-      <ul>
-        {foreach from=$tagList item=tag name=tagLoop}
-          <li><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</li>
-        {/foreach}
-      </ul>
-      {else}
-        {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
-      {/if}
-        <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
-           onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
-    </div>
-  </div>
-  {/if}
 
   <div class="sidegroup" id="similarTitlesSidegroup">
    {* Display either similar tiles from novelist or from the catalog*}
@@ -425,6 +407,25 @@ function redrawSaveStatus() {
           <li><a href="{$path}/Search/Results?lookfor=%22{$wordThinkHeading.search|escape:"url"}%22&amp;basicType=Subject">{$wordThinkHeading.title|escape}</a></li>
         {/foreach}
       </ul>
+    </div>
+    {/if}
+
+    {if $showTagging == 1}
+    <div class="resultInformation">
+      <h4>{translate text="Tags"}</h4>
+      <div id="tagList">
+        {if $tagList}
+        <ul>
+          {foreach from=$tagList item=tag name=tagLoop}
+            <li><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</li>
+          {/foreach}
+        </ul>
+        {else}
+          {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
+        {/if}
+          <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
+             onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
+      </div>
     </div>
     {/if}
 
