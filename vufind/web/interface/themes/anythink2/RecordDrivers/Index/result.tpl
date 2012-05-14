@@ -11,13 +11,25 @@
     </div>
   </div>
   <div class="resultActions" id="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-    <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
-      <div class="statVal">
-        <span class="ui-rater">
-          <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-          (<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
-        </span>
+    <div class="actions-first">
+      <div class="actions-rate">
+        <p>Rate:</p>
+        <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
+          <div class="statVal">
+            <span class="ui-rater">
+              <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
+              (<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
+            </span>
+          </div>
+        </div>
       </div>
+      <div class="actions-review">
+        {assign var=id value=$summId scope="global"}
+        {assign var=shortId value=$summShortId scope="global"}
+        {include file="Record/title-review.tpl"}
+      </div>
+    </div>
+    <div class="actions-second">
       <div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
         {if $user}
           <div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
@@ -26,12 +38,9 @@
           </script>
         {/if}
         {if $showFavorites == 1}
-          <a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+          <a class="button" href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to list...'}</a>
         {/if}
       </div>
-      {assign var=id value=$summId scope="global"}
-      {assign var=shortId value=$summShortId scope="global"}
-      {include file="Record/title-review.tpl"}
     </div>
     <script type="text/javascript">
       $(

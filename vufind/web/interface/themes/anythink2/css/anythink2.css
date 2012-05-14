@@ -97,7 +97,7 @@ h1 {
 h2 {
   font-size: 1.8em;
   line-height: 1em;
-  margin-bottom: 1em;
+  margin: .5em 0;
 }
 
 h3 {
@@ -470,12 +470,33 @@ body.Search--Home #main-content {
 .remove-facet,
 .active-facet,
 .loading,
-.rate-this {
+.rate-this,
+.write-review {
   display: inline-block;
   padding-left: 1.667em;
   background-repeat: no-repeat;
   background-position: left middle;
   line-height: 18px;
+}
+
+.email {
+  background-image: url(/images/silk/email.png);
+}
+
+.rss {
+  background-image: url(/images/silk/feed.png);
+}
+
+.write-review {
+  background-image: url(/images/silk/edit.png);
+}
+
+.icon-book {
+  background-image: url(/images/silk/book.png);
+}
+
+.icon-dvd {
+  background-image: url(/images/silk/dvd.png);
 }
 
 .keepFilters {
@@ -537,28 +558,6 @@ body.Search--Home #main-content {
   width: 100%;
 }
 
-.email {
-  /**
-   * @todo Refactor as sprite.
-   */
-  background-image: url(/images/silk/email.png);
-}
-
-.rss {
-  /**
-   * @todo Refactor as sprite.
-   */
-  background-image: url(/images/silk/feed.png);
-}
-
-.icon-book {
-  background-image: url(/images/silk/book.png);
-}
-
-.icon-dvd {
-  background-image: url(/images/silk/dvd.png);
-}
-
 .author,
 .format {
   display: inline-block;
@@ -598,6 +597,14 @@ body.Search--Home #main-content {
   display: block;
   float: right;
   width: 125px;
+}
+
+.actions-first {
+  margin-bottom: 20px;
+}
+
+.actions-rate {
+  margin-bottom: 10px;
 }
 
 /**
