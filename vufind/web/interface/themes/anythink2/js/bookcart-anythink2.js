@@ -19,8 +19,8 @@ $(document).ready(function() {
   updateBag();
 
   // Attach all of the actions to appropriate links
-  $("#bag_summary_holder").click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
-  $("#book_bag_header").click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
+  $("#bag_summary_holder").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
+  $("#book_bag_header").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
 
   // email buttons
   $("#bag_email_button").click(function() { toggleBagActionItems(true); $('#email_to_box').show(); return false; });
@@ -145,15 +145,7 @@ function toggleBagActionItems(show) {
 }
 
 function toggleBagCanvas() {
-
-  /* $("#book_bag_canvas").animate({
-    width: "600px",
-  }, 500 );
-   */
-
-  /// for now just toggle, later animate
-  $('#book_bag_canvas').slideToggle('fast');
-
+  $('#bag-content').slideToggle('fast');
 }
 
 /** Adds or removes an item from to bag, when the check box is clicked
@@ -288,27 +280,18 @@ function emptyBag() {
 function updateBag(){
   // read from cookie
   var cookie = $.cookie(BAG_COOKIE);
-
   if (cookie != null) {
     bookBag = JSON.parse(cookie);
   }
-
   if (bookBag == null) {
     bookBag = new Array();
   }
-
+  _updateBookCount();
   // update array view
   if (bookBag.length > 0) {
-    // show array view
-    $("#book_bag").show();
-
     // update book count
-    _updateBookCount();
-
     // clear the bag items page
     $("#bag_items").empty();
-
-
     // go through the book list and make sure the checkboxes are checked properly
     var j = 0;
     var current_book;
@@ -316,7 +299,6 @@ function updateBag(){
       current_book = bookBag[j];
       $("#export" + current_book.id).attr("checked", "checked");
       j++;
-
       // update the list of bag items
       var bagItem = "<div class=\"bag_book_title\">" +
           "<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a></div>" +
@@ -324,28 +306,17 @@ function updateBag(){
           "</div><br />";
       $("#bag_items").append(bagItem);
     }
-
-
   } else {
-    $("#bag_summary").text("0 items");
-    $("#bag_summary_header").text("0 items");
     $("#bag_items").empty();
-    $("#book_bag, #book_bag_canvas").hide();
+    $('#bag-content').hide();
     $(".save_export_checkboxes").removeAttr("checked");
   }
-
-  //checkItemSaveStatuses();
 }
 
 /** Checks the number of books in the bag and updates the count */
 function _updateBookCount() {
-  // update summary
-  var item_text = "items in book cart";
-  if (bookBag.length == 1)
-    item_text = "item in book cart";
-
-  $("#bag_summary").text(bookBag.length + " " + item_text);
-  $("#bag_summary_header").text(bookBag.length + " " + item_text);
+  var units = bookBag.length == 1 ? 'item':'items';
+  $("#bag_summary_header .count").text(bookBag.length + ' ' + units);
 }
 
 function _displayBagErrors() {

@@ -93,7 +93,6 @@
       <div id="lightbox" onclick="hideLightbox(); return false;"></div>
       <div id="popupbox" class="popupBox"></div>
       {* End LightBox *}
-      {include file="bookcart.tpl"}
       <div class="{$page_body_style}">
         <div id="header">
           {* This needs to be heavily refactored.
@@ -161,6 +160,7 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
+                {include file="bookcart.tpl"}
                 {if $showBreadcrumbs}
                   <div id="breadcrumb">
                     <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>

@@ -1,18 +1,6 @@
 @import 'normalize.css';
 @import 'formalize.css';
 
-/* Local overrides of css */
-#book_bag #bag_open_button {
-  background-image: url(/interface/themes/dcl/images/bookbag-expand.png);
-  background-repeat: no-repeat;
-  background-position: 7px 7px;
-}
-
-#book_bag_header {
-  background-image: url(/interface/themes/dcl/images/bookbag-expand.png );
-  background-repeat: no-repeat;
-}
-
 #library-footer {
   background: #949494 url('/interface/themes/dcl/images/library-footer-top.png') repeat-x left top;
 }
@@ -317,6 +305,7 @@ body.Search--Home #logo {
   border-left: 1px solid #999;
   margin-left: 12px;
   padding: 20px;
+  position: relative;
 }
 
 #main-wrapper {
@@ -467,7 +456,8 @@ body.Search--Home #main-content {
 .active-facet,
 .loading,
 .rate-this,
-.write-review {
+.write-review,
+.cart-icon {
   display: inline-block;
   padding-left: 1.667em;
   background-repeat: no-repeat;
@@ -493,6 +483,10 @@ body.Search--Home #main-content {
 
 .icon-dvd {
   background-image: url(/images/silk/dvd.png);
+}
+
+.cart-icon {
+  background-image: url(../images/cart.png);
 }
 
 .loading {
@@ -647,6 +641,85 @@ body.Search--Home #main-content {
 div.record {
   padding: 0;
 }
+
+/**
+ * Book bag.
+ */
+#book_bag {
+  background-image: url(../images/cart-gradient.png);
+  background-repeat: repeat-x;
+  background-color: #EEE;
+  display: block;
+  width: 320px;
+  border: 1px solid #CCC;
+  -webkit-border-bottom-right-radius: 4px;
+  -webkit-border-bottom-left-radius: 4px;
+  -moz-border-radius-bottomright: 4px;
+  -moz-border-radius-bottomleft: 4px;
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 4px;
+  position: absolute;
+  top: 0;
+  right: 20px;
+  left: auto;
+  bottom: auto;
+  z-index: 2;
+}
+
+#book_bag #bag_open_button {
+  background-color: transparent;
+  color: inherit;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: -1px;
+  padding: 0;
+  width: auto;
+}
+
+#book_bag #bag_open_button .plus {
+  padding: 0;
+  text-align: center;
+}
+
+#book_bag #bag_open_button,
+#book_bag #book_bag_canvas {
+  display: block;
+  position: static;
+  top: auto;
+  right: auto;
+  left: auto;
+  bottom: auto;
+}
+
+#book_bag #book_bag_canvas {
+  background: transparent;
+  border: 0;
+  width: auto;
+  z-index: inherit;
+  height: auto;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+}
+
+#book_bag_header {
+  background-color: transparent;
+  border-top-left-radius: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  height: auto;
+}
+
+#bag_summary_header {
+  font-size: 1.167em;
+  display: block;
+  padding: .5em;
+  text-align: center;
+}
+
 
 /**
  * Utility classes.
