@@ -8,6 +8,16 @@ $(document).ready(function() {
     return;
   }
 
+  anythink.settings.bag_offset = $('#book_bag').offset();
+
+  $(document).bind('scroll', function() {
+    bagResize();
+  });
+
+  $(window).bind('resize', function() {
+    bagResize();
+  });
+
   // if we are printing, ignore update bag
   var url = window.location.href;
   if(url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
@@ -16,7 +26,7 @@ $(document).ready(function() {
     return;
   }
   // run the first check to see if we have anything in the bag
-  updateBag();
+  updateBag(true);
 
   // Attach all of the actions to appropriate links
   $("#bag_summary_holder").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
@@ -70,6 +80,18 @@ $(document).ready(function() {
   }
 
 });
+
+function bagResize() {
+  var bag_container = $('#cart-wrapper');
+  var offset = anythink.settings.bag_offset;
+  bag_container.css({marginLeft: '-' + parseInt(bag_container.width()/2 + 20) + 'px'});
+  if (offset.top < $(window).scrollTop() && !bag_container.hasClass('cling')) {
+    bag_container.addClass('cling');
+  }
+  else if (offset.top >= $(window).scrollTop() && bag_container.hasClass('cling')){
+    bag_container.removeClass('cling');
+  }
+}
 
 function bagLoginUser(){
   var url = path + "/AJAX/JSON?method=loginUser"
@@ -272,12 +294,12 @@ function emptyBag() {
   });
   _saveBagAsCookie();
 
-  updateBag();
+  updateBag(true);
   return false;
 }
 
 /* Update the bag */
-function updateBag(){
+function updateBag(collapse){
   // read from cookie
   var cookie = $.cookie(BAG_COOKIE);
   if (cookie != null) {
@@ -301,16 +323,18 @@ function updateBag(){
       j++;
       // update the list of bag items
       var bagItem = "<div class=\"bag_book_title\">" +
-          "<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a></div>" +
-          "<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\"><img src='" + path + "/images/silk/delete.png' alt='Remove' title='Remove from book cart'></a>"
-          "</div><br />";
+          "<a class=\"book-title-cart\" href ='" + path + "/Record/" + current_book.id + "'>#" + j + ". " + current_book.title + "</a>" +
+          "<a class=\"icon-delete\" href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\">Remove</a>"
+          "</div>";
       $("#bag_items").append(bagItem);
     }
   } else {
     $("#bag_items").empty();
-    $('#bag-content').hide();
     $(".save_export_checkboxes").removeAttr("checked");
   }
+  if (collapse == true) {
+    $('#bag-content').hide();
+  };
 }
 
 /** Checks the number of books in the bag and updates the count */

@@ -9,7 +9,9 @@
       <span id="bag_summary_header"><span class="cart-icon">Your book cart (<span class="count">0 items</span>)</span></span>
     </div>
     <div id="bag-content">
-      <a href="#" id="bag_empty_button_header">Empty cart</a>
+      <div id="bag-content-header">
+        <a href="#" id="bag_empty_button_header" class="button">Empty cart</a>
+      </div>
       <div id="bag_items"></div>
       <div id="bag_actions">
         {* e-mail book cart *}
@@ -97,10 +99,13 @@
         {*
         <div class="button round less-round hide logged-in-button" style="display: none; "><a href="#" id="bag_email_button" class="icon email_bag">Email</a></div>
         *}
-        <div class="button round less-round longer-button" ><a href="#" id="bag_request_button" class="">Place Hold</a></div>
-        <div class="button round less-round"><a href="#" id="bag_print_button" class="print_bag">Print</a></div>
-        <div id="bag_add_to_my_list_button" class="logged-in-button" style="display: none; "><a href="#" >Add to <span class="myListLabel">My List</span></a></div>
-        <div class="button round less-round longer-button logged-out-button" id="login_bag">Login</div>
+        <a class="button" href="#" id="bag_request_button" class="">Place Hold</a>
+        <a class="button" href="#" id="bag_print_button" class="print_bag">Print</a>
+        {if $user}
+        <a class="button" href="#" id="bag_add_to_my_list_button">Add to list...</a>
+        {else}
+        <!-- <div class="button round less-round longer-button logged-out-button" id="login_bag">Login</div> -->
+        {/if}
       </div>
     </div>
   </div>
