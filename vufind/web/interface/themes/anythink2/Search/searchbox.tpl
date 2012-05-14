@@ -20,7 +20,7 @@
       <div>
         {if $filterList || $hasCheckboxFilters}
         <div class="keepFilters">
-          <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> {translate text="basic_search_keep_filters"}
+          <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> <label for="retainFiltersCheckbox">{translate text="basic_search_keep_filters"}</label>
           <div style="display: none;">
             <ul class="inline left">
             {foreach from=$filterList item=data key=field}

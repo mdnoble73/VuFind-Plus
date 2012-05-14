@@ -41,7 +41,7 @@
       <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
       {if $enableBookCart}
       <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-      <script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
+      <script type="text/javascript" src="{$path}/interface/themes/anythink2/js/bookcart-anythink2.js"></script>
       {/if}
       {* Code for description pop-up and other tooltips.*}
       <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
@@ -49,7 +49,8 @@
       <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
       <script type="text/javascript" src="{$path}/js/overdrive.js"></script>
       {* Formalize *}
-      <script src="{$path}/interface/themes/anythink/js/jquery.formalize.min.js" type="text/javascript"></script>
+      <script src="{$path}/interface/themes/anythink2/js/jquery.formalize.min.js" type="text/javascript"></script>
+      <script src="{$path}/interface/themes/anythink2/js/anythink2.js" type="text/javascript"></script>
     {/if}
     {* Files that should not be combined *}
     {if $includeAutoLogoutCode == true}
@@ -62,21 +63,21 @@
       {literal}
       (function($) {
         // General settings for this theme.
-        var Anythink = {settings: {}};
+        anythink = {settings: {}};
         // Hold message.
-        Anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
         // Renew message.
-        Anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
         $(document).ready(function(){
           // Show hold message if set.
-          if (Anythink.settings.hold_message != '') {
+          if (anythink.settings.hold_message != '') {
             lightbox();
-            $('#popupbox').html(Anythink.settings.hold_message);
+            $('#popupbox').html(anythink.settings.hold_message);
           };
           // Show renew message if set.
-          if (Anythink.settings.renew_message != '') {
+          if (anythink.settings.renew_message != '') {
             lightbox();
-            $('#popupbox').html(Anythink.settings.renew_message);
+            $('#popupbox').html(anythink.settings.renew_message);
           };
         });
       })(jQuery);
@@ -92,7 +93,6 @@
       <div id="lightbox" onclick="hideLightbox(); return false;"></div>
       <div id="popupbox" class="popupBox"></div>
       {* End LightBox *}
-      {include file="bookcart.tpl"}
       <div class="{$page_body_style}">
         <div id="header">
           {* This needs to be heavily refactored.
@@ -129,14 +129,14 @@
           {/if}
           <div id="header-utility-bottom">
             <ul class="inline right">
-              {if !$user}<li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>{/if}
+              {if !$user}
+                <li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>
+              {else}
+                <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
+              {/if}
               <li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li>
             </ul>
           </div>
-          {if $showBreadcrumbs}
-            <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
-            {include file="$module/breadcrumbs.tpl"}
-          {/if}
           {if $useSolr || $useWorldcat || $useSummon}
             <ul>
               {if $useSolr}
@@ -160,6 +160,13 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
+                {include file="bookcart.tpl"}
+                {if $showBreadcrumbs}
+                  <div id="breadcrumb">
+                    <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
+                    {include file="$module/breadcrumbs.tpl"}
+                  </div>
+                {/if}
               {include file="$module/$pageTemplate"}
             </div></div>
           </div>
