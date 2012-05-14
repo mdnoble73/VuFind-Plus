@@ -581,6 +581,25 @@ body.Search--Home #main-content {
   background-color: #FFB;
 }
 
+.imageColumn {
+  display: block;
+  float: left;
+  width: 110px;
+}
+
+.resultDetails {
+  display: block;
+  width: auto;
+  margin-left: 120px;
+  margin-right: 145px;
+}
+
+.resultActions {
+  display: block;
+  float: right;
+  width: 125px;
+}
+
 /**
  * Utility classes.
  */
