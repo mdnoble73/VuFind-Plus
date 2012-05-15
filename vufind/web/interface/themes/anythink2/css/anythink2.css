@@ -96,6 +96,11 @@ li li {
   list-style-type: circle;
 }
 
+a.active {
+  font-weight: bold;
+  color: inherit;
+}
+
 .clearfix:after {
   content: ".";
   display: block;
