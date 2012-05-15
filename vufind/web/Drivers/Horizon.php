@@ -138,11 +138,17 @@ class Horizon implements DriverInterface{
 						$itemStatusResult = $this->_query($query);
 						$itemsStatus = $this->_fetch_assoc($itemStatusResult);
 						if (isset($itemsStatus['item_status']) && strlen($itemsStatus['item_status']) > 0){
-							$itemData['status'] = $itemsStatus['item_status'];
+							$itemData['status'] = trim($itemsStatus['item_status']);
 							$timer->logTime("Got status from database item $itemIndex");
 						}
 					}
-					$itemData['availability'] = preg_match("/^({$configArray['Catalog']['availableStatuses']})$/i", $itemData['status']);
+					$availableRegex = "/^({$configArray['Catalog']['availableStatuses']})$/i";
+					if (preg_match($availableRegex, $itemData['status']) == 0){
+						$itemData['availability'] = false;
+					}else{
+						$itemData['availability'] = true;
+					}
+					
 					//Make the item holdable by default.  Then check rules to make it non-holdable.
 					$itemData['holdable'] = true;
 					//Make lucky day items not holdable
@@ -166,7 +172,7 @@ class Horizon implements DriverInterface{
 					$itemData['holdQueueLength'] = 0;
 					if (strlen($itemData['barcode']) > 0){
 						if ($forSummary && $firstItemWithSIPdata != null ){
-							$itemData = array_merge($itemData, $firstItemWithSIPdata);
+							$itemData = array_merge($firstItemWithSIPdata, $itemData);
 						}else{
 							$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status'], $forSummary);
 							if ($firstItemWithSIPdata == null){
@@ -407,7 +413,7 @@ class Horizon implements DriverInterface{
 		);
 	}
 	
-public function getMyHoldsViaHip($patron){
+	public function getMyHoldsViaHip($patron){
 		global $user;
 		global $configArray;
 		$logger = new Logger();
