@@ -63,7 +63,8 @@ class NearbyBookStore extends DB_DataObject
 			$store->query(
 				"SELECT {$store->__table}.* FROM {$store->__table} " . 
 				"INNER JOIN nearby_book_store ON ({$store->__table}.id=nearby_book_store.storeId) " . 
-				"WHERE libraryId=$libraryId"
+				"WHERE libraryId=$libraryId " .
+				"ORDER BY weight"
 			);
 		}
 		$list = array();

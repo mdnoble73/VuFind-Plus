@@ -30,7 +30,7 @@ class BookStore extends DB_DataObject
 			'storeName' => array('property'=>'storeName', 'type'=>'text', 'label'=>'Store Name', 'description'=>'The name of a book store'),
 			'link' => array('property'=>'link', 'type'=>'text', 'label'=>'Link', 'description'=>'The link to search'),
 			'linkText' => array('property'=>'linkText', 'type'=>'text', 'label'=>'Link Text', 'description'=>'The search link text to display'),
-			'image' => array('property'=>'image', 'type'=>'text', 'label'=>'Image', 'description'=>'The image/icon for the book store'),
+			'image' => array('property'=>'image', 'type'=>'image', 'label'=>'Image', 'description'=>'The image/icon for the book store'),
 			'resultRegEx' => array('property'=>'resultRegEx', 'type'=>'text', 'label'=>'Result RegEx', 'description'=>'The RegEx to check search result'),
 		);
 		foreach ($structure as $fieldName => $field){
