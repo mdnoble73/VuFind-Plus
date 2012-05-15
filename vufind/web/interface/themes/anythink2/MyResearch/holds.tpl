@@ -11,6 +11,7 @@ alert("{$title}");
   {include file="Admin/menu.tpl"}
 </div></div>
 <div id="main-content">
+  <h1>{if strlen($user->displayName) > 0}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</h1>
   {if $user->cat_username}
     {if $showStrands && $user->disableRecommendations == 0}
       {* Display recommendations for the user *}
@@ -25,7 +26,7 @@ alert("{$title}");
         recommendedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
       </script>
     {/if}
-    <div class="myAccountTitle">{translate text='Holds'}</div>
+    <h2>{translate text='Holds'}</h2>
     {if $userNoticeFile}
       {include file=$userNoticeFile}
     {/if}
