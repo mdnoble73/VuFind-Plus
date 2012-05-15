@@ -65,9 +65,9 @@
         // General settings for this theme.
         anythink = {settings: {}};
         // Hold message.
-        anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.hold_message = '{/literal}{if $hold_message}{$hold_message|escape:"javascript"}{literal}';
         // Renew message.
-        anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.renew_message = '{/literal}{if $renew_message}{$renew_message|escape:"javascript"}{literal}';
         $(document).ready(function(){
           // Show hold message if set.
           if (anythink.settings.hold_message != '') {
