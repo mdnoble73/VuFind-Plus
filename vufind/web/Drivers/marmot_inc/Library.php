@@ -169,6 +169,13 @@ class Library extends DB_DataObject
 		if (isset($library)) {
 			return $library;
 		}
+		//If there is only one library, that library is active by default. 
+		$activeLibrary = new Library();
+		$activeLibrary->find();
+		if ($activeLibrary->N == 1){
+			$activeLibrary->fetch();
+			return $activeLibrary;
+		}
 		//Next check to see if we are in a library.
 		global $locationSingleton;
 		$physicalLocation = $locationSingleton->getActiveLocation();

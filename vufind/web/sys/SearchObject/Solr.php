@@ -1362,7 +1362,7 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($field == 'institution' && isset($currentLibrary) && !is_null($currentLibrary)){
 				$doInstitutionProcessing = true;
 			}
-			if ($field == 'building' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+			if (($field == 'building' || $field == 'available_at') && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
 				$doBranchProcessing = true;
 			}
 			// Should we translate values for the current facet?
@@ -1454,7 +1454,7 @@ class SearchObject_Solr extends SearchObject_Base
 			//Only show one system unless we are in the global scope
 			if ($field == 'institution' && isset($currentLibrary)){
 				$list[$field]['valuesToShow'] = $numValidLibraries;
-			}else if ($field == 'building' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
+			}else if (($field == 'building' || $field == 'available_at') && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
 				$list[$field]['valuesToShow'] = $numValidRelatedLocations;
 			}else{
 				$list[$field]['valuesToShow'] = 5;
