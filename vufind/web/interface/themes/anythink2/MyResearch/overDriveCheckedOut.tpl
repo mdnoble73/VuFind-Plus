@@ -47,7 +47,7 @@
                   </span>
                 </div>
                 <div id="saveLink{$record.recordId|escape}">
-                  {if $showFavorites == 1} 
+                  {if $showFavorites == 1}
                     <a href="{$url}/Record/{$record.recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
                   {/if}
                   {if $user}
@@ -85,11 +85,11 @@
   {/if}
   <div id='overdriveMediaConsoleInfo'>
   <img src="{$path}/images/overdrive.png" width="125" height="42" alt="Powered by Overdrive" class="alignleft"/>
-  <p>To access OverDrive titles, you will need the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a>.  
+  <p>To access OverDrive titles, you will need the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a>.
   If you do not already have the OverDrive Media Console, you may download it <a href="http://www.overdrive.com/software/omc/">here</a>.</p>
-  <div class="clearer">&nbsp;</div> 
+  <div class="clearer">&nbsp;</div>
   <p>Need help transferring a title to your device or want to know whether or not your device is compatible with a particular format?
-  Click <a href="http://help.overdrive.com">here</a> for more information. 
+  Click <a href="http://help.overdrive.com">here</a> for more information.
   </p>
 </div>
 {else}
