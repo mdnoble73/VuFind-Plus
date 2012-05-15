@@ -363,9 +363,14 @@ body.Search--Home #logo {
   display: block;
 }
 
+body.MyResearch--GetCard #main-content,
 body.MyResearch--EmailPin #main-content,
 body.Search--Home #main-content {
   margin-left: 0;
+}
+
+.required {
+  color: #F00;
 }
 
 #sidebar-wrapper {
@@ -433,7 +438,7 @@ body.Search--Home #main-content {
   margin-bottom: .625em;
 }
 
-.login-action {
+.split-form {
   width: 50%;
   float: left;
 }
