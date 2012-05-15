@@ -162,7 +162,6 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
-					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
 				),
 			),
 			'location_1' => array(
@@ -172,6 +171,7 @@ class DBMaintenance extends Admin {
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `location` ADD `defaultPType` INT(11) NOT NULL DEFAULT '-1';",
+					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
 				),
 			),
 		
