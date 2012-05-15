@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{$userLang}">{strip}
+<html lang="{$userLang}">
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>{$pageTitle|truncate:64:"..."}</title>
@@ -220,4 +220,4 @@
   {/literal}
   </script>
   </body>
-</html>{/strip}
+</html>

@@ -1,4 +1,3 @@
-{strip}
 <div id="page-content" class="content">
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 	<div class="resulthead">
@@ -67,4 +66,3 @@
 	</div>
 	<script type="text/javascript">$('#username').focus();</script>
 </div>
-{/strip}
