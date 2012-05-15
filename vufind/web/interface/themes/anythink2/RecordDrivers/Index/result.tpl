@@ -1,6 +1,6 @@
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList clearfix record" data-summId="{$summId|escape}" data-type="VuFind">
   <div class="imageColumn">
-    {if $user->disableCoverArt != 1}
+    {if empty($user->disableCoverArt)}
       <div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none'></div>
       <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
       <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
@@ -42,9 +42,9 @@
         {/if}
       </div>
       {if $enableBookCart}
-      <div class="actions-cart">
-        <a href="#" class="button" data-summId="{$summId|escape}" data-title="{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}">Add to cart +</a>
-      </div>
+        <div class="actions-cart">
+          <a href="#" class="button" data-summId="{$summId|escape}" data-title="{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}">Add to cart +</a>
+        </div>
       {/if}
     </div>
     <script type="text/javascript">
@@ -58,7 +58,7 @@
   <div class="resultDetails">
     <h2>{if $summScore}({$summScore}) {/if}<a href="{$url}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a></h2>
     {if $summTitleStatement}
-    <div class="details">{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}</div>
+      <div class="details">{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}</div>
     {/if}
     <div class="details">
       {if !empty($summFormats)}
