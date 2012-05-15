@@ -914,7 +914,7 @@ public function getMyHoldsViaDB($patron)
 					$isPurchaseLink = preg_match('/amazon|barnesandnoble/i', $linkURL);
 					if ($isImageLink == 0 && $isInternalLink == 0 && $isPurchaseLink == 0){
 						$linkTestText = $linkText . ' ' . $linkURL;
-						$isDownload = preg_match('/SpringerLink|NetLibrary|digital media)|Online version\.|ebrary|gutenberg|emedia2go/i', $linkTestText);
+						$isDownload = preg_match('/SpringerLink|NetLibrary|digital media|Online version\.|ebrary|gutenberg|emedia2go/i', $linkTestText);
 						if ($linkTestText == 'digital media') $linkText = 'OverDrive';
 						if (preg_match('/netlibrary/i', $linkURL)){
 							$isDownload = true;
