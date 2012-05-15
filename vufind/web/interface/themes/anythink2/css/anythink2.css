@@ -657,7 +657,7 @@ body.Search--Home #main-content {
   width: 110px;
 }
 
-.result {
+div.result {
   border-bottom: 0;
   padding: 20px 0;
   background-color: #FFF;
@@ -1021,6 +1021,11 @@ table.adminTable tfoot tr th {
   border: 1px solid white;
   font-size: inherit;
   font-weight: bold;
+}
+
+.holdSection {
+  float: left;
+  width: 100%;
 }
 
 /**
