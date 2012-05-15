@@ -54,6 +54,10 @@ h1, h2, h3, h4, h5, h6 {
   color: #222;
 }
 
+h1 {
+  text-shadow: #eee 0 -1px 0;
+}
+
 #sidebar h1, 
 #sidebar h2, 
 #sidebar h3, 
@@ -359,6 +363,7 @@ body.Search--Home #logo {
   display: block;
 }
 
+body.MyResearch--EmailPin #main-content,
 body.Search--Home #main-content {
   margin-left: 0;
 }
@@ -426,6 +431,34 @@ body.Search--Home #main-content {
   line-height: 1.125em;
   margin-top: .625em;
   margin-bottom: .625em;
+}
+
+.login-action {
+  width: 50%;
+  float: left;
+}
+
+.get-card {
+  text-align: center;
+}
+
+#get-card {
+  background-image: url(../images/anythink-card.png);
+  background-repeat: no-repeat;
+  display: inline-block;
+  height: 319px;
+  overflow: hidden;
+  text-indent: 100%;
+  white-space: nowrap;
+  width: 400px;
+}
+
+.form-item {
+  margin-bottom: 10px;
+}
+
+#loginButton {
+  margin: inherit;
 }
 
 .toggle {
