@@ -74,6 +74,10 @@ form table {
   margin-bottom: 0;
 }
 
+table td {
+  vertical-align: top;
+}
+
 li li,
 li .button:link {
   font-size: 1em;

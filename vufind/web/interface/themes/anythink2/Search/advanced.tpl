@@ -28,7 +28,7 @@
   </div>
 </div></div>
 <div id="main-content" class="advSearchContent">
-          <div class="resulthead"><h3>{translate text='Advanced Search'}</h3></div>
+          <h1>{translate text='Advanced Search'}</h1/>
 
             {if $editErr}
             {assign var=error value="advSearchError_$editErr"}
@@ -54,16 +54,16 @@
             <input type="submit" name="submit" value="{translate text="Find"}" /><br /><br />
            {if $facetList}
             <h3>{translate text='Limit To'}</h3><br />
-            <table class="citation" summary="{translate text='Limit To'}">
+            <table summary="{translate text='Limit To'}">
               <tr>
               {foreach from=$facetList item="list" key="label"}
-                <th align="right">{translate text=$label}: </th>
+                <th>{translate text=$label}: </th>
               {/foreach}
               {if $illustratedLimit}
                 <th>{translate text="Illustrated"}</th>
             {/if}
             {if $showPublicationDate}
-              <th align="right">{translate text="Publication Year"}: </th>
+              <th>{translate text="Publication Year"}: </th>
             {/if}
               </tr>
               <tr>
