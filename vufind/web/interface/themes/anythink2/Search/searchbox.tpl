@@ -39,11 +39,12 @@
         {/if}
       </div>
       <div id="shards">
-      {if isset($shards)}
-        {foreach from=$shards key=shard item=isSelected}
-          <input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard-{$shard|replace:' ':''|escape}" /> <label for="shard-{$shard|replace:' ':''|escape}">{$shard|translate}</label>
-        {/foreach}
-      {/if}
+        <ul class="inline right"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>
+        {if isset($shards)}
+          {foreach from=$shards key=shard item=isSelected}
+            <input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard-{$shard|replace:' ':''|escape}" /> <label for="shard-{$shard|replace:' ':''|escape}">{$shard|translate}</label>
+          {/foreach}
+        {/if}
       </div>
     </div>
 
