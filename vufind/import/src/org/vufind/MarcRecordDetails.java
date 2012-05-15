@@ -50,7 +50,7 @@ public class MarcRecordDetails {
 	private String									sourceUrl;
 	private String									purchaseUrl;
 	private boolean									urlsLoaded;
-	private long										checksum;
+	private long										checksum = -1;
 
 	/**
 	 * Maps fields based on properties files for use in processors
@@ -197,9 +197,10 @@ public class MarcRecordDetails {
 	public long getChecksum() {
 		if (checksum == -1) {
 			CRC32 crc32 = new CRC32();
-			crc32.update(this.toString().getBytes());
+			crc32.update(record.toString().getBytes());
 			// System.out.println("CRC32: " + crc32.getValue());
 			checksum = crc32.getValue();
+			//System.out.println("CRC32: " + checksum);
 		}
 		return checksum;
 	}

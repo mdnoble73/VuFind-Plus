@@ -886,6 +886,14 @@ class DBMaintenance extends Admin {
 				") ENGINE = MYISAM;",
       ),
 		),
+		'marcImport_1' => array(
+			'title' => 'Marc Import table Update 1',
+			'description' => 'Increase the length of the checksum field for the marc import.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id when it was last imported.'",
+			),
+		),
 		'add_indexes' => array(
 			'title' => 'Add indexes',
 			'description' => 'Add indexes to tables that were not defined originally',
