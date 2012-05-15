@@ -1,5 +1,4 @@
 {strip}
-<div class="sidegroup">
 {if $user != false}
   <h2>{translate text='Your Account'}</h2>
   <div id="profileMessages">
@@ -49,7 +48,6 @@
     <li><a {if $pageTemplate=="overDriveWishList.tpl"}class="active"{/if} href="{$path}/MyResearch/OverdriveWishList">{translate text='Wish List'} (<span id="wishlistOverDrivePlaceholder">?</span>)</a></li>
   </ul>
 {/if}
-</div>
 {/strip}
 <script type="text/javascript">
   getOverDriveSummary();

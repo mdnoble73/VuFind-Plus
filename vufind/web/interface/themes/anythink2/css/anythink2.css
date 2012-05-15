@@ -46,6 +46,27 @@ h1, h2, h3, h4, h5, h6,
 p, ul, ol, dl, dt, dd, li {
   margin-top: 0;
   margin-bottom: 0;
+  color: inherit;
+  font-weight: normal;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #222;
+}
+
+#sidebar h1, 
+#sidebar h2, 
+#sidebar h3, 
+#sidebar h4, 
+#sidebar h5, 
+#sidebar h6 {
+  color: #444;
+}
+
+
+p, ul, ol, dl, table {
+  margin-bottom: 1.5em;
+  line-height: 1.5em;
 }
 
 li li,
@@ -54,25 +75,41 @@ li .button:link {
 }
 
 h1 {
-  font-size: 1.833em;
-  line-height: 1.636em
+  font-size: 2.667em; /* 32 */
+  line-height: 1.125em; /* 36 */
+  margin-top: 0;
+  margin-bottom: .5625em; /* 18 */
 }
 
+#sidebar h1,
 h2 {
-  font-size: 1.667em;
-  line-height: 1.2em;
-  margin-bottom: .5em;
+  font-size: 2em; /* 24 */
+  line-height: 1.125em; /* 27 */
+  margin-top: 0;
+  margin-bottom: .375em; /* 9 */
 }
 
+#sidebar h2,
 h3 {
-  font-size: 1.25em;
-  line-height: 1.2em;
-  margin-bottom: .6em;
+  font-size: 1.5em; /* 18 */
+  line-height: 1em; /* 18 */
+  margin-top: 0;
+  margin-bottom: .5em; /* 9 */
 }
 
+#sidebar h3,
+#sidebar h4,
+#sidebar h5,
+#sidebar h6,
 h4, h5, h6 {
-  font-size: 1.083em;
-  line-height: 1.286em;
+  font-size: 1.167em; /* 14 */
+  line-height: 1.286em; /* 18 */
+  margin-top: 0;
+  margin-bottom: .643em; /* 9 */
+}
+
+h5, h6 {
+  color: #666;
 }
 
 input, select {
@@ -581,6 +618,10 @@ body.Search--Home #main-content {
   margin-right: 20px;
 }
 
+.details {
+  margin-bottom: 10px;
+}
+
 .holdingsSummary {
   clear: none;
   display: block;
@@ -864,12 +905,22 @@ body.Search--Home #cart-wrapper {
   border-bottom: 0;
 }
 
-#record-title-nav {
+#record-title-nav-wrapper {
   right: 0;
   position: absolute;
   text-align: center;
   top: 10px;
   width: 180px;
+  background-color: #EEE;
+  border-radius: 4px;
+}
+
+#record-title-nav {
+  padding: 10px;
+}
+
+#nav-buttons {
+  margin-bottom: 10px;
 }
 
 .recordcover {
@@ -953,6 +1004,7 @@ ul.menu li {
 ul.inline {
   list-style: none;
   padding: 0;
+  margin-bottom: 0;
 }
 
 ul.left {
