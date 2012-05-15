@@ -16,7 +16,6 @@
 #materialsRequestPrefilterHeader{
   font-size: 16px;
   font-weight: bold;
-  color: #273791;
 }
 .materialsRequestLine{
   margin: 10px 0px;
@@ -67,7 +66,6 @@ h1 {
   color: #444;
 }
 
-
 p, ul, ol, dl, table, form {
   margin-bottom: 1.5em;
   line-height: 1.5em;
@@ -85,6 +83,33 @@ table td {
 li li,
 li .button:link {
   font-size: 1em;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:focus,
+a:active {
+  color: #33F;
+}
+
+a.active:link,
+a.active:visited,
+a.active:hover,
+a.active:focus,
+a.active:active {
+  color: inherit;
+}
+
+a:link,
+a:visited,
+a:focus,
+a:active {
+  text-decoration: underline;
+}
+
+a:hover {
+  text-decoration: none;
 }
 
 h1 {
