@@ -312,19 +312,23 @@ function redrawSaveStatus() {
         </h3>
       {/if}
     </div>
-    <div id="record-title-nav">
-      {if isset($previousId)}
-        <a class="button" href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}">&lt; Prev</a>
-      {/if}
-      {if isset($nextId)}
-        <a class="button" href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}">Next &gt;</a>
+    <div id="record-title-nav-wrapper"><div id="record-title-nav">
+      {if isset($previousId) || isset($nextId)}
+        <div id="nav-buttons">
+          {if isset($previousId)}
+            <a class="button" href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}">&lt; Prev</a>
+          {/if}
+          {if isset($nextId)}
+            <a class="button" href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}">Next &gt;</a>
+          {/if}
+        </div>
       {/if}
       {if $lastsearch}
       <div id="returnToSearch">
         <a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
       </div>
       {/if}
-    </div>
+    </div></div>
   </div>
   <div id="tools-column">
     <div class="actions-first">
