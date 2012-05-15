@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
 <html lang="{$userLang}">{strip}
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
@@ -115,10 +115,10 @@
             {* Link to Search Tips Help *}
             <li><a href="{$url}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
               Help <img id='searchHelpIcon' src="{$path}/interface/themes/default/images/help.png" alt="{translate text='Search Tips'}" />
-            </a><li>
+            </a></li>
             </ul>
           </div>
-          {if $action != 'Home' && $pageTemplate != 'advanced.tpl'}
+          {if !($module == 'Search' && $action == 'Home') && $pageTemplate != 'advanced.tpl'}
             {if $module=="Summon"}
               {include file="Summon/searchbox.tpl"}
             {elseif $module=="WorldCat"}
@@ -132,9 +132,9 @@
               {if !$user}
                 <li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>
               {else}
+                <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
               {/if}
-              <li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li>
             </ul>
           </div>
           {if $useSolr || $useWorldcat || $useSummon}
@@ -160,7 +160,9 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
-                {include file="bookcart.tpl"}
+                <div id="cart-wrapper">
+                  {include file="bookcart.tpl"}
+                </div>
                 {if $showBreadcrumbs}
                   <div id="breadcrumb">
                     <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>

@@ -67,5 +67,14 @@
   {/if}
   </div>
 
+  <div id="results-bottom">
   {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
+
+  {if $enableMaterialsRequest}
+  <div id="materialsRequestInfo">
+  Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
+  </div>
+  {/if}
+  </div>
+
 </div>
