@@ -22,7 +22,7 @@
 </div></div>
 
 <div id="main-content">
-  <div id="results-header" class="">
+  <div id="results-header">
     {if $recordCount}
       <h1>{$recordStart} - {$recordEnd} of {$recordCount} {translate text='results'} {if $searchType == 'basic'} {translate text='for'} <strong>{$lookfor|escape:"html"}</strong>{/if}</h1>
     {/if}

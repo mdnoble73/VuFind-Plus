@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{$userLang}">{strip}
+<html lang="{$userLang}">
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>{$pageTitle|truncate:64:"..."}</title>
@@ -65,9 +65,9 @@
         // General settings for this theme.
         anythink = {settings: {}};
         // Hold message.
-        anythink.settings.hold_message = {/literal}{if $hold_message}{$hold_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.hold_message = '{/literal}{if $hold_message}{$hold_message|escape:"javascript"}{/if}{literal}';
         // Renew message.
-        anythink.settings.renew_message = {/literal}{if $renew_message}{$renew_message|escape:"javascript"}{else}''{/if}{literal};
+        anythink.settings.renew_message = '{/literal}{if $renew_message}{$renew_message|escape:"javascript"}{/if}{literal}';
         $(document).ready(function(){
           // Show hold message if set.
           if (anythink.settings.hold_message != '') {
@@ -101,7 +101,7 @@
             <span class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></span>
             <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></span>
           {else}
-            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></span>
+            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></span>
           {/if}
           *}
           <a id="logo" href="{if $homeLink}{$homeLink}{else}{$url}{/if}">{translate text="Anythink Libraries"}</a>
@@ -130,7 +130,7 @@
           <div id="header-utility-bottom">
             <ul class="inline right">
               {if !$user}
-                <li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>
+                <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
               {else}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
@@ -220,4 +220,4 @@
   {/literal}
   </script>
   </body>
-</html>{/strip}
+</html>
