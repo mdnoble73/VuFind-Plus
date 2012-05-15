@@ -13,7 +13,7 @@
   <div class="resultActions" id="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
     <div class="actions-first">
       <div class="actions-rate">
-        <p>Rate:</p>
+        <label>Rate:</label>
         <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
           <div class="statVal">
             <span class="ui-rater">
@@ -56,14 +56,11 @@
     </script>
   </div>
   <div class="resultDetails">
-    <div>
-      <h2>{if $summScore}({$summScore}) {/if}<a href="{$url}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a></h2>
-      {if $summTitleStatement}
-      <div>{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}</div>
-      {/if}
-    </div>
-    <div>
-      <p>
+    <h2>{if $summScore}({$summScore}) {/if}<a href="{$url}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a></h2>
+    {if $summTitleStatement}
+    <div class="details">{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}</div>
+    {/if}
+    <div class="details">
       {if !empty($summFormats)}
         <span class="format">
           {if is_array($summFormats)}
@@ -86,12 +83,12 @@
           {/if}
         </span>
       {/if}
-      {if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}</p>
+      {if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}
     </div>
     {if !empty($summSnippetCaption) || !empty($summSnippet)}
       <div class="details fine-print">
-        <p>{if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
-        {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}</p>
+        {if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
+        {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}
       </div>
     {/if}
     <div id="holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">

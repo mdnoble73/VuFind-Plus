@@ -602,6 +602,10 @@ body.Search--Home #main-content {
   margin-right: 20px;
 }
 
+.details {
+  margin-bottom: 10px;
+}
+
 .holdingsSummary {
   clear: none;
   display: block;
