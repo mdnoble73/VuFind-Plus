@@ -115,7 +115,7 @@
             {* Link to Search Tips Help *}
             <li><a href="{$url}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
               Help <img id='searchHelpIcon' src="{$path}/interface/themes/default/images/help.png" alt="{translate text='Search Tips'}" />
-            </a><li>
+            </a></li>
             </ul>
           </div>
           {if !($module == 'Search' && $action == 'Home') && $pageTemplate != 'advanced.tpl'}
@@ -132,9 +132,9 @@
               {if !$user}
                 <li><a href="{$path}/MyResearch/Home">{translate text="Login"}</a></li>
               {else}
+                <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
               {/if}
-              <li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li>
             </ul>
           </div>
           {if $useSolr || $useWorldcat || $useSummon}
