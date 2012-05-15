@@ -16,14 +16,6 @@
           <input type="password" name="password" id="password" size="15"/>
         </div>
       </div>
-      {*
-      <div id ='loginPasswordRow2' class='loginFormRow'>
-        <div class='loginLabel'>&nbsp;</div>
-        <div class='loginField'>
-          &nbsp;<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
-        </div>
-      </div>
-      *}
       {if !$inLibrary}
       <div id ='loginPasswordRow3' class='loginFormRow'>
         <div class='loginLabel'>&nbsp;</div>
