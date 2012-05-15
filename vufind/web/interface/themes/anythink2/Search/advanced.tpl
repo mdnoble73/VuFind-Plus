@@ -28,7 +28,7 @@
   </div>
 </div></div>
 <div id="main-content" class="advSearchContent">
-          <h1>{translate text='Advanced Search'}</h1/>
+          <h1>{translate text='Advanced Search'}</h1>
 
             {if $editErr}
             {assign var=error value="advSearchError_$editErr"}
