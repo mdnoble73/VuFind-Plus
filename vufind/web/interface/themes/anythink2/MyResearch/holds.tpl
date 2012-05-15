@@ -95,8 +95,6 @@ alert("{$title}");
                   Hide Covers <input type="checkbox" onclick="$('.imageColumn').toggle();"/>
                 </div>
               </div>
-              {* Make sure there is a break between the form and the table *}
-              <div class='clearer'></div>
               <table class="myAccountTable" id="holdsTable{$sectionKey}">
                 <thead>
                   <tr>
