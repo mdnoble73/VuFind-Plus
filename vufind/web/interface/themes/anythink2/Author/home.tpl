@@ -23,14 +23,12 @@
 <div id="main-content">
    {if $info}
      <div class="authorbio yui-ge">
-     <h2>{$info.name|escape}</h2>
+     <h1>{$info.name|escape}</h1>
      {if $info.image}
      <img src="{$info.image}" alt="{$info.altimage|escape}" width="150px" class="alignleft recordcover">
      {/if}
      {$info.description|truncate_html:4500:"...":false}
-     <p>
-        <a href="http://{$wiki_lang}.wikipedia.org/wiki/{$info.name|escape:"url"}" target="new"><span class="note">{translate text='wiki_link'}</span></a></p>
-     <div class="clearer" ></div>
+     <p><a href="http://{$wiki_lang}.wikipedia.org/wiki/{$info.name|escape:"url"}" target="new"><span class="note">{translate text='wiki_link'}</span></a></p>
      </div>
    {/if}
    <div id="results-header">
