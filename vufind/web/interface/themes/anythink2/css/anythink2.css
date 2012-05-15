@@ -64,9 +64,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-p, ul, ol, dl, table {
+p, ul, ol, dl, table, form {
   margin-bottom: 1.5em;
   line-height: 1.5em;
+}
+
+table form,
+form table {
+  margin-bottom: 0;
 }
 
 li li,
@@ -995,6 +1000,23 @@ ul.menu li {
 .ui-widget {
   font-family: Verdana,Arial,sans-serif;
   font-size: 1.1em;
+}
+
+table.adminTable {
+  font-family: inherit;
+  background-color: #CDCDCD;
+  margin: 0px 0pt 15px;
+  font-size: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+table.adminTable thead tr th,
+table.adminTable tfoot tr th {
+  background-color: #E6EEEE;
+  border: 1px solid white;
+  font-size: inherit;
+  font-weight: bold;
 }
 
 /**
