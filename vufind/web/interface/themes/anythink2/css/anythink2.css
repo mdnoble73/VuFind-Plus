@@ -5,10 +5,6 @@
   background: #949494 url('/interface/themes/dcl/images/library-footer-top.png') repeat-x left top;
 }
 
-#similarTitlesSidegroup{
-  display: none;
-}
-
 #materialsRequestPrefilterBlock{
   text-align: center;
   margin-top: 20px;
