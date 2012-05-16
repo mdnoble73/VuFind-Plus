@@ -718,13 +718,20 @@ public function getMyHoldsViaDB($patron)
 		global $locationSingleton;
 		global $configArray;
 		global $memcache;
-		$summaryInformation = $memcache->get('holdings_summary_' . $id);
+		//Holdings summaries need to be cached based on the actual location since part of the information 
+		//includes local call numbers and statuses. 
+		$location = $locationSingleton->getPhysicalLocation();
+		if (!isset($location) && $location == null){
+			$location = $locationSingleton->getUserHomeLocation();
+		}
+		if (!isset($location) && $location == null){
+			$locationId = -1;
+		}else{
+			$locationId = $location->locationId;
+		}
+		$summaryInformation = $memcache->get("holdings_summary_{$id}_{$locationId}" );
 		if ($summaryInformation == false){
 	
-			$location = $locationSingleton->getPhysicalLocation();
-			if (!isset($location) && $location == null){
-				$location = $locationSingleton->getUserHomeLocation();
-			}
 			$canShowHoldButton = true;
 			if ($library && $library->showHoldButton == 0){
 				$canShowHoldButton = false;
@@ -1006,7 +1013,7 @@ public function getMyHoldsViaDB($patron)
 			//That way it will jive with the actual full record display.
 			if ($allItemStatus != null && $allItemStatus != ''){
 				//Only override this for statuses that don't have special meaning
-				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At'){
+				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At' && $summaryInformation['status'] != "It's Here"){
 					$summaryInformation['status'] = $allItemStatus;
 				}
 			}
@@ -1024,7 +1031,7 @@ public function getMyHoldsViaDB($patron)
 			}
 			$timer->logTime('Finished building summary');
 			
-			$memcache->set('holdings_summary_' . $id, $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
+			$memcache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
 		}
 		return $summaryInformation;
 	}
