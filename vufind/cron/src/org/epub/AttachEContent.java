@@ -92,7 +92,7 @@ public class AttachEContent implements IProcessHandler {
 			try {
 				markLogEntryFinished.setLong(1, new Date().getTime() / 1000);
 				markLogEntryFinished.setLong(2, processLog.getNumUpdates());
-				markLogEntryFinished.setLong(3, processLog.getNumUpdates());
+				markLogEntryFinished.setLong(3, processLog.getNumErrors());
 				markLogEntryFinished.setString(4, processLog.getNotesHtml());
 				markLogEntryFinished.setLong(5, logEntryId);
 				markLogEntryFinished.executeUpdate();
