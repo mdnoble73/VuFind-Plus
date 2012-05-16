@@ -48,7 +48,7 @@
 			<div class="myAccountLink{if $action == "ItemlessEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/ItemlessEContent">Itemless eContent</a></div>
 			<div class="myAccountLink{if $action == "EContentPurchaseAlert"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentPurchaseAlert">Purchase Alert</a></div>
 			<div class="myAccountLink{if $action == "EContentTrialRecords"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentTrialRecords">Trial Records</a></div>
-			<div class="myAccountLink{if $action == "EContentWishList"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentWishList">Wish List</a></div>
+			<div class="myAccountLink{if $action == "EContentWishListReport"} active{/if}" style="float: none;"><a href="{$path}/EContent/EContentWishListReport">Wish List</a></div>
 			<div class="myAccountLink{if $action == "ArchivedEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/ArchivedEContent">Archived eContent</a></div>
 			<div class="myAccountLink{if $action == "DeletedEContent"} active{/if}" style="float: none;"><a href="{$path}/EContent/DeletedEContent">Deleted eContent</a></div>
 		</div>
