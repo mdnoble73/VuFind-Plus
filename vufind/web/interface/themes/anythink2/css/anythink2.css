@@ -690,6 +690,29 @@ body.Search--Home #main-content {
   margin-right: 20px;
 }
 
+.godeeper {
+  position: absolute;
+  right: -9px;
+  bottom: -4px;
+  z-index: 2;
+}
+
+.godeeper a {
+  background-image: url(../images/explore-sprite.png);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  display: block;
+  height: 70px;
+  overflow: hidden;
+  text-indent: 100%;
+  white-space: nowrap;
+  width: 130px;
+}
+
+.godeeper a:hover {
+  background-position: 0 -70px;
+}
+
 .details {
   margin-bottom: 10px;
 }
