@@ -236,15 +236,13 @@ function redrawSaveStatus() {
       {foreach from=$similarRecords item=similar}
       <li>
         {if is_array($similar.format)}
-          <span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="icon-{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
         {else}
-          <span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="icon-{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
         {/if}
         <a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
         </span>
-        <span style="font-size: 80%">
-        {if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
-        </span>
+        {if $similar.author}<div class="fine-print">{translate text='By'}: {$similar.author|escape}</div>{/if}
       </li>
       {/foreach}
     </ul>
