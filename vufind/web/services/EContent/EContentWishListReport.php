@@ -24,7 +24,7 @@ require_once 'sys/eContent/EContentRecord.php';
 require_once 'sys/Pager.php';
 require_once("PHPExcel.php");
 
-class EContentWishList extends Admin
+class EContentWishListReport extends Admin
 {
 	function launch()
 	{

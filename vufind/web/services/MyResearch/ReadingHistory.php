@@ -74,12 +74,18 @@ class ReadingHistory extends MyResearch
 				$result = $this->catalog->getReadingHistory($patron, $page, $recordsPerPage, $selectedSortOption);
 				
 				$link = $_SERVER['REQUEST_URI'];
-				$link = preg_replace("/[&?]page=\d+/", "", $link);
+				if (preg_match('/[&?]page=/', $link)){
+					$link = preg_replace("/page=\\d+/", "page=%d", $link);
+				}else if (strpos($link, "?") > 0){
+					$link .= "&page=%d";
+				}else{
+					$link .= "?page=%d";
+				}
 				if ($recordsPerPage != '-1'){
 					$options = array('totalItems' => $result['numTitles'],
 					                 'fileName'   => $link,
 					                 'perPage'    => $recordsPerPage,
-					                 'append'    => true,
+					                 'append'    => false,
 					                 );
 					$pager = new VuFindPager($options);
 					$interface->assign('pageLinks', $pager->getLinks());

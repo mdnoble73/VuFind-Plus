@@ -398,9 +398,9 @@ class CatalogConnection
 	 * otherwise.
 	 * @access public
 	 */
-	public function getMyHolds($patron)
+	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
 	{
-		return $this->driver->getMyHolds($patron);
+		return $this->driver->getMyHolds($patron, $page, $recordsPerPage, $sortOption);
 	}
 
 	/**
