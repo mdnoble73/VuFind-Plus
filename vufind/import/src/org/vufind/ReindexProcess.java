@@ -209,7 +209,7 @@ public class ReindexProcess {
 		
 		logger.info("Processing resources");
 		try {
-			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource");
+			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet allResources = allResourcesStmt.executeQuery();
 			while (allResources.next()){
 				for (IResourceProcessor resourceProcessor : resourceProcessors){

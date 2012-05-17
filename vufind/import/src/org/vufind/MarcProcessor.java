@@ -137,6 +137,7 @@ public class MarcProcessor {
 		// Load the checksums of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
 		// or is deleted
+		logger.info("Loading existing checksums for records");
 		try {
 			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import");
 			ResultSet existingRecordChecksumsRS = existingRecordChecksumsStmt.executeQuery();
@@ -150,6 +151,7 @@ public class MarcProcessor {
 		
 		//Load the ILS ids of any eContent records that have been loaded so we can 
 		//suppress the record in the regular content
+		logger.info("Loading ils ids for econtent records for suppression");
 		try {
 			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record");
 			ResultSet existingEContentRecordRS = existingEContentRecordStmt.executeQuery();
@@ -162,6 +164,7 @@ public class MarcProcessor {
 		}
 		
 		// Load detection settings to determine if a record is eContent. 
+		logger.info("Loading record detection settings");
 		try {
 			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings");
 			ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
