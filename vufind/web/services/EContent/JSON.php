@@ -37,6 +37,7 @@ class JSON extends Action
 		global $configArray;
 		 
 		$id = $_REQUEST['id'];
+		$item = $_REQUEST['item'];
 
 		//Check the database to see if there is an existing title
 		require_once('sys/eContent/EContentItem.php');
@@ -64,7 +65,7 @@ class JSON extends Action
 		if ($epubExists){
 			if ($_GET['method'] == 'getComponent' || $_GET['method'] == 'getComponentCustom') {
 				//Content type will depend on the type of content created.
-				$output = $this->$_GET['method']($ebook, $id);
+				$output = $this->$_GET['method']($ebook, $id, $item);
 			}else{
 				header('Content-type: text/plain');
 				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -85,7 +86,7 @@ class JSON extends Action
 		echo $output;
 	}
 
-	function getComponent($ebook, $id){
+	function getComponent($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
 		if (strpos($component, "#") > 0){
@@ -127,7 +128,7 @@ class JSON extends Action
 				if (in_array($manifestType, array('image/jpeg', 'image/gif', 'image/tif', 'text/css'))){
 					//Javascript or image
 					$pattern = str_replace("~", "\~", preg_quote($manifestHref));
-					$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId);
+					$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId) . "&item=" . $item;
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
 				}else{
 					//Link to another location within the document
@@ -151,7 +152,7 @@ class JSON extends Action
 		return $componentText;
 	}
 	
-	function getComponentCustom($ebook, $id){
+	function getComponentCustom($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
 		if (strpos($component, "#") > 0){
@@ -197,7 +198,7 @@ class JSON extends Action
 						//Ignore css for now
 						$replacement = '';
 					}else{
-						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId);
+						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId) . "&item=" . $item;
 					}
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
 				}else{

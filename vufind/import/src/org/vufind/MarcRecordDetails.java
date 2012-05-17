@@ -2437,7 +2437,7 @@ public class MarcRecordDetails {
 		// If all locations should be suppressed, then the record should be suppressed.
 		Set<String> input = getFieldList(record, locationField);
 		boolean suppressRecord = false;
-		if (input != null){
+		if (input != null && input.size() > 0){
 			Iterator<String> iter = input.iterator();
 			suppressRecord = true;
 			while (iter.hasNext()) {

@@ -119,7 +119,7 @@ $.idleTimer = function(newTimeout, elem){
         var event = jQuery.Event( $.data(elem,'idleTimer', obj.idle ? "idle" : "active" )  + '.idleTimer'   );
         
         // we dont want this to bubble
-        event.stopPropagation();
+        //event.stopPropagation();
         $(elem).trigger(event);            
     },
 
