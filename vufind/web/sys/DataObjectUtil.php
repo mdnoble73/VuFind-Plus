@@ -38,7 +38,7 @@ class DataObjectUtil
 		//Define the structure of the object.
 		$interface->assign('structure', $objectStructure);
 		//Check to see if the request should be multipart/form-data
-		$contentType = 'application/x-www-form-urlencoded';
+		$contentType = null;
 		foreach ($objectStructure as $property){
 			if ($property['type'] == 'image' || $property['type'] == 'file'){
 				$contentType = 'multipart/form-data';
