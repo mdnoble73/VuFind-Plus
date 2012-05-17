@@ -5,10 +5,6 @@
   background: #949494 url('/interface/themes/dcl/images/library-footer-top.png') repeat-x left top;
 }
 
-#similarTitlesSidegroup{
-  display: none;
-}
-
 #materialsRequestPrefilterBlock{
   text-align: center;
   margin-top: 20px;
@@ -16,7 +12,6 @@
 #materialsRequestPrefilterHeader{
   font-size: 16px;
   font-weight: bold;
-  color: #273791;
 }
 .materialsRequestLine{
   margin: 10px 0px;
@@ -54,6 +49,10 @@ h1, h2, h3, h4, h5, h6 {
   color: #222;
 }
 
+h1 {
+  text-shadow: #eee 0 -1px 0;
+}
+
 #sidebar h1, 
 #sidebar h2, 
 #sidebar h3, 
@@ -63,15 +62,50 @@ h1, h2, h3, h4, h5, h6 {
   color: #444;
 }
 
-
-p, ul, ol, dl, table {
+p, ul, ol, dl, table, form {
   margin-bottom: 1.5em;
   line-height: 1.5em;
+}
+
+table form,
+form table {
+  margin-bottom: 0;
+}
+
+table td {
+  vertical-align: top;
 }
 
 li li,
 li .button:link {
   font-size: 1em;
+}
+
+a:link,
+a:visited,
+a:hover,
+a:focus,
+a:active {
+  color: #256292;
+}
+
+a.active:link,
+a.active:visited,
+a.active:hover,
+a.active:focus,
+a.active:active {
+  color: inherit;
+}
+
+a:link,
+a:visited,
+a:focus,
+a:active {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 h1 {
@@ -350,8 +384,14 @@ body.Search--Home #logo {
   display: block;
 }
 
+body.MyResearch--GetCard #main-content,
+body.MyResearch--EmailPin #main-content,
 body.Search--Home #main-content {
   margin-left: 0;
+}
+
+.required {
+  color: #F00;
 }
 
 #sidebar-wrapper {
@@ -417,6 +457,34 @@ body.Search--Home #main-content {
   line-height: 1.125em;
   margin-top: .625em;
   margin-bottom: .625em;
+}
+
+.split-form {
+  width: 50%;
+  float: left;
+}
+
+.get-card {
+  text-align: center;
+}
+
+#get-card {
+  background-image: url(../images/anythink-card.png);
+  background-repeat: no-repeat;
+  display: inline-block;
+  height: 319px;
+  overflow: hidden;
+  text-indent: 100%;
+  white-space: nowrap;
+  width: 400px;
+}
+
+.form-item {
+  margin-bottom: 10px;
+}
+
+#loginButton {
+  margin: inherit;
 }
 
 .toggle {
@@ -618,6 +686,29 @@ body.Search--Home #main-content {
   margin-right: 20px;
 }
 
+.godeeper {
+  position: absolute;
+  right: -9px;
+  bottom: -4px;
+  z-index: 2;
+}
+
+.godeeper a {
+  background-image: url(../images/explore-sprite.png);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  display: block;
+  height: 70px;
+  overflow: hidden;
+  text-indent: 100%;
+  white-space: nowrap;
+  width: 130px;
+}
+
+.godeeper a:hover {
+  background-position: 0 -70px;
+}
+
 .details {
   margin-bottom: 10px;
 }
@@ -648,7 +739,7 @@ body.Search--Home #main-content {
   width: 110px;
 }
 
-.result {
+div.result {
   border-bottom: 0;
   padding: 20px 0;
   background-color: #FFF;
@@ -995,6 +1086,28 @@ ul.menu li {
 .ui-widget {
   font-family: Verdana,Arial,sans-serif;
   font-size: 1.1em;
+}
+
+table.adminTable {
+  font-family: inherit;
+  background-color: #CDCDCD;
+  margin: 0px 0pt 15px;
+  font-size: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+table.adminTable thead tr th,
+table.adminTable tfoot tr th {
+  background-color: #E6EEEE;
+  border: 1px solid white;
+  font-size: inherit;
+  font-weight: bold;
+}
+
+.holdSection {
+  float: left;
+  width: 100%;
 }
 
 /**

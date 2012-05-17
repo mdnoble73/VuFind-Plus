@@ -57,8 +57,7 @@ function redrawSaveStatus() {
             <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
           </a>
           <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-            <img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">Explore</a>
           </div>
         </div>
       {/if}
@@ -237,15 +236,13 @@ function redrawSaveStatus() {
       {foreach from=$similarRecords item=similar}
       <li>
         {if is_array($similar.format)}
-          <span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="icon-{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
         {else}
-          <span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="icon-{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
         {/if}
         <a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
         </span>
-        <span style="font-size: 80%">
-        {if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
-        </span>
+        {if $similar.author}<div class="fine-print">{translate text='By'}: {$similar.author|escape}</div>{/if}
       </li>
       {/foreach}
     </ul>
