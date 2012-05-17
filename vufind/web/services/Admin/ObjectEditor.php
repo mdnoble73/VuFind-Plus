@@ -161,6 +161,14 @@ abstract class ObjectEditor extends Admin
 			$this->setDefaultValues($existingObject, $structure);
 		}
 		$interface->assign('object', $existingObject);
+		//Check to see if the request should be multipart/form-data
+		$contentType = 'application/x-www-form-urlencoded';
+		foreach ($structure as $property){
+			if ($property['type'] == 'image' || $property['type'] == 'file'){
+				$contentType = 'multipart/form-data';
+			}
+		}
+		$interface->assign('contentType', $contentType);
 		$interface->setTemplate('../Admin/objectEditor.tpl');
 	}
 
