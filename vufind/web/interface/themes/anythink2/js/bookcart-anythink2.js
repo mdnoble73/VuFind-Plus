@@ -82,14 +82,14 @@ $(document).ready(function() {
 });
 
 function bagResize() {
-  var bag_container = $('#cart-wrapper');
+  var cart_wrapper = $('#cart-wrapper');
   var offset = anythink.settings.bag_offset;
-  bag_container.css({marginLeft: '-' + parseInt(bag_container.width()/2 + 20) + 'px'});
-  if (offset.top < $(window).scrollTop() && !bag_container.hasClass('cling')) {
-    bag_container.addClass('cling');
+  cart_wrapper.css({width: cart_wrapper.parent().width() + 'px'});
+  if (offset.top < $(window).scrollTop() && !cart_wrapper.hasClass('cling')) {
+    cart_wrapper.addClass('cling');
   }
-  else if (offset.top >= $(window).scrollTop() && bag_container.hasClass('cling')){
-    bag_container.removeClass('cling');
+  else if (offset.top >= $(window).scrollTop() && cart_wrapper.hasClass('cling')){
+    cart_wrapper.removeClass('cling');
   }
 }
 
