@@ -542,7 +542,7 @@ class EContentRecord extends SolrDataObject {
 		  'description' => 'The Notes on the item.',
 		  'required'=> false,
 		  'storeDb' => true,
-		  'storeSolr' => true,
+		  'storeSolr' => false,
 		),
 		'ilsId' => array(
       'property'=>'ilsId', 

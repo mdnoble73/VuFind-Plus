@@ -285,7 +285,7 @@ class Horizon implements DriverInterface{
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		global $configArray;
 		global $timer;
-
+		
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
 		}
@@ -724,13 +724,20 @@ public function getMyHoldsViaDB($patron)
 		global $locationSingleton;
 		global $configArray;
 		global $memcache;
-		$summaryInformation = $memcache->get('holdings_summary_' . $id);
+		//Holdings summaries need to be cached based on the actual location since part of the information 
+		//includes local call numbers and statuses. 
+		$location = $locationSingleton->getPhysicalLocation();
+		if (!isset($location) && $location == null){
+			$location = $locationSingleton->getUserHomeLocation();
+		}
+		if (!isset($location) && $location == null){
+			$locationId = -1;
+		}else{
+			$locationId = $location->locationId;
+		}
+		$summaryInformation = $memcache->get("holdings_summary_{$id}_{$locationId}" );
 		if ($summaryInformation == false){
 	
-			$location = $locationSingleton->getPhysicalLocation();
-			if (!isset($location) && $location == null){
-				$location = $locationSingleton->getUserHomeLocation();
-			}
 			$canShowHoldButton = true;
 			if ($library && $library->showHoldButton == 0){
 				$canShowHoldButton = false;
@@ -920,7 +927,7 @@ public function getMyHoldsViaDB($patron)
 					$isPurchaseLink = preg_match('/amazon|barnesandnoble/i', $linkURL);
 					if ($isImageLink == 0 && $isInternalLink == 0 && $isPurchaseLink == 0){
 						$linkTestText = $linkText . ' ' . $linkURL;
-						$isDownload = preg_match('/SpringerLink|NetLibrary|digital media)|Online version\.|ebrary|gutenberg|emedia2go/i', $linkTestText);
+						$isDownload = preg_match('/SpringerLink|NetLibrary|digital media|Online version\.|ebrary|gutenberg|emedia2go/i', $linkTestText);
 						if ($linkTestText == 'digital media') $linkText = 'OverDrive';
 						if (preg_match('/netlibrary/i', $linkURL)){
 							$isDownload = true;
@@ -1012,7 +1019,7 @@ public function getMyHoldsViaDB($patron)
 			//That way it will jive with the actual full record display.
 			if ($allItemStatus != null && $allItemStatus != ''){
 				//Only override this for statuses that don't have special meaning
-				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At'){
+				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At' && $summaryInformation['status'] != "It's Here"){
 					$summaryInformation['status'] = $allItemStatus;
 				}
 			}
@@ -1030,7 +1037,7 @@ public function getMyHoldsViaDB($patron)
 			}
 			$timer->logTime('Finished building summary');
 			
-			$memcache->set('holdings_summary_' . $id, $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
+			$memcache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
 		}
 		return $summaryInformation;
 	}
@@ -2926,5 +2933,54 @@ private function parseSip2Fines($finesData){
 		}else{
 			return mssql_fetch_array($result_id);
 		}
+	}
+	
+/**
+	 * Email the user's pin number to the account on record if any exists.
+	 */
+	function emailPin($barcode){
+		global $configArray;
+		if ($this->useDb){
+			$sql = "SELECT name, borrower.borrower#, bbarcode, pin#, email_name, email_address from borrower inner join borrower_barcode on borrower.borrower# = borrower_barcode.borrower# inner join borrower_address on borrower.borrower# = borrower_address.borrower#  where bbarcode= '" . mysql_escape_string($barcode) . "'";
+
+			try {
+				$sqlStmt = $this->_query($sql);
+				$foundPatron = false;
+				while ($row = $this->_fetch_assoc($sqlStmt)) {
+					$pin = $row['pin#'];
+					$email = $row['email_address'];
+					$foundPatron = true;
+					break;
+				}
+
+				if ($foundPatron){
+					if (strlen($email) == 0){
+						return array('error' => 'Your account does not have an email address on record. Please visit your local library to retrieve your PIN number.');
+					}
+					require_once 'sys/Mailer.php';
+
+					$mailer = new VuFindMailer();
+					$subject = "PIN number for your Library Card";
+					$body = "The PIN number for your Library Card is $pin.  You may use this PIN number to login to your account.";
+					$mailer->send($email, $configArray['Site']['email'],$subject, $body);
+					return array(
+						'success' => true,
+						'pin' => $pin,
+						'email' => $email,
+					);
+				}else{
+					return array('error' => 'Sorry, we could not find an account with that barcode.');
+				}
+			} catch (PDOException $e) {
+				return array(
+					'error' => 'Unable to ready you PIN from the database.  Please try again later.'
+					);
+			}
+		}else{
+			$result = array(
+				'error' => 'This functionality requires a connection to the database.',
+			);
+		}
+		return $result;
 	}
 }

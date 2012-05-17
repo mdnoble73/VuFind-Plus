@@ -125,7 +125,7 @@ class GoDeeperData{
 				)
 				));
 	
-				$response =file_get_contents($requestUrl, 0, $ctx);
+				$response = @file_get_contents($requestUrl, 0, $ctx);
 				if (preg_match('/Error in Query Selection/', $response)){
 					return array();
 				}
@@ -142,7 +142,7 @@ class GoDeeperData{
 			}catch (Exception $e) {
 				$logger = new Logger();
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERROR);
-				$logger->log("Request URL was $requestUrl");
+				$logger->log("Request URL was $requestUrl", PEAR_LOG_ERROR);
 				$summaryData = array();
 			}
 			$memcache->set("syndetics_summary_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_summary']);

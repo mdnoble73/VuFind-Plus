@@ -162,6 +162,16 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
+					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
+				),
+			),
+			'location_1' => array(
+				'title' => 'Location 1',
+				'description' => 'Add fields orginally defined for Marmot',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `location` ADD `defaultPType` INT(11) NOT NULL DEFAULT '-1';",
 				),
 			),
 		
@@ -887,12 +897,12 @@ class DBMaintenance extends Admin {
       ),
 		),
 		'marcImport_1' => array(
-      'title' => 'Marc Import table Update 1',
-      'description' => 'Increase the length of the checksum field for the marc import.',
-      'dependencies' => array(),
-      'sql' => array(
-		    "ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id when it was last imported.'",
-		  ),
+			'title' => 'Marc Import table Update 1',
+			'description' => 'Increase the length of the checksum field for the marc import.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id when it was last imported.'",
+			),
 		),
 		'add_indexes' => array(
 			'title' => 'Add indexes',

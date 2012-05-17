@@ -52,7 +52,7 @@
                         <input type="text" size="10" name="suspendDateTop" id="suspendDateTop" value="" />
                         <script type="text/javascript">{literal}
                           $(function() {
-                            $( "#suspendDateTop" ).datepicker({ minDate: 0, showOn: "both", buttonImage: "{/literal}{$path}{literal}/interface/themes/wcpl/images/silk/calendar.png", numberOfMonths: 2,  buttonImageOnly: true});
+                            $( "#suspendDateTop" ).datepicker({ minDate: 0, showOn: "both", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,  buttonImageOnly: true});
                           });{/literal}
                         </script>
                         <input type="submit" class="button" name="freezeSelected" value="Suspend Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
@@ -210,7 +210,7 @@
                 	<input type="text" size="10" name="suspendDateBottom" id="suspendDateBottom" value="" />
                 	<script type="text/javascript">{literal}
         					  $(function() {
-        					    $( "#suspendDateBottom" ).datepicker({ minDate: 0, showOn: "both", buttonImage: "{/literal}{$path}{literal}/interface/themes/wcpl/images/silk/calendar.png", numberOfMonths: 2,  buttonImageOnly: true});
+        					    $( "#suspendDateBottom" ).datepicker({ minDate: 0, showOn: "both", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,  buttonImageOnly: true});
         					  });{/literal}
 					        </script>
 				    <input type="submit" class="button" name="freezeSelected" value="Suspend Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
