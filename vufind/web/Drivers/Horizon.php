@@ -112,7 +112,11 @@ class Horizon implements DriverInterface{
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode 
 				global $memcache;
-				$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
+				if (isset($barcode) && strlen($barcode) > 0){ 
+					$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
+				}else{
+					$itemData = false;
+				}
 				if ($itemData == false){
 					//No data exists
 				
@@ -186,7 +190,9 @@ class Horizon implements DriverInterface{
 
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
-					$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
+					if (isset($barcode) && strlen($barcode) > 0){ 
+						$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
+					}
 				}
 				
 				$suppressItem = false;
