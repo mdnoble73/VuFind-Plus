@@ -9,7 +9,7 @@
 {/if}
 
 {* Create the base form *}
-<form id='objectEditor' method="post" enctype="{if $contentType}{$contentType}{else}multipart/form-data{/if}" action="{$submitUrl}">
+<form id='objectEditor' method="post" {if $contentType}enctype="{$contentType}"{/if} action="{$submitUrl}">
   {literal}
   <script type="text/javascript">
   $(document).ready(function(){
