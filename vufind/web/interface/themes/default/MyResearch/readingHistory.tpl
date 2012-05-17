@@ -71,6 +71,7 @@
 										<option value="{$sortOption}" {if $sortOption == $defaultSortOption}selected="selected"{/if}>{$sortOptionLabel}</option>
 									{/foreach}
 								</select>
+								</span>
 								
 								<div class='sortOptions'>
 									Hide Covers <input type="checkbox" onclick="$('.imageColumn').toggle();"/>

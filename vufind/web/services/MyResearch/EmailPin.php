@@ -34,12 +34,16 @@ class EmailPin extends Action{
 		global $configArray;
 		
 		if (isset($_REQUEST['submit'])){
-			require_once 'Drivers/WCPL.php';
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 			$driver = $this->catalog->driver;
-			
-			$barcode = strip_tags($_REQUEST['barcode']);
-			$emailResult = $driver->emailPin($barcode);
+			if ($this->catalog->checkFunction('emailPin')){
+				$barcode = strip_tags($_REQUEST['barcode']);
+				$emailResult = $driver->emailPin($barcode);
+			}else{
+				$emailResult = array(
+					'error' => 'This functionality is not available in the ILS.',
+				);
+			}
 			$interface->assign('emailResult', $emailResult);
 			$interface->setTemplate('emailPinResults.tpl');
 		}else{
@@ -48,5 +52,3 @@ class EmailPin extends Action{
 		$interface->display('layout.tpl');
 	}
 }
-
-?>

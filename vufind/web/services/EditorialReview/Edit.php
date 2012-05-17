@@ -26,57 +26,57 @@ require_once 'sys/DataObjectUtil.php';
 
 class Edit extends Admin {
 
-  function launch()
-  {
-    global $interface;
-    global $configArray;
+	function launch()
+	{
+		global $interface;
+		global $configArray;
 
-    $isNew = true;
-    if (isset($_REQUEST['id']) && strlen($_REQUEST['id']) > 0 ){
-    	$editorialReview = new EditorialReview();
-    	$editorialReview->editorialReviewId = $_REQUEST['id'];
-    	$editorialReview->find();
-    	if ($editorialReview->N > 0){
-	      $editorialReview->fetch();
-	      $interface->assign('object', $editorialReview);
-	      $interface->setPageTitle('Edit Editorial Review');
-	      $isNew = false;
-    	}
-    }
-    $structure = EditorialReview::getObjectStructure();
+		$isNew = true;
+		if (isset($_REQUEST['id']) && strlen($_REQUEST['id']) > 0 ){
+			$editorialReview = new EditorialReview();
+			$editorialReview->editorialReviewId = $_REQUEST['id'];
+			$editorialReview->find();
+			if ($editorialReview->N > 0){
+				$editorialReview->fetch();
+				$interface->assign('object', $editorialReview);
+				$interface->setPageTitle('Edit Editorial Review');
+				$isNew = false;
+			}
+		}
+		$structure = EditorialReview::getObjectStructure();
 
-    if (isset($_REQUEST['submit'])){
-      //Save the object
-      $results = DataObjectUtil::saveObject($structure, 'EditorialReview');
-      $editorialReview = $results['object'];
-      //redirect to the view of the competency if we saved ok.
-      if (!$results['validatedOk'] || !$results['saveOk']){
-        //Display the errors for the user.
-        $interface->assign('errors', $results['errors']);
-        $interface->assign('object', $editorialReview);
-        $_REQUEST['id'] = $editorialReview->editorialReviewId;
-      }else{
-        //Show the new tip that was created
-        header('Location:' . $configArray['Site']['path'] . "/EditorialReview/{$editorialReview->editorialReviewId}/View");
-        exit();
-      }
-    }
+		if (isset($_REQUEST['submit'])){
+			//Save the object
+			$results = DataObjectUtil::saveObject($structure, 'EditorialReview');
+			$editorialReview = $results['object'];
+			//redirect to the view of the competency if we saved ok.
+			if (!$results['validatedOk'] || !$results['saveOk']){
+				//Display the errors for the user.
+				$interface->assign('errors', $results['errors']);
+				$interface->assign('object', $editorialReview);
+				$_REQUEST['id'] = $editorialReview->editorialReviewId;
+			}else{
+				//Show the new tip that was created
+				header('Location:' . $configArray['Site']['path'] . "/EditorialReview/{$editorialReview->editorialReviewId}/View");
+				exit();
+			}
+		}
 
-    //Manipulate the structure as needed
-    if ($isNew){
-    }else{
-    }
+		//Manipulate the structure as needed
+		if ($isNew){
+		}else{
+		}
 
-    $interface->assign('isNew', $isNew);
-    $interface->assign('submitUrl', $configArray['Site']['path'] . '/EditorialReview/Edit');
-    $interface->assign('editForm', DataObjectUtil::getEditForm($structure));
+		$interface->assign('isNew', $isNew);
+		$interface->assign('submitUrl', $configArray['Site']['path'] . '/EditorialReview/Edit');
+		$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
 
-    $interface->setTemplate('edit.tpl');
+		$interface->setTemplate('edit.tpl');
 
-    $interface->display('layout.tpl');
-  }
+		$interface->display('layout.tpl');
+	}
 
-  function getAllowableRoles(){
-  	return array('opacAdmin');
-  }
+	function getAllowableRoles(){
+		return array('opacAdmin');
+	}
 }

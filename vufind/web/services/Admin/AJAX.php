@@ -59,45 +59,61 @@ class AJAX extends Action {
 
 	function getReindexProcessNotes()
 	{
+		global $interface;
 		$id = $_REQUEST['id'];
 		$reindexProcess = new ReindexProcessLogEntry();
 		$reindexProcess->id = $id;
 		if ($reindexProcess->find(true)){
-			return $reindexProcess->notes;
+			$interface->assign('popupTitle', "{$reindexProcess->processName} Notes");
+			if (strlen(trim($reindexProcess->notes)) == 0){
+				$interface->assign('popupContent', "No notes have been entered for this process");
+			}else{
+				$interface->assign('popupContent', $reindexProcess->notes);
+			}
 		}else{
-			return "We could not find a process with that id.  No notes available.";
+			$interface->assign('popupTitle', "Error");
+			$interface->assign('popupContent', "We could not find a process with that id.  No notes available.");
 		}
+		return $interface->fetch('popup-wrapper.tpl');
 	}
 	
 	function getCronProcessNotes()
 	{
+		global $interface;
 		$id = $_REQUEST['id'];
 		$cronProcess = new CronProcessLogEntry();
 		$cronProcess->id = $id;
 		if ($cronProcess->find(true)){
+			$interface->assign('popupTitle', "{$cronProcess->processName} Notes");
 			if (strlen($cronProcess->notes) == 0){
-				return "No notes have been entered for this process";
+				$interface->assign('popupContent', "No notes have been entered for this process");
 			}else{
-				return $cronProcess->notes;
+				$interface->assign('popupContent', $cronProcess->notes);
 			}
 		}else{
-			return "We could not find a process with that id.  No notes available.";
+			$interface->assign('popupTitle', "Error");
+			$interface->assign('popupContent', "We could not find a process with that id.  No notes available.");
 		}
+		return $interface->fetch('popup-wrapper.tpl');
 	}
 	
 	function getCronNotes()
 	{
+		global $interface;
 		$id = $_REQUEST['id'];
 		$cronLog = new CronLogEntry();
 		$cronLog->id = $id;
 		if ($cronLog->find(true)){
+			$interface->assign('popupTitle', "Cron Process {$cronLog->id} Notes");
 			if (strlen($cronLog->notes) == 0){
-				return "No notes have been entered for this cron run";
+				$interface->assign('popupContent', "No notes have been entered for this cron run");
 			}else{
-				return $cronLog->notes;
+				$interface->assign('popupContent', $cronLog->notes);
 			}
 		}else{
-			return "We could not find a cron entry with that id.  No notes available.";
+			$interface->assign('popupTitle', "Error");
+			$interface->assign('popupContent', "We could not find a cron entry with that id.  No notes available.");
 		}
+		return $interface->fetch('popup-wrapper.tpl');
 	}
 }

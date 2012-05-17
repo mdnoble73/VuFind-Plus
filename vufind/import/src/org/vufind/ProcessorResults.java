@@ -166,9 +166,10 @@ public class ProcessorResults {
 		}
 		notesText.append("</ol>");
 		if (notesText.length() > 64000){
-			notesText.substring(0, 64000);
+			return notesText.substring(0, 64000);
+		}else{
+			return notesText.toString();
 		}
-		return notesText.toString();
 	}
 	
 	/**

@@ -194,7 +194,9 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 			
 			$(document).scrollTop(0);
 		}
-		$("#popupbox").draggable();
+		if ($("#popupboxHeader").length > 0){
+			$("#popupbox").draggable({ handle: "#popupboxHeader" });
+		}
 	});
 }
 
