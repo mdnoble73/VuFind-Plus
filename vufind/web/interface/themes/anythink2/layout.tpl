@@ -150,6 +150,9 @@
               {/if}
             </ul>
           {/if}
+          {if !($module == 'Search' && $action == 'Home')}
+            <a id="navigate-link" href="http://stage.anythinklibraries.org/">Navigate</a>
+          {/if}
         </div>
         <div id="central" class="clearfix{if $module == 'Search' && $action == 'Home'} with-column-outer{/if}">
           {if $module == 'Search' && $action == 'Home'}
