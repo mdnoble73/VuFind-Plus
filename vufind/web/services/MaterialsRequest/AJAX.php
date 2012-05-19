@@ -233,7 +233,8 @@ class AJAX extends Action{
 			foreach($worldCatData->channel->item as $item){
 				$curTitle= array(
 					'title' => (string)$item->title,
-					'author' => (string)$item->author->name
+					'author' => (string)$item->author->name,
+					'description' => (string)$item->description
 				);
 				$oclcChildren = $item->children('oclcterms', TRUE);
 				foreach ($oclcChildren as $child){
