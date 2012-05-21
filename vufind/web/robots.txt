@@ -2,6 +2,8 @@ User-agent: *
 Disallow: /cgi-bin/
 User-Agent: Gort
 Disallow: /earth
+User-Agent: Bender
+Disallow: /bite/my/shiny/metal/ass
 #                         QR                                              
 #                        #t(@                                             
 #                         @R                                              
