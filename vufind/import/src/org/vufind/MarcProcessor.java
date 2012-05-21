@@ -48,6 +48,7 @@ public class MarcProcessor {
 	protected String[]						propertyFilePaths;
 	/** list of path to look for property files in */
 	protected String[]						scriptFilePaths;
+	private String marcEncoding = "UTF8";
 
 	protected String							marcRecordPath;
 	private HashMap<String, Long>	marcChecksums = new HashMap<String, Long>();
@@ -98,7 +99,13 @@ public class MarcProcessor {
 		marcRecordPath = configIni.get("Reindex", "marcPath");
 		// Get the directory where the marc records are stored.vufindConn
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
-			logger.error("Marc Record Path not found in General Settings.  Please specify the path as the marcRecordPath key.");
+			logger.error("Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
+			return false;
+		}
+		
+		marcEncoding = configIni.get("Reindex", "marcEncoding");
+		if (marcEncoding == null || marcEncoding.length() == 0){
+			logger.error("Marc Encoding not found in Reindex Settings.  Please specify the path as the defaultEncoding key.");
 			return false;
 		}
 
@@ -510,7 +517,7 @@ public class MarcProcessor {
 					logger.info("Processing file " + marcFile.toString());
 					// Open the marc record with Marc4j
 					InputStream input = new FileInputStream(marcFile);
-					MarcReader reader = new MarcPermissiveStreamReader(input, true, true);
+					MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
 					int recordNumber = 0;
 					while (reader.hasNext()) {
 						recordNumber++;
