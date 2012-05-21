@@ -48,7 +48,6 @@ class Advanced extends Action {
 		//as icons 
 		if (array_key_exists('format_category', $facetList)){
 			$label = $facetList['format_category']['label'];
-			print_r($facets[$label]);
 			foreach ($facets[$label] as $key => $optionInfo){
 				$optionInfo['imageName'] = str_replace(" ", "", strtolower($key)) . '.png';
 				$facets[$label][$key] = $optionInfo;
