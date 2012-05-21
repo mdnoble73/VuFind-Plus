@@ -200,7 +200,7 @@
 	{/if}
 	{if !$materialsRequest}
 	<div>
-		<label for="about">How/where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
+		<label for="about">How / where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
 		<textarea name="about" id="about" rows="3" cols="80" {if $requireAboutField}class="required"{/if}>{$materialsRequest->about}</textarea>
 	</div>
 	{/if}

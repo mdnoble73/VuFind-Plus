@@ -27,6 +27,17 @@
   font-style: italic;
 }
 
+.advancedSearchFacetDetails{
+	display: inline-block;
+	margin: 5px;
+}
+.advancedSearchFacetHeader{
+	font-weight: bold;
+}
+.advancedSearchFacetFormatCategory{
+	display: inline-block;
+	margin: 5px;
+}
 
 /**
  * Overrides and customization.
