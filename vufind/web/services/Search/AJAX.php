@@ -25,8 +25,13 @@ class AJAX extends Action {
 	function launch()
 	{
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'GetRatings', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles'))){
+		if (in_array($method, array('GetAutoSuggestList', 'GetRatings', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries'))){
 			header('Content-type: text/plain');
+			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+			$this->$method();
+		}elseif (in_array($method, array('getOtherEditions'))){
+			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$this->$method();
@@ -187,59 +192,37 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		require_once 'CatalogConnection.php';
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		// Try to find a copy that is available
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 		$timer->logTime("Initialized Catalog Connection");
 
-		$result = $catalog->getStatusSummaries($_GET['id']);
+		$summaries = $catalog->getStatusSummaries($_GET['id']);
 		$timer->logTime("Retrieved status summaries");
-
-		// In order to detect IDs missing from the status response, create an
-		// array with a key for every requested ID.  We will clear keys as we
-		// encounter IDs in the response -- anything left will be problems that
-		// need special handling.
-		$missingIds = array_flip($_GET['id']);
+		
+		$result = array();
+		$result['items'] = array();
 
 		// Loop through all the status information that came back
-		foreach ($result as $record) {
+		foreach ($summaries as $record) {
 			// If we encountered errors, skip those problem records.
 			if (PEAR::isError($record)) {
 				continue;
 			}
-
+			$itemResults = $record;
 			$interface->assign('holdingsSummary', $record);
 
 			$formattedHoldingsSummary = $interface->fetch('Record/holdingsSummary.tpl');
-
-			echo ' <item id="' . htmlspecialchars($record['shortId']) . '">';
-			echo '  <id>' . htmlspecialchars($record['shortId']) . '</id>';
-			echo '  <status>' . htmlspecialchars($record['status']) . '</status>';
-			echo '  <callnumber>' . (isset($record['callnumber']) ? htmlspecialchars($record['callnumber']) : '') . '</callnumber>';
-			echo '  <showplacehold>' . htmlspecialchars($record['showPlaceHold']) . '</showplacehold>';
-			echo '  <availablecopies>' . htmlspecialchars($record['availableCopies']) . '</availablecopies>';
-			echo '  <holdablecopies>' . htmlspecialchars($record['holdableCopies']) . '</holdablecopies>';
-			echo '  <numcopies>' . htmlspecialchars($record['numCopies']) . '</numcopies>';
-			echo '  <holdQueueLength>' . (isset($record['holdQueueLength']) ? htmlspecialchars($record['holdQueueLength']) : '') . '</holdQueueLength>';
-			echo '  <class>' . htmlspecialchars($record['class']) . '</class>';
-			echo '  <isDownloadable>' . ($record['isDownloadable'] ? 1 : 0) . '</isDownloadable>';
-			echo '  <downloadLink>' . (isset($record['downloadLink']) ? htmlspecialchars($record['downloadLink']) : '') . '</downloadLink>';
-			echo '  <downloadText>' . (isset($record['downloadText']) ? htmlspecialchars($record['downloadText']) : '') . '</downloadText>';
-			echo '  <showAvailabilityLine>' . ($record['showAvailabilityLine'] ? 1 : 0) . '</showAvailabilityLine>';
-			echo '  <availableAt>' . htmlspecialchars($record['availableAt']) . '</availableAt>';
-			echo '  <numAvailableOther>' . $record['numAvailableOther'] . '</numAvailableOther>';
-			echo '  <formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
-			if (isset($record['eAudioLink'])){
-				echo '  <eAudioLink>' . htmlspecialchars($record['eAudioLink']) . '</eAudioLink>';
-			}
-			if (isset($record['eBookLink'])){
-				echo '  <eBookLink>' . htmlspecialchars($record['eBookLink']) . '</eBookLink>';
-			}
-			echo ' </item>';
+			$itemResults['formattedHoldingsSummary'] = $formattedHoldingsSummary;
+			$result['items'][] = $itemResults;
 
 		}
+		echo json_encode($result);
 		$timer->logTime("Formatted results");
 	}
 	
@@ -257,18 +240,14 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		
+		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		require_once ('Drivers/EContentDriver.php');
 		$driver = new EContentDriver();
 		//Load status summaries
 		$result = $driver->getStatusSummaries($_GET['id']);
-				$timer->logTime("Retrieved status summaries");
-
-		// In order to detect IDs missing from the status response, create an
-		// array with a key for every requested ID.  We will clear keys as we
-		// encounter IDs in the response -- anything left will be problems that
-		// need special handling.
-		$missingIds = array_flip($_GET['id']);
+		$timer->logTime("Retrieved status summaries");
 
 		// Loop through all the status information that came back
 		foreach ($result as $record) {
@@ -711,6 +690,61 @@ class AJAX extends Action {
 			
 		}
 		echo $listData;
+	}
+	
+	function getOtherEditions(){
+		global $interface;
+		$id = $_REQUEST['id'];
+		$isEContent = $_REQUEST['isEContent'];
+		
+		if ($isEContent == 'true'){
+			require_once 'sys/eContent/EContentRecord.php';
+			$econtentRecord = new EContentRecord();
+			$econtentRecord->id = $id;
+			if ($econtentRecord->find(true)){
+				$otherEditions = OtherEditionHandler::getEditions($econtentRecord->solrId(), $econtentRecord->getIsbn(), $econtentRecord->getIssn(), 10);
+			}else{
+				$error = "Sorry we couldn't find that record in the catalog.";
+			}
+		}else{
+			$resource = new Resource();
+			$resource->record_id = $id;
+			$resource->source = 'VuFind';
+			$solrId = $id;
+			if ($resource->find(true)){
+				$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
+			}else{
+				$error = "Sorry we couldn't find that record in the catalog.";
+			}
+		}
+		
+		if (isset($otherEditions)){
+			//Get resource for each edition 
+			$editionResources = array();
+			if (is_array($otherEditions)){
+				foreach ($otherEditions as $edition){
+					$editionResource = new Resource();
+					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
+						$editionResource->source = 'eContent';
+						$editionResource->record_id = $matches[1];
+					}else{
+						$editionResource->record_id = $edition['id'];
+						$editionResource->source = 'VuFind';
+					}
+					if ($editionResource->find(true)){
+						$editionResources[] = clone $editionResource;
+					}else{
+						echo("Could not find resource {$edition['id']}");
+					}
+				}
+			}
+			$interface->assign('otherEditions', $editionResources);
+			echo $interface->fetch('Resource/otherEditions.tpl');
+		}elseif (isset($error)){
+			echo $error;
+		}else{
+			echo("There are no other editions for this title currently in the catalog.");
+		}
 	}
 }
 

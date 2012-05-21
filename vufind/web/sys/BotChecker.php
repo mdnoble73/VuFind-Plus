@@ -31,7 +31,14 @@ class BotChecker{
 	 */
 	public static function isRequestFromBot(){
 		if (BotChecker::$isBot == null){
-			$fhnd = fopen('conf/bots.ini', 'r');
+			global $servername;
+			if (file_exists('sites/' . $servername . '/conf/bots.ini')){
+				$fhnd = fopen('sites/' . $servername . '/conf/bots.ini');
+			}elseif (file_exists('sites/default/conf/bots.ini')){
+				$fhnd = fopen('sites/default/conf/bots.ini');
+			}else{
+				return false;
+			}
 			
 			$isBot = false;
 			$userAgent = $_SERVER['HTTP_USER_AGENT'];

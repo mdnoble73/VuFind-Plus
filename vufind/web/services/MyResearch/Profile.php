@@ -64,10 +64,12 @@ class Profile extends MyResearch
 		}
 		$interface->assign('locationList', $locationList);
 		
-		require_once('Drivers/Marmot.php');
-		$marmotDriver = new Marmot();
-		$userIsStaff = $marmotDriver->isUserStaff();
-		$interface->assign('userIsStaff', $userIsStaff);
+		if ($this->catalog->checkFunction('isUserStaff')){
+			$userIsStaff = $this->catalog->isUserStaff();
+			$interface->assign('userIsStaff', $userIsStaff);
+		}else{
+			$interface->assign('userIsStaff', false);
+		}
 
 		$interface->setTemplate('profile.tpl');
 		$interface->setPageTitle('My Profile');

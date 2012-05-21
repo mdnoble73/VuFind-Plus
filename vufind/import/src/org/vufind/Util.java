@@ -110,10 +110,14 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 	
-	public static String getSemiColonSeparatedString(Object values) {
+	public static String getSemiColonSeparatedString(Object values, boolean prepForCsv) {
 		StringBuffer crSeparatedString = new StringBuffer();
 		if (values instanceof String){
-			crSeparatedString.append((String)values);
+			if (prepForCsv){
+				crSeparatedString.append(prepForCsv((String)values, true, false));
+			}else{
+				crSeparatedString.append((String)values);
+			}
 		}else if (values instanceof Iterable){
 			@SuppressWarnings("unchecked")
 			Iterable<String> valuesIterable = (Iterable<String>)values;
@@ -121,7 +125,11 @@ public class Util {
 				if (crSeparatedString.length() > 0) {
 					crSeparatedString.append(";");
 				}
-				crSeparatedString.append(curValue);
+				if (prepForCsv){
+					crSeparatedString.append(prepForCsv(curValue, true, false));
+				}else{
+					crSeparatedString.append(curValue);
+				}
 			}
 		}
 		return crSeparatedString.toString();
@@ -230,8 +238,49 @@ public class Util {
 		}
 		return formatMap;
 	}
+	
+	public static URLPostResponse getURL(String url, Logger logger) {
+		URLPostResponse retVal;
+		try {
+			URL emptyIndexURL = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			
+			StringBuffer response = new StringBuffer();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
 
-	public static String postToURL(String url, String postData, Logger logger) {
+				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " getting " + url);
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
+			}
+
+		} catch (MalformedURLException e) {
+			logger.error("URL to post (" + url + ") is malformed", e);
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
+		} catch (IOException e) {
+			logger.error("Error posting to url \r\n" + url, e);
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}
+		return retVal;
+	}
+
+	public static URLPostResponse postToURL(String url, String postData, Logger logger) {
+		URLPostResponse retVal;
 		try {
 			URL emptyIndexURL = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
@@ -259,6 +308,7 @@ public class Util {
 				}
 
 				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
 				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
 				logger.info(postData);
@@ -270,17 +320,28 @@ public class Util {
 				}
 
 				rd.close();
+				
+				if (response.length() == 0){
+					//Try to load the regular body as well
+					// Get the response
+					BufferedReader rd2 = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					while ((line = rd2.readLine()) != null) {
+						response.append(line);
+					}
+
+					rd.close();
+				}
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
 			}
 
-			return response.toString();
 		} catch (MalformedURLException e) {
 			logger.error("URL to post (" + url + ") is malformed", e);
-			return "";
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
 		} catch (IOException e) {
 			logger.error("Error posting to url \r\n" + url, e);
-			System.exit(1);
-			return "";
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
 		}
+		return retVal;
 	}
 
 	public static boolean deleteDirectory(File dirToDelete) {
@@ -358,6 +419,37 @@ public class Util {
 		}
 
 		return stringBuffer.toString();
+	}
+
+	public static String prepForCsv(String input, boolean trimTrailingPunctuation, boolean crSeparatedFields) {
+		if (input == null){
+			return "";
+		}
+		if (trimTrailingPunctuation) {
+			input = trimTrailingPunctuation(input);
+		}
+		input = input.replaceAll("'", "`");
+		input = input.replaceAll("\\|", " ");
+		input = input.replaceAll(";", " ");
+		if (crSeparatedFields){
+			input = input.replaceAll("[\\t]", " ");
+			input = input.replaceAll("\\r\\n|\\r|\\n", ";");
+		}else{
+			input = input.replaceAll("[\\r\\n\\t]", " ");
+		}
+		
+		// input = regex.matcher(input).replaceAll("");
+		return input;
+	}
+
+	public static String trimTrailingPunctuation(String format) {
+		if (format == null){
+			return "";
+		}
+		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".")) {
+			format = format.substring(0, format.length() - 1);
+		}
+		return format.trim();
 	}
 
 }

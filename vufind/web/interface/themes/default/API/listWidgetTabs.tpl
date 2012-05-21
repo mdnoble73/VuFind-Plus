@@ -30,7 +30,8 @@
   		{assign var="scrollerName" value="$listName"}
 			{assign var="wrapperId" value="$listName"}
 			{assign var="scrollerVariable" value="listScroller$listName"}
-			{assign var="fullListLink" value=$list->fullListLink}
+			{assign var="Links" value=$list->links}
+			
 			{if count($widget->lists) == 1}
 				{assign var="scrollerTitle" value=$list->name}
 			{/if}
@@ -72,7 +73,6 @@
 			  	{/if}
 		  	  {assign var=index value=$index+1}
 	    	{/if}
-    		
       {/foreach}
 
       {if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}

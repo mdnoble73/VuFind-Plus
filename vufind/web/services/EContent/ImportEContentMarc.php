@@ -77,20 +77,34 @@ class ImportEContentMarc extends Admin
 			if ($marcCopyResult && $supplementalCopyResult){
 				//Get import information
 				$cronPath = $configArray['Site']['cronPath']; 
-				$commandToRun = "cd $cronPath && start /b java -jar cron.jar org.epub.ImportMarcRecord";
-				$commandToRun .= " marcFile=" . escapeshellarg($destFullPath);
-				if ($hasSupplementalCsv){
-					$commandToRun .= " supplementalFile=" . escapeshellarg($supplementalFullPath);
+				if (file_exists($cronPath) && is_dir($cronPath)){
+					global $servername;
+					if ($configArray['System']['operatingSystem'] == 'windows'){
+						$commandToRun = "cd $cronPath && start /b java -jar cron.jar $servername org.epub.ImportMarcRecord";
+					}else{
+						$commandToRun = "cd {$cronPath}; java -jar cron.jar $servername org.epub.ImportMarcRecord";
+					}
+					//Set the servername 
+					$commandToRun .= " marcFile=" . escapeshellarg($destFullPath);
+					if ($hasSupplementalCsv){
+						$commandToRun .= " supplementalFile=" . escapeshellarg($supplementalFullPath);
+					}
+					$commandToRun .= " source=" . escapeshellarg($_REQUEST['source']);
+					$commandToRun .= " accessType=" . escapeshellarg($_REQUEST['accessType']);
+					$logger = new Logger();
+					$logger->log("importing marc records $commandToRun", PEAR_LOG_INFO);
+					//$commandToRun .= " > process.out 2> process.err < /dev/null &";
+					$handle = popen($commandToRun, 'r');
+					if ($handle == false){
+						$errors[] = "Unable to start process $commandToRun";
+					}else{
+						pclose($handle);
+						header("Location: {$configArray['Site']['path']}/EContent/MarcImportLog");
+						exit();
+					}
+				}else{
+					$errors[] = "Cron path $cronPath is not valid.  Please check the config file.";
 				}
-				$commandToRun .= " source=" . escapeshellarg($_REQUEST['source']);
-				$commandToRun .= " accessType=" . escapeshellarg($_REQUEST['accessType']);
-				$logger = new Logger();
-				$logger->log("importing marc records $commandToRun", PEAR_LOG_INFO);
-				//$commandToRun .= " > process.out 2> process.err < /dev/null &";
-				$handle = popen($commandToRun, 'r');
-				pclose($handle);
-				header("Location: {$configArray['Site']['path']}/Admin/MarcImportLog");
-				exit();
 			}
 			$interface->assign('errors', $errors);
 		}

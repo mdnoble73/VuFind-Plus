@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 02, 2012 at 02:52 PM
+-- Generation Time: Apr 20, 2012 at 09:22 PM
 -- Server version: 5.5.14
 -- PHP Version: 5.3.6
 
@@ -78,10 +78,10 @@ CREATE TABLE IF NOT EXISTS `callnumber_browse` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `circulationstatus`
+-- Table structure for table `circulation_status`
 --
 
-CREATE TABLE IF NOT EXISTS `circulationstatus` (
+CREATE TABLE IF NOT EXISTS `circulation_status` (
   `circulationStatusId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique Id for the status',
   `millenniumName` varchar(25) NOT NULL COMMENT 'The name of the status as it displays in the Millennium holdings list',
   `displayName` varchar(40) NOT NULL COMMENT 'A name to translate the status into for display in vufind.  Leave plank to use the Millennium name.',
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `comments` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `resource_id` (`resource_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=61 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=83 ;
 
 -- --------------------------------------------------------
 
@@ -139,105 +139,10 @@ CREATE TABLE IF NOT EXISTS `editorial_reviews` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `epub_files`
+-- Table structure for table `external_link_tracking`
 --
 
-CREATE TABLE IF NOT EXISTS `epub_files` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the e-pub file',
-  `filename` varchar(255) NOT NULL DEFAULT '' COMMENT 'The filename of the e-pub file',
-  `cover` varchar(255) DEFAULT NULL COMMENT 'The filename of the cover art if any',
-  `hasDRM` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'Whether or not the Adobe Content Server should be checked before giving the user access to the file',
-  `acsId` varchar(128) DEFAULT NULL COMMENT 'The uid of the book within the Adobe Content Server.',
-  `relatedRecords` varchar(512) NOT NULL COMMENT 'A pipe delimited list of records to attach the file to',
-  `createDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The date the record was opened',
-  `type` varchar(25) NOT NULL DEFAULT 'epub',
-  `source` varchar(50) NOT NULL DEFAULT '',
-  `notes` varchar(255) NOT NULL DEFAULT '',
-  `title` varchar(255) NOT NULL DEFAULT '',
-  `author` varchar(50) NOT NULL DEFAULT '',
-  `description` text,
-  `availableCopies` int(11) NOT NULL DEFAULT '1',
-  `folder` varchar(100) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='E-Pub files that can be viewed within VuFind.' AUTO_INCREMENT=2912 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `epub_files_gale`
---
-
-CREATE TABLE IF NOT EXISTS `epub_files_gale` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the e-pub file',
-  `filename` varchar(255) NOT NULL DEFAULT '' COMMENT 'The filename of the e-pub file',
-  `cover` varchar(255) DEFAULT NULL COMMENT 'The filename of the cover art if any',
-  `hasDRM` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'Whether or not the Adobe Content Server should be checked before giving the user access to the file',
-  `acsId` varchar(128) DEFAULT NULL COMMENT 'The uid of the book within the Adobe Content Server.',
-  `relatedRecords` varchar(512) NOT NULL COMMENT 'A pipe delimited list of records to attach the file to',
-  `createDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The date the record was opened',
-  `type` varchar(25) NOT NULL DEFAULT 'epub',
-  `source` varchar(50) NOT NULL DEFAULT '',
-  `notes` varchar(255) NOT NULL DEFAULT '',
-  `title` varchar(255) NOT NULL DEFAULT '',
-  `author` varchar(50) NOT NULL DEFAULT '',
-  `description` text,
-  `availableCopies` int(11) NOT NULL DEFAULT '1',
-  `folder` varchar(100) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='E-Pub files that can be viewed within VuFind.' AUTO_INCREMENT=2912 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `epub_files_old`
---
-
-CREATE TABLE IF NOT EXISTS `epub_files_old` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the e-pub file',
-  `filename` varchar(255) NOT NULL DEFAULT '' COMMENT 'The filename of the e-pub file',
-  `cover` varchar(255) DEFAULT NULL COMMENT 'The filename of the cover art if any',
-  `hasDRM` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'Whether or not the Adobe Content Server should be checked before giving the user access to the file',
-  `acsId` varchar(128) DEFAULT NULL COMMENT 'The uid of the book within the Adobe Content Server.',
-  `relatedRecords` varchar(512) NOT NULL COMMENT 'A pipe delimited list of records to attach the file to',
-  `createDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The date the record was opened',
-  `type` varchar(25) NOT NULL DEFAULT 'EPUB',
-  `source` varchar(50) NOT NULL DEFAULT '',
-  `notes` varchar(255) NOT NULL DEFAULT '',
-  `title` varchar(255) NOT NULL DEFAULT '',
-  `author` varchar(50) NOT NULL DEFAULT '',
-  `description` text,
-  `availableCopies` int(11) NOT NULL DEFAULT '1',
-  `folder` varchar(100) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='E-Pub files that can be viewed within VuFind.' AUTO_INCREMENT=522 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `epub_transaction`
---
-
-CREATE TABLE IF NOT EXISTS `epub_transaction` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `userId` int(11) NOT NULL,
-  `recordId` int(11) NOT NULL,
-  `itemId` varchar(30) NOT NULL,
-  `userAcsId` varchar(50) DEFAULT NULL,
-  `transaction` varchar(50) DEFAULT NULL,
-  `downloadUrl` varchar(500) DEFAULT NULL,
-  `timeLinkGenerated` datetime DEFAULT NULL,
-  `timeFulfilled` datetime DEFAULT NULL,
-  `timeReturned` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=25 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `externallinktracking`
---
-
-CREATE TABLE IF NOT EXISTS `externallinktracking` (
+CREATE TABLE IF NOT EXISTS `external_link_tracking` (
   `externalLinkId` int(11) NOT NULL AUTO_INCREMENT,
   `ipAddress` varchar(30) DEFAULT NULL,
   `recordId` varchar(50) NOT NULL,
@@ -245,7 +150,7 @@ CREATE TABLE IF NOT EXISTS `externallinktracking` (
   `linkHost` varchar(200) NOT NULL,
   `trackingDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`externalLinkId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1989 ;
 
 -- --------------------------------------------------------
 
@@ -320,6 +225,18 @@ CREATE TABLE IF NOT EXISTS `library` (
   `holdDisclaimer` mediumtext,
   `boopsieLink` varchar(150) NOT NULL,
   `enableAlphaBrowse` tinyint(4) DEFAULT '1',
+  `showHoldCancelDate` tinyint(4) NOT NULL DEFAULT '0',
+  `enablePospectorIntegration` tinyint(4) NOT NULL DEFAULT '0',
+  `prospectorCode` varchar(10) NOT NULL DEFAULT '',
+  `showRatings` tinyint(4) NOT NULL DEFAULT '1',
+  `searchesFile` varchar(15) NOT NULL DEFAULT 'default',
+  `minimumFineAmount` float NOT NULL DEFAULT '0',
+  `enableGenealogy` tinyint(4) NOT NULL DEFAULT '0',
+  `enableCourseReserves` tinyint(1) NOT NULL DEFAULT '0',
+  `exportOptions` varchar(100) NOT NULL DEFAULT 'RefWorks|EndNote',
+  `enableSelfRegistration` tinyint(4) NOT NULL DEFAULT '0',
+  `useHomeLinkInBreadcrumbs` tinyint(4) NOT NULL DEFAULT '0',
+  `enableMaterialsRequest` tinyint(4) DEFAULT '1',
   PRIMARY KEY (`libraryId`),
   UNIQUE KEY `subdomain` (`subdomain`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
@@ -408,6 +325,22 @@ CREATE TABLE IF NOT EXISTS `marc_import` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `marriage`
+--
+
+CREATE TABLE IF NOT EXISTS `marriage` (
+  `marriageId` int(11) NOT NULL AUTO_INCREMENT,
+  `personId` int(11) NOT NULL COMMENT 'A link to one person in the marriage',
+  `spouseName` varchar(200) DEFAULT NULL COMMENT 'The name of the other person in the marriage if they aren''t in the database',
+  `spouseId` int(11) DEFAULT NULL COMMENT 'A link to the second person in the marriage if the person is in the database',
+  `marriageDate` date DEFAULT NULL COMMENT 'The date of the marriage if known.',
+  `comments` mediumtext,
+  PRIMARY KEY (`marriageId`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Information about a marriage between two people' AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `materials_request`
 --
 
@@ -448,7 +381,8 @@ CREATE TABLE IF NOT EXISTS `materials_request` (
   `illItem` varchar(80) DEFAULT NULL,
   `magazineNumber` varchar(80) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `status` (`status`)
+  KEY `status` (`status`),
+  KEY `status_2` (`status`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21 ;
 
 -- --------------------------------------------------------
@@ -468,7 +402,10 @@ CREATE TABLE IF NOT EXISTS `materials_request_status` (
   PRIMARY KEY (`id`),
   KEY `isDefault` (`isDefault`),
   KEY `isOpen` (`isOpen`),
-  KEY `isPatronCancel` (`isPatronCancel`)
+  KEY `isPatronCancel` (`isPatronCancel`),
+  KEY `isDefault_2` (`isDefault`),
+  KEY `isOpen_2` (`isOpen`),
+  KEY `isPatronCancel_2` (`isPatronCancel`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=21 ;
 
 -- --------------------------------------------------------
@@ -489,10 +426,10 @@ CREATE TABLE IF NOT EXISTS `millennium_cache` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `nonholdablelocations`
+-- Table structure for table `non_holdable_locations`
 --
 
-CREATE TABLE IF NOT EXISTS `nonholdablelocations` (
+CREATE TABLE IF NOT EXISTS `non_holdable_locations` (
   `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
   `millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
   `holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
@@ -503,10 +440,52 @@ CREATE TABLE IF NOT EXISTS `nonholdablelocations` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ptyperestrictedlocations`
+-- Table structure for table `obituary`
 --
 
-CREATE TABLE IF NOT EXISTS `ptyperestrictedlocations` (
+CREATE TABLE IF NOT EXISTS `obituary` (
+  `obituaryId` int(11) NOT NULL AUTO_INCREMENT,
+  `personId` int(11) NOT NULL COMMENT 'The person this obituary is for',
+  `source` varchar(255) DEFAULT NULL,
+  `date` date DEFAULT NULL,
+  `sourcePage` varchar(25) DEFAULT NULL,
+  `contents` mediumtext,
+  `picture` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`obituaryId`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Information about an obituary for a person' AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `person`
+--
+
+CREATE TABLE IF NOT EXISTS `person` (
+  `personId` int(11) NOT NULL AUTO_INCREMENT,
+  `firstName` varchar(100) DEFAULT NULL,
+  `middleName` varchar(100) DEFAULT NULL,
+  `lastName` varchar(100) DEFAULT NULL,
+  `maidenName` varchar(100) DEFAULT NULL,
+  `otherName` varchar(100) DEFAULT NULL,
+  `nickName` varchar(100) DEFAULT NULL,
+  `birthDate` date DEFAULT NULL,
+  `deathDate` date DEFAULT NULL,
+  `ageAtDeath` text,
+  `cemeteryName` varchar(255) DEFAULT NULL,
+  `cemeteryLocation` varchar(255) DEFAULT NULL,
+  `mortuaryName` varchar(255) DEFAULT NULL,
+  `comments` mediumtext,
+  `picture` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`personId`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Stores information about a particular person for use in genealogy' AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ptype_restricted_locations`
+--
+
+CREATE TABLE IF NOT EXISTS `ptype_restricted_locations` (
   `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
   `millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
   `holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
@@ -517,10 +496,10 @@ CREATE TABLE IF NOT EXISTS `ptyperestrictedlocations` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `purchaselinktracking`
+-- Table structure for table `purchaselinktracking_old`
 --
 
-CREATE TABLE IF NOT EXISTS `purchaselinktracking` (
+CREATE TABLE IF NOT EXISTS `purchaselinktracking_old` (
   `purchaseLinkId` int(11) NOT NULL AUTO_INCREMENT,
   `ipAddress` varchar(30) DEFAULT NULL,
   `recordId` varchar(50) NOT NULL,
@@ -533,6 +512,22 @@ CREATE TABLE IF NOT EXISTS `purchaselinktracking` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `purchase_link_tracking`
+--
+
+CREATE TABLE IF NOT EXISTS `purchase_link_tracking` (
+  `purchaseLinkId` int(11) NOT NULL AUTO_INCREMENT,
+  `ipAddress` varchar(30) DEFAULT NULL,
+  `recordId` varchar(50) NOT NULL,
+  `store` varchar(255) NOT NULL,
+  `trackingDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`purchaseLinkId`),
+  KEY `purchaseLinkId` (`purchaseLinkId`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=45861 ;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `reindex_log`
 --
 
@@ -540,12 +535,32 @@ CREATE TABLE IF NOT EXISTS `reindex_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log',
   `startTime` int(11) NOT NULL COMMENT 'The timestamp when the reindex started',
   `endTime` int(11) DEFAULT NULL COMMENT 'The timestamp when the reindex process ended',
-  `numRecordsAddedToSolr` int(11) DEFAULT NULL,
-  `numRecordsRemovedFromSolr` int(11) DEFAULT NULL,
-  `numUnchangedRecords` int(11) DEFAULT NULL,
-  `notes` longtext COMMENT 'Detailed information about the reindex process.',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='The reading history for patrons' AUTO_INCREMENT=100 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reindex_process_log`
+--
+
+CREATE TABLE IF NOT EXISTS `reindex_process_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex process',
+  `reindex_id` int(11) NOT NULL COMMENT 'The id of the reindex log this process ran during',
+  `processName` varchar(50) NOT NULL COMMENT 'The name of the process being run',
+  `recordsProcessed` int(11) NOT NULL COMMENT 'The number of records processed from marc files',
+  `eContentRecordsProcessed` int(11) NOT NULL COMMENT 'The number of econtent records processed from the database',
+  `resourcesProcessed` int(11) NOT NULL COMMENT 'The number of resources processed from the database',
+  `numErrors` int(11) NOT NULL COMMENT 'The number of errors that occurred during the process',
+  `numAdded` int(11) NOT NULL COMMENT 'The number of additions that occurred during the process',
+  `numUpdated` int(11) NOT NULL COMMENT 'The number of items updated during the process',
+  `numDeleted` int(11) NOT NULL COMMENT 'The number of items deleted during the process',
+  `numSkipped` int(11) NOT NULL COMMENT 'The number of items skipped during the process',
+  `notes` text COMMENT 'Additional information about the process',
+  PRIMARY KEY (`id`),
+  KEY `reindex_id` (`reindex_id`),
+  KEY `processName` (`processName`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=16 ;
 
 -- --------------------------------------------------------
 
@@ -566,10 +581,15 @@ CREATE TABLE IF NOT EXISTS `resource` (
   `format_category` varchar(50) DEFAULT NULL,
   `marc_checksum` bigint(20) DEFAULT NULL,
   `date_updated` int(11) DEFAULT NULL,
+  `marc` blob,
+  `shortId` varchar(20) DEFAULT NULL,
+  `deleted` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `records_by_source` (`record_id`,`source`),
-  KEY `record_id` (`record_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=270496 ;
+  KEY `record_id` (`record_id`),
+  KEY `shortId` (`shortId`),
+  KEY `deleted` (`deleted`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=270503 ;
 
 -- --------------------------------------------------------
 
@@ -586,7 +606,7 @@ CREATE TABLE IF NOT EXISTS `resource_callnumber` (
   KEY `callnumber` (`callnumber`),
   KEY `resourceId` (`resourceId`),
   KEY `locationId` (`locationId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5423 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1771536 ;
 
 -- --------------------------------------------------------
 
@@ -601,7 +621,7 @@ CREATE TABLE IF NOT EXISTS `resource_subject` (
   PRIMARY KEY (`id`),
   KEY `resourceId` (`resourceId`),
   KEY `subjectId` (`subjectId`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=68741 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2468093 ;
 
 -- --------------------------------------------------------
 
@@ -621,7 +641,7 @@ CREATE TABLE IF NOT EXISTS `resource_tags` (
   KEY `resource_id` (`resource_id`),
   KEY `tag_id` (`tag_id`),
   KEY `list_id` (`list_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=24 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=37 ;
 
 -- --------------------------------------------------------
 
@@ -655,7 +675,7 @@ CREATE TABLE IF NOT EXISTS `search` (
   KEY `user_id` (`user_id`),
   KEY `folder_id` (`folder_id`),
   KEY `session_id` (`session_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3197 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3327 ;
 
 -- --------------------------------------------------------
 
@@ -675,7 +695,7 @@ CREATE TABLE IF NOT EXISTS `search_stats` (
   PRIMARY KEY (`id`),
   KEY `type` (`type`),
   KEY `search_index` (`type`,`libraryId`,`locationId`,`phrase`(255),`numResults`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Statistical information about searches for use in reporting ' AUTO_INCREMENT=200364 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Statistical information about searches for use in reporting ' AUTO_INCREMENT=200373 ;
 
 -- --------------------------------------------------------
 
@@ -719,7 +739,7 @@ CREATE TABLE IF NOT EXISTS `subject` (
   `subject` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `subject` (`subject`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4939 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=30620 ;
 
 -- --------------------------------------------------------
 
@@ -745,7 +765,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `tag` varchar(25) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=18 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=31 ;
 
 -- --------------------------------------------------------
 
@@ -764,10 +784,10 @@ CREATE TABLE IF NOT EXISTS `title_browse` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `usagetracking`
+-- Table structure for table `usage_tracking`
 --
 
-CREATE TABLE IF NOT EXISTS `usagetracking` (
+CREATE TABLE IF NOT EXISTS `usage_tracking` (
   `usageId` int(11) NOT NULL AUTO_INCREMENT,
   `ipId` int(11) NOT NULL,
   `locationId` int(11) NOT NULL,
@@ -778,7 +798,7 @@ CREATE TABLE IF NOT EXISTS `usagetracking` (
   PRIMARY KEY (`usageId`),
   KEY `usageId` (`usageId`),
   KEY `IP_DATE` (`ipId`,`trackingDate`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=127 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=423165 ;
 
 -- --------------------------------------------------------
 
@@ -810,7 +830,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `patronType` varchar(30) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=30517 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=30518 ;
 
 -- --------------------------------------------------------
 
@@ -828,19 +848,6 @@ CREATE TABLE IF NOT EXISTS `user_epub_history` (
   PRIMARY KEY (`userHistoryId`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COMMENT='The epub reading history for patrons' AUTO_INCREMENT=674 ;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `user_epub_history_seq`
---
-
-CREATE TABLE IF NOT EXISTS `user_epub_history_seq` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=443 ;
-
--- --------------------------------------------------------
-
 --
 -- Table structure for table `user_list`
 --
@@ -854,7 +861,7 @@ CREATE TABLE IF NOT EXISTS `user_list` (
   `public` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1689 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1702 ;
 
 -- --------------------------------------------------------
 
@@ -871,7 +878,7 @@ CREATE TABLE IF NOT EXISTS `user_rating` (
   UNIQUE KEY `uniqueness` (`userid`,`resourceid`),
   KEY `Resourceid` (`resourceid`),
   KEY `UserId` (`userid`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=53 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=60 ;
 
 -- --------------------------------------------------------
 
@@ -893,17 +900,6 @@ CREATE TABLE IF NOT EXISTS `user_reading_history` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `user_reading_history_seq`
---
-
-CREATE TABLE IF NOT EXISTS `user_reading_history_seq` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=9 ;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `user_resource`
 --
 
@@ -918,7 +914,7 @@ CREATE TABLE IF NOT EXISTS `user_resource` (
   KEY `resource_id` (`resource_id`),
   KEY `user_id` (`user_id`),
   KEY `list_id` (`list_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11474 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=11481 ;
 
 -- --------------------------------------------------------
 

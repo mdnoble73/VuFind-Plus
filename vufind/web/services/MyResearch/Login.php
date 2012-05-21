@@ -70,17 +70,19 @@ class Login extends Action
 			//     parameter.  If we've looped back due to user error and already have
 			//     a recordId parameter, remember it for future reference.
 			if (isset($_REQUEST['delete'])) {
-				$mode = !isset($_REQUEST['mode']) ?
+				$interface->assign('returnUrl', $_SERVER['REQUEST_URI']);
+				/*$mode = !isset($_REQUEST['mode']) ?
                     '' : '&mode=' . urlencode($_REQUEST['mode']);
 				$interface->assign('recordId', 'delete=' .
-				urlencode($_REQUEST['delete']) . $mode);
+				urlencode($_REQUEST['delete']) . $mode);*/
 			} else if (isset($_REQUEST['save'])) {
-				$mode = !isset($_REQUEST['mode']) ?
+				$interface->assign('returnUrl', $_SERVER['REQUEST_URI']);
+				/*$mode = !isset($_REQUEST['mode']) ?
                     '' : '&mode=' . urlencode($_REQUEST['mode']);
 				$interface->assign('recordId', 'save=' .
-				urlencode($_REQUEST['save']) . $mode);
+				urlencode($_REQUEST['save']) . $mode);*/
 			} else if (isset($_REQUEST['recordId'])) {
-				$interface->assign('recordId', $_REQUEST['recordId']);
+				$interface->assign('returnUrl', $_REQUEST['recordId']);
 			}
 
 			// comments and tags also need to be preserved if present
@@ -97,6 +99,13 @@ class Login extends Action
 		}else{
 			$interface->assign('enableSelfRegistration', 0);
 		}
+		
+		//Vars for the IDCLREADER TEMPLATE
+		$interface->assign('ButtonBack',true);
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','&nbsp;');
+		
+		
 		//set focus to the username field by default.
 		$interface->assign('focusElementId', 'username');
 		$interface->setTemplate('login.tpl');

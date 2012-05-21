@@ -107,16 +107,18 @@ class Horizon implements DriverInterface{
 			$itemSubfield       = $configArray['Catalog']['itemSubfield'];
 			$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
 			$statusSubfield     = $configArray['Catalog']['statusSubfield'];
+			$firstItemWithSIPdata = null;
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode 
 				global $memcache;
-				$itemData = $memcache->get('item_data_' . $barcode);
+				$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
 				if ($itemData == false){
 					//No data exists
 				
 					$itemData = array();
-					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
+					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');					
+
 					//Get the barcode from the horizon database
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
@@ -163,15 +165,22 @@ class Horizon implements DriverInterface{
 					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
 					$itemData['holdQueueLength'] = 0;
 					if (strlen($itemData['barcode']) > 0){
-						$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status']);
-						$itemData = array_merge($itemData, $itemSip2Data);
+						if ($forSummary && $firstItemWithSIPdata != null ){
+							$itemData = array_merge($itemData, $firstItemWithSIPdata);
+						}else{
+							$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status'], $forSummary);
+							if ($firstItemWithSIPdata == null){
+								$firstItemWithSIPdata = $itemSip2Data;
+							}
+							$itemData = array_merge($itemData, $itemSip2Data);
+						}
 					}
 
 					$itemData['collection'] = $this->translateCollection($item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
 
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
-					$memcache->set('item_data_' . $barcode, $itemData, 0, $configArray['Caching']['item_data']);
+					$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
 				}
 				
 				$suppressItem = false;
@@ -216,10 +225,10 @@ class Horizon implements DriverInterface{
 		return $allItems;
 	}
 
-	public function getHoldings($idList)
+	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false)
 	{
 		foreach ($idList as $id) {
-			$holdings[] = $this->getHolding($id);
+			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
 		}
 		return $holdings;
 	}
@@ -231,7 +240,7 @@ class Horizon implements DriverInterface{
 
 	public function getStatuses($idList, $record = null, $mysip = null, $forSummary = false)
 	{
-		return getHoldings($idList, $record = null, $mysip = null, $forSummary = false);
+		return $this->getHoldings($idList, $record, $mysip, $forSummary);
 	}
 
 	public function getPurchaseHistory($id)
@@ -1052,10 +1061,12 @@ public function getMyHoldsViaDB($patron)
 		$timer->logTime('Connected to SIP2 server');
 
 		$items = array();
-		$count = 0;
-		foreach ($ids as $recordId){
-			$items[$count] = $this->getStatusSummary($recordId, null, $mysip);
-			$count++;
+		if (is_array($ids)){
+			$count = 0;
+			foreach ($ids as $recordId){
+				$items[$count] = $this->getStatusSummary($recordId, null, $mysip);
+				$count++;
+			}
 		}
 		return $items;
 	}
@@ -1407,7 +1418,7 @@ private $patronProfiles = array();
 						$homeLocationId = $location->locationId;
 					}
 					global $user;
-
+					
 					$profile= array(
             'lastname' => $result['variable']['DJ'][0],
             'firstname' => isset($result['variable']['DH'][0]) ? $result['variable']['DH'][0] : '',
@@ -1436,6 +1447,15 @@ private $patronProfiles = array();
 					$eContentDriver = new EContentDriver(); 
 					$eContentAccountSummary = $eContentDriver->getAccountSummary();
 					$profile = array_merge($profile, $eContentAccountSummary);
+					
+					//Get a count of the materials requests for the user
+					$materialsRequest = new MaterialsRequest();
+					$materialsRequest->createdBy = $user->id;
+					$statusQuery = new MaterialsRequestStatus();
+					$statusQuery->isOpen = 1;
+					$materialsRequest->joinAdd($statusQuery);
+					$materialsRequest->find();
+					$profile['numMaterialsRequests'] = $materialsRequest->N;
 				} else {
 					$profile = new PEAR_Error('patron_info_error_technical');
 				}
@@ -1567,7 +1587,7 @@ private $transactions = array();
 		global $memcache;
 		global $configArray;
 		global $timer;
-		$itemSip2Data = $memcache->get("item_sip2_data_$barcode");
+		$itemSip2Data = $memcache->get("item_sip2_data_{$barcode}");
 		if ($itemSip2Data == false){
 			//Check to see if the SIP2 information is already cached
 			if ($this->sipInitialized == false){
@@ -1625,7 +1645,7 @@ private $transactions = array();
 					}
 				}
 			}
-			$memcache->set("item_sip2_data_$barcode", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
+			$memcache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
 			$timer->logTime("Got due date and hold queue length from SIP 2 for barcode $barcode");
 		}
 		return $itemSip2Data;
@@ -1931,7 +1951,11 @@ public function renewItem($patronId, $itemId){
 					$hold_result['message'] = $result['variable']['AF'][0];
 					
 					//If the renew fails, check to see if we need to override the SIP port
-					if ($hold_result['result'] == false && $useAlternateSIP == false){
+					$alternatePortSet = false;
+					if (isset($configArray['SIP2']['alternate_port']) && strlen($configArray['SIP2']['alternate_port']) > 0 && $configArray['SIP2']['alternate_port'] != $configArray['SIP2']['port']){
+						$alternatePortSet = true;
+					}
+					if ($alternatePortSet && $hold_result['result'] == false && $useAlternateSIP == false){
 						//Can override the SIP port if there are sufficient copies on the shelf to cover any holds
 						
 						//Get the id for the item 
@@ -2568,7 +2592,7 @@ public function renewItem($patronId, $itemId){
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 		//Start at My Account Page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
+		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$this->hipProfile}&menu=account";
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -2600,7 +2624,7 @@ public function renewItem($patronId, $itemId){
       'button' => 'Login to Your Account',
       'login_prompt' => 'true',
       'menu' => 'account',
-      'profile' => $configArray['Catalog']['hipProfile'],
+      'profile' => $this->hipProfile,
       'ri' => '', 
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
@@ -2620,7 +2644,7 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'cancelhold' => 'Cancel Request',
         'menu' => 'account',
-        'profile' => $configArray['Catalog']['hipProfile'],
+        'profile' => $this->hipProfile,
         'session' => $sessionId,
         'submenu' => 'holds',
         'suspend_date' => '',
@@ -2666,7 +2690,7 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'changestatus' => 'Change Status',
         'menu' => 'account',
-        'profile' => $configArray['Catalog']['hipProfile'],
+        'profile' => $this->hipProfile,
         'select1' => $dateParts['month'],
         'select2' => $dateParts['day'],
         'select3' => $dateParts['year'] ,

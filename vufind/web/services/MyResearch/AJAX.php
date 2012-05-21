@@ -20,6 +20,7 @@
 
 require_once 'Action.php';
 require_once 'services/MyResearch/lib/Suggestions.php';
+
 require_once 'services/MyResearch/lib/User_resource.php';
 require_once 'services/MyResearch/lib/User_list.php';
 

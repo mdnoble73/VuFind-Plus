@@ -8,18 +8,14 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
-import org.marc4j.marc.VariableField;
 
 public abstract class MarcProcessorBase {
 	protected String marcRecordPath;
@@ -28,17 +24,19 @@ public abstract class MarcProcessorBase {
 	protected HashMap<String, String> targetAudienceMap;
 	protected int recordsProcessed = 0;
 	protected int maxRecordsToProcess = -1;
+	private Logger logger;
 	
-	protected boolean loadConfig(Section processSettings, Section generalSettings, Logger logger){
+	protected boolean loadConfig(String servername, Ini configIni, Section processSettings, Logger logger){
+		this.logger = logger;
 		// Get the directory where the marc records are stored.
-		marcRecordPath = generalSettings.get("marcRecordPath");
+		marcRecordPath = configIni.get("EContent", "marcPath");
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
 			logger.error("Marc Record Path not found in General Settings.  Please specify the path as the marcRecordPath key.");
 			return false;
 		}
 		
-	// Read the format map
-		String formatMapFileString = generalSettings.get("formatMapFile");
+		// Read the format map
+		String formatMapFileString = "../../sites/" + servername + "/translation_maps/format_map.properties";
 		File formatMapFile = null;
 		if (formatMapFileString == null || formatMapFileString.length() == 0) {
 			logger.error("Format Map File not found in GenerateCatalog Settings.  Please specify the path as the formatMapFile key.");
@@ -52,7 +50,7 @@ public abstract class MarcProcessorBase {
 		}
 
 		// Read the category map
-		String formatCategoryMapFileString = generalSettings.get("formatCategoryMapFile");
+		String formatCategoryMapFileString = "../../sites/" + servername + "/translation_maps/format_category_map.properties";
 		File formatCategoryMapFile = null;
 		if (formatCategoryMapFileString == null || formatCategoryMapFileString.length() == 0) {
 			logger.error("Format Category Map File not found in GenerateCatalog Settings.  Please specify the path as the formatCategoryMapFile key.");
@@ -66,7 +64,7 @@ public abstract class MarcProcessorBase {
 		}
 
 		// Read the target audience map
-		String targetAudienceFileString = generalSettings.get("targetAudienceMapFile");
+		String targetAudienceFileString = "../../sites/" + servername + "/translation_maps/target_audience_map.properties";
 		File targetAudienceMapFile = null;
 		if (targetAudienceFileString == null || targetAudienceFileString.length() == 0) {
 			logger.error("Target Audience Map File not found in GenerateCatalog Settings.  Please specify the path as the targetAudienceMapFile key.");
@@ -100,7 +98,7 @@ public abstract class MarcProcessorBase {
 		HashMap<String, String> formatMap = new HashMap<String, String>();
 		BufferedReader reader = new BufferedReader(new FileReader(formatMapFile));
 		String inputLine = reader.readLine();
-		System.out.println("Reading properties file " + formatMapFile.getAbsolutePath());
+		logger.info("Reading properties file " + formatMapFile.getAbsolutePath());
 		while (inputLine != null) {
 			inputLine = inputLine.trim();
 			if (inputLine.length() == 0 || inputLine.startsWith("#")) {

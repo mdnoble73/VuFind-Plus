@@ -7,7 +7,7 @@ require_once 'DB/DataObject/Cast.php';
 
 class PTypeRestrictedLocation extends DB_DataObject 
 {
-	public $__table = 'pTypeRestrictedLocations';   // table name
+	public $__table = 'ptype_restricted_locations';   // table name
 	public $locationId;				//int(11)
 	public $millenniumCode;			//varchar(5)
 	public $holdingDisplay;         //varchar(30)`

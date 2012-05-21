@@ -9,7 +9,10 @@ class EContentMarcImport extends DB_DataObject
 {
 	public $__table = 'econtent_marc_import';   // table name
 	public $id;
+	public $source;
 	public $filename;
+	public $supplementalFilename;
+	public $accessType;
 	public $dateStarted;
 	public $dateFinished;
 	public $status;

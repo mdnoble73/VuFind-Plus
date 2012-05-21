@@ -102,17 +102,17 @@
 	  
 	  {* Checkout link *}
 	  <div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/checkout.png" alt="Checkout"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external"><img src="{$path}/interface/themes/default/images/checkout.png" alt="Checkout"/></a>
 	  </div>
 	  
 	  {* Access online link *}
 	  <div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/access_online.png" alt="Access Online"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab" data-role="button" rel="external"><img src="{$path}/interface/themes/default/images/access_online.png" alt="Access Online"/></a>
 	  </div>
 	  
 	  {* Add to Wish List *}
 	  <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external"><img src="{$path}/interface/themes/dcl/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
+	    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external"><img src="{$path}/interface/themes/default/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
 	  </div>
 	  	<a href="{$path}/EcontentRecord/{$id}/Save" data-role="button" rel="external">{translate text="Add to favorites"}</a>
     	<a href="{$path}/EcontentRecord/{$id}/AddTag" data-role="button" rel="external">{translate text="Add Tag"}</a>
@@ -120,21 +120,27 @@
     
     {if $subTemplate}
     {include file="Record/$subTemplate"}
+    {else}
+    {include file="Record/view-holdings.tpl"}
     {/if}
             
   </div>
 	{include file="footer.tpl"}
 </div>
-   
-{* Strands Tracking *}{literal}
-<!-- Event definition to be included in the body before the Strands js library -->
-<script type="text/javascript">
-if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
-StrandsTrack.push({
-   event:"visited",
-   item: "{/literal}econtentRecord{$id|escape}{literal}"
-});
-</script>
-{/literal}
 
-     
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
+<script type="text/javascript">
+	GetEContentHoldingsInfo('{$id|escape:"url"}');
+</script>   
+{if $strandsAPID}
+	{* Strands Tracking *}{literal}
+	<!-- Event definition to be included in the body before the Strands js library -->
+	<script type="text/javascript">
+	if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+	StrandsTrack.push({
+	   event:"visited",
+	   item: "{/literal}econtentRecord{$id|escape}{literal}"
+	});
+	</script>
+	{/literal}
+{/if}

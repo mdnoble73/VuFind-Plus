@@ -150,7 +150,7 @@ class ItemAPI extends Action {
 				$itemData['format'] = $eContentRecord->format();
 				$itemData['formatCategory'] = $eContentRecord->format_category();
 				$itemData['language'] = $eContentRecord->language;
-				$itemData['cover'] = $configArray['Site']['url'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
+				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
 				
 				require_once('sys/eContent/EContentRating.php');
@@ -333,7 +333,7 @@ class ItemAPI extends Action {
 				$itemData['format'] = $eContentRecord->format();
 				$itemData['formatCategory'] = $eContentRecord->format_category();
 				$itemData['language'] = $eContentRecord->language;
-				$itemData['cover'] = $configArray['Site']['url'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
+				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
 				
 				require_once('sys/eContent/EContentRating.php');

@@ -8,9 +8,9 @@
 		  <span class="menu-account-link loginOptions top-menu-item" {if $user} style="display: none;"{/if}><a href="{$path}/MyResearch/Home" class='loginLink'>{translate text="My Account"}</a></span>
 		{/if}
 		</div>
-		<span class="top-menu-item"><a title="Contact Us" href="http://answers.douglascountylibraries.org/">Ask it</a></span>
-		<span class="top-menu-item"><a href="http://foundation.douglascountylibraries.org">Donate it</a></span>
-		<span class="top-menu-item"><a href="https://epayments.douglascountylibraries.org/eCommerceWebModule/Home">Pay it</a></span>
+		<span class="top-menu-item"><a title="Contact Us" href="http://answers.douglascountylibraries.org/">Ask Us</a></span>
+		<span class="top-menu-item"><a href="https://epayments.douglascountylibraries.org/eCommerceWebModule/Home">Pay Fines</a></span>
+		<span class="top-menu-item"><a title="Literacy" href="http://douglascountylibraries.org/AboutUs/Literacy">Literacy</a></span>
 		<span class="top-menu-item"><a title="Small Business Help" href="http://douglascountylibraries.org/Research/iGuides/SmallBusiness">BizInfo</a></span>
 		<span class="top-menu-item"><a title="Douglas County History Research Center" href="http://history.douglascountylibraries.org">DCHRC</a></span>
 		<span class="top-menu-item"><a title="Kids Corner" href="http://douglascountylibraries.org/kids">Kids</a></span>

@@ -18,7 +18,7 @@ function SendEContentSMS(id, to, provider, strings) {
 	sendAJAXSMS(url, params, strings);
 }
 
-function GetEContentHoldingsInfo(id, type) {
+function GetEContentHoldingsInfo(id, type, callback) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetHoldingsInfo";
 	var fullUrl = url + "?" + params;
@@ -61,6 +61,12 @@ function GetEContentHoldingsInfo(id, type) {
 					$(".addToWishListLink").show();
 				}
 			}
+			
+			if (typeof callback === 'function')
+			{
+				callback();
+			}
+			
 		}
 	});
 }
@@ -168,4 +174,8 @@ function editItem(id, itemId){
 	var params = "method=EditItem&itemId=" + encodeURIComponent(itemId);
 	ajaxLightbox(url+ "?" + params);
 	return false;
+}
+function showEcontentPurchaseOptions(id){
+	var url = path + "/EContentRecord/" + id + "/AJAX?method=getPurchaseOptions";
+	ajaxLightbox(url)
 }

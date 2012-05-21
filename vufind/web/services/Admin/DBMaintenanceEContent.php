@@ -56,9 +56,14 @@ class DBMaintenanceEContent extends Admin {
 						}else{
 							$result = mysql_query($sql);
 							if ($result == 0 || $result == false){
-								$update['status'] = 'Update failed ' . mysql_error();
-								$updateOk = false;
-								break;
+								if (isset($update['continueOnError']) && $update['continueOnError']){
+									if (!isset($update['status'])) $update['status'] = '';
+									$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
+								}else{
+									$update['status'] = 'Update failed ' . mysql_error();
+									$updateOk = false;
+									break;
+								}
 							}else{
 								$update['status'] = 'Update succeeded';
 							}
@@ -260,6 +265,15 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'eContentRecord_3'  => array(
+			'title' => 'eContent Record Update 3',
+			'description' => 'Increase length of isbn field ',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_record CHANGE `isbn` `isbn` VARCHAR(500) NULL",
+		),
+		),
+		
 		'notices_1'  => array(
 			'title' => 'eContent Notices Update 1',
 			'description' => 'Adds notices fields so each notice is tracked explicitly',
@@ -363,6 +377,16 @@ class DBMaintenanceEContent extends Admin {
 				"ALTER TABLE econtent_marc_import ADD COLUMN errors LONGTEXT",
 		),
 		),
+		'econtent_marc_import_2'  => array(
+			'title' => 'EContent Marc Import Update 2',
+			'description' => 'Updates Log to include supplemental file and source.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_marc_import ADD COLUMN supplementalFilename VARCHAR(255)",
+				"ALTER TABLE econtent_marc_import ADD COLUMN source VARCHAR(100)",
+				"ALTER TABLE econtent_marc_import ADD COLUMN accessType VARCHAR(100)",
+		),
+		),
 		
 		'econtent_attach'  => array(
 			'title' => 'EContent Attachment Log',
@@ -378,6 +402,16 @@ class DBMaintenanceEContent extends Admin {
 					"`status` ENUM('running', 'finished') NOT NULL, ".
 					"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
 				") ENGINE = MYISAM COMMENT = 'A trasaction log for eContent that has been added to records.' ",
+		),
+		),
+		
+		'econtent_attach_update_1' => array(
+			'title' => 'EContent Attachment Log',
+			'description' => 'Create table to store log of attaching eContent to records.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_attach ADD numErrors INT(11) DEFAULT 0;",
+				"ALTER TABLE econtent_attach ADD notes TEXT ;",
 		),
 		),
 		
@@ -415,6 +449,25 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'econtent_record_detection_settings' => array(
+			'title' => 'EContent Record Detection Settings',
+			'description' => 'Create table to store information about how to determine if a record in the marc export is print or eContent.',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS econtent_record_detection_settings;",
+				"CREATE TABLE IF NOT EXISTS  econtent_record_detection_settings(".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+					"`fieldSpec` VARCHAR(100), ".
+					"`valueToMatch` VARCHAR(100), ".
+					"`source` VARCHAR(100), ".
+					"`accessType` VARCHAR(30), ".
+					"`item_type` VARCHAR(30), ".
+					"`add856FieldsAsExternalLinks` TINYINT NOT NULL DEFAULT 0, ".
+					"INDEX(source) ".
+				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
+		),
+		),
+		
 		'remove_gale_pdfs'  => array(
 			'title' => 'Remove Gale PDF Files',
 			'description' => 'Remove Gale PDF files from the catalog.',
@@ -429,6 +482,7 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Add eContent indexes',
 			'description' => 'Add indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `econtent_checkout` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `econtent_history` ADD INDEX `RecordId` ( `recordId` ) ',
@@ -442,6 +496,7 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Add eContent indexes 2',
 			'description' => 'Add additional indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
+			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `econtent_rating` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `econtent_hold` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
@@ -451,7 +506,7 @@ class DBMaintenanceEContent extends Admin {
 		),
 		
 		'add_indexes_3' => array(
-			'title' => 'Add eContent indexes 2',
+			'title' => 'Add eContent indexes 3',
 			'description' => 'Add additional indexes to econtent tables that were not defined originally',
 			'dependencies' => array(),
 			'sql' => array(
@@ -493,8 +548,26 @@ class DBMaintenanceEContent extends Admin {
 				"DROP TABLE IF EXISTS overdrive_record_cache",
 			),
 		),
+		'addIndexDateAddedEcontentRecordTable' => array(
+			'title' => 'Add an Index',
+			'description' => 'Add an index to econtent_record table',
+			'dependencies' => array(),
+			'sql' => array('addDateAddIndexToEContentRecord'),
+		),
 		
 		);
+	}
+	
+	public function addDateAddIndexToEContentRecord()
+	{
+		$query = "SHOW INDEX FROM econtent_record WHERE Key_name = 'ECDateAdded'";
+		$result = mysql_query($query);
+		$numRows = mysql_num_rows($result);
+		if($numRows !== 1)
+		{
+			$sql = 'ALTER TABLE `econtent_record` ADD INDEX `ECDateAdded` ( `date_added` )';
+			mysql_query($sql);
+		}
 	}
 
 	private function checkWhichUpdatesHaveRun($availableUpdates){

@@ -116,6 +116,7 @@ class UInterface extends Smarty
 			$url .= '/' . $configArray['Site']['path'];
 		}
 		$this->url = $url;
+		$this->assign('template_dir',$this->template_dir);
 		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
 		$this->assign('consolidateCss', isset($configArray['Site']['consolidateCss']) ? $configArray['Site']['consolidateCss'] : false);

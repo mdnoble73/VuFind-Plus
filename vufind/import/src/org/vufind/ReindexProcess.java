@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -99,149 +98,18 @@ public class ReindexProcess {
 			}
 		}
 		
-		// Update the alphabetic browse database tables
-		if (updateAlphaBrowse){
-			buildAlphaBrowseTables();
-		}
-		
 		// Send completion information
 		endTime = new Date().getTime();
 		sendCompletionMessage(recordProcessors);
 
 		logger.info("Finished Reindex for " + serverName);
 	}
-		
-	private static void buildAlphaBrowseTables() {
-		logger.info("Building Alphabetic Browse tables");
-		
-		//Run queries to create alphabetic browse tables from resources table
-		try {
-			//Clear the current browse table
-			logger.info("Truncating title table");
-			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE title_browse");
-			truncateTable.executeUpdate();
-			
-			//Get all resources
-			logger.info("Loading titles for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, title, title_sort FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY title_sort ORDER BY title_sort");
-			ResultSet resourcesByTitleRS = resourcesByTitleStmt.executeQuery();
-
-			logger.info("Saving titles to database");
-			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO title_browse (id, numResults, value) VALUES (?, ?, ?)");
-			int curRow = 1;
-			while (resourcesByTitleRS.next()){
-				String titleSort = resourcesByTitleRS.getString("title_sort");
-				if (titleSort != null && titleSort.length() > 0){
-					insertBrowseRow.setLong(1, curRow++);
-					insertBrowseRow.setLong(2, resourcesByTitleRS.getLong("numResults"));
-					insertBrowseRow.setString(3, resourcesByTitleRS.getString("title"));
-					insertBrowseRow.executeUpdate();
-					//System.out.print(".");
-				}
-			}
-			
-			logger.info("Added " + (curRow -1) + " rows to title browse table");
-		} catch (SQLException e) {
-			logger.error("Error creating title browse table", e);
-		}
-		
-		try {
-			//Clear the current browse table
-			logger.info("Truncating author table");
-			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE author_browse");
-			truncateTable.executeUpdate();
-			
-			//Get all resources
-			logger.info("Loading authors for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, author FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY lower(author) ORDER BY lower(author)");
-			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
-
-			logger.info("Saving authors to database");
-			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO author_browse (id, numResults, value) VALUES (?, ?, ?)");
-			int curRow = 1;
-			while (groupedSortedRS.next()){
-				String sortKey = groupedSortedRS.getString("author");
-				if (sortKey != null && sortKey.length() > 0){
-					insertBrowseRow.setLong(1, curRow++);
-					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
-					insertBrowseRow.setString(3, groupedSortedRS.getString("author"));
-					insertBrowseRow.executeUpdate();
-					//System.out.print(".");
-				}
-			}
-			
-			logger.info("Added " + (curRow -1) + " rows to author browse table");
-		} catch (SQLException e) {
-			logger.error("Error creating author browse table", e);
-		}
-
-		//Setup subject browse
-		try {
-			//Clear the subject browse table
-			logger.info("Truncating subject table");
-			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE subject_browse");
-			truncateTable.executeUpdate();
-			
-			//Get all resources
-			logger.info("Loading subjects for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, subject from resource inner join resource_subject on resource.id = resource_subject.resourceId inner join subject on subjectId = subject.id WHERE (deleted = 0 OR deleted is NULL) group by subjectId ORDER BY lower(subject)");
-			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
-
-			logger.info("Saving subjects to database");
-			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO subject_browse (id, numResults, value) VALUES (?, ?, ?)");
-			int curRow = 1;
-			while (groupedSortedRS.next()){
-				String sortKey = groupedSortedRS.getString("subject");
-				if (sortKey != null && sortKey.length() > 0){
-					insertBrowseRow.setLong(1, curRow++);
-					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
-					insertBrowseRow.setString(3, groupedSortedRS.getString("subject"));
-					insertBrowseRow.executeUpdate();
-					//System.out.print(".");
-				}
-			}
-			logger.info("Added " + (curRow -1) + " rows to subject browse table");
-		} catch (SQLException e) {
-			logger.error("Error creating subject browse table", e);
-		}
-		
-	//Setup call number browse
-		try {
-			//Clear the call number browse table
-			logger.info("Truncating callnumber_browse table");
-			PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE callnumber_browse");
-			truncateTable.executeUpdate();
-			
-			//Get all resources
-			logger.info("Loading call numbers for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, callnumber from resource inner join (select resourceId, callnumber FROM resource_callnumber group by resourceId, callnumber) titleCallNumber on resource.id = resourceId where (deleted = 0 OR deleted is NULL) group by callnumber ORDER BY lower(callnumber)");
-			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
-
-			logger.info("Saving call numbers to database");
-			PreparedStatement insertBrowseRow = vufindConn.prepareStatement("INSERT INTO callnumber_browse (id, numResults, value) VALUES (?, ?, ?)");
-			int curRow = 1;
-			while (groupedSortedRS.next()){
-				String sortKey = groupedSortedRS.getString("callnumber");
-				if (sortKey != null && sortKey.length() > 0){
-					insertBrowseRow.setLong(1, curRow++);
-					insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
-					insertBrowseRow.setString(3, groupedSortedRS.getString("subject"));
-					insertBrowseRow.executeUpdate();
-					//System.out.print(".");
-				}
-			}
-			logger.info("Added " + (curRow -1) + " rows to call number browse table");
-		} catch (SQLException e) {
-			logger.error("Error creating callnumber browse table", e);
-		}
-	}
-
 	
 	private static ArrayList<IRecordProcessor> loadRecordProcesors(){
 		ArrayList<IRecordProcessor> supplementalProcessors = new ArrayList<IRecordProcessor>();
 		if (updateSolr){
 			MarcIndexer marcIndexer = new MarcIndexer();
-			if (marcIndexer.init(configIni, serverName, logger)){
+			if (marcIndexer.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(marcIndexer);
 			}else{
 				logger.error("Could not initialize marcIndexer");
@@ -250,7 +118,7 @@ public class ReindexProcess {
 		}
 		if (updateResources){
 			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
-			if (resourceUpdater.init(configIni, serverName, logger)){
+			if (resourceUpdater.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(resourceUpdater);
 			}else{
 				logger.error("Could not initialize resourceUpdater");
@@ -259,7 +127,7 @@ public class ReindexProcess {
 		}
 		if (loadEContentFromMarc){
 			ExtractEContentFromMarc econtentExtractor = new ExtractEContentFromMarc();
-			if (econtentExtractor.init(configIni, serverName, logger)){
+			if (econtentExtractor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(econtentExtractor);
 			}else{
 				logger.error("Could not initialize econtentExtractor");
@@ -268,8 +136,17 @@ public class ReindexProcess {
 		}
 		if (exportStrandsCatalog){
 			StrandsProcessor strandsProcessor = new StrandsProcessor();
-			if (strandsProcessor.init(configIni, serverName, logger)){
+			if (strandsProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(strandsProcessor);
+			}else{
+				logger.error("Could not initialize strandsProcessor");
+				System.exit(1);
+			}
+		}
+		if (updateAlphaBrowse){
+			AlphaBrowseProcessor alphaBrowseProcessor = new AlphaBrowseProcessor();
+			if (alphaBrowseProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
+				supplementalProcessors.add(alphaBrowseProcessor);
 			}else{
 				logger.error("Could not initialize strandsProcessor");
 				System.exit(1);
@@ -308,104 +185,28 @@ public class ReindexProcess {
 	}
 
 	private static void processEContentRecords(ArrayList<IRecordProcessor> supplementalProcessors) {
+		logger.info("Processing econtent records");
+		ArrayList<IEContentProcessor> econtentProcessors = new ArrayList<IEContentProcessor>();
+		for (IRecordProcessor processor: supplementalProcessors){
+			if (processor instanceof IEContentProcessor){
+				econtentProcessors.add((IEContentProcessor)processor);
+			}
+		}
+		if (econtentProcessors.size() == 0){
+			return;
+		}
+		//Check to see if the record already exists
 		try {
-			logger.info("Processing econtent records");
-			
-			//Setup prepared statements that we will use
 			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'");
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated from resource where record_id = ? and source = 'eContent'");
-			PreparedStatement addResourceStmt = vufindConn.prepareStatement("INSERT INTO resource (record_id, title, source, author, title_sort, isbn, upc, format, format_category, marc_checksum, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-			PreparedStatement updateResourceStmt = vufindConn.prepareStatement("UPDATE resource SET record_id = ?, title = ?, source = ?, author = ?, title_sort = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum = ?, date_updated = ? WHERE id = ?");
-			
-			//Check to see if the record already exists
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			while (allEContent.next()){
-				String econtentId = allEContent.getString("id");
-				
-				//Load title information so we have access regardless of 
-				String title = allEContent.getString("title");
-				String subTitle = allEContent.getString("subTitle");
-				if (subTitle.length() > 0){
-					title += ": " + subTitle;
-				}
-				String sortTitle = title.toLowerCase().replaceAll("^(the|an|a|el|la)\\s", "");
-				String isbn = allEContent.getString("isbn");
-				if (isbn.indexOf(' ') > 0){
-					isbn = isbn.substring(0, isbn.indexOf(' '));
-				}
-				if (isbn.indexOf("\r") > 0){
-					isbn = isbn.substring(0,isbn.indexOf("\r"));
-				}
-				if (isbn.indexOf("\n") > 0){
-					isbn = isbn.substring(0,isbn.indexOf("\n"));
-				}
-				String upc = allEContent.getString("upc");
-				if (upc.indexOf(' ') > 0){
-					upc = upc.substring(0, upc.indexOf(' '));
-				}
-				if (upc.indexOf("\r") > 0){
-					upc = upc.substring(0,upc.indexOf("\r"));
-				}
-				if (upc.indexOf("\n") > 0){
-					upc = upc.substring(0,upc.indexOf("\n"));
-				}
-				//System.out.println("UPC: " + upc);
-				
-				//Check to see if we have an existing resource
-				existingResourceStmt.setString(1, econtentId);
-				ResultSet existingResource = existingResourceStmt.executeQuery();
-				if (existingResource.next()){
-					//Check the date resource was updated and update if it was updated before the record was changed last
-					boolean updateResource = false;
-					long resourceUpdateTime = existingResource.getLong("date_updated");
-					long econtentUpdateTime = allEContent.getLong("date_updated");
-					if (econtentUpdateTime > resourceUpdateTime){
-						updateResource = true;
-					}
-					if (updateResource){
-						logger.debug("Updating Resource for eContentRecord " + econtentId);
-						updateResourceStmt.setString(1, econtentId);
-						updateResourceStmt.setString(2, Util.trimTo(255, title));
-						updateResourceStmt.setString(3, "eContent");
-						updateResourceStmt.setString(4, Util.trimTo(255, allEContent.getString("author")));
-						updateResourceStmt.setString(5, Util.trimTo(255, sortTitle));
-						updateResourceStmt.setString(6, Util.trimTo(13, isbn));
-						updateResourceStmt.setString(7, Util.trimTo(13, upc));
-						updateResourceStmt.setString(8, "");
-						updateResourceStmt.setString(9, "emedia");
-						updateResourceStmt.setLong(10, 0);
-						updateResourceStmt.setLong(11, new Date().getTime() / 1000);
-						updateResourceStmt.setLong(12, existingResource.getLong("id"));
-						
-						int numUpdated = updateResourceStmt.executeUpdate();
-						if (numUpdated != 1){
-							logger.error("Reource not updated for econtent record " + econtentId);
-						}
-					}else{
-						logger.debug("Not updating resource for eContentRecord " + econtentId + ", it is already up to date");
-					}
-				}else{
-					//Insert a new resource
-					System.out.println("Adding resource for eContentRecord " + econtentId);
-					addResourceStmt.setString(1, econtentId);
-					addResourceStmt.setString(2, Util.trimTo(255, title));
-					addResourceStmt.setString(3, "eContent");
-					addResourceStmt.setString(4, Util.trimTo(255, allEContent.getString("author")));
-					addResourceStmt.setString(5, Util.trimTo(255, sortTitle));
-					addResourceStmt.setString(6, Util.trimTo(13, isbn));
-					addResourceStmt.setString(7, Util.trimTo(13, upc));
-					addResourceStmt.setString(8, "");
-					addResourceStmt.setString(9, "emedia");
-					addResourceStmt.setLong(10, 0);
-					addResourceStmt.setLong(11, new Date().getTime() / 1000);
-					int numAdded = addResourceStmt.executeUpdate();
-					if (numAdded != 1){
-						logger.error("Reource not added for econtent record " + econtentId);
-					}
+				for (IEContentProcessor econtentProcessor : econtentProcessors){
+					econtentProcessor.processEContentRecord(allEContent);
 				}
 			}
-		} catch (SQLException e) {
-			logger.error("Error updating resources for eContent", e);
+		} catch (SQLException ex) {
+			// handle any errors
+			logger.error("Unable to load econtent records from database", ex);
 		}
 	}
 
@@ -584,10 +385,9 @@ public class ReindexProcess {
 		logger.info("Time elpased: " + elapsedMinutes + " minutes");
 		
 		try {
-			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, notes = ? WHERE id=?");
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ? WHERE id = ?");
 			finishedStatement.setLong(1, new Date().getTime() / 1000);
-			finishedStatement.setString(2, "");
-			finishedStatement.setLong(3, reindexLogId);
+			finishedStatement.setLong(2, reindexLogId);
 			finishedStatement.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Unable to update reindex log with completion time.", e);

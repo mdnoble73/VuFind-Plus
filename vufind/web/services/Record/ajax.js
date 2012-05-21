@@ -111,36 +111,6 @@ function LoadComments(id, strings) {
 	});
 }
 
-function checkPurchaseLinks(id) {
-	var output = '';
-
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=checkPurchaseLinks";
-
-	$.getJSON(url + "?" + params, function(data) {
-		var buttonTatteredCover = data.tatteredCover;
-		var buttonAmazon = data.amazon;
-		var buttonBarnesAndNoble = data.barnesAndNoble;
-		
-		if (buttonTatteredCover || buttonAmazon || buttonBarnesAndNoble) {
-				$("#purchaseLinkButtons").append("<h3>Get a copy for yourself</h3>");
-		}
-		
-		if (buttonTatteredCover && buttonTatteredCover.length > 0) {
-			$("#purchaseLinkButtons").append(buttonTatteredCover);
-		} 
-		
-		if (buttonAmazon && buttonAmazon.length > 0) {
-			$("#purchaseLinkButtons").append(buttonAmazon);
-		} 
-		
-		if (buttonBarnesAndNoble && buttonBarnesAndNoble.length > 0) {
-			$("#purchaseLinkButtons").append(buttonBarnesAndNoble);
-		} 
-		
-	});
-}
-
 function GetPreferredBranches() {
 	var username = document.forms['placeHoldForm'].elements['username'].value;
 	var barcode = document.forms['placeHoldForm'].elements['password'].value;
@@ -253,7 +223,10 @@ function GetEnrichmentInfo(id, isbn, upc) {
 			if (showGoDeeperData) {
 				$('#goDeeperLink').show();
 			}
-		}
+		},
+		failure : function(jqXHR, textStatus, errorThrown) {
+		  alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
+	  }
 	});
 }
 
@@ -420,4 +393,10 @@ libraryThingWidgetsLoaded = function(){
 	if (!ltfl_related_content.match(/loading_small\.gif/)){
 		 $("#ltfl_related_button").show();
 	}
+}
+
+
+function showPurchaseOptions(id){
+	var url = path + "/Record/" + id + "/AJAX?method=getPurchaseOptions";
+	ajaxLightbox(url)
 }

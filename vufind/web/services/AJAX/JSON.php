@@ -311,15 +311,17 @@ class JSON extends Action {
 
 		// Send back the collected details:
 		$firstRecord = reset($record);
+		$id = (isset($firstRecord['id']) ? $firstRecord['id'] : '');
+		$reserve = (isset($firstRecord['reserve']) ? $firstRecord['reserve'] : '');
 		return array(
-            'id' => $firstRecord['id'],
-            'shortId' => trim($firstRecord['id'], '.'),
+            'id' => $id,
+            'shortId' => trim($id, '.'),
             'availability' => ($available ? 'true' : 'false'),
             'availability_message' => $messages[$available ? 'available' : 'unavailable'],
             'location' => $location,
             'locationList' => false,
-            'reserve' => ($firstRecord['reserve'] == 'Y' ? 'true' : 'false'),
-            'reserve_message' => $firstRecord['reserve'] == 'Y' ? translate('on_reserve') : translate('Not On Reserve'),
+            'reserve' => ($reserve == 'Y' ? 'true' : 'false'),
+            'reserve_message' => $reserve == 'Y' ? translate('on_reserve') : translate('Not On Reserve'),
             'callnumber' => $callNumber
 		);
 	}

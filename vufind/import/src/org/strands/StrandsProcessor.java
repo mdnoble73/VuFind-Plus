@@ -9,10 +9,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
@@ -30,17 +28,17 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	private BufferedWriter writer;
 	private String vufindUrl;
 	private String bookcoverUrl;
-	private Connection econtentConn;
 	private PreparedStatement getFormatsForRecord = null;
 	private File tempFile;
 	private String strandsCatalogFile;
-	private ProcessorResults results = new ProcessorResults("Strands Export");
+	private ProcessorResults results;
 	
 	/**
 	 * Build a csv file to import into strands
 	 */
-	public boolean init(Ini configIni, String serverName, Logger logger) {
+	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
+		results = new ProcessorResults("Strands Export", reindexLogId, vufindConn, logger);
 		logger.info("Creating Catalog File for Strands");
 
 		vufindUrl = configIni.get("Site", "url");
@@ -61,16 +59,9 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			return false;
 		}
 		
-		String econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
-		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
-			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
-			return false;
-		}
-		
 		//Connect to the eContent database
 		try {
 			//Connect to the vufind database
-			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
 			getFormatsForRecord = econtentConn.prepareStatement("SELECT distinct item_type from econtent_item where recordId = ?");
 			
 		} catch (Exception ex) {
@@ -102,50 +93,20 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	static final Pattern utf8Regex = Pattern.compile("([\\x00-\\x7F]|[\\xC0-\\xDF][\\x80-\\xBF]|[\\xE0-\\xEF][\\x80-\\xBF]{2}|[\\xF0-\\xF7][\\x80-\\xBF]{3})",
 			Pattern.CANON_EQ);
 
-	private String prepForCsv(String input, boolean trimTrailingPunctuation, boolean crSeparatedFields) {
-		if (input == null){
-			return "";
-		}
-		if (trimTrailingPunctuation) {
-			input = trimTrailingPunctuation(input);
-		}
-		input = input.replaceAll("'", "`");
-		input = input.replaceAll("\\|", " ");
-		input = input.replaceAll(";", " ");
-		if (crSeparatedFields){
-			input = input.replaceAll("[\\t]", " ");
-			input = input.replaceAll("\\r\\n|\\r|\\n", ";");
-		}else{
-			input = input.replaceAll("[\\r\\n\\t]", " ");
-		}
-		
-		// input = regex.matcher(input).replaceAll("");
-		return input;
-	}
-
-	private String trimTrailingPunctuation(String format) {
-		if (format == null){
-			return "";
-		}
-		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".")) {
-			format = format.substring(0, format.length() - 1);
-		}
-		return format.trim();
-	}
-
 	@Override
 	public boolean processEContentRecord(ResultSet eContentRecord) {
 		try {
+			results.incEContentRecordsProcessed();
 			// Write the id
 			String id = eContentRecord.getString("id");
 			logger.info("Processing eContentRecord " + id);
 			writer.write("'econtentRecord" + id + "'");
 			// Write a link to the title
-			writer.write("|'" + vufindUrl + "EContentRecord/" + id + "'");
-			writer.write("|'" + prepForCsv(eContentRecord.getString("title"), true, false) + "'");
+			writer.write("|'" + vufindUrl + "/EContentRecord/" + id + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("title"), true, false) + "'");
 			StringBuffer authors = new StringBuffer();
-			authors.append(prepForCsv(eContentRecord.getString("author"), true, false));
-			String author2 = prepForCsv(eContentRecord.getString("author2"), true,true);
+			authors.append(Util.prepForCsv(eContentRecord.getString("author"), true, false));
+			String author2 = Util.prepForCsv(eContentRecord.getString("author2"), true,true);
 			if (author2.length() > 0){
 				if (authors.length() > 0){
 					authors.append(";");
@@ -157,17 +118,17 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			// Get the image link
 			String isbn = eContentRecord.getString("isbn");
 			String upc = eContentRecord.getString("upc");
-			writer.write("|'" + bookcoverUrl + "bookcover.php?isn=" + isbn + "&amp;upc=" + upc + "&amp;id=econtentRecord" + id + "&amp;size=small&econtent=true'");
+			writer.write("|'" + bookcoverUrl + "/bookcover.php?isn=" + isbn + "&upc=" + upc + "&id=econtentRecord" + id + "&size=small&econtent=true'");
 
 			// Get the publisher
 			String publisher = eContentRecord.getString("publisher");
-			writer.write("|'" + prepForCsv(publisher, true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(publisher, true, true) + "'");
 
 			// Get the description
-			writer.write("|'" + prepForCsv(eContentRecord.getString("description"), false, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("description"), false, true) + "'");
 
 			// Get the genre
-			writer.write("|'" + prepForCsv(eContentRecord.getString("genre"), true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("genre"), true, true) + "'");
 
 			// Get the format
 			StringBuffer formats = new StringBuffer();
@@ -179,23 +140,26 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 				if (formats.length() > 0) {
 					formats.append(";");
 				}
-				formats.append(prepForCsv(format, true, true));
+				formats.append(Util.prepForCsv(format, true, true));
 			}
 			writer.write("|'" + formats.toString() + "'");
 
 			// Get the subjects
-			writer.write("|'" + prepForCsv(eContentRecord.getString("subject"), true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("subject"), true, true) + "'");
 
 			// Get the audiences
-			writer.write("|'" + prepForCsv(eContentRecord.getString("target_audience"), true, true) + "'");
+			writer.write("|'" + Util.prepForCsv(eContentRecord.getString("target_audience"), true, true) + "'");
 
 			// Get the format categories
 			writer.write("|'EMedia'");
 
 			writer.write("\r\n");
+			results.incAdded();
 			
 			return true;
 		} catch (Exception e) {
+			results.incErrors();
+			results.addNote("Error processing eContent record " + e.toString());
 			logger.error("Error processing eContent record", e);
 			return false;
 		}
@@ -204,55 +168,58 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
+			results.incRecordsProcessed();
 			// Write the id
 			writer.write("'" + recordInfo.getId() + "'");
 			// Write a link to the title
-			writer.write("|'" + vufindUrl + "Record/" + recordInfo.getId() + "'");
-			writer.write("|'" + prepForCsv(recordInfo.getTitle(), true, false) + "'");
+			writer.write("|'" + vufindUrl + "/Record/" + recordInfo.getId() + "'");
+			writer.write("|'" + Util.prepForCsv(recordInfo.getTitle(), true, false) + "'");
 			StringBuffer authors = new StringBuffer();
 			for (String author : recordInfo.getAuthors()) {
 				if (authors.length() > 0) {
 					authors.append(";");
 				}
-				authors.append(prepForCsv(author, true, false));
+				authors.append(Util.prepForCsv(author, true, false));
 			}
 			writer.write("|'" + authors.toString() + "'");
 
 			// Get the image link
-			writer.write("|'" + bookcoverUrl + "bookcover.php?isn=" + recordInfo.getIsbn() + "&amp;upc=" + recordInfo.getFirstFieldValueInSet("upc") + "&amp;id="
+			writer.write("|'" + bookcoverUrl + "/bookcover.php?isn=" + recordInfo.getIsbn() + "&upc=" + recordInfo.getFirstFieldValueInSet("upc") + "&id="
 					+ recordInfo.getId() + "&amp;size=small'");
 
 			// Get the publisher
-			writer.write("|'" + prepForCsv(recordInfo.getFirstFieldValueInSet("publisher"), true, false) + "'");
+			writer.write("|'" + Util.prepForCsv(recordInfo.getFirstFieldValueInSet("publisher"), true, false) + "'");
 
 			// Get the description
-			writer.write("|'" + prepForCsv(recordInfo.getDescription(), false, false) + "'");
+			writer.write("|'" + Util.prepForCsv(recordInfo.getDescription(), false, false) + "'");
 
 			// Get the genre
-			String genres = Util.getSemiColonSeparatedString(recordInfo.getFields().get("genre"));
+			String genres = Util.getSemiColonSeparatedString(recordInfo.getFields().get("genre"), true);
 			writer.write("|'" + genres + "'");
 
 			// Get the format
-			String formats = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format"));
+			String formats = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format"), true);
 			writer.write("|'" + formats.toString() + "'");
 
 			// Get the subjects
-			String subjects = Util.getSemiColonSeparatedString(recordInfo.getFields().get("topic"));
+			String subjects = Util.getSemiColonSeparatedString(recordInfo.getFields().get("topic"), true);
 			writer.write("|'" + subjects.toString() + "'");
 
 			// Get the audiences
-			String audiences = Util.getSemiColonSeparatedString(recordInfo.getFields().get("target_audience"));
+			String audiences = Util.getSemiColonSeparatedString(recordInfo.getFields().get("target_audience"), true);
 			writer.write("|'" + audiences.toString() + "'");
 
 			// Get the format categories
-			String categories = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format_category"));
+			String categories = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format_category"), true);
 			writer.write("|'" + categories.toString() + "'");
 
 			writer.write("\r\n");
+			results.incAdded();
 			
 			return true;
 		} catch (IOException e) {
 			logger.error("Error writing to catalog file, " + e.toString());
+			results.addNote("Error writing to catalog file, " + e.toString());
 			return false;
 		}
 	}
@@ -275,11 +242,9 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 				logger.info("Output file has been created as " + strandsCatalogFile);
 			}
 			
-			econtentConn.close();
 		} catch (IOException e) {
+			results.addNote("Error saving strands catalog " + e.toString());
 			logger.error("Error saving strands catalog", e);
-		} catch (SQLException e) {
-			logger.error("Error closing database", e);
 		}
 	}
 	@Override

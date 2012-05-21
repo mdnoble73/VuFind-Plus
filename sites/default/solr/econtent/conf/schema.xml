@@ -250,7 +250,9 @@
 		<!-- Used for loading correct record driver -->
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
-    <dynamicField name="loc_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="loc_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="collection_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<!-- Non MARC -->
 		<field name="tag" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="comment" type="text" indexed="true" stored="true" multiValued="true"/>

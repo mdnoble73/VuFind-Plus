@@ -21,12 +21,18 @@ $(document).ready(function() {literal} { {/literal}
 		    {$record}
 		  </div>
 		{/foreach}
-    
+		
 		<input type="hidden" name="type" value="hold" />
 		<div class='selectAllControls'>
 		  <a href="#" onclick="$('.titleSelect').not(':checked').attr('checked', true).trigger('click').attr('checked', true);return false;">Select All</a> /
 		  <a href="#" onclick="$('.titleSelect:checked').attr('checked', false).trigger('click').attr('checked', false);return false;">Deselect All</a>
 		</div>
+		
+		{if $enableMaterialsRequest}
+		<div id="materialsRequestInfo">
+    Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
+    </div>
+    {/if}
 		
 		{if !$enableBookCart}
 		<input type="submit" name="placeHolds" value="Request Selected Items" class="requestSelectedItems"/>

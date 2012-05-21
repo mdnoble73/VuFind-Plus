@@ -143,7 +143,7 @@ abstract class ObjectEditor extends Admin
 		global $interface;
 		//Basic List
 		$interface->assign('dataList', $this->getAllObjects());
-		$interface->setTemplate('propertiesList.tpl');
+		$interface->setTemplate('../Admin/propertiesList.tpl');
 	}
 	function viewIndividualObject($structure){
 		global $interface;
@@ -161,7 +161,7 @@ abstract class ObjectEditor extends Admin
 			$this->setDefaultValues($existingObject, $structure);
 		}
 		$interface->assign('object', $existingObject);
-		$interface->setTemplate('objectEditor.tpl');
+		$interface->setTemplate('../Admin/objectEditor.tpl');
 	}
 
 	function exportObjectsToFile($structure){

@@ -5,6 +5,7 @@ require_once 'sys/eContent/EContentItem.php';
 require_once 'sys/eContent/EContentHold.php';
 require_once 'sys/eContent/EContentCheckout.php';
 require_once 'sys/eContent/EContentWishList.php';
+require_once 'sys/Utils/ArrayUtils.php';
 
 /**
  * Handles processing of account information related to eContent. 
@@ -285,14 +286,16 @@ class EContentDriver implements DriverInterface{
 
 	public function getStatusSummaries($ids){
 		$summaries = array();
-		foreach ($ids as $id){
-			$holdings = $this->getHolding($id);
-			//Load status summary
-			$result = $this->getStatusSummary($id, $holdings);
-			if (PEAR::isError($result)) {
-				PEAR::raiseError($result);
+		if (is_array($ids) && count($ids) > 0){
+			foreach ($ids as $id){
+				$holdings = $this->getHolding($id);
+				//Load status summary
+				$result = $this->getStatusSummary($id, $holdings);
+				if (PEAR::isError($result)) {
+					PEAR::raiseError($result);
+				}
+				$summaries[$id] = $result;
 			}
-			$summaries[$id] = $result;
 		}
 		return $summaries;
 	}
@@ -435,19 +438,22 @@ class EContentDriver implements DriverInterface{
 					//default links to read the title or download
 					$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $item));
 				}
+				$links[ArrayUtils::getLastKey($links)]['item_type'] = $item->item_type;
 			}
 		}
 		
 		//Add a link to return the title
 		if ($eContentCheckout->downloadedToReader == 0){
 			$links[] = array(
-				'text' => 'Return&nbsp;Now',
-				'onclick' => "if (confirm('Are you sure you want to return this title?')){returnEpub('{$configArray['Site']['path']}/EcontentRecord/{$eContentRecord->id}/ReturnTitle')};return false;",
+							'text' => 'Return&nbsp;Now',
+							'onclick' => "if (confirm('Are you sure you want to return this title?')){returnEpub('{$configArray['Site']['path']}/EcontentRecord/{$eContentRecord->id}/ReturnTitle')};return false;",
+							'typeReturn' => 0
 			);
 		}else{
 			$links[] = array(
 				'text' => 'Return&nbsp;Now',
 				'onclick' => "alert('Please return this title from your digital reader.');return false;",
+				'typeReturn' => 1
 			);
 		}
 		return $links;
@@ -924,7 +930,7 @@ class EContentDriver implements DriverInterface{
 					//Link to Freegal
 					$links[] = array(
 									'url' => $url,
-									'text' => 'Access&nbsp;on&nbsp;' . $eContentItem->source,
+									'text' => 'Access&nbsp;on&nbsp;' . $eContentRecord->source,
 					);
 				}else{
 					$links[] = array(
@@ -935,13 +941,13 @@ class EContentDriver implements DriverInterface{
 			}else{
 				$links[] = array(
 							'url' => $eContentItem->link,
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentItem->source,
+							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
 				);
 			}
 		}elseif (in_array($eContentItem->item_type, array('externalLink', 'interactiveBook'))){
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentItem->source,
+							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
 			);
 		}
 		return $links;

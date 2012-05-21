@@ -333,7 +333,7 @@ public final class Utils {
 			}
 		}
 		if (cleanDate != null) {
-			logger.debug("Date : " + date + " mapped to : " + cleanDate);
+			//logger.debug("Date : " + date + " mapped to : " + cleanDate);
 		} else {
 			logger.debug("No Date match: " + date);
 		}

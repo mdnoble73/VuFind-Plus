@@ -22,17 +22,17 @@ require_once 'Action.php';
 
 class Logout extends Action {
 
-    public function launch() {
-        global $configArray;
+	public function launch() {
+		global $configArray;
 
-        if(!isset($_SESSION)){
-            session_start();
-        }
+		if(!isset($_SESSION)){
+			session_start();
+		}
 
-        unset($_SESSION['admininfo']);
+		unset($_SESSION['admininfo']);
 
-        header('Location: ' . $configArray['Site']['url'] . '/Admin/Home');
-    }
+		header('Location: ' . $configArray['Site']['url'] . '/Admin/Home');
+	}
 }
 
 ?>

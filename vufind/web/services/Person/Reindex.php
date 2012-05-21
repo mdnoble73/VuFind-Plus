@@ -30,10 +30,11 @@ class Reindex extends Action{
 
 		$timer->logTime("Starting to reindex person");
 		$recordId = $_REQUEST['id'];
+		$quick = isset($_REQUEST['quick']) ? true : false;
 		$person = new Person();
 		$person->personId = $recordId;
 		if ($person->find(true)){
-			$ret = $person->saveToSolr(true);
+			$ret = $person->saveToSolr($quick);
 			if ($ret){
 				echo(json_encode(array("success" => true)));
 			}else{
