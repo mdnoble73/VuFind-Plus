@@ -36,7 +36,11 @@ class ODPlaceHold extends Action {
 
 		if ($user)
 		{
-			if (isset($_GET['overDriveId']) && isset($_GET['formatId']) )
+			if ( 
+					(isset($_GET['overDriveId']) && isset($_GET['formatId'])) 
+					||
+					(isset($_POST['overDriveId']) && isset($_POST['formatId']))
+				)
 			{
 				require_once('Drivers/OverDriveDriver.php');
 			
@@ -49,20 +53,32 @@ class ODPlaceHold extends Action {
 					$interface->assign('profile', $profile);
 				}
 				
+				$overDriveId = (isset($_GET['overDriveId']) ? $_GET['overDriveId'] : $_POST['overDriveId']);
+				$formatId = (isset($_GET['formatId']) ? $_GET['formatId'] : $_POST['formatId']);
+				
 				$driver = new OverDriveDriver();
-				$holdMessage = $driver->placeOverDriveHold($_GET['overDriveId'], $_GET['formatId'], $user);
+				$holdMessage = $driver->placeOverDriveHold($overDriveId, $formatId, $user);
 				
 				$interface->assign('message',$holdMessage['message']);
 				
 				$interface->assign('MobileTitle','OverDrive Place Hold');
-				$interface->assign('ButtonBack',true);
+				$interface->assign('ButtonBack',false);
 				$interface->assign('ButtonHome',true);
 				$interface->setTemplate('od-placeHold.tpl');
 			}
 		}
 		else
 		{
-			$interface->setTemplate('login.tpl');
+			if (isset($_GET['overDriveId']) && isset($_GET['formatId']) )
+			{
+				$interface->assign('overDriveId',$_GET['overDriveId']);
+				$interface->assign('formatId',$_GET['formatId']);
+				$interface->setTemplate('login.tpl');
+			}
+			else
+			{
+				header('Location: /');
+			}
 		}
 		$interface->display('layout.tpl', $cacheId);
 	}
