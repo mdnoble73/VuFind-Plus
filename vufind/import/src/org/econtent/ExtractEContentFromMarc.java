@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 import org.econtent.GutenbergItemInfo;
@@ -47,6 +48,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private PreparedStatement addSourceUrl;
 	private PreparedStatement updateSourceUrl;
 	
+	private PreparedStatement doesOverDriveIdExist;
+	private PreparedStatement addOverDriveId;
+	private PreparedStatement updateOverDriveId;
+	
 	public ProcessorResults results;
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
@@ -66,9 +71,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			addGutenbergItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, link, notes, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			updateGutenbergItem = econtentConn.prepareStatement("UPDATE econtent_item SET filename = ?, folder = ?, link = ?, date_updated =? WHERE recordId = ? AND item_type = ? AND notes = ?");
 			
-			doesSourceUrlExist = econtentConn.prepareStatement("SELECT id, link from econtent_item WHERE recordId = ? AND item_type = ?");
-			addSourceUrl = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, link, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?)");
+			doesSourceUrlExist = econtentConn.prepareStatement("SELECT id, link from econtent_item WHERE recordId = ? AND item_type = ? AND libraryId = ?");
+			addSourceUrl = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			updateSourceUrl = econtentConn.prepareStatement("UPDATE econtent_item SET link = ?, date_updated =? WHERE id = ?");
+			
+			doesOverDriveIdExist =  econtentConn.prepareStatement("SELECT id, overDriveId from econtent_item WHERE recordId = ? AND item_type = ? AND libraryId = ?");
+			addOverDriveId = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, overDriveId, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?)");
+			updateOverDriveId = econtentConn.prepareStatement("UPDATE econtent_item SET overDriveId = ?, date_updated =? WHERE id = ?");
 			
 		} catch (Exception ex) {
 			// handle any errors
@@ -216,11 +225,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			logger.info("Finished initial insertion/update recordAdded = " + recordAdded);
 			
 			if (recordAdded){
-				if (source.equals("Gutenberg")){
+				if (source.equalsIgnoreCase("gutenberg")){
 					attachGutenbergItems(recordInfo, eContentRecordId, logger);
+				}else if (detectionSettings.getSource().equalsIgnoreCase("overdrive")){
+					setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
 				}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
 					//Automatically setup 856 links as external links
-					setup856ExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
+					setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
 				}
 				logger.info("Record processed successfully.");
 				reindexRecord(eContentRecordId, logger);
@@ -244,12 +255,24 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 	}
 
-	private void setup856ExternalLinks(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
+	private void setupExternalLinks(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
+		String sourceUrl = recordInfo.getSourceUrl();
+		if (sourceUrl != null && sourceUrl.length() > 0){
+			addExternalLink(sourceUrl, -1, eContentRecordId, detectionSettings, logger);
+		}
+		//Check the items within the record to see if there are any location specific links
+		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getLibrarySpecificLinks();
+		for(LibrarySpecificLink link : libraryLinks){
+			addExternalLink(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
+		}
+	}
+	
+	private void addExternalLink(String sourceUrl, long libraryId, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
 		//Check to see if the link already exists
 		try {
-			String sourceUrl = recordInfo.getSourceUrl();
 			doesSourceUrlExist.setLong(1, eContentRecordId);
 			doesSourceUrlExist.setString(2, detectionSettings.getItem_type());
+			doesSourceUrlExist.setLong(3, libraryId);
 			ResultSet existingUrl = doesSourceUrlExist.executeQuery();
 			if (existingUrl.next()){
 				String existingUrlValue = existingUrl.getString("link");
@@ -269,11 +292,63 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				addSourceUrl.setLong(4, new Date().getTime());
 				addSourceUrl.setLong(5, -1);
 				addSourceUrl.setLong(6, new Date().getTime());
+				addSourceUrl.setLong(7, libraryId);
 				addSourceUrl.executeUpdate();
 			}
 		} catch (SQLException e) {
-			logger.error("Error adding 856 link to record " + eContentRecordId, e);
-			results.addNote("Error adding 856 link to record " + eContentRecordId + " " + e.toString());
+			logger.error("Error adding link to record " + eContentRecordId + " " + sourceUrl, e);
+			results.addNote("Error adding link to record " + eContentRecordId + " " + sourceUrl + " " + e.toString());
+			results.incErrors();
+		}
+		
+	}
+	
+	private void setupOverDriveItems(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger){
+		String sourceUrl = recordInfo.getSourceUrl();
+		if (sourceUrl != null && sourceUrl.length() > 0){
+			addOverdriveItem(sourceUrl, -1, eContentRecordId, detectionSettings, logger);
+		}
+		//Check the items within the record to see if there are any location specific links
+		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getLibrarySpecificLinks();
+		for(LibrarySpecificLink link : libraryLinks){
+			addOverdriveItem(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
+		}
+	}
+	
+	private void addOverdriveItem(String sourceUrl, long libraryId, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
+		//Check to see if the link already exists
+		String overDriveId = sourceUrl.substring(sourceUrl.length() - 36);
+		logger.info("Found overDrive url\r\n" + sourceUrl + "\r\nlibraryId: " + libraryId + "  overDriveId: " + overDriveId);
+
+		try {
+			doesOverDriveIdExist.setLong(1, eContentRecordId);
+			doesOverDriveIdExist.setString(2, detectionSettings.getItem_type());
+			doesOverDriveIdExist.setLong(3, libraryId);
+			ResultSet existingOverDriveId = doesOverDriveIdExist.executeQuery();
+			if (existingOverDriveId.next()){
+				String existingOVerDriveIdValue = existingOverDriveId.getString("link");
+				Long existingItemId = existingOverDriveId.getLong("id");
+				if (!existingOVerDriveIdValue.equals(overDriveId)){
+					//Url does not match, add it to the record. 
+					updateOverDriveId.setString(1, overDriveId);
+					updateOverDriveId.setLong(2, new Date().getTime());
+					updateOverDriveId.setLong(3, existingItemId);
+					updateOverDriveId.executeUpdate();
+				}
+			}else{
+				//the url does not exist, insert it
+				addOverDriveId.setLong(1, eContentRecordId);
+				addOverDriveId.setString(2, detectionSettings.getItem_type());
+				addOverDriveId.setString(3, overDriveId);
+				addOverDriveId.setLong(4, new Date().getTime());
+				addOverDriveId.setLong(5, -1);
+				addOverDriveId.setLong(6, new Date().getTime());
+				addOverDriveId.setLong(7, libraryId);
+				addOverDriveId.executeUpdate();
+			}
+		} catch (SQLException e) {
+			logger.error("Error adding overdrive id to record " + eContentRecordId + " " + overDriveId, e);
+			results.addNote("Error adding overdriveid to record " + eContentRecordId + " " + overDriveId + " " + e.toString());
 			results.incErrors();
 		}
 		
@@ -371,6 +446,19 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		if (gutenbergItemFile == null || gutenbergItemFile.length() == 0){
 			logger.warn("Unable to get Gutenberg Item File in Process settings.  Please add a gutenbergItemFile key.");
 		}else{
+			HashSet<String> validFormats = new HashSet<String>();
+			validFormats.add("epub");
+			validFormats.add("pdf");
+			validFormats.add("jpg");
+			validFormats.add("gif");
+			validFormats.add("mp3");
+			validFormats.add("plucker");
+			validFormats.add("kindle");
+			validFormats.add("externalLink");
+			validFormats.add("externalMP3");
+			validFormats.add("interactiveBook");
+			validFormats.add("overdrive");
+			
 			//Load the items 
 			gutenbergItemInfo = new ArrayList<GutenbergItemInfo>();
 			try {
@@ -380,6 +468,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				String[] curItemInfo = gutenbergReader.readNext();
 				while (curItemInfo != null){
 					GutenbergItemInfo itemInfo = new GutenbergItemInfo(curItemInfo[1], curItemInfo[2], curItemInfo[3], curItemInfo[4], curItemInfo[5]);
+					
 					gutenbergItemInfo.add(itemInfo);
 					curItemInfo = gutenbergReader.readNext();
 				}

@@ -82,10 +82,15 @@ public class MarcProcessor {
 	private PreparedStatement							insertChecksumStmt;
 	private PreparedStatement							updateChecksumStmt;
 	
-	private HashSet<String> existingEContentIds			= new HashSet<String>(); 
-	private HashMap<String, Float> printRatings 		= new HashMap<String, Float>();
-	private HashMap<String, Float> econtentRatings	= new HashMap<String, Float>();
-	private ArrayList<DetectionSettings> detectionSettings = new ArrayList<DetectionSettings>(); 
+	private HashSet<String> existingEContentIds				= new HashSet<String>(); 
+	private HashMap<String, Float> printRatings 			= new HashMap<String, Float>();
+	private HashMap<String, Float> econtentRatings		= new HashMap<String, Float>();
+	private HashMap<String, Long> librarySystemFacets	= new HashMap<String, Long>();
+	private ArrayList<DetectionSettings> detectionSettings = new ArrayList<DetectionSettings>();
+	
+	private String itemTag;
+	private String locationSubfield;
+	private String urlSubfield;
 
 	public static final int								RECORD_CHANGED			= 1;
 	public static final int								RECORD_UNCHANGED		= 2;
@@ -133,6 +138,11 @@ public class MarcProcessor {
 		if (maxRecordsToProcessValue != null) {
 			maxRecordsToProcess = Integer.parseInt(maxRecordsToProcessValue);
 		}
+		
+		//Load field information for local call numbers
+		itemTag = configIni.get("Reindex", "itemTag");
+		urlSubfield = configIni.get("Reindex", "urlSubfield");
+		locationSubfield = configIni.get("Reindex", "locationSubfield");
 
 		// Load the checksums of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -184,6 +194,7 @@ public class MarcProcessor {
 		}
 		
 		// Load ratings for print and eContent titles
+		logger.info("Loading ratings");
 		try{
 			PreparedStatement printRatingsStmt = vufindConn.prepareStatement("SELECT record_id, avg(rating) as rating from resource inner join user_rating on user_rating.resourceid = resource.id where source = 'VuFind' GROUP BY record_id");
 			ResultSet printRatingsRS = printRatingsStmt.executeQuery();
@@ -197,6 +208,18 @@ public class MarcProcessor {
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load ratings for resource", e);
+			return false;
+		}
+		
+		//Load librarySystemFacet information 
+		try{
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel from library");
+			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
+			while (librarySystemFacetRS.next()){
+				librarySystemFacets.put(librarySystemFacetRS.getString("facetLabel"), librarySystemFacetRS.getLong("libraryId"));
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to load library System Facet information", e);
 			return false;
 		}
 		
@@ -534,14 +557,14 @@ public class MarcProcessor {
 								if (marcChecksums.containsKey(marcInfo.getId())) {
 									Long lastChecksum = marcChecksums.get(marcInfo.getId());
 									if (marcInfo.getChecksum() != lastChecksum) {
-										logger.info("Record is changed");
+										logger.debug("Record is changed");
 										recordStatus = RECORD_CHANGED;
 									} else {
-										logger.info("Record is unchanged");
+										logger.debug("Record is unchanged");
 										recordStatus = RECORD_UNCHANGED;
 									}
 								} else {
-									logger.info("Record is new");
+									logger.debug("Record is new");
 									recordStatus = RECORD_NEW;
 								}
 
@@ -613,5 +636,21 @@ public class MarcProcessor {
 		}
 		scriptMap.put(scriptFileName, bsh);
 		return (bsh);
+	}
+	
+	public String getItemTag() {
+		return itemTag;
+	}
+
+	public String getLocationSubfield() {
+		return locationSubfield;
+	}
+
+	public String getUrlSubfield() {
+		return urlSubfield;
+	}
+
+	public Long getLibrarySystemIdFromFacet(String librarySystemFacet) {
+		return librarySystemFacets.get(librarySystemFacet);
 	}
 }

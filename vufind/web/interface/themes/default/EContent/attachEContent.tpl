@@ -25,16 +25,19 @@
 			<form action="{$path}" method="post">
 				<p>Enter source you would like to create items for external links for.</p> 
 				<div>
-				<label for="source">Source:</label> 
-				<select name="source" id="source">
-					{foreach from=$sourceFilter item="sourceItem"}
-						<option value="{$sourceItem}" {if $sourceItem == $source}selected="selected"{/if}>{$sourceItem}</option>
-					{/foreach}
-				</select>
+					<label for="source">Source:</label> 
+					<select name="source" id="source">
+						{foreach from=$sourceFilter item="sourceItem"}
+							<option value="{$sourceItem}" {if $sourceItem == $source}selected="selected"{/if}>{$sourceItem}</option>
+						{/foreach}
+					</select>
+				</div>
+				<p>Enter the tags you would like to look for links in.  Separate multiple tags with colons, ie. 856u:989y</p> 
+				<div>
+					<input type="text" name="tags" value="856u" name="tagsToProcess"/>
 				</div>
 				<div>
-				
-				<input type="submit" name="submit" value="Process External Links"/>
+					<input type="submit" name="submit" value="Process External Links"/>
 				</div>
 				<p>eContent will be attached to records in a batch process.  You can check the status of your import by viewing the <a href="AttachEContentLog">import log</a>.</p>
 			</form>

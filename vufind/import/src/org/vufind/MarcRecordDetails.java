@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
 import org.econtent.DetectionSettings;
+import org.econtent.LibrarySpecificLink;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlWriter;
@@ -2307,7 +2309,7 @@ public class MarcRecordDetails {
 					}
 				}
 			} catch (Exception e) {
-				System.out.println("Non-fatal error loading relative time added " + e);
+				logger.debug("Non-fatal error loading relative time added " + e);
 			}
 		}
 
@@ -2597,5 +2599,36 @@ public class MarcRecordDetails {
 		}else{
 			return null;
 		}
+	}
+
+	public ArrayList<LibrarySpecificLink> getLibrarySpecificLinks() {
+		ArrayList<LibrarySpecificLink> librarySpecificLinks = new ArrayList<LibrarySpecificLink>();
+		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)){
+			@SuppressWarnings("unchecked")
+			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
+			for(DataField curItem : itemFields){
+				Subfield urlField = curItem.getSubfield(marcProcessor.getUrlSubfield().charAt(0));
+				if (urlField != null){
+					logger.info("Found item based url " + urlField.getData());
+					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
+					if (locationField != null){
+						logger.info("  Location is " + locationField.getData());
+						//Get the library system id for the location.  To do this, we are going to do a couple 
+						//Of lookups to avoid having to create an entirely new table or lookup map. 
+						//Eventually, we should store location codes in the database and automatically 
+						//generate translation maps which would streamline this process. 
+						//1) Get the facet name from the translation map
+						String librarySystemFacet = Utils.remap(locationField.getData(), marcProcessor.findMap("system_map.properties"), true);
+						//2) Now that we have the facet, get the id of the system 
+						Long librarySystemId = marcProcessor.getLibrarySystemIdFromFacet(librarySystemFacet);
+						if (librarySystemId != null){
+							logger.info("Adding local url " + urlField.getData() + " library system: " + librarySystemId);
+							librarySpecificLinks.add(new LibrarySpecificLink(urlField.getData(), librarySystemId));
+						}
+					}
+				}
+			}
+		}
+		return librarySpecificLinks;
 	}
 }

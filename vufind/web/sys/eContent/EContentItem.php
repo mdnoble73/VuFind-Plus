@@ -15,6 +15,8 @@ class EContentItem extends DB_DataObject {
 	public $acsId;          //varchar(128)
 	public $recordId;       //The id of the record to attach the item to
 	public $item_type;           //pdf, epub, etc
+	public $overDriveId;
+	public $libraryId;
 	public $notes; //Notes to the user for display (i.e. version with images, version without images).
 	public $addedBy;
 	public $date_added;
@@ -167,6 +169,7 @@ class EContentItem extends DB_DataObject {
 			'externalMP3' => 'External MP3',
 			'interactiveBook' => 'Interactive Book',
 			'externalLink' => 'External Link',
+			'overdrive' => 'OverDrive',
 		);
 	} 
 	function validateCover(){

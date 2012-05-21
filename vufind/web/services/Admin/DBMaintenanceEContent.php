@@ -298,6 +298,18 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 		
+		'eContentItem_2'  => array(
+			'title' => 'eContent Item Update 2',
+			'description' => 'Allow items to be restricted by library system',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE econtent_item ADD libraryId INT(11) NOT NULL DEFAULT -1",
+				"ALTER TABLE econtent_item ADD overDriveId INT(11) NOT NULL DEFAULT -1",
+				"ALTER TABLE `econtent_item` CHANGE `type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
+			),
+		),
+		
 		'overdriveItem' => array(
 			'title' => 'Overdrive Item',
 			'description' => 'Setup of Overdrive item to cache information about items from OverDrive for performance',
