@@ -23,6 +23,7 @@ require_once 'Drivers/EContentDriver.php';
 require_once 'Action.php';
 
 class Checkout extends Action{
+	
 	function launch(){
 		global $interface;
 		global $configArray;

@@ -45,7 +45,8 @@ class MostPopular extends Action {
 		$interface->caching = 0;
 		$cacheId = 'homepage|' . $interface->lang;
 		//Disable Home page caching for now.
-		if (!$interface->is_cached('layout.tpl', $cacheId)) {
+		if (!$interface->is_cached('layout.tpl', $cacheId))
+		{
 			$interface->setPageTitle('Most Popular');
 			$interface->assign('MobileTitle','Most Popular');
 			$interface->setTemplate('listecontents.tpl');
