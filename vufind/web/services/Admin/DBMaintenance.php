@@ -162,7 +162,6 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
-					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
 				),
 			),
 			'location_1' => array(
@@ -172,6 +171,7 @@ class DBMaintenance extends Admin {
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `location` ADD `defaultPType` INT(11) NOT NULL DEFAULT '-1';",
+					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
 				),
 			),
 		
@@ -1011,8 +1011,71 @@ class DBMaintenance extends Admin {
 				  PRIMARY KEY (`locationId`)
 				) ENGINE=MyISAM"
 		),
+
 		),
-		
+		'location_hours' => array(
+			'title' => 'Location Hours',
+			'description' => 'Create table to store hours for a location',
+			'dependencies' => array(),
+			'sql' => array(				
+				"CREATE TABLE IF NOT EXISTS location_hours (" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
+					"`locationId` INT NOT NULL COMMENT 'The location id', " .
+					"`day` INT NOT NULL COMMENT 'Day of the week 0 to 7 (Sun to Monday)', " .
+					"`closed` TINYINT NOT NULL DEFAULT '0' COMMENT 'Whether or not the library is closed on this day', ".
+					"`open` varchar(10) NOT NULL COMMENT 'Open hour (24hr format) HH:MM', " . 
+					"`close` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
+					"PRIMARY KEY ( `id` ), " .
+					"UNIQUE KEY (`locationId`, `day`) " .
+				") ENGINE=InnoDB",
+			),
+		),
+		'holiday' => array(
+			'title' => 'Holidays',
+			'description' => 'Create table to store holidays',
+			'dependencies' => array(),
+			'sql' => array(				
+				"CREATE TABLE IF NOT EXISTS holiday (" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of holiday', " .
+					"`libraryId` INT NOT NULL COMMENT 'The library system id', " .
+					"`date` date NOT NULL COMMENT 'Date of holiday', " .
+					"`name` varchar(100) NOT NULL COMMENT 'Name of holiday', " .
+					"PRIMARY KEY ( `id` ), " .
+					"UNIQUE KEY (`date`) " .
+				") ENGINE=InnoDB",
+			),
+		),
+		'book_store' => array(
+			'title' => 'Book store table',
+			'description' => 'Create a table to store information about book stores.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS book_store(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the book store', " .
+					"`storeName` VARCHAR(100) NOT NULL COMMENT 'The name of the book store', " .
+					"`link` VARCHAR(256) NOT NULL COMMENT 'The URL prefix for searching', " .
+					"`linkText` VARCHAR(100) NOT NULL COMMENT 'The link text', " .
+					"`image` VARCHAR(256) NOT NULL COMMENT 'The URL to the icon/image to display', " .
+					"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB"
+			),
+		),
+		'nearby_book_store' => array(
+			'title' => 'Nearby book stores',
+			'description' => 'Create a table to store book stores near a location.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
+					"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
+					"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
+					"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
+					"KEY ( `libraryId`, `storeId` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB"
+			),
+		),
 		);
 	}
 	
