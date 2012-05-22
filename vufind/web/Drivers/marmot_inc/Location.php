@@ -4,6 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
+require_once 'Drivers/marmot_inc/LocationHours.php';
 
 class Location extends DB_DataObject
 {
@@ -62,6 +63,13 @@ class Location extends DB_DataObject
 			$locationList[$location->locationId] = clone $location;
 		}
 
+		// get the structure for the location's hours
+		$hoursStructure = LocationHours::getObjectStructure();
+		
+		// we don't want to make the locationId property editable
+		// because it is associated with this location only
+		unset($hoursStructure['locationId']);
+		
 		$structure = array(
 		array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
 		array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user'),
@@ -86,6 +94,19 @@ class Location extends DB_DataObject
 		array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.'),
 		array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.'),
 		array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.'),
+		array(
+				'property' => 'hours',
+				'type'=> 'oneToMany',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationHours',
+				'structure' => $hoursStructure,
+				'label' => 'Hours',
+				'description' => 'Library Hours',
+				'hideInLists' => true,
+				'sortable' => false,
+				'storeDb' => true
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -373,5 +394,160 @@ class Location extends DB_DataObject
 			}
 		}
 		return $facets;
+	}
+	
+	public function __get($name){
+		if ($name == "hours") {
+			if (!isset($this->hours)){
+				$this->hours = array();
+				$hours = new LocationHours();
+				$hours->locationId = $this->locationId;
+				$hours->orderBy('day');
+				$hours->find();
+				while($hours->fetch()){
+					$this->hours[$hours->id] = clone($hours);
+				}
+			}
+			return $this->hours;
+		}
+	}
+	
+	public function __set($name, $value){
+		if ($name == "hours") {
+			$this->hours = $value;
+		}
+	}
+
+	/**
+	 * Override the update functionality to save the hours
+	 *
+	 * @see DB/DB_DataObject::update()
+	 */
+	public function update(){
+		$ret = parent::update();
+		if ($ret === FALSE ){
+			return $ret;
+		}else{
+			$this->saveHours();
+		}
+	}
+	
+	/**
+	 * Override the update functionality to save the hours
+	 *
+	 * @see DB/DB_DataObject::insert()
+	 */
+	public function insert(){
+		$ret = parent::insert();
+		if ($ret === FALSE ){
+			return $ret;
+		}else{
+			$this->saveHours();
+		}
+	}
+	
+	public function saveHours(){
+		if (isset ($this->hours)){
+			foreach ($this->hours as $hours){
+				if (isset($hours->deleteOnSave) && $hours->deleteOnSave == true){
+					$hours->delete();
+				}else{
+					if (isset($hours->id) && is_numeric($hours->id)){
+						$hours->update();
+					}else{
+						$hours->locationId = $this->locationId;
+						$hours->insert();
+					}
+				}
+			}
+			unset($this->hours);
+		}
+	}
+	
+	public static function getLibraryHours($locationId, $timeToCheck){
+		$location = new Location();
+		$location->locationId = $locationId;
+		if ($location->find(true)){
+			// format $timeToCheck according to MySQL default date format
+			$todayFormatted = date('Y-m-d', $timeToCheck);
+			
+			// check to see if today is a holiday
+			require_once 'Drivers/marmot_inc/Holiday.php';
+			$holidays = array();
+			$holiday = new Holiday();
+			$holiday->date = $todayFormatted;
+			$holiday->libraryId = $location->libraryId;
+			if ($holiday->find(true)){
+				return array(
+					'closed' => true,
+					'closureReason' => $holiday->name
+				);
+			}
+			
+			// get the day of the week (0=Sunday to 6=Saturday)
+			$dayOfWeekToday = strftime ('%w', $timeToCheck);
+	
+			// find library hours for the above day of the week
+			require_once 'Drivers/marmot_inc/LocationHours.php';
+			$hours = new LocationHours();
+			$hours->locationId = $locationId;
+			$hours->day = $dayOfWeekToday;
+			if ($hours->find(true)){
+				$hours->fetch();
+				return array(
+					'open' => ltrim($hours->open, '0'),
+					'close' => ltrim($hours->close, '0'),
+					'closed' => $hours->closed ? true : false,
+					'openFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->open))),
+					'closeFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
+				);
+			}
+		}
+		
+
+		// no hours found
+		return null;
+	}
+	
+	public static function getLibraryHoursMessage($locationId){
+		$today = time();
+		$todaysLibraryHours = Location::getLibraryHours($locationId, $today);
+		if (isset($todaysLibraryHours) && is_array($todaysLibraryHours)){
+			if (isset($todaysLibraryHours['closed']) && ($todaysLibraryHours['closed'] == true || $todaysLibraryHours['closed'] == 1)){
+				if (isset($todaysLibraryHours['closureReason'])){
+					$closureReason = $todaysLibraryHours['closureReason'];
+				}
+				//Library is closed now
+				$nextDay = time() + (24 * 60 * 60);
+				$nextDayHours = Location::getLibraryHours($locationId,  $nextDay);
+				while (isset($nextDayHours['closed']) && $nextDayHours['closed'] == true){
+					$nextDay += (24 * 60 * 60);
+					$nextDayHours = Location::getLibraryHours($locationId,  $nextDay);
+				}
+	
+				$nextDayOfWeek = strftime ('%a', $nextDay);
+				if (isset($closureReason)){
+					$libraryHoursMessage = "The library is closed today for $closureReason. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+				}else{
+					$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+				}
+			}else{
+				//Library is open
+				$currentHour = strftime ('%H', $today);
+				$openHour = strftime ('%H', strtotime($todaysLibraryHours['open']));
+				$closeHour = strftime ('%H', strtotime($todaysLibraryHours['close']));
+				if ($currentHour < $openHour){
+					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+				}else if ($currentHour > $closeHour){
+					$tomorrowsLibraryHours = Location::getLibraryHours($locationId,  time() + (24 * 60 * 60));
+					$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+				}else{
+					$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
+				}
+			}
+		}else{
+			$libraryHoursMessage = null;
+		}
+		return $libraryHoursMessage;
 	}
 }

@@ -4,6 +4,8 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
+require_once 'Drivers/marmot_inc/Holiday.php';
+require_once 'Drivers/marmot_inc/NearbyBookStore.php';
 
 class Library extends DB_DataObject
 {
@@ -73,6 +75,17 @@ class Library extends DB_DataObject
 	}
 
 	function getObjectStructure(){
+		// get the structure for the library system's holidays
+		$holidaysStructure = Holiday::getObjectStructure();
+		
+		// we don't want to make the libraryId property editable
+		// because it is associated with this library system only
+		unset($holidaysStructure['libraryId']);
+
+		$nearbyBookStoreStructure = NearbyBookStore::getObjectStructure();
+		unset($nearbyBookStoreStructure['weight']);
+		unset($nearbyBookStoreStructure['libraryId']);
+		
 		$structure = array(
           'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
           'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
@@ -130,6 +143,31 @@ class Library extends DB_DataObject
           'enableMaterialsRequest' => array('property'=>'enableMaterialsRequest', 'type'=>'checkbox', 'label'=>'Enable Materials Request', 'description'=>'Enable Materials Request functionality so patrons can request items not in the catalog.'),
           'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.'),
           'holdDisclaimer' => array('property'=>'holdDisclaimer', 'type'=>'text', 'label'=>'Hold Disclaimer', 'description'=>'A disclaimer to display to patrons when they are placing a hold on items letting them know that their information may be available to other libraries.  Leave blank to not show a discalaimer.'),
+		  'holidays' => array(
+				'property' => 'holidays',
+				'type'=> 'oneToMany',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'Holiday',
+				'structure' => $holidaysStructure,
+				'label' => 'Holidays',
+				'description' => 'Holidays',
+				'hideInLists' => true,
+				'sortable' => false,
+				'storeDb' => true
+			),
+		  'nearbyBookStores' => array(
+				'property'=>'nearbyBookStores',
+				'type'=>'oneToMany',
+				'label'=>'NearbyBookStores',
+				'description'=>'A list of book stores to search',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'NearbyBookStore',
+				'structure' => $nearbyBookStoreStructure,
+				'sortable' => true,
+				'storeDb' => true
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -219,5 +257,114 @@ class Library extends DB_DataObject
 		}
 	}
 
-
+	public function __get($name){
+		if ($name == "holidays") {
+			if (!isset($this->holidays)){
+				$this->holidays = array();
+				$holiday = new Holiday();
+				$holiday->libraryId = $this->libraryId;
+				$holiday->orderBy('date');
+				$holiday->find();
+				while($holiday->fetch()){
+					$this->holidays[$holiday->id] = clone($holiday);
+				}
+			}
+			return $this->holidays;
+		}elseif ($name == "nearbyBookStores") {
+			if (!isset($this->nearbyBookStores)){
+				$this->nearbyBookStores = array();
+				$store = new NearbyBookStore();
+				$store->libraryId = $this->libraryId;
+				$store->orderBy('weight');
+				$store->find();
+				while($store->fetch()){
+					$this->nearbyBookStores[$store->id] = clone($store);
+				}
+			}
+			return $this->nearbyBookStores;
+		}
+	}
+	
+	public function __set($name, $value){
+		if ($name == "holidays") {
+			$this->holidays = $value;
+		}elseif ($name == "nearbyBookStores") {
+			$this->nearbyBookStores = $value;
+		}
+	}
+	
+	/**
+	 * Override the update functionality to save related objects
+	 *
+	 * @see DB/DB_DataObject::update()
+	 */
+	public function update(){
+		$ret = parent::update();
+		if ($ret === FALSE ){
+			return $ret;
+		}else{
+			$this->saveHolidays();
+			$this->saveNearbyBookStores();
+		}
+	}
+	
+	/**
+	 * Override the update functionality to save the related objects
+	 *
+	 * @see DB/DB_DataObject::insert()
+	 */
+	public function insert(){
+		$ret = parent::insert();
+		if ($ret === FALSE ){
+			return $ret;
+		}else{
+			$this->saveHolidays();
+			$this->saveNearbyBookStores();
+		}
+	}
+	
+	public function saveHolidays(){
+		if (isset ($this->holidays)){
+			foreach ($this->holidays as $holiday){
+				if (isset($holiday->deleteOnSave) && $holiday->deleteOnSave == true){
+					$holiday->delete();
+				}else{
+					if (isset($holiday->id) && is_numeric($holiday->id)){
+						$holiday->update();
+					}else{
+						$holiday->libraryId = $this->libraryId;
+						$holiday->insert();
+					}
+				}
+			}
+			unset($this->holidays);
+		}
+	}
+	
+	public function saveNearByBookStores(){
+		if (isset ($this->nearbyBookStores)){
+			foreach ($this->nearbyBookStores as $store){
+				if (isset($store->deleteOnSave) && $store->deleteOnSave == true){
+					$store->delete();
+				}else{
+					if (isset($store->id) && is_numeric($store->id)){
+						$store->update();
+					}else{
+						$store->libraryId = $this->libraryId;
+						$store->insert();
+					}
+				}
+			}
+			unset($this->nearbyBookStores);
+		}
+	}
+	
+	static function getBookStores(){
+		$library = Library::getActiveLibrary();
+		if ($library) {
+			return NearbyBookStore::getBookStores($library->libraryId);
+		} else {
+			return NearbyBookStore::getBookStores(-1);
+		}
+	}
 }

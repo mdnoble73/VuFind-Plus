@@ -43,6 +43,9 @@ class CheckedOut extends MyResearch{
 					$interface->assign('profile', $patronResult);
 				}
 				$timer->logTime("Got patron profile to get checked out items.");
+				
+				$libraryHoursMessage = Location::getLibraryHoursMessage($patronResult['homeLocationId']);
+				$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 
 				// Define sorting options
 				$sortOptions = array('title'   => 'Title',
