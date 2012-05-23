@@ -50,6 +50,10 @@ class OverdriveHolds extends MyResearch {
 		}
 		$interface->assign('overDriveHolds', $overDriveHolds['holds']);
 	
+		$interface->assign('ButtonBack',true);
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','OverDrive Holds');
+		
 		$interface->setTemplate('overDriveHolds.tpl');
 		$interface->setPageTitle('OverDrive Holds');
 		$interface->display('layout.tpl');

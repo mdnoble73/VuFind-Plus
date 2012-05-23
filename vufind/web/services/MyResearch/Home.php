@@ -71,7 +71,7 @@ class Home extends MyResearch
 			$interface->setTemplate('favorites.tpl');
 		}else{
 			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonBack',false);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','&nbsp;');
 			

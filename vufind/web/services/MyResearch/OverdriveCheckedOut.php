@@ -45,6 +45,11 @@ class OverdriveCheckedOut extends MyResearch {
 		}
 		$interface->assign('overDriveCheckedOutItems', $overDriveCheckedOutItems['items']);
 	
+		$interface->assign('ButtonBack',true);
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','OverDrive Checked Out Items');
+		
+		
 		$interface->setTemplate('overDriveCheckedOut.tpl');
 		$interface->setPageTitle('OverDrive Checked Out Items');
 		$interface->display('layout.tpl');
