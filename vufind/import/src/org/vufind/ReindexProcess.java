@@ -46,7 +46,7 @@ public class ReindexProcess {
 	private static long endTime;
 	
 	//Variables to determine what sub processes to run.
-	private static boolean reloadDefaultSchema = true;
+	private static boolean reloadDefaultSchema = false;
 	private static boolean updateSolr = true;
 	private static boolean updateResources = true;
 	private static boolean loadEContentFromMarc = false;

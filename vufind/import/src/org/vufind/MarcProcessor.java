@@ -75,7 +75,7 @@ public class MarcProcessor {
 	 * map of script interpreters. keys are names of scripts; values are the
 	 * Interpterers
 	 */
-	private Map<String, Interpreter>			scriptMap						= new HashMap<String, Interpreter>();;
+	private Map<String, Interpreter>			scriptMap						= new HashMap<String, Interpreter>();
 
 	protected int													recordsProcessed		= 0;
 	protected int													maxRecordsToProcess	= -1;
