@@ -1,50 +1,30 @@
+<script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
 {if !empty($addThis)}
 <script type="text/javascript" src="https://s7.addthis.com/js/250/addthis_widget.js?pub={$addThis|escape:"url"}"></script>
 {/if}
 <script type="text/javascript">
-{literal}
-$(document).ready(function(){
-{/literal}
-  {if !empty($id)}
-    var id = '{$id|escape:"url"}';
-  {else}
-    var id = null;
-  {/if}
-  {if (!empty($isbn10))}
-    var isbn10 = '{$isbn10|escape:"url"}';
-  {else}
-    var isbn10 = null;
-  {/if}
-  {if !empty($upc)}
-    var upc = '{$upc|escape:"url"}';
-  {else}
-    var upc = null;
-  {/if}
-  GetHoldingsInfo(id);
-
+{literal}$(document).ready(function(){{/literal}
+  GetEContentHoldingsInfo('{$id|escape:"url"}');
   {if $isbn || $upc}
-    GetEnrichmentInfo(id, isbn10, upc);
+    GetEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}');
   {/if}
   {if $isbn}
-    GetReviewInfo(id, isbn10);
+    GetReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}');
   {/if}
-  {if $enablePospectorIntegration == 1}
-    GetProspectorInfo(id);
+    {if $enablePospectorIntegration == 1}
+    GetProspectorInfo('{$id|escape:"url"}');
   {/if}
   {if $user}
     redrawSaveStatus();
   {/if}
-
   {if (isset($title)) }
-    alert("{$title}");
+    //alert("{$title}");
   {/if}
-{literal}
-});
+{literal}});{/literal}
 
-function redrawSaveStatus() {
-  getSaveStatus('{/literal}{$id|escape:"javascript"}{literal}', 'saveLink');
-}
-{/literal}
+function redrawSaveStatus() {literal}{{/literal}
+    getSaveStatus('{$id|escape:"javascript"}', 'saveLink');
+{literal}}{/literal}
 </script>
 
 {if $error}<p class="error">{$error}</p>{/if}
@@ -57,16 +37,25 @@ function redrawSaveStatus() {
             <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
           </a>
           <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">Explore</a>
+            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
           </div>
         </div>
       {/if}
       <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-        <a class="button" href="{$path}/Record/{$id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
+        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
+      </div>
+      <div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout">{translate text="Checkout"}</a>
+      </div>
+      <div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
+        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab">{translate text="Access Online"}</a>
+      </div>
+      <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
+        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList">{translate text="Add to List..."}</a>
       </div>
       {if $showOtherEditionsPopup}
       <div id="otherEditionCopies">
-        <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+        <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
       </div>
       {/if}
       {if $goldRushLink}
@@ -83,146 +72,145 @@ function redrawSaveStatus() {
         <script type="text/javascript">
         $(
          function() {literal} { {/literal}
-           $('#myrating').rater({literal}{ {/literal} module:'Record', recordId: '{$shortId}', rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+           $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
          {literal} } {/literal}
         );
         </script>
       </div>
     </div>
 
-    {if $mainAuthor}
+    {if $eContentRecord->author}
     <h4>{translate text='Main Author'}:</h4>
     <ul>
-      <li><a href="{$path}/Author/Home?author={$mainAuthor|trim|escape:"url"}">{$mainAuthor|escape}</a></li>
-    </ul>
-    {/if}
-    {if $corporateAuthor}
-    <h4>{translate text='Corporate Author'}:</h4>
-    <ul>
-      <li><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a></li>
+      <li><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></li>
     </ul>
     {/if}
 
-    {if $contributors}
-    <h4>{translate text='Contributors'}:</h4>
+    {if count($additionalAuthorsList) > 0}
+    <h4>{translate text='Additional Authors'}:</h4>
     <ul>
-    {foreach from=$contributors item=contributor name=loop}
-      <li><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></li>
+    {foreach from=$additionalAuthorsList item=additionalAuthorsListItem name=loop}
+      <li><a href="{$path}/Author/Home?author={$additionalAuthorsListItem|escape:"url"}">{$additionalAuthorsListItem|escape}</a></li>
     {/foreach}
     </ul>
     {/if}
 
-    {if $published}
+    {if $eContentRecord->publisher}
+    <h4>{translate text='Publisher'}:</h4>
+    <ul>
+      <li>{$eContentRecord->publisher|escape}</li>
+    </ul>
+    {/if}
+
+    {if $eContentRecord->publishDate}
     <h4>{translate text='Published'}:</h4>
     <ul>
-    {foreach from=$published item=publish name=loop}
-      <li>{$publish|escape}</li>
-    {/foreach}
+      <li>{$eContentRecord->publishDate|escape}</li>
     </ul>
     {/if}
 
-    {if $streetDate}
-      <h4>{translate text='Street Date'}:</h4>
-      <ul>
-        <li>{$streetDate|escape}</li>
-      </ul>
-    {/if}
-
-    {if !empty($recordFormat)}
-      <h4>{translate text='Format'}:</h4>
-      {if is_array($recordFormat)}
-        <ul>
-         {foreach from=$recordFormat item=displayFormat name=loop}
-           <li><span class="icon-{$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></li>
-         {/foreach}
-        </ul>
-      {else}
-        <ul>
-          <li><span class="icon-{$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$recordFormat}</span></li>
-        </ul>
-      {/if}
-    {/if}
-
-    {if $mpaaRating}
-      <h4>{translate text='Rating'}:</h4>
-      <ul>
-        <li>{$mpaaRating|escape}</li>
-      </ul>
-    {/if}
-
-    {if $physicalDescriptions}
-    <h4>{translate text='Physical Desc'}:</h4>
+    <h4>{translate text='Format'}:</h4>
     <ul>
-    {foreach from=$physicalDescriptions item=physicalDescription name=loop}
-      <li>{$physicalDescription|escape}</li>
+    {if is_array($eContentRecord->format())}
+    {foreach from=$eContentRecord->format() item=displayFormat name=loop}
+      <li><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></li>
     {/foreach}
-    </ul>
+    {else}
+      <li><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></li>
     {/if}
+    </ul>
 
     <h4>{translate text='Language'}:</h4>
     <ul>
-    {foreach from=$recordLanguage item=lang}
-      <li>{$lang|escape}</li>
-    {/foreach}
+      <li>{$eContentRecord->language|escape}</li>
     </ul>
 
-    {if $editionsThis}
+    {if $eContentRecord->edition}
     <h4>{translate text='Edition'}:</h4>
     <ul>
-    {foreach from=$editionsThis item=edition name=loop}
-      <li>{$edition|escape}</li>
+      <li>{$eContentRecord->edition|escape}</li>
+    </ul>
+    {/if}
+
+    {if count($lccnList) > 0}
+    <h4>{translate text='LCCN'}:</h4>
+    <ul>
+    {foreach from=$lccnList item=lccnListItem name=loop}
+      <li>{$lccnListItem|escape}</li>
     {/foreach}
     </ul>
     {/if}
 
-    {if $isbns}
+    {if count($isbnList) > 0}
     <h4>{translate text='ISBN'}:</h4>
     <ul>
-    {foreach from=$isbns item=tmpIsbn name=loop}
-      <li>{$tmpIsbn|escape}</li>
+    {foreach from=$isbnList item=isbnListItem name=loop}
+      <li>{$isbnListItem|escape}</li>
     {/foreach}
     </ul>
     {/if}
 
-    {if $issn}
+    {if count($issnList) > 0}
     <h4>{translate text='ISSN'}:</h4>
     <ul>
-      <li>{$issn}</li>
-      {if $goldRushLink}
-        <li><a href='{$goldRushLink}' target='_blank'>Check for online articles</a></li>
-      {/if}
+    {foreach from=$issnList item=issnListItem name=loop}
+      <li>{$issnListItem|escape}</li>
+    {/foreach}
     </ul>
     {/if}
 
-    {if $upc}
+    {if count($upcList) > 0}
     <h4>{translate text='UPC'}:</h4>
     <ul>
-      <li>{$upc|escape}</li>
+    {foreach from=$upcList item=upcListItem name=loop}
+      <li>{$upcListItem|escape}</li>
+    {/foreach}
     </ul>
     {/if}
 
-    {if $series}
+    {if count($seriesList) > 0}
     <h4>{translate text='Series'}:</h4>
     <ul>
-      {foreach from=$series item=seriesItem name=loop}
-        <li><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></li>
-      {/foreach}
+    {foreach from=$seriesList item=seriesListItem name=loop}
+      <li><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;type=Series">{$seriesListItem|escape}</a></li>
+    {/foreach}
     </ul>
     {/if}
 
-    {if $arData}
-      <h4>{translate text='Accelerated Reader'}:</h4>
-      <ul>
-        <li>{$arData.interestLevel|escape}</li>
-        <li>Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points</li>
-      </ul>
+    {if count($topicList) > 0}
+    <h4>{translate text='Topic'}:</h4>
+    <ul>
+    {foreach from=$topicList item=topicListItem name=loop}
+      <li>{$topicListItem|escape}</li>
+    {/foreach}
+    </ul>
     {/if}
 
-    {if $lexileScore}
-      <h4>{translate text='Lexile Score'}:</h4>
-      <ul>
-        <li>{$lexileScore|escape}</li>
-      </ul>
+    {if count($genreList) > 0}
+    <h4>{translate text='Genre'}:</h4>
+    <ul>
+    {foreach from=$genreList item=genreListItem name=loop}
+      <li>{$genreListItem|escape}</li>
+    {/foreach}
+    </ul>
+    {/if}
+
+    {if count($regionList) > 0}
+    <h4>{translate text='Region'}:</h4>
+    <ul>
+    {foreach from=$regionList item=regionListItem name=loop}
+      <li>{$regionListItem|escape}</li>
+    {/foreach}
+    </ul>
+    {/if}
+
+    {if count($eraList) > 0}
+    <h4>{translate text='Era'}:</h4>
+    <ul>
+    {foreach from=$eraList item=eraListItem name=loop}
+      <li>{$eraListItem|escape}</li>
+    {/foreach}
+    </ul>
     {/if}
   </div>
 
@@ -259,9 +247,12 @@ function redrawSaveStatus() {
     <h4>{translate text="Other Editions"}</h4>
       {foreach from=$editions item=edition}
         <h4>
+          {if $edition.recordtype == 'econtentRecord'}
+          <a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          {else}
           <a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          {/if}
         </h4>
-        <li>
         {if is_array($edition.format)}
           {foreach from=$edition.format item=format}
             <span class="icon-{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
@@ -271,7 +262,6 @@ function redrawSaveStatus() {
         {/if}
         {$edition.edition|escape}
         {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
-        </li>
       {/foreach}
   </div>
   {/if}
@@ -289,23 +279,30 @@ function redrawSaveStatus() {
     <ul><li><a href="http://amazon.com/dp/{$isbn|@formatISBN}"> {translate text="View on Amazon"}</a></li></ul>
   </div>
   {/if}
-  {if $classicId}
-  <div id="classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
-  {/if}
 </div></div>
 <div id="main-content" class="full-result-content">
   <div id="record-header">
     <div id="title-container">
-      <h1>{$recordTitleSubtitle|regex_replace:"/(\/|:)$/":""|escape}</h1>
-      {if !empty($mainAuthor) || !empty($corporateAuthor)}
-        <h3>
-          {if !empty($mainAuthor)}
-          by <a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a>
+      {* Display Title *}
+      <h1>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}</h1>
+      {if $user && $user->hasRole('epubAdmin')}
+      <div>
+        {if $eContentRecord->status != 'active'}<h4>({$eContentRecord->status})</h4>{/if}
+        <ul>
+          <li><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></li>
+          {if $eContentRecord->status != 'archived' && $eContentRecord->status != 'deleted'}
+            <li><a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?  The record should not have any holds or checkouts when it is archived.')">(archive)</a></li>
           {/if}
-          {if !empty($corporateAuthor)}
-            {if !empty($mainAuthor)}, {/if}{translate text='Corporate Author'}: <a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a>
+          {if $eContentRecord->status != 'deleted'}
+            <li><a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?  The record should not have any holds or checkouts when it is deleted.')">(delete)</a></li>
           {/if}
-        </h3>
+        </ul>
+      </div>
+      {/if}
+      </div>
+      {* Display more information about the title*}
+      {if $eContentRecord->author}
+        <h3>by <a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></h3>
       {/if}
     </div>
     <div id="record-title-nav-wrapper"><div id="record-title-nav">
@@ -328,46 +325,28 @@ function redrawSaveStatus() {
   </div>
   <div id="tools-column">
     <div class="actions-first">
-      <div class="actions-save" id="saveLink">
-        {if $user}
-          <div id="lists{if $shortId}{$shortId}{else}{$id|escape}{/if}"></div>
-          <script type="text/javascript">
-            getSaveStatuses('{if $shortId}{$shortId}{else}{$id|escape}{/if}');
-          </script>
-        {/if}
-        {if $showFavorites == 1}
-          <a class="button" href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$id}', 'VuFind'); return false;">{translate text='Add to list...'}</a>
-        {/if}
-      </div>
-      {if $enableBookCart}
-      <div class="actions-cart">
-        <a href="#" class="button" data-summId="{$id|escape}" data-title="{$recordTitleSubtitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}">Add to cart +</a>
-      </div>
+      {if $showFavorites == 1}
+        <div id="saveLink" class="actions-save"><a class="button" href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></div>
       {/if}
     </div>
     <div class="actions-second" id="recordTools">
         {if !$tabbedDetails}
-          <div><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></div>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></div>
         {/if}
         {if $showTextThis == 1}
-          <div><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></div>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></div>
         {/if}
         {if $showEmailThis == 1}
-          <div><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></div>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;">{translate text="Email this"}</a></div>
         {/if}
         {if is_array($exportFormats) && count($exportFormats) > 0}
-          <div><a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>
           <ul class="menu" id="exportMenu">
             {foreach from=$exportFormats item=exportFormat}
-              <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
+              <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
             {/foreach}
           </ul></div>
         {/if}
-        {*
-        {if $showFavorites == 1}
-          <div id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></div>
-        {/if}
-        *}
         {if !empty($addThis)}
           <div id="addThis"><a class="addThis addthis_button" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></div>
         {/if}
@@ -383,10 +362,10 @@ function redrawSaveStatus() {
           {/foreach}
         </ul>
         {else}
-          {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
+          {translate text='No Tags'}, {translate text='Be the first to tag this record'}!
         {/if}
-          <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
-            onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
+          <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=eContent" class="tool add"
+            onclick="GetAddTagForm('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
       </div>
     </div>
     {/if}
@@ -394,35 +373,24 @@ function redrawSaveStatus() {
   <div id="record-details-column">
     <div id="record-details-header">
       <div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
+      {if $enableProspectorIntegration == 1}
+      <div id="prospectorHoldingsPlaceholder"></div>
+      {/if}
     </div>
-    {if $summary}
+    {if $eContentRecord->description}
     <div class="resultInformation">
       <h4>{translate text='Description'}</h4>
       <div class="recordDescription">
-        {if strlen($summary) > 300}
-          <span id="shortSummary">
-          {$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
-          <a href='#' onclick='{literal}$("#shortSummary").fadeOut(100, function(){ $("#fullSummary").fadeIn(800);});{/literal}'>More</a>
-          </span>
-          <span id="fullSummary" style="display:none">
-          {$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-          <a href='#' onclick='{literal}$("#fullSummary").fadeOut(100, function(){$("#shortSummary").fadeIn(250)});{/literal}'>Less</a>
-          </span>
-        {else}
-          {$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-        {/if}
+        {$eContentRecord->description|escape}
       </div>
     </div>
     {/if}
-    {if $subjects}
+    {if count($subjectList) > 0}
     <div class="resultInformation">
       <h4>{translate text='Subjects'}</h4>
       <ul>
-        {foreach from=$subjects item=subject name=loop}
-          {foreach from=$subject item=subjectPart name=subloop}
-            {if !$smarty.foreach.subloop.first} -- {/if}
-            <li><a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a></li>
-          {/foreach}
+        {foreach from=$subjectList item=subjectListItem name=loop}
+          <li><a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;type=Subject">{$subjectListItem|escape}</a></li>
         {/foreach}
       </ul>
     </div>
@@ -572,7 +540,7 @@ function redrawSaveStatus() {
 
       <div id="reviewtab">
         <div id="staffReviewtab" >
-        {include file="$module/view-staff-reviews.tpl"}
+        {include file="Record/view-staff-reviews.tpl"}
         </div>
 
         {if $showAmazonReviews || $showStandardReviews}
@@ -583,41 +551,60 @@ function redrawSaveStatus() {
 
       {if $showComments == 1}
         <div id="readertab">
-          <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
-          <div id="userreview{$shortId}" class="userreview">
-            <span class="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
+          <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$id}').slideDown();">Add a Review</span></div>
+          <div id="userreview{$id}" class="userreview">
+            <span class="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
             <div class='addReviewTitle'>Add your Review</div>
             {assign var=id value=$id}
-            {include file="$module/submit-comments.tpl"}
+            {include file="EcontentRecord/submit-comments.tpl"}
           </div>
-          {include file="$module/view-comments.tpl"}
+          {include file="EcontentRecord/view-comments.tpl"}
+
+          {* Chili Fresh Reviews *}
+          {if $chiliFreshAccount && ($isbn || $upc || $issn)}
+            <h4>Chili Fresh Reviews</h4>
+            {if $isbn}
+            <div class="chili_review" id="isbn_{$isbn10}"></div>
+            <div id="chili_review_{$isbn10}" style="display:none" align="center" width="100%"></div>
+            {elseif $upc}
+            <div class="chili_review_{$upc}" id="isbn"></div>
+            <div id="chili_review_{$upc}" style="display:none" align="center" width="100%"></div>
+            {elseif $issn}
+            <div class="chili_review_{$issn}" id="isbn"></div>
+            <div id="chili_review_{$issn}" style="display:none" align="center" width="100%"></div>
+            {/if}
+          {/if}
         </div>
       {/if}
 
       <div id="citetab" >
-        {include file="$module/cite.tpl"}
+        {include file="Record/cite.tpl"}
       </div>
 
       <div id="holdingstab">
-        {if $internetLinks}
-        <h3>{translate text="Internet"}</h3>
-        {foreach from=$internetLinks item=internetLink}
-        {if $proxy}
-        <a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-        {else}
-        <a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+        <div id="holdingsPlaceholder">Loading...</div>
+        {if $showOtherEditionsPopup}
+        <div id="otherEditionCopies">
+          <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+        </div>
         {/if}
-        {/foreach}
+        {if $enablePurchaseLinks == 1}
+          <div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
         {/if}
-        <div id="holdingsPlaceholder"></div>
-        {if $enablePurchaseLinks == 1 && !$purchaseLinks}
-          <div class='purchaseTitle'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+       {if $eContentRecord->sourceUrl}
+        <div id="econtentSource">
+          <a href="{$eContentRecord->sourceUrl}">Access original files</a>
+        </div>
         {/if}
       </div>
 
-      <div id="stafftab">
-        {include file=$staffDetails}
-      </div>
+      {if $eContentRecord->marcRecord}
+        <div id="stafftab">
+          <pre style="overflow:auto">{strip}
+          {$eContentRecord->marcRecord}
+          {/strip}</pre>
+        </div>
+      {/if}
     </div> {* End of tabs*}
   </div>
   <script type="text/javascript">
@@ -633,11 +620,12 @@ function redrawSaveStatus() {
 <!-- Event definition to be included in the body before the Strands js library -->
 <script type="text/javascript">
 {literal}
-  if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
-  StrandsTrack.push({
-     event:"visited",
-     item: "{/literal}{$id|escape}{literal}"
-  });
+if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
+StrandsTrack.push({
+   event:"visited",
+   item: "{/literal}econtentRecord{$id|escape}{literal}"
+});
 {/literal}
 </script>
 {/if}
+     

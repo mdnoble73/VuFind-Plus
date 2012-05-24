@@ -657,7 +657,7 @@ class IndexRecord implements RecordInterface
 			$interface->assign('summShortId', $id);
 		}
 		$formats = $this->getFormats();
-		$interface->assign('summFormats', $formats);
+		$interface->assign('summFormats', array('Book', 'DVD'));
 		$formatCategories = $this->getFormatCategory();
 		$interface->assign('summFormatCategory', $formatCategories);
 		$interface->assign('summTitle', $this->getTitle());
