@@ -1,13 +1,17 @@
 <script type="text/javascript" src="{$path}/js/validate/jquery.validate.js"></script>
 <div id="main-content">
-  <h1>{translate text='Forget Your PIN?'}</h1>
+  <h1>{translate text='Forgot Your PIN?'}</h1>
   <div class="page">
-    <p>Please enter your complete Anythink libraries' card number.:</p>
+    <p>{translate text='Please enter your Anythink card number'}:</p>
     <form id="emailPin" method="POST" action="{$path}/MyResearch/EmailPin">
     <div class="emailPinRow">
-      <div class="emailPinLabel">Card Number<span class="required">*</span></div><div class="emailPinInput"><input name="barcode" type="text" size="14" maxlength="14" class="required"/><input id="emailPinSubmit" name="submit" class="button" type="submit" value="Email My Pin" /></div>
+      <div class="form-item">
+        <div><label for="barcode">{translate text="Anythink Card Number"}</label><span class="required">*</span></div>
+        <div><input id="barcode" name="barcode" type="text" class="required"/></div>
+      </div>
+      <div class="form-item"><input id="emailPinSubmit" name="submit" class="button" type="submit" value="Email My Pin" /></div>
     </div>
-    <p>Your current PIN number will be sent to the email addres on file for your account.</p> 
+    <p>{translate text="Your current PIN number will be sent to the email address we have on file for you."}</p> 
     </form>
   </div>
 </div>
