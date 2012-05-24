@@ -427,7 +427,6 @@ function reactivateEContentHold(reactivateUrl){
 }
 
 function getOverDriveSummary(){
-  var path = 'http://vufind.anythinklibraries.org';
 	$.getJSON(path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
 		if (data.error){
 			// Unable to load overdrive summary

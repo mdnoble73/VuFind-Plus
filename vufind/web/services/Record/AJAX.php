@@ -1,16 +1,4 @@
 <?php
-
-switch ($_GET['method']) {
-  case 'getPurchaseOptions':
-    header('Content-Type: text/html; charset=UTF-8');
-    break;
-  default:
-    header('Content-Type: application/xml; charset=UTF-8');
-    break;
-}
-
-require 'vufind-delegator.php';
-
 /**
  *
  * Copyright (C) Villanova University 2007.
