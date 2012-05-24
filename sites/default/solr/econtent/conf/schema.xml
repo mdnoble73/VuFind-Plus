@@ -138,13 +138,13 @@
 		<field name="fullrecord" type="string" indexed="false" stored="true"/>
 		<field name="marc_error" type="string" indexed="false" stored="true" multiValued="true"/>
 		<field name="allfields" type="text" indexed="true" stored="false"/>
-		<field name="allfields_proper" type="textProper" indexed="true" stored="true"/>
+		<field name="allfields_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="fulltext" type="text" indexed="true" stored="false"/>
 		<field name="fulltext_unstemmed" type="textProper" indexed="true" stored="false"/>
 		<field name="econtentText" type="text" indexed="true" stored="false"/>
 		<field name="econtentText_unstemmed" type="textProper" indexed="true" stored="false"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
-		<field name="keywords_proper" type="textProper" indexed="true" stored="true"/>
+		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="spelling" type="textSpell" indexed="true" stored="true"/>
 		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
 		<!-- Institutional Fields -->

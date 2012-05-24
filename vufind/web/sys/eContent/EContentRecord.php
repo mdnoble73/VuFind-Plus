@@ -812,7 +812,9 @@ class EContentRecord extends SolrDataObject {
 		}
 	}
 	function bib_suppression(){
-		if ($this->status == 'active' || $this->status == 'archived'){
+		if (!isset($this->status)){
+			return "notsuppressed";
+		}elseif ($this->status == 'active' || $this->status == 'archived'){
 			return "notsuppressed";
 		}else{
 			return "suppressed";
