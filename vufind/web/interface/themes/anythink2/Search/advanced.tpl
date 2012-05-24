@@ -29,6 +29,7 @@
 <div id="main-content" class="advSearchContent">
   <form method="get" action="{$url}/Search/Results" id="advSearchForm" class="search">
     <h1>{translate text='Advanced Search'}</h1>
+    <p>{translate text="Can't find what you're looking for? Use the fields below to narrow your search."}</p>
     {if $editErr}
       {assign var=error value="advSearchError_$editErr"}
       <div class="error">{translate text=$error}</div>
