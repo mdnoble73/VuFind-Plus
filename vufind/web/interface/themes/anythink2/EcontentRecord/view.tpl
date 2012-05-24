@@ -28,191 +28,132 @@ function redrawSaveStatus() {literal}{{/literal}
 </script>
 
 {if $error}<p class="error">{$error}</p>{/if}
-<div id="sidebar-wrapper"><div id="sidebar">
+<div id="sidebar">
   <div class="sidegroup" id="titleDetailsSidegroup">
-    <div id="image-column">
-      {if $user->disableCoverArt != 1}
-        <div id="cover">
-          <a href="{$bookCoverUrl}">
-            <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
-          </a>
-          <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-          </div>
-        </div>
-      {/if}
-      <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
-      </div>
-      <div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout">{translate text="Checkout"}</a>
-      </div>
-      <div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
-        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab">{translate text="Access Online"}</a>
-      </div>
-      <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-        <a class="button" href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList">{translate text="Add to List..."}</a>
-      </div>
-      {if $showOtherEditionsPopup}
-      <div id="otherEditionCopies">
-        <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
-      </div>
-      {/if}
-      {if $goldRushLink}
-      <div class="titledetails">
-        <a href="{$goldRushLink}">{translate text="Check for online articles"}</a>
-      </div>
-      {/if}
-      <div id="myrating" class="stat">
-        <div class="statVal">
-          <div class="ui-rater">
-            <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px"></span></span>
-          </div>
-        </div>
-        <script type="text/javascript">
-        $(
-         function() {literal} { {/literal}
-           $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-         {literal} } {/literal}
-        );
-        </script>
-      </div>
-    </div>
-
+    <h4>{translate text="Title Details"}</h4>
     {if $eContentRecord->author}
-    <h4>{translate text='Main Author'}:</h4>
-    <ul>
-      <li><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></li>
-    </ul>
-    {/if}
+        <div class="sidebarLabel">{translate text='Main Author'}:</div>
+        <div class="sidebarValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></div>
+        {/if}
 
-    {if count($additionalAuthorsList) > 0}
-    <h4>{translate text='Additional Authors'}:</h4>
-    <ul>
-    {foreach from=$additionalAuthorsList item=additionalAuthorsListItem name=loop}
-      <li><a href="{$path}/Author/Home?author={$additionalAuthorsListItem|escape:"url"}">{$additionalAuthorsListItem|escape}</a></li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($additionalAuthorsList) > 0}
+        <div class="sidebarLabel">{translate text='Additional Authors'}:</div>
+        {foreach from=$additionalAuthorsList item=additionalAuthorsListItem name=loop}
+          <div class="sidebarValue"><a href="{$path}/Author/Home?author={$additionalAuthorsListItem|escape:"url"}">{$additionalAuthorsListItem|escape}</a></div>
+        {/foreach}
+        {/if}
 
-    {if $eContentRecord->publisher}
-    <h4>{translate text='Publisher'}:</h4>
-    <ul>
-      <li>{$eContentRecord->publisher|escape}</li>
-    </ul>
-    {/if}
+        {if $eContentRecord->publisher}
+        <div class="sidebarLabel">{translate text='Publisher'}:</div>
+          <div class="sidebarValue">{$eContentRecord->publisher|escape}</div>
+        {/if}
 
-    {if $eContentRecord->publishDate}
-    <h4>{translate text='Published'}:</h4>
-    <ul>
-      <li>{$eContentRecord->publishDate|escape}</li>
-    </ul>
-    {/if}
+        {if $eContentRecord->publishDate}
+        <div class="sidebarLabel">{translate text='Published'}:</div>
+          <div class="sidebarValue">{$eContentRecord->publishDate|escape}</div>
+        {/if}
 
-    <h4>{translate text='Format'}:</h4>
-    <ul>
-    {if is_array($eContentRecord->format())}
-    {foreach from=$eContentRecord->format() item=displayFormat name=loop}
-      <li><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></li>
-    {/foreach}
-    {else}
-      <li><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></li>
-    {/if}
-    </ul>
+        <div class="sidebarLabel">{translate text='Format'}:</div>
+        {if is_array($eContentRecord->format())}
+         {foreach from=$eContentRecord->format() item=displayFormat name=loop}
+           <div class="sidebarValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></div>
+         {/foreach}
+        {else}
+          <div class="sidebarValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></div>
+        {/if}
 
-    <h4>{translate text='Language'}:</h4>
-    <ul>
-      <li>{$eContentRecord->language|escape}</li>
-    </ul>
 
-    {if $eContentRecord->edition}
-    <h4>{translate text='Edition'}:</h4>
-    <ul>
-      <li>{$eContentRecord->edition|escape}</li>
-    </ul>
-    {/if}
+        <div class="sidebarLabel">{translate text='Language'}:</div>
+        <div class="sidebarValue">{$eContentRecord->language|escape}</div>
 
-    {if count($lccnList) > 0}
-    <h4>{translate text='LCCN'}:</h4>
-    <ul>
-    {foreach from=$lccnList item=lccnListItem name=loop}
-      <li>{$lccnListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if $eContentRecord->edition}
+        <div class="sidebarLabel">{translate text='Edition'}:</div>
+          <div class="sidebarValue">{$eContentRecord->edition|escape}</div>
+        {/if}
 
-    {if count($isbnList) > 0}
-    <h4>{translate text='ISBN'}:</h4>
-    <ul>
-    {foreach from=$isbnList item=isbnListItem name=loop}
-      <li>{$isbnListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($lccnList) > 0}
+        <div class="sidebarLabel">{translate text='LCCN'}:</div>
+        {foreach from=$lccnList item=lccnListItem name=loop}
+          <div class="sidebarValue">{$lccnListItem|escape}</div>
+        {/foreach}
+        {/if}
 
-    {if count($issnList) > 0}
-    <h4>{translate text='ISSN'}:</h4>
-    <ul>
-    {foreach from=$issnList item=issnListItem name=loop}
-      <li>{$issnListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($isbnList) > 0}
+        <div class="sidebarLabel">{translate text='ISBN'}:</div>
+        {foreach from=$isbnList item=isbnListItem name=loop}
+          <div class="sidebarValue">{$isbnListItem|escape}</div>
+        {/foreach}
+        {/if}
 
-    {if count($upcList) > 0}
-    <h4>{translate text='UPC'}:</h4>
-    <ul>
-    {foreach from=$upcList item=upcListItem name=loop}
-      <li>{$upcListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($issnList) > 0}
+        <div class="sidebarLabel">{translate text='ISSN'}:</div>
+        {foreach from=$issnList item=issnListItem name=loop}
+          <div class="sidebarValue">{$issnListItem|escape}</div>
+        {/foreach}
+        {/if}
 
-    {if count($seriesList) > 0}
-    <h4>{translate text='Series'}:</h4>
-    <ul>
-    {foreach from=$seriesList item=seriesListItem name=loop}
-      <li><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;type=Series">{$seriesListItem|escape}</a></li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($upcList) > 0}
+        <div class="sidebarLabel">{translate text='UPC'}:</div>
+        {foreach from=$upcList item=upcListItem name=loop}
+          <div class="sidebarValue">{$upcListItem|escape}</div>
+        {/foreach}
+        {/if}
 
-    {if count($topicList) > 0}
-    <h4>{translate text='Topic'}:</h4>
-    <ul>
-    {foreach from=$topicList item=topicListItem name=loop}
-      <li>{$topicListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($seriesList) > 0}
+        <div class="sidebarLabel">{translate text='Series'}:</div>
+        {foreach from=$seriesList item=seriesListItem name=loop}
+          <div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;type=Series">{$seriesListItem|escape}</a></div>
+        {/foreach}
+        {/if}
 
-    {if count($genreList) > 0}
-    <h4>{translate text='Genre'}:</h4>
-    <ul>
-    {foreach from=$genreList item=genreListItem name=loop}
-      <li>{$genreListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($topicList) > 0}
+        <div class="sidebarLabel">{translate text='Topic'}:</div>
+        {foreach from=$topicList item=topicListItem name=loop}
+          <div class="sidebarValue">{$topicListItem|escape}</div>
+        {/foreach}
+        {/if}
 
-    {if count($regionList) > 0}
-    <h4>{translate text='Region'}:</h4>
-    <ul>
-    {foreach from=$regionList item=regionListItem name=loop}
-      <li>{$regionListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($genreList) > 0}
+        <div class="sidebarLabel">{translate text='Genre'}:</div>
+        {foreach from=$genreList item=genreListItem name=loop}
+          <div class="sidebarValue">{$genreListItem|escape}</div>
+        {/foreach}
+        {/if}
 
-    {if count($eraList) > 0}
-    <h4>{translate text='Era'}:</h4>
-    <ul>
-    {foreach from=$eraList item=eraListItem name=loop}
-      <li>{$eraListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
+        {if count($regionList) > 0}
+        <div class="sidebarLabel">{translate text='Region'}:</div>
+        {foreach from=$regionList item=regionListItem name=loop}
+          <div class="sidebarValue">{$regionListItem|escape}</div>
+        {/foreach}
+        {/if}
+
+        {if count($eraList) > 0}
+        <div class="sidebarLabel">{translate text='Era'}:</div>
+        {foreach from=$eraList item=eraListItem name=loop}
+          <div class="sidebarValue">{$eraListItem|escape}</div>
+        {/foreach}
+        {/if}
+
   </div>
+
+  {if $showTagging == 1}
+  <div class="sidegroup" id="tagsSidegroup">
+    <h4>{translate text="Tags"}</h4>
+    <div id="tagList">
+    {if $tagList}
+      {foreach from=$tagList item=tag name=tagLoop}
+        <div class="sidebarValue"><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</div>
+      {/foreach}
+    {else}
+      <div class="sidebarValue">{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</div>
+    {/if}
+    </div>
+    <div class="sidebarValue">
+      <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=eContent" class="tool add"
+         onclick="GetAddTagForm('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
+    </div>
+  </div>
+  {/if}
 
   <div class="sidegroup" id="similarTitlesSidegroup">
    {* Display either similar tiles from novelist or from the catalog*}
@@ -224,13 +165,15 @@ function redrawSaveStatus() {literal}{{/literal}
       {foreach from=$similarRecords item=similar}
       <li>
         {if is_array($similar.format)}
-          <span class="icon-{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
         {else}
-          <span class="icon-{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
         {/if}
         <a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
         </span>
-        {if $similar.author}<div class="fine-print">{translate text='By'}: {$similar.author|escape}</div>{/if}
+        <span style="font-size: 80%">
+        {if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
+        </span>
       </li>
       {/foreach}
     </ul>
@@ -246,386 +189,448 @@ function redrawSaveStatus() {literal}{{/literal}
   <div class="sidegroup" id="otherEditionsSidegroup">
     <h4>{translate text="Other Editions"}</h4>
       {foreach from=$editions item=edition}
-        <h4>
+        <div class="sidebarLabel">
           {if $edition.recordtype == 'econtentRecord'}
           <a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
           {else}
           <a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
           {/if}
-        </h4>
+        </div>
+        <div class="sidebarValue">
         {if is_array($edition.format)}
           {foreach from=$edition.format item=format}
-            <span class="icon-{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
+            <span class="{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
           {/foreach}
         {else}
-          <span class="icon-{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">{$edition.format}</span>
+          <span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">{$edition.format}</span>
         {/if}
         {$edition.edition|escape}
         {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
+        </div>
       {/foreach}
   </div>
   {/if}
 
   {if $enablePospectorIntegration == 1}
   <div class="sidegroup">
-    {* Display in Prospector Sidebar *}
-    <div id="inProspectorPlaceholder"></div>
+  {* Display in Prospector Sidebar *}
+  <div id="inProspectorPlaceholder"></div>
   </div>
   {/if}
 
   {if $linkToAmazon == 1 && $isbn}
-  <div class="sidegroup">
-    <h4>{translate text="Elsewhere"}:</h4>
-    <ul><li><a href="http://amazon.com/dp/{$isbn|@formatISBN}"> {translate text="View on Amazon"}</a></li></ul>
+  <div class="titledetails">
+    <a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
   </div>
   {/if}
-</div></div>
+</div> {* End sidebar *}
+
 <div id="main-content" class="full-result-content">
   <div id="record-header">
-    <div id="title-container">
+    {if isset($previousId)}
+      <div id="previousRecordLink"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
+    {/if}
+    <div id="recordTitleAuthorGroup">
       {* Display Title *}
-      <h1>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}</h1>
+      <div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}
       {if $user && $user->hasRole('epubAdmin')}
-      <div>
-        {if $eContentRecord->status != 'active'}<h4>({$eContentRecord->status})</h4>{/if}
-        <ul>
-          <li><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></li>
-          {if $eContentRecord->status != 'archived' && $eContentRecord->status != 'deleted'}
-            <li><a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?  The record should not have any holds or checkouts when it is archived.')">(archive)</a></li>
-          {/if}
-          {if $eContentRecord->status != 'deleted'}
-            <li><a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?  The record should not have any holds or checkouts when it is deleted.')">(delete)</a></li>
-          {/if}
-        </ul>
-      </div>
+      {if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
+      <span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>
+      {if $eContentRecord->status != 'archived' && $eContentRecord->status != 'deleted'}
+        <span id="archiveEContentLink"><a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?  The record should not have any holds or checkouts when it is archived.')">(archive)</a></span>
+      {/if}
+      {if $eContentRecord->status != 'deleted'}
+        <span id="deleteEContentLink"><a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?  The record should not have any holds or checkouts when it is deleted.')">(delete)</a></span>
+      {/if}
       {/if}
       </div>
       {* Display more information about the title*}
       {if $eContentRecord->author}
-        <h3>by <a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></h3>
-      {/if}
-    </div>
-    <div id="record-title-nav-wrapper"><div id="record-title-nav">
-      {if isset($previousId) || isset($nextId)}
-        <div id="nav-buttons">
-          {if isset($previousId)}
-            <a class="button" href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}">&lt; Prev</a>
-          {/if}
-          {if isset($nextId)}
-            <a class="button" href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}">Next &gt;</a>
-          {/if}
+        <div class="recordAuthor">
+          <span class="resultLabel">by</span>
+          <span class="resultValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
         </div>
+      {/if}
+
+    </div>
+    <div id ="recordTitleRight">
+      {if isset($nextId)}
+        <div id="nextRecordLink"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
       {/if}
       {if $lastsearch}
       <div id="returnToSearch">
         <a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
       </div>
       {/if}
-    </div></div>
+    </div>
   </div>
-  <div id="tools-column">
-    <div class="actions-first">
-      {if $showFavorites == 1}
-        <div id="saveLink" class="actions-save"><a class="button" href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></div>
-      {/if}
-    </div>
-    <div class="actions-second" id="recordTools">
-        {if !$tabbedDetails}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></div>
-        {/if}
-        {if $showTextThis == 1}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></div>
-        {/if}
-        {if $showEmailThis == 1}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;">{translate text="Email this"}</a></div>
-        {/if}
-        {if is_array($exportFormats) && count($exportFormats) > 0}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>
-          <ul class="menu" id="exportMenu">
-            {foreach from=$exportFormats item=exportFormat}
-              <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
-            {/foreach}
-          </ul></div>
-        {/if}
-        {if !empty($addThis)}
-          <div id="addThis"><a class="addThis addthis_button" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></div>
-        {/if}
-    </div>
-    {if $showTagging == 1}
-    <div class="actions-third">
-      <h4>{translate text="Tags"}</h4>
-      <div id="tagList">
-        {if $tagList}
-        <ul>
-          {foreach from=$tagList item=tag name=tagLoop}
-            <li><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</li>
-          {/foreach}
-        </ul>
-        {else}
-          {translate text='No Tags'}, {translate text='Be the first to tag this record'}!
-        {/if}
-          <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=eContent" class="tool add"
-            onclick="GetAddTagForm('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
+    <div id="image-column">
+    {* Display Book Cover *}
+    {if $user->disableCoverArt != 1}
+
+      <div id = "recordcover">
+        <div class="recordcoverWrapper">
+
+        <a href="{$bookCoverUrl}">
+          <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
+        </a>
+        <div id="goDeeperLink" class="godeeper" style="display:none">
+          <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+          <img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+        </div>
       </div>
+      </div>
+    {/if}
+
+    {* Place hold link *}
+  <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+  </div>
+
+  {* Checkout link *}
+  <div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout"><img src="{$path}/interface/themes/default/images/checkout.png" alt="Checkout"/></a>
+  </div>
+
+  {* Access online link *}
+  <div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
+    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab#detailsTab"><img src="{$path}/interface/themes/default/images/access_online.png" alt="Access Online"/></a>
+  </div>
+
+  {* Add to Wish List *}
+  <div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
+    <a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList"><img src="{$path}/interface/themes/default/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
+  </div>
+
+  {if $showOtherEditionsPopup}
+  <div id="otherEditionCopies">
+    <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+  </div>
+  {/if}
+
+    {if $goldRushLink}
+    <div class ="titledetails">
+      <a href='{$goldRushLink}' >Check for online articles</a>
     </div>
     {/if}
-  </div>
+
+
+    <div id="myrating" class="stat">
+    <div class="statVal">
+    <div class="ui-rater">
+      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px"></span></span>
+      </div>
+      </div>
+      <script type="text/javascript">
+      $(
+       function() {literal} { {/literal}
+           $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+       {literal} } {/literal}
+    );
+      </script>
+    </div>
+  </div> {* End image column *}
+
   <div id="record-details-column">
     <div id="record-details-header">
-      <div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
+      <div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading...</div>
       {if $enableProspectorIntegration == 1}
       <div id="prospectorHoldingsPlaceholder"></div>
       {/if}
+      <div id="recordTools">
+      <ul>
+
+        {if !$tabbedDetails}
+          <li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></li>
+        {/if}
+        {if $showTextThis == 1}
+          <li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></li>
+        {/if}
+        {if $showEmailThis == 1}
+          <li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;">{translate text="Email this"}</a></li>
+        {/if}
+        {if is_array($exportFormats) && count($exportFormats) > 0}
+          <li>
+            <a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+            <ul class="menu" id="exportMenu">
+              {foreach from=$exportFormats item=exportFormat}
+                <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
+              {/foreach}
+            </ul>
+          </li>
+        {/if}
+        {if $showFavorites == 1}
+          <li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></li>
+        {/if}
+        {if !empty($addThis)}
+          <li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
+        {/if}
+      </ul>
     </div>
+
+        <div class="clearer">&nbsp;</div>
+  </div>
+
     {if $eContentRecord->description}
     <div class="resultInformation">
-      <h4>{translate text='Description'}</h4>
+      <div class="resultInformationLabel">{translate text='Description'}</div>
       <div class="recordDescription">
         {$eContentRecord->description|escape}
       </div>
     </div>
     {/if}
+
     {if count($subjectList) > 0}
     <div class="resultInformation">
-      <h4>{translate text='Subjects'}</h4>
-      <ul>
+      <div class="resultInformationLabel">{translate text='Subjects'}</div>
+      <div class="recordSubjects">
         {foreach from=$subjectList item=subjectListItem name=loop}
-          <li><a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;type=Subject">{$subjectListItem|escape}</a></li>
+            <a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;type=Subject">{$subjectListItem|escape}</a>
+          <br />
         {/foreach}
-      </ul>
+      </div>
     </div>
     {/if}
 
-    {if $showStrands}
-      <div id="relatedTitleInfo" class="ui-tabs">
-        <ul>
-          <li><a href="#list-similar-titles">Similar Titles</a></li>
-          <li><a href="#list-also-viewed">People who viewed this also viewed</a></li>
-          <li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-        </ul>
+  </div>
 
-        {assign var="scrollerName" value="SimilarTitles"}
-        {assign var="wrapperId" value="similar-titles"}
-        {assign var="scrollerVariable" value="similarTitleScroller"}
-        {include file=titleScroller.tpl}
+  {* tabs for series, similar titles, and people who viewed also viewed *}
+  {if $showStrands}
+    <div id="relatedTitleInfo" class="ui-tabs">
+      <ul>
+        <li><a href="#list-similar-titles">Similar Titles</a></li>
+        <li><a href="#list-also-viewed">People who viewed this also viewed</a></li>
+        <li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
+      </ul>
 
-        {assign var="scrollerName" value="AlsoViewed"}
-        {assign var="wrapperId" value="also-viewed"}
-        {assign var="scrollerVariable" value="alsoViewedScroller"}
-        {include file=titleScroller.tpl}
+      {assign var="scrollerName" value="SimilarTitles"}
+      {assign var="wrapperId" value="similar-titles"}
+      {assign var="scrollerVariable" value="similarTitleScroller"}
+      {include file=titleScroller.tpl}
+
+      {assign var="scrollerName" value="AlsoViewed"}
+      {assign var="wrapperId" value="also-viewed"}
+      {assign var="scrollerVariable" value="alsoViewedScroller"}
+      {include file=titleScroller.tpl}
 
 
-        {assign var="scrollerName" value="Series"}
-        {assign var="wrapperId" value="series"}
-        {assign var="scrollerVariable" value="seriesScroller"}
-        {assign var="fullListLink" value="$path/Record/$id/Series"}
-        {include file=titleScroller.tpl}
+      {assign var="scrollerName" value="Series"}
+      {assign var="wrapperId" value="series"}
+      {assign var="scrollerVariable" value="seriesScroller"}
+      {assign var="fullListLink" value="$path/Record/$id/Series"}
+      {include file=titleScroller.tpl}
 
-      </div>
-      <script type="text/javascript">
-      {literal}
-        var similarTitleScroller;
-        var alsoViewedScroller;
+    </div>
+    {literal}
+    <script type="text/javascript">
+      var similarTitleScroller;
+      var alsoViewedScroller;
 
-        $(function() {
-          $("#relatedTitleInfo").tabs();
-          $("#moredetails-tabs").tabs();
+      $(function() {
+        $("#relatedTitleInfo").tabs();
+        $("#moredetails-tabs").tabs();
 
-          {/literal}
-          {if $defaultDetailsTab}
-            $("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-          {/if}
-
-          similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-          similarTitleScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
-
-          {literal}
-          $('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-            if (ui.index == 0) {
-              similarTitleScroller.activateCurrentTitle();
-            }else if (ui.index == 1) {
-              if (alsoViewedScroller == null){
-                {/literal}
-                alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
-                alsoViewedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
-              {literal}
-              }else{
-                alsoViewedScroller.activateCurrentTitle();
-              }
-            }
-          });
-        });
         {/literal}
-      </script>
-    {elseif $showSimilarTitles}
-      <div id="relatedTitleInfo" class="ui-tabs">
-        <ul>
-          <li><a href="#list-similar-titles">Similar Titles</a></li>
-          <li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-        </ul>
+        {if $defaultDetailsTab}
+          $("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
+        {/if}
 
-        {assign var="scrollerName" value="SimilarTitlesVuFind"}
-        {assign var="wrapperId" value="similar-titles-vufind"}
-        {assign var="scrollerVariable" value="similarTitleVuFindScroller"}
-        {include file=titleScroller.tpl}
+        similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
+        similarTitleScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
 
-        {assign var="scrollerName" value="Series"}
-        {assign var="wrapperId" value="series"}
-        {assign var="scrollerVariable" value="seriesScroller"}
-        {assign var="fullListLink" value="$path/Record/$id/Series"}
-        {include file=titleScroller.tpl}
-
-      </div>
-      <script type="text/javascript">
-      {literal}
-        var similarTitleScroller;
-        var alsoViewedScroller;
-
-        $(function() {
-          $("#relatedTitleInfo").tabs();
-          $("#moredetails-tabs").tabs();
-
-          {/literal}
-          {if $defaultDetailsTab}
-            $("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-          {/if}
-
-          similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-          similarTitleVuFindScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
-
-          {literal}
-          $('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-            if (ui.index == 0) {
-              similarTitleVuFindScroller.activateCurrentTitle();
+        {literal}
+        $('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
+          if (ui.index == 0) {
+            similarTitleScroller.activateCurrentTitle();
+          }else if (ui.index == 1) {
+            if (alsoViewedScroller == null){
+              {/literal}
+              alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
+              alsoViewedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
+            {literal}
+            }else{
+              alsoViewedScroller.activateCurrentTitle();
             }
-          });
+          }
         });
+      });
+    </script>
+    {/literal}
+  {elseif $showSimilarTitles}
+    <div id="relatedTitleInfo" class="ui-tabs">
+      <ul>
+        <li><a href="#list-similar-titles">Similar Titles</a></li>
+        <li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
+      </ul>
+
+      {assign var="scrollerName" value="SimilarTitlesVuFind"}
+      {assign var="wrapperId" value="similar-titles-vufind"}
+      {assign var="scrollerVariable" value="similarTitleVuFindScroller"}
+      {include file=titleScroller.tpl}
+
+      {assign var="scrollerName" value="Series"}
+      {assign var="wrapperId" value="series"}
+      {assign var="scrollerVariable" value="seriesScroller"}
+      {assign var="fullListLink" value="$path/Record/$id/Series"}
+      {include file=titleScroller.tpl}
+
+    </div>
+    {literal}
+    <script type="text/javascript">
+      var similarTitleScroller;
+      var alsoViewedScroller;
+
+      $(function() {
+        $("#relatedTitleInfo").tabs();
+        $("#moredetails-tabs").tabs();
+
         {/literal}
-      </script>
-    {else}
-      <div id="relatedTitleInfo" style="display:none">
-        {assign var="scrollerName" value="Series"}
-        {assign var="wrapperId" value="series"}
-        {assign var="scrollerVariable" value="seriesScroller"}
-        {assign var="fullListLink" value="$path/Record/$id/Series"}
-        {include file=titleScroller.tpl}
+        {if $defaultDetailsTab}
+          $("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
+        {/if}
+
+        similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
+        similarTitleVuFindScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
+
+        {literal}
+        $('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
+          if (ui.index == 0) {
+            similarTitleVuFindScroller.activateCurrentTitle();
+          }
+        });
+      });
+    </script>
+    {/literal}
+  {else}
+    <div id="relatedTitleInfo" style="display:none">
+
+      {assign var="scrollerName" value="Series"}
+      {assign var="wrapperId" value="series"}
+      {assign var="scrollerVariable" value="seriesScroller"}
+      {assign var="fullListLink" value="$path/Record/$id/Series"}
+      {include file=titleScroller.tpl}
+
+    </div>
+
+  {/if}
+
+  <a id="detailsTabAnchor" name="detailsTab" href="#detailsTab"></a>
+  <div id="moredetails-tabs">
+    {* Define tabs for the display *}
+    <ul>
+      <li><a href="#holdingstab">{translate text="Copies"}</a></li>
+      {if $notes}
+        <li><a href="#notestab">{translate text="Notes"}</a></li>
+      {/if}
+      {if $showAmazonReviews || $showStandardReviews}
+        <li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+      {/if}
+      <li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+      <li><a href="#citetab">{translate text="Citation"}</a></li>
+      <li><a href="#stafftab">{translate text="Staff View"}</a></li>
+    </ul>
+
+    {* Display the content of individual tabs *}
+    {if $notes}
+      <div id ="notestab">
+        <ul class='notesList'>
+        {foreach from=$notes item=note}
+          <li>{$note}</li>
+        {/foreach}
+        </ul>
       </div>
     {/if}
 
-    <div id="moredetails-tabs">
-      {* Define tabs for the display *}
-      <ul>
-        <li><a href="#holdingstab">{translate text="Copies"}</a></li>
-        {if $notes}
-          <li><a href="#notestab">{translate text="Notes"}</a></li>
-        {/if}
-        {if $showAmazonReviews || $showStandardReviews}
-          <li><a href="#reviewtab">{translate text="Reviews"}</a></li>
-        {/if}
-        <li><a href="#readertab">{translate text="Reader Comments"}</a></li>
-        <li><a href="#citetab">{translate text="Citation"}</a></li>
-        <li><a href="#stafftab">{translate text="Staff View"}</a></li>
-      </ul>
 
-      {* Display the content of individual tabs *}
-      {if $notes}
-        <div id="notestab">
-          <ul class='notesList'>
-          {foreach from=$notes item=note}
-            <li>{$note}</li>
-          {/foreach}
-          </ul>
-        </div>
-      {/if}
-
-      <div id="reviewtab">
-        <div id="staffReviewtab" >
-        {include file="Record/view-staff-reviews.tpl"}
-        </div>
-
-        {if $showAmazonReviews || $showStandardReviews}
-        <h4>Professional Reviews</h4>
-        <div id='reviewPlaceholder'></div>
-        {/if}
+    <div id="reviewtab">
+      <div id = "staffReviewtab" >
+      {include file="Record/view-staff-reviews.tpl"}
       </div>
 
-      {if $showComments == 1}
-        <div id="readertab">
-          <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$id}').slideDown();">Add a Review</span></div>
-          <div id="userreview{$id}" class="userreview">
-            <span class="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
-            <div class='addReviewTitle'>Add your Review</div>
-            {assign var=id value=$id}
-            {include file="EcontentRecord/submit-comments.tpl"}
-          </div>
-          {include file="EcontentRecord/view-comments.tpl"}
+      {if $showAmazonReviews || $showStandardReviews}
+      <h4>Professional Reviews</h4>
+      <div id='reviewPlaceholder'></div>
+      {/if}
+    </div>
 
-          {* Chili Fresh Reviews *}
-          {if $chiliFreshAccount && ($isbn || $upc || $issn)}
-            <h4>Chili Fresh Reviews</h4>
-            {if $isbn}
-            <div class="chili_review" id="isbn_{$isbn10}"></div>
-            <div id="chili_review_{$isbn10}" style="display:none" align="center" width="100%"></div>
-            {elseif $upc}
-            <div class="chili_review_{$upc}" id="isbn"></div>
-            <div id="chili_review_{$upc}" style="display:none" align="center" width="100%"></div>
-            {elseif $issn}
-            <div class="chili_review_{$issn}" id="isbn"></div>
-            <div id="chili_review_{$issn}" style="display:none" align="center" width="100%"></div>
-            {/if}
+    {if $showComments == 1}
+      <div id = "readertab" >
+        <div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$id}').slideDown();">Add a Review</span></div>
+        <div id="userreview{$id}" class="userreview">
+          <span class ="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
+          <div class='addReviewTitle'>Add your Review</div>
+          {assign var=id value=$id}
+          {include file="EcontentRecord/submit-comments.tpl"}
+        </div>
+        {include file="EcontentRecord/view-comments.tpl"}
+
+        {* Chili Fresh Reviews *}
+        {if $chiliFreshAccount && ($isbn || $upc || $issn)}
+          <h4>Chili Fresh Reviews</h4>
+          {if $isbn}
+          <div class="chili_review" id="isbn_{$isbn10}"></div>
+          <div id="chili_review_{$isbn10}" style="display:none" align="center" width="100%"></div>
+          {elseif $upc}
+          <div class="chili_review_{$upc}" id="isbn"></div>
+          <div id="chili_review_{$upc}" style="display:none" align="center" width="100%"></div>
+          {elseif $issn}
+          <div class="chili_review_{$issn}" id="isbn"></div>
+          <div id="chili_review_{$issn}" style="display:none" align="center" width="100%"></div>
           {/if}
-        </div>
-      {/if}
-
-      <div id="citetab" >
-        {include file="Record/cite.tpl"}
-      </div>
-
-      <div id="holdingstab">
-        <div id="holdingsPlaceholder">Loading...</div>
-        {if $showOtherEditionsPopup}
-        <div id="otherEditionCopies">
-          <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
-        </div>
-        {/if}
-        {if $enablePurchaseLinks == 1}
-          <div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-        {/if}
-       {if $eContentRecord->sourceUrl}
-        <div id="econtentSource">
-          <a href="{$eContentRecord->sourceUrl}">Access original files</a>
-        </div>
         {/if}
       </div>
+    {/if}
 
-      {if $eContentRecord->marcRecord}
-        <div id="stafftab">
-          <pre style="overflow:auto">{strip}
-          {$eContentRecord->marcRecord}
-          {/strip}</pre>
-        </div>
+    <div id = "citetab" >
+      {include file="Record/cite.tpl"}
+    </div>
+
+    <div id = "holdingstab">
+      <div id="holdingsPlaceholder">Loading...</div>
+      {if $showOtherEditionsPopup}
+      <div id="otherEditionCopies">
+        <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+      </div>
       {/if}
-    </div> {* End of tabs*}
-  </div>
-  <script type="text/javascript">
+      {if $enablePurchaseLinks == 1}
+        <div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+      {/if}
+     {if $eContentRecord->sourceUrl}
+      <div id="econtentSource">
+        <a href="{$eContentRecord->sourceUrl}">Access original files</a>
+      </div>
+      {/if}
+    </div>
+
+    {if $eContentRecord->marcRecord}
+      <div id = "stafftab">
+        <pre style="overflow:auto">{strip}
+        {$eContentRecord->marcRecord}
+        {/strip}</pre>
+      </div>
+    {/if}
+  </div> {* End of tabs*}
+
   {literal}
+  <script type="text/javascript">
     $(function() {
       $("#moredetails-tabs").tabs();
     });
-  {/literal}
   </script>
+  {/literal}
+
 </div>
 
 {if $showStrands}
+{* Strands Tracking *}{literal}
 <!-- Event definition to be included in the body before the Strands js library -->
 <script type="text/javascript">
-{literal}
 if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
 StrandsTrack.push({
    event:"visited",
    item: "{/literal}econtentRecord{$id|escape}{literal}"
 });
-{/literal}
 </script>
+{/literal}
 {/if}
      
