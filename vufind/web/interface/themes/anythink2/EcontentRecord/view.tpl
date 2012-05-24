@@ -299,7 +299,6 @@ function redrawSaveStatus() {literal}{{/literal}
         </ul>
       </div>
       {/if}
-      </div>
       {* Display more information about the title*}
       {if $eContentRecord->author}
         <h3>by <a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></h3>
