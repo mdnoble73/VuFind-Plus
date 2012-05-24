@@ -70,8 +70,8 @@ function redrawSaveStatus() {
       </div>
       {/if}
       {if $goldRushLink}
-      <div class ="titledetails">
-        <a href="{$goldRushLink}">Check for online articles</a>
+      <div class="titledetails">
+        <a href="{$goldRushLink}">{translate text="Check for online articles"}</a>
       </div>
       {/if}
       <div id="myrating" class="stat">
@@ -83,8 +83,8 @@ function redrawSaveStatus() {
         <script type="text/javascript">
         $(
          function() {literal} { {/literal}
-             $('#myrating').rater({literal}{ {/literal} module:'Record', recordId: '{$shortId}', rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-           {literal} } {/literal}
+           $('#myrating').rater({literal}{ {/literal} module:'Record', recordId: '{$shortId}', rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+         {literal} } {/literal}
         );
         </script>
       </div>
@@ -264,10 +264,10 @@ function redrawSaveStatus() {
         <li>
         {if is_array($edition.format)}
           {foreach from=$edition.format item=format}
-            <span class="{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
+            <span class="icon-{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
           {/foreach}
         {else}
-          <span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">{$edition.format}</span>
+          <span class="icon-{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">{$edition.format}</span>
         {/if}
         {$edition.edition|escape}
         {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
@@ -285,11 +285,10 @@ function redrawSaveStatus() {
 
   {if $linkToAmazon == 1 && $isbn}
   <div class="sidegroup">
-    <h4>Elsewhere:</h4>
+    <h4>{translate text="Elsewhere"}:</h4>
     <ul><li><a href="http://amazon.com/dp/{$isbn|@formatISBN}"> {translate text="View on Amazon"}</a></li></ul>
   </div>
   {/if}
-
   {if $classicId}
   <div id="classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
   {/if}
@@ -329,7 +328,7 @@ function redrawSaveStatus() {
   </div>
   <div id="tools-column">
     <div class="actions-first">
-      <div class="actions-save" id="saveLink{if $shortId}{$shortId}{else}{$id|escape}{/if}">
+      <div class="actions-save" id="saveLink">
         {if $user}
           <div id="lists{if $shortId}{$shortId}{else}{$id|escape}{/if}"></div>
           <script type="text/javascript">
@@ -357,12 +356,12 @@ function redrawSaveStatus() {
           <div><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></div>
         {/if}
         {if is_array($exportFormats) && count($exportFormats) > 0}
-            <div><a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>
-            <ul class="menu" id="exportMenu">
-              {foreach from=$exportFormats item=exportFormat}
-                <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
-              {/foreach}
-            </ul></div>
+          <div><a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>
+          <ul class="menu" id="exportMenu">
+            {foreach from=$exportFormats item=exportFormat}
+              <li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
+            {/foreach}
+          </ul></div>
         {/if}
         {*
         {if $showFavorites == 1}
@@ -387,7 +386,7 @@ function redrawSaveStatus() {
           {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
         {/if}
           <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
-             onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
+            onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
       </div>
     </div>
     {/if}
@@ -416,19 +415,18 @@ function redrawSaveStatus() {
     </div>
     {/if}
     {if $subjects}
-			<div class="resultInformation">
-				<div class="resultInformationLabel">{translate text='Subjects'}</div>
-				<div class="recordSubjects">
-					{foreach from=$subjects item=subject name=loop}
-						{foreach from=$subject item=subjectPart name=subloop}
-							{if !$smarty.foreach.subloop.first} -- {/if}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
-						{/foreach}
-						<br />
-					{/foreach}
-				</div>
-			</div>
-		{/if}
+    <div class="resultInformation">
+      <h4>{translate text='Subjects'}</h4>
+      <ul>
+        {foreach from=$subjects item=subject name=loop}
+          {foreach from=$subject item=subjectPart name=subloop}
+            {if !$smarty.foreach.subloop.first} -- {/if}
+            <li><a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a></li>
+          {/foreach}
+        {/foreach}
+      </ul>
+    </div>
+    {/if}
 
     {if $showStrands}
       <div id="relatedTitleInfo" class="ui-tabs">
@@ -563,7 +561,7 @@ function redrawSaveStatus() {
 
       {* Display the content of individual tabs *}
       {if $notes}
-        <div id ="notestab">
+        <div id="notestab">
           <ul class='notesList'>
           {foreach from=$notes item=note}
             <li>{$note}</li>
@@ -585,9 +583,9 @@ function redrawSaveStatus() {
 
       {if $showComments == 1}
         <div id="readertab">
-          <div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
+          <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
           <div id="userreview{$shortId}" class="userreview">
-            <span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
+            <span class="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
             <div class='addReviewTitle'>Add your Review</div>
             {assign var=id value=$id}
             {include file="$module/submit-comments.tpl"}
@@ -598,10 +596,6 @@ function redrawSaveStatus() {
 
       <div id="citetab" >
         {include file="$module/cite.tpl"}
-      </div>
-
-      <div id="stafftab">
-        {include file=$staffDetails}
       </div>
 
       <div id="holdingstab">
@@ -620,14 +614,18 @@ function redrawSaveStatus() {
           <div class='purchaseTitle'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
         {/if}
       </div>
+
+      <div id="stafftab">
+        {include file=$staffDetails}
+      </div>
     </div> {* End of tabs*}
   </div>
   <script type="text/javascript">
-    {literal}
+  {literal}
     $(function() {
       $("#moredetails-tabs").tabs();
     });
-    {/literal}
+  {/literal}
   </script>
 </div>
 

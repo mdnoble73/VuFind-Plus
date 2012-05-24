@@ -46,28 +46,28 @@ class GetCard extends Action
 			if (file_exists("../../sites/{$servername}/conf/selfRegCityState.ini")){
 				$selfRegCityStates = parse_ini_file("../../sites/{$servername}/conf/selfRegCityState.ini", true);
 			}else{
-				$selfRegCityStates = parse_ini_file("../../sites/default/conf/selfRegCityState.ini", true);
+				@$selfRegCityStates = parse_ini_file("../../sites/default/conf/selfRegCityState.ini", true);
 			}
 			$interface->assign('selfRegCityStates', $selfRegCityStates);
 			
 			if (file_exists("../../sites/{$servername}/conf/selfRegLanguage.ini")){
 				$selfRegLanguages = parse_ini_file("../../sites/{$servername}/conf/selfRegLanguage.ini", true);
 			}else{
-				$selfRegLanguages = parse_ini_file("../../sites/default/conf/selfRegLanguage.ini", true);
+				@$selfRegLanguages = parse_ini_file("../../sites/default/conf/selfRegLanguage.ini", true);
 			}
 			$interface->assign('selfRegLanguages', $selfRegLanguages);
 			
 			if (file_exists("../../sites/{$servername}/conf/selfRegLocation.ini")){
 				$selfRegLocations = parse_ini_file("../../sites/{$servername}/conf/selfRegLocation.ini", true);
 			}else{
-				$selfRegLocations = parse_ini_file("../../sites/default/conf/selfRegLocation.ini", true);
+				@$selfRegLocations = parse_ini_file("../../sites/default/conf/selfRegLocation.ini", true);
 			}
 			$interface->assign('selfRegLocations', $selfRegLocations);
 			
 			if (file_exists("../../sites/{$servername}/conf/selfRegPhoneType.ini")){
 				$selfRegPhoneType = parse_ini_file("../../sites/{$servername}/conf/selfRegPhoneType.ini", true);
 			}else{
-				$selfRegPhoneType = parse_ini_file("../../sites/default/conf/selfRegPhoneType.ini", true);
+				@$selfRegPhoneType = parse_ini_file("../../sites/default/conf/selfRegPhoneType.ini", true);
 			}
 			$interface->assign('selfRegPhoneType', $selfRegPhoneType);
 			

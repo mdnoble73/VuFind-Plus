@@ -1,4 +1,9 @@
 <?php
+
+header('Content-Type: text/plain; charset=UTF-8');
+
+require 'vufind-delegator.php';
+
 /**
  *
  * Copyright (C) Villanova University 2007.
