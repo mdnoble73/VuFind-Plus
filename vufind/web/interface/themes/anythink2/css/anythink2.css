@@ -1175,3 +1175,83 @@ ul.inline li {
 ul.right li {
   margin: 0 0 0 .75em;
 }
+
+.groupSearchHolder span.clearer {
+  display: none;
+}
+
+.groupSearchHolder .advRow {
+  margin-bottom: 10px;
+  float: none;
+  width: 100%;
+}
+
+.groupSearchHolder .advRow div {
+  float: none;
+  padding: 0;
+}
+
+.groupSearchHolder .label, .groupSearchHolder .join {
+  width: auto;
+  text-align: left;
+}
+
+.groupSearchHolder .label {
+  display: none;
+}
+
+.groupSearchHolder .field,
+.groupSearchHolder .terms {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+#searchHolder .group0,
+#searchHolder .group1 {
+  background-image: none;
+}
+
+.advanced-search-group,
+#searchHolder .group {
+  margin-bottom: 10px;
+  border: 2px solid #CCC;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.addSearch {
+  padding: 0;
+}
+
+.group .groupSearchDetails {
+  float: none;
+  text-align: inherit;
+  padding: 0;
+}
+
+.group0 .groupSearchDetails,
+.group1 .groupSearchDetails {
+  border: 0;
+}
+
+.groupSearchDetails .join {
+  padding-right: 0;
+  float: none;
+}
+
+.searchGroups .searchGroupDetails {
+  float: none;
+}
+
+.advanced-search-button {
+  font-size: 1.4em;
+  margin: 20px 0;
+}
+
+.advancedSearchFacetDetails {
+  float: left;
+  display: block;
+  margin-right: 20px;
+}
