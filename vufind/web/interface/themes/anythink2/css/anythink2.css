@@ -232,7 +232,11 @@ body {
 
 #main #search {
   width: 600px;
-  margin: 66px auto 40px auto;
+  margin: 40px auto 40px auto;
+}
+
+.intro {
+  text-align: center;
 }
 
 #header #search {
@@ -395,6 +399,8 @@ body.Search--Home #logo {
   display: block;
 }
 
+body.MaterialsRequest--Submit #main-content,
+body.MaterialsRequest--NewRequest #main-content,
 body.MyResearch--GetCard #main-content,
 body.MyResearch--EmailPin #main-content,
 body.Search--Home #main-content {
@@ -1254,4 +1260,21 @@ ul.right li {
   float: left;
   display: block;
   margin-right: 20px;
+}
+
+fieldset {
+  margin-bottom: 10px;
+}
+
+legend {
+  font-weight: bold;
+}
+
+div.popupBox {
+  font-size: 100%;
+}
+
+.favorites-container {
+  width: 100%;
+  float: left;
 }

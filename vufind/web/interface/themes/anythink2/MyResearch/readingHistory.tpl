@@ -14,18 +14,23 @@
   <div id="main-content">
     {if $user->cat_username}
       <div class="resulthead">
-        <div class="myAccountTitle">{translate text='My Reading History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</div>
+        <h1>{translate text='My Reading History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</h1>
           {if $userNoticeFile}
             {include file=$userNoticeFile}
           {/if}
 
+          {if $historyActive == true}
+          <p>Below is a list of your current or previously checked out items. At any time, you can opt out of this service by selecting "Stop recording checked out items."</p>
+          {else}
+          <p>Wonder if you've read that book already? Need to find the title of that movie you watched last month to share with your friend? Anythink's Checkout History feature helps you keep track of the items you check out in one convenient place.</p>
+          <p>You must opt in to take advantage of this service, but here's the disclaimer:</p>
+          {/if}
+
           <div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if}>
-          The library takes seriously the privacy of your library records. Therefore, we do not keep track of what you borrow after you return it.
-          However, our automated system has a feature called "My Reading History" that allows you to track items you check out.
-          Participation in the feature is entirely voluntary. You may start or stop using it, as well as delete any or all entries in "My Reading History" at any time.
-          If you choose to start recording "My Reading History", you agree to allow our automated system to store this data.
-          The library staff does not have access to your "My Reading History", however, it is subject to all applicable local, state, and federal laws, and under those laws, could be examined by law enforcement authorities without your permission.
-          If this is of concern to you, you should not use the "My Reading History" feature.
+            <div class="fine-print">
+            <p>Anythink takes the privacy of your library records seriously. Therefore, we do not keep track of what you borrow after you return it. However, we do offer a feature called "Checkout History" that allows you to track your checked out items. Participation in the feature is entirely voluntary. Start or stop using this service at any time. Delete any or all items in your listing at any time, too. </p>
+            <p>If you choose to start recording your checked out items, you agree to allow our automated system to store this data. The library staff does not have access to this list. However, it is subject to all applicable local, state, and federal laws. Under those laws, it could be examined by law enforcement authorities without your permission. If this is of concern to you, you should not use the "Checkout History" feature.</p>
+            </div>
           </div>
         </div>
 
@@ -182,7 +187,7 @@
       </script>
           {else if $historyActive == true}
             {* No Items in the history, but the history is active *}
-            You do not have any items in your reading list.  It may take up to 3 hours for your reading history to be updated after you start recording your history.
+            <p>{translate text="Currently, you do not have any items on your checkout list. It may take up to three hours for your checkout history to update after you start recording."}</p>
           {/if}
           {if $transList} {* Don't double the actions if we don't have any items *}
             <div id="readingListActionsBottom">
