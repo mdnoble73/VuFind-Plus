@@ -26,14 +26,15 @@
       {include file=$recommendations}
     {/foreach}
   {/if}
-  <div class="resulthead"><h3>{translate text='nohit_heading'}</h3></div>
+  <h1>{translate text='nohit_heading'}</h1>
 
-    <p class="error">{translate text='nohit_prefix'} - <b>{$lookfor|escape:"html"}</b> - {translate text='nohit_suffix'}</p>
+  <p class="error">{translate text="Doh! Your search"} <strong>{$lookfor|escape:"html"}</strong> {translate text="did not match any of our items."}</p>
 
-  <div>
-  <ul id="noResultsSuggest">
-  <li>Check the spelling of your search terms.</li>
-  <li>Restate your query by using more, other or broader terms.</li>
+  <p>{translate text="Try these search tips:"}</p>
+  <ul>
+    <li>{translate text="Check the spelling of your search terms."}</li>
+    <li>{translate text="Use more search terms or try searching by using a broader term."}</li>
+    <li>{translate text="Try our"} <a href="{$path}/Search/Advanced">{translate text="advanced search"}</a> {translate text="to narrow your search by keyword, format and more."}</li>
   </ul>
 
     {if $parseError}
@@ -69,7 +70,7 @@
   {/if}
 
   {if $enableMaterialsRequest}
-  Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
+  <p>{translate text="Can't find what you're looking for?"} <a href="{$path}/MaterialsRequest/NewRequest">{translate text="Request it!"}</a></p>
   {/if}
 
   </div>
