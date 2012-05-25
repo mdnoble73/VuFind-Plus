@@ -544,6 +544,7 @@ function redrawSaveStatus() {
       </div>
     {/if}
 
+
     <div id="moredetails-tabs">
       {* Define tabs for the display *}
       <ul>
@@ -557,6 +558,9 @@ function redrawSaveStatus() {
         <li><a href="#readertab">{translate text="Comments"}</a></li>
         <li><a href="#citetab">{translate text="Citations"}</a></li>
         <li><a href="#stafftab">{translate text="Staff View"}</a></li>
+        {if $internetLinks}
+        <li><a href="#marctab">{translate text="Links"}</a></li>
+        {/if}
       </ul>
 
       {* Display the content of individual tabs *}
@@ -599,16 +603,6 @@ function redrawSaveStatus() {
       </div>
 
       <div id="holdingstab">
-        {if $internetLinks}
-        <h3>{translate text="Internet"}</h3>
-        {foreach from=$internetLinks item=internetLink}
-        {if $proxy}
-        <a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-        {else}
-        <a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
-        {/if}
-        {/foreach}
-        {/if}
         <div id="holdingsPlaceholder"></div>
         {if $enablePurchaseLinks == 1 && !$purchaseLinks}
           <div class='purchaseTitle'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
@@ -618,6 +612,19 @@ function redrawSaveStatus() {
       <div id="stafftab">
         {include file=$staffDetails}
       </div>
+      {if $internetLinks}
+      <div id="marctab">
+        <ul>
+        {foreach from=$internetLinks item=internetLink}
+        {if $proxy}
+        <li><a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><</li>
+        {else}
+        <li><a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a></li>
+        {/if}
+        {/foreach}
+        </ul>
+      </div>
+      {/if}
     </div> {* End of tabs*}
   </div>
   <script type="text/javascript">
