@@ -552,10 +552,10 @@ function redrawSaveStatus() {
           <li><a href="#notestab">{translate text="Notes"}</a></li>
         {/if}
         {if $showAmazonReviews || $showStandardReviews}
-          <li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+          <li><a href="#reviewtab">{translate text="Reviews and Trailers"}</a></li>
         {/if}
-        <li><a href="#readertab">{translate text="Reader Comments"}</a></li>
-        <li><a href="#citetab">{translate text="Citation"}</a></li>
+        <li><a href="#readertab">{translate text="Comments"}</a></li>
+        <li><a href="#citetab">{translate text="Citations"}</a></li>
         <li><a href="#stafftab">{translate text="Staff View"}</a></li>
       </ul>
 
@@ -583,7 +583,7 @@ function redrawSaveStatus() {
 
       {if $showComments == 1}
         <div id="readertab">
-          <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
+          <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">{translate text="Add a Comment"}</span></div>
           <div id="userreview{$shortId}" class="userreview">
             <span class="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
             <div class='addReviewTitle'>Add your Review</div>
