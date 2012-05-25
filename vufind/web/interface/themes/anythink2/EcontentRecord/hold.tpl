@@ -15,8 +15,8 @@
     {/if}
         <div class='loginFormRow'>
         <input type="hidden" name="type" value="hold"/>
-        <input type="submit" name="submit" id="submit" value="{translate text='Request This Title'}"/>
-        <input type="checkbox" name="autologout" /> Log me out after requesting the item.
+        <div class="form-item"><input type="submit" name="submit" id="submit" value="{translate text='Request This Title'}"/></div>
+        <div class="form-item"><input type="checkbox" name="autologout" /> Log me out after requesting the item.</div>
         </div>
       </div>
   </form>
