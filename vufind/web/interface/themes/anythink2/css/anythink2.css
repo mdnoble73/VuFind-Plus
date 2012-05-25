@@ -1269,3 +1269,12 @@ fieldset {
 legend {
   font-weight: bold;
 }
+
+div.popupBox {
+  font-size: 100%;
+}
+
+.favorites-container {
+  width: 100%;
+  float: left;
+}
