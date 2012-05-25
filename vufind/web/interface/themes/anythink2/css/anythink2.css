@@ -232,7 +232,7 @@ body {
 
 #main #search {
   width: 600px;
-  margin: 40px auto 40px auto;
+  margin: 20px auto 20px auto;
 }
 
 .intro {
@@ -375,6 +375,8 @@ body.Search--Home #logo {
 
 #breadcrumb {
   margin-bottom: 10px;
+  position: relative;
+  z-index: 10; /* This prevents issues with the cart. */
 }
 
 #main {
