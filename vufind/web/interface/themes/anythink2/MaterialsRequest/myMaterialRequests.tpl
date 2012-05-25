@@ -5,7 +5,9 @@
   {include file="Admin/menu.tpl"}
 </div></div>
 <div id="main-content">
-  <h2>My Materials Requests</h2>
+  <h1>My Requests</h1>
+  <p>View all of your requests and their statuses below. </p>
+  <p>Questions about your requests? Contact our Collection Development team at <a href="mailto:requests@anythinklibraries.org">requests@anythinklibraries.org</a> or call 303-405-3293.</p>
   {if $error}
     <div class="error">{$error}</div>
   {else}
@@ -55,7 +57,7 @@
     {else}
       <div>There are no materials requests that meet your criteria.</div>
     {/if}
-    <div id="createNewMaterialsRequest"><a class="button" href="{$path}/MaterialsRequest/NewRequest">Submit a New Materials Request</a></div>
+    <div id="createNewMaterialsRequest"><a class="button" href="{$path}/MaterialsRequest/NewRequest">Submit a New Request</a></div>
   {/if}
 </div>
 <script type="text/javascript">
