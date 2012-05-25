@@ -399,6 +399,7 @@ body.Search--Home #logo {
   display: block;
 }
 
+body.MaterialsRequest--NewRequest #main-content,
 body.MyResearch--GetCard #main-content,
 body.MyResearch--EmailPin #main-content,
 body.Search--Home #main-content {
