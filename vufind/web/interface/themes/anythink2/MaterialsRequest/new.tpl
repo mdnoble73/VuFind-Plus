@@ -1,7 +1,7 @@
 <script type="text/javascript" src="{$path}/js/validate/jquery.validate.js" ></script>
 <script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js" ></script>
   <div id="main-content">
-    <h1>{translate text='Request it!'}</h1>
+    <h1>{translate text='Request it!'}<img src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png" width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" /></h1>
     <div id="materialsRequest">
       <div class="materialsRequestExplanation">
         {if !$user}
