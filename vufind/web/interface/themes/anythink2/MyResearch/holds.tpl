@@ -38,7 +38,7 @@ alert("{$title}");
         {else}
           <a name="unavailableHoldsSection" rel="section"></a>
         {/if}
-        <div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
+        <div class='holdSectionTitle'>{if $sectionKey=='available'}{translate text="Holds ready for pickup"}{else}{translate text="Holds pending:"}{/if}</div>
           <div class='holdSectionBody'>
             {if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
               {if $sectionKey=='available' && $libraryHoursMessage}
@@ -298,9 +298,9 @@ alert("{$title}");
             </div>
           {else} {* Check to see if records are available *}
             {if $sectionKey=='available'}
-              {translate text='You do not have any holds that are ready to be picked up'}.
+              {translate text='You have no holds available for pickup at this time.'}
             {else}
-              {translate text='You do not have any holds that are not available yet'}.
+              {translate text='You have no holds pending at this time.'}
             {/if}
           {/if}
         </div>
@@ -313,6 +313,6 @@ alert("{$title}");
       {literal} }); {/literal}
     </script>
   {else} {* Check to see if user is logged in *}
-    You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
+    {translate text="You must login to view this information."} {translate text="Click"} <a href="{$path}/MyResearch/Login">{translate text="here"}</a> {translate text="to login."}
   {/if}
 </div>
