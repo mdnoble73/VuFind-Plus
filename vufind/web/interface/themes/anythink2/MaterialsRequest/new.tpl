@@ -1,13 +1,14 @@
 <script type="text/javascript" src="{$path}/js/validate/jquery.validate.js" ></script>
 <script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js" ></script>
-<div id="page-content" class="content">
   <div id="main-content">
-    <h2>{translate text='Materials Request'}</h2>
+    <h1>{translate text='Request it!'}</h1>
     <div id="materialsRequest">
       <div class="materialsRequestExplanation">
-        If you cannot find a title in our catalog, you can request the title via this form.
-        Please enter as much information as possible so we can find the exact title you are looking for.
-        For example, if you are looking for a specific season of a TV show, please include that information.
+        {if !$user}
+        <p>If you can't find what you're looking for in our catalog, let us do the work for you. We'll try requesting it from another library or consider purchasing it for Anythink's collection. </p>
+        <p>Please login below to get started.</p>
+        {else}
+        <p>Can't find what you're looking for in our catalog? Fill out the form below with as much information as possible so we can find the exact title you need. For example, if you're looking for a specific season of a TV show, please include that info.         {/if}</p>
       </div>
       <form id="materialsRequestForm" action="{$path}/MaterialsRequest/Submit" method="post">
         {include file="MaterialsRequest/request-form-fields.tpl"}
@@ -27,7 +28,6 @@
       </form>
     </div>
   </div>
-</div>
 <script type="text/javascript">
   setFieldVisibility();
   $("#materialsRequestForm").validate();

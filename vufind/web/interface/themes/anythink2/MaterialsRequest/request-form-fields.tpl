@@ -2,8 +2,8 @@
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
 <fieldset>
-  <legend>User Information</legend>
   {if !$user}
+  <legend>{translate text="Login to your account"}</legend>
   <div id="materialsRequestLogin">
     <div>
       <label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
@@ -17,6 +17,8 @@
       <input type="submit" name="login" value="Login" onclick="return materialsRequestLogin();"/>
     </div>
   </div>
+  {else}
+  <legend>User Information</legend>
   {/if}
   <div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
     <div id="materialRequestContactInfo">
@@ -29,7 +31,7 @@
       {/if}
       <div>
         <label for="email">{translate text='Email'}: </label>
-        <input type="text" name="email" id="email" size="80" maxlength="80" class="email" value="{$defaultEmail}"/>
+        <input type="text" name="email" id="email" size="80" maxlength="80" value="{$defaultEmail}"/>
       </div>
     </div>
   </div>

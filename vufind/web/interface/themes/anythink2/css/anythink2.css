@@ -1261,3 +1261,10 @@ ul.right li {
   margin-right: 20px;
 }
 
+fieldset {
+  margin-bottom: 10px;
+}
+
+legend {
+  font-weight: bold;
+}
