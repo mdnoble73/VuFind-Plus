@@ -4,7 +4,12 @@
   {include file="Admin/menu.tpl"}
 </div></div>
 <div id="main-content">
-  <h1>{translate text='Your Lists and Suggestions'}</h1>
+  <h1>{translate text='My Favorites'}</h1>
+  {if !empty($listList) || !empty($tagList)}
+  <p>Keep your favorite items organized using lists and tags. Manage these items below or create new ones straight from your search results.</p>
+  {else}
+  Keep your favorite items organized using lists and tags. Haven't created any lists yet? Click the "add tag" or "add to list" links right from your search results to get started. 
+  {/if}
   {if $userNoticeFile}
     {include file=$userNoticeFile}
   {/if}
@@ -77,7 +82,7 @@
     {/if}
     {if $tagList}
       <div>
-        <h3 class="tag">{translate text='Your Tags'}</h3>
+        <h3 class="tag">{translate text='My Tags'}</h3>
         <ul class="bulleted">
           {foreach from=$tagList item=tag}
           <li><a href='{$url}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;type=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
