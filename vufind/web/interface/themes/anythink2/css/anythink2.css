@@ -232,7 +232,11 @@ body {
 
 #main #search {
   width: 600px;
-  margin: 66px auto 40px auto;
+  margin: 40px auto 40px auto;
+}
+
+.intro {
+  text-align: center;
 }
 
 #header #search {
@@ -1255,3 +1259,4 @@ ul.right li {
   display: block;
   margin-right: 20px;
 }
+
