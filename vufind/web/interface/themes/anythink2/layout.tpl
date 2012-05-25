@@ -161,7 +161,7 @@
           </div></div>
           {/if}
           <div id="column-central">
-            <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
+            <h4 id="flag">{translate text="Catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
                 <div id="cart-wrapper">
                   {include file="bookcart.tpl"}
