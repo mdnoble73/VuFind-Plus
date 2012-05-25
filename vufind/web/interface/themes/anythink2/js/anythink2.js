@@ -103,6 +103,7 @@
       iframe.css({width: 0});
       $('#central').prepend(iframe);
       var central_column = $('#column-central');
+      var orig_text = navigate_link.text();
       navigate_link.bind('click', function() {
         if (!navigate_link.hasClass('processed')) {
           navigate_link.addClass('processed');
@@ -122,7 +123,7 @@
         }
         else {
           navigate_link.removeClass('processed');
-          navigate_link.text('Navigate');
+          navigate_link.text(orig_text);
           // Re scale.
           cart_wrapper.hide();
           central_column.animate({marginLeft: 0}, {

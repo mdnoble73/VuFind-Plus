@@ -851,7 +851,7 @@ div.record {
  * Book bag.
  */
 #book_bag {
-  background-image: url(../images/cart-gradient.png);
+  background-image: url(../images/gradient-small-2.png);
   background-repeat: repeat-x;
   background-color: #EEE;
   display: block;
@@ -877,10 +877,14 @@ div.record {
 }
 
 #navigate-link {
+  background-image: url(../images/gradient-small-1.png);
   background-repeat: repeat-x;
+  background-color: #EEE;
+  background-position: left bottom;
+/*  background-repeat: repeat-x;*/
 /*  background-color: #DFD8DB;*/
-  background-color: #F7F5F4;
-  opacity: .7;
+/*  background-color: #F7F5F4;*/
+/*  opacity: .7;*/
   border: 1px solid #DFD8DB;
   -webkit-border-top-right-radius: 4px;
   -webkit-border-top-left-radius: 4px;
@@ -901,11 +905,13 @@ div.record {
 }
 
 #navigate-link.processed {
+  background-image: none;
   border: 0;
   border-bottom: 1px solid #DFD8DB;
 }
 
 #navigate-link:hover {
+  background-image: none;
   background-color: #DFD8DB;
   text-decoration: none;
   opacity: .9;
