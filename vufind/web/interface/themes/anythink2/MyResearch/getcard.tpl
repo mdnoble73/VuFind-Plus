@@ -67,7 +67,7 @@
         </div>
         <div class="spilt-form">
           <div class="form-item">
-            <label>{translate text="Preferfed location"}<span class="required">*</span></label>
+            <label>{translate text="Preferred location"}<span class="required">*</span></label>
             <div>
               <select name="location" type="text">
                 {foreach from=$selfRegLocations key=value item=label}
