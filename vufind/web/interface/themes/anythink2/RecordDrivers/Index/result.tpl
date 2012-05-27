@@ -13,7 +13,7 @@
   <div class="resultActions" id="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
     <div class="actions-first">
       <div class="actions-rate">
-        <label>Rate:</label>
+        <label>Rate</label>
         <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
           <div class="statVal">
             <span class="ui-rater">

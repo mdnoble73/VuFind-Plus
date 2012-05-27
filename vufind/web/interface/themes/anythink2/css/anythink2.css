@@ -819,6 +819,7 @@ div.result {
   margin-bottom: 20px;
 }
 
+.actions-list,
 .actions-rate,
 .actions-save {
   margin-bottom: 10px;
@@ -1307,5 +1308,12 @@ div.popupBox {
   background-position: 4px 4px;
 }
 
+.result-selector {
+  float: left;
+  margin-right: .5em;
+  margin-top: .8em;
+}
 
-
+.list-actions {
+  margin: 20px 0;
+}

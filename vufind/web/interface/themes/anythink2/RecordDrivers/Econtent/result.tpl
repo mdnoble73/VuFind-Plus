@@ -22,7 +22,7 @@
   <div class="resultActions" id="searchStars{$summId|escape}">
     <div class="actions-first">
       <div class="actions-rate">
-        <label>Rate:</label>
+        <label>Rate</label>
         <div class="rateEContent{$summId|escape} stat">
           <div class="statVal">
             <span class="ui-rater">
