@@ -1286,3 +1286,26 @@ div.popupBox {
   width: 100%;
   float: left;
 }
+
+.collapsed {
+  height: 0;
+  overflow: hidden;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.collapsible-label {
+  color: #256292;
+  padding-left: 20px;
+  background-image: url(../images/arrows.gif);
+  background-repeat: no-repeat;
+  background-position: 4px -15px;
+}
+
+.collapsed .collapsible-label {
+  background-position: 4px 4px;
+}
+
+
+

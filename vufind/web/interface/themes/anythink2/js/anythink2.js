@@ -138,6 +138,28 @@
         return false;
       });
     };
+
+
+    // Materials form show/hide.
+    var collapsibles = $('fieldset.collapsible');
+    if (collapsibles.length > 0) {
+      collapsibles.each(function() {
+        var collapsible = $(this);
+        var legend = collapsible.find('legend:first');
+        legend.addClass('collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+          var collapsible = event.data.collapsible;
+          if (collapsible.hasClass('collapsed')) {
+            collapsible.removeClass('collapsed');
+          }
+          else {
+            collapsible.addClass('collapsed');
+          }
+        });
+        // Init.
+        collapsible.addClass('collapsed');
+      });
+    }
+
   });
 
   // Get a list of the records on the page.
