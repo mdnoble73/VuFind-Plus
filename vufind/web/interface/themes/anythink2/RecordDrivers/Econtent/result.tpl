@@ -46,7 +46,7 @@
           </script>
         {/if}
         {if $showFavorites == 1}
-          <a class="button" href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" onclick="getSaveToListForm('{$summId|escape}', 'eContent'); return false;">{translate text='Add to list...'}</a>
+          <a class="button" href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" onclick="getSaveToListFormAnythink('{$summId|escape}', 'eContent'); return false;">{translate text='Add to list...'}</a>
         {/if}
       </div>
     </div>

@@ -194,7 +194,7 @@
               </div>
                 <div id="saveLink{$record.shortId|escape}">
                   {if $showFavorites == 1}
-                  <a href="{$url}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+                  <a href="{$url}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListFormAnythink('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
                   {/if}
                   {if $user}
                     <div id="lists{$record.shortId|escape}"></div>

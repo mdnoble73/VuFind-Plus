@@ -1487,3 +1487,39 @@ div.popupBox {
   text-align: right;
 }
 
+div.popupBox .header,
+div.popupBox .content {
+  padding: 20px;
+}
+
+div.popupBox .header {
+  cursor: move;
+  background-color: #EEE;
+  color: inherit;
+  font-size: 1.167em;
+  font-weight: bold;
+  height: auto;
+}
+
+div.popupBox {
+  background-color: white;
+  display: none;
+  border-color: #000;
+  border-style: solid;
+  border-width: 10px;
+  box-shadow: none;
+  position: absolute;
+  z-index: 1000;
+  left: auto;
+  font-size: 1em;
+  min-width: 300px;
+  -webkit-transition-property: height;
+  -webkit-transition-duration: 0.25s;
+  -webkit-transition-delay: 0.25s;
+}
+
+div.popupBox .header a {
+  float: right;
+  text-decoration: none;
+  color: inherit
+}

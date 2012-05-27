@@ -139,8 +139,7 @@
       });
     };
 
-
-    // Materials form show/hide.
+    // Implement collapsible fieldsets.
     var collapsibles = $('fieldset.collapsible');
     if (collapsibles.length > 0) {
       collapsibles.each(function() {
@@ -247,6 +246,89 @@
     }
     return bookInBag;
   }
+
+  // Reimplement getSaveToListForm().
+  getSaveToListFormAnythink = function(id, source) {
+    if (loggedIn) {
+      var url = path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
+      ajaxLightboxAnythink(url);
+    }
+    else {
+      ajaxLogin(function (){
+        getSaveToListFormAnythink(id, source);
+      });
+    }
+    return false;
+  }
+
+  // Reimplement ajaxLightbox().
+  ajaxLightboxAnythink = function(urlToLoad, parentId, left, width, top, height){
+
+    var loadMsg = $('#lightboxLoading').html();
+
+    hideSelects('hidden');
+
+    // Find out how far down the screen the user has scrolled.
+    var new_top =  document.body.scrollTop;
+    var lightbox = $('#lightbox');
+
+    lightbox.css({
+      height: $(document).height() + 'px',
+    });
+    lightbox.show();
+
+    var popupbox = $('#popupbox');
+
+    popupbox.html('<img src="' + path + '/images/loading.gif" /><br />' + loadMsg);
+    // $('#popupbox').show();
+    // $('#popupbox').css('top', '50%');
+    // $('#popupbox').css('left', '50%');
+
+    $.get(urlToLoad, function(data) {
+      popupbox.html(data);
+
+      if (parentId) {
+        //Automatically position the lightbox over the cursor
+        popupbox.position({
+          my: "top right",
+          at: "top right",
+          of: parentId,
+          collision: "flip"
+        });
+      }
+      else {
+        if (!width) width = 'auto';
+        if (!height) height = 'auto';
+
+        popupbox.css({
+          width: width,
+          height: height
+          });
+
+        // if (!left) left = '100px';
+        // if (!top) top = '100px';
+
+        popupbox.css({
+          top: parseInt(new_top + ($(window).height() - popupbox.height())/2) + 'px',
+          left: parseInt(($(window).width() - popupbox.width())/2) + 'px'
+        });
+
+        // $(document).scrollTop(0);
+      }
+
+      popupbox.show();
+      if ($("#popupboxHeader").length > 0){
+        popupbox.draggable({ handle: "#popupboxHeader" });
+      }
+    });
+  }
+
+  // Reimplement ajaxLogin().
+  ajaxLoginAnythink = function(callback) {
+    ajaxCallback = callback;
+    ajaxLightboxAnythink(path + '/MyResearch/AJAX?method=LoginForm');
+  }
+
 
   // // Reimplement doGetRatings().
   // doGetRatingsAnythink = function() {

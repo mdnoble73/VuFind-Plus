@@ -336,7 +336,7 @@ function redrawSaveStatus() {
           </script>
         {/if}
         {if $showFavorites == 1}
-          <a class="button" href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$id}', 'VuFind'); return false;">{translate text='Add to list...'}</a>
+          <a class="button" href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" onclick="getSaveToListFormAnythink('{$id}', 'VuFind'); return false;">{translate text='Add to list...'}</a>
         {/if}
       </div>
       {if $enableBookCart}
@@ -365,7 +365,7 @@ function redrawSaveStatus() {
         {/if}
         {*
         {if $showFavorites == 1}
-          <div id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></div>
+          <div id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListFormAnythink('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></div>
         {/if}
         *}
         {if !empty($addThis)}
