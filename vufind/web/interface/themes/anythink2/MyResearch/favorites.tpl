@@ -50,8 +50,8 @@
           {foreach from=$listList item=list}
             <div id="list{$list->id}" class="titleScrollerWrapper">
               <div id="list{$list->id}Header" class="titleScrollerHeader">
-                <span class="listTitle resultInformationLabel"><a href="{$url}/MyResearch/MyList/{$list->id}">{$list->title|escape:"html"}</a></span>
-                <a href='{$url}/MyResearch/MyList/{$list->id}'><span class='seriesLink'>View and Edit List</span></a>
+                <span class="listTitle"><a href="{$url}/MyResearch/MyList/{$list->id}">{$list->title|escape:"html"}</a></span>
+                <span class="list-edit"><a href='{$url}/MyResearch/MyList/{$list->id}'>View and Edit List</a></span>
               </div>
               <div id="titleScrollerList{$list->id}" class="titleScrollerBody">
               <div class="leftScrollerButton enabled" onclick="list{$list->id}Scroller.scrollToLeft();"></div>
@@ -83,8 +83,8 @@
       {/if}
       {if $tagList}
         <div>
-          <h3 class="tag">{translate text='My Tags'}</h3>
-          <ul class="bulleted">
+          <h2 class="tag">{translate text='My Tags'}</h2>
+          <ul>
             {foreach from=$tagList item=tag}
             <li><a href='{$url}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;type=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
               <a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from all titles?");'>

@@ -28,15 +28,15 @@
 }
 
 .advancedSearchFacetDetails{
-	display: inline-block;
-	margin: 5px;
+  display: inline-block;
+  margin: 5px;
 }
 .advancedSearchFacetHeader{
-	font-weight: bold;
+  font-weight: bold;
 }
 .advancedSearchFacetFormatCategory{
-	display: inline-block;
-	margin: 5px;
+  display: inline-block;
+  margin: 5px;
 }
 
 /**
@@ -1317,3 +1317,173 @@ div.popupBox {
 .list-actions {
   margin: 20px 0;
 }
+
+.titleScrollerWrapper {
+  border: 1px solid #CCC;
+  border-top: 1px solid #CCC;
+  margin-bottom: 15px;
+  position: relative;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  border-radius: 20px;
+}
+
+.titleScrollerBody {
+  background-color: inherit;
+}
+
+.scrollerBodyContainer {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}
+
+.leftScrollerButton {
+  display: block;
+  height: 36px;
+  width: 35px;
+  float: none;
+  cursor: pointer;
+  background-image: url(../images/scroller-arrows.png);
+  background-repeat: no-repeat;
+  background-position: -36px 0;
+  position: absolute;
+  z-index: 10;
+  bottom: 20px;
+  left: 20px;
+}
+
+.rightScrollerButton {
+  display: block;
+  height: 36px;
+  width: 35px;
+  position: absolute;
+  cursor: pointer;
+  background-image: url(../images/scroller-arrows.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  z-index: 10;
+  right: 20px;
+  bottom: 20px;
+}
+
+.rightScrollerButton:hover,
+.leftScrollerButton:hover {
+  opacity: .8;
+}
+
+
+.titleScrollerSelectedTitle {
+  width: 100%;
+  text-align: center;
+  font-weight: normal;
+  color: inherit;
+  font-size: 2em; /* 24 */
+  line-height: 1.125em; /* 27 */
+  margin-top: 0;
+  margin-bottom: .375em; /* 9 */
+}
+
+.titleScrollerSelectedAuthor {
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  color: inherit;
+  margin-bottom: 10px;
+}
+
+#tooltip.descriptionTooltip {
+  font-family: inherit;
+  border: none;
+  width: 300px;
+  padding: 0px;
+  height: auto;
+  opacity: 1;
+  background: white;
+  border: 1px solid #666;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 5px #888;
+  -moz-box-shadow: 0 1px 5px #888;
+  position: absolute;
+}
+
+#tooltip .body {
+  padding: 10px;
+}
+
+#tooltip.descriptionTooltip h3 {
+  font-size: 1.5em; /* 18 */
+  line-height: 1em; /* 18 */
+  margin-top: 0;
+  margin-bottom: .5em; /* 9 */
+  margin-bottom: 0;
+  text-align: inherit;
+  background: inherit;
+  color: inherit;
+  padding: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#tooltip div.description-element {
+  padding: 0;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+.description-element-label{
+  font-weight: bold; 
+  display: inline-block;
+  padding-right: 4px;
+  
+  zoom: 1;
+  *display: inline;
+}
+
+.scrollerTitle.selected {
+  border: 1px solid #256292;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  padding: 0px;
+}
+
+.scrollerTitle {
+  line-height: .1em;
+}
+
+.scrollerTitleCover {
+  padding: 5px;
+}
+
+.scrollerBody {
+  height: auto;
+}
+
+.titleScrollerHeader {
+  background: transparent;
+  padding: 10px;
+  color: inherit;
+  font-size: inherit;
+  font-weight: normal;
+  height: auto;
+}
+
+.resultInformationLabel {
+  color: inherit;
+  font-size: inherit;
+  font-weight: bold;
+  padding-bottom: 0;
+}
+
+.list-edit,
+.listTitle {
+  display: inline-block;
+  width: 49.5%;
+}
+
+.list-edit {
+  text-align: right;
+}
+
