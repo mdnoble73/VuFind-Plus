@@ -140,22 +140,22 @@
     };
 
     // Implement collapsible fieldsets.
-    var collapsibles = $('fieldset.collapsible');
+    var collapsibles = $('fieldset.anythink-collapsible');
     if (collapsibles.length > 0) {
       collapsibles.each(function() {
         var collapsible = $(this);
         var legend = collapsible.find('legend:first');
-        legend.addClass('collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+        legend.addClass('anythink-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
           var collapsible = event.data.collapsible;
-          if (collapsible.hasClass('collapsed')) {
-            collapsible.removeClass('collapsed');
+          if (collapsible.hasClass('anythink-collapsed')) {
+            collapsible.removeClass('anythink-collapsed');
           }
           else {
-            collapsible.addClass('collapsed');
+            collapsible.addClass('anythink-collapsed');
           }
         });
         // Init.
-        collapsible.addClass('collapsed');
+        collapsible.addClass('anythink-collapsed');
       });
     }
 
