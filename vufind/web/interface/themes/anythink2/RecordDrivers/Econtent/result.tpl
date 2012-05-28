@@ -94,7 +94,7 @@
     </div>
     {if !empty($summSnippetCaption) || !empty($summSnippet)}
       <div class="fine-print">
-        {if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
+        {if !empty($summSnippetCaption)}{translate text=$summSnippetCaption}:{/if}
         {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}
       </div>
     {/if}
