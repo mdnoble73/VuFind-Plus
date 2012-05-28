@@ -10,21 +10,84 @@ class PackagingDatabase {
 		}
 	}
 	
-	public function getRecord($id) {
-		$sql = "SELECT * FROM acs_packaging_log WHERE packagingId=$id";
+	public function getRecord($distributorId, $id) {
+		$sql = "SELECT * FROM acs_packaging_log WHERE distributorId = '" . mysql_real_escape_string($distributorId) . "' AND id=$id";
 		$result = mysql_query($sql);
 		if (!$result || mysql_num_rows($result) == 0) {
-			return false;
+			return array(
+				'success' => false,
+				'error' => mysql_error()
+			);
 		}
-		$record = mysql_fetch_assoc($result);
-		return $record;
+		$rawRecord = mysql_fetch_assoc($result);
+		return array(
+			'success' => true,
+			'record' => array(
+				'id' => $rawRecord['id'],
+				'acsError' => $rawRecord['acsError'],
+				'acsId' => $rawRecord['acsId'],
+				'datePackagingCompleted' => $rawRecord['packagingEndTime'],
+				'status' => $rawRecord['status'],
+			),
+		);
+	}
+	
+	public function getRecordsSince($distributorId, $updatedSince) {
+		$sql = "SELECT * FROM acs_packaging_log WHERE distributorId = '" . mysql_real_escape_string($distributorId) . "' AND lastUpdate >= $updatedSince";
+		$result = mysql_query($sql);
+		if (!$result) {
+			return array(
+				'success' => false,
+				'error' => mysql_error()
+			);
+		}
+		$records = array();
+		while ($rawRecord = mysql_fetch_assoc($result)){
+			$records[] = array(
+				'id' => $rawRecord['id'],
+				'acsError' => $rawRecord['acsError'],
+				'acsId' => $rawRecord['acsId'],
+				'datePackagingCompleted' => $rawRecord['packagingEndTime'],
+				'status' => $rawRecord['status'],
+			);
+		}
+		return array(
+			'success' => true,
+			'records' => $records
+		);
+	}
+	
+	public function requestFileProtection($distributorId, $filename, $copies, $previousAcsId = null){
+		$curTime = time();
+		$record = array(
+			'distributorId' =>  "'" . mysql_real_escape_string($distributorId) . "'",
+			'copies' => mysql_real_escape_string($copies),
+			'filename' => "'" . mysql_real_escape_string($filename) . "'",
+			'created' => $curTime,
+			'lastUpdate' => $curTime,
+			'status' => "'pending'"
+		);
+		if (isset($previousAcsId)){
+			$record['previousAcsId'] = mysql_real_escape_string($data['previousAcsId']);
+		}
+		$result = $this->_insert($record);
+		if ($result === false) {
+			return array(
+				'success' => false,
+				'error' => "Could not add file to database " . mysql_error()
+			);
+		}
+		$packagingId = mysql_insert_id($this->_db);
+		return array(
+			'success' => false,
+			'packagingId' => $packagingId
+		);
 	}
 	
 	public function saveRecord($data) {
-		$update = (isset($data['packagingId']) && is_numeric($data['packagingId']));
+		$update = (isset($data['id']) && is_numeric($data['id']));
 		$record = array(
-			'packagingId' => mysql_real_escape_string($data['packagingId']),
-			'distributorId' => mysql_real_escape_string($data['distributorId']),
+			'distributorId' => "'" . mysql_real_escape_string($data['distributorId']) . "'",
 			'copies' => mysql_real_escape_string($data['copies']),
 			'filename' => "'" . mysql_real_escape_string($data['filename']) . "'",
 			'created' => "'" . mysql_real_escape_string($data['created']) . "'",
@@ -35,11 +98,14 @@ class PackagingDatabase {
 			'acsId' => mysql_real_escape_string($data['acsId']),
 			'status' => "'" . mysql_real_escape_string($data['status']) . "'"
 		);
+		if (isset($data['packagingId'])){
+			$record['packagingId'] = mysql_real_escape_string($data['packagingId']);
+		}
 		$result = $update ? $this->_update($record) : $this->_insert($record);
 		if ($result === false) {
 			return false;
 		}
-		return ($update ? $data['packagingId'] : mysql_insert_id($this->_db));
+		return ($update ? $data['id'] : mysql_insert_id($this->_db));
 	}
 	
 	private function _update($record) {
@@ -58,7 +124,7 @@ class PackagingDatabase {
 	
 	private function _insert($record) {
 		$fields = array_keys($record);
-		unset($fields['packagingId']);
+		unset($fields['id']);
 		$values = array();
 		foreach ($fields as $field) {
 			$value = $record[$field];
