@@ -2,6 +2,7 @@
 ####################################
 sites/*
 !sites/default
+!sites/packaging_default
 vufind/documentation/
 vufind/admin/sql/
 vufind/web/images/fiveStar/*.png
