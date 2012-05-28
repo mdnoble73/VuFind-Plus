@@ -773,12 +773,6 @@ div.result {
   background-repeat: repeat-x;
 }
 
-.result {
-  border-bottom: 0;
-  padding: 20px 0;
-  background-color: #FFF;
-}
-
 .resultDetails {
   display: block;
   width: auto;
