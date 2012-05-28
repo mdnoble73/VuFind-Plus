@@ -13,7 +13,7 @@
     {/foreach}
     </select>
     <div id="search-input-wrapper">
-      <div id="search-input" class="cf">
+      <div id="search-input" class="clearfix">
       <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
       <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
       </div>

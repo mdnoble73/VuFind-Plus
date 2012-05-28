@@ -29,7 +29,7 @@
       {/if}
     {/if} 
     {if $showOtherEditionsPopup}
-      <a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', true)">Other Formats and Languages</a>
+      <a href="#" onclick="loadOtherEditionSummariesAnythink('{$holdingsSummary.recordId}', true)">Other Formats and Languages</a>
     {/if}
   </div>
 </div>
