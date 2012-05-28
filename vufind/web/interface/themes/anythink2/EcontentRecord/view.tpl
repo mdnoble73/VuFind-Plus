@@ -37,7 +37,7 @@ function redrawSaveStatus() {literal}{{/literal}
             <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
           </a>
           <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightboxAnythink('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
           </div>
         </div>
       {/if}
@@ -55,7 +55,7 @@ function redrawSaveStatus() {literal}{{/literal}
       </div>
       {if $showOtherEditionsPopup}
       <div id="otherEditionCopies">
-        <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+        <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummariesAnythink('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
       </div>
       {/if}
       {if $goldRushLink}
@@ -330,13 +330,13 @@ function redrawSaveStatus() {literal}{{/literal}
     </div>
     <div class="actions-second" id="recordTools">
         {if !$tabbedDetails}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></div>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightboxAnythink("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></div>
         {/if}
         {if $showTextThis == 1}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></div>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightboxAnythink('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></div>
         {/if}
         {if $showEmailThis == 1}
-          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;">{translate text="Email this"}</a></div>
+          <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick="ajaxLightboxAnythink('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;">{translate text="Email this"}</a></div>
         {/if}
         {if is_array($exportFormats) && count($exportFormats) > 0}
           <div><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a>

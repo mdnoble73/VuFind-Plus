@@ -27,7 +27,7 @@
         {$holdingsSummary.numCopiesOnOrder} copies on order.
       {/if}
       {if $showOtherEditionsPopup}
-        <a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', false)">Other Formats and Languages</a>
+        <a href="#" onclick="loadOtherEditionSummariesAnythink('{$holdingsSummary.recordId}', false)">Other Formats and Languages</a>
       {/if}</span>
     </div>
   {/if}

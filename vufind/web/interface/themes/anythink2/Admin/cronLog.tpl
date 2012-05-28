@@ -49,15 +49,15 @@
 </div>
 <script>{literal}
   function showReindexProcessNotes(id){
-    ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
+    ajaxLightboxAnythink("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
     return false;
   }
   function showCronNotes(id){
-    ajaxLightbox("/Admin/AJAX?method=getCronNotes&id=" + id);
+    ajaxLightboxAnythink("/Admin/AJAX?method=getCronNotes&id=" + id);
     return false;
   }
   function showCronProcessNotes(id){
-    ajaxLightbox("/Admin/AJAX?method=getCronProcessNotes&id=" + id);
+    ajaxLightboxAnythink("/Admin/AJAX?method=getCronProcessNotes&id=" + id);
     return false;
   }
   function toggleProcessInfo(id){

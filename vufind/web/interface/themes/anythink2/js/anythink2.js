@@ -254,7 +254,7 @@
       ajaxLightboxAnythink(url);
     }
     else {
-      ajaxLogin(function (){
+      ajaxLoginAnythink(function (){
         getSaveToListFormAnythink(id, source);
       });
     }
@@ -284,41 +284,46 @@
     // $('#popupbox').css('top', '50%');
     // $('#popupbox').css('left', '50%');
 
+    // if (parentId) {
+    //   //Automatically position the lightbox over the cursor
+    //   popupbox.position({
+    //     my: "top right",
+    //     at: "top right",
+    //     of: parentId,
+    //     collision: "flip"
+    //   });
+    // }
+    // else {
+      // if (!width) 
+      width = '66%';
+      // if (!height) 
+      height = '66%';
+
+      popupbox.css({
+        width: width,
+        height: height
+        });
+
+      // if (!left) left = '100px';
+      // if (!top) top = '100px';
+
+      popupbox.css({
+        top: parseInt(new_top + ($(window).height() - popupbox.height())/2) + 'px',
+        left: parseInt(($(window).width() - popupbox.width())/2) + 'px'
+      });
+
+      // $(document).scrollTop(0);
+    // }
+
     $.get(urlToLoad, function(data) {
       popupbox.html(data);
-
-      if (parentId) {
-        //Automatically position the lightbox over the cursor
-        popupbox.position({
-          my: "top right",
-          at: "top right",
-          of: parentId,
-          collision: "flip"
-        });
-      }
-      else {
-        if (!width) width = 'auto';
-        if (!height) height = 'auto';
-
-        popupbox.css({
-          width: width,
-          height: height
-          });
-
-        // if (!left) left = '100px';
-        // if (!top) top = '100px';
-
-        popupbox.css({
-          top: parseInt(new_top + ($(window).height() - popupbox.height())/2) + 'px',
-          left: parseInt(($(window).width() - popupbox.width())/2) + 'px'
-        });
-
-        // $(document).scrollTop(0);
-      }
 
       popupbox.show();
       if ($("#popupboxHeader").length > 0){
         popupbox.draggable({ handle: "#popupboxHeader" });
+      }
+      else {
+        popupbox.wrapInner('<div id="popupboxContent" class="content" />').prepend('<div id="popupboxHeader" class="header"><a onclick="hideLightbox(); return false;" href="">close</a></div>');
       }
     });
   }
@@ -327,6 +332,11 @@
   ajaxLoginAnythink = function(callback) {
     ajaxCallback = callback;
     ajaxLightboxAnythink(path + '/MyResearch/AJAX?method=LoginForm');
+  }
+
+  loadOtherEditionSummariesAnythink = function(id, isEcontent) {
+    var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
+    ajaxLightboxAnythink(url);
   }
 
 
