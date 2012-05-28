@@ -773,12 +773,6 @@ div.result {
   background-repeat: repeat-x;
 }
 
-.result {
-  border-bottom: 0;
-  padding: 20px 0;
-  background-color: #FFF;
-}
-
 .resultDetails {
   display: block;
   width: auto;
@@ -1293,7 +1287,7 @@ div.popupBox {
   float: left;
 }
 
-.collapsed {
+.anythink-collapsed {
   height: 0;
   overflow: hidden;
   border-left: 0;
@@ -1301,15 +1295,20 @@ div.popupBox {
   border-bottom: 0;
 }
 
-.collapsible-label {
+.anythink-collapsed div,
+.anythink-collapsed fieldset {
+  display: none;
+}
+
+.anythink-collapsible-label {
   color: #256292;
   padding-left: 20px;
   background-image: url(../images/arrows.gif);
   background-repeat: no-repeat;
   background-position: 4px -15px;
+  cursor: pointer;
 }
-
-.collapsed .collapsible-label {
+.anythink-collapsed .anythink-collapsible-label {
   background-position: 4px 4px;
 }
 
@@ -1482,6 +1481,10 @@ div.popupBox {
   padding-bottom: 0;
 }
 
+.listTitle {
+  font-weight: bold;
+}
+
 .list-edit,
 .listTitle {
   display: inline-block;
@@ -1564,4 +1567,33 @@ div.popupBox .header a {
   top: auto;
   text-align: inherit;
   overflow: auto;
+}
+
+.holdSectionTitle {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  color: inherit;
+  font-weight: bold;
+  margin-top: 0;
+  padding: 10px;
+  text-align: inherit;
+  background-color: transparent;
+}
+
+.myAccountTable {
+  border: 1px solid #949494;
+  border-radius: 0;
+  border-collapse: collapse;
+  margin-top: 0;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+table.tablesorter {
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0 0 20px 0;
+  text-align: left;
+  width: 100%;
 }

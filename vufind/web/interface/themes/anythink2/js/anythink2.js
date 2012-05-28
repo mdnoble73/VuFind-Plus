@@ -140,22 +140,22 @@
     };
 
     // Implement collapsible fieldsets.
-    var collapsibles = $('fieldset.collapsible');
+    var collapsibles = $('fieldset.anythink-collapsible');
     if (collapsibles.length > 0) {
       collapsibles.each(function() {
         var collapsible = $(this);
         var legend = collapsible.find('legend:first');
-        legend.addClass('collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+        legend.addClass('anythink-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
           var collapsible = event.data.collapsible;
-          if (collapsible.hasClass('collapsed')) {
-            collapsible.removeClass('collapsed');
+          if (collapsible.hasClass('anythink-collapsed')) {
+            collapsible.removeClass('anythink-collapsed');
           }
           else {
-            collapsible.addClass('collapsed');
+            collapsible.addClass('anythink-collapsed');
           }
         });
         // Init.
-        collapsible.addClass('collapsed');
+        collapsible.addClass('anythink-collapsed');
       });
     }
 
@@ -337,6 +337,14 @@
   loadOtherEditionSummariesAnythink = function(id, isEcontent) {
     var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
     ajaxLightboxAnythink(url);
+  }
+
+  showMaterialsRequestDetailsAnythink = function(id) {
+  	ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id );
+  }
+
+  updateMaterialsRequestAnythink = function(id) {
+  	ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id );
   }
 
 

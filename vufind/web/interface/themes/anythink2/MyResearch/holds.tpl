@@ -38,7 +38,7 @@ alert("{$title}");
         {else}
           <a name="unavailableHoldsSection" rel="section"></a>
         {/if}
-        <div class='holdSectionTitle'>{if $sectionKey=='available'}{translate text="Holds ready for pickup"}{else}{translate text="Holds pending:"}{/if}</div>
+        <div class='holdSectionTitle'>{if $sectionKey=='available'}{translate text="Holds ready for pickup"}{else}{translate text="Holds pending"}{/if}</div>
           <div class='holdSectionBody'>
             {if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
               {if $sectionKey=='available' && $libraryHoursMessage}

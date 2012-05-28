@@ -63,7 +63,7 @@
     </div>
     {/if}
   </fieldset>
-  <fieldset class="collapsible">
+  <fieldset class="anythink-collapsible">
     <legend>Tell us more</legend>
     <fieldset>
       <legend>Identifiers</legend>
@@ -178,7 +178,7 @@
 {if $materialsRequest}
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
-<fieldset {if $user}class="collapsible"{/if}>
+<fieldset {if $user}class="anythink-collapsible"{/if}>
   {if !$user}
   <legend>{translate text="Login to your account"}</legend>
   <div id="materialsRequestLogin">
