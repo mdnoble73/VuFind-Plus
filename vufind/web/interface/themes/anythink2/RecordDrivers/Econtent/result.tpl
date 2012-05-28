@@ -59,10 +59,9 @@
     </script>
   </div>
   <div class="resultDetails">
-    <h2><a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a></h2>
-    {if $summTitleStatement}
-      <div class="details">{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}</div>
-    {/if}
+    <h3><a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}{if $summTitleStatement}
+      <em>{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}</em>
+    {/if}</a></h3>
     <div class="details">
       {if !empty($summFormats)}
         <span class="format">
@@ -88,17 +87,17 @@
       {/if}
       {if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}
     </div>
-    {if !empty($summSnippetCaption) || !empty($summSnippet)}
-      <div class="details fine-print">
-        {if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
-        {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}
-      </div>
-    {/if}
     <div id="holdingsEContentSummary{$summId|escape:"url"}" class="holdingsSummary">
       <div class="statusSummary" id="statusSummary{$summId|escape:"url"}">
         <span class="unknown">{translate text='Loading'}...</span>
       </div>
     </div>
+    {if !empty($summSnippetCaption) || !empty($summSnippet)}
+      <div class="fine-print">
+        {if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
+        {if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span>{/if}
+      </div>
+    {/if}
     <div id="description-{$summId|escape:'url'}" class="description"></div>
   </div>
   <script type="text/javascript">

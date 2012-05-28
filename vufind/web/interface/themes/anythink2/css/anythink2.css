@@ -648,8 +648,8 @@ body.Search--Home #main-content {
   background-image: url(../images/gradient-white-gray.png);
   background-repeat: repeat-x;
   background-position: left bottom;
-  padding: 0 10px 20px 10px;
-  margin-bottom: 20px;
+  padding: 0 10px 10px 10px;
+  margin-bottom: 10px;
 }
 
 #results-header h1 {
@@ -742,6 +742,11 @@ body.Search--Home #main-content {
   margin-top: 0;
   padding: 0;
   text-align: left;
+}
+
+.holdingsSummary .callNumber {
+  font-weight: bold;
+  font-size: 1em;
 }
 
 .holdingsTable {
@@ -1522,4 +1527,8 @@ div.popupBox .header a {
   float: right;
   text-decoration: none;
   color: inherit
+}
+
+#results-actions form {
+  margin-bottom: 0;
 }

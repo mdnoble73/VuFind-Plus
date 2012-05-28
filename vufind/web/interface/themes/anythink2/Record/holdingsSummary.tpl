@@ -17,7 +17,7 @@
     <p>Available Online from <a href='{$holdingsSummary.downloadLink}' {if !(isset($holdingsSummary.localDownload) || $holdingsSummary.localDownload == false )}target='_blank'{/if}>{$holdingsSummary.downloadText}</a></p>
   {else}
     <div class="holdableCopiesSummary">
-      <div class="fine-print">
+      <span class="fine-print">
       {$holdingsSummary.numCopies} {if $holdingsSummary.numCopies == 1}copy{else}copies{/if},
       {$holdingsSummary.availableCopies} on shelf.
       {if $holdingsSummary.holdQueueLength >= 0}
@@ -28,7 +28,7 @@
       {/if}
       {if $showOtherEditionsPopup}
         <a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', false)">Other Formats and Languages</a>
-      {/if}</div>
+      {/if}</span>
     </div>
   {/if}
 </div>
