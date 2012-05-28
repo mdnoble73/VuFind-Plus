@@ -339,6 +339,14 @@
     ajaxLightboxAnythink(url);
   }
 
+  showMaterialsRequestDetailsAnythink = function(id) {
+  	ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id );
+  }
+
+  updateMaterialsRequestAnythink = function(id) {
+  	ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id );
+  }
+
 
   // // Reimplement doGetRatings().
   // doGetRatingsAnythink = function() {
