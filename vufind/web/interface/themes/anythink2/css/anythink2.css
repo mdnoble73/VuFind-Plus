@@ -1482,6 +1482,10 @@ div.popupBox {
   padding-bottom: 0;
 }
 
+.listTitle {
+  font-weight: bold;
+}
+
 .list-edit,
 .listTitle {
   display: inline-block;
@@ -1564,4 +1568,24 @@ div.popupBox .header a {
   top: auto;
   text-align: inherit;
   overflow: auto;
+}
+
+.holdSectionTitle {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  color: inherit;
+  font-weight: bold;
+  margin-top: 0;
+  padding: 10px;
+  text-align: inherit;
+  background-color: transparent;
+}
+
+.myAccountTable {
+  border: 1px solid #949494;
+  border-radius: 0;
+  border-collapse: collapse;
+  margin-top: 0;
+  margin-bottom: 10px;
+  width: 100%;
 }
