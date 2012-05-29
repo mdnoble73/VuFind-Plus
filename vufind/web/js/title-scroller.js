@@ -67,9 +67,13 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 		}
 	} catch (err) {
 		//alert("error loading titles from data " + err.description);
-		scrollerBody.html("error loading titles from data " + err.description + ".  Please try again later.");
-		scrollerBody.show();
-		$(".scrollerLoadingContainer").hide();
+		if (scrollerBody != null){
+			scrollerBody.html("error loading titles from data " + err.description + ".  Please try again later.");
+			scrollerBody.show();
+			$(".scrollerLoadingContainer").hide();
+		}else{
+			//alert("Could not find scroller body for " + this.scrollerId);
+		}
 	}
 }
 

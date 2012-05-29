@@ -52,7 +52,7 @@
 	</div>
 	<div id='needACardWrapper'>
 		<div id='needCardLabel' class='loginFormRow'>
-			<a href="http://getacard.org">I need a Library Card</a>
+			<a href="http://getacard.org">I need a Douglas County Library Card</a>
 		</div>
 		<div class='loginFormRow'>
 		<a href="http://getacard.org"><img src="{$path}/interface/themes/{$theme}/images/library_card.gif" alt="Get a Library Card" /></a>
