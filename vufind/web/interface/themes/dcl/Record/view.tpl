@@ -466,7 +466,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 				 
 				{if $showAmazonReviews || $showStandardReviews}
-				<h4>Professional Reviews</h4>
+				<h4>Editorial Reviews</h4>
 				<div id='reviewPlaceholder'></div>
 				{/if}
 			</div>
@@ -545,13 +545,11 @@ StrandsTrack.push({
 </script>
 {/literal}
 {if $chiliFreshAccount}
-{literal}
 <!-- ChiliFresh code part 3 start -->
 <input type="hidden" id="chilifresh_type" name="chilifresh_profile" value="default" />
 <input type="hidden" id="chilifresh_type" name="chilifresh_location" value="pa" />
 <input type="hidden" id="chilifresh_version" name="chilifresh_version" value="onsite_v1" />
-<input type="hidden" id="chilifresh_account" name="chilifresh_account" value="{/literal}{$chiliFreshAccount}{literal}" />
+<input type="hidden" id="chilifresh_account" name="chilifresh_account" value="{$chiliFreshAccount}" />
 <script type="text/javascript" src="http://chilifresh.com/on-site/js/vufind.js" />
 <!-- ChiliFresh code part 3 end -->
-{/literal}
 {/if}
