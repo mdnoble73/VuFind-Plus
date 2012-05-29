@@ -1,0 +1,204 @@
+@charset "utf-8";
+/* CSS Document */
+
+a.asklink:link{
+	font-weight:bold;
+	text-decoration:none;
+	color:#333;
+}
+a.asklink:visited{
+	font-weight:bold;
+	text-decoration:none;
+	color:#333;
+}
+a.asklink:hover{
+	font-weight:bold;
+	text-decoration:none;
+	color:#999;
+}
+
+a.linky:link{
+	font-weight:bold;
+	text-decoration:none;
+	color:#3c5daa;
+}
+a.linky:visited{
+	font-weight:bold;
+	text-decoration:none;
+	color:#3c5daa;
+}
+a.linky:hover{
+	font-weight:bold;
+	text-decoration:none;
+	color:#c00;
+}
+
+.brian_help{
+font-size:8pt;
+color:#eaeaea;
+width:30px;
+}
+
+.bh_subA, .bh_subB, #vid_div, #open_title{
+font-weight:bold;
+text-align:center;	
+}
+
+.bh_subA{
+position:absolute;
+left:25%;
+top:100px;
+width:500px;
+height:340px;
+background-color:#fff;
+padding-bottom:10px;
+padding-top:0px;
+border:5px solid #011753;
+display:none;
+z-index:1009;
+}
+
+#vid_div{
+position:absolute;
+left:25%;
+top:100px;
+width:500px;
+height:380px;
+vertical-align:middle;	
+background-color:#fff;
+padding:10px;
+border:5px solid #011753;
+display:none;
+z-index:1009;
+}
+
+#faq_div{
+position:absolute;
+left:25%;
+top:100px;
+width:650px;
+height:410px;
+vertical-align:middle;	
+background-color:#fff;
+padding:10px;
+border:5px solid #011753;
+display:none;
+z-index:1009;
+}
+
+.bh_subB{
+color:#333;
+width:200px;
+text-align:center;	
+}
+
+#bh_subB1{
+margin-top:10px;
+padding:7px;
+float:left;
+vertical-align:top;
+
+}
+
+#bh_subB2{
+margin-top:10px;
+padding:7px;
+float:right;
+vertical-align:top;
+
+}
+
+#open_title{
+background-color:#011753;
+color:#fff;
+padding-bottom:5px;
+padding-top:5px;
+font-size:11pt;
+width:100%;
+}
+
+.heading_title{
+font-size:11pt;
+font-weight:bold;
+text-decoration:underline;
+color:#333;
+}
+
+.bh_item, .bh_item2{
+color:#3c5daa;	
+margin-top:5px;
+cursor:pointer;
+}
+
+.vid_embed, .faq_load{
+display:none;
+text-align:center;	
+}
+
+.voption, .foption{
+font-size:9pt;
+color:#3c5daa;
+border-right:1px solid #3c5daa;
+padding-right:3px;
+font-weight:bold;
+display:inline-block;
+*display:inline;
+margin-right:4px;
+margin-bottom:3px;
+margin-top:3px;
+cursor:pointer;	
+}
+
+.foption2{
+margin-top:15px;
+margin-left:150px;	
+}
+
+#ask_outer{
+position:absolute;
+width:720px;
+text-align:center;	
+bottom:25px;
+}
+
+#askwcpl_div{
+margin:0 auto;
+width:200px;
+text-align:center;
+padding-top:10px;
+padding-bottom:10px;
+color:#333;
+background-color:#ccc;
+border:1px solid #999;
+-moz-border-radius:4px;/* Firefox */
+-webkit-border-radius:4px; /* Safari, Chrome */
+border-radius:4px; /* CSS3 */
+}
+
+.brian_img{
+margin:0 auto;
+padding-bottom:10px;
+width:116px;
+height:96px;
+background-repeat:no-repeat;
+background-image:url("brian_lies.png");	
+}
+
+.close_help{
+color:#fff;
+background-color:#c00;
+padding-top:2px;
+padding-left:2px;
+padding-right:3px;
+padding-bottom:3px;
+position:absolute;
+top:0px;
+right:0px;
+width:12px;
+text-align:center;
+vertical-align:middle;
+cursor:pointer;	
+-moz-border-radius:10px;/* Firefox */
+-webkit-border-radius:10px; /* Safari, Chrome */
+border-radius:10px; /* CSS3 */
+}

@@ -159,7 +159,7 @@ function redrawSaveStatus() {literal}{{/literal}
       
       {* Display either similar tiles from novelist or from the catalog*}
       <div id="similarTitlePlaceholder" class="sidegroup" style='display:none'></div>
-      {if is_array($similarRecords)}
+      {if false && is_array($similarRecords)}
         <h3><a href="#">{translate text="Other Titles"}</a></h3>
         <div class="sidegroupContents"> 
         <ul class="similar">
