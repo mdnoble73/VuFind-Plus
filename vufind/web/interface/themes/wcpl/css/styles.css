@@ -739,7 +739,7 @@ table.datagrid tr.oddrow {
 
 /* Icon Classes */
 .cite {
-    background-image:url(/interface/themes/default/images/silk/report.png);
+    background-image:url(/images/silk/report.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
@@ -747,7 +747,7 @@ table.datagrid tr.oddrow {
     font-size: 10px;
 }
 .export {
-    background-image:url(/interface/themes/default/images/silk/application_add.png);
+    background-image:url(/images/silk/application_add.png);
     background-repeat:no-repeat;
     background-position: left;
     padding:.5em .5em .5em 20px;
@@ -755,7 +755,7 @@ table.datagrid tr.oddrow {
     font-size: 10px;
 }
 .sms {
-    background-image:url(/interface/themes/default/images/silk/phone.png);
+    background-image:url(/images/silk/phone.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
@@ -763,14 +763,14 @@ table.datagrid tr.oddrow {
     font-size: 10px;
 }
 .tag {
-    background-image:url(/interface/themes/default/images/silk/tag_blue.png);
+    background-image:url(/images/silk/tag_blue.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
     margin-right:1em;
 }
 .mail {
-    background-image:url(/interface/themes/default/images/silk/email.png);
+    background-image:url(/images/silk/email.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
@@ -778,14 +778,14 @@ table.datagrid tr.oddrow {
     font-size: 10px;
 }
 .holdings {
-  background-image:url(/interface/themes/default/images/silk/book_address.png);
+  background-image:url(/images/silk/book_address.png);
   background-repeat:no-repeat;
   background-position: left; 
   padding:.5em .5em .5em 20px;
   margin-right:1em;
 }
 .fav {
-    background-image:url(/interface/themes/default/images/silk/heart.png);
+    background-image:url(/images/silk/heart.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
@@ -794,14 +794,14 @@ table.datagrid tr.oddrow {
     
 }
 .edit {
-    background-image:url(/interface/themes/default/images/silk/edit.png);
+    background-image:url(/images/silk/edit.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em 0 .5em 18px;
     margin-right:.7em;
 }
 .delete {
-    background-image:url(/interface/themes/default/images/silk/delete.png);
+    background-image:url(/images/silk/delete.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 18px;
@@ -809,14 +809,14 @@ table.datagrid tr.oddrow {
 }
 
 .feed {
-    background-image:url(/interface/themes/default/images/silk/feed.png);
+    background-image:url(/images/silk/feed.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
     margin-left:1em;
 }
 .list {
-    background-image:url(/interface/themes/default/images/silk/list.png);
+    background-image:url(/images/silk/list.png);
     background-repeat:no-repeat;
     background-position: left; 
     padding:.5em .5em .5em 20px;
@@ -824,13 +824,13 @@ table.datagrid tr.oddrow {
 }
 
 .previousLink {
-  background-image:url(/interface/themes/default/images/silk/resultset_previous.png);
+  background-image:url(/images/silk/resultset_previous.png);
   background-repeat:no-repeat;
   background-position: left;
   padding:.5em .5em .5em 20px;
 }
 .nextLink {
-  background-image:url(/interface/themes/default/images/silk/resultset_next.png);
+  background-image:url(/images/silk/resultset_next.png);
   background-repeat:no-repeat;
   background-position: right;
   padding:.5em 20px .5em .5em;
@@ -839,7 +839,7 @@ table.datagrid tr.oddrow {
     vertical-align: text-bottom;
 }
 .add {
-    background-image:url(/interface/themes/default/images/silk/add.png);
+    background-image:url(/images/silk/add.png);
     background-repeat:no-repeat;
     background-position: left;
     padding:.5em .5em .5em 18px;
@@ -874,35 +874,35 @@ div.checkedout,span.checkedout{
     margin-right:1em;
 }
 .map {
-    background-image:url(/interface/themes/default/images/silk/map.png);
+    background-image:url(/images/silk/map.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .globe {
-    background-image:url(/interface/themes/default/images/silk/world.png);
+    background-image:url(/images/silk/world.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .slide {
-    background-image:url(/interface/themes/default/images/silk/photo.png);
+    background-image:url(/images/silk/photo.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .microfilm {
-    background-image:url(/interface/themes/default/images/silk/film.png);
+    background-image:url(/images/silk/film.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .photo {
-    background-image:url(/interface/themes/default/images/silk/picture.png);
+    background-image:url(/images/silk/picture.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
@@ -916,14 +916,14 @@ div.checkedout,span.checkedout{
     margin-right:1em;
 }
 .kit {
-    background-image:url(/interface/themes/default/images/silk/package.png);
+    background-image:url(/images/silk/package.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
     margin-right:1em;
 }
 .musicalscore {
-    background-image:url(/interface/themes/default/images/silk/music.png);
+    background-image:url(/images/silk/music.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
@@ -941,7 +941,7 @@ div.checkedout,span.checkedout{
 .physicalobject {
 }
 .manuscript {
-    background-image:url(/interface/themes/default/images/silk/report_edit.png);
+    background-image:url(/images/silk/report_edit.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
@@ -1292,13 +1292,13 @@ td.holdings-section {
 }
 
 .holdRequest {
-  background-image:url(/interface/themes/default/images/silk/book_next.png);
+  background-image:url(/images/silk/book_next.png);
   background-repeat:no-repeat;
   background-position: left;
   padding:.5em .5em .5em 20px;
   }
 .Checked{
-  background-image:url(/interface/themes/default/images/silk/bullet_red.png);
+  background-image:url(/images/silk/bullet_red.png);
   background-repeat:no-repeat;
   color:#cc0000;
   padding-left:18px;
