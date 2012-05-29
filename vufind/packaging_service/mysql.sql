@@ -7,6 +7,7 @@ create table if not exists acs_packaging_log(
     distributorId VARCHAR(128) NOT NULL, 
     copies INT NOT NULL DEFAULT 0, 
     filename VARCHAR(256) NOT NULL, 
+    previousAcsId VARCHAR(128), 
     created INT(11) NOT NULL, 
     lastUpdate INT(11), 
     packagingStartTime INT(11), 

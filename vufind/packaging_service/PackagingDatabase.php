@@ -67,8 +67,8 @@ class PackagingDatabase {
 			'lastUpdate' => $curTime,
 			'status' => "'pending'"
 		);
-		if (isset($previousAcsId)){
-			$record['previousAcsId'] = mysql_real_escape_string($data['previousAcsId']);
+		if (isset($previousAcsId) && strlen($previousAcsId) > 0){
+			$record['previousAcsId'] = mysql_real_escape_string($previousAcsId);
 		}
 		$result = $this->_insert($record);
 		if ($result === false) {
@@ -79,7 +79,7 @@ class PackagingDatabase {
 		}
 		$packagingId = mysql_insert_id($this->_db);
 		return array(
-			'success' => false,
+			'success' => true,
 			'packagingId' => $packagingId
 		);
 	}

@@ -487,16 +487,18 @@ class DBMaintenanceEContent extends Admin {
 				"CREATE TABLE IF NOT EXISTS  econtent_file_packaging_log(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`filename` VARCHAR(255), ".
+					"`libraryFilename` VARCHAR(255), ".
 					"`publisher` VARCHAR(255), ".
 					"`distributorId` VARCHAR(128), ".
 					"`copies` INT, ".
 					"`dateFound` INT(11), ".
+					"`econtentRecordId` INT(11), ".
 					"`econtentItemId` INT(11), ".
 					"`dateSentToPackaging` INT(11), ".
 					"`packagingId` INT(11), ".
 					"`acsError` MEDIUMTEXT, ".
 					"`acsId` VARCHAR(128), ".
-					"`status` ENUM('detected', 'recordFound', 'itemGenerated', 'sentToAcs', 'acsIdGenerated', 'acsError', 'processingComplete'), ".
+					"`status` ENUM('detected', 'recordFound', 'copiedToLibrary', 'itemGenerated', 'sentToAcs', 'acsIdGenerated', 'acsError', 'processingComplete', 'skipped'), ".
 					"INDEX(distributorId), ".
 					"INDEX(publisher), ".
 					"INDEX(econtentItemId), ".

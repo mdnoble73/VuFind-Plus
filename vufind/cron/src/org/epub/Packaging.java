@@ -29,14 +29,23 @@ public class Packaging implements IProcessHandler{
 	private CronProcessLogEntry processLog;
 	private Logger logger; 
 	private String vufindUrl;
+	private String packagingUrl;
+	private File packagingFTP;
 	private File rootFTPDirFile; 
 	private File econtentLibraryDirectory; 
 	private String activePackagingSource;
 	private String[] allPackagingSources;
+	private String distributorId;
 	private PreparedStatement doesItemExistForRecord;
 	private PreparedStatement updateItemFilename;
 	private PreparedStatement getAccessTypeForRecord;
 	private PreparedStatement createItemForRecord;
+	private PreparedStatement createLogEntryForFile;
+	private PreparedStatement updateRecordFoundInLog;
+	private PreparedStatement updateLibraryFilenameInLog;
+	private PreparedStatement updateItemGeneratedInLog;
+	private PreparedStatement updateSentToAcsServerInLog;
+	private PreparedStatement updateProcessingCompleteInLog;
 	
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -84,7 +93,7 @@ public class Packaging implements IProcessHandler{
 			return false;
 		}
 		
-		String econtentLibraryDir = configIni.get("EContent", "library");
+		String econtentLibraryDir = Util.cleanIniValue(configIni.get("EContent", "library"));
 		if (econtentLibraryDir == null || econtentLibraryDir.length() == 0){
 			logger.error("Could not find library in EContent section of the config file");
 			processLog.addNote("Could not find library in EContent section of the config file, stopping process.");
@@ -98,6 +107,32 @@ public class Packaging implements IProcessHandler{
 			processLog.addNote(econtentLibraryDir + " does not exist, stopping process.");
 			processLog.incErrors();
 			return false;
+		}
+		
+		distributorId = Util.cleanIniValue(configIni.get("EContent", "distributorId"));
+		if (distributorId == null || distributorId.length() == 0){
+			logger.warn("Could not find distributorId in EContent section of the config file");
+			processLog.addNote("Warning, could not find distributorId in EContent section of the config file, providing a distributorId is required for connection to an Adobe Content System.");
+		}
+		
+		packagingUrl = Util.cleanIniValue(configIni.get("EContent", "packagingURL"));
+		if (packagingUrl == null || packagingUrl.length() == 0){
+			logger.warn("Could not find packagingURL in EContent section of the config file");
+			processLog.addNote("Warning, could not find packagingURL in EContent section of the config file, you will not be able to add files to an Adobe Content Server.");
+			packagingUrl = null;
+		}
+		
+		String packagingFTPDir = Util.cleanIniValue(configIni.get("EContent", "packagingFTP"));
+		if (packagingFTPDir == null || packagingFTPDir.length() == 0){
+			logger.warn("Could not find packagingFTP in EContent section of the config file");
+			processLog.addNote("Warning, could not find packagingFTP in EContent section of the config file, you will not be able to add files to an Adobe Content Server.");
+			packagingFTP = null;
+		}else{
+			packagingFTP = new File(packagingFTPDir);
+			if (packagingFTP.exists() == false){
+				logger.error(packagingFTP + " does not exist, you will not be able to add files to an Adobe Content Server");
+				processLog.addNote(packagingFTP + " does not exist, you will not be able to add files to an Adobe Content Server.");
+			}
 		}
 		
 		activePackagingSource = configIni.get("EContent", "activePackagingSource");
@@ -117,10 +152,21 @@ public class Packaging implements IProcessHandler{
 		
 		//Setup prepared statements
 		try {
-			doesItemExistForRecord = econtentConn.prepareStatement("SELECT id, filename from econtent_item where recordId = ? and item_type = ? and notes = ?");
+			//Statements for updating eContent
+			doesItemExistForRecord = econtentConn.prepareStatement("SELECT id, filename, acsId from econtent_item where recordId = ? and item_type = ? and notes = ?");
 			updateItemFilename = econtentConn.prepareStatement("UPDATE econtent_item set filename = ? where id = ?");
-			getAccessTypeForRecord = econtentConn.prepareStatement("SELECT accessType from econtent_record where id = ?");
+			getAccessTypeForRecord = econtentConn.prepareStatement("SELECT accessType, availableCopies from econtent_record where id = ?");
 			createItemForRecord = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, filename, item_type, notes, addedBy, date_added, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			
+			//Statements for updating econtent_file_processing_log
+			createLogEntryForFile = econtentConn.prepareStatement("INSERT INTO econtent_file_packaging_log (filename, publisher, distributorId, dateFound, status) VALUES (?,?,?,?, 'detected')", PreparedStatement.RETURN_GENERATED_KEYS);
+			updateRecordFoundInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set econtentRecordId = ?, copies = ?, status = 'recordFound' WHERE id = ?");
+			updateLibraryFilenameInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set libraryFilename = ?, status = 'copiedToLibrary' WHERE id = ?");
+			updateItemGeneratedInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set econtentItemId = ?, status = 'itemGenerated' WHERE id = ?");
+			updateSentToAcsServerInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set packagingId = ?, status = 'sentToAcs' WHERE id = ?");
+			updateProcessingCompleteInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set status = 'processingComplete' WHERE id = ?");
+			
+			
 		} catch (SQLException e) {
 			logger.error("Unable to prepare statements for packaging");
 			processLog.addNote("Unable to prepare statements for packaging, stopping");
@@ -154,7 +200,8 @@ public class Packaging implements IProcessHandler{
 		});
 		
 		for (File publisherDir : publisherDirectories){
-			System.out.println("Processing " + publisherDir.toString());
+			String publisherName = publisherDir.getName();
+			System.out.println("Processing " + publisherName);
 			String receivedDataPath = publisherDir.toString() + File.separator + "received" + File.separator + "data";
 			File receivedDataFile = new File(receivedDataPath);
 			if (!receivedDataFile.exists()){
@@ -176,11 +223,11 @@ public class Packaging implements IProcessHandler{
 				}
 			}
 			
-			processPublisherFiles(receivedDataFile, processedDataFile);
+			processPublisherFiles(publisherName, receivedDataFile, processedDataFile);
 		}
 	}
 
-	private void processPublisherFiles(File receivedDataFolder, File processedDataFolder) {
+	private void processPublisherFiles(String publisherName, File receivedDataFolder, File processedDataFolder) {
 		File[] filesToPublish = receivedDataFolder.listFiles();
 		for (File fileToProcess : filesToPublish){
 			//Check to see the file already exists in the processed folder
@@ -191,17 +238,41 @@ public class Packaging implements IProcessHandler{
 					processLog.addNote("Skipping " + fileToProcess + " because it has already been processed");
 				}else{
 					processLog.addNote("Processing updated file " + fileToProcess);
-					processPublisherFile(fileToProcess, processedFile, true);
+					processPublisherFile(publisherName, fileToProcess, processedFile, true);
 				}
 			}else{
 				//The file is new and needs to be processed.  
 				processLog.addNote("Processing new file " + fileToProcess);
-				processPublisherFile(fileToProcess, processedFile, false);
+				processPublisherFile(publisherName, fileToProcess, processedFile, false);
 			}
 		}
 	}
 
-	private void processPublisherFile(File fileToProcess, File processedFile, boolean updatedFile) {
+	private void processPublisherFile(String publisherName, File fileToProcess, File processedFile, boolean updatedFile) {
+		long logId = -1;
+		try {
+			//Log that we are working on the record
+			createLogEntryForFile.setString(1, fileToProcess.getName());
+			createLogEntryForFile.setString(2, publisherName);
+			createLogEntryForFile.setString(3, distributorId);
+			createLogEntryForFile.setLong(4, new Date().getTime() / 1000);
+			createLogEntryForFile.executeUpdate();
+			ResultSet createLogEntryForFileRs = createLogEntryForFile.getGeneratedKeys();
+			if (createLogEntryForFileRs.next()){
+				logId = createLogEntryForFileRs.getLong(1);
+			}else{
+				logger.error("Did not get logId for logentry");
+				processLog.addNote("Did not get logId for logentry");
+				processLog.incErrors();
+				return;
+			}
+		} catch (SQLException e2) {
+			logger.error("Error creating log entry for file", e2);
+			processLog.addNote("Error creating log entry for file" + e2.toString());
+			processLog.incErrors();
+			return;
+		}
+		
 		//Get the record the file belongs to.
 		String filename = fileToProcess.getName();
 		String baseFilename = filename.substring(0, filename.indexOf("."));
@@ -222,6 +293,7 @@ public class Packaging implements IProcessHandler{
 		}else{
 			logger.debug("Found recordId " + recordId);
 			String shortId = recordId.replace("econtentRecord", "");
+			
 			String notes = "";
 			String format = getFormatByExtension(extension);
 			if (format == null){
@@ -230,28 +302,28 @@ public class Packaging implements IProcessHandler{
 				return;
 			}
 			if (volume.length() > 0){
-				notes = "Volumne " + volume;
+				notes = "Volume " + volume;
 			}
 			
-			
-			
 			try {
-				//Get the accessType for the record
+				//Get the accessType and number of copies for the record
 				getAccessTypeForRecord.setString(1, shortId);
 				ResultSet accessTypeRS = getAccessTypeForRecord.executeQuery();
 				String accessType;
+				Long availableCopies;
 				if (accessTypeRS.next()){
 					accessType = accessTypeRS.getString("accessType");
+					availableCopies = accessTypeRS.getLong("availableCopies");
 				}else{
 					processLog.addNote("Could not get access type for the record");
 					processLog.incErrors();
 					return;
 				}
 				
-				//Look for item record
-				doesItemExistForRecord.setString(1, shortId);
-				doesItemExistForRecord.setString(2, format);
-				doesItemExistForRecord.setString(3, notes);
+				updateRecordFoundInLog.setString(1, shortId);
+				updateRecordFoundInLog.setLong(2, availableCopies);
+				updateRecordFoundInLog.setLong(3, logId);
+				updateRecordFoundInLog.executeUpdate();
 				
 				//Copy file to vufind library and find a unique name for it.
 				CopyNoOverwriteResult copyResult;
@@ -259,20 +331,28 @@ public class Packaging implements IProcessHandler{
 				boolean fileChanged = true;
 				try {
 					copyResult = Util.copyFileNoOverwrite(fileToProcess, econtentLibraryDirectory);
-					fileChanged = copyResult.getCopyResult() == CopyNoOverwriteResult.CopyResult.FILE_COPIED;
+					fileChanged = (copyResult.getCopyResult() == CopyNoOverwriteResult.CopyResult.FILE_COPIED);
 					libraryFilename = copyResult.getNewFilename();
 				} catch (IOException e) {
 					processLog.addNote("Error copying file to library directory " + recordId + " , file " + filename + " - " + e.toString());
 					processLog.incErrors();
 					return;
 				}
+				updateLibraryFilenameInLog.setString(1, libraryFilename);
+				updateLibraryFilenameInLog.setLong(2, logId);
+				updateLibraryFilenameInLog.executeUpdate();
 				
-				//Get the itemId for the file
+				//Look for item record
+				doesItemExistForRecord.setString(1, shortId);
+				doesItemExistForRecord.setString(2, format);
+				doesItemExistForRecord.setString(3, notes);
 				ResultSet doesItemExistForRecordRS = doesItemExistForRecord.executeQuery();
 				Long itemId = null;
+				String previousAcsId = "";
 				if (doesItemExistForRecordRS.next()){
 					//Item already exists
 					itemId = doesItemExistForRecordRS.getLong("id");
+					previousAcsId = doesItemExistForRecordRS.getString("acsId");
 					String existingFilename = doesItemExistForRecordRS.getString("filename");
 					if (fileChanged){
 						//Update the existing record
@@ -282,7 +362,7 @@ public class Packaging implements IProcessHandler{
 					}else{
 						//File already exists in the database and the library, nothing to do. 
 						processLog.addNote("File already exists in eContent library and database, nothing to do, stopping.");
-						return;
+						//return;
 					}
 				}else{
 					//Item does not exist
@@ -299,9 +379,59 @@ public class Packaging implements IProcessHandler{
 						itemId = itemIdRs.getLong(1);
 					}
 				}
+				updateItemGeneratedInLog.setLong(1, itemId);
+				updateItemGeneratedInLog.setLong(2, logId);
+				updateItemGeneratedInLog.executeUpdate();
 				
 				if (accessType.equalsIgnoreCase("acs")){
 					//Send the file to the acs server.
+					if (distributorId != null && packagingFTP != null && packagingUrl != null){
+						//Transfer the file to the server
+						File ftpFile = new File(packagingFTP + File.separator + itemId.toString() + "." + extension );
+						try {
+							Util.copyFile(fileToProcess, ftpFile);
+						} catch (IOException e) {
+							processLog.addNote("Error, unable to copy file to FTP server.");
+							processLog.incErrors();
+							return;
+						}
+						try {
+							URL packagingRequest = new URL(packagingUrl + 
+									"?method=RequestFileProtection" +
+									"&distributorId=" + distributorId + 
+									"&filename=" + itemId.toString() + "." + extension +
+									"&copies=" + availableCopies +
+									"&previousAcsId=" + previousAcsId);
+							String packagingRequestContents = Util.convertStreamToString((InputStream)packagingRequest.getContent());
+							System.out.println(packagingRequestContents);
+							JSONObject response = new JSONObject(packagingRequestContents);
+							if (response.has("success") && response.getBoolean("success") == true){
+								Long packagingId = response.getLong("packagingId");
+								updateSentToAcsServerInLog.setLong(1, packagingId);
+								updateSentToAcsServerInLog.setLong(2, logId);
+								updateSentToAcsServerInLog.executeUpdate();
+							}else{
+								String error = "No Error Found, full response = " + packagingRequestContents;
+								if (response.has("error")){
+									error = response.getString("error"); 
+								}
+								processLog.addNote("Error, submitting file for packaging. " + error);
+								processLog.incErrors();
+								return;
+							}
+						} catch (Exception e) {
+							processLog.addNote("Error, unable to Request Packaging of file. " + e.toString());
+							processLog.incErrors();
+							return;
+						}
+					}else{
+						processLog.addNote("Error, acs processing needed, but distributorId, packagingFTP, or packagingUrl is null");
+						processLog.incErrors();
+						return;
+					}
+				}else{
+					updateProcessingCompleteInLog.setLong(1, logId);
+					updateProcessingCompleteInLog.executeUpdate();
 				}
 				
 				logger.debug("Item Id for file is " + itemId);
