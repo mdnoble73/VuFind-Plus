@@ -583,16 +583,14 @@ class SearchObject_Solr extends SearchObject_Base
 					// We need to replace the whole token
 					$targetTerm = $token;
 					// Go and replace this token
-					$returnArray = $this->doSpellingReplace($term,
-					$targetTerm, $inToken, $details, $returnArray);
+					$returnArray = $this->doSpellingReplace($term, $targetTerm, $inToken, $details, $returnArray);
 				}
 			}
 			// If no tokens we found, just look
 			//    for the suggestion 'as is'
 			if ($targetTerm == "") {
 				$targetTerm = $term;
-				$returnArray = $this->doSpellingReplace($term,
-				$targetTerm, $inToken, $details, $returnArray);
+				$returnArray = $this->doSpellingReplace($term, $targetTerm, $inToken, $details, $returnArray);
 			}
 		}
 		return $returnArray;
