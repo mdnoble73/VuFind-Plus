@@ -229,7 +229,7 @@ class OverDriveDriver {
 			}
 		
 			//Extract information from the holds page
-			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?"{(.*?)}".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
+			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?".*?", "(.*?)".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
 			
 			for ($matchi = 0; $matchi < count($bookshelfInfo); $matchi++) {
 				$bookshelfItem = array();
@@ -292,7 +292,7 @@ class OverDriveDriver {
 			}
 			
 			//Extract unavailable hold information from the holds page
-			preg_match_all('/<a href="ContentDetails\\.htm\\?ID={(.*?)}"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID={(.*?)}">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
+			preg_match_all('/<a href="ContentDetails\\.htm\\?ID=(.*?)"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID=(.*?)">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
 			
 			for ($matchi = 0; $matchi < count($holdInfo); $matchi++) {
 				$hold = array();
