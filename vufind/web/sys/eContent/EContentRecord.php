@@ -160,6 +160,16 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => true,
 		  'storeSolr' => true,
 		),
+		'status' => array(
+		  'property' => 'status',
+		  'type' => 'enum',
+		  'values' => array('active' => 'Active', 'archived' => 'Archived', 'deleted' => 'Deleted'),
+		  'label' => 'Status',
+		  'description' => 'The Current Status of the record.',
+		  'required'=> true,
+		  'storeDb' => true,
+		  'storeSolr' => false,
+		),
 		'accessType' => array(
       'property'=>'accessType', 
       'type'=>'enum',
