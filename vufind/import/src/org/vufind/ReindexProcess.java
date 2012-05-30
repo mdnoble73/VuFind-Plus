@@ -216,8 +216,12 @@ public class ReindexProcess {
 					resourceProcessor.processResource(allResources);
 				}
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
+			logger.error("Exception processing resources", e);
+			System.out.println("Exception processing resources " + e.toString());
+		} catch (Error e) {
 			logger.error("Error processing resources", e);
+			System.out.println("Error processing resources " + e.toString());
 		}
 	}
 
