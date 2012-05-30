@@ -45,102 +45,123 @@ public class MarcRecordDetails {
 	private Logger									logger;
 
 	private Record									record;
-	private HashMap<String, Object>	fields	= new HashMap<String, Object>();
+	private HashMap<String, Object>	mappedFields	= new HashMap<String, Object>();
 
 	private String									sourceUrl;
 	private String									purchaseUrl;
 	private boolean									urlsLoaded;
 	private long										checksum = -1;
+	
+	private boolean allFieldsMapped = false;
 
 	/**
-	 * Maps fields based on properties files for use in processors
+	 * Does basic mapping of fields to determine if the record has changed or not
 	 * 
 	 * @param marcProcessor
 	 * @param record
 	 * @param logger
 	 * @return
 	 */
-	public boolean mapRecord(MarcProcessor marcProcessor, Record record, Logger logger) {
+	public MarcRecordDetails(MarcProcessor marcProcessor, Record record, Logger logger) {
 		// Preload basic information that nearly everything will need
 		this.record = record;
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
-		// System.out.println(record);
-
+		
+		//Map the id field
+		String fieldVal[] = marcProcessor.getMarcFieldProps().get("id");
+		mapField("id", fieldVal);
+	}
+	
+	/**
+	 * Maps fields based on properties files for use in processors
+	 * 
+	 * @return
+	 */
+	public boolean mapRecord() {
+		if (allFieldsMapped) return true;
+		//System.out.println("Mapping record");
+		allFieldsMapped = true;
+		
+		// Map all fields for the record
 		for (String fieldName : marcProcessor.getMarcFieldProps().keySet()) {
 			String fieldVal[] = marcProcessor.getMarcFieldProps().get(fieldName);
-			String indexField = fieldVal[0];
-			String indexType = fieldVal[1];
-			String indexParm = fieldVal[2];
-			String mapName = fieldVal[3];
-
-			if (indexType.equals("constant")) {
-				if (indexParm.contains("|")) {
-					String parts[] = indexParm.split("[|]");
-					Set<String> result = new LinkedHashSet<String>();
-					result.addAll(Arrays.asList(parts));
-					// if a zero length string appears, remove it
-					result.remove("");
-					addFields(fields, indexField, null, result);
-				} else
-					addField(fields, indexField, indexParm);
-			} else if (indexType.equals("first")) {
-				addField(fields, indexField, getFirstFieldVal(record, mapName, indexParm));
-			} else if (indexType.equals("all")) {
-				addFields(fields, indexField, mapName, getFieldList(record, indexParm));
-			} else if (indexType.startsWith("join")) {
-				String joinChar = " ";
-				if (indexType.contains("(") && indexType.endsWith(")")) joinChar = indexType.replace("join(", "").replace(")", "");
-				addField(fields, indexField, getFieldVals(indexParm, joinChar));
-			} else if (indexType.equals("std")) {
-				if (indexParm.equals("era")) {
-					addFields(fields, indexField, mapName, getEra(record));
-				} else {
-					addField(fields, indexField, getStd(record, indexParm));
-				}
-			} else if (indexType.startsWith("custom")) {
-				try {
-					handleCustom(fields, indexType, indexField, mapName, indexParm);
-				} catch (SolrMarcIndexerException e) {
-					String recCntlNum = null;
-					try {
-						recCntlNum = record.getControlNumber();
-					} catch (NullPointerException npe) { /* ignore */
-					}
-
-					if (e.getLevel() == SolrMarcIndexerException.DELETE) {
-						throw new SolrMarcIndexerException(SolrMarcIndexerException.DELETE, "Record " + (recCntlNum != null ? recCntlNum : "")
-								+ " purposely not indexed because " + fieldName + " field is empty");
-						// logger.error("Record " + (recCntlNum != null ? recCntlNum : "") +
-						// " not indexed because " + key + " field is empty -- " +
-						// e.getMessage(), e);
-					} else {
-						logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
-						throw (e);
-					}
-				}
-			} else if (indexType.startsWith("script")) {
-				try {
-					handleScript(fields, indexType, indexField, mapName, record, indexParm);
-				} catch (SolrMarcIndexerException e) {
-					String recCntlNum = null;
-					try {
-						recCntlNum = record.getControlNumber();
-					} catch (NullPointerException npe) { /* ignore */
-					}
-
-					if (e.getLevel() == SolrMarcIndexerException.DELETE) {
-						logger.error(
-								"Record " + (recCntlNum != null ? recCntlNum : "") + " purposely not indexed because " + fieldName + " field is empty -- " + e.getMessage(), e);
-					} else {
-						logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
-						throw (e);
-					}
-				}
-			}
+			mapField(fieldName, fieldVal);
 		}
 
 		return true;
+	}
+
+	private void mapField(String fieldName, String[] fieldVal) {
+		String indexField = fieldVal[0];
+		String indexType = fieldVal[1];
+		String indexParm = fieldVal[2];
+		String mapName = fieldVal[3];
+
+		if (indexType.equals("constant")) {
+			if (indexParm.contains("|")) {
+				String parts[] = indexParm.split("[|]");
+				Set<String> result = new LinkedHashSet<String>();
+				result.addAll(Arrays.asList(parts));
+				// if a zero length string appears, remove it
+				result.remove("");
+				addFields(mappedFields, indexField, null, result);
+			} else
+				addField(mappedFields, indexField, indexParm);
+		} else if (indexType.equals("first")) {
+			addField(mappedFields, indexField, getFirstFieldVal(record, mapName, indexParm));
+		} else if (indexType.equals("all")) {
+			addFields(mappedFields, indexField, mapName, getFieldList(record, indexParm));
+		} else if (indexType.startsWith("join")) {
+			String joinChar = " ";
+			if (indexType.contains("(") && indexType.endsWith(")")) joinChar = indexType.replace("join(", "").replace(")", "");
+			addField(mappedFields, indexField, getFieldVals(indexParm, joinChar));
+		} else if (indexType.equals("std")) {
+			if (indexParm.equals("era")) {
+				addFields(mappedFields, indexField, mapName, getEra(record));
+			} else {
+				addField(mappedFields, indexField, getStd(record, indexParm));
+			}
+		} else if (indexType.startsWith("custom")) {
+			try {
+				handleCustom(mappedFields, indexType, indexField, mapName, indexParm);
+			} catch (SolrMarcIndexerException e) {
+				String recCntlNum = null;
+				try {
+					recCntlNum = record.getControlNumber();
+				} catch (NullPointerException npe) { /* ignore */
+				}
+
+				if (e.getLevel() == SolrMarcIndexerException.DELETE) {
+					throw new SolrMarcIndexerException(SolrMarcIndexerException.DELETE, "Record " + (recCntlNum != null ? recCntlNum : "")
+							+ " purposely not indexed because " + fieldName + " field is empty");
+					// logger.error("Record " + (recCntlNum != null ? recCntlNum : "") +
+					// " not indexed because " + key + " field is empty -- " +
+					// e.getMessage(), e);
+				} else {
+					logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
+					throw (e);
+				}
+			}
+		} else if (indexType.startsWith("script")) {
+			try {
+				handleScript(mappedFields, indexType, indexField, mapName, record, indexParm);
+			} catch (SolrMarcIndexerException e) {
+				String recCntlNum = null;
+				try {
+					recCntlNum = record.getControlNumber();
+				} catch (NullPointerException npe) { /* ignore */
+				}
+
+				if (e.getLevel() == SolrMarcIndexerException.DELETE) {
+					logger.error(
+							"Record " + (recCntlNum != null ? recCntlNum : "") + " purposely not indexed because " + fieldName + " field is empty -- " + e.getMessage(), e);
+				} else {
+					logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
+					throw (e);
+				}
+			}
+		}
 	}
 
 	public String getSourceUrl() {
@@ -180,7 +201,7 @@ public class MarcRecordDetails {
 					}
 				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
 					// File is an enrichment url
-				} else if (text.matches("(?i).*?purchase.*?")) {
+				} else if (text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
 				} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
@@ -199,7 +220,7 @@ public class MarcRecordDetails {
 			CRC32 crc32 = new CRC32();
 			crc32.update(record.toString().getBytes());
 			checksum = crc32.getValue();
-			System.out.println("CRC32: " + checksum);
+			//System.out.println("CRC32: " + checksum);
 		}
 		return checksum;
 	}
@@ -1140,11 +1161,11 @@ public class MarcRecordDetails {
 
 	@SuppressWarnings("unchecked")
 	public String getId() {
-		Object idField = fields.get("id");
+		Object idField = mappedFields.get("id");
 		if (idField instanceof String){
 			return (String)idField;
 		}else if (idField instanceof Set){
-			return (String)(((Set<String>)fields).iterator().next());
+			return (String)(((Set<String>)mappedFields).iterator().next());
 		}else{
 			return null;
 		}
@@ -1161,7 +1182,7 @@ public class MarcRecordDetails {
 
 	public String getIsbn() {
 		// return the first 13 digit isbn or 10 digit if there are no 13
-		Object isbnField = fields.get("isbn");
+		Object isbnField = getMappedFields().get("isbn");
 		if (isbnField instanceof String) {
 			String curIsbn = (String) isbnField;
 			if (curIsbn.indexOf(" ") > 0) {
@@ -1191,13 +1212,18 @@ public class MarcRecordDetails {
 		}
 	}
 
+	private HashMap<String, Object> getMappedFields() {
+		mapRecord();
+		return mappedFields;
+	}
+
 	public String getFirstFieldValueInSet(String fieldName) {
-		Object fieldValue = fields.get(fieldName);
+		Object fieldValue = getMappedFields().get(fieldName);
 		if (fieldValue instanceof String) {
 			return (String) fieldValue;
 		} else {
 			@SuppressWarnings("unchecked")
-			Set<String> fieldValues = (Set<String>) fields.get(fieldName);
+			Set<String> fieldValues = (Set<String>) getMappedFields().get(fieldName);
 			if (fieldValues != null && fieldValues.size() >= 1) {
 				return (String) fieldValues.iterator().next();
 			}
@@ -1206,15 +1232,15 @@ public class MarcRecordDetails {
 	}
 
 	public String getAuthor() {
-		return (String) fields.get("auth_author");
+		return (String) getMappedFields().get("auth_author");
 	}
 
 	public String getSortTitle() {
-		return (String) fields.get("title_sort");
+		return (String) getMappedFields().get("title_sort");
 	}
 
 	public HashMap<String, Object> getFields() {
-		return fields;
+		return getMappedFields();
 	}
 
 	/**
@@ -2527,7 +2553,7 @@ public class MarcRecordDetails {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<String> getAuthors() {
 		Set<String> result = new HashSet<String>();
-		Object author = fields.get("author");
+		Object author = getMappedFields().get("author");
 		if (author != null){
 			if (author instanceof String){
 				result.add((String)author);
@@ -2535,7 +2561,7 @@ public class MarcRecordDetails {
 				result.addAll((Set)author);
 			}
 		}
-		Object author2 = fields.get("author2");
+		Object author2 = getMappedFields().get("author2");
 		if (author2 != null){
 			if (author2 instanceof String){
 				result.add((String)author2);

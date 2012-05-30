@@ -30,6 +30,8 @@ import au.com.bytecode.opencsv.CSVReader;
  */
 
 public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordProcessor{
+	private boolean reindexUnchangedRecords;
+	private boolean checkOverDriveAvailability;
 	private String econtentDBConnectionInfo;
 	private String overdriveUrl;
 	private ArrayList<GutenbergItemInfo> gutenbergItemInfo = null;
@@ -55,6 +57,20 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			return false;
 		}
 		results = new ProcessorResults("Extract eContent from ILS", reindexLogId, vufindConn, logger);
+		
+		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
+		if (reindexUnchangedRecordsVal == null){
+			reindexUnchangedRecords = true;
+		}else{
+			reindexUnchangedRecords = Boolean.parseBoolean(reindexUnchangedRecordsVal);
+		}
+		
+		String checkOverDriveAvailabilityVal = configIni.get("Reindex", "checkOverDriveAvailability");
+		if (checkOverDriveAvailabilityVal == null){
+			checkOverDriveAvailability = true;
+		}else{
+			checkOverDriveAvailability = Boolean.parseBoolean(checkOverDriveAvailabilityVal);
+		}
 		
 		try {
 			//Connect to the vufind database
@@ -87,6 +103,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				results.incSkipped();
 				return false;
 			}
+			
 			//Record is eContent, get additional details about how to process it.
 			DetectionSettings detectionSettings = recordInfo.getEContentDetectionSettings();
 			if (detectionSettings == null){
@@ -99,6 +116,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 			String source = detectionSettings.getSource();
 			String accessType = detectionSettings.getAccessType();
+			//Make sure that overdrive titles are updated if we need to check availability
+			if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
+				//Overdrive record, force processing to make sure we get updated availability
+			}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
+				results.incSkipped();
+				return false;
+			}
 			
 			//Check to see if the record already exists
 			String ilsId = recordInfo.getId();

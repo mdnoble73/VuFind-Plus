@@ -17,6 +17,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.econtent.ExtractEContentFromMarc;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
+import org.ini4j.Profile.Section;
 import org.strands.StrandsProcessor;
 
 
@@ -37,6 +38,7 @@ public class ReindexProcess {
 
 	//General configuration
 	private static String serverName;
+	private static String indexSettings;
 	private static Ini configIni;
 	private static String solrPort;
 	
@@ -72,6 +74,10 @@ public class ReindexProcess {
 		}
 		serverName = args[0];
 		System.setProperty("reindex.process.serverName", serverName);
+		
+		if (args.length > 1){
+			indexSettings = args[1];
+		}
 		
 		initializeReindex();
 		
@@ -325,7 +331,7 @@ public class ReindexProcess {
 		logger.info("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
-			logger.error("Could not find confiuration file " + configName);
+			logger.error("Could not find configuration file " + configName);
 			System.exit(1);
 		}
 
@@ -340,6 +346,35 @@ public class ReindexProcess {
 		} catch (IOException e) {
 			logger.error("Configuration file could not be read.", e);
 		}
+		
+		if (indexSettings != null){
+			logger.info("Loading index settings from override file " + indexSettings);
+			String indexSettingsName = "../../sites/" + serverName + "/conf/" + indexSettings + ".ini";
+			File indexSettingsFile = new File(indexSettingsName);
+			if (!indexSettingsFile.exists()) {
+				indexSettingsName = "../../sites/default/conf/" + indexSettings + ".ini";
+				indexSettingsFile = new File(indexSettingsName);
+				if (!indexSettingsFile.exists()) {
+					logger.error("Could not find indexSettings file " + indexSettings);
+					System.exit(1);
+				}
+			}
+			try {
+				Ini indexSettingsIni = new Ini();
+				indexSettingsIni.load(new FileReader(indexSettingsFile));
+				for (Section curSection : indexSettingsIni.values()){
+					for (String curKey : curSection.keySet()){
+						System.out.println("Overiding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+						configIni.put(curSection.getName(), curKey, curSection.get(curKey));
+					}
+				}
+			} catch (InvalidFileFormatException e) {
+				logger.error("IndexSettings file is not valid.  Please check the syntax of the file.", e);
+			} catch (IOException e) {
+				logger.error("IndexSettings file could not be read.", e);
+			}
+		}
+		
 		solrPort = configIni.get("Reindex", "solrPort");
 		if (solrPort == null || solrPort.length() == 0) {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");
