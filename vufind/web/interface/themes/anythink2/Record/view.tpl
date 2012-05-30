@@ -57,8 +57,7 @@ function redrawSaveStatus() {
             <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
           </a>
           <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-            <img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">Explore</a>
           </div>
         </div>
       {/if}
@@ -237,15 +236,13 @@ function redrawSaveStatus() {
       {foreach from=$similarRecords item=similar}
       <li>
         {if is_array($similar.format)}
-          <span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="icon-{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
         {else}
-          <span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+          <span class="icon-{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
         {/if}
         <a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
         </span>
-        <span style="font-size: 80%">
-        {if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
-        </span>
+        {if $similar.author}<div class="fine-print">{translate text='By'}: {$similar.author|escape}</div>{/if}
       </li>
       {/foreach}
     </ul>
@@ -418,16 +415,20 @@ function redrawSaveStatus() {
       </div>
     </div>
     {/if}
-    {if $wordThinkHeadings}
-    <div class="resultInformation">
-      <h4>{translate text='Word Think Headings'}</h4>
-      <ul>
-        {foreach from=$wordThinkHeadings item=wordThinkHeading name=loop}
-          <li><a href="{$path}/Search/Results?lookfor=%22{$wordThinkHeading.search|escape:"url"}%22&amp;basicType=Subject">{$wordThinkHeading.title|escape}</a></li>
-        {/foreach}
-      </ul>
-    </div>
-    {/if}
+    {if $subjects}
+			<div class="resultInformation">
+				<div class="resultInformationLabel">{translate text='Subjects'}</div>
+				<div class="recordSubjects">
+					{foreach from=$subjects item=subject name=loop}
+						{foreach from=$subject item=subjectPart name=subloop}
+							{if !$smarty.foreach.subloop.first} -- {/if}
+							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+						{/foreach}
+						<br />
+					{/foreach}
+				</div>
+			</div>
+		{/if}
 
     {if $showStrands}
       <div id="relatedTitleInfo" class="ui-tabs">

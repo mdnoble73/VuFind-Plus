@@ -1,58 +1,36 @@
-{if $message}<div class="error">{$message|translate}</div>{/if}
-<div class="resulthead">
-  <h3>{translate text='Login to your account'}</h3>
-</div>
-<div id='loginFormWrapper'>
+<div id="sidebar-wrapper"><div id="sidebar">
   <form method="post" action="{$path}/MyResearch/Home" id="loginForm">
-    <div id='loginFormFields'>
-      <div id='haveCardLabel' class='loginFormRow'>I have an anythink library card</div>
-      <div id ='loginUsernameRow' class='loginFormRow'>
-        <div class='loginLabel'>{translate text='Username'}: </div>
-        <div class='loginField'><input type="text" name="username" id="username" value="{$username|escape}" size="15"/></div>
-      </div>
-      <div id ='loginPasswordRow' class='loginFormRow'>
-        <div class='loginLabel'>{translate text='Password'}: </div>
-        <div class='loginField'>
-          <input type="password" name="password" id="password" size="15"/>
-        </div>
-      </div>
-      {if !$inLibrary}
-      <div id ='loginPasswordRow3' class='loginFormRow'>
-        <div class='loginLabel'>&nbsp;</div>
-        <div class='loginField'>
-          <input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
-        </div>
-      </div>
-      {/if}
-      <div id='loginSubmitButtonRow' class='loginFormRow'>
-        <input id="loginButton" type="image" name="submit" value="Login" src='{$path}/interface/themes/default/images/login.png' alt='{translate text="Login to your account"}' />
-        {if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
-        {if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
-        {if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}"/>{/if}
-        {if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}"/>{/if}
-        {if $comment}<input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>{/if}
-        {if $returnUrl}<input type="hidden" name="returnUrl" value="{$returnUrl}"/>{/if}
-
-        {if $comment}
-          <input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>
-        {/if}
-      </div>
+    <h3>Login to your account</h3>
+    <div class="form-item">
+      <div><label for="username">{translate text='Username'}:</label></div>
+      <div><input type="text" name="username" id="username" value="{$username|escape}" size="15"/></div>
     </div>
+    <div class="form-item">
+      <div><label for="password">{translate text='Password'}:</label></div>
+      <div><input type="password" name="password" id="password" size="15"/></div>
+      <div class="fine-print"><strong>Forgot PIN?</strong> <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a></div>
+    </div>
+    {if !$inLibrary}
+      <div class="form-item"><input type="checkbox" id="rememberMe" name="rememberMe"/> <label for="rememberMe">{translate text="Remember Me"}</label></div>
+    {/if}
+    <div class="form-item"><input id="loginButton" type="submit" name="submit" value="Login" /></div>
+    {if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
+    {if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
+    {if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}"/>{/if}
+    {if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}"/>{/if}
+    {if $comment}<input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>{/if}
+    {if $returnUrl}<input type="hidden" name="returnUrl" value="{$returnUrl}"/>{/if}
+    {if $comment}
+      <input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>
+    {/if}
   </form>
-</div>
-<div id='needACardWrapper'>
-  <div id='needCardLabel' class='loginFormRow'>
-    <a href="{$path}/MyResearch/GetCard">I need an anythink library card</a>
+</div></div>
+<div id="main-content">
+  {if $message}<div class="error">{$message|translate}</div>{/if}
+  <div class="get-card">
+  <h1>{translate text='Need an Anythink card?'}</h1>
+    <div><a id="get-card" href="{$path}/MyResearch/GetCard">Click here to get a card.</a></div>
+    <h2>Click <a class="button" href="{$path}/MyResearch/GetCard">here</a> to get a card.</h2>
   </div>
-  <div class='loginFormRow'>
-  <a href="http://getacard.org"><img src="{$path}/interface/themes/{$theme}/images/library_card.gif" alt="Get a Library Card" /></a>
+  <script type="text/javascript">$('#username').focus();</script>
 </div>
-</div>
-<div id='retreiveLoginInfo'>
-  <div id='retreiveLoginInfo'>
-    <div id='emailPinLabel' class='loginFormRow'>
-      <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a>
-    </div>
-  </div>
-</div>
-<script type="text/javascript">$('#username').focus();</script>

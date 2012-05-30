@@ -56,7 +56,6 @@
                 <img id="scrollerLoadingImageList{$list->id}" class="scrollerLoading" src="{$path}/interface/themes/default/images/loading_large.gif" alt="Loading..." />
               </div>
             </div>
-            <div class="clearer"></div>
             <div id="titleScrollerSelectedTitleList{$list->id}" class="titleScrollerSelectedTitle"></div>
             <div id="titleScrollerSelectedAuthorList{$list->id}" class="titleScrollerSelectedAuthor"></div>
           </div>
@@ -74,7 +73,6 @@
           {/literal}
         </script>
        {/foreach}
-       <div class='clearer'></div>
       </div>
     {/if}
     {if $tagList}

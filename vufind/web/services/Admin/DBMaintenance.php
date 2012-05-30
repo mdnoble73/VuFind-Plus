@@ -1061,6 +1061,15 @@ class DBMaintenance extends Admin {
 				") ENGINE = InnoDB"
 			),
 		),
+		'book_store_1' => array(
+			'title' => 'Book store table update 1',
+			'description' => 'Add a default column to determine if a book store should be used if a library does not override.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE book_store ADD COLUMN `showByDefault` TINYINT NOT NULL DEFAULT 1 COMMENT 'Whether or not the book store should be used by default for al library systems.'",
+				"ALTER TABLE book_store CHANGE `image` `image` VARCHAR(256) NULL COMMENT 'The URL to the icon/image to display'",
+			),
+		),
 		'nearby_book_store' => array(
 			'title' => 'Nearby book stores',
 			'description' => 'Create a table to store book stores near a location.',

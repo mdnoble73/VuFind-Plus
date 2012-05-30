@@ -233,8 +233,10 @@ class AJAX extends Action{
 			foreach($worldCatData->channel->item as $item){
 				$curTitle= array(
 					'title' => (string)$item->title,
-					'author' => (string)$item->author->name
+					'author' => (string)$item->author->name,
+					'description' => (string)$item->description
 				);
+				
 				$oclcChildren = $item->children('oclcterms', TRUE);
 				foreach ($oclcChildren as $child){
 					if ($child->getName() == 'recordIdentifier'){
@@ -247,6 +249,15 @@ class AJAX extends Action{
 					if ($child->getName() == 'identifier'){
 						$identifierFields = explode(":", (string)$child);
 						$curTitle[$identifierFields[1]][] = $identifierFields[2];
+					}
+				}
+				
+				if (strlen($curTitle['description']) == 0 && isset($curTitle["ISBN"]) && is_array($curTitle["ISBN"]) && count($curTitle["ISBN"]) > 0){
+					//Get the description from syndetics
+					require_once 'Drivers/marmot_inc/GoDeeperData.php';
+					$summaryInfo = GoDeeperData::getSummary($curTitle["ISBN"][0], null);
+					if (isset($summaryInfo['summary'])){
+						$curTitle['description'] = $summaryInfo['summary'];
 					}
 				}
 				$worldCatResults[] = $curTitle;

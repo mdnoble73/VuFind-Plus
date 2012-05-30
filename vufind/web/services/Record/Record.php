@@ -283,50 +283,32 @@ class Record extends Action
 			$interface->assign('mpaaRating', $this->getSubfieldData($mpaaField, 'a'));
 		}
 
-		$marcFields600 = $marcRecord->getFields('600');
-		$marcFields610 = $marcRecord->getFields('610');
-		$marcFields630 = $marcRecord->getFields('630');
-		$marcFields650 = $marcRecord->getFields('650');
-		$marcFields651 = $marcRecord->getFields('651');
-		$marcFields655 = $marcRecord->getFields('655');
-		if ($marcFields600 || $marcFields610 || $marcFields630 || $marcFields650 || $marcFields651 || $marcFields655){
+		if (isset($configArray['Content']['subjectFieldsToShow'])){
+			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
+			$subjectFields = explode(',', $subjectFieldsToShow);
 			$subjects = array();
-			$allFields = array_merge($marcFields600, $marcFields610, $marcFields630, $marcFields650, $marcFields651, $marcFields655);
-			foreach ($allFields as $marcField){
-				$searchSubject = "";
-				$subject = array();
-				foreach ($marcField->getSubFields() as $subField){
-					if ($subField->getCode() != 2){
-						$searchSubject .= " " . $subField->getData();
-						$subject[] = array(
-                            'search' => trim($searchSubject),
-                            'title'  => $subField->getData(),
-						);
+			foreach ($subjectFields as $subjectField){
+				$marcFields = $marcRecord->getFields($subjectField);
+				if ($marcFields){
+					foreach ($marcFields as $marcField){
+						$searchSubject = "";
+						$subject = array();
+						foreach ($marcField->getSubFields() as $subField){
+							if ($subField->getCode() != 2){
+								$searchSubject .= " " . $subField->getData();
+								$subject[] = array(
+		                            'search' => trim($searchSubject),
+		                            'title'  => $subField->getData(),
+								);
+							}
+						}
+						$subjects[] = $subject;
 					}
 				}
-				$subjects[] = $subject;
-			}
-			$interface->assign('subjects', $subjects);
-		}
-		
-		//Word Think Headings
-		$wordThinkFields = $marcRecord->getFields('690');
-		$wordThinkHeadings = array();
-		foreach ($wordThinkFields as $wordThinkField){
-			$searchSubject = "";
-			$subject = array();
-			$subFieldA = $wordThinkField->getSubField('a');
-			if ($subFieldA){
-				$searchSubject = $subFieldA->getData();
-				$wordThinkHeadings[] = array(
-					'search' => trim($searchSubject),
-					'title'  => $subFieldA->getData(),
-				);
+				$interface->assign('subjects', $subjects);
 			}
 		}
-		$interface->assign('wordThinkHeadings', $wordThinkHeadings);
 		
-
 		$format = $record['format'];
 		$interface->assign('recordFormat', $record['format']);
 		$format_category = $record['format_category'][0];

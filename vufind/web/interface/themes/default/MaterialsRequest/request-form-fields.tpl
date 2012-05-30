@@ -104,7 +104,7 @@
 		<legend>Identifiers</legend>
 		{if $useWorldCat}
 		<div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
-			<input type="button" id="suggestIdentifiers" value="Lookup ISBN &amp; OCLC Number" onclick="return getWorldCatIdentifiers();"/>
+			<input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
 		</div>
 		{/if}
 		<div id="suggestedIdentifiers" style="display:none"></div>
@@ -200,7 +200,7 @@
 	{/if}
 	{if !$materialsRequest}
 	<div>
-		<label for="about">How/where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
+		<label for="about">How / where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
 		<textarea name="about" id="about" rows="3" cols="80" {if $requireAboutField}class="required"{/if}>{$materialsRequest->about}</textarea>
 	</div>
 	{/if}

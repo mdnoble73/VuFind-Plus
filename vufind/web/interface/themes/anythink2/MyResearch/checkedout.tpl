@@ -59,7 +59,6 @@
           </div>
         </div>
 
-        <div class='clearer'></div>
         <table class="myAccountTable" id="checkedOutTable">
           <thead>
             <tr>

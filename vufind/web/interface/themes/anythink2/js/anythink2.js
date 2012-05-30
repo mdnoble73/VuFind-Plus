@@ -61,39 +61,83 @@
       };
     };
 
-    // Bag buttons.
-    $('.actions-cart a').each(function() {
-      var $this = $(this);
-      var book = {
-        id: $this.attr('data-summId'),
-        title: $this.attr('data-title')
-      }
-      if (bookInBagAnythink(book)) {
-        $this.text('In cart');
-        $this.addClass('in-cart');
-      };
-      $this.bind('click', {book: book}, function(event) {
+    var cart_wrapper = $('#cart-wrapper');
+
+    if (cart_wrapper.length > 0) {
+      // Bag buttons.
+      $('.actions-cart a').each(function() {
         var $this = $(this);
-        var book = event.data.book;
-        if (!$this.hasClass('in-cart')) {
-          _addToBag(book);
+        var book = {
+          id: $this.attr('data-summId'),
+          title: $this.attr('data-title')
+        }
+        if (bookInBagAnythink(book)) {
           $this.text('In cart');
           $this.addClass('in-cart');
+        };
+        $this.bind('click', {book: book}, function(event) {
+          var $this = $(this);
+          var book = event.data.book;
+          if (!$this.hasClass('in-cart')) {
+            _addToBag(book);
+            $this.text('In cart');
+            $this.addClass('in-cart');
+          }
+          else {
+            _removeFromBag(book);
+            $this.text('Add to cart +');
+            $this.removeClass('in-cart');
+          }
+          _saveBagAsCookie();
+          updateBag();
+          return false;
+        });
+      });
+    };
+
+    // Navigate link.
+    var navigate_link = $('#navigate-link');
+    if (navigate_link.length > 0) {
+      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="600" border="0" src="http://stage.anythinklibraries.org/vufind/sidebar"></div></div>');
+      // Add iFrame.
+      iframe.css({width: 0});
+      $('#central').prepend(iframe);
+      var central_column = $('#column-central');
+      navigate_link.bind('click', function() {
+        if (!navigate_link.hasClass('processed')) {
+          navigate_link.addClass('processed');
+          navigate_link.text('Hide');
+          // navigate_link.fadeOut(100, function() {
+            // Scale central column.
+            cart_wrapper.hide();
+            central_column.animate({marginLeft: '220px'}, {
+              duration: 250,
+              complete: function() {
+                bagResize();
+                cart_wrapper.fadeIn(100);
+              }
+            });
+            iframe.css({width: '200px'});
+          // });
         }
         else {
-          _removeFromBag(book);
-          $this.text('Add to cart +');
-          $this.removeClass('in-cart');
+          navigate_link.removeClass('processed');
+          navigate_link.text('Navigate');
+          // Re scale.
+          cart_wrapper.hide();
+          central_column.animate({marginLeft: 0}, {
+            duration: 250,
+            complete: function() {
+              bagResize();
+              cart_wrapper.fadeIn(100);
+            }
+          });
+          iframe.css({width: 0});
         }
-        _saveBagAsCookie();
-        updateBag();
         return false;
       });
-    });
-
-
+    };
   });
-
 
   // Get a list of the records on the page.
   get_records_anythink = function() {

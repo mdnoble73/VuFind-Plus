@@ -364,7 +364,7 @@ class Library extends DB_DataObject
 		if ($library) {
 			return NearbyBookStore::getBookStores($library->libraryId);
 		} else {
-			return NearbyBookStore::getBookStores(-1);
+			return NearbyBookStore::getDefaultBookStores();
 		}
 	}
 }
