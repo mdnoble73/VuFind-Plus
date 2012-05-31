@@ -4,13 +4,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
@@ -353,7 +351,6 @@ public class Packaging implements IProcessHandler{
 					//Item already exists
 					itemId = doesItemExistForRecordRS.getLong("id");
 					previousAcsId = doesItemExistForRecordRS.getString("acsId");
-					String existingFilename = doesItemExistForRecordRS.getString("filename");
 					if (fileChanged){
 						//Update the existing record
 						updateItemFilename.setString(1, libraryFilename);
@@ -373,7 +370,7 @@ public class Packaging implements IProcessHandler{
 					createItemForRecord.setLong(5, -1);
 					createItemForRecord.setLong(6, new Date().getTime() / 1000);
 					createItemForRecord.setLong(7, new Date().getTime() / 1000);
-					int numUpdates = createItemForRecord.executeUpdate();
+					createItemForRecord.executeUpdate();
 					ResultSet itemIdRs = createItemForRecord.getGeneratedKeys();
 					if (itemIdRs.next()){
 						itemId = itemIdRs.getLong(1);
