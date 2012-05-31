@@ -28,8 +28,8 @@
 <div id="main-content">
   {if $message}<div class="error">{$message|translate}</div>{/if}
   <div class="get-card">
-  <h1>{translate text='Need an Anythink card?'}</h1>
     <div><a id="get-card" href="{$path}/MyResearch/GetCard">Click here to get a card.</a></div>
+    <h1>{translate text='Need an Anythink card?'}</h1>
     <h2>Click <a class="button" href="{$path}/MyResearch/GetCard">here</a> to get a card.</h2>
   </div>
   <script type="text/javascript">$('#username').focus();</script>
