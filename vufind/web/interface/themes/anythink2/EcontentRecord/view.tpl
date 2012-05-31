@@ -364,7 +364,7 @@ function redrawSaveStatus() {literal}{{/literal}
           {translate text='No Tags'}, {translate text='Be the first to tag this record'}!
         {/if}
           <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=eContent" class="tool add"
-            onclick="GetAddTagForm('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
+            onclick="GetAddTagFormAnythink('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
       </div>
     </div>
     {/if}

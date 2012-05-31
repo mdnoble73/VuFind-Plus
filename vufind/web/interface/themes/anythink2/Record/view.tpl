@@ -386,7 +386,7 @@ function redrawSaveStatus() {
           {translate text='No Tags'}, {translate text='Be the first to tag this record!'}
         {/if}
           <a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
-            onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
+            onclick="GetAddTagFormAnythink('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
       </div>
     </div>
     {/if}
