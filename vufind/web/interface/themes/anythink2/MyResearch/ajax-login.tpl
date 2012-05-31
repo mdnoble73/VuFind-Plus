@@ -18,7 +18,7 @@
         <div id ='loginPasswordRow3' class='loginFormRow'>
           <div class='loginLabel'>&nbsp;</div>
           <div class='loginField'>
-            <input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+            <input type="checkbox" id="rememberMe" name="rememberMe"/>&nbsp;<label for="rememberMe">{translate text="Remember Me"}</label>
           </div>
         </div>
         {/if}

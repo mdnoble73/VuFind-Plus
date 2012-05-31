@@ -489,14 +489,15 @@ body.Search--Home #main-content {
 }
 
 #get-card {
-  background-image: url(../images/anythink-card.png);
+  background-image: url(../images/anythink-cards.png);
   background-repeat: no-repeat;
   display: inline-block;
-  height: 319px;
+  height: 167px;
   overflow: hidden;
   text-indent: 100%;
   white-space: nowrap;
-  width: 400px;
+  width: 683px;
+  margin: 20px 0;
 }
 
 .form-item {
