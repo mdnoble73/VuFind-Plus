@@ -340,13 +340,23 @@
   }
 
   showMaterialsRequestDetailsAnythink = function(id) {
-  	ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id );
+    ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id );
   }
 
   updateMaterialsRequestAnythink = function(id) {
-  	ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id );
+    ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id );
   }
 
+  GetAddTagFormAnythink = function(id, source){
+    if (loggedIn){
+      var url = path + "/Resource/AJAX?method=GetAddTagForm&id=" + id + "&source=" + source;
+      ajaxLightboxAnythink(url);
+    }else{
+      ajaxLogin(function(){
+        GetAddTagFormAnythink(id, source);
+      });
+    }
+  }
 
   // // Reimplement doGetRatings().
   // doGetRatingsAnythink = function() {
