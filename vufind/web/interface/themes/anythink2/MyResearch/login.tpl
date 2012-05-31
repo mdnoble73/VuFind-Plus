@@ -11,7 +11,7 @@
       <div class="fine-print"><strong>Forgot PIN?</strong> <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a></div>
     </div>
     {if !$inLibrary}
-      <div class="form-item"><input type="checkbox" id="rememberMe" name="rememberMe"/> <label for="rememberMe">{translate text="Remember Me"}</label></div>
+      <div class="form-item"><input type="checkbox" id="rememberMe" name="rememberMe"/>&nbsp;<label for="rememberMe">{translate text="Remember Me"}</label></div>
     {/if}
     <div class="form-item"><input id="loginButton" type="submit" name="submit" value="Login" /></div>
     {if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
