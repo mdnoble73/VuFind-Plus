@@ -25,6 +25,7 @@ import org.vufind.Util;
 
 public class Packaging implements IProcessHandler{
 	private CronProcessLogEntry processLog;
+	private Connection vufindConn;
 	private Logger logger; 
 	private String vufindUrl;
 	private String packagingUrl;
@@ -47,6 +48,7 @@ public class Packaging implements IProcessHandler{
 	
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		this.vufindConn = vufindConn;
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Packaging eContent");
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
@@ -222,6 +224,7 @@ public class Packaging implements IProcessHandler{
 			}
 			
 			processPublisherFiles(publisherName, receivedDataFile, processedDataFile);
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 	}
 
