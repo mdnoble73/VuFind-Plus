@@ -197,16 +197,18 @@ public class MarcProcessor {
 		
 		// Load ratings for print and eContent titles
 		try{
-			PreparedStatement printRatingsStmt = vufindConn.prepareStatement("SELECT record_id, avg(rating) as rating from resource inner join user_rating on user_rating.resourceid = resource.id where source = 'VuFind' GROUP BY record_id");
+			PreparedStatement printRatingsStmt = vufindConn.prepareStatement("SELECT record_id, avg(rating) as rating from resource inner join user_rating on user_rating.resourceid = resource.id where source = 'VuFind' GROUP BY record_id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet printRatingsRS = printRatingsStmt.executeQuery();
 			while (printRatingsRS.next()){
 				printRatings.put(printRatingsRS.getString("record_id"), printRatingsRS.getFloat("rating"));
 			}
-			PreparedStatement econtentRatingsStmt = econtentConn.prepareStatement("SELECT ilsId, avg(rating) as rating from econtent_record inner join econtent_rating on econtent_rating.recordId = econtent_record.id WHERE ilsId <> '' GROUP BY ilsId");
+			printRatingsRS.close();
+			PreparedStatement econtentRatingsStmt = econtentConn.prepareStatement("SELECT ilsId, avg(rating) as rating from econtent_record inner join econtent_rating on econtent_rating.recordId = econtent_record.id WHERE ilsId <> '' GROUP BY ilsId", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet econtentRatingsRS = econtentRatingsStmt.executeQuery();
 			while (econtentRatingsRS.next()){
 				econtentRatings.put(econtentRatingsRS.getString("ilsId"), econtentRatingsRS.getFloat("rating"));
 			}
+			econtentRatingsRS.close();
 		} catch (SQLException e) {
 			logger.error("Unable to load ratings for resource", e);
 			return false;
