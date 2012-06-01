@@ -10,11 +10,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
+import org.ini4j.Profile.Section;
 
 import com.adobe.adept.upload.PackageTool;
 
@@ -23,6 +25,8 @@ public class ACSPackager {
 	private static Ini configIni;
 	private static File packagingRootDir;
 	private static String packagingUrl;
+	private static String distributionUrl;
+	private static HashMap<String, String> distributorSecrets = new HashMap<String, String>();
 	//Database connections and prepared statements
 	private static Connection packagingConn = null;
 	private static PreparedStatement getNextFileToPackage;
@@ -120,17 +124,25 @@ public class ACSPackager {
 	}
 
 	private static ACSResult packageFile(String distributorId, String filename, Long copies, String previousAcsId) {
-		PackageTool packager = new PackageTool(packagingUrl);
+		PackageTool packager = new PackageTool(packagingUrl, distributionUrl);
+		String distributorSecret = distributorSecrets.get(distributorId);
+		if (distributorSecret == null){
+			ACSResult result = new ACSResult();
+			result.setSuccess(false);
+			result.setAcsError("Distributor secret not found for id " + distributorId + ", please add shared secret to configuration file");
+			return result;
+		}
 		String[] uploadFlags = new String[]{
 			"-verbose",
 		};
 		packager.setFlags(uploadFlags);
+		packager.setHmacKey(distributorSecret);
 		if (previousAcsId != null && previousAcsId.length() > 0){
 			packager.setAction("replace");
 			packager.setResource(previousAcsId);
 		}
 		
-		return packager.packageFile(filename);
+		return packager.packageFile(filename, distributorId, copies);
 	}
 
 	private static void connectToDatabase() {
@@ -177,12 +189,12 @@ public class ACSPackager {
 		
 		String packagingRootDirStr = Util.cleanIniValue(configIni.get("Packaging", "rootPackagingDir"));
 		if (packagingRootDirStr == null || packagingRootDirStr.length() == 0) {
-			logger.error("Root Packaging Directory not found in Packaging Section.  Please specify the directory where unencrypted files can be found in rootPackagingDir.");
+			logger.error("Root Packaging Directory " + packagingRootDirStr + " not found in Packaging Section.  Please specify the directory where unencrypted files can be found in rootPackagingDir.");
 			System.exit(1);
 		}
 		packagingRootDir = new File(packagingRootDirStr);
 		if (packagingRootDir.exists() == false){
-			logger.error("Root Packaging Directory does not exist, stopping.");
+			logger.error("Root Packaging Directory " + packagingRootDirStr + "does not exist, stopping.");
 			System.exit(1);
 		}
 		
@@ -190,6 +202,18 @@ public class ACSPackager {
 		if (packagingUrl == null || packagingUrl.length() == 0) {
 			logger.error("Packaging URL not found in Packaging Section.  Please specify the URL for the packaging service.");
 			System.exit(1);
+		}
+		
+		distributionUrl = Util.cleanIniValue(configIni.get("Packaging", "distributionUrl"));
+		if (distributionUrl == null || distributionUrl.length() == 0) {
+			logger.error("Distribution URL not found in Packaging Section.  Please specify the URL for the distribution service.");
+			System.exit(1);
+		}
+		
+		//Get the shared secrets for the distributors
+		Section distributorSecretSection = configIni.get("DistributorSecrets");
+		for (String distributorId : distributorSecretSection.keySet()){
+			distributorSecrets.put(distributorId, Util.cleanIniValue(distributorSecretSection.get(distributorId)));
 		}
 	}
 }

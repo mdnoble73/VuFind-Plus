@@ -1,20 +1,20 @@
 /*************************************************************************
-*
-* ADOBE CONFIDENTIAL
-* ___________________
-*
-*  Copyright 2010 Adobe Systems Incorporated
-*  All Rights Reserved.
-*
-* NOTICE:  All information contained herein is, and remains
-* the property of Adobe Systems Incorporated and its suppliers,
-* if any.  The intellectual and technical concepts contained
-* herein are proprietary to Adobe Systems Incorporated and its
-* suppliers and are protected by trade secret or copyright law.
-* Dissemination of this information or reproduction of this material
-* is strictly forbidden unless prior written permission is obtained
-* from Adobe Systems Incorporated.
-**************************************************************************/
+ *
+ * ADOBE CONFIDENTIAL
+ * ___________________
+ *
+ *  Copyright 2010 Adobe Systems Incorporated
+ *  All Rights Reserved.
+ *
+ * NOTICE:  All information contained herein is, and remains
+ * the property of Adobe Systems Incorporated and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to Adobe Systems Incorporated and its
+ * suppliers and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from Adobe Systems Incorporated.
+ **************************************************************************/
 package com.adobe.adept.upload;
 
 import java.io.File;
@@ -24,10 +24,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.vufind.ACSResult;
 import org.w3c.dom.Document;
@@ -40,7 +45,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 
 /**
  * UploadTest Class
@@ -204,8 +208,9 @@ import javax.xml.transform.stream.StreamResult;
  * (file name or FT URL) <br>
  * <tt>&lt;src&gt;</tt> - optional download location for the packaged resource
  * (HTTP URL) <br>
- * <tt>&lt;metadata&gt;</tt> - optional DC metadata with optional child
- * elements (only title, description, language, creator, publisher, format and identifier are read) <br>
+ * <tt>&lt;metadata&gt;</tt> - optional DC metadata with optional child elements
+ * (only title, description, language, creator, publisher, format and identifier
+ * are read) <br>
  * <tt>&lt;dataPath&gt;</tt> - optional local dataPath location (local path to
  * file to package on packaging server). Only used if dataPath Mode is engaged.
  * Used instead of data element in request. <br>
@@ -218,15 +223,13 @@ import javax.xml.transform.stream.StreamResult;
  * satisfied by the package request:
  * <ul>
  * <li>If <tt>&lt;action=replace&gt;</tt> is present, then
- * <tt>&lt;resource&gt;</tt> must be present
- * </li>
+ * <tt>&lt;resource&gt;</tt> must be present</li>
  * <li>If <tt>&lt;resourceItem&gt;</tt> is present, then
- * <tt>&lt;resource&gt;</tt> must be present </li>
- * <li>If <tt>&lt;fileName&gt;</tt> is present, then
- * <tt>&lt;location&gt;</tt> and <tt>&lt;src&gt;</tt> must not be present
- * </li>
- * <li><tt>&lt;src&gt;</tt> and <tt>&lt;location&gt;</tt> must either be
- * both present or both not present. If both are present, then
+ * <tt>&lt;resource&gt;</tt> must be present</li>
+ * <li>If <tt>&lt;fileName&gt;</tt> is present, then <tt>&lt;location&gt;</tt>
+ * and <tt>&lt;src&gt;</tt> must not be present</li>
+ * <li><tt>&lt;src&gt;</tt> and <tt>&lt;location&gt;</tt> must either be both
+ * present or both not present. If both are present, then
  * <tt>&lt;fileName&gt;</tt> must not be present</li>
  * </ul>
  * This tool will not accept XML that is not well-formed. Below is some sample
@@ -275,43 +278,43 @@ public class PackageTool {
 	/* ************** P U B L I C F I E L D S ************** */
 
 	/** Adobe Adept namespace */
-	public final String AdeptNS = "http://ns.adobe.com/adept";
+	public final String	AdeptNS							= "http://ns.adobe.com/adept";
 
 	/** Dublin Core namespace */
-	public final String DublinCoreNS = "http://purl.org/dc/elements/1.1/";
+	public final String	DublinCoreNS				= "http://purl.org/dc/elements/1.1/";
 
 	/** Dublin Core namespace prefix */
-	public final String DublinCorePrefix = "dc";
+	public final String	DublinCorePrefix		= "dc";
 
 	/** Length of time before request expiration in minutes, set by default to 15 */
-	public final int EXPIRATION_INTERVAL = 15;
+	public final int		EXPIRATION_INTERVAL	= 15;
 
 	/** Current version of this tool */
-	public final String VERSION = new String("1.2");
+	public final String	VERSION							= new String("1.2");
 
 	/* *********** G L O B A L V A R I A B L E S *********** */
 
 	/** Holds the HMAC password shared secret for generation of HMAC */
-	private String password;
+	private String			password;
 
 	/**
 	 * Counter used to keep track of the number of error responses received from
 	 * server
 	 */
-	private int errors = 0;
+	private int					errors							= 0;
 
 	/**
-	 * Counter used to keep track of the number of successful packaging
-	 * responses received from server
+	 * Counter used to keep track of the number of successful packaging responses
+	 * received from server
 	 */
-	private int successes = 0;
+	private int					successes						= 0;
 
 	/** Toggles detailed output to console */
-	private boolean verboseDisplay = false;
+	private boolean			verboseDisplay			= false;
 
 	/* *** XML SOURCE ELEMENTS *** */
-	private String action = "add";
-	private String resource = null;
+	private String			action							= "add";
+	private String			resource						= null;
 
 	public String getAction() {
 		return action;
@@ -328,106 +331,101 @@ public class PackageTool {
 	public void setResource(String resource) {
 		this.resource = resource;
 	}
-	
+
 	/** Toggles use of XML file as a source for permissions */
-	private boolean hasPermissions = false;
+	private boolean				hasPermissions				= false;
 
 	/**
 	 * Indicates whether DC metadata from XML source will be included in package
 	 * request
 	 */
-	private boolean hasMetadata = false;
+	private boolean				hasMetadata						= false;
 
 	/**
 	 * Indicates whether default DC metadata from command-line flags will be
 	 * included in the package request
 	 */
-	private boolean hasDefaultMetadata = false;
+	private boolean				hasDefaultMetadata		= false;
 
 	/* *** DC METADATA VARS *** */
 	/** Holds the DEFAULT value of the DC metadata element &lt;title&gt;, if used */
-	private String dcTitleDefault = new String("");
-
-	/** Holds the DEFAULT value of the DC metadata element &lt;description&gt;, if used */
-	private String dcDescriptionDefault = new String("");
-
-	/** Holds the DEFAULT value of the DC metadata element &lt;language&gt;, if used */
-	private String dcLanguageDefault = new String("");
+	private String				dcTitleDefault				= new String("");
 
 	/**
-	 * Holds the DEFAULT value of the DC metadata element &lt;creator&gt;, if
+	 * Holds the DEFAULT value of the DC metadata element &lt;description&gt;, if
 	 * used
 	 */
-	private String dcCreatorDefault = new String("");
+	private String				dcDescriptionDefault	= new String("");
+
+	/**
+	 * Holds the DEFAULT value of the DC metadata element &lt;language&gt;, if
+	 * used
+	 */
+	private String				dcLanguageDefault			= new String("");
+
+	/**
+	 * Holds the DEFAULT value of the DC metadata element &lt;creator&gt;, if used
+	 */
+	private String				dcCreatorDefault			= new String("");
 
 	/**
 	 * Holds the DEFAULT value of the DC metadata element &lt;publisher&gt;, if
 	 * used
 	 */
-	private String dcPublisherDefault = new String("");
+	private String				dcPublisherDefault		= new String("");
 
 	/**
-	 * Holds the DEFAULT value of the DC metadata element &lt;format&gt;, if
+	 * Holds the DEFAULT value of the DC metadata element &lt;format&gt;, if used
+	 */
+	private String				dcFormatDefault				= new String("");
+
+	/**
+	 * Holds the DEFAULT value of the DC metadata element &lt;identifier&gt;, if
 	 * used
 	 */
-	private String dcFormatDefault = new String("");
-
-	/** Holds the DEFAULT value of the DC metadata element &lt;identifier&gt;, if used */
-	private String dcIdentifierDefault = new String("");
+	private String				dcIdentifierDefault		= new String("");
 
 	/** Holds the value of the DC metadata element &lt;title&gt;, if used */
-	private String dcTitle = new String("");
+	private String				dcTitle								= new String("");
 
 	/** Holds the value of the DC metadata element &lt;description&gt;, if used */
-	private String dcDescription = new String("");
+	private String				dcDescription					= new String("");
 
 	/** Holds the value of the DC metadata element &lt;language&gt;, if used */
-	private String dcLanguage = new String("");
+	private String				dcLanguage						= new String("");
 
 	/** Holds the value of the DC metadata element &lt;creator&gt;, if used */
-	private String dcCreator = new String("");
+	private String				dcCreator							= new String("");
 
 	/** Holds the value of the DC metadata element &lt;publisher&gt;, if used */
-	private String dcPublisher = new String("");
+	private String				dcPublisher						= new String("");
 
 	/** Holds the value of the DC metadata element &lt;format&gt;, if used */
-	private String dcFormat = new String("");
+	private String				dcFormat							= new String("");
 
 	/** Holds the value of the DC metadata element &lt;identifier&gt;, if used */
-	private String dcIdentifier = new String("");
-
-	/* *** THUMBNAIL VARS *** */
-	/** If true, the tool will look for .png thumbnails */
-	private boolean thumbPNG = false;
-
-	/** If true, the tool will look for .jpeg thumbnails */
-	private boolean thumbJPEG = false;
-
-	/** If true, the tool will look for .jpg thumbnails */
-	private boolean thumbJPG = false;
-
-	/** If true, the tool will look for .gif thumbnails */
-	private boolean thumbGIF = false;
+	private String				dcIdentifier					= new String("");
 
 	/**
-	 * Holds the file name of the file currently being packaged globally (for
-	 * use with failedFiles)
+	 * Holds the file name of the file currently being packaged globally (for use
+	 * with failedFiles)
 	 */
-	private String currentFileName = new String("");
+	private String				currentFileName				= new String("");
 
 	/** Holds the file names of all the files that failed packaging */
-	private String failedFiles = new String("");
+	private String				failedFiles						= new String("");
 
-	private String	targetURL;
+	private String				targetURL;
+	private String				distributionURL;
 
 	/**
-	 * Used during the creation of the nonce, holds an incremented counter
-	 * started at a random number
+	 * Used during the creation of the nonce, holds an incremented counter started
+	 * at a random number
 	 */
-	private static long counter = (new Random()).nextLong();
+	private static long		counter								= (new Random()).nextLong();
 
 	/** Used during the creation of the nonce, holds the start time of the server */
-	private static byte[] initTime = createInitTime();
+	private static byte[]	initTime							= createInitTime();
 
 	/* ********************************************************* */
 	/* ********************* M E T H O D S ********************* */
@@ -439,11 +437,11 @@ public class PackageTool {
 	 * Fills an array starting at the offset with the bytes of the long
 	 * 
 	 * @param k
-	 *            The source long
+	 *          The source long
 	 * @param b
-	 *            Byte[] to be filled with the long bytes
+	 *          Byte[] to be filled with the long bytes
 	 * @param i
-	 *            Offset at which to start filling array
+	 *          Offset at which to start filling array
 	 */
 	public static void longToBytes(long k, byte[] b, int i) {
 		b[i] = (byte) (k >> 56);
@@ -472,21 +470,19 @@ public class PackageTool {
 	 * Reads they bytes from the specified file and returns them in a byte[]
 	 * 
 	 * @param fileName
-	 *            The path of the file to be read
+	 *          The path of the file to be read
 	 * @throws IOException
-	 *             If the whole file could not be read
+	 *           If the whole file could not be read
 	 * @return Byte array filled with file bytes if successful, otherwise null
 	 */
 	public byte[] readFromFile(String fileName) {
 		try {
 			File file = new File(fileName);
-			if (!file.exists())
-				return null;
+			if (!file.exists()) return null;
 			int len = (int) file.length();
 			byte[] bytes = new byte[len];
 			FileInputStream in = new FileInputStream(file);
-			if (in.read(bytes) != len)
-				throw new IOException("could not read the whole file");
+			if (in.read(bytes) != len) throw new IOException("could not read the whole file");
 			in.close();
 			return bytes;
 		} catch (Exception e) {
@@ -501,16 +497,14 @@ public class PackageTool {
 	 * ".epub". Used to create path for XML config file and the thumbnail image.
 	 * 
 	 * @param fileName
-	 *            Source file name or path
+	 *          Source file name or path
 	 * @return The file name or path without the extension ".pdf" or ".epub", or
 	 *         null if fileName did not have one of those extensions.
 	 */
 	public String removeExtension(String fileName) {
-		if (fileName.substring(fileName.length() - 4, fileName.length())
-				.equalsIgnoreCase(".pdf"))
+		if (fileName.substring(fileName.length() - 4, fileName.length()).equalsIgnoreCase(".pdf"))
 			return fileName.substring(0, fileName.length() - 4);
-		else if (fileName.substring(fileName.length() - 5, fileName.length())
-				.equalsIgnoreCase(".epub"))
+		else if (fileName.substring(fileName.length() - 5, fileName.length()).equalsIgnoreCase(".epub"))
 			return fileName.substring(0, fileName.length() - 5);
 		else {
 			System.err.println("File extension is neither .pdf nor .epub. ERROR");
@@ -523,17 +517,16 @@ public class PackageTool {
 	 * appends it to the <var>parentElement</var>.
 	 * 
 	 * @param doc
-	 *            Source Document in which new element will be created
+	 *          Source Document in which new element will be created
 	 * @param elementName
-	 *            Tag name of the new element to be created
+	 *          Tag name of the new element to be created
 	 * @param elementContent
-	 *            Text content of the new element to be created
+	 *          Text content of the new element to be created
 	 * @param parentElement
-	 *            Parent element to which the new element will be appended
+	 *          Parent element to which the new element will be appended
 	 * @see Document#createElementNS(String, String)
 	 */
-	public void addNewAdeptElement(Document doc, String elementName,
-			String elementContent, Element parentElement) {
+	public void addNewAdeptElement(Document doc, String elementName, String elementContent, Element parentElement) {
 		Element newElement = doc.createElementNS(AdeptNS, elementName);
 		newElement.setTextContent(elementContent);
 		parentElement.appendChild(newElement);
@@ -545,36 +538,33 @@ public class PackageTool {
 	 * and appends it to the <var>parentElement</var>.
 	 * 
 	 * @param doc
-	 *            Source Document in which new element will be created
+	 *          Source Document in which new element will be created
 	 * @param elementName
-	 *            Tag name of the new element to be created
+	 *          Tag name of the new element to be created
 	 * @param elementContent
-	 *            Text content of the new element to be created
+	 *          Text content of the new element to be created
 	 * @param parentElement
-	 *            Parent element to which the new element will be appended
+	 *          Parent element to which the new element will be appended
 	 * @see Document#createElementNS(String, String)
 	 */
-	public void addNewDCElement(Document doc, String elementName,
-			String elementContent, Element parentElement) {
-		Element newElement = doc.createElementNS(DublinCoreNS, DublinCorePrefix
-				+ ":" + elementName);
+	public void addNewDCElement(Document doc, String elementName, String elementContent, Element parentElement) {
+		Element newElement = doc.createElementNS(DublinCoreNS, DublinCorePrefix + ":" + elementName);
 		newElement.setTextContent(elementContent);
 		parentElement.appendChild(newElement);
 		return;
 	}
 
 	/**
-	 * Transforms the passed source Document to a string utilizing Transformer
-	 * for Documents. This effectively serializes the XML.
+	 * Transforms the passed source Document to a string utilizing Transformer for
+	 * Documents. This effectively serializes the XML.
 	 * 
 	 * @param doc
-	 *            Source Document to be serialized
+	 *          Source Document to be serialized
 	 * @return String containing serialized XML
 	 */
 	public String transDoc(Document doc) {
 		try {
-			Transformer trans = TransformerFactory.newInstance()
-					.newTransformer();
+			Transformer trans = TransformerFactory.newInstance().newTransformer();
 			trans.setOutputProperty(OutputKeys.INDENT, "yes");
 			StreamResult result = new StreamResult(new StringWriter());
 			DOMSource source = new DOMSource(doc);
@@ -593,19 +583,16 @@ public class PackageTool {
 	 * request.
 	 * 
 	 * @param targetURL
-	 *            URL of packaging server
+	 *          URL of packaging server
 	 * @return Properly configured HttpURLConnection to packaging server
 	 */
 	public HttpURLConnection createConnection(String targetURL) {
 		try {
-			System.out.println("Creating connection to Packaging Server: "
-					+ targetURL);
+			System.out.println("Creating connection to Server: " + targetURL);
 			URL url = new URL(targetURL);
-			final HttpURLConnection conn = (HttpURLConnection) url
-					.openConnection();
+			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Type",
-					"application/vnd.adobe.adept+xml");
+			conn.setRequestProperty("Content-Type", "application/vnd.adobe.adept+xml");
 			conn.setDoOutput(true);
 			return conn;
 		} catch (Exception e) {
@@ -619,8 +606,8 @@ public class PackageTool {
 	 * Creates a new FilenameFilter that only accepts files with the extensions
 	 * ".epub" or ".pdf" (the only ones that can be packaged)
 	 * 
-	 * @return FilenameFilter that only accepts files with the extensions
-	 *         ".epub" or ".pdf"
+	 * @return FilenameFilter that only accepts files with the extensions ".epub"
+	 *         or ".pdf"
 	 */
 	public FilenameFilter createFilenameFilter() {
 		return new FilenameFilter() {
@@ -645,8 +632,8 @@ public class PackageTool {
 	}
 
 	/**
-	 * Resets all current global DC metadata vars (in preparation for reading
-	 * from a new XML file)
+	 * Resets all current global DC metadata vars (in preparation for reading from
+	 * a new XML file)
 	 */
 	private void cleanCurrentDCMetadata() {
 		dcTitle = "";
@@ -657,54 +644,6 @@ public class PackageTool {
 		dcFormat = "";
 		dcIdentifier = "";
 		hasMetadata = false;
-	}
-
-	/**
-	 * Displays a list of all accepted flags when the tool is called with the -?
-	 * flag.
-	 */
-	private void displayHelp() {
-		System.out.println("UploadTest version " + VERSION);
-		System.out
-				.println("The first parameter MUST be the packaging server URL");
-		System.out
-				.println("The second parameter MUST be the file or directory path to package");
-		System.out.println("\nList of accepted command-line flags:");
-		System.out.println("PASSWORD FLAG");
-		System.out
-				.println("-pass = the next argument contains the server password");
-		System.out.println("DC METADATA FLAGS:");
-		System.out
-				.println("-title = the next argument contains the DEFAULT dc:title value");
-		System.out
-				.println("-description = the next argument contains the DEFAULT dc:description value");
-		System.out
-				.println("-language = the next argument contains the DEFAULT dc:language value");
-		System.out
-				.println("-creator = the next argument contains the DEFAULT dc:creator value");
-		System.out
-				.println("-publisher = the next argument contains the DEFAULT dc:publisher value");
-		System.out
-				.println("-format = the next argument contains the DEFAULT dc:format value");
-		System.out
-				.println("-identifier = the next argument contains the DEFAULT dc:identifier value");
-		System.out.println("\nMISC FLAGS:");
-		System.out
-				.println("-png = looks for fileNameNoExt.png to upload as a thumbnail");
-		System.out
-				.println("-jpeg = looks for fileNameNoExt.jpeg to upload as a thumbnail");
-		System.out
-				.println("-jpg = looks for fileNameNoExt.jpg to upload as a thumbnail");
-		System.out
-				.println("-gif = looks for fileNameNoExt.gif to upload as a thumbnail");
-		System.out
-				.println("-xml = looks for fileNameNoExt.xml to use as XML source");
-		System.out.println("-datapath = engages dataPath Mode for the Tool");
-		System.out
-				.println("-verbose = displays content of package request and detailed server response");
-		System.out.println("-version = displays tool's version number");
-		System.out
-				.println("-? = displays the list of accepted command-line flags");
 	}
 
 	/* **** C O N T E N T C R E A T I O N M E T H O D S **** */
@@ -725,10 +664,9 @@ public class PackageTool {
 
 	/**
 	 * For every argument in the passed array, checks to see if it is a flag by
-	 * passing it to hasFlags() and checks to see if it is metadata by passing
-	 * it to hasMetadata(). If any of the elements of args is a metadata flag,
-	 * sets <var>hasMetadata</var> = true to ensure that the metadata will be
-	 * included.
+	 * passing it to hasFlags() and checks to see if it is metadata by passing it
+	 * to hasMetadata(). If any of the elements of args is a metadata flag, sets
+	 * <var>hasMetadata</var> = true to ensure that the metadata will be included.
 	 * 
 	 * <br>
 	 * The following flags are accepted:
@@ -758,7 +696,7 @@ public class PackageTool {
 	 * </pre>
 	 * 
 	 * @param args
-	 *            Array of arguments passed to main
+	 *          Array of arguments passed to main
 	 * @see PackageTool#hasFlags(String)
 	 * @see PackageTool#hasMetadata(String, String[], int)
 	 * @see PackageTool#hasMetadata
@@ -770,7 +708,7 @@ public class PackageTool {
 				i++; // args[i+1] is the value of the metadata element, so
 				// skip
 				hasDefaultMetadata = true; // if any DC metadata flag is
-											// identified,
+				// identified,
 				// use metadata
 			}
 			if (hasPassword(flags[i].toLowerCase(), flags, i + 1)) {
@@ -794,38 +732,29 @@ public class PackageTool {
 	 * </pre>
 	 * 
 	 * @param singleArg
-	 *            A single argument to compare against identifiable flags
+	 *          A single argument to compare against identifiable flags
 	 * @see PackageTool#verboseDisplay
 	 * @see PackageTool#thumbExt
 	 * @see PackageTool#useXMLSource
 	 */
 	private void hasFlags(String singleArg) {
-		if (singleArg.equals("-verbose")){
+		if (singleArg.equals("-verbose")) {
 			verboseDisplay = true; // turn on verboseDisplay
-		} else if (singleArg.equals("-png"))
-			thumbPNG = true; // search for .png thumbnails
-		else if (singleArg.equals("-jpeg"))
-			thumbJPEG = true; // serach for .jpeg thumbnails
-		else if (singleArg.equals("-jpg"))
-			thumbJPG = true; // serach for .jpg thumbnails
-		else if (singleArg.equals("-gif"))
-			thumbGIF = true; // search for .gif thumbnails
+		}
 	}
 
 	/**
 	 * Checks to see if the argument passed to it is an identifiable DC metadata
-	 * flag. If it is, it assigns the corresponding DC metadata variable the
-	 * value of the next argument (next following element of <var>args</var>)
-	 * and returns true.
+	 * flag. If it is, it assigns the corresponding DC metadata variable the value
+	 * of the next argument (next following element of <var>args</var>) and
+	 * returns true.
 	 * 
 	 * @param singleArg
-	 *            A single argument to compare against identifiable metadata
-	 *            flags
+	 *          A single argument to compare against identifiable metadata flags
 	 * @param args
-	 *            Array of arguments passed to main
+	 *          Array of arguments passed to main
 	 * @param paramIndex
-	 *            The index of singleArg + 1 (the index of the following
-	 *            element)
+	 *          The index of singleArg + 1 (the index of the following element)
 	 * @see PackageTool#dcTitle
 	 * @see PackageTool#dcDescription
 	 * @see PackageTool#dcLanguage
@@ -862,17 +791,16 @@ public class PackageTool {
 	}
 
 	/**
-	 * Checks to see if the argument passed to it is a password flag. If it is,
-	 * it assigns the password variable the value of the next argument (next
+	 * Checks to see if the argument passed to it is a password flag. If it is, it
+	 * assigns the password variable the value of the next argument (next
 	 * following element of <var>args</var>) and returns true.
 	 * 
 	 * @param singleArg
-	 *            A single argument to check
+	 *          A single argument to check
 	 * @param args
-	 *            Array of arguments passed to main
+	 *          Array of arguments passed to main
 	 * @param paramIndex
-	 *            The index of singleArg + 1 (the index of the following
-	 *            element)
+	 *          The index of singleArg + 1 (the index of the following element)
 	 * @return true if singleArg was a password flag, otherwise false
 	 */
 	private boolean hasPassword(String singleArg, String[] args, int paramIndex) {
@@ -884,91 +812,6 @@ public class PackageTool {
 	}
 
 	/**
-	 * Extracts DC metadata (if present) from the source Document that it is
-	 * passed. If the source Document contains DC metadata, this method assigns
-	 * the corresponding DC metadata variable the appropriate extracted text and
-	 * sets <var>hasMetadata</var> = true to ensure that the metadata element
-	 * is included in the package request
-	 * 
-	 * @param parsedXML
-	 *            Source Document from which DC metadata is extracted
-	 * @see XMLUtil#extractDCElementText(Document, String)
-	 * @see PackageTool#hasMetadata
-	 * @see PackageTool#dcTitle
-	 * @see PackageTool#dcDescription
-	 * @see PackageTool#dcLanguage
-	 * @see PackageTool#dcCreator
-	 * @see PackageTool#dcPublisher
-	 * @see PackageTool#dcFormat
-	 * @see PackageTool#dcIdentifier
-	 */
-	private void metadataFromXML(Document parsedXML) {
-		if (XMLUtil.extractDCElementText(parsedXML, "title") != null) {
-			hasMetadata = true;
-			dcTitle = XMLUtil.extractDCElementText(parsedXML, "title");
-		}
-		if (XMLUtil.extractDCElementText(parsedXML, "description") != null) {
-			hasMetadata = true;
-			dcDescription = XMLUtil.extractDCElementText(parsedXML, "description");
-		}
-		if (XMLUtil.extractDCElementText(parsedXML, "language") != null) {
-			hasMetadata = true;
-			dcLanguage = XMLUtil.extractDCElementText(parsedXML, "language");
-		}
-		if (XMLUtil.extractDCElementText(parsedXML, "creator") != null) {
-			hasMetadata = true;
-			dcCreator = XMLUtil.extractDCElementText(parsedXML, "creator");
-		}
-		if (XMLUtil.extractDCElementText(parsedXML, "publisher") != null) {
-			hasMetadata = true;
-			dcPublisher = XMLUtil.extractDCElementText(parsedXML, "publisher");
-		}
-		if (XMLUtil.extractDCElementText(parsedXML, "format") != null) {
-			hasMetadata = true;
-			dcFormat = XMLUtil.extractDCElementText(parsedXML, "format");
-		}
-		if (XMLUtil.extractDCElementText(parsedXML, "identifier") != null) {
-			hasMetadata = true;
-			dcIdentifier = XMLUtil.extractDCElementText(parsedXML, "identifier");
-		}
-	}
-
-	/**
-	 * Retrieves the file name of the thumbnail image, based on which thumbnail
-	 * flags were used. This method checks to see if there are thumbnail files
-	 * with the extensions specified by the thumbnail flags called from
-	 * command-line. It checks for the existence of thumbnail files in the
-	 * order: png, jpeg, jpg, gif, and returns the first one that it finds. This
-	 * method will only check the extensions that correspond to command-line
-	 * thumbnail flags used when the tool was started. (EX: in order to use
-	 * firstBook.jpg and secondBook.png, the tool must be called with BOTH -jpg
-	 * and -png)
-	 * 
-	 * @param fileNameNoExt
-	 *            String containing the base book name with no extension
-	 * @return String containing the thumbnail file name (with extension)
-	 */
-	private String getThumbnail(String fileNameNoExt) {
-		if (thumbPNG) {
-			if ((new File(fileNameNoExt.concat(".png"))).isFile())
-				return fileNameNoExt.concat(".png");
-		}
-		if (thumbJPEG) {
-			if ((new File(fileNameNoExt.concat(".jpeg"))).isFile())
-				return fileNameNoExt.concat(".jpeg");
-		}
-		if (thumbJPG) {
-			if ((new File(fileNameNoExt.concat(".jpg"))).isFile())
-				return fileNameNoExt.concat(".jpg");
-		}
-		if (thumbGIF) {
-			if ((new File(fileNameNoExt.concat(".gif"))).isFile())
-				return fileNameNoExt.concat(".gif");
-		}
-		return null;
-	}
-
-	/**
 	 * Retrieves the HMAC secret key and returns it as a String. For the time
 	 * being, the key is known to be "One4_all"
 	 * 
@@ -977,30 +820,33 @@ public class PackageTool {
 	private String getHmacKey() {
 		return password;
 	}
+	
+	public void setHmacKey(String key){
+		this.password = key; 
+	}
 
 	/**
 	 * Creates a new DOM Document and appends elements to create the package
-	 * request. All elements are in Adept namespace except for the optional
-	 * Dublin Core metadata elements, which are in the Dublin Core namespace.
-	 * <br>
-	 * Specifically: Creates a new DOM Document and package element in AdeptNS.
-	 * If there are optional elements that were read from the XML Source file,
-	 * these get extracted and appended to the packageElementin the correct
-	 * order. If metadata is present, creates <var>metadataElement</var> and
-	 * appends the appropriate DC metadata elements to it. Next, it appends the
-	 * <var>metadataElement</var> to the <var>packagElement</var>. If there
-	 * are permissions present, imports the <var>permissionsElement</var> from
-	 * the XML document and appends it to the <var>packageElement</var>. Next,
-	 * it appends the required Adept element data (containing the base64 encoded
-	 * book bytes). If there is a thumbail file present, it appends the base64
-	 * encoded thumbnail bytes. Next, it appends the rest of the required Adept
-	 * elements: expiration (containing expiration time in W3CDTF, which is made
-	 * to be the current time + <var>EXPIRATION_INTERVAL</var> minutes), and
-	 * the nonce (this unique identifier is created with makeNonce() and is
-	 * dependent on <var>initTime</var> and and incremented counter). Finally,
-	 * the HMAC is calculated and appended to the <var>packageElement</var>.
-	 * The <var>packageElement</var> is appended to the Document and the
-	 * Document is serialized with transDoc() and returned. <br>
+	 * request. All elements are in Adept namespace except for the optional Dublin
+	 * Core metadata elements, which are in the Dublin Core namespace. <br>
+	 * Specifically: Creates a new DOM Document and package element in AdeptNS. If
+	 * there are optional elements that were read from the XML Source file, these
+	 * get extracted and appended to the packageElementin the correct order. If
+	 * metadata is present, creates <var>metadataElement</var> and appends the
+	 * appropriate DC metadata elements to it. Next, it appends the
+	 * <var>metadataElement</var> to the <var>packagElement</var>. If there are
+	 * permissions present, imports the <var>permissionsElement</var> from the XML
+	 * document and appends it to the <var>packageElement</var>. Next, it appends
+	 * the required Adept element data (containing the base64 encoded book bytes).
+	 * If there is a thumbail file present, it appends the base64 encoded
+	 * thumbnail bytes. Next, it appends the rest of the required Adept elements:
+	 * expiration (containing expiration time in W3CDTF, which is made to be the
+	 * current time + <var>EXPIRATION_INTERVAL</var> minutes), and the nonce (this
+	 * unique identifier is created with makeNonce() and is dependent on
+	 * <var>initTime</var> and and incremented counter). Finally, the HMAC is
+	 * calculated and appended to the <var>packageElement</var>. The
+	 * <var>packageElement</var> is appended to the Document and the Document is
+	 * serialized with transDoc() and returned. <br>
 	 * Shown below is the structure of the package request produced. Optional
 	 * elements are marked with <tt>**OPT</tt>
 	 * 
@@ -1039,7 +885,7 @@ public class PackageTool {
 	 * </pre>
 	 * 
 	 * @param fileName
-	 *            Path of source file used to find XML file
+	 *          Path of source file used to find XML file
 	 * @see PackageTool#removeExtension(String)
 	 * @see XMLUtil#createDocument()
 	 * @see Document#createElementNS(String, String)
@@ -1063,67 +909,55 @@ public class PackageTool {
 			System.out.println("\nCreating package request for: " + fileName);
 
 			// Setting up DOM Document structures
-			String fileNameNoExt = removeExtension(fileName);
 			Document doc = XMLUtil.createDocument();
 			Element packageElement = doc.createElementNS(AdeptNS, "package");
-			
+
 			// Extract and add appropriate optional elements from XML Source
 			packageElement.setAttribute("action", action);
-			
+
 			if (resource != null) {
 				addNewAdeptElement(doc, "resource", resource, packageElement);
 			}
-			
+
 			// optional dc metadata is included if the corresponding
 			// dc metadata String has been assigned a value
 			if (hasMetadata || hasDefaultMetadata) {
-				Element metadataElement = doc.createElementNS(AdeptNS,
-						"metadata");
-				metadataElement.setAttributeNS("http://www.w3.org/2000/xmlns/",
-						"xmlns:" + DublinCorePrefix, DublinCoreNS);
+				Element metadataElement = doc.createElementNS(AdeptNS, "metadata");
+				metadataElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + DublinCorePrefix, DublinCoreNS);
 				if (!dcTitle.equals("")) {
 					addNewDCElement(doc, "title", dcTitle, metadataElement);
 				} else if (dcTitle.equals("") && !dcTitleDefault.equals("")) {
-					addNewDCElement(doc, "title", dcTitleDefault,
-							metadataElement);
+					addNewDCElement(doc, "title", dcTitleDefault, metadataElement);
 				}
 				if (!dcDescription.equals("")) {
 					addNewDCElement(doc, "description", dcDescription, metadataElement);
 				} else if (dcDescription.equals("") && !dcDescriptionDefault.equals("")) {
-					addNewDCElement(doc, "description", dcDescriptionDefault,
-							metadataElement);
+					addNewDCElement(doc, "description", dcDescriptionDefault, metadataElement);
 				}
 				if (!dcLanguage.equals("")) {
 					addNewDCElement(doc, "language", dcLanguage, metadataElement);
 				} else if (dcLanguage.equals("") && !dcLanguageDefault.equals("")) {
-					addNewDCElement(doc, "language", dcLanguageDefault,
-							metadataElement);
+					addNewDCElement(doc, "language", dcLanguageDefault, metadataElement);
 				}
 				if (!dcCreator.equals("")) {
 					addNewDCElement(doc, "creator", dcCreator, metadataElement);
 				} else if (dcCreator.equals("") && !dcCreatorDefault.equals("")) {
-					addNewDCElement(doc, "creator", dcCreatorDefault,
-							metadataElement);
+					addNewDCElement(doc, "creator", dcCreatorDefault, metadataElement);
 				}
 				if (!dcPublisher.equals("")) {
-					addNewDCElement(doc, "publisher", dcPublisher,
-							metadataElement);
-				} else if (dcPublisher.equals("")
-						&& !dcPublisherDefault.equals("")) {
-					addNewDCElement(doc, "publisher", dcPublisherDefault,
-							metadataElement);
+					addNewDCElement(doc, "publisher", dcPublisher, metadataElement);
+				} else if (dcPublisher.equals("") && !dcPublisherDefault.equals("")) {
+					addNewDCElement(doc, "publisher", dcPublisherDefault, metadataElement);
 				}
 				if (!dcFormat.equals("")) {
 					addNewDCElement(doc, "format", dcFormat, metadataElement);
 				} else if (dcFormat.equals("") && !dcFormatDefault.equals("")) {
-					addNewDCElement(doc, "format", dcFormatDefault,
-							metadataElement);
+					addNewDCElement(doc, "format", dcFormatDefault, metadataElement);
 				}
 				if (!dcIdentifier.equals("")) {
 					addNewDCElement(doc, "identifier", dcIdentifier, metadataElement);
 				} else if (dcIdentifier.equals("") && !dcIdentifierDefault.equals("")) {
-					addNewDCElement(doc, "identifier", dcIdentifierDefault,
-							metadataElement);
+					addNewDCElement(doc, "identifier", dcIdentifierDefault, metadataElement);
 				}
 
 				packageElement.appendChild(metadataElement);
@@ -1131,7 +965,8 @@ public class PackageTool {
 
 			// add permissions, if present
 			if (hasPermissions) {
-				//TODO: Add default permissions to the item that would be applied beyond what the distributor does
+				// TODO: Add default permissions to the item that would be applied
+				// beyond what the distributor does
 			}
 
 			// if dataPath Mode is engaged and the XML config has dataPath
@@ -1139,16 +974,13 @@ public class PackageTool {
 			// use dataPath instead of data element.
 			addNewAdeptElement(doc, "dataPath", fileName, packageElement);
 
-			//TODO: add thumbnail?
+			// TODO: add thumbnail?
 
 			// expiration set to be EXPIRATION_INTERVAL min from current time
-			addNewAdeptElement(doc, "expiration", XMLUtil
-					.dateToW3CDTF(new Date(System.currentTimeMillis()
-							+ EXPIRATION_INTERVAL * 60 * 1000)), packageElement);
+			addNewAdeptElement(doc, "expiration", XMLUtil.dateToW3CDTF(new Date(System.currentTimeMillis() + EXPIRATION_INTERVAL * 60 * 1000)), packageElement);
 
 			// base64 encoded nonce based on initTime and incremental counter
-			addNewAdeptElement(doc, "nonce", Base64.encodeBytes(makeNonce()),
-					packageElement);
+			addNewAdeptElement(doc, "nonce", Base64.encodeBytes(makeNonce()), packageElement);
 
 			doc.appendChild(packageElement);
 
@@ -1179,21 +1011,18 @@ public class PackageTool {
 	/**
 	 * Using the HttpURLConnection with the packaging server, this method sends
 	 * the serialized XML content to the server and recieves back the server's
-	 * response. It then calls displayContent() to display the server's
-	 * response.
+	 * response. It then calls displayContent() to display the server's response.
 	 * 
 	 * @param outputString
-	 *            Serialized XML package request to be sent to server
+	 *          Serialized XML package request to be sent to server
 	 * @param conn
-	 *            Properly configured HttpURLConnection with the packaging
-	 *            server
+	 *          Properly configured HttpURLConnection with the packaging server
 	 * @see PackageTool#displayContent(int, String, String)
 	 * @throws Exception
-	 *             When HttpURLConnection, OutputStream, or InputStreamReader
-	 *             would throw exeption.
+	 *           When HttpURLConnection, OutputStream, or InputStreamReader would
+	 *           throw exeption.
 	 */
-	private void sendContent(String outputString, HttpURLConnection conn)
-			throws Exception {
+	private ACSResult sendContent(String outputString, HttpURLConnection conn) throws Exception {
 		System.out.println("Sending Package Request");
 
 		// Send serialized XML
@@ -1217,39 +1046,39 @@ public class PackageTool {
 		}
 
 		// Pass server's response to displayContent()
-		displayContent(code, contentType, responseText.toString());
+		ACSResult result = parseServerResponse(code, contentType, responseText.toString());
+		return result;
 	}
 
 	/**
-	 * Displays server's response in console window in a readable fashion. If
-	 * the server returns an error, displays the error and increments errors. If
-	 * the server returns a valid response, increments successes and if
-	 * verboseDisplay = true, displays the complete Response. If
-	 * <var>verboseDisplay</var> = false, displays only that the Request was
-	 * successful. This method will flag an error if the server response is not
-	 * 200 and the content type is not "application/vnd.adobe.adept+xml"
+	 * Displays server's response in console window in a readable fashion. If the
+	 * server returns an error, displays the error and increments errors. If the
+	 * server returns a valid response, increments successes and if verboseDisplay
+	 * = true, displays the complete Response. If <var>verboseDisplay</var> =
+	 * false, displays only that the Request was successful. This method will flag
+	 * an error if the server response is not 200 and the content type is not
+	 * "application/vnd.adobe.adept+xml"
 	 * 
 	 * @param code
-	 *            Server's HTML Response Code
+	 *          Server's HTML Response Code
 	 * @param contentType
-	 *            Server's Response Content Type
+	 *          Server's Response Content Type
 	 * @param responseString
-	 *            Server's Response
+	 *          Server's Response
 	 * @see PackageTool#verboseDisplay
 	 * @see PackageTool#errors
 	 * @see PackageTool#successes
 	 */
-	private void displayContent(int code, String contentType,
-			String responseString) {
+	private ACSResult parseServerResponse(int code, String contentType, String responseString) {
+		ACSResult result = new ACSResult();
 		/*
 		 * The response is an error (or is invalid) if: -> it begins with "<error"
-		 * (as this is the way the packaging server returns errors) -> the
-		 * response code is not 200 (the request succeeded) -> the response
-		 * content type is not application/vdn.adobe.adept+xml (all responses
-		 * from Adobe packaging servers will have this content type)
+		 * (as this is the way the packaging server returns errors) -> the response
+		 * code is not 200 (the request succeeded) -> the response content type is
+		 * not application/vdn.adobe.adept+xml (all responses from Adobe packaging
+		 * servers will have this content type)
 		 */
-		if (responseString.substring(1, 6).equals("error") || code != 200
-				|| !contentType.equals("application/vnd.adobe.adept+xml")) {
+		if (responseString.substring(1, 6).equals("error") || code != 200 || !contentType.equals("application/vnd.adobe.adept+xml")) {
 			if (verboseDisplay) {
 				System.err.println("HTML Response Code: " + code);
 				System.err.println("Response Content Type: " + contentType);
@@ -1258,38 +1087,68 @@ public class PackageTool {
 			System.err.println(responseString);
 			failedFiles = failedFiles.concat(currentFileName + "\n");
 			errors++;
-		} else if (verboseDisplay) {
-			System.out.println("HTML Response Code: " + code);
-			System.out.println("Response Content Type: " + contentType);
-			System.out.println("Response:\n" + responseString);
-			successes++;
-			if (dcTitle.equals(""))
-				System.out.println("The book has been successfully packaged!");
-			else
-				System.out.println("The book \"" + dcTitle
-						+ "\" has been successfully packaged");
+			result.setSuccess(false);
+			result.setAcsError(responseString);
 		} else {
+			// Result packaged successfully
+			if (verboseDisplay) {
+				System.out.println("HTML Response Code: " + code);
+				System.out.println("Response Content Type: " + contentType);
+				System.out.println("Response:\n" + responseString);
+			}
 			successes++;
-			if (dcTitle.equals(""))
+			if (dcTitle.equals("")) {
 				System.out.println("The book has been successfully packaged!");
-			else
-				System.out.println("The book \"" + dcTitle
-						+ "\" has been successfully packaged!");
+			} else {
+				System.out.println("The book \"" + dcTitle + "\" has been successfully packaged");
+			}
+			// Extract the acs id
+			// Result looks like this:
+			/*
+			 * <resourceItemInfo xmlns="http://ns.adobe.com/adept">
+			 * <resource>urn:uuid:{resourceId}</resource>
+			 * <resourceItem>0</resourceItem> <metadata> <dc:title
+			 * xmlns:dc="http://purl.org/dc/elements/1.1/">Earthquakes</dc:title>
+			 * <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/"></dc:creator>
+			 * <dc:format
+			 * xmlns:dc="http://purl.org/dc/elements/1.1/">application/pdf</dc:frmat>
+			 * </metadata> <src>http://server/drm/{resourceId}.{pdf|epub}</src>
+			 * <downloadType>simple</downloadType> <licenseToken>
+			 * <resource>urn:uuid:{resourceId}</resource> </licenseToken>
+			 * </resourceItemInfo>
+			 */
+			// resourceId is formatted as:
+			// [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
+			try {
+				Pattern Regex = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", Pattern.CANON_EQ);
+				Matcher RegexMatcher = Regex.matcher(responseString);
+				if (RegexMatcher.find()) {
+					result.setSuccess(true);
+					String acsId = RegexMatcher.group();
+					result.setAcsId(acsId);
+				}
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
+				result.setSuccess(false);
+				result.setAcsError("Error loading acsId from response " + ex.toString());
+			}
+
 		}
+
+		return result;
 	}
 
 	/* ******** C O N S T R U C T O R A N D M A I N ******** */
 
 	/**
 	 * UploadTest Constructor. <br>
-	 * Passes arguments from main to scanArgsForFlags() to scan for flags.
-	 * Assigns <var>targetURL</var> the value of the first argument and assigns
+	 * Passes arguments from main to scanArgsForFlags() to scan for flags. Assigns
+	 * <var>targetURL</var> the value of the first argument and assigns
 	 * <var>fileOrDirName</var> the value of the second argument. <br>
-	 * Creates a file from <var>fileOrDirName</var> and determines whether it
-	 * is a File or a Directory: <br>
+	 * Creates a file from <var>fileOrDirName</var> and determines whether it is a
+	 * File or a Directory: <br>
 	 * If it is a file, calls makeContent() to make the package request and then
-	 * sendContent() to send it to the server and display the server's response.
-	 * <br>
+	 * sendContent() to send it to the server and display the server's response. <br>
 	 * If it is a directory, for every file in that directory that has the
 	 * extension ".pdf" or ".epub", it calls makeContent() to make the package
 	 * request and then sendContent() to send it to the server and display the
@@ -1297,7 +1156,7 @@ public class PackageTool {
 	 * Finally, displays a summary of the successes and errors to the console.
 	 * 
 	 * @param args
-	 *            The array of arguments passed to main
+	 *          The array of arguments passed to main
 	 * @see PackageTool#scanArgsForFlags(String[])
 	 * @see PackageTool#createFilenameFilter()
 	 * @see PackageTool#makeContent(String)
@@ -1306,21 +1165,22 @@ public class PackageTool {
 	 * @see PackageTool#errors
 	 * @see PackageTool#successes
 	 */
-	public PackageTool(String targetURL) {
+	public PackageTool(String targetURL, String distributionURL) {
 		this.targetURL = targetURL;
+		this.distributionURL = distributionURL;
 	}
 
-	public ACSResult packageFile(String fileName){
+	public ACSResult packageFile(String fileName, String distributorId, Long copies) {
 		File file = new File(fileName);
 		String output = "";
 		ACSResult result = new ACSResult();
 
 		/*
-		 * if fileOrDirName specifies a file, generate a package request, create
-		 * a new connection to the packaging server, and send it
+		 * if fileOrDirName specifies a file, generate a package request, create a
+		 * new connection to the packaging server, and send it
 		 */
 		if (file.exists() && file.isFile()) {
-			if (verboseDisplay){
+			if (verboseDisplay) {
 				System.out.println("Found target file: " + file.getAbsolutePath());
 			}
 
@@ -1328,8 +1188,12 @@ public class PackageTool {
 			currentFileName = fileName;
 			output = makeContent(fileName);
 			try {
-				if (output != null)
-					sendContent(output, createConnection(targetURL));
+				if (output != null) {
+					result = sendContent(output, createConnection(targetURL));
+					if (result.isSuccess()) {
+						result = addDistributionRights(distributorId, result.getAcsId(), copies);
+					}
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				errors++;
@@ -1345,9 +1209,164 @@ public class PackageTool {
 			System.out.println("Here are the files that failed to package: \n" + failedFiles);
 			result.setSuccess(false);
 			return result;
-		}else{
+		} else {
 			result.setSuccess(true);
 			return result;
 		}
+	}
+
+	private ACSResult addDistributionRights(String distributorId, String acsId, Long copies) {
+		ACSResult result = new ACSResult();
+		result.setAcsId(acsId);
+		
+		try {
+			String request = makeDistributionRequest(distributorId, acsId, copies);
+			if (request != null) {
+				result = sendDistributionRequest(request, createConnection(distributionURL), result);
+			}
+		} catch (Exception e) {
+			result.setAcsError("Error assigning distribution rights " + e.toString());
+			errors++;
+		}
+
+		return result;
+	}
+
+	
+	private ACSResult sendDistributionRequest(String request, HttpURLConnection conn, ACSResult result) throws Exception {
+		System.out.println("Sending Package Request");
+
+		// Send serialized XML
+		OutputStream out = conn.getOutputStream();
+		out.write(request.getBytes("UTF-8"));
+		out.close();
+
+		// Make sure connection is still live
+		conn.connect();
+
+		// Receive server's response and put into StringBuffer
+		final int code = conn.getResponseCode();
+		final String contentType = conn.getContentType();
+		final StringBuffer responseText = new StringBuffer();
+		InputStreamReader in = new InputStreamReader(conn.getInputStream(), "UTF-8");
+
+		char[] msg = new char[2048];
+		int len;
+		while ((len = in.read(msg)) > 0) {
+			responseText.append(msg, 0, len);
+		}
+
+		// Pass server's response to displayContent()
+		return parseDistributionResponse(code, contentType, responseText.toString(), result);
+	}
+
+	private ACSResult parseDistributionResponse(int code, String contentType, String responseString, ACSResult result) {
+		/*
+		 * The response is an error (or is invalid) if: -> it begins with "<error"
+		 * (as this is the way the packaging server returns errors) -> the response
+		 * code is not 200 (the request succeeded) -> the response content type is
+		 * not application/vdn.adobe.adept+xml (all responses from Adobe packaging
+		 * servers will have this content type)
+		 */
+		if (responseString.substring(1, 6).equals("error") || code != 200 || !contentType.equals("application/vnd.adobe.adept+xml")) {
+			if (verboseDisplay) {
+				System.err.println("HTML Response Code: " + code);
+				System.err.println("Response Content Type: " + contentType);
+			}
+			System.err.println("There was an error with the Package Request");
+			System.err.println(responseString);
+			failedFiles = failedFiles.concat(currentFileName + "\n");
+			errors++;
+			result.setSuccess(false);
+			result.setAcsError(responseString);
+		} else {
+			// Result packaged successfully
+			if (verboseDisplay) {
+				System.out.println("HTML Response Code: " + code);
+				System.out.println("Response Content Type: " + contentType);
+				System.out.println("Response:\n" + responseString);
+			}
+			successes++;
+			if (dcTitle.equals("")) {
+				System.out.println("The book has distribution applied");
+			} else {
+				System.out.println("The book \"" + dcTitle + "\" has distribution applied");
+			}
+		}
+
+		return result;
+	}
+
+	/*
+	 * Format of distribution rights xml is as follows: 
+	 * <request action="{create|update}" auth="builtin" xmlns="http://ns.adobe.com/adept"> 
+	 *   <nonce>qK0pbgAAAEw=</nonce>
+	 *   <expiration>2012-06-01T16:02:29-00:00</expiration>
+	 *   <distributionRights>
+	 *     <distributor>urn:uuid:a2d462e4-55d2-49c6-88de-1805f857d057</distributor>
+	 *     <resource>urn:uuid:003d2ffd-489b-4800-b864-e61e98ff5603</resource>
+	 *     <distributionType>loan</distributionType> 
+	 *     <permissions>
+	 *       <display>
+	 *         <duration>1814400</duration> 
+	 *       </display>
+	 *     </permissions>
+	 *     <available>{copies}</available> 
+	 *     <returnable>true</returnable>
+	 *     <userType>user</userType> 
+	 *   </distributionRights>
+	 *   <hmac>/qCcYqkCkqBv9YKNZuuFjqgeOKI=</hmac> 
+	 * </request>
+	 */
+	private String makeDistributionRequest(String distributorId, String acsId, Long copies) throws Exception, NoSuchAlgorithmException,
+			UnsupportedEncodingException {
+		Document doc = XMLUtil.createDocument();
+		Element requestElement = doc.createElementNS(AdeptNS, "request");
+		if (this.resource != null) {
+			requestElement.setAttribute("action", "update");
+		} else {
+			requestElement.setAttribute("action", "create");
+		}
+		requestElement.setAttribute("auth", "builtin");
+
+		addNewAdeptElement(doc, "nonce", Base64.encodeBytes(makeNonce()), requestElement);
+
+		// expiration set to be EXPIRATION_INTERVAL min from current time
+		addNewAdeptElement(doc, "expiration", XMLUtil.dateToW3CDTF(new Date(System.currentTimeMillis() + EXPIRATION_INTERVAL * 60 * 1000)), requestElement);
+		
+		//Setup basic information for the distribution
+		Element distributionRights = doc.createElementNS(AdeptNS, "distributionRights");
+		addNewAdeptElement(doc, "distributor", "urn:uuid:" + distributorId, distributionRights);
+		addNewAdeptElement(doc, "resource", "urn:uuid:" + acsId, distributionRights);
+		addNewAdeptElement(doc, "distributionType", "loan", distributionRights);
+		
+		//Setup permissions for how long we can display the title
+		Element permissionsElement = doc.createElementNS(AdeptNS, "permissions");
+		Element displayElement = doc.createElementNS(AdeptNS, "display");
+		addNewAdeptElement(doc, "duration", "1814400", displayElement);
+		permissionsElement.appendChild(displayElement);
+		distributionRights.appendChild(permissionsElement);
+		requestElement.appendChild(distributionRights);
+		
+		//Setup number of copies
+		addNewAdeptElement(doc, "available", copies.toString(), distributionRights);
+		addNewAdeptElement(doc, "returnable", "true", distributionRights);
+		addNewAdeptElement(doc, "userType", "user", distributionRights);
+		
+		if (getHmacKey() != null) {
+			// retrieve HMAC key and run a raw SHA1 HASH on it.
+			byte[] hmacKeyBytesSHA1 = XMLUtil.SHA1(getHmacKey());
+			// use the resulting bytes to generate HMAC
+			XMLUtil.hmac(hmacKeyBytesSHA1, requestElement);
+		}
+		
+		doc.appendChild(requestElement);
+		
+		String requestContent = transDoc(doc);
+		if (verboseDisplay) {
+			System.out.println("Distribution Request:\n");
+			System.out.println(requestContent);
+		}
+		return requestContent;
 	}
 }
