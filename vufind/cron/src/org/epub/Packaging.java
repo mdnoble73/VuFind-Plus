@@ -75,7 +75,7 @@ public class Packaging implements IProcessHandler{
 		vufindUrl = Util.cleanIniValue(configIni.get("Site", "url"));
 		
 		//Load configuration
-		String rootFTPDir = configIni.get("EContent", "rootFTPDir");
+		String rootFTPDir = Util.cleanIniValue(configIni.get("EContent", "rootFTPDir"));
 		if (rootFTPDir == null || rootFTPDir.length() == 0){
 			logger.error("Could not find rootFTPDir in EContent section of the config file");
 			processLog.addNote("Could not find rootFTPDir in EContent section of the config file, stopping process.");
