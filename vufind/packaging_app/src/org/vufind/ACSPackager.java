@@ -103,10 +103,14 @@ public class ACSPackager {
 					}
 					//Update the status of the file
 				}else{
-					//No more files to process, quit (or just sleep a few minutes?)
-					break;
+					//No files to process, rest for a minute
+					try {
+						Thread.sleep(60 * 1000);
+					} catch (InterruptedException e) {
+						logger.error("Thread was interrupted, quitting", e);
+						break;
+					}
 				}
-				break;
 			} catch (SQLException e) {
 				logger.error("Error getting next file to package", e);
 				break;
