@@ -228,20 +228,24 @@ public class Packaging implements IProcessHandler{
 	private void processPublisherFiles(String publisherName, File receivedDataFolder, File processedDataFolder) {
 		File[] filesToPublish = receivedDataFolder.listFiles();
 		for (File fileToProcess : filesToPublish){
-			//Check to see the file already exists in the processed folder
-			File processedFile = new File(processedDataFolder + File.separator + fileToProcess.getName());
-			if (processedFile.exists()){
-				//Check to see if the file is the same as the old file
-				if (fileToProcess.length() == processedFile.length()){
-					processLog.addNote("Skipping " + fileToProcess + " because it has already been processed");
+			if (fileToProcess.isFile()){
+				//Check to see the file already exists in the processed folder
+				File processedFile = new File(processedDataFolder + File.separator + fileToProcess.getName());
+				if (processedFile.exists()){
+					//Check to see if the file is the same as the old file
+					if (fileToProcess.length() == processedFile.length()){
+						processLog.addNote("Skipping " + fileToProcess + " because it has already been processed");
+					}else{
+						processLog.addNote("Processing updated file " + fileToProcess);
+						processPublisherFile(publisherName, fileToProcess, processedFile, true);
+					}
 				}else{
-					processLog.addNote("Processing updated file " + fileToProcess);
-					processPublisherFile(publisherName, fileToProcess, processedFile, true);
+					//The file is new and needs to be processed.  
+					processLog.addNote("Processing new file " + fileToProcess);
+					processPublisherFile(publisherName, fileToProcess, processedFile, false);
 				}
 			}else{
-				//The file is new and needs to be processed.  
-				processLog.addNote("Processing new file " + fileToProcess);
-				processPublisherFile(publisherName, fileToProcess, processedFile, false);
+				processLog.addNote("Skipping directory " + fileToProcess.getAbsolutePath());
 			}
 		}
 	}
