@@ -447,6 +447,9 @@ public class Packaging implements IProcessHandler{
 				processLog.incErrors();
 				return;
 			}
+			
+			//If the file has been processed by all sources, delete the original file. 
+			//TODO: remove the file
 		}
 	}
 
