@@ -26,7 +26,7 @@ public String getAcceleratedReaderReadingLevel(Record record){
 					if (RegexMatcher.find()) {
 						String arData = RegexMatcher.group(1);
 						result = arData;
-						System.out.println("AR Reading Level " + result);
+						//System.out.println("AR Reading Level " + result);
 						return result;
 					} 
 				} catch (PatternSyntaxException ex) {
@@ -62,7 +62,7 @@ public String getAcceleratedReaderPointLevel(Record record){
 					if (RegexMatcher.find()) {
 						String arData = RegexMatcher.group(1);
 						result = arData;
-						System.out.println("AR Point Level " + result);
+						//System.out.println("AR Point Level " + result);
 						return result;
 					} 
 				} catch (PatternSyntaxException ex) {

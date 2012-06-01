@@ -51,7 +51,7 @@ public class MarcProcessor {
 	private String marcEncoding = "UTF8";
 
 	protected String							marcRecordPath;
-	private HashMap<String, Long>	marcChecksums = new HashMap<String, Long>();
+	private HashMap<String, MarcIndexInfo>	marcIndexInfo = new HashMap<String, MarcIndexInfo>();
 
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>			marcFieldProps	= new HashMap<String, String[]>();
@@ -80,8 +80,8 @@ public class MarcProcessor {
 
 	protected int													recordsProcessed		= 0;
 	protected int													maxRecordsToProcess	= -1;
-	private PreparedStatement							insertChecksumStmt;
-	private PreparedStatement							updateChecksumStmt;
+	private PreparedStatement							insertMarcInfoStmt;
+	private PreparedStatement							updateMarcInfoStmt;
 	
 	private HashSet<String> existingEContentIds			= new HashSet<String>(); 
 	private HashMap<String, Float> printRatings 		= new HashMap<String, Float>();
@@ -149,7 +149,12 @@ public class MarcProcessor {
 			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import");
 			ResultSet existingRecordChecksumsRS = existingRecordChecksumsStmt.executeQuery();
 			while (existingRecordChecksumsRS.next()) {
-				marcChecksums.put(existingRecordChecksumsRS.getString("id"), existingRecordChecksumsRS.getLong("checksum"));
+				MarcIndexInfo marcInfo = new MarcIndexInfo();
+				marcInfo.setChecksum(existingRecordChecksumsRS.getLong("checksum"));
+				marcInfo.setBackupChecksum(existingRecordChecksumsRS.getLong("backup_checksum"));
+				marcInfo.setEContent(existingRecordChecksumsRS.getBoolean("eContent"));
+				marcInfo.setBackupEContent(existingRecordChecksumsRS.getBoolean("backup_eContent"));
+				marcIndexInfo.put(existingRecordChecksumsRS.getString("id"), marcInfo);
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load checksums for existing records", e);
@@ -209,8 +214,8 @@ public class MarcProcessor {
 		
 		// Setup additional statements 
 		try {
-			insertChecksumStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum) VALUES (?, ?)");
-			updateChecksumStmt = vufindConn.prepareStatement("UPDATE marc_import SET checksum = ? WHERE id = ?");
+			insertMarcInfoStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum, eContent) VALUES (?, ?, ?)");
+			updateMarcInfoStmt = vufindConn.prepareStatement("UPDATE marc_import SET checksum = ?, backup_checksum = ?, eContent = ?, backup_eContent = ? WHERE id = ?");
 		} catch (SQLException e) {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
@@ -485,13 +490,8 @@ public class MarcProcessor {
 	 * @return
 	 */
 	protected MarcRecordDetails mapMarcInfo(Record marcRecord, Logger logger) {
-		MarcRecordDetails basicInfo = new MarcRecordDetails();
-		if (!basicInfo.mapRecord(this, marcRecord, logger)) {
-			logger.error("Could not find item for record");
-			return null;
-		} else {
-			return basicInfo;
-		}
+		MarcRecordDetails basicInfo = new MarcRecordDetails(this, marcRecord, logger);
+		return basicInfo;
 	}
 
 	protected boolean processMarcFiles(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger) {
@@ -538,33 +538,44 @@ public class MarcProcessor {
 									System.out.println(marcFieldProps.get("id").toString());
 									System.exit(1);
 								}
-								if (marcChecksums.containsKey(marcInfo.getId())) {
-									Long lastChecksum = marcChecksums.get(marcInfo.getId());
-									if (marcInfo.getChecksum() != lastChecksum) {
-										logger.info("Record is changed");
+								MarcIndexInfo marcIndexedInfo = null;
+								if (marcIndexInfo.containsKey(marcInfo.getId())) {
+									marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
+									if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum() 
+											|| marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()
+											|| marcInfo.isEContent() != marcIndexedInfo.isEContent() 
+											|| marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()
+											) {
+										//logger.info("Record is changed");
 										recordStatus = RECORD_CHANGED;
 									} else {
-										logger.info("Record is unchanged");
+										//logger.info("Record is unchanged");
 										recordStatus = RECORD_UNCHANGED;
 									}
 								} else {
 									logger.info("Record is new");
 									recordStatus = RECORD_NEW;
 								}
-
+								
 								for (IMarcRecordProcessor processor : recordProcessors) {
+									//System.out.println("Running processor " + processor.getClass().getName());
 									processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 								}
 
 								// Update the checksum in the database
 								if (recordStatus == RECORD_CHANGED) {
-									updateChecksumStmt.setLong(1, marcInfo.getChecksum());
-									updateChecksumStmt.setString(2, marcInfo.getId());
-									updateChecksumStmt.executeUpdate();
+									updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
+									updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
+									updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+									updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
+									updateMarcInfoStmt.setString(5, marcInfo.getId());
+									updateMarcInfoStmt.executeUpdate();
 								} else if (recordStatus == RECORD_NEW) {
-									insertChecksumStmt.setString(1, marcInfo.getId());
-									insertChecksumStmt.setLong(2, marcInfo.getChecksum());
-									insertChecksumStmt.executeUpdate();
+									insertMarcInfoStmt.setString(1, marcInfo.getId());
+									insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
+									insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+									
+									insertMarcInfoStmt.executeUpdate();
 								}
 							}
 							recordsProcessed++;

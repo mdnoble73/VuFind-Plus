@@ -901,7 +901,17 @@ class DBMaintenance extends Admin {
 			'description' => 'Increase the length of the checksum field for the marc import.',
 			'dependencies' => array(),
 			'sql' => array(
-				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id when it was last imported.'",
+				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id as it currently exists in the active index.'",
+			),
+		),
+		'marcImport_2' => array(
+			'title' => 'Marc Import table Update 1',
+			'description' => 'Increase the length of the checksum field for the marc import.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import ADD COLUMN `backup_checksum` BIGINT NOT NULL COMMENT 'The checksum of the id in the backup index.'",
+				"ALTER TABLE marc_import ADD COLUMN `eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the active index.'",
+				"ALTER TABLE marc_import ADD COLUMN `backup_eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
 			),
 		),
 		'add_indexes' => array(
