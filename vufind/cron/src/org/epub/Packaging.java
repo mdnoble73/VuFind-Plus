@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,6 +46,10 @@ public class Packaging implements IProcessHandler{
 	private PreparedStatement updateItemGeneratedInLog;
 	private PreparedStatement updateSentToAcsServerInLog;
 	private PreparedStatement updateProcessingCompleteInLog;
+	private PreparedStatement	filesToGetAcsPackagingInfoFor;
+	private PreparedStatement	updateAcsError;
+	private PreparedStatement	updateAcsId;
+	private PreparedStatement	updateAcsIdForItem;
 	
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -165,7 +170,10 @@ public class Packaging implements IProcessHandler{
 			updateItemGeneratedInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set econtentItemId = ?, status = 'itemGenerated' WHERE id = ?");
 			updateSentToAcsServerInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set packagingId = ?, status = 'sentToAcs' WHERE id = ?");
 			updateProcessingCompleteInLog = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set status = 'processingComplete' WHERE id = ?");
-			
+			filesToGetAcsPackagingInfoFor = econtentConn.prepareStatement("SELECT id, distributorId, packagingId, econtentItemId FROM econtent_file_packaging_log where status = 'sentToAcs'", ResultSet.FETCH_FORWARD, ResultSet.CONCUR_READ_ONLY);
+			updateAcsError = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set status = 'acsError', acsError=? WHERE id = ?");
+			updateAcsId = econtentConn.prepareStatement("UPDATE econtent_file_packaging_log set status = 'acsIdGenerated', acsId=? WHERE id = ?");
+			updateAcsIdForItem = econtentConn.prepareStatement("UPDATE econtent_item set acsId = ? where id = ?");
 			
 		} catch (SQLException e) {
 			logger.error("Unable to prepare statements for packaging");
@@ -182,8 +190,68 @@ public class Packaging implements IProcessHandler{
 	}
 
 	private void getResultsFromPackagingService() {
-		// TODO Auto-generated method stub
+		//Get a list of files that we need to get packaging information for
+		try {
+			ResultSet filesToGetAcsPackagingInfoForRs = filesToGetAcsPackagingInfoFor.executeQuery();
+			while (filesToGetAcsPackagingInfoForRs.next()){
+				Long id = filesToGetAcsPackagingInfoForRs.getLong("id");
+				String distributorId = filesToGetAcsPackagingInfoForRs.getString("distributorId");
+				Long packagingId = filesToGetAcsPackagingInfoForRs.getLong("packagingId");
+				Long econtentItemId = filesToGetAcsPackagingInfoForRs.getLong("econtentItemId");
+				getPackagingResults(id, distributorId, packagingId, econtentItemId);
+			}
+		} catch (SQLException e) {
+			processLog.addNote("Error getting results from packaging service " + e.toString());
+			processLog.incErrors();
+		}
 		
+	}
+
+	private void getPackagingResults(Long id, String distributorId, Long packagingId, long eContentItemId) {
+		try {
+			URL getProtectionStatusRequest = new URL(packagingUrl + 
+					"?method=GetFileProtectionStatus" +
+					"&distributorId=" + distributorId +
+					"&packagingId=" + packagingId);
+			String getProtectionStatusContents = Util.convertStreamToString((InputStream)getProtectionStatusRequest.getContent());
+			System.out.println(getProtectionStatusContents);
+			JSONObject response = new JSONObject(getProtectionStatusContents);
+			if (response.has("success") && response.getBoolean("success") == true){
+				JSONObject record = response.getJSONObject("record");
+				String acsId = record.getString("acsId");
+				String acsError = record.getString("acsError");
+				String status = record.getString("status");
+				if (status.equalsIgnoreCase("acsError")){
+					updateAcsError.setString(1, acsError);
+					updateAcsError.setLong(2, id);
+					updateAcsError.executeUpdate();
+					processLog.incUpdated();
+				}else if (status.equalsIgnoreCase("acsIdGenerated")){
+					updateAcsIdForItem.setString(1, acsId);
+					updateAcsIdForItem.setLong(2, eContentItemId);
+					updateAcsIdForItem.executeUpdate();
+					
+					updateAcsId.setString(1, acsId);
+					updateAcsId.setLong(2, id);
+					updateAcsId.executeUpdate();
+					processLog.incUpdated();
+				}else{
+					logger.debug("Ignoring status " + status);
+					return;
+				}
+			}else{
+				String error = "No Error Found, full response = " + getProtectionStatusContents;
+				if (response.has("error")){
+					error = response.getString("error"); 
+				}
+				processLog.addNote("Error, getting Protection Status. " + error);
+				processLog.incErrors();
+				return;
+			}
+		} catch (Exception e) {
+			processLog.addNote("Error getting packaging results for packagingId " + packagingId + " " + e.toString());
+			processLog.incErrors();
+		}
 	}
 
 	private void processPublisherDirectories() {
@@ -407,7 +475,7 @@ public class Packaging implements IProcessHandler{
 									"&copies=" + availableCopies +
 									"&previousAcsId=" + previousAcsId);
 							String packagingRequestContents = Util.convertStreamToString((InputStream)packagingRequest.getContent());
-							System.out.println(packagingRequestContents);
+							//System.out.println(packagingRequestContents);
 							JSONObject response = new JSONObject(packagingRequestContents);
 							if (response.has("success") && response.getBoolean("success") == true){
 								Long packagingId = response.getLong("packagingId");
