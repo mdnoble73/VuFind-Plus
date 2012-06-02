@@ -1,78 +1,141 @@
+<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
+<div id="page-content" class="content">
+    <div id="sidebar-wrapper"><div id="sidebar">
+        {include file="MyResearch/menu.tpl"}
+        {include file="Admin/menu.tpl"}
+    </div></div>
+
+    <div id="main-content">
+        <h2>Packaging Summary Report</h2>
+        {if $error}
+            <div class="error">{$error}</div>
+        {else}
+            <div id="materialsRequestFilters">
+                <fieldset>
+                <legend>Filters:</legend>
+                <form action="{$path}/EContent/PackagingSummary" method="get">
+                    <div>
+                    <div>
+                        <label for="period">Period</label> 
+                        <select name="period" id="period" onchange="$('#startDate').val('');$('#endDate').val('');";>
+                            <option value="day" {if $period == 'day'}selected="selected"{/if}>Day</option>
+                            <option value="week" {if $period == 'week'}selected="selected"{/if}>Week</option>
+                            <option value="month" {if $period == 'month'}selected="selected"{/if}>Month</option>
+                            <option value="year" {if $period == 'year'}selected="selected"{/if}>Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
+                        <label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
+                    </div>
+                    
+                    <div>
+                    <label for="distributorFilter">Distributor</label>
+                    <select id="distributorFilter" name="distributorFilter[]" multiple="multiple" size="5" class="multiSelectFilter">
+                    {foreach from=$distributorFilter item=distributor}
+                        <option value="{$distributor|escape}" {if in_array($distributor,$selectedDistributorFilter)}selected='selected'{/if}>{$distributor|escape}</option> 
+                    {/foreach}
+                    </select>
+                    </div>
+                    
+                    <div><input type="submit" name="submit" value="Update Filters"/></div>
+                    </div>
+                </form>
+                </fieldset>
+            </div>
+            
+            <h3>Summary by Distributor</h3>
+            {* Display results as graph *}
+            {if $chartByDistributor}
+            <div id="chartByDistributor">
+                <img src="{$chartByDistributor}" />
+                </div>
+            {/if}
+
+            {* Display results in table*}
+            <table id="summaryTableByDistributor" class="tablesorter">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        {foreach from=$distributors item=distributor}
+                            <th>{$distributor|escape}</th>
+                        {/foreach}
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach from=$periodDataByPublisher item=periodInfo key=periodStart}
+                        <tr>
+                            <td>
+                                {* Properly format the period *}
+                                {if $period == 'year'}
+                                    {$periodStart|date_format:'%Y'}
+                                {elseif $period == 'month'}
+                                    {$periodStart|date_format:'%h %Y'}
+                                {else}
+                                    {$periodStart|date_format}
+                                {/if}
+                            </td>
+                            {foreach from=$distributors item=distributor}
+                                <th>{if $periodInfo.$distributor}{$periodInfo.$distributor}{else}0{/if}</th>
+                            {/foreach}
+                        </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+
+            <h3>Summary by Status</h3>
+            {* Display results as graph *}
+            {if $chartByStatus}
+            <div id="chartByStatus">
+                <img src="{$chartByStatus}" />
+                </div>
+            {/if}
+
+            {* Display results in table*}
+            <table id="summaryTableByStatus" class="tablesorter">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        {foreach from=$statuses item=status}
+                            <th>{$status|translate}</th>
+                        {/foreach}
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach from=$periodDataByStatus item=periodInfo key=periodStart}
+                        <tr>
+                            <td>
+                                {* Properly format the period *}
+                                {if $period == 'year'}
+                                    {$periodStart|date_format:'%Y'}
+                                {elseif $period == 'month'}
+                                    {$periodStart|date_format:'%h %Y'}
+                                {else}
+                                    {$periodStart|date_format}
+                                {/if}
+                            </td>
+                            {foreach from=$statuses item=status}
+                                <th>{if $periodInfo.$status}{$periodInfo.$status}{else}0{/if}</th>
+                            {/foreach}
+                        </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+        
+        {/if}
+        
+        <form action="{$fullPath}" method="get">
+            <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+        </form>
+        
+        {* Export to Excel option *}
+    </div>
+</div>
 <script type="text/javascript">
 {literal}
-$(function() {
-		$( "#dateFilterStart" ).datepicker();
-	});
-$(function() {
-	$( "#dateFilterEnd" ).datepicker();
-});
+    $("#startDate").datepicker();
+    $("#endDate").datepicker();
+    $("#summaryTableByDistributor").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: 'date'} } });
+    $("#summaryTableByStatus").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: 'date'} } });
 {/literal}
 </script>
-<div id="page-content" class="content">
-	<div id="sidebar">
-		{include file="MyResearch/menu.tpl"}
-		{include file="Admin/menu.tpl"}
-	</div>
-  
-	<div id="main-content">
-		<h1>Packaging Summary</h1>
-		
-		<div id="filterContainer">
-			<form action="{$path}" method="get">
-			<div id="filterLeftColumn">
-				<div id="startDate">
-					Start Date: 
-					<input id="dateFilterStart" name="dateFilterStart" value="{$selectedDateStart}" />
-				</div>
-				
-				<div id="sourceFilterContainer">
-					Source: <br/> 
-					<select id="sourceFilter" name="sourceFilter[]" multiple="multiple" size="5" class="multiSelectFilter">
-						{section name=resultsSourceFilterRow loop=$resultsSourceFilter} 
-							<option value="{$resultsSourceFilter[resultsSourceFilterRow].SourceValue}" {if !isset($selectedSourceFilter)}selected='selected' {elseif $resultsSourceFilter[resultsSourceFilterRow].SourceValue|in_array:$selectedSourceFilter}selected='selected'{/if}>{$resultsSourceFilter[resultsSourceFilterRow].SourceValue}</option> 
-						{/section} 
-					</select>
-				</div>
-			</div>
-			<div id="filterRightColumn">
-				<div id="endDate">
-					End Date: 
-					<input id="dateFilterEnd" name="dateFilterEnd" value="{$selectedDateEnd}" />
-				</div>
-			</div>
-
-			<div class="divClear"></div>
-			<input type="submit" value="Update Report"/>
-			</form>
-		</div>
-		
-		
- 
-		<p>A total of {$archivedRecords|@count} archived records were found.</p> 
-		
-		<div class="exportButton">
-		<form action="{$path}" method="get">
-		<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
-		</form>
-		</div>
-		
-		<table>
-			<thead>
-				<tr><th>ID</th><th>Title</th><th>Author</th><th>ISBN</th><th>ILS ID</th><th>Source</th><th>Date Archived</th></tr>
-			</thead>
-			{foreach from=$archivedRecords item=record}
-				<tr>
-				<td>{$record->id}</td>
-				<td><a href='{$path}/EcontentRecord/{$record->id}/Home'>{$record->title}</a></td>
-				<td>{$record->author}</td>
-				<td>{$record->isbn}</td>
-				<td>{$record->ilsId}</td>
-				<td>{$record->source}</td>
-				<td>{$record->date_updated|date_format}</td>
-				</tr>
-			{/foreach}
-		</table>
-		
-
-	</div>
-</div>
