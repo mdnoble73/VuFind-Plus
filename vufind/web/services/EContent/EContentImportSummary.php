@@ -23,7 +23,7 @@
 
 require_once 'Action.php';
 require_once('services/Admin/Admin.php');
-require_once('sys/EContentImportDetailsEntry.php');
+require_once('sys/eContent/EContentImportDetailsEntry.php');
 require_once("sys/pChart/class/pData.class.php");
 require_once("sys/pChart/class/pDraw.class.php");
 require_once("sys/pChart/class/pImage.class.php");
@@ -37,6 +37,18 @@ class EContentImportSummary extends Admin {
 		global $interface;
 		global $user;
 
+		// Publisher Filter
+		$allPublishers = $this->getAllPublishers();
+		$interface->assign('publisherFilter', $allPublishers);
+		$selectedPublisherFilter = null;
+		if (isset($_REQUEST['publisherFilter'])){
+			$selectedPublisherFilter = $_REQUEST['publisherFilter'];
+		}
+		$interface->assign('selectedPublisherFilter', $selectedPublisherFilter);
+		$publishers = empty($selectedPublisherFilter) ? $allPublishers : $selectedPublisherFilter;
+		$interface->assign('publishers', $publishers);
+		
+		// Date range filter
 		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
 		if ($period == 'week'){
 			$periodLength  = new DateInterval("P1W");
@@ -90,53 +102,68 @@ class EContentImportSummary extends Admin {
 			array_unshift($periods, clone $periodEnd);
 			$periodEnd->sub($periodLength);
 		}
-		//print_r($periods);
 
+		// create a SQL clause to filter by selected publishers
+		$publisherRestriction = null;
+		if (isset($_REQUEST['publisherFilter'])){
+			$publishersToShow = array();
+			foreach ($_REQUEST['publisherFilter'] as $item){
+				$publishersToShow[] = "'" . mysql_escape_string(strip_tags($item)) . "'";
+			}
+			if (!empty($publishersToShow)) {
+				$publisherRestriction = "publisher IN (" . implode(",", $publishersToShow) . ") ";
+			}
+		}
+	
 		//Load data for each period
-		//this will be a two dimensional array
-		//         Period 1, Period 2, Period 3
-		//Status 1
-		//Status 2
-		//Status 3
-		$periodData = array();
+		$periodDataByPublisher = array();
+		$periodDataByStatus = array();
 		for ($i = 0; $i < count($periods) - 1; $i++){
 			$periodStart = clone $periods[$i];
 			//$periodStart->setTime(0,0,0);
 			$periodEnd = clone $periods[$i+1];
 			//$periodStart->setTime(23, 59, 59);
-			$periodData[$periodStart->getTimestamp()] = array();
-			//Determine how many requests were created
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->selectAdd();
-			$materialsRequest->selectAdd('COUNT(id) as numRequests');
-			$materialsRequest->whereAdd('dateCreated >= ' . $periodStart->getTimestamp() . ' AND dateCreated < ' . $periodEnd->getTimestamp());
-			$materialsRequest->find();
-			while ($materialsRequest->fetch()){
-				$periodData[$periodStart->getTimestamp()]['Created'] = $materialsRequest->numRequests;
+			$periodDataByPublisher[$periodStart->getTimestamp()] = array();
+			$periodDataByStatus[$periodStart->getTimestamp()] = array();
+			
+			//Determine how many files were imported by publisher
+			$importDetails = new EContentImportDetailsEntry();
+			$importDetails->selectAdd();
+			$importDetails->selectAdd('COUNT(id) as numberOfFiles, publisher');
+			$importDetails->whereAdd('dateFound >= ' . $periodStart->getTimestamp() . ' AND dateFound < ' . $periodEnd->getTimestamp());
+			if ($publisherRestriction) {
+				$importDetails->whereAdd($publisherRestriction);
+			}
+			$importDetails->groupBy('publisher');
+			$importDetails->addOrder('publisher');
+			$importDetails->find();
+			while ($importDetails->fetch()){
+				$periodDataByPublisher[$periodStart->getTimestamp()][$importDetails->publisher] = $importDetails->numberOfFiles;
 			}
 
-			//Get a list of all requests by the status of the request
-			$materialsRequest = new MaterialsRequest();
-			$materialsRequest->joinAdd(new MaterialsRequestStatus());
-			$materialsRequest->selectAdd();
-			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
-			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
-			$materialsRequest->groupBy('status');
-			$materialsRequest->addOrder('status');
-			$materialsRequest->find();
-			while ($materialsRequest->fetch()){
-				$periodData[$periodStart->getTimestamp()][$materialsRequest->description] = $materialsRequest->numRequests;
+			//Determine how many files were imported by status
+			$importDetails = new EContentImportDetailsEntry();
+			$importDetails->selectAdd();
+			$importDetails->selectAdd('COUNT(id) as numberOfFiles, status');
+			$importDetails->whereAdd('dateFound >= ' . $periodStart->getTimestamp() . ' AND dateFound < ' . $periodEnd->getTimestamp());
+			if ($publisherRestriction) {
+				$importDetails->whereAdd($publisherRestriction);
+			}
+			$importDetails->groupBy('status');
+			$importDetails->addOrder('status');
+			$importDetails->find();
+			while ($importDetails->fetch()){
+				$periodDataByStatus[$periodStart->getTimestamp()][$importDetails->status] = $importDetails->numberOfFiles;
 			}
 		}
-
-		$interface->assign('periodData', $periodData, $periods);
+		$interface->assign('periodDataByPublisher', $periodDataByPublisher);
+		$interface->assign('periodDataByStatus', $periodDataByStatus);
 
 		//Get a list of all of the statuses that will be shown
+		$statusesUntranslated = $this->getStatuses();
 		$statuses = array();
-		foreach ($periodData as $periodDate => $periodInfo){
-			foreach ($periodInfo as $status => $numRequests){
-				$statuses[$status] = translate($status);
-			}
+		foreach ($statusesUntranslated as $status){
+			$statuses[$status] = translate($status);
 		}
 		$interface->assign('statuses', $statuses);
 
@@ -144,12 +171,13 @@ class EContentImportSummary extends Admin {
 		if (isset($_REQUEST['exportToExcel'])){
 			$this->exportToExcel($periodData, $periods, $statuses);
 		}else{
-			//Generate the graph
-			$this->generateGraph($periodData, $periods, $statuses);
+			//Generate the graphs
+			$this->generateGraphByPublisher($periodDataByPublisher, $periods, $publishers);
+			$this->generateGraphByStatus($periodDataByStatus, $periods, $statuses);
 		}
 
-		$interface->setTemplate('summaryReport.tpl');
-		$interface->setPageTitle('Materials Request Summary Report');
+		$interface->setTemplate('eContentImportSummary.tpl');
+		$interface->setPageTitle('eContent Import Summary Report');
 		$interface->display('layout.tpl');
 	}
 
@@ -196,7 +224,7 @@ class EContentImportSummary extends Admin {
 		// Rename sheet
 		$activeSheet->setTitle('Summary Report');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a clientï¿½s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="MaterialsRequestSummaryReport.xls"');
 		header('Cache-Control: max-age=0');
@@ -207,7 +235,55 @@ class EContentImportSummary extends Admin {
 
 	}
 
-	function generateGraph($periodData, $periods, $statuses){
+	function generateGraphByPublisher($periodData, $periods, $publishers) {
+		global $configArray;
+		global $interface;
+		$reportData = new pData();
+	
+		//Add points for each publisher
+		$periodsFormatted = array();
+		foreach ($publishers as $publisher){
+			$publisherData = array();
+			foreach ($periodData as $date => $periodInfo){
+				$periodsFormatted[$date] = date('M-d-Y', $date);
+				$publisherData[$date] = isset($periodInfo[$publisher]) ? $periodInfo[$publisher] : 0;
+			}
+			$reportData->addPoints($publisherData, $publisher);
+		}
+	
+		$reportData->setAxisName(0,"Number of files");
+	
+		$reportData->addPoints($periodsFormatted, "Dates");
+		$reportData->setAbscissa("Dates");
+	
+		/* Create the pChart object */
+		$myPicture = new pImage(700,290,$reportData);
+	
+		/* Draw the background */
+		$Settings = array("R"=>225, "G"=>225, "B"=>225);
+		$myPicture->drawFilledRectangle(0,0,700,290,$Settings);
+	
+		/* Add a border to the picture */
+		$myPicture->drawRectangle(0,0,699,289,array("R"=>0,"G"=>0,"B"=>0));
+	
+		$myPicture->setFontProperties(array("FontName"=> "sys/pChart/Fonts/verdana.ttf","FontSize"=>9));
+		$myPicture->setGraphArea(50,30,670,190);
+		//$myPicture->drawFilledRectangle(30,30,670,150,array("R"=>255,"G"=>255,"B"=>255,"Surrounding"=>-200,"Alpha"=>10));
+		$myPicture->drawScale(array("DrawSubTicks"=>TRUE, "LabelRotation"=>90));
+		$myPicture->setFontProperties(array("FontName"=> "sys/pChart/Fonts/verdana.ttf","FontSize"=>9));
+		$myPicture->drawLineChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO));
+	
+		/* Write the chart legend */
+		$myPicture->drawLegend(80,20,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_HORIZONTAL));
+	
+		/* Render the picture (choose the best way) */
+		$chartHref = "/images/charts/eContentImportSummaryByPublisher". time() . ".png";
+		$chartPath = $configArray['Site']['local'] . $chartHref;
+		$myPicture->render($chartPath);
+		$interface->assign('chartByPublisher', $chartHref);
+	}
+	
+	function generateGraphByStatus($periodData, $periods, $statuses){
 		global $configArray;
 		global $interface;
 		$reportData = new pData();
@@ -223,7 +299,7 @@ class EContentImportSummary extends Admin {
 			$reportData->addPoints($statusData, $status);
 		}
 
-		$reportData->setAxisName(0,"Requests");
+		$reportData->setAxisName(0,"Number of files");
 		
 		$reportData->addPoints($periodsFormatted, "Dates");
 		$reportData->setAbscissa("Dates");
@@ -249,12 +325,32 @@ class EContentImportSummary extends Admin {
 		$myPicture->drawLegend(80,20,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_HORIZONTAL));
 
 		/* Render the picture (choose the best way) */
-		$chartHref = "/images/charts/materialsRequestSummary". time() . ".png";
+		$chartHref = "/images/charts/eContentImportSummaryByStatus". time() . ".png";
 		$chartPath = $configArray['Site']['local'] . $chartHref;
 		$myPicture->render($chartPath);
-		$interface->assign('chartPath', $chartHref);
+		$interface->assign('chartByStatus', $chartHref);
 	}
 
+	function getAllPublishers() {
+		$importDetails = new EContentImportDetailsEntry();
+		$importDetails->query('SELECT DISTINCT publisher FROM ' . $importDetails->__table . ' ORDER BY publisher');
+		$publishers = array();
+		while ($importDetails->fetch()){
+			$publishers[] = $importDetails->publisher;
+		}
+		return $publishers;
+	}
+	
+	function getStatuses() {
+		$importDetails = new EContentImportDetailsEntry();
+		$importDetails->query('SELECT DISTINCT status FROM ' . $importDetails->__table . ' ORDER BY status');
+		$statuses = array();
+		while ($importDetails->fetch()){
+			$statuses[] = $importDetails->status;
+		}
+		return $statuses;
+	}
+	
 	function getAllowableRoles(){
 		return array('cataloging');
 	}

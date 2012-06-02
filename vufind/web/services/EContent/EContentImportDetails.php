@@ -22,94 +22,168 @@ require_once 'Action.php';
 require_once 'services/Admin/Admin.php';
 require_once 'sys/eContent/EContentImportDetailsEntry.php';
 require_once 'sys/Pager.php';
-
+require_once 'Structures/DataGrid.php';
 class EContentImportDetails extends Admin
 {
 	function launch()
 	{
+		global $configArray;
 		global $interface;
-
-		$interface->setTemplate('econtentImportSummary.tpl');
-		$interface->setPageTitle('eContent Import Summary');
+		global $user;
 		
-		$today = time();
-		//Grab the Selected Date Start
-		if (isset($_REQUEST['dateFilterStart'])){
-			$selectedDateStart = $_REQUEST['dateFilterStart'];
-		} else {
-			$selectedDateStart = strtotime('-30 days');
-			$selectedDateStart = date('m/d/Y', $selectedDateStart);
-		}
-		$interface->assign('selectedDateStart', $selectedDateStart);
-
-		//Grab the Selected End Date
-		if (isset($_REQUEST['dateFilterEnd'])){
-			$selectedDateEnd = $_REQUEST['dateFilterEnd'];
-		} else {
-			$selectedDateEnd = strtotime('now');
-			$selectedDateEnd = date('m/d/Y', $selectedDateEnd);
-		}
-		$interface->assign('selectedDateEnd', $selectedDateEnd);
-
-		//Source Filter
-		$interface->assign('publishersFilter', $this->getSourceFilter());
+		// Publisher Filter
+		$allPublishers = $this->getAllPublishers();
+		$interface->assign('publisherFilter', $allPublishers);
 		$selectedPublisherFilter = null;
 		if (isset($_REQUEST['publisherFilter'])){
-			$selectedPublisherFilter = array();
 			$selectedPublisherFilter = $_REQUEST['publisherFilter'];
 		}
 		$interface->assign('selectedPublisherFilter', $selectedPublisherFilter);
-
-		//Load the list of records that were archived
-		$eContentRecord = new EContentImportDetailsEntry();
-		$publisherRestriction = " ";
+		$publishers = empty($selectedPublisherFilter) ? $allPublishers : $selectedPublisherFilter;
+		$interface->assign('publishers', $publishers);
+		
+		// Status Filter
+		$allStatuses = $this->getStatuses();
+		$interface->assign('statusFilter', $allStatuses);
+		$selectedStatusFilter = null;
+		if (isset($_REQUEST['statusFilter'])){
+			$selectedStatusFilter = $_REQUEST['statusFilter'];
+		}
+		$interface->assign('selectedStatusFilter', $selectedStatusFilter);
+		$statuses = empty($selectedStatusFilter) ? $allStatuses : $selectedStatusFilter;
+		$interface->assign('statuses', $statuses);
+		
+		// Date range filter (default to 1 hour ago)
+		$startDate = new DateTime();
+		$startDate->modify("-1 hour");
+		if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0) { 
+			$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
+			$startDate->setTime(0, 0, 0);
+		}
+		$interface->assign('startDate', $startDate->format('m/d/Y'));
+		
+		$endDate = (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) ? DateTime::createFromFormat('m/d/Y', $_REQUEST['endDate']) : new DateTime();
+		$interface->assign('endDate', $endDate->format('m/d/Y'));
+		
+		//Set the end date to the end of the day
+		$endDate->setTime(24, 0, 0);
+		
+		// create a SQL clause to filter by selected publishers
+		$publisherRestriction = null;
 		if (isset($_REQUEST['publisherFilter'])){
-			$publishersToShow = $_REQUEST['publisherFilter'];
-			foreach ($publishersToShow as $key=>$item){
-				$publishersToShow[$key] = "'" . mysql_escape_string(strip_tags($item)) . "'";
+			$publishersToShow = array();
+			foreach ($_REQUEST['publisherFilter'] as $item){
+				$publishersToShow[] = "'" . mysql_escape_string(strip_tags($item)) . "'";
 			}
-			$publisherRestriction = " AND publisher IN (" . join(",", $publishersToShow) . ") ";
+			if (!empty($publishersToShow)) {
+				$publisherRestriction = "publisher IN (" . implode(",", $publishersToShow) . ") ";
+			}
 		}
 		
-		$startDateSqlFormatted = strtotime($selectedDateStart);
-		$endDateSqlFormatted = strtotime($selectedDateEnd) + 24 * 3600; //Make sure that we are at the end of the day rather than the beginning
-		$dateRestriction = " AND date_updated BETWEEN ". $startDateSqlFormatted . " AND ". $endDateSqlFormatted;
-	
-		$query = "SELECT econtent_record.id, title, author, isbn, ilsId, source, date_updated FROM econtent_record WHERE status = 'archived' $dateRestriction $sourceRestriction";
-		$eContentRecord->query($query);
-		
-		$archivedRecords = array();
-		while ($eContentRecord->fetch()){
-			$archivedRecords[] = clone($eContentRecord);
+		// create a SQL clause to filter by selected statuses
+		$statusRestriction = null;
+		if (isset($_REQUEST['statusFilter'])){
+			$statusesToShow = array();
+			foreach ($_REQUEST['statusFilter'] as $item){
+				$statusesToShow[] = "'" . mysql_escape_string(strip_tags($item)) . "'";
+			}
+			if (!empty($statusesToShow)) {
+				$statusRestriction = "status IN (" . implode(",", $statusesToShow) . ") ";
+			}
 		}
-		$interface->assign('archivedRecords', $archivedRecords);
 		
-		//EXPORT To EXCEL
-		if (isset($_REQUEST['exportToExcel'])) {
-			$this->exportToExcel($archivedRecords);
+		// Packaging ID filter
+		$packagingIdsToShow = array();
+		$packagingIdsRestriction = null;
+		if (isset($_REQUEST['packagingIds'])){
+			$packagingIds = explode(',', $_REQUEST['packagingIds']);
+			foreach ($packagingIds as $id) {
+				if (is_numeric($id)) {
+					$packagingIdsToShow[] = mysql_escape_string(strip_tags($id));
+				}
+			}
+			if (!empty($packagingIdsToShow)) {
+				$packagingIdsRestriction = "packagingId IN (" . implode(",", $packagingIdsToShow) . ") ";
+			}
+			$interface->assign('packagingIds', implode(",", $packagingIdsToShow));
 		}
-
-		$interface->setTemplate('archivedEContent.tpl');
+		
+		// Number of row per page
+		$perPage = 20;
+		
+		$datagrid =& new Structures_DataGrid($perPage);
+		$datagrid->setDefaultSort(array('filename' => 'ASC'));
+		$importDetails = new EContentImportDetailsEntry();
+		$importDetails->whereAdd('dateFound >= ' . $startDate->getTimestamp() . ' AND dateFound < ' . $endDate->getTimestamp());
+		if ($publisherRestriction) {
+			$importDetails->whereAdd($publisherRestriction);
+		}
+		if ($statusRestriction) {
+			$importDetails->whereAdd($statusRestriction);
+		}
+		if ($packagingIdsRestriction) {
+			$importDetails->whereAdd($packagingIdsRestriction);
+		}
+		$datagrid->bind($importDetails);
+		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Publisher', 'publisher', 'publisher'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Date Found', 'dateFound', 'dateFound', null, null, array($this, 'printDateFound')));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Packaging ID', 'packagingId', 'packagingId'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Status', 'status', 'status'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('ACS Error', 'acsError'));
+		$interface->assign('importDetailsTable', $datagrid->getOutput());
+		
+		// create pager
+		$params = array();
+		if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0) {
+			$params['startDate'] = $startDate->format('m/d/Y');
+		}
+		if (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) {
+			$params['endDate'] = $endDate->format('m/d/Y');	
+		}
+		if (!empty($selectedPublisherFilter)) {
+			$params['publisherFilter'] = $selectedPublisherFilter;
+		}
+		if (!empty($selectedStatusFilter)) {
+			$params['statusFilter'] = $selectedStatusFilter;
+		}
+		if (!empty($packagingIdsToShow)) {
+			$params['packagingIds'] = implode(',', $packagingIdsToShow);
+		}
+		$options = array('totalItems' => $datagrid->getRecordCount(),
+			'fileName' => $configArray['Site']['path'] . '/EContent/EContentImportDetails?' . http_build_query($params) . '&page=%d',
+			'perPage' => $perPage
+		);
+		$pager = new VuFindPager($options);
+		$interface->assign('pageLinks', $pager->getLinks());
+		
+		$interface->setTemplate('eContentImportDetails.tpl');
+		$interface->setPageTitle('eContent Import Details');
 		$interface->display('layout.tpl');
 	}
 
-	function getSourceFilter(){
-		$eContentRecord = new EContentRecord();
-		//Populate the Source Filter
-		$querySourceFilter = "SELECT DISTINCT source AS SourceValue FROM econtent_record WHERE source IS NOT NULL AND source <> ''".
-			"ORDER BY SourceValue ASC";
-		$eContentRecord->query($querySourceFilter);
-
-		$resultsSourceFilter = array();
-		$i=0;
-		while ($eContentRecord->fetch()) {
-			$tmp = array(
-		    'SourceValue' => $eContentRecord->SourceValue
-			);
-			$resultsSourceFilter[$i++] = $tmp;
+	function printDateFound($params, $args = array()) {
+		extract($params);
+		return date('m/d/Y', $record['dateFound']);
+	}
+	function getAllPublishers() {
+		$importDetails = new EContentImportDetailsEntry();
+		$importDetails->query('SELECT DISTINCT publisher FROM ' . $importDetails->__table . ' ORDER BY publisher');
+		$publishers = array();
+		while ($importDetails->fetch()){
+			$publishers[] = $importDetails->publisher;
 		}
-			
-		return $resultsSourceFilter;
+		return $publishers;
+	}
+	
+	function getStatuses() {
+		$importDetails = new EContentImportDetailsEntry();
+		$importDetails->query('SELECT DISTINCT status FROM ' . $importDetails->__table . ' ORDER BY status');
+		$statuses = array();
+		while ($importDetails->fetch()){
+			$statuses[] = $importDetails->status;
+		}
+		return $statuses;
 	}
 	
 	function exportToExcel($itemlessRecords){
@@ -164,7 +238,7 @@ class EContentImportDetails extends Admin
 		// Set active sheet index to the first sheet, so Excel opens this as the first sheet
 		$objPHPExcel->setActiveSheetIndex(0);
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a clientï¿½s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename=ArchivedEContentReport.xls');
 		header('Cache-Control: max-age=0');
