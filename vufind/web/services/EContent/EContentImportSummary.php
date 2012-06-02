@@ -43,6 +43,8 @@ class EContentImportSummary extends Admin {
 		$selectedPublisherFilter = null;
 		if (isset($_REQUEST['publisherFilter'])){
 			$selectedPublisherFilter = $_REQUEST['publisherFilter'];
+		}else{
+			$selectedPublisherFilter = array();
 		}
 		$interface->assign('selectedPublisherFilter', $selectedPublisherFilter);
 		$publishers = empty($selectedPublisherFilter) ? $allPublishers : $selectedPublisherFilter;
@@ -352,6 +354,6 @@ class EContentImportSummary extends Admin {
 	}
 	
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('epubAdmin');
 	}
 }

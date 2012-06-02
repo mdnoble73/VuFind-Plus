@@ -37,6 +37,8 @@ class EContentImportDetails extends Admin
 		$selectedPublisherFilter = null;
 		if (isset($_REQUEST['publisherFilter'])){
 			$selectedPublisherFilter = $_REQUEST['publisherFilter'];
+		}else{
+			$selectedPublisherFilter = array();
 		}
 		$interface->assign('selectedPublisherFilter', $selectedPublisherFilter);
 		$publishers = empty($selectedPublisherFilter) ? $allPublishers : $selectedPublisherFilter;
@@ -48,6 +50,8 @@ class EContentImportDetails extends Admin
 		$selectedStatusFilter = null;
 		if (isset($_REQUEST['statusFilter'])){
 			$selectedStatusFilter = $_REQUEST['statusFilter'];
+		}else{
+			$selectedStatusFilter = array();
 		}
 		$interface->assign('selectedStatusFilter', $selectedStatusFilter);
 		$statuses = empty($selectedStatusFilter) ? $allStatuses : $selectedStatusFilter;
