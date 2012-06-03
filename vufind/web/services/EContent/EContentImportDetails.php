@@ -125,12 +125,11 @@ class EContentImportDetails extends Admin
 			$importDetails->whereAdd($packagingIdsRestriction);
 		}
 		$datagrid->bind($importDetails);
-		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename',  null, null, array($this, 'printFileNameAsLinkToDetails')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Publisher', 'publisher', 'publisher'));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Date Found', 'dateFound', 'dateFound', null, null, array($this, 'printDateFound')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Packaging ID', 'packagingId', 'packagingId'));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Status', 'status', 'status'));
-		$datagrid->addColumn(new Structures_DataGrid_Column('ACS Error', 'acsError'));
 		$interface->assign('importDetailsTable', $datagrid->getOutput());
 		
 		// create pager
@@ -166,6 +165,13 @@ class EContentImportDetails extends Admin
 		extract($params);
 		return date('m/d/Y', $record['dateFound']);
 	}
+	
+	function printFileNameAsLinkToDetails($params, $args = array()) {
+		extract($params);
+		return '<a href="#" onclick="popupDetails(' . $record['id'] . ');return false;">'
+		. $record['filename'] . '</a>';
+	}
+	
 	function getAllPublishers() {
 		$importDetails = new EContentImportDetailsEntry();
 		$importDetails->query('SELECT DISTINCT publisher FROM ' . $importDetails->__table . ' ORDER BY publisher');

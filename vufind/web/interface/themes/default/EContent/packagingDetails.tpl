@@ -5,14 +5,14 @@
     </div></div>
 
     <div id="main-content">
-        <h2>eContent Import Details Report</h2>
+        <h2>Packaging Details Report</h2>
         {if $error}
             <div class="error">{$error}</div>
         {else}
             <div id="materialsRequestFilters">
                 <fieldset>
                 <legend>Filters:</legend>
-                <form action="{$path}/EContent/EContentImportDetails" method="get">
+                <form action="{$path}/EContent/PackagingDetails" method="get">
                     <div>
                     <div>
                         <label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
@@ -20,10 +20,10 @@
                     </div>
                     
                     <div>
-                    <label for="publisherFilter">Publisher</label>
-                    <select id="publisherFilter" name="publisherFilter[]" multiple="multiple" size="5" class="multiSelectFilter">
-                    {foreach from=$publisherFilter item=publisher}
-                        <option value="{$publisher|escape}" {if in_array($publisher,$selectedPublisherFilter)}selected='selected'{/if}>{$publisher|escape}</option> 
+                    <label for="distributorFilter">Distributor</label>
+                    <select id="distributorFilter" name="distributorFilter[]" multiple="multiple" size="5" class="multiSelectFilter">
+                    {foreach from=$distributorFilter item=distributor}
+                        <option value="{$distributor|escape}" {if in_array($distributor,$selectedDistributorFilter)}selected='selected'{/if}>{$distributor|escape}</option> 
                     {/foreach}
                     </select>
                     </div>
@@ -37,11 +37,6 @@
                     </select>
                     </div>
                     
-                    <div>
-                    <label for="packagingIds">Packaging IDs (comma separated)</label>
-                    <input id="packagingIds" size="70" type="text" name="packagingIds" value="{$packagingIds}"/>
-                    </div>
-                    
                     <div><input type="submit" name="submit" value="Update Filters"/></div>
                     </div>
                 </form>
@@ -49,13 +44,14 @@
             </div>            
         {/if}
         
-        {$importDetailsTable}
+        {$packagingDetailsTable}
+        
         {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
         
         <form action="{$fullPath}" method="get">
             <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
         </form>
-        
+
         {* Export to Excel option *}
     </div>
 </div>
@@ -64,8 +60,8 @@
     $("#startDate").datepicker();
     $("#endDate").datepicker();
     function popupDetails(id) {
-        $('#detailsDialog').load(path+'/EContent/AJAX?method=getEContentImportDetails&id='+id)
-            .dialog({modal:true, title:'eContent Import Details', width: 800, height: 500});
+        $('#detailsDialog').load(path+'/EContent/AJAX?method=getPackagingDetails&id='+id)
+            .dialog({modal:true, title:'Packaging Details', width: 800, height: 500});
     }
 {/literal}
 </script>
