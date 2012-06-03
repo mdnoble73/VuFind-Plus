@@ -33,7 +33,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('getEContentAttachNotes'))){
+		}else if (in_array($method, array('getEContentAttachNotes', 'getEContentImportDetails', 'getPackagingDetails'))){
 			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -71,6 +71,38 @@ class AJAX extends Action {
 			}
 		}else{
 			return "We could not find a process with that id.  No notes available.";
+		}
+	}
+	
+	function getEContentImportDetails()
+	{
+		global $interface;
+		
+		$id = $_REQUEST['id'];
+		require_once 'sys/eContent/EContentImportDetailsEntry.php';
+		$logEntry = new EContentImportDetailsEntry();
+		$logEntry->id = $id;
+		if ($logEntry->find(true)){
+			$interface->assign('logEntry', $logEntry);
+			return $interface->fetch('EContent/eContentImportDetailsEntry.tpl');
+		}else{
+			return "We could not find a import log entry with that id.";
+		}
+	}
+	
+	function getPackagingDetails()
+	{
+		global $interface;
+		
+		$id = $_REQUEST['id'];
+		require_once 'sys/eContent/PackagingDetailsEntry.php';
+		$logEntry = new PackagingDetailsEntry();
+		$logEntry->id = $id;
+		if ($logEntry->find(true)){
+			$interface->assign('logEntry', $logEntry);
+			return $interface->fetch('EContent/packagingDetailsEntry.tpl');
+		}else{
+			return "We could not find a packaging log entry with that id.";
 		}
 	}
 }
