@@ -45,12 +45,13 @@
         {/if}
         
         {$packagingDetailsTable}
+        
         {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
         
         <form action="{$fullPath}" method="get">
             <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
         </form>
-        
+
         {* Export to Excel option *}
     </div>
 </div>
@@ -58,5 +59,10 @@
 {literal}
     $("#startDate").datepicker();
     $("#endDate").datepicker();
+    function popupDetails(id) {
+        $('#detailsDialog').load(path+'/EContent/AJAX?method=getPackagingDetails&id='+id)
+            .dialog({modal:true, title:'Packaging Details', width: 800, height: 500});
+    }
 {/literal}
 </script>
+<div id="detailsDialog"></div>

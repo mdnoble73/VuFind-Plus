@@ -109,7 +109,7 @@ class PackagingDetails extends Admin
 			$packagingDetails->whereAdd($statusRestriction);
 		}
 		$datagrid->bind($packagingDetails);
-		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename',  null, null, array($this, 'printFileNameAsLinkToDetails')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Distributor', 'distributorId', 'distributorId'));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Created', 'created', 'created',  null, null, array($this, 'printCreatedDate')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Packaging Start', 'packagingStartTime', 'packagingStartTime'));
@@ -147,6 +147,13 @@ class PackagingDetails extends Admin
 		extract($params);
 		return date('m/d/Y', $record['created']);
 	}
+	
+	function printFileNameAsLinkToDetails($params, $args = array()) {
+		extract($params);
+		return '<a href="#" onclick="popupDetails(' . $record['id'] . ');return false;">'
+			. $record['filename'] . '</a>';
+	}
+	
 	function getAllDistributors() {
 		$packagingDetails = new PackagingDetailsEntry();
 		$packagingDetails->query('SELECT DISTINCT distributorId FROM ' . $packagingDetails->__table . ' ORDER BY distributorId');

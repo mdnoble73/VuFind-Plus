@@ -63,5 +63,10 @@
 {literal}
     $("#startDate").datepicker();
     $("#endDate").datepicker();
+    function popupDetails(id) {
+        $('#detailsDialog').load(path+'/EContent/AJAX?method=getEContentImportDetails&id='+id)
+            .dialog({modal:true, title:'eContent Import Details', width: 800, height: 500});
+    }
 {/literal}
 </script>
+<div id="detailsDialog"></div>
