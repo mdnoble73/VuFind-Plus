@@ -125,11 +125,21 @@
         
         {/if}
         
-        <form action="{$fullPath}" method="get">
-            <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
-        </form>
-        
         {* Export to Excel option *}
+        <form action="{$fullPath}" method="get">
+            <input type="hidden" name="period" value="{$period}"/>
+            <input type="hidden" name="startDate" value="{$startDate}"/>
+            <input type="hidden" name="endDate" value="{$endDate}"/>
+            {foreach from=$selectedPublisherFilter item=publisher}
+              <input type="hidden" name="publisherFilter[]" value="{$publisher|escape}"/>
+            {/foreach}
+            {foreach from=$selectedStatusFilter item=status}
+              <input type="hidden" name="statusFilter[]" value="{$status|escape}"/>
+            {/foreach}
+            <div>
+            <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+            </div>
+        </form>        
     </div>
 </div>
 <script type="text/javascript">

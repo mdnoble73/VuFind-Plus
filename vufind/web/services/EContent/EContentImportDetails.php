@@ -203,13 +203,14 @@ class EContentImportDetails extends Admin
 	}
 	
 	function exportToExcel($records){
+		global $configArray;
 		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
 
 		// Set properties
-		$objPHPExcel->getProperties()->setCreator("DCL")
-			->setLastModifiedBy("DCL")
+		$objPHPExcel->getProperties()->setCreator($configArray['Site']['title'])
+			->setLastModifiedBy($configArray['Site']['title'])
 			->setTitle("Office 2007 XLSX Document")
 			->setSubject("Office 2007 XLSX Document")
 			->setDescription("Office 2007 XLSX, generated using PHP.")

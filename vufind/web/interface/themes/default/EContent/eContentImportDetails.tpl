@@ -52,6 +52,7 @@
         {$importDetailsTable}
         {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
         
+        {* Export to Excel option *}
         <form action="{$fullPath}" method="get">
             <input type="hidden" name="startDate" value="{$startDate}"/>
             <input type="hidden" name="endDate" value="{$endDate}"/>
@@ -67,8 +68,6 @@
             <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
             </div>
         </form>
-        
-        {* Export to Excel option *}
     </div>
 </div>
 <script type="text/javascript">
