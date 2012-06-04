@@ -905,7 +905,7 @@ class DBMaintenance extends Admin {
 			),
 		),
 		'marcImport_2' => array(
-			'title' => 'Marc Import table Update 1',
+			'title' => 'Marc Import table Update 2',
 			'description' => 'Increase the length of the checksum field for the marc import.',
 			'dependencies' => array(),
 			'sql' => array(
@@ -919,8 +919,8 @@ class DBMaintenance extends Admin {
 			'description' => 'Make backup fields optional.',
 			'dependencies' => array(),
 			'sql' => array(
-				"ALTER TABLE marc_import CHANGE `backup_checksum`, `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
-				"ALTER TABLE marc_import CHANGE `backup_checksum`, `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
+				"ALTER TABLE marc_import CHANGE `backup_checksum` `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+				"ALTER TABLE marc_import CHANGE `backup_eContent` `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
 			),
 		),
 		'add_indexes' => array(
