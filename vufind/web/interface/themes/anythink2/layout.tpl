@@ -151,7 +151,7 @@
             </ul>
           {/if}
           {if !($module == 'Search' && $action == 'Home')}
-            <a id="navigate-link" href="http://stage.anythinklibraries.org/">Navigate</a>
+            <a id="navigate-link" href="http://stage.anythinklibraries.org/">{translate text="Explore Anythink..."}</a>
           {/if}
         </div>
         <div id="central" class="clearfix{if $module == 'Search' && $action == 'Home'} with-column-outer{/if}">
@@ -161,7 +161,7 @@
           </div></div>
           {/if}
           <div id="column-central">
-            <h4 id="flag">{translate text="Welcome to the Anythink catalog"}</h4>
+            <h4 id="flag">{translate text="Catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
                 <div id="cart-wrapper">
                   {include file="bookcart.tpl"}

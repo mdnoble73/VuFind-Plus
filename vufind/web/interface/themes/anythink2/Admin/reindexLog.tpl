@@ -40,7 +40,7 @@
 </div>
 <script>{literal}
   function showReindexProcessNotes(id){
-    ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
+    ajaxLightboxAnythink("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
     return false;
   }
   function toggleProcessInfo(id){

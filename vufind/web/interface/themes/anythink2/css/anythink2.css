@@ -28,15 +28,15 @@
 }
 
 .advancedSearchFacetDetails{
-	display: inline-block;
-	margin: 5px;
+  display: inline-block;
+  margin: 5px;
 }
 .advancedSearchFacetHeader{
-	font-weight: bold;
+  font-weight: bold;
 }
 .advancedSearchFacetFormatCategory{
-	display: inline-block;
-	margin: 5px;
+  display: inline-block;
+  margin: 5px;
 }
 
 /**
@@ -231,8 +231,12 @@ body {
 }
 
 #main #search {
-  width: 600px;
-  margin: 66px auto 40px auto;
+  width: 650px;
+  margin: 20px auto 20px auto;
+}
+
+.intro {
+  text-align: center;
 }
 
 #header #search {
@@ -371,6 +375,8 @@ body.Search--Home #logo {
 
 #breadcrumb {
   margin-bottom: 10px;
+  position: relative;
+  z-index: 10; /* This prevents issues with the cart. */
 }
 
 #main {
@@ -395,6 +401,8 @@ body.Search--Home #logo {
   display: block;
 }
 
+body.MaterialsRequest--Submit #main-content,
+body.MaterialsRequest--NewRequest #main-content,
 body.MyResearch--GetCard #main-content,
 body.MyResearch--EmailPin #main-content,
 body.Search--Home #main-content {
@@ -481,14 +489,15 @@ body.Search--Home #main-content {
 }
 
 #get-card {
-  background-image: url(../images/anythink-card.png);
+  background-image: url(../images/anythink-cards.png);
   background-repeat: no-repeat;
   display: inline-block;
-  height: 319px;
+  height: 167px;
   overflow: hidden;
   text-indent: 100%;
   white-space: nowrap;
-  width: 400px;
+  width: 683px;
+  margin: 20px 0;
 }
 
 .form-item {
@@ -640,8 +649,8 @@ body.Search--Home #main-content {
   background-image: url(../images/gradient-white-gray.png);
   background-repeat: repeat-x;
   background-position: left bottom;
-  padding: 0 10px 20px 10px;
-  margin-bottom: 20px;
+  padding: 0 10px 10px 10px;
+  margin-bottom: 10px;
 }
 
 #results-header h1 {
@@ -736,6 +745,11 @@ body.Search--Home #main-content {
   text-align: left;
 }
 
+.holdingsSummary .callNumber {
+  font-weight: bold;
+  font-size: 1em;
+}
+
 .holdingsTable {
   width: 100%;
 }
@@ -758,12 +772,6 @@ div.result {
   background-image: url(http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif);
   background-position: bottom left;
   background-repeat: repeat-x;
-}
-
-.result {
-  border-bottom: 0;
-  padding: 20px 0;
-  background-color: #FFF;
 }
 
 .resultDetails {
@@ -811,6 +819,7 @@ div.result {
   margin-bottom: 20px;
 }
 
+.actions-list,
 .actions-rate,
 .actions-save {
   margin-bottom: 10px;
@@ -831,8 +840,8 @@ div.record {
 }
 
 .holdingsSummary {
-  margin-bottom: 10px;
-  margin-top: 10px;
+/*  margin-bottom: 10px;*/
+/*  margin-top: 10px;*/
 }
 
 .holdableCopiesSummary {
@@ -843,7 +852,7 @@ div.record {
  * Book bag.
  */
 #book_bag {
-  background-image: url(../images/cart-gradient.png);
+  background-image: url(../images/gradient-small-2.png);
   background-repeat: repeat-x;
   background-color: #EEE;
   display: block;
@@ -869,10 +878,14 @@ div.record {
 }
 
 #navigate-link {
+  background-image: url(../images/gradient-small-1.png);
   background-repeat: repeat-x;
+  background-color: #EEE;
+  background-position: left bottom;
+/*  background-repeat: repeat-x;*/
 /*  background-color: #DFD8DB;*/
-  background-color: #F7F5F4;
-  opacity: .7;
+/*  background-color: #F7F5F4;*/
+/*  opacity: .7;*/
   border: 1px solid #DFD8DB;
   -webkit-border-top-right-radius: 4px;
   -webkit-border-top-left-radius: 4px;
@@ -893,11 +906,13 @@ div.record {
 }
 
 #navigate-link.processed {
+  background-image: none;
   border: 0;
   border-bottom: 1px solid #DFD8DB;
 }
 
 #navigate-link:hover {
+  background-image: none;
   background-color: #DFD8DB;
   text-decoration: none;
   opacity: .9;
@@ -1174,4 +1189,416 @@ ul.inline li {
 
 ul.right li {
   margin: 0 0 0 .75em;
+}
+
+.groupSearchHolder span.clearer {
+  display: none;
+}
+
+.groupSearchHolder .advRow {
+  margin-bottom: 10px;
+  float: none;
+  width: 100%;
+}
+
+.groupSearchHolder .advRow div {
+  float: none;
+  padding: 0;
+}
+
+.groupSearchHolder .label, .groupSearchHolder .join {
+  width: auto;
+  text-align: left;
+}
+
+.groupSearchHolder .label {
+  display: none;
+}
+
+.groupSearchHolder .field,
+.groupSearchHolder .terms {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+#searchHolder .group0,
+#searchHolder .group1 {
+  background-image: none;
+}
+
+.advanced-search-group,
+#searchHolder .group {
+  margin-bottom: 10px;
+  border: 2px solid #CCC;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.addSearch {
+  padding: 0;
+}
+
+.group .groupSearchDetails {
+  float: none;
+  text-align: inherit;
+  padding: 0;
+}
+
+.group0 .groupSearchDetails,
+.group1 .groupSearchDetails {
+  border: 0;
+}
+
+.groupSearchDetails .join {
+  padding-right: 0;
+  float: none;
+}
+
+.searchGroups .searchGroupDetails {
+  float: none;
+}
+
+.advanced-search-button {
+  font-size: 1.4em;
+  margin: 20px 0;
+}
+
+.advancedSearchFacetDetails {
+  float: left;
+  display: block;
+  margin-right: 20px;
+}
+
+fieldset {
+  margin-bottom: 10px;
+}
+
+legend {
+  font-weight: bold;
+}
+
+div.popupBox {
+  font-size: 100%;
+}
+
+.favorites-container {
+  width: 100%;
+  float: left;
+}
+
+.anythink-collapsed {
+  height: 0;
+  overflow: hidden;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.anythink-collapsed div,
+.anythink-collapsed fieldset {
+  display: none;
+}
+
+.anythink-collapsible-label {
+  color: #256292;
+  padding-left: 20px;
+  background-image: url(../images/arrows.gif);
+  background-repeat: no-repeat;
+  background-position: 4px -15px;
+  cursor: pointer;
+}
+.anythink-collapsed .anythink-collapsible-label {
+  background-position: 4px 4px;
+}
+
+.result-selector {
+  float: left;
+  margin-right: .5em;
+  margin-top: .8em;
+}
+
+.list-actions {
+  margin: 20px 0;
+}
+
+.titleScrollerWrapper {
+  border: 1px solid #CCC;
+  border-top: 1px solid #CCC;
+  margin-bottom: 15px;
+  position: relative;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+  border-radius: 20px;
+}
+
+.titleScrollerBody {
+  background-color: inherit;
+}
+
+.scrollerBodyContainer {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+}
+
+.leftScrollerButton {
+  display: block;
+  height: 36px;
+  width: 35px;
+  float: none;
+  cursor: pointer;
+  background-image: url(../images/scroller-arrows.png);
+  background-repeat: no-repeat;
+  background-position: -36px 0;
+  position: absolute;
+  z-index: 10;
+  bottom: 20px;
+  left: 20px;
+}
+
+.rightScrollerButton {
+  display: block;
+  height: 36px;
+  width: 35px;
+  position: absolute;
+  cursor: pointer;
+  background-image: url(../images/scroller-arrows.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  z-index: 10;
+  right: 20px;
+  bottom: 20px;
+}
+
+.rightScrollerButton:hover,
+.leftScrollerButton:hover {
+  opacity: .8;
+}
+
+
+.titleScrollerSelectedTitle {
+  width: 100%;
+  text-align: center;
+  font-weight: normal;
+  color: inherit;
+  font-size: 2em; /* 24 */
+  line-height: 1.125em; /* 27 */
+  margin-top: 0;
+  margin-bottom: .375em; /* 9 */
+}
+
+.titleScrollerSelectedAuthor {
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  color: inherit;
+  margin-bottom: 10px;
+}
+
+#tooltip.descriptionTooltip {
+  font-family: inherit;
+  border: none;
+  width: 300px;
+  padding: 0px;
+  height: auto;
+  opacity: 1;
+  background: white;
+  border: 1px solid #666;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 5px #888;
+  -moz-box-shadow: 0 1px 5px #888;
+  position: absolute;
+}
+
+#tooltip .body {
+  padding: 10px;
+}
+
+#tooltip.descriptionTooltip h3 {
+  font-size: 1.5em; /* 18 */
+  line-height: 1em; /* 18 */
+  margin-top: 0;
+  margin-bottom: .5em; /* 9 */
+  margin-bottom: 0;
+  text-align: inherit;
+  background: inherit;
+  color: inherit;
+  padding: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#tooltip div.description-element {
+  padding: 0;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+.description-element-label{
+  font-weight: bold; 
+  display: inline-block;
+  padding-right: 4px;
+  
+  zoom: 1;
+  *display: inline;
+}
+
+.scrollerTitle.selected {
+  border: 1px solid #256292;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  padding: 0px;
+}
+
+.scrollerTitle {
+  line-height: .1em;
+}
+
+.scrollerTitleCover {
+  padding: 5px;
+}
+
+.scrollerBody {
+  height: auto;
+}
+
+.titleScrollerHeader {
+  background: transparent;
+  padding: 10px;
+  color: inherit;
+  font-size: inherit;
+  font-weight: normal;
+  height: auto;
+}
+
+.resultInformationLabel {
+  color: inherit;
+  font-size: inherit;
+  font-weight: bold;
+  padding-bottom: 0;
+}
+
+.listTitle {
+  font-weight: bold;
+}
+
+.list-edit,
+.listTitle {
+  display: inline-block;
+  width: 49.5%;
+}
+
+.list-edit {
+  text-align: right;
+}
+
+div.popupBox .header,
+div.popupBox .content {
+  padding: 20px;
+}
+
+div.popupBox .header {
+  cursor: move;
+  background-color: #EEE;
+  color: inherit;
+  font-size: 1.167em;
+  font-weight: bold;
+  height: auto;
+  position: relative;
+}
+
+div.popupBox {
+  background-color: white;
+  display: none;
+  border-color: #000;
+  border-style: solid;
+  border-width: 10px;
+  box-shadow: none;
+  position: absolute;
+  z-index: 1000;
+  left: auto;
+  font-size: 1em;
+  min-width: 300px;
+  -webkit-transition-property: height;
+  -webkit-transition-duration: 0.25s;
+  -webkit-transition-delay: 0.25s;
+}
+
+div.popupBox .header a {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  text-decoration: none;
+  color: inherit
+}
+
+#results-actions form {
+  margin-bottom: 0;
+}
+
+#goDeeperContent {
+  position: static;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  padding: 10px;
+}
+
+#goDeeperLinks {
+  width: auto;
+  border-right: 0;
+  text-align: inherit;
+  position: static;
+  left: auto;
+  bottom: auto;
+  top: auto;
+  border-bottom: 1px solid #999;
+}
+
+#goDeeperOutput {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: auto;
+  text-align: inherit;
+  overflow: auto;
+}
+
+.holdSectionTitle {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  color: inherit;
+  font-weight: bold;
+  margin-top: 0;
+  padding: 10px;
+  text-align: inherit;
+  background-color: transparent;
+}
+
+.myAccountTable {
+  border: 1px solid #949494;
+  border-radius: 0;
+  border-collapse: collapse;
+  margin-top: 0;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+table.tablesorter {
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  margin: 0 0 20px 0;
+  text-align: left;
+  width: 100%;
+}
+
+#lightbox {
+  opacity: .7;
 }

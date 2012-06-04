@@ -11,7 +11,7 @@
       <div class="fine-print"><strong>Forgot PIN?</strong> <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a></div>
     </div>
     {if !$inLibrary}
-      <div class="form-item"><input type="checkbox" id="rememberMe" name="rememberMe"/> <label for="rememberMe">{translate text="Remember Me"}</label></div>
+      <div class="form-item"><input type="checkbox" id="rememberMe" name="rememberMe"/>&nbsp;<label for="rememberMe">{translate text="Remember Me"}</label></div>
     {/if}
     <div class="form-item"><input id="loginButton" type="submit" name="submit" value="Login" /></div>
     {if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
@@ -28,8 +28,8 @@
 <div id="main-content">
   {if $message}<div class="error">{$message|translate}</div>{/if}
   <div class="get-card">
-  <h1>{translate text='Need an Anythink card?'}</h1>
     <div><a id="get-card" href="{$path}/MyResearch/GetCard">Click here to get a card.</a></div>
+    <h1>{translate text='Need an Anythink card?'}</h1>
     <h2>Click <a class="button" href="{$path}/MyResearch/GetCard">here</a> to get a card.</h2>
   </div>
   <script type="text/javascript">$('#username').focus();</script>

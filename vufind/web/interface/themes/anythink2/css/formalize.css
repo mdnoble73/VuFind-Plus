@@ -58,6 +58,7 @@ input[type="checkbox"]:active {
   box-shadow: none;
 }
 
+.button,
 .button:link,
 .button:visited,
 .button:hover,

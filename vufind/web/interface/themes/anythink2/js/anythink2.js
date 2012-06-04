@@ -103,6 +103,7 @@
       iframe.css({width: 0});
       $('#central').prepend(iframe);
       var central_column = $('#column-central');
+      var orig_text = navigate_link.text();
       navigate_link.bind('click', function() {
         if (!navigate_link.hasClass('processed')) {
           navigate_link.addClass('processed');
@@ -122,7 +123,7 @@
         }
         else {
           navigate_link.removeClass('processed');
-          navigate_link.text('Navigate');
+          navigate_link.text(orig_text);
           // Re scale.
           cart_wrapper.hide();
           central_column.animate({marginLeft: 0}, {
@@ -137,6 +138,27 @@
         return false;
       });
     };
+
+    // Implement collapsible fieldsets.
+    var collapsibles = $('fieldset.anythink-collapsible');
+    if (collapsibles.length > 0) {
+      collapsibles.each(function() {
+        var collapsible = $(this);
+        var legend = collapsible.find('legend:first');
+        legend.addClass('anythink-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+          var collapsible = event.data.collapsible;
+          if (collapsible.hasClass('anythink-collapsed')) {
+            collapsible.removeClass('anythink-collapsed');
+          }
+          else {
+            collapsible.addClass('anythink-collapsed');
+          }
+        });
+        // Init.
+        collapsible.addClass('anythink-collapsed');
+      });
+    }
+
   });
 
   // Get a list of the records on the page.
@@ -223,6 +245,117 @@
       }
     }
     return bookInBag;
+  }
+
+  // Reimplement getSaveToListForm().
+  getSaveToListFormAnythink = function(id, source) {
+    if (loggedIn) {
+      var url = path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
+      ajaxLightboxAnythink(url);
+    }
+    else {
+      ajaxLoginAnythink(function (){
+        getSaveToListFormAnythink(id, source);
+      });
+    }
+    return false;
+  }
+
+  // Reimplement ajaxLightbox().
+  ajaxLightboxAnythink = function(urlToLoad, parentId, left, width, top, height){
+
+    var loadMsg = $('#lightboxLoading').html();
+
+    hideSelects('hidden');
+
+    // Find out how far down the screen the user has scrolled.
+    var new_top =  document.body.scrollTop;
+    var lightbox = $('#lightbox');
+
+    lightbox.css({
+      height: $(document).height() + 'px',
+    });
+    lightbox.show();
+
+    var popupbox = $('#popupbox');
+
+    popupbox.html('<img src="' + path + '/images/loading.gif" /><br />' + loadMsg);
+    // $('#popupbox').show();
+    // $('#popupbox').css('top', '50%');
+    // $('#popupbox').css('left', '50%');
+
+    // if (parentId) {
+    //   //Automatically position the lightbox over the cursor
+    //   popupbox.position({
+    //     my: "top right",
+    //     at: "top right",
+    //     of: parentId,
+    //     collision: "flip"
+    //   });
+    // }
+    // else {
+      // if (!width) 
+      width = '66%';
+      // if (!height) 
+      height = '66%';
+
+      popupbox.css({
+        width: width,
+        height: height
+        });
+
+      // if (!left) left = '100px';
+      // if (!top) top = '100px';
+
+      popupbox.css({
+        top: parseInt(new_top + ($(window).height() - popupbox.height())/2) + 'px',
+        left: parseInt(($(window).width() - popupbox.width())/2) + 'px'
+      });
+
+      // $(document).scrollTop(0);
+    // }
+
+    $.get(urlToLoad, function(data) {
+      popupbox.html(data);
+
+      popupbox.show();
+      if ($("#popupboxHeader").length > 0){
+        popupbox.draggable({ handle: "#popupboxHeader" });
+      }
+      else {
+        popupbox.wrapInner('<div id="popupboxContent" class="content" />').prepend('<div id="popupboxHeader" class="header"><a onclick="hideLightbox(); return false;" href="">close</a></div>');
+      }
+    });
+  }
+
+  // Reimplement ajaxLogin().
+  ajaxLoginAnythink = function(callback) {
+    ajaxCallback = callback;
+    ajaxLightboxAnythink(path + '/MyResearch/AJAX?method=LoginForm');
+  }
+
+  loadOtherEditionSummariesAnythink = function(id, isEcontent) {
+    var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
+    ajaxLightboxAnythink(url);
+  }
+
+  showMaterialsRequestDetailsAnythink = function(id) {
+    ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id );
+  }
+
+  updateMaterialsRequestAnythink = function(id) {
+    ajaxLightboxAnythink(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id );
+  }
+
+  GetAddTagFormAnythink = function(id, source){
+    if (loggedIn){
+      var url = path + "/Resource/AJAX?method=GetAddTagForm&id=" + id + "&source=" + source;
+      ajaxLightboxAnythink(url);
+    }else{
+      ajaxLogin(function(){
+        GetAddTagFormAnythink(id, source);
+      });
+    }
   }
 
   // // Reimplement doGetRatings().
