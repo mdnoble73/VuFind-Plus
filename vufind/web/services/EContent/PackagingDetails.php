@@ -95,11 +95,6 @@ class PackagingDetails extends Admin
 			}
 		}
 		
-		// Number of row per page
-		$perPage = 20;
-		
-		$datagrid =& new Structures_DataGrid($perPage);
-		$datagrid->setDefaultSort(array('filename' => 'ASC'));
 		$packagingDetails = new PackagingDetailsEntry();
 		$packagingDetails->whereAdd('created >= ' . $startDate->getTimestamp() . ' AND created < ' . $endDate->getTimestamp());
 		if ($distributorRestriction) {
@@ -108,6 +103,22 @@ class PackagingDetails extends Admin
 		if ($statusRestriction) {
 			$packagingDetails->whereAdd($statusRestriction);
 		}
+
+		//Check to see if we are exporting to Excel
+		if (isset($_REQUEST['exportToExcel'])){
+			$packagingDetails->find();
+			$records = array();
+			while ($packagingDetails->fetch()) {
+				$records[] = clone $packagingDetails;
+			}
+			$this->exportToExcel($records);
+		}
+		
+		// Number of row per page
+		$perPage = 20;
+		
+		$datagrid =& new Structures_DataGrid($perPage);
+		$datagrid->setDefaultSort(array('filename' => 'ASC'));
 		$datagrid->bind($packagingDetails);
 		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename',  null, null, array($this, 'printFileNameAsLinkToDetails')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Distributor', 'distributorId', 'distributorId'));
@@ -174,43 +185,53 @@ class PackagingDetails extends Admin
 		return $statuses;
 	}
 	
-	function exportToExcel($itemlessRecords){
+	function exportToExcel($records){
 		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
-
+	
 		// Set properties
 		$objPHPExcel->getProperties()->setCreator("DCL")
-			->setLastModifiedBy("DCL")
-			->setTitle("Office 2007 XLSX Document")
-			->setSubject("Office 2007 XLSX Document")
-			->setDescription("Office 2007 XLSX, generated using PHP.")
-			->setKeywords("office 2007 openxml php")
-			->setCategory("Archived eContent Report");
-
+		->setLastModifiedBy("DCL")
+		->setTitle("Office 2007 XLSX Document")
+		->setSubject("Office 2007 XLSX Document")
+		->setDescription("Office 2007 XLSX, generated using PHP.")
+		->setKeywords("office 2007 openxml php")
+		->setCategory("Packaging Details Report");
+	
 		// Add some data
 		$objPHPExcel->setActiveSheetIndex(0)
-			->setCellValue('A1', 'Archived eContent')
-			->setCellValue('A3', 'ID')
-			->setCellValue('B3', 'Title')
-			->setCellValue('C3', 'Author')
-			->setCellValue('D3', 'ISBN')
-			->setCellValue('E3', 'ILS Id')
-			->setCellValue('F3', 'Source')
-			->setCellValue('G3', 'Date Archived');
-
+		->setCellValue('A1', 'Packaging Details')
+		->setCellValue('A3', 'ID')
+		->setCellValue('B3', 'File Name')
+		->setCellValue('C3', 'Distributor ID')
+		->setCellValue('D3', 'Copies')
+		->setCellValue('E3', 'Previous ACS ID')
+		->setCellValue('F3', 'Created')
+		->setCellValue('G3', 'Last Update')
+		->setCellValue('H3', 'Packaging Start Time')
+		->setCellValue('I3', 'Packaging End Time')
+		->setCellValue('J3', 'ACS Error')
+		->setCellValue('K3', 'ACS ID')
+		->setCellValue('L3', 'Status');
+	
 		$a=4;
 		//Loop Through The Report Data
-		foreach ($itemlessRecords as $itemlessRecord) {
-				
+		foreach ($records as $record) {
+	
 			$objPHPExcel->setActiveSheetIndex(0)
-				->setCellValue('A'.$a, $itemlessRecord->id)
-				->setCellValue('B'.$a, $itemlessRecord->title)
-				->setCellValue('C'.$a, $itemlessRecord->author)
-				->setCellValue('D'.$a, $itemlessRecord->isbn)
-				->setCellValue('E'.$a, $itemlessRecord->ilsId)
-				->setCellValue('F'.$a, $itemlessRecord->source)
-				->setCellValue('G'.$a, date('m/d/Y', $itemlessRecord->date_updated));
+			->setCellValue('A'.$a, $record->id)
+			->setCellValue('B'.$a, $record->filename)
+			->setCellValue('C'.$a, $record->distributorId)
+			->setCellValue('D'.$a, $record->copies)
+			->setCellValue('E'.$a, $record->previousAcsId)
+			->setCellValue('F'.$a, date('m/d/Y  H:i:s', $record->created))
+			->setCellValue('G'.$a, $record->lastUpdate ? date('m/d/Y  H:i:s', $record->lastUpdate) : '')
+			->setCellValue('H'.$a, $record->packagingStartTime ? date('m/d/Y H:i:s', $record->packagingStartTime) : '')
+			->setCellValue('I'.$a, $record->packagingEndTime ? date('m/d/Y H:i:s', $record->packagingEndTime) : '')
+			->setCellValue('J'.$a, $record->acsError)
+			->setCellValue('K'.$a, $record->acsId)
+			->setCellValue('L'.$a, $record->status);
 			$a++;
 		}
 		$objPHPExcel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
@@ -219,18 +240,24 @@ class PackagingDetails extends Admin
 		$objPHPExcel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('H')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('I')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('J')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('K')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('L')->setAutoSize(true);
 			
 		// Rename sheet
-		$objPHPExcel->getActiveSheet()->setTitle('Archived eContent');
-
+		$objPHPExcel->getActiveSheet()->setTitle('Packaging Details Report');
+	
 		// Set active sheet index to the first sheet, so Excel opens this as the first sheet
 		$objPHPExcel->setActiveSheetIndex(0);
-
+	
 		// Redirect output to a client�s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
-		header('Content-Disposition: attachment;filename=ArchivedEContentReport.xls');
+		header('Content-Disposition: attachment;filename=PackagingDetailsReport.xls');
 		header('Cache-Control: max-age=0');
-
+	
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
 		$objWriter->save('php://output');
 		exit;

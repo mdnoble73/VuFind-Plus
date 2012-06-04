@@ -15,8 +15,8 @@
                 <form action="{$path}/EContent/PackagingDetails" method="get">
                     <div>
                     <div>
-                        <label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
-                        <label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
+                        <label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="10"/>
+                        <label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="10"/>
                     </div>
                     
                     <div>
@@ -49,7 +49,17 @@
         {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
         
         <form action="{$fullPath}" method="get">
+            <input type="hidden" name="startDate" value="{$startDate}"/>
+            <input type="hidden" name="endDate" value="{$endDate}"/>
+            {foreach from=$selectedDistributorFilter item=distributor}
+              <input type="hidden" name="distributorFilter[]" value="{$distributor|escape}"/>
+            {/foreach}
+            {foreach from=$selectedStatusFilter item=status}
+              <input type="hidden" name="statusFilter[]" value="{$status|escape}"/>
+            {/foreach}            
+            <div>
             <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+            </div>
         </form>
 
         {* Export to Excel option *}

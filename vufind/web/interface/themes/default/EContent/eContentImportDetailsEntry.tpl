@@ -15,7 +15,7 @@
   {/if}
   {if $logEntry->dateFound}
   <dt>Date Found:</dt>
-  <dd>{$logEntry->dateFound|date_format}</dd>
+  <dd>{'m/d/Y H:i:s T'|date:$logEntry->dateFound|escape}</dd>
   {/if}
   {if $logEntry->econtentRecordId}
   <dt>eContent Record ID:</dt>
@@ -27,7 +27,7 @@
   {/if}
   {if $logEntry->dateSentToPackaging}
   <dt>Date Sent to Packaging:</dt>
-  <dd>{$logEntry->dateSentToPackaging|date_format}</dd>
+  <dd>{'m/d/Y H:i:s T'|date:$logEntry->dateSentToPackaging|escape}</dd>
   {/if}
   {if $logEntry->packagingId}
   <dt>Packaging ID:</dt>
