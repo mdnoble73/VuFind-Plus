@@ -56,7 +56,7 @@
             <input type="hidden" name="startDate" value="{$startDate}"/>
             <input type="hidden" name="endDate" value="{$endDate}"/>
             {foreach from=$selectedPublisherFilter item=publisher}
-              <input type="hidden" name="statusFilter[]" value="{$publisher|escape}"/>
+              <input type="hidden" name="publisherFilter[]" value="{$publisher|escape}"/>
             {/foreach}
             {foreach from=$selectedStatusFilter item=status}
               <input type="hidden" name="statusFilter[]" value="{$status|escape}"/>

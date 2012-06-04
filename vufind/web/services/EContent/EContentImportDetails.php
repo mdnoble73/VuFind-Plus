@@ -245,15 +245,14 @@ class EContentImportDetails extends Admin
 				->setCellValue('D'.$a, $record->publisher)
 				->setCellValue('E'.$a, $record->distributorId)
 				->setCellValue('F'.$a, $record->copies)
-				->setCellValue('G'.$a, date('m/d/Y', $record->dateFound))
+				->setCellValue('G'.$a, date('m/d/Y H:i:s', $record->dateFound))
 				->setCellValue('H'.$a, $record->econtentRecordId)
 				->setCellValue('I'.$a, $record->econtentItemId)
-				->setCellValue('J'.$a, $record->dateSentToPackaging ? date('m/d/Y', $record->dateSentToPackaging) : '')
+				->setCellValue('J'.$a, $record->dateSentToPackaging ? date('m/d/Y  H:i:s', $record->dateSentToPackaging) : '')
 				->setCellValue('K'.$a, $record->packagingId)
 				->setCellValue('L'.$a, $record->acsError)
 				->setCellValue('M'.$a, $record->acsId)
-				->setCellValue('N'.$a, $record->status)
-				;
+				->setCellValue('N'.$a, $record->status);
 			$a++;
 		}
 		$objPHPExcel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
