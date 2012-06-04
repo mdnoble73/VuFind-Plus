@@ -372,8 +372,7 @@ class AJAX extends Action {
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
+				$overDriveId = $eContentRecord->getOverDriveId();
 			}
 		}else{
 			$overDriveId = $_REQUEST['overDriveId'];

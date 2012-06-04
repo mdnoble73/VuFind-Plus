@@ -108,10 +108,14 @@ class MillenniumDriver implements DriverInterface
 
 	public function isUserStaff(){
 		global $configArray;
-		$staffPTypes = $configArray['Staff P-Types'];
-		$pType = $this->getPType();
-		if (array_key_exists($pType, $staffPTypes)){
-			return true;
+		if (isset($configArray['Staff P-Types'])){
+			$staffPTypes = $configArray['Staff P-Types'];
+			$pType = $this->getPType();
+			if (array_key_exists($pType, $staffPTypes)){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
 			return false;
 		}
@@ -2559,10 +2563,10 @@ class MillenniumDriver implements DriverInterface
 		$patronDump = $this->_getPatronDump($id2);
 
 		//Validate that the input data is correct
-		if (preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
+		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
 			PEAR::raiseError('The 1st location had an incorrect format.');
 		}
-		if (preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
+		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
 			PEAR::raiseError('The 2nd location had an incorrect format.');
 		}
 		if (isset($_REQUEST['bypassAutoLogout'])){
@@ -2573,33 +2577,38 @@ class MillenniumDriver implements DriverInterface
 			}
 		}
 		//Make sure the selected location codes are in the database.
-		$location = new Location();
-		$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-		$location->find();
-		if ($location->N != 1) {
-			PEAR::raiseError('The 1st location couuld not be found in the database.');
+		if (isset($_POST['myLocation1'])){
+			$location = new Location();
+			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR::raiseError('The 1st location couuld not be found in the database.');
+			}
+			$user->myLocation1Id = $_POST['myLocation1'];
 		}
-		$location->whereAdd();
-		$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-		$location->find();
-		if ($location->N != 1) {
-			PEAR::raiseError('The 2nd location couuld not be found in the database.');
+		if (isset($_POST['myLocation2'])){
+			$location->whereAdd();
+			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR::raiseError('The 2nd location couuld not be found in the database.');
+			}
+			$user->myLocation2Id = $_POST['myLocation2'];
 		}
-		$user->myLocation1Id = $_POST['myLocation1'];
-		$user->myLocation2Id = $_POST['myLocation2'];
 		$user->update();
 		//Update the serialized instance stored in the session
 		$_SESSION['userinfo'] = serialize($user);
 
 		//Update profile information
-		$extraPostInfo = array(
-            'addr1a' => $_REQUEST['address1'],
-            'addr1b' => $_REQUEST['city'] . ', ' . $_REQUEST['state'] . ' ' . $_REQUEST['zip'],
-            'addr1c' => '',
-            'addr1d' => '',
-            'tele1'  => $_REQUEST['phone'],
-            'email'  => $_REQUEST['email'],
-		);
+		$extraPostInfo = array();
+		if (isset($_REQUEST['address1'])){
+			$extraPostInfo['addr1a'] = $_REQUEST['address1'];
+			$extraPostInfo['addr1b'] = $_REQUEST['city'] . ', ' . $_REQUEST['state'] . ' ' . $_REQUEST['zip'];
+			$extraPostInfo['addr1c'] = '';
+			$extraPostInfo['addr1d'] = '';
+		}
+		$extraPostInfo['tele1'] = $_REQUEST['phone'];
+		$extraPostInfo['email'] = $_REQUEST['email'];
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
