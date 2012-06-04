@@ -108,11 +108,6 @@ class EContentImportDetails extends Admin
 			$interface->assign('packagingIds', implode(",", $packagingIdsToShow));
 		}
 		
-		// Number of row per page
-		$perPage = 20;
-		
-		$datagrid =& new Structures_DataGrid($perPage);
-		$datagrid->setDefaultSort(array('filename' => 'ASC'));
 		$importDetails = new EContentImportDetailsEntry();
 		$importDetails->whereAdd('dateFound >= ' . $startDate->getTimestamp() . ' AND dateFound < ' . $endDate->getTimestamp());
 		if ($publisherRestriction) {
@@ -124,8 +119,24 @@ class EContentImportDetails extends Admin
 		if ($packagingIdsRestriction) {
 			$importDetails->whereAdd($packagingIdsRestriction);
 		}
+		
+		//Check to see if we are exporting to Excel
+		if (isset($_REQUEST['exportToExcel'])){
+			$importDetails->find();
+			$records = array();
+			while ($importDetails->fetch()) {
+				$records[] = clone $importDetails;
+			}
+			$this->exportToExcel($records);
+		}
+
+		// Number of row per page
+		$perPage = 20;
+		
+		$datagrid =& new Structures_DataGrid($perPage);
+		$datagrid->setDefaultSort(array('filename' => 'ASC'));
 		$datagrid->bind($importDetails);
-		$datagrid->addColumn(new Structures_DataGrid_Column('Filename', 'filename', 'filename',  null, null, array($this, 'printFileNameAsLinkToDetails')));
+		$datagrid->addColumn(new Structures_DataGrid_Column('File Name', 'filename', 'filename',  null, null, array($this, 'printFileNameAsLinkToDetails')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Publisher', 'publisher', 'publisher'));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Date Found', 'dateFound', 'dateFound', null, null, array($this, 'printDateFound')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Packaging ID', 'packagingId', 'packagingId'));
@@ -155,7 +166,6 @@ class EContentImportDetails extends Admin
 		);
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
-		
 		$interface->setTemplate('eContentImportDetails.tpl');
 		$interface->setPageTitle('eContent Import Details');
 		$interface->display('layout.tpl');
@@ -192,7 +202,7 @@ class EContentImportDetails extends Admin
 		return $statuses;
 	}
 	
-	function exportToExcel($itemlessRecords){
+	function exportToExcel($records){
 		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
@@ -204,31 +214,45 @@ class EContentImportDetails extends Admin
 			->setSubject("Office 2007 XLSX Document")
 			->setDescription("Office 2007 XLSX, generated using PHP.")
 			->setKeywords("office 2007 openxml php")
-			->setCategory("Archived eContent Report");
+			->setCategory("eContent Import Details Report");
 
 		// Add some data
 		$objPHPExcel->setActiveSheetIndex(0)
-			->setCellValue('A1', 'Archived eContent')
+			->setCellValue('A1', 'eContent Import Details')
 			->setCellValue('A3', 'ID')
-			->setCellValue('B3', 'Title')
-			->setCellValue('C3', 'Author')
-			->setCellValue('D3', 'ISBN')
-			->setCellValue('E3', 'ILS Id')
-			->setCellValue('F3', 'Source')
-			->setCellValue('G3', 'Date Archived');
+			->setCellValue('B3', 'File Name')
+			->setCellValue('C3', 'Library File Name')
+			->setCellValue('D3', 'Publisher')
+			->setCellValue('E3', 'Distributor ID')
+			->setCellValue('F3', 'Copies')
+			->setCellValue('G3', 'Date Found')
+			->setCellValue('H3', 'eContent Record ID')
+			->setCellValue('I3', 'eContent Item ID')
+			->setCellValue('J3', 'Date Sent to Packaging')
+			->setCellValue('K3', 'Packaging ID')
+			->setCellValue('L3', 'ACS Error')
+			->setCellValue('M3', 'ACS ID')
+			->setCellValue('N3', 'Status');
 
 		$a=4;
 		//Loop Through The Report Data
-		foreach ($itemlessRecords as $itemlessRecord) {
+		foreach ($records as $record) {
 				
 			$objPHPExcel->setActiveSheetIndex(0)
-				->setCellValue('A'.$a, $itemlessRecord->id)
-				->setCellValue('B'.$a, $itemlessRecord->title)
-				->setCellValue('C'.$a, $itemlessRecord->author)
-				->setCellValue('D'.$a, $itemlessRecord->isbn)
-				->setCellValue('E'.$a, $itemlessRecord->ilsId)
-				->setCellValue('F'.$a, $itemlessRecord->source)
-				->setCellValue('G'.$a, date('m/d/Y', $itemlessRecord->date_updated));
+				->setCellValue('A'.$a, $record->id)
+				->setCellValue('B'.$a, $record->filename)
+				->setCellValue('C'.$a, $record->libraryFilename)
+				->setCellValue('D'.$a, $record->publisher)
+				->setCellValue('E'.$a, $record->distributorId)
+				->setCellValue('F'.$a, $record->copies)
+				->setCellValue('G'.$a, date('m/d/Y H:i:s', $record->dateFound))
+				->setCellValue('H'.$a, $record->econtentRecordId)
+				->setCellValue('I'.$a, $record->econtentItemId)
+				->setCellValue('J'.$a, $record->dateSentToPackaging ? date('m/d/Y  H:i:s', $record->dateSentToPackaging) : '')
+				->setCellValue('K'.$a, $record->packagingId)
+				->setCellValue('L'.$a, $record->acsError)
+				->setCellValue('M'.$a, $record->acsId)
+				->setCellValue('N'.$a, $record->status);
 			$a++;
 		}
 		$objPHPExcel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
@@ -237,16 +261,24 @@ class EContentImportDetails extends Admin
 		$objPHPExcel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('H')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('I')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('J')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('K')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('L')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('M')->setAutoSize(true);
+		$objPHPExcel->getActiveSheet()->getColumnDimension('N')->setAutoSize(true);
 			
 		// Rename sheet
-		$objPHPExcel->getActiveSheet()->setTitle('Archived eContent');
+		$objPHPExcel->getActiveSheet()->setTitle('eContent Import Details Report');
 
 		// Set active sheet index to the first sheet, so Excel opens this as the first sheet
 		$objPHPExcel->setActiveSheetIndex(0);
 
 		// Redirect output to a client�s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
-		header('Content-Disposition: attachment;filename=ArchivedEContentReport.xls');
+		header('Content-Disposition: attachment;filename=eContentImportDetailsReport.xls');
 		header('Cache-Control: max-age=0');
 
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
