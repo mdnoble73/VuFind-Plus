@@ -2133,7 +2133,8 @@ public class MarcRecordDetails {
 				result.add("Unknown");
 			}
 		} catch (Exception e) {
-			System.out.println("ERROR in getTargetAudience " + e.toString());
+			//leader not long enough to get target audience
+			logger.debug("ERROR in getTargetAudience ", e);
 			result.add("Unknown");
 		}
 
@@ -2500,7 +2501,7 @@ public class MarcRecordDetails {
 		if (!suppressRecord) {
 			String ilsId = this.getId();
 			if (marcProcessor.getExistingEContentIds().contains(ilsId)){
-				System.out.println("Suppressing because there is an eContent record for " + ilsId);
+				logger.debug("Suppressing because there is an eContent record for " + ilsId);
 				suppressRecord = true;
 			}
 		}
