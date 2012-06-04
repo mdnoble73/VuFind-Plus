@@ -22,6 +22,7 @@
             <li><a href="http://marmot.lib.overdrive.com" target="_blank">{translate text='Download Books & More'}</a></li>
             <li><a href="http://www.gcpld.org/books-and-more">{translate text="Reader's Advisory Tools"}</a></li>
             <li><a href="http://www.gcpld.org/locations">{translate text='Locations & Hours'}</a></li>
+            <li><a href="http://www.gcpld.org/calendar">{translate text='Events'}</a></li>
           </ul>
         </div>
         <div><p><strong>{translate text='Need Help?'}</strong></p>
