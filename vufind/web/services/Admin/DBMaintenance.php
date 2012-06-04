@@ -914,8 +914,8 @@ class DBMaintenance extends Admin {
 				"ALTER TABLE marc_import ADD COLUMN `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
 			),
 		),
-		'marcImport_2' => array(
-			'title' => 'Marc Import table Update 2',
+		'marcImport_3' => array(
+			'title' => 'Marc Import table Update 3',
 			'description' => 'Make backup fields optional.',
 			'dependencies' => array(),
 			'sql' => array(
