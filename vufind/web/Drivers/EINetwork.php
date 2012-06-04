@@ -113,7 +113,7 @@ class EINetwork extends MillenniumDriver{
 			$loginData['code'] = $configArray['Catalog']['ils_admin_pwd'];
 		}else{
 			$loginData['pin'] = $user->cat_password;
-			$loginData['code'] = $patronInfo['P_BARCODE'];
+			$loginData['code'] = $user->cat_username;
 		}
 		$loginData['submit'] = 'submit';
 		return $loginData;
@@ -122,5 +122,31 @@ class EINetwork extends MillenniumDriver{
 	protected function _getBarcode(){
 		global $user;
 		return $user->cat_username;
+	}
+	
+	protected function _getHoldResult($holdResultPage){
+		$hold_result = array();
+		//Get rid of header and footer information and just get the main content
+		$matches = array();
+
+		if (preg_match('/success/', $holdResultPage)){
+			//Hold was successful
+			$hold_result['result'] = true;
+			if (!isset($reason) || strlen($reason) == 0){
+				$hold_result['message'] = 'Your hold was placed successfully';
+			}else{
+				$hold_result['message'] = $reason;
+			}
+		}else if (preg_match('/<font color="red" size="\+2">(.*?)<\/font>/is', $holdResultPage, $reason)){
+			//Got an error message back.
+			$hold_result['result'] = false;
+			$hold_result['message'] = $reason[1];
+		}else{
+			//Didn't get a reason back.  This really shouldn't happen.
+			$hold_result['result'] = false;
+			$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+		}
+
+		return $hold_result;
 	}
 }

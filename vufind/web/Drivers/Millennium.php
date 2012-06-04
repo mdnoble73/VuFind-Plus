@@ -2148,6 +2148,7 @@ class MillenniumDriver implements DriverInterface
 			return $result;
 
 		} else {
+			
 			//User is logged in before they get here, always use the info from patrondump
 			$username = $patronDump['PATRN_NAME'];
 
@@ -2192,9 +2193,8 @@ class MillenniumDriver implements DriverInterface
 			$header[] = "Accept-Language: en-us,en;q=0.5";
 			$id=$patronDump['RECORD_#'];
 			$cookie = tempnam ("/tmp", "CURLCOOKIE");
-			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
-			//echo "$curl_url";
-			$curl_connection = curl_init($curl_url);
+			
+			$curl_connection = curl_init();
 			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
 			curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -2207,9 +2207,30 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
-
-
-			$post_data = $this->_getLoginFormValues($patronInfo);
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+			
+			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
+				//User must be logged in as a separate step to placing holds
+				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+				$post_data = $this->_getLoginFormValues($patronInfo);
+				$post_data['submit.x']="35";
+				$post_data['submit.y']="21";
+				$post_data['submit']="submit";
+				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . $value;
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$sresult = curl_exec($curl_connection);
+				$post_data = array();
+			}else{
+				$post_data = $this->_getLoginFormValues($patronInfo);
+			}
+			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
+			//echo "$curl_url";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			
 			$post_data['needby_Month']= $Month;
 			$post_data['needby_Day']= $Day;
 			$post_data['needby_Year']=$Year;
@@ -2238,70 +2259,73 @@ class MillenniumDriver implements DriverInterface
 			curl_close($curl_connection);
 
 			//Parse the response to get the status message
-			//Get rid of header and footer information and just get the main content
-			$matches = array();
+			$hold_result = $this->_getHoldResult($sresult);
+			$hold_result['title']  = $title;
+			$hold_result['bid'] = $bib1;
+			return $hold_result;
+		}
+	}
+	
+	protected function _getHoldResult($holdResultPage){
+		$hold_result = array();
+		//Get rid of header and footer information and just get the main content
+		$matches = array();
 
-			$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $sresult, $matches);
-			$hold_result = array(
-                        'result' => true,
-                        'title'  => $title,
-                        'bid' => $bib1);
-			if ($numMatches > 0){
-				$logger->log('Place Hold Body Text\n' . $matches[1], PEAR_LOG_INFO);
-				$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
-				$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
-				$cleanResponse = trim(strip_tags($cleanResponse));
-					
-				list($book,$reason)= explode("\n",$cleanResponse);
-				if (preg_match('/success/', $cleanResponse)){
-					//Hold was successful
-					$hold_result['result'] = true;
-					if (!isset($reason) || strlen($reason) == 0){
-						$hold_result['message'] = 'Your hold was placed successfully';
-					}else{
-						$hold_result['message'] = $reason;
-					}
-				}else if (!isset($reason) || strlen($reason) == 0){
-					//Didn't get a reason back.  This really shouldn't happen.
-					$hold_result['result'] = false;
-					$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+		$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $holdResultPage, $matches);
+		
+		if ($numMatches > 0){
+			$logger->log('Place Hold Body Text\n' . $matches[1], PEAR_LOG_INFO);
+			$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
+			$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
+			$cleanResponse = trim(strip_tags($cleanResponse));
+				
+			list($book,$reason)= explode("\n",$cleanResponse);
+			if (preg_match('/success/', $cleanResponse)){
+				//Hold was successful
+				$hold_result['result'] = true;
+				if (!isset($reason) || strlen($reason) == 0){
+					$hold_result['message'] = 'Your hold was placed successfully';
 				}else{
-					//Got an error message back.
-					$hold_result['result'] = false;
 					$hold_result['message'] = $reason;
 				}
+			}else if (!isset($reason) || strlen($reason) == 0){
+				//Didn't get a reason back.  This really shouldn't happen.
+				$hold_result['result'] = false;
+				$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
 			}else{
-				if (preg_match('/Choose one item from the list below/', $sresult)){
-					//Get information about the items that are available for holds
-					preg_match_all('/<tr\\s+class="bibItemsEntry">.*?<input type="radio" name="radio" value="(.*?)".*?>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<\/tr>/s', $sresult, $itemInfo, PREG_PATTERN_ORDER);
-					$items = array();
-					for ($i = 0; $i < count($itemInfo[0]); $i++) {
-						$items[] = array(
+				//Got an error message back.
+				$hold_result['result'] = false;
+				$hold_result['message'] = $reason;
+			}
+		}else{
+			if (preg_match('/Choose one item from the list below/', $sresult)){
+				//Get information about the items that are available for holds
+				preg_match_all('/<tr\\s+class="bibItemsEntry">.*?<input type="radio" name="radio" value="(.*?)".*?>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<\/tr>/s', $sresult, $itemInfo, PREG_PATTERN_ORDER);
+				$items = array();
+				for ($i = 0; $i < count($itemInfo[0]); $i++) {
+					$items[] = array(
                         'itemNumber' => $itemInfo[1][$i],
                         'location' => trim(str_replace('&nbsp;', '', $itemInfo[2][$i])),
                         'callNumber' => trim(str_replace('&nbsp;', '', $itemInfo[3][$i])),
                         'status' => trim(str_replace('&nbsp;', '', $itemInfo[4][$i])),
-						);
-					}
-					$hold_result['items'] = $items;
-					if (count($items) > 0){
-						$message = 'This title requires item level holds, please select an item to place a hold on.';
-					}else{
-						$message = 'There are no holdable items for this title.';
-					}
-				}else{
-					$message = 'Unable to contact the circulation system.  Please try again in a few minutes.';
+					);
 				}
-				$hold_result['result'] = false;
-				$hold_result['message'] = $message;
-
-				$logger = new Logger();
-				$logger->log('Place Hold Full HTML\n' . $sresult, PEAR_LOG_INFO);
+				$hold_result['items'] = $items;
+				if (count($items) > 0){
+					$message = 'This title requires item level holds, please select an item to place a hold on.';
+				}else{
+					$message = 'There are no holdable items for this title.';
+				}
+			}else{
+				$message = 'Unable to contact the circulation system.  Please try again in a few minutes.';
 			}
-			return $hold_result;
+			$hold_result['result'] = false;
+			$hold_result['message'] = $message;
 
+			$logger = new Logger();
+			$logger->log('Place Hold Full HTML\n' . $sresult, PEAR_LOG_INFO);
 		}
-
+		return $hold_result;
 	}
 
 	public function updateHold($requestId, $patronId, $type, $title){

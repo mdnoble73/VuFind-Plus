@@ -954,7 +954,7 @@ class OverDriveDriver {
 			$items = array();
 		}else{
 			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if (true || $items == false){
+			if ($items == false){
 				$items = array();
 				//Check to see if the file has been cached
 				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
