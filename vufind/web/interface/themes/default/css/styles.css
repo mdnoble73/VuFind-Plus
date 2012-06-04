@@ -2388,3 +2388,10 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 	font-weight: bold;
 	font-size: 120%;
 }
+
+#eContentImportDetails dt{
+	font-weight: bold;
+}
+#eContentImportDetails dd{
+	margin-left: 10px;
+}

@@ -134,6 +134,7 @@ class EContentImportDetails extends Admin
 		$datagrid->addColumn(new Structures_DataGrid_Column('Date Found', 'dateFound', 'dateFound', null, null, array($this, 'printDateFound')));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Packaging ID', 'packagingId', 'packagingId'));
 		$datagrid->addColumn(new Structures_DataGrid_Column('Status', 'status', 'status'));
+		$datagrid->addColumn(new Structures_DataGrid_Column('Details', 'details', 'details',  null, null, array($this, 'printLinkToDetails')));
 		$interface->assign('importDetailsTable', $datagrid->getOutput());
 		
 		// create pager
@@ -174,6 +175,11 @@ class EContentImportDetails extends Admin
 		extract($params);
 		return '<a href="#" onclick="popupDetails(' . $record['id'] . ');return false;">'
 		. $record['filename'] . '</a>';
+	}
+	
+	function printLinkToDetails($params, $args = array()) {
+		extract($params);
+		return '<a href="#" onclick="popupDetails(' . $record['id'] . ');return false;">Details</a>';
 	}
 	
 	function getAllPublishers() {
