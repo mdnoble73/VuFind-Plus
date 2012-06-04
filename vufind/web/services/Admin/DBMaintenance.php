@@ -905,7 +905,7 @@ class DBMaintenance extends Admin {
 			),
 		),
 		'marcImport_2' => array(
-			'title' => 'Marc Import table Update 1',
+			'title' => 'Marc Import table Update 2',
 			'description' => 'Increase the length of the checksum field for the marc import.',
 			'dependencies' => array(),
 			'sql' => array(
