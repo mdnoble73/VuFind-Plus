@@ -451,7 +451,7 @@ class Location extends DB_DataObject
 	}
 	
 	public function saveHours(){
-		if (isset ($this->hours)){
+		if (isset ($this->hours) && is_array($this->hours)){
 			foreach ($this->hours as $hours){
 				if (isset($hours->deleteOnSave) && $hours->deleteOnSave == true){
 					$hours->delete();

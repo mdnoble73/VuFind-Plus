@@ -118,4 +118,9 @@ class EINetwork extends MillenniumDriver{
 		$loginData['submit'] = 'submit';
 		return $loginData;
 	}
+	
+	protected function _getBarcode(){
+		global $user;
+		return $user->cat_username;
+	}
 }

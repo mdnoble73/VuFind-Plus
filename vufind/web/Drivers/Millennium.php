@@ -907,7 +907,7 @@ class MillenniumDriver implements DriverInterface
 			}
 		}
 
-		if ($summaryInformation['status'] != "It's here"){
+		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
 			//Replace all spaces in the name of a location with no break spaces
 			foreach ($availableLocations as $key => $location){
 				$availableLocations[$key] = str_replace(' ', ' ', $location);
@@ -1088,10 +1088,13 @@ class MillenniumDriver implements DriverInterface
 	public function getMyProfile($patron)
 	{
 		global $timer;
-
+		global $user;
+		global $configArray;
+		
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$id2 = $patron['cat_password'];
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$id2 = $patron[$barcodeProperty];
 		}else{
 			$id2= $patron['id'];
 		}
@@ -2099,7 +2102,7 @@ class MillenniumDriver implements DriverInterface
 	 */
 	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		$bib1= $recordId;
 		if (substr($bib1, 0, 1) != '.'){
@@ -2202,8 +2205,7 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
 
 
-			$post_data['name'] = $firstname . " " . $lastname;
-			$post_data['code'] = $patronDump['P_BARCODE'];
+			$post_data = $this->_getLoginFormValues($patronInfo);
 			$post_data['needby_Month']= $Month;
 			$post_data['needby_Day']= $Day;
 			$post_data['needby_Year']=$Year;
@@ -2666,7 +2668,7 @@ class MillenniumDriver implements DriverInterface
 			global $locationSingleton;
 			$location = $locationSingleton->getActiveLocation();
 			if (isset($user) && $user != false){
-				$patronDump = $this->_getPatronDump($user->password);
+				$patronDump = $this->_getPatronDump($this->_getBarcode());
 				$this->ptype = $patronDump['P_TYPE'];
 			}else if (isset($location) && $location->defaultPType != -1){
 				$this->ptype = $location->defaultPType;
@@ -2677,6 +2679,11 @@ class MillenniumDriver implements DriverInterface
 			}
 		}
 		return $this->ptype;
+	}
+	
+	protected function _getBarcode(){
+		global $user;
+		return $user->cat_password;
 	}
 
 	/**
