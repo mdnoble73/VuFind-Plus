@@ -298,7 +298,7 @@ public class ReindexProcess {
 		if (solrmarcLog.exists()){
 			solrmarcLog.delete();
 		}
-		for (int i = 1; i <= 4; i++){
+		for (int i = 1; i <= 10; i++){
 			solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log." + i);
 			if (solrmarcLog.exists()){
 				solrmarcLog.delete();
@@ -364,7 +364,8 @@ public class ReindexProcess {
 				indexSettingsIni.load(new FileReader(indexSettingsFile));
 				for (Section curSection : indexSettingsIni.values()){
 					for (String curKey : curSection.keySet()){
-						System.out.println("Overiding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+						logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+						//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 						configIni.put(curSection.getName(), curKey, curSection.get(curKey));
 					}
 				}

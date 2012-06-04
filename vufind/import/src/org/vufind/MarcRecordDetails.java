@@ -2332,7 +2332,7 @@ public class MarcRecordDetails {
 					}
 				}
 			} catch (Exception e) {
-				System.out.println("Non-fatal error loading relative time added " + e);
+				//System.out.println("Non-fatal error loading relative time added " + e);
 			}
 		}
 

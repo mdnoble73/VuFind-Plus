@@ -262,8 +262,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 		} catch (SQLException ex) {
 			// handle any errors
-			logger.error("Error updating resource for record " + recordInfo.getId(), ex);
-			System.out.println(recordInfo.getTitle());
+			logger.error("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle(), ex);
+			System.out.println("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle() + " " + ex.toString());
 			results.incErrors();
 		}finally{
 			if (results.getRecordsProcessed() % 100 == 0){
