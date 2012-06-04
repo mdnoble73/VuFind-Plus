@@ -132,9 +132,31 @@
 	*display: inline;
 }
 
+/*.brian_help{
+ display: inline-block;*/
+ /* for IE */
+/* *display:inline;
+ position:absolute;
+ border-style:solid;
+ border-width:thin;
+ border-color:#666666;
+ background-color:#C00;
+ color:#ffffff;
+ font-weight:bold;
+ right:35px;
+ bottom:5px;	
+ padding-top:5px;
+ padding-left:5px;
+ padding-bottom:5px;
+  padding-right:20px;
+ 	text-align:center;	
+}*/
+
 #survey{
 
  display: inline-block;
+ /* for IE */
+ *display:inline;
  position:absolute;
  border-style:solid;
  border-width:thin;

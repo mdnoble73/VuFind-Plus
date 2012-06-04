@@ -229,7 +229,7 @@ class OverDriveDriver {
 			}
 		
 			//Extract information from the holds page
-			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?"{(.*?)}".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
+			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?".*?", "(.*?)".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
 			
 			for ($matchi = 0; $matchi < count($bookshelfInfo); $matchi++) {
 				$bookshelfItem = array();
@@ -292,7 +292,7 @@ class OverDriveDriver {
 			}
 			
 			//Extract unavailable hold information from the holds page
-			preg_match_all('/<a href="ContentDetails\\.htm\\?ID={(.*?)}"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID={(.*?)}">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
+			preg_match_all('/<a href="ContentDetails\\.htm\\?ID=(.*?)"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID=(.*?)">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
 			
 			for ($matchi = 0; $matchi < count($holdInfo); $matchi++) {
 				$hold = array();
@@ -557,6 +557,10 @@ class OverDriveDriver {
 	
 	public function removeOverDriveItemFromWishlist($overDriveId, $user){
 		global $memcache;
+		
+		$logger = new Logger();
+		
+		
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -567,9 +571,11 @@ class OverDriveDriver {
 		
 		//Navigate to hold cancellation page
 		$wishlistCancelUrl = $overDriveInfo['baseLoginUrl'] . "?Action=AuthCheck&ForceLoginFlag=0&URL=BANGCart.dll%3FAction%3DWishListRemove%26ID%3D{$overDriveId}";
+		
 		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $wishlistCancelUrl);
 		$cancellationResult = curl_exec($overDriveInfo['ch']);
-		
+		$logger->log("wishlistCancelUrlID--->". $overDriveId, PEAR_LOG_INFO);
+		$logger->log("wishlistCancelUrl--->". $cancellationResult, PEAR_LOG_INFO);
 		if (!preg_match("/$overDriveId/", $cancellationResult)){
 			$cancelHoldResult['result'] = true;
 			$cancelHoldResult['message'] = 'The title was successfully removed from your wishlist.';
@@ -582,7 +588,6 @@ class OverDriveDriver {
 		}
 		
 		curl_close($overDriveInfo['ch']);
-		
 		return $cancelHoldResult;
 	}
 	
@@ -629,6 +634,9 @@ class OverDriveDriver {
 			$addToCartResult['result'] = true;
 			$addToCartResult['message'] = "The title was added to your cart successfully.  You have 30 minutes to check out the title before it is returned to the library's collection.";
 		}else{
+			$logger = new Logger();
+			$logger->log("Adding OverDrive Item to cart. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
+			$logger->log('URL: '.$addToCartUrl,PEAR_LOG_INFO);
 			$addToCartResult['result'] = false;
 			$addToCartResult['message'] = 'There was an error adding the item to your cart.';
 		}

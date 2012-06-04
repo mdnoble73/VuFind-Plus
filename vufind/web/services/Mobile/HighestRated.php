@@ -35,10 +35,16 @@ class HighestRated extends Action {
 		global $user;
 		
 		
+		$listAPI = new ListAPI();
+		$listTitlesHR = $listAPI->getListTitles('EContentStrands:home_3');//Check success key
+		$interface->assign('LIST',($listTitlesHR['success'] ? $listTitlesHR['titles'] : ""));
 		$interface->caching = 0;
 		$cacheId = 'homepage|' . $interface->lang;
 		//Disable Home page caching for now.
 		if (!$interface->is_cached('layout.tpl', $cacheId)) {
+			
+			$interface->assign('ButtonBack',true);
+			$interface->assign('ButtonHome',true);
 			$interface->setPageTitle('Highest Rated');
 			$interface->assign('MobileTitle','Highest Rated');
 			$interface->setTemplate('listecontents.tpl');

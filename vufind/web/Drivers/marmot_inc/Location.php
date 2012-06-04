@@ -242,7 +242,11 @@ class Location extends DB_DataObject
 		global $user;
 		global $library;
 		if (isset($user) && $user != false){
-			$this->userHomeLocation = clone($this->staticGet('locationId', $user->homeLocationId));
+			$homeLocation = new Location();
+			$homeLocation->locationId = $user->homeLocationId;
+			if ($homeLocation->find(true)){
+				$this->userHomeLocation = clone($homeLocation);
+			}
 		}
 
 		return $this->userHomeLocation;
@@ -447,7 +451,7 @@ class Location extends DB_DataObject
 	}
 	
 	public function saveHours(){
-		if (isset ($this->hours)){
+		if (isset ($this->hours) && is_array($this->hours)){
 			foreach ($this->hours as $hours){
 				if (isset($hours->deleteOnSave) && $hours->deleteOnSave == true){
 					$hours->delete();

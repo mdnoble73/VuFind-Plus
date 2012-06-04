@@ -2007,3 +2007,9 @@ ul.hold_items li{
 #otherEditionsPopup{
 	min-width: 530px;
 }
+#eContentImportDetails dt{
+	font-weight: bold;
+}
+#eContentImportDetails dd{
+	margin-left: 10px;
+}

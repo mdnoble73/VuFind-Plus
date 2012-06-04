@@ -96,6 +96,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			while (locationsRS.next()){
 				locations.put(locationsRS.getString("code").toLowerCase(),locationsRS.getLong("locationId") );
 			}
+			locationsRS.close();
 			
 			clearResourceCallnumbersStmt = vufindConn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
 			addCallnumberToResourceStmt = vufindConn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
@@ -118,6 +119,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				BasicResourceInfo resourceInfo = new BasicResourceInfo(ilsId, existingResourceRS.getLong("id"), existingResourceRS.getLong("marc_checksum"), existingResourceRS.getBoolean("deleted"));
 				existingResources.put(ilsId, resourceInfo);
 			}
+			existingResourceRS.close();
 			
 		} catch (SQLException ex) {
 			// handle any errors
@@ -260,8 +262,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 		} catch (SQLException ex) {
 			// handle any errors
-			logger.error("Error updating resource for record " + recordInfo.getId(), ex);
-			System.out.println(recordInfo.getTitle());
+			logger.error("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle(), ex);
+			System.out.println("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle() + " " + ex.toString());
 			results.incErrors();
 		}finally{
 			if (results.getRecordsProcessed() % 100 == 0){

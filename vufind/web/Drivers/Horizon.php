@@ -732,7 +732,8 @@ public function getMyHoldsViaDB($patron)
 		global $memcache;
 		//Holdings summaries need to be cached based on the actual location since part of the information 
 		//includes local call numbers and statuses. 
-		$location = $locationSingleton->getPhysicalLocation();
+		$ipLocation = $locationSingleton->getPhysicalLocation();
+		$location = $ipLocation;
 		if (!isset($location) && $location == null){
 			$location = $locationSingleton->getUserHomeLocation();
 		}
@@ -823,7 +824,7 @@ public function getMyHoldsViaDB($patron)
 					$allItemStatus = null;
 				}
 				if ($holding['availability'] == true){
-					if ($location && strcasecmp($holding['locationCode'], $location->code) == 0){
+					if ($ipLocation && strcasecmp($holding['locationCode'], $ipLocation->code) == 0){
 						$availableHere = true;
 					}
 					$numAvailableCopies++;

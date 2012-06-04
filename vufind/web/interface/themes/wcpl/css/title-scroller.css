@@ -196,9 +196,15 @@ hr.selctedTitleSeparator{
 	padding: 3px;
 }
 .scrollerTitle img{
-	opacity: .3;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=60)";
+    filter: alpha(opacity=60);
+	zoom:1;
+	opacity: .6;
 }
 .scrollerTitle:hover img{
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
+    filter: alpha(opacity=75);
+	zoom:1;
 	opacity: .75;
 }
 .scrollerTitle.selected{

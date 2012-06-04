@@ -478,6 +478,35 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 		
+		'econtent_file_packaging_log'  => array(
+			'title' => 'Create eContent Packaging Log',
+			'description' => 'Create eContent Packaging Log',
+			'dependencies' => array(),
+			'database' => 'dclecontent',
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS  econtent_file_packaging_log(".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+					"`filename` VARCHAR(255), ".
+					"`libraryFilename` VARCHAR(255), ".
+					"`publisher` VARCHAR(255), ".
+					"`distributorId` VARCHAR(128), ".
+					"`copies` INT, ".
+					"`dateFound` INT(11), ".
+					"`econtentRecordId` INT(11), ".
+					"`econtentItemId` INT(11), ".
+					"`dateSentToPackaging` INT(11), ".
+					"`packagingId` INT(11), ".
+					"`acsError` MEDIUMTEXT, ".
+					"`acsId` VARCHAR(128), ".
+					"`status` ENUM('detected', 'recordFound', 'copiedToLibrary', 'itemGenerated', 'sentToAcs', 'acsIdGenerated', 'acsError', 'processingComplete', 'skipped'), ".
+					"INDEX(distributorId), ".
+					"INDEX(publisher), ".
+					"INDEX(econtentItemId), ".
+					"INDEX(status) ".
+				") ENGINE = MYISAM COMMENT = 'A table to store information about diles that are being sent for packaging in the ACS server.' ",
+		),
+		),
+		
 		'add_indexes' => array(
 			'title' => 'Add eContent indexes',
 			'description' => 'Add indexes to econtent tables that were not defined originally',

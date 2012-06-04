@@ -71,6 +71,20 @@ class NearbyBookStore extends DB_DataObject
 		while ($store->fetch()){
 			$list[] = clone $store;
 		}
+		if (count($list) == 0){
+			$list = NearbyBookStore::getDefaultBookStores();
+		}
+		return $list;
+	}
+	
+	static function getDefaultBookStores(){
+		$store = new BookStore();
+		$store->showByDefault = 1;
+		$store->find();
+		$list = array();
+		while ($store->fetch()){
+			$list[] = clone $store;
+		}
 		return $list;
 	}
 }

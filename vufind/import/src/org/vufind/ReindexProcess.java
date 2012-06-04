@@ -17,6 +17,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.econtent.ExtractEContentFromMarc;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
+import org.ini4j.Profile.Section;
 import org.strands.StrandsProcessor;
 
 
@@ -37,6 +38,7 @@ public class ReindexProcess {
 
 	//General configuration
 	private static String serverName;
+	private static String indexSettings;
 	private static Ini configIni;
 	private static String solrPort;
 	
@@ -46,7 +48,7 @@ public class ReindexProcess {
 	private static long endTime;
 	
 	//Variables to determine what sub processes to run.
-	private static boolean reloadDefaultSchema = true;
+	private static boolean reloadDefaultSchema = false;
 	private static boolean updateSolr = true;
 	private static boolean updateResources = true;
 	private static boolean loadEContentFromMarc = false;
@@ -72,6 +74,10 @@ public class ReindexProcess {
 		}
 		serverName = args[0];
 		System.setProperty("reindex.process.serverName", serverName);
+		
+		if (args.length > 1){
+			indexSettings = args[1];
+		}
 		
 		initializeReindex();
 		
@@ -209,15 +215,19 @@ public class ReindexProcess {
 		
 		logger.info("Processing resources");
 		try {
-			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource");
+			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet allResources = allResourcesStmt.executeQuery();
 			while (allResources.next()){
 				for (IResourceProcessor resourceProcessor : resourceProcessors){
 					resourceProcessor.processResource(allResources);
 				}
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
+			logger.error("Exception processing resources", e);
+			System.out.println("Exception processing resources " + e.toString());
+		} catch (Error e) {
 			logger.error("Error processing resources", e);
+			System.out.println("Error processing resources " + e.toString());
 		}
 	}
 
@@ -288,7 +298,7 @@ public class ReindexProcess {
 		if (solrmarcLog.exists()){
 			solrmarcLog.delete();
 		}
-		for (int i = 1; i <= 4; i++){
+		for (int i = 1; i <= 10; i++){
 			solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log." + i);
 			if (solrmarcLog.exists()){
 				solrmarcLog.delete();
@@ -321,7 +331,7 @@ public class ReindexProcess {
 		logger.info("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
-			logger.error("Could not find confiuration file " + configName);
+			logger.error("Could not find configuration file " + configName);
 			System.exit(1);
 		}
 
@@ -336,6 +346,36 @@ public class ReindexProcess {
 		} catch (IOException e) {
 			logger.error("Configuration file could not be read.", e);
 		}
+		
+		if (indexSettings != null){
+			logger.info("Loading index settings from override file " + indexSettings);
+			String indexSettingsName = "../../sites/" + serverName + "/conf/" + indexSettings + ".ini";
+			File indexSettingsFile = new File(indexSettingsName);
+			if (!indexSettingsFile.exists()) {
+				indexSettingsName = "../../sites/default/conf/" + indexSettings + ".ini";
+				indexSettingsFile = new File(indexSettingsName);
+				if (!indexSettingsFile.exists()) {
+					logger.error("Could not find indexSettings file " + indexSettings);
+					System.exit(1);
+				}
+			}
+			try {
+				Ini indexSettingsIni = new Ini();
+				indexSettingsIni.load(new FileReader(indexSettingsFile));
+				for (Section curSection : indexSettingsIni.values()){
+					for (String curKey : curSection.keySet()){
+						logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+						//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+						configIni.put(curSection.getName(), curKey, curSection.get(curKey));
+					}
+				}
+			} catch (InvalidFileFormatException e) {
+				logger.error("IndexSettings file is not valid.  Please check the syntax of the file.", e);
+			} catch (IOException e) {
+				logger.error("IndexSettings file could not be read.", e);
+			}
+		}
+		
 		solrPort = configIni.get("Reindex", "solrPort");
 		if (solrPort == null || solrPort.length() == 0) {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");

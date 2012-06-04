@@ -9,6 +9,7 @@ class BookStore extends DB_DataObject
 {
 	public $__table = 'book_store';   // table name
 	public $id;                       // int(11)  not_null primary_key auto_increment
+	public $showByDefault;                  // tinyint (0 or 1)
 	public $storeName;                // varchar(100)
 	public $link;                     // varchar(256)
 	public $linkText;                 // varchar(100)
@@ -27,11 +28,12 @@ class BookStore extends DB_DataObject
 	function getObjectStructure(){		
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the book store within the database'),
-			'storeName' => array('property'=>'storeName', 'type'=>'text', 'label'=>'Store Name', 'description'=>'The name of a book store'),
-			'link' => array('property'=>'link', 'type'=>'text', 'label'=>'Link', 'description'=>'The link to search'),
-			'linkText' => array('property'=>'linkText', 'type'=>'text', 'label'=>'Link Text', 'description'=>'The search link text to display'),
-			'image' => array('property'=>'image', 'type'=>'image', 'label'=>'Image', 'description'=>'The image/icon for the book store'),
-			'resultRegEx' => array('property'=>'resultRegEx', 'type'=>'text', 'label'=>'Result RegEx', 'description'=>'The RegEx to check search result'),
+			'storeName' => array('property'=>'storeName', 'type'=>'text', 'label'=>'Store Name', 'maxLength'=>'100', 'size'=>'80', 'description'=>'The name of a book store'),
+			'link' => array('property'=>'link', 'type'=>'text', 'label'=>'Link', 'maxLength'=>'256', 'size'=>'80', 'description'=>'The link to search'),
+			'linkText' => array('property'=>'linkText', 'type'=>'text', 'label'=>'Link Text', 'maxLength'=>'100', 'size'=>'80', 'description'=>'The search link text to display'),
+			'image' => array('property'=>'image', 'type'=>'image', 'label'=>'Image', 'description'=>'The image/icon for the book store', 'hideInLists'=>true),
+			'resultRegEx' => array('property'=>'resultRegEx', 'type'=>'text', 'label'=>'No Results RegEx', 'maxLength'=>'100', 'size'=>'80', 'description'=>'The RegEx to determine if the title does not exist at the store.'),
+			'showByDefault' => array('property'=>'showByDefault', 'type'=>'checkbox', 'label'=>'Use by default', 'description'=>'Whether or not to use the bookstore by default if bookstores are not setup for a particular library.')
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';

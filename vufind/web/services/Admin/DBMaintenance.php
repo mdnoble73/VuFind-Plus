@@ -901,7 +901,26 @@ class DBMaintenance extends Admin {
 			'description' => 'Increase the length of the checksum field for the marc import.',
 			'dependencies' => array(),
 			'sql' => array(
-				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id when it was last imported.'",
+				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id as it currently exists in the active index.'",
+			),
+		),
+		'marcImport_2' => array(
+			'title' => 'Marc Import table Update 1',
+			'description' => 'Increase the length of the checksum field for the marc import.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import ADD COLUMN `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+				"ALTER TABLE marc_import ADD COLUMN `eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the active index.'",
+				"ALTER TABLE marc_import ADD COLUMN `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
+			),
+		),
+		'marcImport_2' => array(
+			'title' => 'Marc Import table Update 2',
+			'description' => 'Make backup fields optional.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import CHANGE `backup_checksum`, `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+				"ALTER TABLE marc_import CHANGE `backup_checksum`, `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
 			),
 		),
 		'add_indexes' => array(
@@ -1059,6 +1078,15 @@ class DBMaintenance extends Admin {
 					"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
+			),
+		),
+		'book_store_1' => array(
+			'title' => 'Book store table update 1',
+			'description' => 'Add a default column to determine if a book store should be used if a library does not override.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE book_store ADD COLUMN `showByDefault` TINYINT NOT NULL DEFAULT 1 COMMENT 'Whether or not the book store should be used by default for al library systems.'",
+				"ALTER TABLE book_store CHANGE `image` `image` VARCHAR(256) NULL COMMENT 'The URL to the icon/image to display'",
 			),
 		),
 		'nearby_book_store' => array(

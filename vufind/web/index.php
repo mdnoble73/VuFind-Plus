@@ -262,6 +262,7 @@ if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && 
 }else{
 	$interface->assign('showStrands', false);
 }
+$interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
 // Check system availability

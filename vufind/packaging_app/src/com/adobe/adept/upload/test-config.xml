@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<request xmlns="http://ns.adobe.com/adept">
+	<serverURL>http://london.corp.adobe.com/fulfillment/ManageDistributionRights</serverURL>
+	<distributionRights>
+		<distributor>urn:uuid:88037e33-0e4d-4180-80ce-6c1d5ddf9cc9</distributor>
+		<resourceFile>/Users/piotrk/Documents/DistToolTest/test-resource-list.txt</resourceFile>
+		<distributionType>loan</distributionType>
+		<available>2</available>
+		<returnable>false</returnable>
+		<usePasshash>false</usePasshash>
+		<permissions>
+			<display />
+			<play />
+			<excerpt />
+			<print />
+		</permissions>
+	</distributionRights>
+</request>

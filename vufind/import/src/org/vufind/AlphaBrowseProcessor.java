@@ -39,7 +39,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			
 			//Get all resources
 			logger.info("Loading titles for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, title, title_sort FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY title_sort ORDER BY title_sort");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, title, title_sort FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY title_sort ORDER BY title_sort", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet resourcesByTitleRS = resourcesByTitleStmt.executeQuery();
 
 			logger.info("Saving titles to database");
@@ -55,6 +55,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					//System.out.print(".");
 				}
 			}
+			resourcesByTitleRS.close();
 			
 			logger.info("Added " + (curRow -1) + " rows to title browse table");
 			results.addNote("Added " + (curRow -1) + " rows to title browse table");
@@ -72,7 +73,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			
 			//Get all resources
 			logger.info("Loading authors for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, author FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY lower(author) ORDER BY lower(author)");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(id) as numResults, author FROM `resource` WHERE (deleted = 0 OR deleted IS NULL) GROUP BY lower(author) ORDER BY lower(author)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
 
 			logger.info("Saving authors to database");
@@ -88,6 +89,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					//System.out.print(".");
 				}
 			}
+			groupedSortedRS.close();
 			
 			logger.info("Added " + (curRow -1) + " rows to author browse table");
 			results.addNote("Added " + (curRow -1) + " rows to author browse table");
@@ -106,7 +108,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			
 			//Get all resources
 			logger.info("Loading subjects for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, subject from resource inner join resource_subject on resource.id = resource_subject.resourceId inner join subject on subjectId = subject.id WHERE (deleted = 0 OR deleted is NULL) group by subjectId ORDER BY lower(subject)");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, subject from resource inner join resource_subject on resource.id = resource_subject.resourceId inner join subject on subjectId = subject.id WHERE (deleted = 0 OR deleted is NULL) group by subjectId ORDER BY lower(subject)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
 
 			logger.info("Saving subjects to database");
@@ -122,6 +124,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					//System.out.print(".");
 				}
 			}
+			groupedSortedRS.close();
 			logger.info("Added " + (curRow -1) + " rows to subject browse table");
 			results.addNote("Added " + (curRow -1) + " rows to subject browse table");
 		} catch (SQLException e) {
@@ -139,7 +142,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 			
 			//Get all resources
 			logger.info("Loading call numbers for browsing");
-			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, callnumber from resource inner join (select resourceId, callnumber FROM resource_callnumber group by resourceId, callnumber) titleCallNumber on resource.id = resourceId where (deleted = 0 OR deleted is NULL) group by callnumber ORDER BY lower(callnumber)");
+			PreparedStatement resourcesByTitleStmt = vufindConn.prepareStatement("SELECT count(resource.id) as numResults, callnumber from resource inner join (select resourceId, callnumber FROM resource_callnumber group by resourceId, callnumber) titleCallNumber on resource.id = resourceId where (deleted = 0 OR deleted is NULL) group by callnumber ORDER BY lower(callnumber)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedSortedRS = resourcesByTitleStmt.executeQuery();
 
 			logger.info("Saving call numbers to database");
@@ -155,6 +158,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					//System.out.print(".");
 				}
 			}
+			groupedSortedRS.close();
 			logger.info("Added " + (curRow -1) + " rows to call number browse table");
 			results.addNote("Added " + (curRow -1) + " rows to call number browse table");
 		} catch (SQLException e) {

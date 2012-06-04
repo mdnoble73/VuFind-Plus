@@ -160,6 +160,16 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => true,
 		  'storeSolr' => true,
 		),
+		'status' => array(
+		  'property' => 'status',
+		  'type' => 'enum',
+		  'values' => array('active' => 'Active', 'archived' => 'Archived', 'deleted' => 'Deleted'),
+		  'label' => 'Status',
+		  'description' => 'The Current Status of the record.',
+		  'required'=> true,
+		  'storeDb' => true,
+		  'storeSolr' => false,
+		),
 		'accessType' => array(
       'property'=>'accessType', 
       'type'=>'enum',
@@ -812,7 +822,9 @@ class EContentRecord extends SolrDataObject {
 		}
 	}
 	function bib_suppression(){
-		if ($this->status == 'active' || $this->status == 'archived'){
+		if (!isset($this->status)){
+			return "notsuppressed";
+		}elseif ($this->status == 'active' || $this->status == 'archived'){
 			return "notsuppressed";
 		}else{
 			return "suppressed";
@@ -1049,12 +1061,18 @@ class EContentRecord extends SolrDataObject {
 					if ($item->available){
 						$links[] = array(
 							'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$item->formatId}');",
-							'text' => 'Check Out'
+							'text' => 'Check Out',
+							'overDriveId' => $overDriveId,
+							'formatId' => $item->formatId,
+							'action' => 'CheckOut'
 							);
 					}else{
 						$links[] = array(
 							'onclick' => "return placeOverDriveHold('$overDriveId', '{$item->formatId}');",
-							'text' => 'Place Hold'
+							'text' => 'Place Hold',
+							'overDriveId' => $overDriveId,
+							'formatId' => $item->formatId,
+							'action' => 'Hold'
 							);
 					}
 					$item->links = $links;

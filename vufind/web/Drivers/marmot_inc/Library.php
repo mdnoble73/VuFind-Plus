@@ -324,7 +324,7 @@ class Library extends DB_DataObject
 	}
 	
 	public function saveHolidays(){
-		if (isset ($this->holidays)){
+		if (isset ($this->holidays) && is_array($this->holidays)){
 			foreach ($this->holidays as $holiday){
 				if (isset($holiday->deleteOnSave) && $holiday->deleteOnSave == true){
 					$holiday->delete();
@@ -342,7 +342,7 @@ class Library extends DB_DataObject
 	}
 	
 	public function saveNearByBookStores(){
-		if (isset ($this->nearbyBookStores)){
+		if (isset ($this->nearbyBookStores) && is_array($this->nearbyBookStores)){
 			foreach ($this->nearbyBookStores as $store){
 				if (isset($store->deleteOnSave) && $store->deleteOnSave == true){
 					$store->delete();
@@ -364,7 +364,7 @@ class Library extends DB_DataObject
 		if ($library) {
 			return NearbyBookStore::getBookStores($library->libraryId);
 		} else {
-			return NearbyBookStore::getBookStores(-1);
+			return NearbyBookStore::getDefaultBookStores();
 		}
 	}
 }

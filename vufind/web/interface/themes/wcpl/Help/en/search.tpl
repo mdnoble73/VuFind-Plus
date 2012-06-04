@@ -1,5 +1,8 @@
 <h1>Helpful Searching Tips</h1>
 
+<div id="backto_help" style="background-color:#fff;border:1px solid #333;padding:4px;cursor:pointer;">
+<a href="{$url}/Help/Home?topic=faq" title="{translate text='Back to Menu'}" onclick="window.open('{$url}/Help/Home?topic=faq','_self', 'Help', 'width=720, height=430'); return false;">{translate text='Back to Menu'}</a>
+</div>
 
 <ul class="HelpMenu">
  <h4>Search Tips</h4>
@@ -10,6 +13,10 @@
  <p></p>
  
  <h4>Advanced Search Tips</h4>
+ 
+ <li><div id="backto_help" style="background-color:#fff;border:1px solid #333;padding:4px;cursor:pointer;">
+<a href="{$url}/Help/Home?topic=faq" title="{translate text='Back to Menu'}" onclick="window.open('{$url}/Help/Home?topic=faq','_self', 'Help', 'width=720, height=430'); return false;">{translate text='Back to Menu'}</a>
+</div></li>
   
   <li><a href="#Wildcard Searches">Wildcard Searches</a></li>
   <li><a href="#Fuzzy Searches">Fuzzy Searches</a></li>
