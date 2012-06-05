@@ -510,6 +510,8 @@ class OverDriveDriver {
 				}else{
 					$holdResult['result'] = false;
 					$holdResult['message'] = 'There was an error placing your hold.';
+					$logger = new Logger();
+					$logger->log("Overdrive Hold Error\r\n$waitingListConfirm", PEAR_LOG_INFO)
 				}
 			}
 		}
