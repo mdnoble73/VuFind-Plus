@@ -1558,7 +1558,8 @@ div.popupBox .header a {
   left: auto;
   bottom: auto;
   top: auto;
-  border-bottom: 1px solid #999;
+  float: left;
+  width: 200px;
 }
 
 #goDeeperOutput {
@@ -1602,4 +1603,20 @@ table.tablesorter {
 
 #lightbox {
   opacity: .7;
+}
+
+div.popupBox ul {
+  list-style: disc;
+  padding: 0 0 0 2em;
+  margin: 1em 0;
+}
+
+div.popupBox ul li {
+  border-bottom: none;
+  padding: 0;
+}
+
+div.popupBox ul li a {
+  color: #256292;
+  text-decoration: none;
 }
