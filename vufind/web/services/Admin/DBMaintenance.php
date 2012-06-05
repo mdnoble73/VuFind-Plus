@@ -534,7 +534,16 @@ class DBMaintenance extends Admin {
 					') ENGINE=InnoDB',
 				),
 			),
-
+			
+			'resource_subject_1' => array(
+				'title' => 'Resource subject update 1',
+				'description' => 'Increase the length of the subject column',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE subject CHANGE subject subject VARCHAR(512) NOT NULL'
+				),
+			),
+			
 			'readingHistory' => array(
         'title' => 'Reading History Creation',
         'description' => 'Update reading History to include an id table',
