@@ -1,6 +1,7 @@
 <div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
   <fieldset>
     <legend>Basic Information</legend>
+    <div id="suggestedIdentifiers" style="display:none"></div>
     <div>
       <label for="format">Format <span class="requiredIndicator">*</span>:</label>
       <select name="format" class="required" id="format" onchange="setFieldVisibility();">
@@ -62,17 +63,17 @@
       </select>
     </div>
     {/if}
+    {if $useWorldCat}
+    <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
+      <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
+    </div>
+    {/if}
   </fieldset>
   <fieldset class="anythink-collapsible">
     <legend>Tell us more</legend>
+    {*
     <fieldset>
       <legend>Identifiers</legend>
-      {if $useWorldCat}
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
-        <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
-      </div>
-      {/if}
-      <div id="suggestedIdentifiers" style="display:none"></div>
       <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
         <label for="isbn">ISBN:</label>
         <input name="isbn" id="isbn" size="15" maxlength="15" value="{$materialsRequest->isbn}"/>
@@ -90,6 +91,7 @@
         <input name="oclcNumber" id="oclcNumber" size="15" maxlength="30" value="{$materialsRequest->oclcNumber}"/>
       </div>
     </fieldset>
+    *}
     <fieldset id="supplementalDetails">
       <legend>Supplemental Details</legend>
       {if $showAgeField}

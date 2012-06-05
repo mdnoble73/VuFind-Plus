@@ -61,9 +61,13 @@
       };
     };
 
-    var cart_wrapper = $('#cart-wrapper');
+    // Set up fixed position element.
+    anythink.settings.fixed_wrapper = $('#fixed-wrapper');
+    anythink.settings.fixed_offset = anythink.settings.fixed_wrapper.offset();
 
-    if (cart_wrapper.length > 0) {
+    var fixed_wrapper = anythink.settings.fixed_wrapper;
+
+    if (fixed_wrapper.length > 0) {
       // Bag buttons.
       $('.actions-cart a').each(function() {
         var $this = $(this);
@@ -110,12 +114,12 @@
           navigate_link.text('Hide');
           // navigate_link.fadeOut(100, function() {
             // Scale central column.
-            cart_wrapper.hide();
+            fixed_wrapper.hide();
             central_column.animate({marginLeft: '220px'}, {
               duration: 250,
               complete: function() {
                 bagResize();
-                cart_wrapper.fadeIn(100);
+                fixed_wrapper.fadeIn(100);
               }
             });
             iframe.css({width: '200px'});
@@ -125,12 +129,12 @@
           navigate_link.removeClass('processed');
           navigate_link.text(orig_text);
           // Re scale.
-          cart_wrapper.hide();
+          fixed_wrapper.hide();
           central_column.animate({marginLeft: 0}, {
             duration: 250,
             complete: function() {
               bagResize();
-              cart_wrapper.fadeIn(100);
+              fixed_wrapper.fadeIn(100);
             }
           });
           iframe.css({width: 0});
@@ -159,7 +163,43 @@
       });
     }
 
+    // Fixed position container.
+    $(document).bind('scroll', function() {
+      anythinkResize();
+    });
+    $(window).bind('resize', function() {
+      anythinkResize();
+    });
+
+    // @todo Refactor this to make more sense. Unfortunately depends on
+    // JS outside of the theme directory. @see /services/Record/ajax.js
+    var go_deeper = $('#goDeeperLink');
+    var cover = go_deeper.next();
+    cover.bind('load', function() {
+      go_deeper.height(cover.height() + 10);
+      var position = cover.position();
+      go_deeper.css({
+        top: position.top + 'px',
+        left: position.left + 'px'
+      });
+    });
+
+
   });
+
+  function anythinkResize() {
+    var offset = anythink.settings.fixed_offset;
+    var fixed_wrapper = anythink.settings.fixed_wrapper;
+    fixed_wrapper.css({width: fixed_wrapper.parent().width() + 'px'});
+    if (offset.top < $(window).scrollTop() && !fixed_wrapper.hasClass('cling')) {
+      fixed_wrapper.addClass('cling');
+      $('#search').prependTo(fixed_wrapper);
+    }
+    else if (offset.top >= $(window).scrollTop() && fixed_wrapper.hasClass('cling')){
+      fixed_wrapper.removeClass('cling');
+      $('#header-utility-top').after($('#search'));
+    }
+  }
 
   // Get a list of the records on the page.
   get_records_anythink = function() {

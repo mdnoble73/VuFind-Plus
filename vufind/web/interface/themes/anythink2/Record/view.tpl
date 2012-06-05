@@ -53,12 +53,8 @@ function redrawSaveStatus() {
     <div id="image-column">
       {if $user->disableCoverArt != 1}
         <div id="cover">
-          <a href="{$bookCoverUrl}">
-            <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
-          </a>
-          <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightboxAnythink('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">Explore</a>
-          </div>
+          <a id="goDeeperLink" style="display:none" href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightboxAnythink('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;"></a>
+          <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
         </div>
       {/if}
       <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
@@ -419,10 +415,12 @@ function redrawSaveStatus() {
       <h4>{translate text='Subjects'}</h4>
       <ul>
         {foreach from=$subjects item=subject name=loop}
+        <li>
           {foreach from=$subject item=subjectPart name=subloop}
-            {if !$smarty.foreach.subloop.first} -- {/if}
-            <li><a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a></li>
+            {if !$smarty.foreach.subloop.first} &mdash; {/if}
+            <a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
           {/foreach}
+        </li>
         {/foreach}
       </ul>
     </div>

@@ -33,12 +33,8 @@ function redrawSaveStatus() {literal}{{/literal}
     <div id="image-column">
       {if $user->disableCoverArt != 1}
         <div id="cover">
-          <a href="{$bookCoverUrl}">
-            <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
-          </a>
-          <div id="goDeeperLink" class="godeeper" style="display:none">
-            <a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightboxAnythink('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-          </div>
+          <a id="goDeeperLink" style="display:none" href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightboxAnythink('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;"></a>
+          <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
         </div>
       {/if}
       <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">

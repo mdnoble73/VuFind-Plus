@@ -131,6 +131,7 @@
             <ul class="inline right">
               {if !$user}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
+                <li><a href="{$path}/MyResearch/GetCard">{translate text="Get a Card"}</a></li>
               {else}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
@@ -163,7 +164,7 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
-                <div id="cart-wrapper">
+                <div id="fixed-wrapper">
                   {include file="bookcart.tpl"}
                 </div>
                 {if $showBreadcrumbs}

@@ -235,6 +235,20 @@ body {
   margin: 20px auto 20px auto;
 }
 
+#fixed-wrapper #search {
+  background-color: #FFF;
+  border-bottom: 1px solid #CCC;
+  margin: 0;
+  float: left;
+  width: 100%;
+  opacity: .9;
+}
+
+#fixed-wrapper #search-inner {
+  padding: 10px;
+  float: right;
+}
+
 .intro {
   text-align: center;
 }
@@ -253,12 +267,8 @@ body {
   font-weight: bold;
 }
 
-#search-input {
-  margin-bottom: .667em;
-}
-
 #searchForm {
-  margin-bottom: 1.333em;
+  margin-bottom: 0;
 }
 
 #basicType {
@@ -707,27 +717,18 @@ body.Search--Home #main-content {
   margin-right: 20px;
 }
 
-.godeeper {
-  position: absolute;
-  right: -9px;
-  bottom: -4px;
-  z-index: 2;
-}
-
-.godeeper a {
-  background-image: url(../images/explore-sprite.png);
-  background-position: 0 0;
+#goDeeperLink {
+  background-image: url(../images/explore-sprite2.png);
+  background-position: -190px bottom;
   background-repeat: no-repeat;
   display: block;
-  height: 70px;
-  overflow: hidden;
-  text-indent: 100%;
-  white-space: nowrap;
-  width: 130px;
+  position: absolute;
+  z-index: 2;
+  width: 190px;
 }
 
-.godeeper a:hover {
-  background-position: 0 -70px;
+#goDeeperLink:hover {
+  background-position: 0 bottom;
 }
 
 .details {
@@ -870,13 +871,6 @@ div.record {
   margin-right: 20px;
 }
 
-#cart-wrapper {
-  max-width: 1117px;
-  position: absolute;
-  top: 0;
-  width: 100%;
-}
-
 #navigate-link {
   background-image: url(../images/gradient-small-1.png);
   background-repeat: repeat-x;
@@ -918,12 +912,19 @@ div.record {
   opacity: .9;
 }
 
-#cart-wrapper.cling {
-  position: fixed;
-  z-index: 2;
+#fixed-wrapper {
+  max-width: 1117px;
+  position: absolute;
+  top: 0;
+  width: 100%;
 }
 
-body.Search--Home #cart-wrapper {
+#fixed-wrapper.cling {
+  position: fixed;
+  z-index: 11;
+}
+
+body.Search--Home #fixed-wrapper {
   display: none;
 }
 
@@ -1557,7 +1558,8 @@ div.popupBox .header a {
   left: auto;
   bottom: auto;
   top: auto;
-  border-bottom: 1px solid #999;
+  float: left;
+  width: 200px;
 }
 
 #goDeeperOutput {
@@ -1601,4 +1603,20 @@ table.tablesorter {
 
 #lightbox {
   opacity: .7;
+}
+
+div.popupBox ul {
+  list-style: disc;
+  padding: 0 0 0 2em;
+  margin: 1em 0;
+}
+
+div.popupBox ul li {
+  border-bottom: none;
+  padding: 0;
+}
+
+div.popupBox ul li a {
+  color: #256292;
+  text-decoration: none;
 }
