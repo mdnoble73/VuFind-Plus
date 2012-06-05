@@ -483,7 +483,11 @@ class OverDriveDriver {
 				curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll?Action=LibraryWaitingList');
 				$waitingListConfirm = curl_exec($overDriveInfo['ch']);
 				
-				if (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
+				if (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
+					$holdResult['result'] = false;
+					$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
+				}elseif (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
+					
 					$holdResult['result'] = true;
 					$holdResult['message'] = 'Your hold was placed successfully.';
 					
