@@ -131,6 +131,7 @@
             <ul class="inline right">
               {if !$user}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
+                <li><a href="{$path}/MyResearch/GetCard">{translate text="Get a Card"}</a></li>
               {else}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
