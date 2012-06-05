@@ -1253,6 +1253,8 @@ class EContentRecord extends SolrDataObject {
 		if ($overdriveUrl == null || strlen($overdriveUrl) < 36){
 			return null;
 		}else{
+			$overdriveUrl = preg_replace('/[&|?]Format=\d+/i', '', $overdriveUrl);
+			$overdriveUrl = preg_replace('/[{}]/i', '', $overdriveUrl);
 			return substr($overdriveUrl, -36);
 		}
 	}
