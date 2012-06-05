@@ -1,4 +1,4 @@
-<div id="search">
+<div id="search"><div id="search-inner">
 {if $searchType == 'advanced'}
   <a href="{$path}/Search/Advanced?edit={$searchId}">{translate text="Edit this Advanced Search"}</a> |
   <a href="{$path}/Search/Advanced">{translate text="Start a new Advanced Search"}</a> |
@@ -69,4 +69,4 @@
   </div>
   {/if}
 {/if}
-</div>
+</div></div>
