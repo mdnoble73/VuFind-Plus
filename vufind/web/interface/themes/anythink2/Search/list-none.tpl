@@ -1,4 +1,4 @@
-{if !empty($spellingSuggestions) || !empty($sideRecommendations)}
+{if $recordCount > 0 && (!empty($spellingSuggestions) || !empty($sideRecommendations))}
 <div id="sidebar-wrapper"><div id="sidebar">
   {if $spellingSuggestions}
     <div class="sidegroup" id="spellingSuggestions">

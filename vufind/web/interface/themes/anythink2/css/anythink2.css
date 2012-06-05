@@ -415,8 +415,13 @@ body.MaterialsRequest--Submit #main-content,
 body.MaterialsRequest--NewRequest #main-content,
 body.MyResearch--GetCard #main-content,
 body.MyResearch--EmailPin #main-content,
-body.Search--Home #main-content {
+body.Search--Home #main-content,
+body.Search--Results--0 #main-content {
   margin-left: 0;
+}
+
+body.Search--Results--0 #sidebar-wrapper {
+  display: none;
 }
 
 .required {
