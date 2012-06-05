@@ -442,7 +442,7 @@ class OverDriveDriver {
 			$setEmailPage = curl_exec($overDriveInfo['ch']);
 			$setEmailPageInfo = curl_getinfo($ch);
 			
-			$secureBaseUrl = preg_replace('/[^.]+?.htm.*/', '', $setEmailPageInfo['url']);
+			$secureBaseUrl = preg_replace('~[^/.]+?.htm.*~', '', $setEmailPageInfo['url']);
 			
 			
 			//Login (again)
