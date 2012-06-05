@@ -1030,6 +1030,9 @@ class EContentRecord extends SolrDataObject {
 									$cachedItem->available = $currentItem->available;
 									$currentItem->update();
 								}
+								$cachedItem->availableCopies = $currentItem->availableCopies;
+								$cachedItem->totalCopies = $currentItem->totalCopies;
+								$cachedItem->numHolds = $currentItem->numHolds;
 								$this->items[] = $cachedItem;
 								unset($currentItems[$currentKey]);
 								unset($cachedItems[$cacheKey]);

@@ -187,6 +187,13 @@ class EContentDriver implements DriverInterface{
 					break;
 				}
 			}
+			if ($holding){
+				$statusSummary['totalCopies'] = $holding->totalCopies;
+				$statusSummary['availableCopies'] = $holding->availableCopies;
+				$statusSummary['numHolds'] = $holding->numHolds;
+				$statusSummary['holdQueueLength'] = $holding->numHolds;
+			}
+		
 			if ($available){
 				$statusSummary['status'] = 'Available from OverDrive';
 			}else{

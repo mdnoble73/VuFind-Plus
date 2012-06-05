@@ -318,6 +318,17 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 		
+		'overdriveItem_1' => array(
+			'title' => 'Overdrive Item Update 1',
+			'description' => 'Change Overdrive item to cache information about number of holds and waitlist',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE overdrive_item ADD COLUMN availableCopies int(11) DEFAULT 0;",
+				"ALTER TABLE overdrive_item ADD COLUMN totalCopies int(11) DEFAULT 0;",
+				"ALTER TABLE overdrive_item ADD COLUMN numHolds int(11) DEFAULT 0;",
+			),
+		),
+		
 		'eContentWishList'  => array(
 			'title' => 'eContent Wishlist',
 			'description' => 'Create table to allow econtent to be added to a user\'s wishlist if no items exits for the record.',

@@ -34,6 +34,9 @@ class OverdriveItem extends DB_DataObject{
 	public $size;
 	public $available;
 	public $notes;
+	public $availableCopies;
+	public $totalCopies;
+	public $numHolds;
 	public $lastLoaded;
 	/**
 	 * Whether or not the record is checked out to the user 
@@ -46,5 +49,6 @@ class OverdriveItem extends DB_DataObject{
 	 * Dynamic information that can't be cached very long
 	 */
 	public $usageLink;
+
 	
 }

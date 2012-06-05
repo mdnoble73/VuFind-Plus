@@ -913,7 +913,7 @@ class OverDriveDriver {
 		$myAccountMenuContent = curl_exec($ch);
 		$accountPageInfo = curl_getinfo($ch);
 		
-		$matchAccount = preg_match('/(?:<td class="(?:pghead|collhead)">|<h1>)(?:\sto\s)My (?:OverDrive\s|Digital\sMedia\s|Digital\s)?Account(?:<\/td>|<\/h1>)/is', $myAccountMenuContent);
+		$matchAccount = preg_match('/(?:<td class="(?:pghead|collhead)">|<h1>)(?:\sto\s)?My (?:OverDrive\s|Digital\sMedia\s|Digital\s)?Account(?:<\/td>|<\/h1>)/is', $myAccountMenuContent);
 		$matchCart = preg_match('/One or more titles from a previous session have been added to your (cart|Book Cart|Digital Cart)/i', $myAccountMenuContent);  
 		if (($matchAccount > 0) || ($matchCart > 0)){
 		
@@ -954,7 +954,7 @@ class OverDriveDriver {
 			$items = array();
 		}else{
 			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if ($items == false){
+			if (true || $items == false){
 				$items = array();
 				//Check to see if the file has been cached
 				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
@@ -968,6 +968,16 @@ class OverDriveDriver {
 				}
 				//echo($overdrivePage);
 				//Extract the Format Information section 
+				
+				if (preg_match('/Available copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
+					$availableCopies = $extraction[1];
+				}
+				if (preg_match('/(\d+) patron\(s\) on waiting list/s', $overdrivePage, $extraction)){
+					$holdQueueLength = $extraction[1];
+				}
+				if (preg_match('/Library copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
+					$totalCopies = $extraction[1];
+				}
 				if (preg_match('/<h[13]>Format Information<\/h[13]>(.*?)<h[13]>/s', $overdrivePage, $extraction)){
 					$formatSection = $extraction[1];
 					//Strip out information we don't care about
@@ -983,6 +993,11 @@ class OverDriveDriver {
 							$overdriveItem->size = $itemInfoAll[4][$matchi];
 							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to digital cart') == 0);
 							$overdriveItem->lastLoaded = time();
+							
+							$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
+							$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
+							$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
+							
 							$items[] = $overdriveItem;
 						}
 					}

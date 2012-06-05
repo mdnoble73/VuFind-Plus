@@ -1192,9 +1192,10 @@ class MillenniumDriver implements DriverInterface
 		
 		$numHoldsAvailable = 0;
 		$numHoldsRequested = 0;
+		$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
 		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
 			foreach ($patronDump['HOLD'] as $hold){
-				if (preg_match('/ST=(105|98),/', $hold)){
+				if (preg_match("$availableStatusRegex", $hold)){
 					$numHoldsAvailable++;
 				}else{
 					$numHoldsRequested++;
@@ -2012,7 +2013,7 @@ class MillenniumDriver implements DriverInterface
 								$expireDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
 								$curHold['expire'] = $expireDate->getTimestamp();
 								
-							}elseif (preg_match('/READY FOR PICKUP/i', $status, $matches)){
+							}elseif (preg_match('/READY\sFOR\sPICKUP|AVAILABLE/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
 							}else{
 								$curHold['status'] = $status;
