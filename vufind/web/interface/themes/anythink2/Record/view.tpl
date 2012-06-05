@@ -419,10 +419,12 @@ function redrawSaveStatus() {
       <h4>{translate text='Subjects'}</h4>
       <ul>
         {foreach from=$subjects item=subject name=loop}
+        <li>
           {foreach from=$subject item=subjectPart name=subloop}
-            {if !$smarty.foreach.subloop.first} -- {/if}
-            <li><a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a></li>
+            {if !$smarty.foreach.subloop.first} &mdash; {/if}
+            <a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
           {/foreach}
+        </li>
         {/foreach}
       </ul>
     </div>
