@@ -446,10 +446,12 @@ class OverDriveDriver {
 			
 			//Login (again)
 			curl_setopt($overDriveInfo['ch'], CURLOPT_POST, true);
+			$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
+			$barcode = $user->$barcodeProperty;
 			$postParams = array(
-				'LibraryCardILS' => 'douglascounty',
-				'LibraryCardNumber' => $user->cat_username,
-				'URL' => "WaitingListForm.htm?ID={$overDriveId}&Format=$format",
+				'LibraryCardILS' => $configArray['OverDrive']['LibraryCardILS'],
+				'LibraryCardNumber' => $barcode,
+				'URL' => 'MyAccount.htm',
 			);
 			foreach ($postParams as $key => $value) {
 				$post_items[] = $key . '=' . urlencode($value);
