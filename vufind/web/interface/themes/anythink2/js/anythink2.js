@@ -163,12 +163,25 @@
       });
     }
 
+    // Fixed position container.
     $(document).bind('scroll', function() {
       anythinkResize();
     });
-
     $(window).bind('resize', function() {
       anythinkResize();
+    });
+
+    // @todo Refactor this to make more sense. Unfortunately depends on
+    // JS outside of the theme directory. @see /services/Record/ajax.js
+    var go_deeper = $('#goDeeperLink');
+    var cover = go_deeper.next();
+    cover.bind('load', function() {
+      go_deeper.height(cover.height() + 10);
+      var position = cover.position();
+      go_deeper.css({
+        top: position.top + 'px',
+        left: position.left + 'px'
+      });
     });
 
 
