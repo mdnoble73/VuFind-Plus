@@ -2974,8 +2974,11 @@ class MillenniumDriver implements DriverInterface
 			$loginData['name'] = $configArray['Catalog']['ils_admin_user'];
 			$loginData['code'] = $configArray['Catalog']['ils_admin_pwd'];
 		}else{
-			$loginData['name'] = $patronInfo['PATRN_NAME'];
-			$loginData['code'] = $patronInfo['P_BARCODE'];
+			global $user;
+			$loginData['name'] = $user->cat_username;
+			$loginData['code'] = $user->cat_password;
+			//$loginData['name'] = $patronInfo['PATRN_NAME'];
+			//$loginData['code'] = $patronInfo['P_BARCODE'];
 		}
 		
 		return $loginData;
