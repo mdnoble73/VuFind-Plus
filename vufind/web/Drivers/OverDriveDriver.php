@@ -267,7 +267,7 @@ class OverDriveDriver {
 		global $timer;
 		
 		$holds = $memcache->get('overdrive_holds_' . $user->id);
-		if ($holds == false){
+		if (true || $holds == false){
 			$holds = array();
 			$holds['holds'] = array();
 			$holds['holds']['available'] = array();
@@ -314,7 +314,7 @@ class OverDriveDriver {
 				}
 				
 				//Check to see if the hold is available or unavailable
-				if (preg_match('/RemoveFromWaitingList&id={(.*?)}&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
+				if (preg_match('/RemoveFromWaitingList&id={?(.*?)}?&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
 					//Set the format
 					$hold['formatId'] = $formatInfo[2];
 					
@@ -332,7 +332,7 @@ class OverDriveDriver {
 						$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
 					}
 					//Extract the formats that can be checked out.
-					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={(.*?)}&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
+					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={?(.*?)}?&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
 					$hold['formats'] = array();
 					for ($i = 0; $i < count($formatInfo); $i++) {
 						$format = array();
