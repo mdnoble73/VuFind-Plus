@@ -1097,8 +1097,7 @@ class MillenniumDriver implements DriverInterface
 		
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$id2 = $patron[$barcodeProperty];
+			$id2 = $this->_getBarcode();
 		}else{
 			$id2= $patron['id'];
 		}
@@ -1718,8 +1717,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -2352,7 +2350,7 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Recall Holds
 		$bib = $cancelId;
@@ -2430,8 +2428,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -2539,8 +2536,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -2651,8 +2647,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
