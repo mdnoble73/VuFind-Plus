@@ -1,4 +1,4 @@
-{if !empty($spellingSuggestions) || !empty($sideRecommendations)}
+{if $recordCount > 0 && (!empty($spellingSuggestions) || !empty($sideRecommendations))}
 <div id="sidebar-wrapper"><div id="sidebar">
   {if $spellingSuggestions}
     <div class="sidegroup" id="spellingSuggestions">
@@ -70,7 +70,7 @@
   {/if}
 
   {if $enableMaterialsRequest}
-  <p>{translate text="Can't find what you're looking for?"} <a href="{$path}/MaterialsRequest/NewRequest">{translate text="Ask us to buy it!"}</a></p>
+  <p>{translate text="Can't find what you're looking for?"} <a href="{$path}/MaterialsRequest/NewRequest">{translate text="Request it!"}</a></p>
   {/if}
 
   </div>

@@ -84,7 +84,7 @@
       {/literal}
     </script>
   </head>
-  <body class="{$module} {$action} {$module}--{$action}">
+  <body class="{$module} {$action} {$module}--{$action} {$module}--{$action}--{$recordCount}">
     <div id="container"><div id="inner">
       <!-- Current Physical Location: {$physicalLocation} -->
       {* LightBox *}

@@ -118,7 +118,7 @@
             central_column.animate({marginLeft: '220px'}, {
               duration: 250,
               complete: function() {
-                bagResize();
+                anythinkResize();
                 fixed_wrapper.fadeIn(100);
               }
             });
@@ -133,7 +133,7 @@
           central_column.animate({marginLeft: 0}, {
             duration: 250,
             complete: function() {
-              bagResize();
+              anythinkResize();
               fixed_wrapper.fadeIn(100);
             }
           });

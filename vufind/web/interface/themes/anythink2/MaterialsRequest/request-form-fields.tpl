@@ -68,6 +68,39 @@
       <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
     </div>
     {/if}
+    {if !$materialsRequest}
+      {if $showPlaceHoldField || $showIllField}
+      <fieldset>
+        <legend>Access</legend>
+        {if $showPlaceHoldField}
+        <div>
+          Place a hold for me when the item is available:
+          <input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked" onclick="updateHoldOptions();"/><label for="placeHoldYes">Yes</label>
+          <input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" onclick="updateHoldOptions();"/><label for="placeHoldNo">No</label>
+        </div>
+        <div id="pickupLocationField">
+          <label for="pickupLocation">Pickup Location: </label>
+          <select name="holdPickupLocation" id="pickupLocation" onchange="updateHoldOptions();">
+            {foreach from=$pickupLocations item=location}
+              <option value="{$location->locationId}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+            {/foreach}
+          </select>
+        </div>
+        <div id="bookmobileStopField" style="display:none;">
+          <label for="bookmobileStop">Bookmobile Stop: </label>
+          <input name="bookmobileStop" id="bookmobileStop" size="50" maxlength="50"/>
+        </div>
+        {/if}
+        {if $showIllField}
+        <div>
+          Do you want us to borrow from another library if not purchased?:
+          <input type="radio" name="illItem" value="1" id="illItemYes" /><label for="illItemYes">Yes</label>
+          <input type="radio" name="illItem" value="0" id="illItemNo" checked="checked" /><label for="illItemNo">No</label>
+        </div>
+        {/if}
+      </fieldset>
+      {/if}
+    {/if}
   </fieldset>
   <fieldset class="anythink-collapsible">
     <legend>Tell us more</legend>
@@ -131,40 +164,7 @@
         <input name="publicationYear" id="publicationYear" size="4" maxlength="4" value="{$materialsRequest->publicationYear}"/>
       </div>
     </fieldset>
-    {if !$materialsRequest}
-      {if $showPlaceHoldField || $showIllField}
-      <fieldset>
-        <legend>Access</legend>
-        {if $showPlaceHoldField}
-        <div>
-          Place a hold for me when the item is available:
-          <input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked" onclick="updateHoldOptions();"/><label for="placeHoldYes">Yes</label>
-          <input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" onclick="updateHoldOptions();"/><label for="placeHoldNo">No</label>
-        </div>
-        <div id="pickupLocationField">
-          <label for="pickupLocation">Pickup Location: </label>
-          <select name="holdPickupLocation" id="pickupLocation" onchange="updateHoldOptions();">
-            {foreach from=$pickupLocations item=location}
-              <option value="{$location->locationId}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
-            {/foreach}
-          </select>
-        </div>
-        <div id="bookmobileStopField" style="display:none;">
-          <label for="bookmobileStop">Bookmobile Stop: </label>
-          <input name="bookmobileStop" id="bookmobileStop" size="50" maxlength="50"/>
-        </div>
-        {/if}
-        {if $showIllField}
-        <div>
-          Do you want us to borrow from another library if not purchased?:
-          <input type="radio" name="illItem" value="1" id="illItemYes" /><label for="illItemYes">Yes</label>
-          <input type="radio" name="illItem" value="0" id="illItemNo" checked="checked" /><label for="illItemNo">No</label>
-        </div>
-        {/if}
-      </fieldset>
-      {/if}
 
-    {/if}
     {if !$materialsRequest}
     <div>
       <label for="about">How / where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
