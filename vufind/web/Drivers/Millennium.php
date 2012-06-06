@@ -1392,7 +1392,7 @@ class MillenniumDriver implements DriverInterface
 	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
 	{
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Load the information from millenium using CURL
 		$sresult = $this->_fetchPatronInfoPage($patronDump, 'items');
@@ -1578,7 +1578,7 @@ class MillenniumDriver implements DriverInterface
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Load the information from millenium using CURL
 		$pageContents = $this->_fetchPatronInfoPage($patronDump, 'readinghistory');
@@ -1701,7 +1701,7 @@ class MillenniumDriver implements DriverInterface
 	function doReadingHistoryAction($patron, $action, $selectedTitles){
 		global $configArray;
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 		//Load the reading history page
 		$scope = $this->getDefaultScope();
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory";
@@ -1772,7 +1772,7 @@ class MillenniumDriver implements DriverInterface
 		global $timer;
 		global $configArray;
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Load the information from millenium using CURL
 		$sresult = $this->_fetchPatronInfoPage($patronDump, 'holds');
@@ -2505,7 +2505,7 @@ class MillenniumDriver implements DriverInterface
 
 		//Setup the call to Millennium
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		$extraGetInfo = array(
             'currentsortorder' => 'current_checkout',
@@ -2581,7 +2581,7 @@ class MillenniumDriver implements DriverInterface
 
 		//Setup the call to Millennium
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Validate that the input data is correct
 		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
