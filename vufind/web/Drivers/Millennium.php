@@ -2473,6 +2473,88 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
+	public function renewAll($patronId){
+		$logger = new Logger();
+		global $configArray;
+		global $memcache;
+
+		//Setup the call to Millennium
+		$id2= $patronId;
+		$barcode = $this->_getBarcode();
+		$patronDump = $this->_getPatronDump($barcode);
+		$curCheckedOut = $patronDump['CUR_CHKOUT'];
+		$totalRenewals = $patronDump['TOT_RENEWAL'];
+
+		//Login to the patron's account
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$success = false;
+
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+
+		$curl_connection = curl_init($curl_url);
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		$post_data = $this->_getLoginFormValues($patronDump);
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$sresult = curl_exec($curl_connection);
+
+		//Go to the items page
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
+		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+		$sresult = curl_exec($curl_connection);
+
+		//Post renewal information
+		$extraGetInfo = array(
+            'currentsortorder' => 'current_checkout',
+            'renewall' => 'YES',
+		);
+
+		$get_items = array();
+		foreach ($extraGetInfo as $key => $value) {
+			$get_items[] = $key . '=' . urlencode($value);
+		}
+		$renewItemParams = implode ('&', $get_items);
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
+		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
+		$sresult = curl_exec($curl_connection);
+		
+		//Clear the existing patron info and get new information.
+		$memcache->delete("patron_dump_$barcode");
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+		$newTotalRenewals = $patronDump['TOT_RENEWAL'];
+		
+		$hold_result = array();
+		$hold_result['Total'] = $curCheckedOut;
+		$hold_result['Renewed'] = $newTotalRenewals - $totalRenewals;
+		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
+		if ($hold_result['Unrenewed'] > 0) {
+			$hold_result['result'] = false;
+			$message = 'Unable to all items, too many renewals.';
+		}else{
+			$hold_result['result'] = true;
+			$hold_result['message'] = "All items were renewed successfully.";
+		}
+		curl_close($curl_connection);
+		unlink($cookieJar);
+
+		return $hold_result;
+	}
+	
 	public function renewItem($patronId, $itemId, $itemIndex){
 		$logger = new Logger();
 		global $configArray;
