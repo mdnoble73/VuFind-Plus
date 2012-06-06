@@ -2126,7 +2126,7 @@ public class MarcRecordDetails {
 					if (targetAudienceChar != ' ') {
 						result.add(Character.toString(targetAudienceChar));
 					}
-				} else {
+				} else if (result.size() == 0){
 					result.add("Unknown");
 				}
 			} else {
