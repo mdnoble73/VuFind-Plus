@@ -2518,7 +2518,7 @@ class MillenniumDriver implements DriverInterface
 		$barcode = $this->_getBarcode();
 		$patronDump = $this->_getPatronDump($barcode);
 		$curCheckedOut = $patronDump['CUR_CHKOUT'];
-		$totalRenewals = $patronDump['TOT_RENEWAL'];
+		$totalRenewals = $patronDump['TOT_RENWAL'];
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -2571,7 +2571,7 @@ class MillenniumDriver implements DriverInterface
 		//Clear the existing patron info and get new information.
 		$memcache->delete("patron_dump_$barcode");
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
-		$newTotalRenewals = $patronDump['TOT_RENEWAL'];
+		$newTotalRenewals = $patronDump['TOT_RENWAL'];
 		
 		$hold_result = array();
 		$hold_result['Total'] = $curCheckedOut;
