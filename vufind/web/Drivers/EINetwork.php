@@ -205,7 +205,7 @@ class EINetwork extends MillenniumDriver{
 		
 		//Make sure to clear any cached data
 		global $memcache;
-		$memcache->delete("patron_dump_$patronId");
+		$memcache->delete("patron_dump_{$this->_getBarcode()}");
 		usleep(250);
 
 		//Should get Patron Information Updated on success
