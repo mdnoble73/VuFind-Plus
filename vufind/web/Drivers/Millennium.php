@@ -2487,6 +2487,7 @@ class MillenniumDriver implements DriverInterface
 		//Make sure to clear any cached data
 		global $memcache;
 		$memcache->delete("patron_dump_$patronId");
+		usleep(250);
 		//Clear holds for the patron
 		unset($this->holds[$patronId]);
 
@@ -2572,6 +2573,7 @@ class MillenniumDriver implements DriverInterface
 		
 		//Clear the existing patron info and get new information.
 		$memcache->delete("patron_dump_$barcode");
+		usleep(250);
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 		$newTotalRenewals = $patronDump['TOT_RENWAL'];
 		
@@ -2581,7 +2583,7 @@ class MillenniumDriver implements DriverInterface
 		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
 		if ($hold_result['Unrenewed'] > 0) {
 			$hold_result['result'] = false;
-			$message = 'Unable to all items, too many renewals.';
+			$message = 'Some items could not be renewed.';
 		}else{
 			$hold_result['result'] = true;
 			$hold_result['message'] = "All items were renewed successfully.";
@@ -2730,6 +2732,7 @@ class MillenniumDriver implements DriverInterface
 		//Make sure to clear any cached data
 		global $memcache;
 		$memcache->delete("patron_dump_$patronId");
+		usleep(250);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){

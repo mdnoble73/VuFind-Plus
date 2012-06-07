@@ -206,6 +206,7 @@ class EINetwork extends MillenniumDriver{
 		//Make sure to clear any cached data
 		global $memcache;
 		$memcache->delete("patron_dump_$patronId");
+		usleep(250);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
