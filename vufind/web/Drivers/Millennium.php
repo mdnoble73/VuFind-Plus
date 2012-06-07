@@ -2323,7 +2323,7 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Recall Holds
 		$bib = $cancelId;
@@ -2339,7 +2339,7 @@ class MillenniumDriver implements DriverInterface
 			$location->find();
 			if ($location->N == 1) {
 				$location->fetch();
-				$paddedLocation = str_pad(trim($location->code), 5, '+');
+				$paddedLocation = trim($location->code);
 			}
 		}else{
 			$paddedLocation = null;
@@ -2392,7 +2392,15 @@ class MillenniumDriver implements DriverInterface
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 
 		$curl_connection = curl_init($curl_url);
+		$header=array();
+		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+		$header[] = "Cache-Control: max-age=0";
+		$header[] = "Connection: keep-alive";
+		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+		$header[] = "Accept-Language: en-us,en;q=0.5";
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
 		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
@@ -2401,8 +2409,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -2420,9 +2427,10 @@ class MillenniumDriver implements DriverInterface
 		$numHoldsStart = count($holds);
 
 		//Issue a get request with the information about what to do with the holds
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds?" . $holdUpdateParams;
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
+		curl_setopt($curl_connection, CURLOPT_HTTPPOST, true);
 		$sresult = curl_exec($curl_connection);
 		$holds = $this->parseHoldsPage($sresult);
 		//At this stage, we get messages if there were any errors freezing holds.
