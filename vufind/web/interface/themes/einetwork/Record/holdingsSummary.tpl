@@ -1,6 +1,6 @@
 <div id = "holdingsSummary" class="holdingsSummary {$holdingsSummary.class}">
      {if $holdingsSummary.status == 'Available At'}
-       <div class="{$holdingsSummary.class}" style= "font-size:13pt;">
+       <div class="{$holdingsSummary.class}">
          {if $holdingsSummary.numCopies == 0}
            No copies found
          {else}
@@ -16,11 +16,11 @@
          
        </div>
      {elseif ($holdingsSummary.status) == 'Marmot'}
-       <div class="{$holdingsSummary.class}" style= "font-size:11pt;">
+       <div class="{$holdingsSummary.class}" >
          <a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text='Available now at'} {$holdingsSummary.numAvailableOther+$holdingsSummary.availableAt} Marmot {if $holdingsSummary.numAvailableOther == 1}Library{else}Libraries{/if}</a>
        </div>
      {else}
-       <div class="{$holdingsSummary.class}" style= "font-size:11pt;">
+       <div class="{$holdingsSummary.class}">
          <a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if strlen($holdingsSummary.unavailableStatus) > 0 && $holdingsSummary.class == 'checkedOut'}({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
        </div>
      {/if}
