@@ -292,7 +292,6 @@ public class ReindexProcess {
 	}
 
 	private static void initializeReindex() {
-		logger.info("Starting to initialize system");
 		// Delete the existing reindex.log file
 		File solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log");
 		if (solrmarcLog.exists()){
@@ -323,7 +322,7 @@ public class ReindexProcess {
 			System.out.println("Could not find log4j configuration " + log4jFile.getAbsolutePath());
 			System.exit(1);
 		}
-
+		
 		logger.info("Starting Reindex for " + serverName);
 
 		// Load the configuration file
