@@ -2366,7 +2366,7 @@ class MillenniumDriver implements DriverInterface
 			$location->find();
 			if ($location->N == 1) {
 				$location->fetch();
-				$paddedLocation = trim($location->code);
+				$paddedLocation = str_pad(trim($location->code), 5, "+");
 			}
 		}else{
 			$paddedLocation = null;
@@ -2451,7 +2451,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
 		$holds = $this->parseHoldsPage($sresult);
-		$numHoldsStart = count($holds);
+		$numHoldsStart = count($holds['available'] + $holds['unavailable']);
 
 		//Issue a get request with the information about what to do with the holds
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
@@ -2468,7 +2468,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
 		$holds = $this->parseHoldsPage($sresult);
-		$numHoldsEnd = count($holds);
+		$numHoldsEnd = count($holds['available'] + $holds['unavailable']);
 
 		curl_close($curl_connection);
 
