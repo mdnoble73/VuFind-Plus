@@ -2013,7 +2013,7 @@ class MillenniumDriver implements DriverInterface
 								$expireDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
 								$curHold['expire'] = $expireDate->getTimestamp();
 								
-							}elseif (preg_match('/READY\sFOR\sPICKUP|AVAILABLE/i', $status, $matches)){
+							}elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
 							}else{
 								$curHold['status'] = $status;
