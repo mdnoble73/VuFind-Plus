@@ -149,4 +149,70 @@ class EINetwork extends MillenniumDriver{
 
 		return $hold_result;
 	}
+	
+	public function updatePatronInfo($patronId){
+		global $user;
+		global $configArray;
+
+		//Setup the call to Millennium
+		$id2= $patronId;
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+
+		$this->_updateVuFindPatronInfo($patronId);
+		
+		//Update profile information
+		$extraPostInfo = array();
+		$extraPostInfo['tele1'] = $_REQUEST['phone'];
+		$extraPostInfo['email'] = $_REQUEST['email'];
+
+		//Login to the patron's account
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$success = false;
+
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+
+		$curl_connection = curl_init($curl_url);
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		$post_data = $this->_getLoginFormValues($patronDump);
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$sresult = curl_exec($curl_connection);
+
+		//Issue a post request to update the patron information
+		$post_items = array();
+		foreach ($extraPostInfo as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$patronUpdateParams = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
+		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+		$sresult = curl_exec($curl_connection);
+
+		curl_close($curl_connection);
+		unlink($cookieJar);
+		
+		//Make sure to clear any cached data
+		global $memcache;
+		$memcache->delete("patron_dump_$patronId");
+
+		//Should get Patron Information Updated on success
+		if (preg_match('/Patron information updated/', $sresult)){
+			return true;
+		}else{
+			return false;
+		}
+
+	}
 }

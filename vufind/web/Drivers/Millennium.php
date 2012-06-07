@@ -2673,43 +2673,8 @@ class MillenniumDriver implements DriverInterface
 		//Setup the call to Millennium
 		$id2= $patronId;
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
-
-		//Validate that the input data is correct
-		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
-			PEAR::raiseError('The 1st location had an incorrect format.');
-		}
-		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
-			PEAR::raiseError('The 2nd location had an incorrect format.');
-		}
-		if (isset($_REQUEST['bypassAutoLogout'])){
-			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
-				$user->bypassAutoLogout = 1;
-			}else{
-				$user->bypassAutoLogout = 0;
-			}
-		}
-		//Make sure the selected location codes are in the database.
-		if (isset($_POST['myLocation1'])){
-			$location = new Location();
-			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-			$location->find();
-			if ($location->N != 1) {
-				PEAR::raiseError('The 1st location couuld not be found in the database.');
-			}
-			$user->myLocation1Id = $_POST['myLocation1'];
-		}
-		if (isset($_POST['myLocation2'])){
-			$location->whereAdd();
-			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-			$location->find();
-			if ($location->N != 1) {
-				PEAR::raiseError('The 2nd location couuld not be found in the database.');
-			}
-			$user->myLocation2Id = $_POST['myLocation2'];
-		}
-		$user->update();
-		//Update the serialized instance stored in the session
-		$_SESSION['userinfo'] = serialize($user);
+		
+		$this->_updateVuFindPatronInfo($patronId);
 
 		//Update profile information
 		$extraPostInfo = array();
@@ -2771,6 +2736,48 @@ class MillenniumDriver implements DriverInterface
 			return false;
 		}
 
+	}
+	
+	protected function _updateVuFindPatronInfo($barcode){
+		global $user;
+		global $configArray;
+		
+		//Validate that the input data is correct
+		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
+			PEAR::raiseError('The 1st location had an incorrect format.');
+		}
+		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
+			PEAR::raiseError('The 2nd location had an incorrect format.');
+		}
+		if (isset($_REQUEST['bypassAutoLogout'])){
+			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
+				$user->bypassAutoLogout = 1;
+			}else{
+				$user->bypassAutoLogout = 0;
+			}
+		}
+		//Make sure the selected location codes are in the database.
+		if (isset($_POST['myLocation1'])){
+			$location = new Location();
+			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR::raiseError('The 1st location couuld not be found in the database.');
+			}
+			$user->myLocation1Id = $_POST['myLocation1'];
+		}
+		if (isset($_POST['myLocation2'])){
+			$location->whereAdd();
+			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR::raiseError('The 2nd location couuld not be found in the database.');
+			}
+			$user->myLocation2Id = $_POST['myLocation2'];
+		}
+		$user->update();
+		//Update the serialized instance stored in the session
+		$_SESSION['userinfo'] = serialize($user);
 	}
 
 	var $ptype;
