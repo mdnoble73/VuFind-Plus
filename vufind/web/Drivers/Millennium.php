@@ -1596,6 +1596,7 @@ class MillenniumDriver implements DriverInterface
 		$scount = 0;
 		$skeys = array_pad(array(),10,"");
 		$readingHistoryTitles = array();
+		$itemindex = 0;
 		foreach ($srows as $srow) {
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			$historyEntry = array();
@@ -1639,6 +1640,7 @@ class MillenniumDriver implements DriverInterface
 			} //Done processing row
 
 			if ($scount > 1){
+				$historyEntry['itemindex'] = $itemindex++;
 				//Get additional information from resources table
 				if ($historyEntry['shortId'] && strlen($historyEntry['shortId']) > 0){
 					$resource = new Resource();
