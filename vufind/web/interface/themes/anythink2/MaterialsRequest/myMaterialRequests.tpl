@@ -11,20 +11,15 @@
   {if $error}
     <div class="error">{$error}</div>
   {else}
-    <div id="materialsRequestFilters">
-      Filters:
-      <form action="{$path}/MaterialsRequest/MyRequests" method="get">
-        <div>
-        <div>
-          Show:
-          <input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}/><label for="openRequests">Open Requests</label>
-          <input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}/><label for="allRequests">All Requests</label>
-        </div>
-        <div><input type="submit" name="submit" value="Update Filters"/></div>
-        </div>
-      </form>
-    </div>
     {if count($allRequests) > 0}
+      <div id="materialsRequestFilters">
+        <form action="{$path}/MaterialsRequest/MyRequests" method="get">
+            <div>
+              <div><input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}/>&nbsp;<label for="openRequests">Show open requests</label></div>
+              <div><input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}/>&nbsp;<label for="allRequests">Show all requests</label></div>
+            <input type="submit" name="submit" value="Update"/></div>
+        </form>
+      </div>
       <table id="requestedMaterials" class="tablesorter">
         <thead>
           <tr>
@@ -55,7 +50,7 @@
         </tbody>
       </table>
     {else}
-      <div>There are no materials requests that meet your criteria.</div>
+      <h3>There are no materials requests that meet your criteria.</h3>
     {/if}
     <div id="createNewMaterialsRequest"><a class="button" href="{$path}/MaterialsRequest/NewRequest">Submit a New Request</a></div>
   {/if}
