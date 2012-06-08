@@ -1,6 +1,5 @@
 <script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js"></script>
 <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
-<div id="page-content" class="content">
     <div id="sidebar-wrapper"><div id="sidebar">
         {include file="MyResearch/menu.tpl"}
         {include file="Admin/menu.tpl"}
@@ -141,7 +140,6 @@
             </div>
         </form>        
     </div>
-</div>
 <script type="text/javascript">
 {literal}
     $("#startDate").datepicker();
