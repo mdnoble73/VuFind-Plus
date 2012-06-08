@@ -275,6 +275,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 
 	@Override
 	public void finish() {
+		results.addNote("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
+		results.saveResults();
 		//Mark any resources that no longer exist as deleted.
 		logger.info("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
 		for (BasicResourceInfo resourceInfo : existingResources.values()){
@@ -283,9 +285,15 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				deleteResourceStmt.executeUpdate();
 			} catch (SQLException e) {
 				logger.error("Unable to delete "  + resourceInfo.getResourceId(), e);
+				break;
 			}
 			results.incDeleted();
+			if (results.getNumDeleted() % 100 == 0){
+				results.saveResults();
+			}
 		}
+		results.addNote("Finished deleting resources");
+		results.saveResults();
 	}
 
 	@Override

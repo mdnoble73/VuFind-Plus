@@ -316,7 +316,7 @@
 												<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
 											{/if}
 											<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-											{if $allowChangeLocation}
+											{if $allowChangeLocation && $sectionKey=='unavailable'}
 												<div id='holdsUpdateBranchSelction'>
 													Change Pickup Location for Selected Items to: 
 													{html_options name="withSelectedLocation" options=$pickupLocations selected=$resource.currentPickupId}
