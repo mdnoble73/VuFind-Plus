@@ -62,9 +62,11 @@
       </select>
     </div>
     {/if}
+    {if $useWorldCat}
     <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
       <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiersAnythink();"/>
     </div>
+    {/if}
     <div id="suggestedIdentifiers" style="display:none"></div>
     {if !$materialsRequest}
       {if $showPlaceHoldField || $showIllField}
