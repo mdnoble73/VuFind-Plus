@@ -170,7 +170,7 @@
 				<tokenizer class="solr.PatternTokenizerFactory" pattern="\w" group="1"/>
 			</analyzer>
 		</field>
-		<field name="title_proper" type="textProper" indexed="true" stored="true"/>
+		<field name="title_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="title_sort" type="alphaOnlySort" indexed="true" stored="true"/>
 		<field name="title_sub" type="text" indexed="true" stored="true"/>
 		<field name="title_short" type="text" indexed="true" stored="true"/>

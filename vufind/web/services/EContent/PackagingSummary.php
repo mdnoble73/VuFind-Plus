@@ -168,7 +168,7 @@ class PackagingSummary extends Admin {
 
 		//Check to see if we are exporting to Excel
 		if (isset($_REQUEST['exportToExcel'])){
-			$this->exportToExcel($periodData, $periods, $statuses);
+			$this->exportToExcel($periodDataByDistributor, $distributors, $periodDataByStatus, $statuses);
 		}else{
 			//Generate the graphs
 			$this->generateGraphByDistributor($periodDataByDistributor, $periods, $distributors);
@@ -180,7 +180,7 @@ class PackagingSummary extends Admin {
 		$interface->display('layout.tpl');
 	}
 
-	function exportToExcel($periodData, $periods, $statuses){
+	function exportToExcel($periodDataByDistributor, $distributors, $periodDataByStatus, $statuses){
 		global $configArray;
 		//PHPEXCEL
 		// Create new PHPExcel object
@@ -193,23 +193,51 @@ class PackagingSummary extends Admin {
 		->setSubject("Office 2007 XLSX Document")
 		->setDescription("Office 2007 XLSX, generated using PHP.")
 		->setKeywords("office 2007 openxml php")
-		->setCategory("Materials Request Summary Report");
+		->setCategory("Packaging Summary Report");
 
-		// Add some data
+		// Add period data by Distributor
 		$objPHPExcel->setActiveSheetIndex(0);
 		$activeSheet = $objPHPExcel->getActiveSheet();
-		$activeSheet->setCellValue('A1', 'Materials Request Summary Report');
+		$activeSheet->setCellValue('A1', 'Packaging Summary by Distributor');
 		$activeSheet->setCellValue('A3', 'Date');
 		$column = 1;
-		foreach ($statuses as $status => $statusLabel){
-			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
+		foreach ($distributors as $distributor){
+			$activeSheet->setCellValueByColumnAndRow($column++, 3, $distributor);
 		}
-
+		
 		$row = 4;
 		$column = 0;
 		//Loop Through The Report Data
-		foreach ($periodData as $date => $periodInfo) {
-			$activeSheet->setCellValueByColumnAndRow($column++, $row, date('M-d-Y', $date));
+		foreach ($periodDataByDistributor as $date => $periodInfo) {
+			$activeSheet->setCellValueByColumnAndRow($column++, $row, date('M j, Y', $date));
+			foreach ($distributors as $distributor){
+				$activeSheet->setCellValueByColumnAndRow($column++, $row, isset($periodInfo[$distributor]) ? $periodInfo[$distributor] : 0);
+			}
+			$row++;
+			$column = 0;
+		}
+		for ($i = 0; $i < count($distributors) + 1; $i++){
+			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
+		}
+				
+		// skip 5 rows to create some spaces 
+		$row += 5;
+		
+		// Add period data by Status
+		$objPHPExcel->setActiveSheetIndex(0);
+		$activeSheet = $objPHPExcel->getActiveSheet();
+		$activeSheet->setCellValue('A'.$row, 'Packaging Summary by Status');
+		$activeSheet->setCellValue('A'.($row+2), 'Date');
+		$column = 1;
+		foreach ($statuses as $status => $statusLabel){
+			$activeSheet->setCellValueByColumnAndRow($column++, $row+2, $statusLabel);
+		}
+		
+		$row += 3;
+		$column = 0;
+		//Loop Through The Report Data
+		foreach ($periodDataByStatus as $date => $periodInfo) {
+			$activeSheet->setCellValueByColumnAndRow($column++, $row, date('M j, Y', $date));
 			foreach ($statuses as $status => $statusLabel){
 				$activeSheet->setCellValueByColumnAndRow($column++, $row, isset($periodInfo[$status]) ? $periodInfo[$status] : 0);
 			}
@@ -219,13 +247,13 @@ class PackagingSummary extends Admin {
 		for ($i = 0; $i < count($statuses) + 1; $i++){
 			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
-
+		
 		// Rename sheet
-		$activeSheet->setTitle('Summary Report');
+		$activeSheet->setTitle('Packaging Summary Report');
 
 		// Redirect output to a client�s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
-		header('Content-Disposition: attachment;filename="MaterialsRequestSummaryReport.xls"');
+		header('Content-Disposition: attachment;filename="PackagingSummaryReport.xls"');
 		header('Cache-Control: max-age=0');
 
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');

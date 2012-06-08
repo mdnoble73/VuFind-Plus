@@ -112,7 +112,7 @@ public class MarcProcessor {
 		// Setup where to look for translation maps
 		propertyFilePaths = new String[] { "../../sites/" + serverName + "/translation_maps", "../../sites/default/translation_maps" };
 		scriptFilePaths = new String[] { "../../sites/" + serverName + "/index_scripts", "../../sites/default/index_scripts" };
-		System.out.println("Loading marc properties");
+		logger.info("Loading marc properties");
 		// Load default marc.properties and marc properties for site into Properties
 		// Object
 		Properties marcProperties = new Properties();

@@ -267,7 +267,7 @@ class OverDriveDriver {
 		global $timer;
 		
 		$holds = $memcache->get('overdrive_holds_' . $user->id);
-		if ($holds == false){
+		if (true || $holds == false){
 			$holds = array();
 			$holds['holds'] = array();
 			$holds['holds']['available'] = array();
@@ -314,7 +314,7 @@ class OverDriveDriver {
 				}
 				
 				//Check to see if the hold is available or unavailable
-				if (preg_match('/RemoveFromWaitingList&id={(.*?)}&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
+				if (preg_match('/RemoveFromWaitingList&id={?(.*?)}?&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
 					//Set the format
 					$hold['formatId'] = $formatInfo[2];
 					
@@ -332,7 +332,7 @@ class OverDriveDriver {
 						$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
 					}
 					//Extract the formats that can be checked out.
-					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={(.*?)}&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
+					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={?(.*?)}?&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
 					$hold['formats'] = array();
 					for ($i = 0; $i < count($formatInfo); $i++) {
 						$format = array();
@@ -413,6 +413,7 @@ class OverDriveDriver {
 	 */
 	public function placeOverDriveHold($overDriveId, $format, $user){
 		global $memcache;
+		global $configArray;
 
 		$holdResult = array();
 		$holdResult['result'] = false;
@@ -441,15 +442,17 @@ class OverDriveDriver {
 			$setEmailPage = curl_exec($overDriveInfo['ch']);
 			$setEmailPageInfo = curl_getinfo($ch);
 			
-			$secureBaseUrl = preg_replace('/SignIn.htm.*/', '', $setEmailPageInfo['url']);
+			$secureBaseUrl = preg_replace('~[^/.]+?.htm.*~', '', $setEmailPageInfo['url']);
 			
 			
 			//Login (again)
 			curl_setopt($overDriveInfo['ch'], CURLOPT_POST, true);
+			$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
+			$barcode = $user->$barcodeProperty;
 			$postParams = array(
-				'LibraryCardILS' => 'douglascounty',
-				'LibraryCardNumber' => $user->cat_username,
-				'URL' => "WaitingListForm.htm?ID={$overDriveId}&Format=$format",
+				'LibraryCardILS' => $configArray['OverDrive']['LibraryCardILS'],
+				'LibraryCardNumber' => $barcode,
+				'URL' => 'MyAccount.htm',
 			);
 			foreach ($postParams as $key => $value) {
 				$post_items[] = $key . '=' . urlencode($value);
@@ -480,7 +483,11 @@ class OverDriveDriver {
 				curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll?Action=LibraryWaitingList');
 				$waitingListConfirm = curl_exec($overDriveInfo['ch']);
 				
-				if (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
+				if (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
+					$holdResult['result'] = false;
+					$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
+				}elseif (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
+					
 					$holdResult['result'] = true;
 					$holdResult['message'] = 'Your hold was placed successfully.';
 					
@@ -507,6 +514,8 @@ class OverDriveDriver {
 				}else{
 					$holdResult['result'] = false;
 					$holdResult['message'] = 'There was an error placing your hold.';
+					$logger = new Logger();
+					$logger->log("Overdrive Hold Error\r\n$waitingListConfirm", PEAR_LOG_INFO);
 				}
 			}
 		}

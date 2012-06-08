@@ -30,6 +30,7 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+		
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Import Steamboat Genealogy");
 		if (!loadConfig(configIni, processSettings)){
 			processLog.addNote("Unable to load configuration");
@@ -203,7 +204,7 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 			
 			//Reindex the record
 			if (personId != null){
-				URL reindexUrl = new URL(vufindUrl + "Person/" + personId + "/Reindex?quick=true");
+				URL reindexUrl = new URL(vufindUrl + "/Person/" + personId + "/Reindex?quick=true");
 				@SuppressWarnings("unused")
 				Object content = reindexUrl.getContent();
 				processLog.incUpdated();
@@ -216,11 +217,7 @@ public class ImportSteamboatGenealogy implements IProcessHandler{
 	}
 	
 	private boolean loadConfig(Ini configIni, Section processSettings) {
-		vufindUrl = configIni.get("Index", "url");
-		if (vufindUrl == null || vufindUrl.length() == 0){
-			processLog.addNote("VuFind URL not found in General Settings.  Please specify url to vufind in a vufindUrl key.");
-			return false;
-		}
+		vufindUrl = configIni.get("Site", "url");
 		steamboatFile = processSettings.get("steamboatFile");
 		if (steamboatFile == null || steamboatFile.length() == 0) {
 			processLog.addNote("Unable to get steamboat file in Process section.  Please specify steamboatFile key.");
