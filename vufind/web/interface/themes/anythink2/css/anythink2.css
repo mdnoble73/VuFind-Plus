@@ -872,7 +872,7 @@ div.record {
   border-bottom-left-radius: 4px;
   float: right;
   position: relative;
-  z-index: 2;
+  z-index: 11;
   margin-right: 20px;
 }
 
