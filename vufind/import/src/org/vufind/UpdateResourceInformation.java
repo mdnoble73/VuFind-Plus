@@ -279,16 +279,16 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		results.saveResults();
 		//Mark any resources that no longer exist as deleted.
 		logger.info("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
-		int numDeleted = 0;
 		for (BasicResourceInfo resourceInfo : existingResources.values()){
 			try {
 				deleteResourceStmt.setLong(1, resourceInfo.getResourceId());
 				deleteResourceStmt.executeUpdate();
 			} catch (SQLException e) {
 				logger.error("Unable to delete "  + resourceInfo.getResourceId(), e);
+				break;
 			}
 			results.incDeleted();
-			if (numDeleted % 100 == 0){
+			if (results.getNumDeleted() % 100 == 0){
 				results.saveResults();
 			}
 		}
