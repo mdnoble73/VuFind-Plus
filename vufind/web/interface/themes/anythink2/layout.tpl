@@ -200,29 +200,5 @@
   {/literal}
   </script>
   {/if}
-
-  {* Strands tracking *}
-  {if $user && $user->disableRecommendations == 0}
-    <script type="text/javascript">
-    {literal}
-
-    //This code can actually be used anytime to achieve an "Ajax" submission whenever called
-    if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
-
-    StrandsTrack.push({
-       event:"userlogged",
-       user: "{/literal}{$user->id}{literal}"
-    });
-
-    {/literal}
-    </script>
-  {/if}
-  <!-- Strands Library MUST be included at the end of the HTML Document, before the /body closing tag and JUST ONCE -->
-  <script type="text/javascript" src="http://bizsolutions.strands.com/sbsstatic/js/sbsLib-1.0.min.js"></script>
-  <script type="text/javascript">
-  {literal}
-    try{ SBS.Worker.go("vFR4kNOW4b"); } catch (e){};
-  {/literal}
-  </script>
   </body>
 </html>
