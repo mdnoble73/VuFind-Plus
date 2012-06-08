@@ -184,11 +184,11 @@
     <div id="materialsRequestLogin">
       <fieldset>
       <legend>{translate text="Login to your account"}</legend>
-        <div>
+        <div class="form-item">
           <label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
           <input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required"/>
         </div>
-        <div>
+        <div class="form-item">
           <label for="password">{translate text='Password'} <span class="requiredIndicator">*</span>: </label>
           <input type="password" name="password" id="password" size="15" class="required"/>
         </div>
