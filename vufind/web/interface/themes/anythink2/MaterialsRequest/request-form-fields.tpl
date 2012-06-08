@@ -11,19 +11,19 @@
     </div>
     <div class="formatSpecificField articleField">
       <label for="magazineTitle">Magazine/Journal Title <span class="requiredIndicator">*</span>:</label>
-      <input name="magazineTitle" id="magazineTitle" size="80" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/>
+      <input name="magazineTitle" id="magazineTitle" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/>
     </div>
     <div>
       <label for="title" id="titleLabel">Title <span class="requiredIndicator">*</span>:</label>
-      <input name="title" id="title" size="80" maxlength="255" class="required" value="{$materialsRequest->title}"/>
+      <input name="title" id="title" maxlength="255" class="required" value="{$materialsRequest->title}"/>
     </div>
     <div class="formatSpecificField dvdField blurayField vhsField">
       <label for="season">Season:</label>
-      <input name="season" id="season" size="80" maxlength="80" value="{$materialsRequest->season}"/>
+      <input name="season" id="season" maxlength="80" value="{$materialsRequest->season}"/>
     </div>
     <div>
       <label for="author" id="authorFieldLabel">Author <span class="requiredIndicator">*</span>:</label>
-      <input name="author" id="author" size="80" maxlength="255" class="required" value="{$materialsRequest->author}"/>
+      <input name="author" id="author" maxlength="255" class="required" value="{$materialsRequest->author}"/>
     </div>
     <div class="formatSpecificField articleField">
       <label for="magazineDate">Date <span class="requiredIndicator">*</span>:</label>
@@ -62,73 +62,12 @@
       </select>
     </div>
     {/if}
-  </fieldset>
-  <fieldset class="anythink-collapsible">
-    <legend>Tell us more</legend>
-    <fieldset>
-      <legend>Identifiers</legend>
-      {if $useWorldCat}
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
-        <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
-      </div>
-      {/if}
-      <div id="suggestedIdentifiers" style="display:none"></div>
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-        <label for="isbn">ISBN:</label>
-        <input name="isbn" id="isbn" size="15" maxlength="15" value="{$materialsRequest->isbn}"/>
-      </div>
-      <div class="formatSpecificField dvdField blurayField cdMusicField vhsField otherField" >
-        <label for="upc">UPC:</label>
-        <input name="upc" id="upc" size="15" maxlength="15" value="{$materialsRequest->upc}"/>
-      </div>
-      <div class="formatSpecificField articleField">
-        <label for="issn">ISSN:</label>
-        <input name="issn" id="issn" size="8" maxlength="8" value="{$materialsRequest->issn}"/>
-      </div>
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-        <label for="oclcNumber">OCLC Number</label>
-        <input name="oclcNumber" id="oclcNumber" size="15" maxlength="30" value="{$materialsRequest->oclcNumber}"/>
-      </div>
-    </fieldset>
-    <fieldset id="supplementalDetails">
-      <legend>Supplemental Details</legend>
-      {if $showAgeField}
-      <div class="formatSpecificField bookField largePrintField cdAudioField ebookField eaudioField playawayField cassetteField">
-        <label for="ageLevel">Age Level:</label>
-        <select name="ageLevel">
-          <option value="adult"{if $materialsRequest->ageLevel=='adult'}selected='selected'{/if}>Adult</option>
-          <option value="teen"{if $materialsRequest->ageLevel=='teen'}selected='selected'{/if}>Teen</option>
-          <option value="children"{if $materialsRequest->ageLevel=='children'}selected='selected'{/if}>Children</option>
-          <option value="unknown"{if $materialsRequest->ageLevel=='unknown'}selected='selected'{/if}>Don't Know</option>
-        </select>
-      </div>
-      {/if}
-      <div class="formatSpecificField cdAudioField eaudioField playawayField cassetteField">
-        <input type="radio" name="abridged" value="unabridged" id="unabridged" {if $materialsRequest->abridged == 0}checked='checked'{/if}/><label for="unabridged">Unabridged</label>
-        <input type="radio" name="abridged" value="abridged" id="abridged" {if $materialsRequest->abridged == 1}checked='checked'{/if}/><label for="abridged">Abridged</label>
-        <input type="radio" name="abridged" value="na" id="na" {if $materialsRequest->abridged == 2}checked='checked'{/if}/><label for="na">Not Applicable</label>
-      </div>
-      {if $showBookTypeField}
-      <div class="formatSpecificField bookField largePrintField ebookField">
-        <label for="bookType">Type:</label>
-        <select name="bookType">
-          <option value="fiction"{if $materialsRequest->bookType=='fiction'}selected='selected'{/if}>Fiction</option>
-          <option value="nonfiction"{if $materialsRequest->bookType=='nonfiction'}selected='selected'{/if}>Non-Fiction</option>
-          <option value="graphicNovel"{if $materialsRequest->bookType=='graphicNovel'}selected='selected'{/if}>Graphic Novel</option>
-          <option value="unknown"{if $materialsRequest->bookType=='unknown'}selected='selected'{/if}>Don't Know</option>
-        </select>
-      </div>
-      {/if}
-
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-        <label for="publisher">Publisher:</label>
-        <input name="publisher" id="publisher" size="80" maxlength="255" value="{$materialsRequest->publisher}"/>
-      </div>
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-        <label for="publicationYear">Publication Year:</label>
-        <input name="publicationYear" id="publicationYear" size="4" maxlength="4" value="{$materialsRequest->publicationYear}"/>
-      </div>
-    </fieldset>
+    {if $useWorldCat}
+    <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
+      <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiersAnythink();"/>
+    </div>
+    {/if}
+    <div id="suggestedIdentifiers" style="display:none"></div>
     {if !$materialsRequest}
       {if $showPlaceHoldField || $showIllField}
       <fieldset>
@@ -161,8 +100,70 @@
         {/if}
       </fieldset>
       {/if}
-
     {/if}
+  </fieldset>
+  <fieldset class="anythink-collapsible">
+    <legend>Tell us more</legend>
+    {* The following is set with JS, so we should probably leave for now.*}
+    <!-- <fieldset> -->
+      <!-- <legend>Identifiers</legend> -->
+      <!-- <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField"> -->
+        <!-- <label for="isbn">ISBN:</label> -->
+        <input type="hidden" name="isbn" id="isbn" value="{$materialsRequest->isbn}"/>
+      <!-- </div> -->
+      <!-- <div class="formatSpecificField dvdField blurayField cdMusicField vhsField otherField" > -->
+        <!-- <label for="upc">UPC:</label> -->
+        <input type="hidden" name="upc" id="upc" value="{$materialsRequest->upc}"/>
+      <!-- </div> -->
+      <!-- <div class="formatSpecificField articleField"> -->
+        <!-- <label for="issn">ISSN:</label> -->
+        <input type="hidden" name="issn" id="issn" value="{$materialsRequest->issn}"/>
+      <!-- </div> -->
+      <!-- <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField"> -->
+        <!-- <label for="oclcNumber">OCLC Number</label> -->
+        <input type="hidden" name="oclcNumber" id="oclcNumber" value="{$materialsRequest->oclcNumber}"/>
+      <!-- </div> -->
+    <!-- </fieldset> -->
+    <fieldset id="supplementalDetails">
+      <legend>Supplemental Details</legend>
+      {if $showAgeField}
+      <div class="formatSpecificField bookField largePrintField cdAudioField ebookField eaudioField playawayField cassetteField">
+        <label for="ageLevel">Age Level:</label>
+        <select name="ageLevel">
+          <option value="adult"{if $materialsRequest->ageLevel=='adult'}selected='selected'{/if}>Adult</option>
+          <option value="teen"{if $materialsRequest->ageLevel=='teen'}selected='selected'{/if}>Teen</option>
+          <option value="children"{if $materialsRequest->ageLevel=='children'}selected='selected'{/if}>Children</option>
+          <option value="unknown"{if $materialsRequest->ageLevel=='unknown'}selected='selected'{/if}>Don't Know</option>
+        </select>
+      </div>
+      {/if}
+      <div class="formatSpecificField cdAudioField eaudioField playawayField cassetteField">
+        <input type="radio" name="abridged" value="unabridged" id="unabridged" {if $materialsRequest->abridged == 0}checked='checked'{/if}/><label for="unabridged">Unabridged</label>
+        <input type="radio" name="abridged" value="abridged" id="abridged" {if $materialsRequest->abridged == 1}checked='checked'{/if}/><label for="abridged">Abridged</label>
+        <input type="radio" name="abridged" value="na" id="na" {if $materialsRequest->abridged == 2}checked='checked'{/if}/><label for="na">Not Applicable</label>
+      </div>
+      {if $showBookTypeField}
+      <div class="formatSpecificField bookField largePrintField ebookField">
+        <label for="bookType">Type:</label>
+        <select name="bookType">
+          <option value="fiction"{if $materialsRequest->bookType=='fiction'}selected='selected'{/if}>Fiction</option>
+          <option value="nonfiction"{if $materialsRequest->bookType=='nonfiction'}selected='selected'{/if}>Non-Fiction</option>
+          <option value="graphicNovel"{if $materialsRequest->bookType=='graphicNovel'}selected='selected'{/if}>Graphic Novel</option>
+          <option value="unknown"{if $materialsRequest->bookType=='unknown'}selected='selected'{/if}>Don't Know</option>
+        </select>
+      </div>
+      {/if}
+
+      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
+        <label for="publisher">Publisher:</label>
+        <input name="publisher" id="publisher" maxlength="255" value="{$materialsRequest->publisher}"/>
+      </div>
+      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
+        <label for="publicationYear">Publication Year:</label>
+        <input name="publicationYear" id="publicationYear" size="4" maxlength="4" value="{$materialsRequest->publicationYear}"/>
+      </div>
+    </fieldset>
+
     {if !$materialsRequest}
     <div>
       <label for="about">How / where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
@@ -178,39 +179,42 @@
 {if $materialsRequest}
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
-<fieldset {if $user}class="anythink-collapsible"{/if}>
+
   {if !$user}
-  <legend>{translate text="Login to your account"}</legend>
-  <div id="materialsRequestLogin">
-    <div>
-      <label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
-      <input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required"/>
+    <div id="materialsRequestLogin">
+      <fieldset>
+      <legend>{translate text="Login to your account"}</legend>
+        <div class="form-item">
+          <label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
+          <input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required"/>
+        </div>
+        <div class="form-item">
+          <label for="password">{translate text='Password'} <span class="requiredIndicator">*</span>: </label>
+          <input type="password" name="password" id="password" size="15" class="required"/>
+        </div>
+        <div>
+          <input type="submit" name="login" value="Login" onclick="return materialsRequestLogin();"/>
+        </div>
+      </fieldset>
     </div>
-    <div>
-      <label for="password">{translate text='Password'} <span class="requiredIndicator">*</span>: </label>
-      <input type="password" name="password" id="password" size="15" class="required"/>
-    </div>
-    <div>
-      <input type="submit" name="login" value="Login" onclick="return materialsRequestLogin();"/>
-    </div>
-  </div>
-  {else}
-  <legend>Contact info</legend>
   {/if}
   <div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
-    <div id="materialRequestContactInfo">
-      Please enter your contact information so we can contact you if we have questions about your request.
-      {if $showPhoneField}
-      <div>
-        <label for="phone">{translate text='Phone'}: </label>
-        <input type="text" name="phone" id="phone" size="15" class="tel" value="{$defaultPhone}"/>
-      </div>
-      {/if}
-      <div>
-        <label for="email">{translate text='Email'}: </label>
-        <input type="text" name="email" id="email" size="80" maxlength="80" value="{$defaultEmail}"/>
-      </div>
-    </div>
+    <fieldset class="anythink-collapsible">
+      <legend>Contact info</legend>
+        <div id="materialRequestContactInfo">
+          Please enter your contact information so we can contact you if we have questions about your request.
+          {if $showPhoneField}
+          <div>
+            <label for="phone">{translate text='Phone'}: </label>
+            <input type="text" name="phone" id="phone" size="15" class="tel" value="{$defaultPhone}"/>
+          </div>
+          {/if}
+          <div>
+            <label for="email">{translate text='Email'}: </label>
+            <input type="text" name="email" id="email" maxlength="80" value="{$defaultEmail}"/>
+          </div>
+        </div>
+    </fieldset>
   </div>
-</fieldset>
+
 {/if}

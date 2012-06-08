@@ -84,7 +84,8 @@
       {/literal}
     </script>
   </head>
-  <body class="{$module} {$action} {$module}--{$action}">
+  <body class="{$module} {$action} {$module}--{$action} {$module}--{$action}--{$recordCount}">
+    <div style="text-align: center; background-color: #B31E3B; color: #FFF; padding: .5em 0; font-size: 1.2em;"><marquee>It's our new catalog! It's still being tested, so pardon us if you find a bug.</marquee></div>
     <div id="container"><div id="inner">
       <!-- Current Physical Location: {$physicalLocation} -->
       {* LightBox *}
@@ -131,6 +132,7 @@
             <ul class="inline right">
               {if !$user}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
+                <li><a href="{$path}/MyResearch/GetCard">{translate text="Get a Card"}</a></li>
               {else}
                 <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
@@ -163,12 +165,12 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
-                <div id="cart-wrapper">
+                <div id="fixed-wrapper">
                   {include file="bookcart.tpl"}
                 </div>
                 {if $showBreadcrumbs}
                   <div id="breadcrumb">
-                    <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
+                    <a href="{$url}">{translate text="Catalog"}</a> <span>&gt;</span>
                     {include file="$module/breadcrumbs.tpl"}
                   </div>
                 {/if}
@@ -186,7 +188,7 @@
   <script type="text/javascript">
   {literal}
     var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-4759493-8']);
+    _gaq.push(['_setAccount', 'UA-8977686-8']);
     _gaq.push(['_trackPageview']);
     _gaq.push(['_trackPageLoadTime']);
 
@@ -198,29 +200,5 @@
   {/literal}
   </script>
   {/if}
-
-  {* Strands tracking *}
-  {if $user && $user->disableRecommendations == 0}
-    <script type="text/javascript">
-    {literal}
-
-    //This code can actually be used anytime to achieve an "Ajax" submission whenever called
-    if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
-
-    StrandsTrack.push({
-       event:"userlogged",
-       user: "{/literal}{$user->id}{literal}"
-    });
-
-    {/literal}
-    </script>
-  {/if}
-  <!-- Strands Library MUST be included at the end of the HTML Document, before the /body closing tag and JUST ONCE -->
-  <script type="text/javascript" src="http://bizsolutions.strands.com/sbsstatic/js/sbsLib-1.0.min.js"></script>
-  <script type="text/javascript">
-  {literal}
-    try{ SBS.Worker.go("vFR4kNOW4b"); } catch (e){};
-  {/literal}
-  </script>
   </body>
 </html>

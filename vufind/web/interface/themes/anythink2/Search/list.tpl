@@ -72,7 +72,7 @@
 
   {if $enableMaterialsRequest}
   <div id="materialsRequestInfo">
-  Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
+  {translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest">{translate text="Request it!"}</a>.</div>
   </div>
   {/if}
   </div>
