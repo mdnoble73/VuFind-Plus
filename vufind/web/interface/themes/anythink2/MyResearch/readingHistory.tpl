@@ -14,7 +14,7 @@
   <div id="main-content">
     {if $user->cat_username}
       <div class="resulthead">
-        <h1>{translate text='My Reading History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</h1>
+        <h1>{translate text='Checkout History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</h1>
           {if $userNoticeFile}
             {include file=$userNoticeFile}
           {/if}
@@ -27,10 +27,8 @@
           {/if}
 
           <div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if}>
-            <div class="fine-print">
             <p>Anythink takes the privacy of your library records seriously. Therefore, we do not keep track of what you borrow after you return it. However, we do offer a feature called "Checkout History" that allows you to track your checked out items. Participation in the feature is entirely voluntary. Start or stop using this service at any time. Delete any or all items in your listing at any time, too. </p>
             <p>If you choose to start recording your checked out items, you agree to allow our automated system to store this data. The library staff does not have access to this list. However, it is subject to all applicable local, state, and federal laws. Under those laws, it could be examined by law enforcement authorities without your permission. If this is of concern to you, you should not use the "Checkout History" feature.</p>
-            </div>
           </div>
         </div>
 
@@ -40,7 +38,7 @@
               <input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
 
 
-              <div id="readingListActionsTop">
+              <div class="form-item"><div id="readingListActionsTop">
                 {if $historyActive == true}
                   {if $transList}
                     <a class="button" onclick='return deletedMarkedAction()' href="#">Delete Marked</a>
@@ -51,7 +49,7 @@
                 {else}
                   <a class="button" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
                 {/if}
-              </div>
+              </div></div>
 
               {if $transList}
               <div id="pager" class="pager">
