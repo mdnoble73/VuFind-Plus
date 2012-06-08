@@ -12,17 +12,17 @@
     {if $profile.expireclose}<a class="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a>{/if}
   </div>
   <ul>
-    <li><a {if $pageTemplate=="favorites.tpl"}class="active"{/if} href="{$path}/MyResearch/Favorites">{translate text='Suggestions, Lists &amp; Tags'}</a></li>
-    <li><a {if $pageTemplate=="readingHistory.tpl"}class="active"{/if} href="{$path}/MyResearch/ReadingHistory">{translate text='My Reading History'}</a></li>
+    <li><a {if $pageTemplate=="favorites.tpl"}class="active"{/if} href="{$path}/MyResearch/Favorites">{translate text='Favorites'}</a></li>
+    <li><a {if $pageTemplate=="readingHistory.tpl"}class="active"{/if} href="{$path}/MyResearch/ReadingHistory">{translate text='Checkout History'}</a></li>
     {if $showFines}
     <li><a {if $pageTemplate=="fines.tpl"}class="active"{/if} href="{$path}/MyResearch/Fines">{translate text='Fines and Messages'}</a></li>
     {/if}
     {if $enableMaterialsRequest}
-    <li><a {if $pageTemplate=="myMaterialRequests.tpl"}class="active"{/if} href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} {if !empty($profile.numMaterialsRequests)}({$profile.numMaterialsRequests}){/if}</a></li>
+    <li><a {if $pageTemplate=="myMaterialRequests.tpl"}class="active"{/if} href="{$path}/MaterialsRequest/MyRequests">{translate text='Requests'} {if !empty($profile.numMaterialsRequests)}({$profile.numMaterialsRequests}){/if}</a></li>
     {/if}
     <li><a {if $pageTemplate=="profile.tpl"}class="active"{/if} href="{$path}/MyResearch/Profile">{translate text='Profile'}</a></li>
     {* Only highlight saved searches as active if user is logged in: *}
-    <li><a {if $user && $pageTemplate=="history.tpl"}class="active"{/if} href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></li>
+    <li><a {if $user && $pageTemplate=="history.tpl"}class="active"{/if} href="{$path}/Search/History?require_login">{translate text='Saved Searches'}</a></li>
   </ul>
   <h4>Print Titles</h4>
   <ul>
