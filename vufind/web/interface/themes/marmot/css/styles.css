@@ -969,7 +969,7 @@ div.checkedout,span.checkedout{
     margin-right:1em;
 }
 .ebook {
-    background-image:url(/interface/themes/default/images/ebook.png);
+    background-image:url(/interface/themes/default/images/ebook_icon.png);
     background-repeat:no-repeat;
     background-position: left top;
     padding:0 .5em .5em 20px;
