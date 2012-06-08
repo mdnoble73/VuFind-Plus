@@ -24,7 +24,7 @@
         recommendedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
       </script>
     {/if}
-    <div class="myAccountTitle">{translate text='Your Checked Out Items'}</div>
+    <h1>{translate text='Your Checked Out Items'}</h1>
     {if $userNoticeFile}
       {include file=$userNoticeFile}
     {/if}
