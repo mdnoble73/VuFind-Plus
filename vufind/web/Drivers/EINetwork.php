@@ -210,6 +210,10 @@ class EINetwork extends MillenniumDriver{
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
+			$user->phone = $_REQUEST['phone'];
+			$user->email = $_REQUEST['email'];
+			//Update the serialized instance stored in the session
+			$_SESSION['userinfo'] = serialize($user);
 			return true;
 		}else{
 			return false;

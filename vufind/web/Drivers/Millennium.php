@@ -1262,7 +1262,7 @@ class MillenniumDriver implements DriverInterface
 		global $memcache;
 		global $timer;
 		$patronDump = $memcache->get("patron_dump_$barcode");
-		if (!$patronDump){
+		if (true || !$patronDump){
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
@@ -2736,6 +2736,11 @@ class MillenniumDriver implements DriverInterface
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
+			$user->phone = $_REQUEST['phone'];
+			$user->email = $_REQUEST['email'];
+			$user->update();
+			//Update the serialized instance stored in the session
+			$_SESSION['userinfo'] = serialize($user);
 			return true;
 		}else{
 			return false;
