@@ -61,6 +61,7 @@ class NewRequest extends Action
 				$request->title = $_REQUEST['lookfor'];
 			}
 			$interface->assign('materialsRequest', $request);
+			$interface->assign('new', true);
 		}
 		
 		$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
