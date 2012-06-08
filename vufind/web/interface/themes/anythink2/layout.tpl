@@ -170,7 +170,7 @@
                 </div>
                 {if $showBreadcrumbs}
                   <div id="breadcrumb">
-                    <a href="{$url}">{translate text="Home"}</a> <span>&gt;</span>
+                    <a href="{$url}">{translate text="Catalog"}</a> <span>&gt;</span>
                     {include file="$module/breadcrumbs.tpl"}
                   </div>
                 {/if}
