@@ -63,7 +63,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {foreach from=$periodDataByPublisher item=periodInfo key=periodStart}
+                    {foreach from=$periodDataByDistributor item=periodInfo key=periodStart}
                         <tr>
                             <td>
                                 {* Properly format the period *}
@@ -124,11 +124,19 @@
         
         {/if}
         
-        <form action="{$fullPath}" method="get">
-            <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
-        </form>
-        
         {* Export to Excel option *}
+        <form action="{$fullPath}" method="get">
+            <input type="hidden" name="period" value="{$period}"/>
+            <input type="hidden" name="startDate" value="{$startDate}"/>
+            <input type="hidden" name="endDate" value="{$endDate}"/>
+            {foreach from=$selectedDistributorFilter item=distributor}
+              <input type="hidden" name="distributorFilter[]" value="{$distributor|escape}"/>
+            {/foreach}
+            <div>
+            <input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+            </div>
+        </form>        
+
     </div>
 </div>
 <script type="text/javascript">
