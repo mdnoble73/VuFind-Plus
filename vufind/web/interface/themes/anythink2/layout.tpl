@@ -85,7 +85,7 @@
     </script>
   </head>
   <body class="{$module} {$action} {$module}--{$action} {$module}--{$action}--{$recordCount}">
-    <div style="text-align: center; background-color: #B31E3B; color: #FFF; padding: .5em 0; font-size: 1.2em;"><marquee>Welcome to the Beta version of the new catalog.</marquee></div>
+    <div style="text-align: center; background-color: #B31E3B; color: #FFF; padding: .5em 0; font-size: 1.2em;"><marquee>It's our new catalog! It's still being tested, so pardon us if you find a bug.</marquee></div>
     <div id="container"><div id="inner">
       <!-- Current Physical Location: {$physicalLocation} -->
       {* LightBox *}
