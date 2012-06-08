@@ -1,7 +1,6 @@
 <div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
   <fieldset>
     <legend>Basic Information</legend>
-    <div id="suggestedIdentifiers" style="display:none"></div>
     <div>
       <label for="format">Format <span class="requiredIndicator">*</span>:</label>
       <select name="format" class="required" id="format" onchange="setFieldVisibility();">
@@ -12,19 +11,19 @@
     </div>
     <div class="formatSpecificField articleField">
       <label for="magazineTitle">Magazine/Journal Title <span class="requiredIndicator">*</span>:</label>
-      <input name="magazineTitle" id="magazineTitle" size="80" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/>
+      <input name="magazineTitle" id="magazineTitle" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/>
     </div>
     <div>
       <label for="title" id="titleLabel">Title <span class="requiredIndicator">*</span>:</label>
-      <input name="title" id="title" size="80" maxlength="255" class="required" value="{$materialsRequest->title}"/>
+      <input name="title" id="title" maxlength="255" class="required" value="{$materialsRequest->title}"/>
     </div>
     <div class="formatSpecificField dvdField blurayField vhsField">
       <label for="season">Season:</label>
-      <input name="season" id="season" size="80" maxlength="80" value="{$materialsRequest->season}"/>
+      <input name="season" id="season" maxlength="80" value="{$materialsRequest->season}"/>
     </div>
     <div>
       <label for="author" id="authorFieldLabel">Author <span class="requiredIndicator">*</span>:</label>
-      <input name="author" id="author" size="80" maxlength="255" class="required" value="{$materialsRequest->author}"/>
+      <input name="author" id="author" maxlength="255" class="required" value="{$materialsRequest->author}"/>
     </div>
     <div class="formatSpecificField articleField">
       <label for="magazineDate">Date <span class="requiredIndicator">*</span>:</label>
@@ -63,11 +62,10 @@
       </select>
     </div>
     {/if}
-    {if $useWorldCat}
     <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
-      <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
+      <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiersAnythink();"/>
     </div>
-    {/if}
+    <div id="suggestedIdentifiers" style="display:none"></div>
     {if !$materialsRequest}
       {if $showPlaceHoldField || $showIllField}
       <fieldset>
@@ -104,27 +102,26 @@
   </fieldset>
   <fieldset class="anythink-collapsible">
     <legend>Tell us more</legend>
-    {*
-    <fieldset>
-      <legend>Identifiers</legend>
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-        <label for="isbn">ISBN:</label>
-        <input name="isbn" id="isbn" size="15" maxlength="15" value="{$materialsRequest->isbn}"/>
-      </div>
-      <div class="formatSpecificField dvdField blurayField cdMusicField vhsField otherField" >
-        <label for="upc">UPC:</label>
-        <input name="upc" id="upc" size="15" maxlength="15" value="{$materialsRequest->upc}"/>
-      </div>
-      <div class="formatSpecificField articleField">
-        <label for="issn">ISSN:</label>
-        <input name="issn" id="issn" size="8" maxlength="8" value="{$materialsRequest->issn}"/>
-      </div>
-      <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-        <label for="oclcNumber">OCLC Number</label>
-        <input name="oclcNumber" id="oclcNumber" size="15" maxlength="30" value="{$materialsRequest->oclcNumber}"/>
-      </div>
-    </fieldset>
-    *}
+    {* The following is set with JS, so we should probably leave for now.*}
+    <!-- <fieldset> -->
+      <!-- <legend>Identifiers</legend> -->
+      <!-- <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField"> -->
+        <!-- <label for="isbn">ISBN:</label> -->
+        <input type="hidden" name="isbn" id="isbn" value="{$materialsRequest->isbn}"/>
+      <!-- </div> -->
+      <!-- <div class="formatSpecificField dvdField blurayField cdMusicField vhsField otherField" > -->
+        <!-- <label for="upc">UPC:</label> -->
+        <input type="hidden" name="upc" id="upc" value="{$materialsRequest->upc}"/>
+      <!-- </div> -->
+      <!-- <div class="formatSpecificField articleField"> -->
+        <!-- <label for="issn">ISSN:</label> -->
+        <input type="hidden" name="issn" id="issn" value="{$materialsRequest->issn}"/>
+      <!-- </div> -->
+      <!-- <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField"> -->
+        <!-- <label for="oclcNumber">OCLC Number</label> -->
+        <input type="hidden" name="oclcNumber" id="oclcNumber" value="{$materialsRequest->oclcNumber}"/>
+      <!-- </div> -->
+    <!-- </fieldset> -->
     <fieldset id="supplementalDetails">
       <legend>Supplemental Details</legend>
       {if $showAgeField}
@@ -157,7 +154,7 @@
 
       <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
         <label for="publisher">Publisher:</label>
-        <input name="publisher" id="publisher" size="80" maxlength="255" value="{$materialsRequest->publisher}"/>
+        <input name="publisher" id="publisher" maxlength="255" value="{$materialsRequest->publisher}"/>
       </div>
       <div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
         <label for="publicationYear">Publication Year:</label>
@@ -210,7 +207,7 @@
       {/if}
       <div>
         <label for="email">{translate text='Email'}: </label>
-        <input type="text" name="email" id="email" size="80" maxlength="80" value="{$defaultEmail}"/>
+        <input type="text" name="email" id="email" maxlength="80" value="{$defaultEmail}"/>
       </div>
     </div>
   </div>
