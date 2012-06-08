@@ -179,39 +179,42 @@
 {if $materialsRequest}
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
-<fieldset {if $user}class="anythink-collapsible"{/if}>
+
   {if !$user}
-  <legend>{translate text="Login to your account"}</legend>
-  <div id="materialsRequestLogin">
-    <div>
-      <label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
-      <input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required"/>
+    <div id="materialsRequestLogin">
+      <fieldset>
+      <legend>{translate text="Login to your account"}</legend>
+        <div>
+          <label for="username">{translate text='Username'} <span class="requiredIndicator">*</span>: </label>
+          <input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required"/>
+        </div>
+        <div>
+          <label for="password">{translate text='Password'} <span class="requiredIndicator">*</span>: </label>
+          <input type="password" name="password" id="password" size="15" class="required"/>
+        </div>
+        <div>
+          <input type="submit" name="login" value="Login" onclick="return materialsRequestLogin();"/>
+        </div>
+      </fieldset>
     </div>
-    <div>
-      <label for="password">{translate text='Password'} <span class="requiredIndicator">*</span>: </label>
-      <input type="password" name="password" id="password" size="15" class="required"/>
-    </div>
-    <div>
-      <input type="submit" name="login" value="Login" onclick="return materialsRequestLogin();"/>
-    </div>
-  </div>
-  {else}
-  <legend>Contact info</legend>
   {/if}
   <div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
-    <div id="materialRequestContactInfo">
-      Please enter your contact information so we can contact you if we have questions about your request.
-      {if $showPhoneField}
-      <div>
-        <label for="phone">{translate text='Phone'}: </label>
-        <input type="text" name="phone" id="phone" size="15" class="tel" value="{$defaultPhone}"/>
-      </div>
-      {/if}
-      <div>
-        <label for="email">{translate text='Email'}: </label>
-        <input type="text" name="email" id="email" maxlength="80" value="{$defaultEmail}"/>
-      </div>
-    </div>
+    <fieldset class="anythink-collapsible">
+      <legend>Contact info</legend>
+        <div id="materialRequestContactInfo">
+          Please enter your contact information so we can contact you if we have questions about your request.
+          {if $showPhoneField}
+          <div>
+            <label for="phone">{translate text='Phone'}: </label>
+            <input type="text" name="phone" id="phone" size="15" class="tel" value="{$defaultPhone}"/>
+          </div>
+          {/if}
+          <div>
+            <label for="email">{translate text='Email'}: </label>
+            <input type="text" name="email" id="email" maxlength="80" value="{$defaultEmail}"/>
+          </div>
+        </div>
+    </fieldset>
   </div>
-</fieldset>
+
 {/if}
