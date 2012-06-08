@@ -87,7 +87,9 @@ function getSelectedRequests(){
 	return selectedRequests;
 }
 
-function setIsbnAndOclcNumber(isbn, oclcNumber){
+function setIsbnAndOclcNumber(title, author, isbn, oclcNumber){
+	$("#title").val(title);
+	$("#author").val(author);
 	$("#isbn").val(isbn);
 	$("#oclcNumber").val(oclcNumber);
 	$("#suggestedIdentifiers").slideUp();

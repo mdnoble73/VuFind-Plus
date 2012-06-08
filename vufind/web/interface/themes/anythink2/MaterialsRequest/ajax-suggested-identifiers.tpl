@@ -13,7 +13,7 @@
       <div class="result clearfix" data-isbn_oclc="{$suggestion.isbn}--{$suggestion.oclcNumber}">
         <div class="image-identifier">
           {if $isn}<img src="{$path}/bookcover.php?isn={$isn}&size=small" alt="book cover"/>{else}&nbsp;{/if}
-          <input type="button" value="Use This" onclick="setIsbnAndOclcNumberAnythink('{$suggestion.isbn}', '{$suggestion.oclcNumber}')" />
+          <input type="button" value="Use This" onclick="setIsbnAndOclcNumberAnythink('{$suggestion.title|escape}', '{$suggestion.author|escape}', '{$suggestion.isbn}', '{$suggestion.oclcNumber}')" />
         </div>
         <div class="desc-identifier">
           <h3>{$suggestion.title}</h3>
