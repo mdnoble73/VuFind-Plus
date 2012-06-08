@@ -38,7 +38,7 @@
               <input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
 
 
-              <div id="readingListActionsTop">
+              <div class="form-item"><div id="readingListActionsTop">
                 {if $historyActive == true}
                   {if $transList}
                     <a class="button" onclick='return deletedMarkedAction()' href="#">Delete Marked</a>
@@ -49,7 +49,7 @@
                 {else}
                   <a class="button" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
                 {/if}
-              </div>
+              </div></div>
 
               {if $transList}
               <div id="pager" class="pager">
