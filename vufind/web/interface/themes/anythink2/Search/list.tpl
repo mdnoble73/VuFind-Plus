@@ -72,7 +72,7 @@
 
   {if $enableMaterialsRequest}
   <div id="materialsRequestInfo">
-  {translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest">{translate text="Request it!"}</a>.</div>
+  {translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a>.</div>
   </div>
   {/if}
   </div>
