@@ -153,10 +153,12 @@ class EINetwork extends MillenniumDriver{
 	public function updatePatronInfo($patronId){
 		global $user;
 		global $configArray;
+		$logger = new Logger();
 
 		//Setup the call to Millennium
 		$id2= $patronId;
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
+		$logger->log("1 Patron phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
 
 		$this->_updateVuFindPatronInfo($patronId);
 		
@@ -207,9 +209,14 @@ class EINetwork extends MillenniumDriver{
 		global $memcache;
 		$memcache->delete("patron_dump_{$this->_getBarcode()}");
 		usleep(500);
+		$logger->log("Patron phone number = " . $patronDump['TELEPHONE']);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
+			$patronDump = $this->_getPatronDump($this->_getBarcode());
+			$logger->log("2 Patron phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+			$memcache->delete("patron_dump_{$this->_getBarcode()}");
+			usleep(500);
 			$user->phone = $_REQUEST['phone'];
 			$user->email = $_REQUEST['email'];
 			//Update the serialized instance stored in the session

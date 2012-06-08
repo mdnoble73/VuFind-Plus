@@ -1262,7 +1262,7 @@ class MillenniumDriver implements DriverInterface
 		global $memcache;
 		global $timer;
 		$patronDump = $memcache->get("patron_dump_$barcode");
-		if (true || !$patronDump){
+		if (!$patronDump){
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
