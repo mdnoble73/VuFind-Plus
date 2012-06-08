@@ -27,7 +27,10 @@
       </form>
     </div>
   </div>
-<script type="text/javascript">
+<script type="text/javascript">{literal}
   setFieldVisibility();
   $("#materialsRequestForm").validate();
-</script>
+  if ($("#title").val() != "" || $("#author").val() != ""){
+  	getWorldCatIdentifiersAnythink();
+  }
+{/literal}</script>
