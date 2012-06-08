@@ -579,6 +579,22 @@ function redrawSaveStatus() {
 
         {if $showAmazonReviews || $showStandardReviews}
         <h4>Professional Reviews</h4>
+        {* Add editorial reviews that have been entered *}
+        {if $editorialReviewResults && count($editorialReviewResults) > 0}
+	        <div id="editorialReviews">
+	        	{foreach from=$editorialReviewResults item=review}
+	        	
+				    <div id = 'review{php}$index ++;echo $index;{/php}'>
+				    	<div class='reviewTitle'>{$review->title}</div>
+				    	<div class="reviewContent">{$review->review}</div>
+				    	{if $review->source}
+					      <div class='reviewSource'>From: {$review->source}</div>
+					    {/if}
+				    </div>
+				    
+	        	{/foreach}
+	        </div>
+        {/if}
         <div id='reviewPlaceholder'></div>
         {/if}
       </div>

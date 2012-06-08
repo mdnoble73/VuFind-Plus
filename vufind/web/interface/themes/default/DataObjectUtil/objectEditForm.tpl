@@ -71,7 +71,7 @@
 							{literal}
 							CKEDITOR.replace( '{/literal}{$propName}{literal}',
 							    {
-							          toolbar : 'Basic'
+							          toolbar : 'Full'
 							    });
 							{/literal}
 							</script>
