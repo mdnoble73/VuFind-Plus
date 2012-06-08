@@ -174,7 +174,9 @@
     // @todo Refactor this to make more sense. Unfortunately depends on
     // JS outside of the theme directory. @see /services/Record/ajax.js
     var go_deeper = $('#goDeeperLink');
+    // The cover image is the sister.
     var cover = go_deeper.next();
+    // On load, size the link to be commensurate.
     cover.bind('load', function() {
       go_deeper.height(cover.height() + 10);
       var position = cover.position();
@@ -183,10 +185,9 @@
         left: position.left + 'px'
       });
     });
-
-
   });
 
+  // Resize the fixed-position element.
   function anythinkResize() {
     var offset = anythink.settings.fixed_offset;
     var fixed_wrapper = anythink.settings.fixed_wrapper;
@@ -199,6 +200,38 @@
       fixed_wrapper.removeClass('cling');
       $('#header-utility-top').after($('#search'));
     }
+  }
+
+  getWorldCatIdentifiersAnythink = function() {
+    var title = $("#title").val();
+    var author = $("#author").val();
+    var format = $("#format").val();
+    if (title == '' && author == ''){
+      alert("Please enter a title and author before checking for an ISBN and OCLC Number");
+      return false;
+    }
+    else {
+      var requestUrl = path + "/MaterialsRequest/AJAX?method=GetWorldCatIdentifiers&title=" + encodeURIComponent(title) + "&author=" + encodeURIComponent(author)  + "&format=" + encodeURIComponent(format);
+      var suggested_ids = $('#suggestedIdentifiers');
+      suggested_ids.html('<div class="loading">Loading...</div>');
+      suggested_ids.slideDown();
+      $.getJSON(requestUrl, function(data){
+        if (data.success == true){
+          // Dislay the results of the suggestions
+          suggested_ids.html(data.formattedSuggestions);
+        }else{
+          alert(data.error);
+        }
+      });
+    }
+  }
+
+  setIsbnAndOclcNumberAnythink = function(isbn, oclcNumber) {
+    $("#isbn").val(isbn);
+    $("#oclcNumber").val(oclcNumber);
+    var item = $('[data-isbn_oclc="' + isbn + '--' + oclcNumber +'"]').clone();
+    $("#suggestedIdentifiers").empty().append(item);
+    item.find('input').remove();
   }
 
   // Get a list of the records on the page.
