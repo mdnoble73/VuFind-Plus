@@ -25,11 +25,11 @@
             </div>
           </div>
           <div class="form-item">
-            <label>{translate text="Birthday"} (MM/DD/YYYY)<span class="required">*</span></label>
+            <label>{translate text="Birthday (MM/DD/YYYY)"}<span class="required">*</span></label>
             <div><input name="borrowerNote" type="text" size="80" maxlength="80" /></div>
           </div>
           <div class="form-item">
-            <label>{translate text="Phone number"}</label>
+            <label>{translate text="Phone number (###-###-####)"}</label>
             <div><input name="phone" type="text" size="20" maxlength="20" /></div>
           </div>
           <div class="form-item">
