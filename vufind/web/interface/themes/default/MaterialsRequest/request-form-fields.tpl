@@ -1,4 +1,4 @@
-{if $materialsRequest || $new}
+{if $materialsRequest && !$new}
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
 <fieldset>
