@@ -422,25 +422,6 @@ if ($module == null && $action == null){
 	$module = $configArray['Site']['defaultModule'];
 	$action = 'Home';
 
-}elseif ($module == 'MyResearch' && ($action == null || $action == 'Home')){
-	//We are going to the "main page of My Research"
-	//Be smart about this depending on the user's information.
-	if ($user && !$interface->isMobile()){
-		// Connect to Database
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-		$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
-		$profile = $catalog->getMyProfile($patron);
-		if ($profile['numCheckedOut'] > 0){
-			$action ='CheckedOut';
-		}elseif ($profile['numHolds'] > 0){
-			$action ='Holds';
-		}else{
-			$action ='Favorites';
-		}
-	}else{
-		//Go to the login page which is the home page
-		$action = 'Home';
-	}
 }elseif ($action == null){
 	$action = 'Home';
 }

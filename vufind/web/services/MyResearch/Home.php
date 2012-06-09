@@ -53,8 +53,39 @@ class Home extends MyResearch
 		if (isset($_GET['tag'])) {
 			$interface->assign('tags',  strip_tags($_GET['tag']));
 		}
+		
+		//We are going to the "main page of My Research"
+		//Be smart about this depending on the user's information.
+		$hasHomeTemplate = $interface->template_exists('MyResearch/home.tpl'); 
 
-		if (!$interface->isMobile()){
+		if (!$user){
+			$action = 'Home';
+		}elseif ($hasHomeTemplate){
+			//Var for the IDCLREADER TEMPLATE
+			$interface->assign('ButtonBack',false);
+			$interface->assign('ButtonHome',true);
+			$interface->assign('MobileTitle','&nbsp;');
+			
+			$interface->setTemplate('home.tpl');
+		}else{
+			if ($user && !$interface->isMobile()){
+				// Connect to Database
+				$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+				$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
+				$profile = $catalog->getMyProfile($patron);
+				if ($profile['numCheckedOut'] > 0){
+					$action ='CheckedOut';
+				}elseif ($profile['numHolds'] > 0){
+					$action ='Holds';
+				}else{
+					$action ='Favorites';
+				}
+				header("Location: /MyResearch/$action");
+			}else{
+				//Go to the login page which is the home page
+				$action = 'Home';
+			}
+		
 			// Build Favorites List
 			$favorites = $user->getResources(isset($_GET['tag']) ?  strip_tags($_GET['tag']) : null);
 			$favList = new FavoriteHandler($favorites, $user);
@@ -69,14 +100,6 @@ class Home extends MyResearch
 			$interface->assign('tagList', $tagList);
 			$interface->setPageTitle('Favorites');
 			$interface->setTemplate('favorites.tpl');
-		}else{
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',false);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','&nbsp;');
-			
-			
-			$interface->setTemplate('home.tpl');
 		}
 		$interface->display('layout.tpl');
 	}

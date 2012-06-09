@@ -1,5 +1,5 @@
 <div id="sidebar-wrapper"><div id="sidebar">
-  <form method="post" action="{$path}/MyResearch/Home" id="loginForm">
+  <form method="post" action="{$path}/MyAccount/Home" id="loginForm">
     <h3>Login to your account</h3>
     <div class="form-item">
       <div><label for="username">{translate text='Username'}:</label></div>
@@ -28,9 +28,9 @@
 <div id="main-content">
   {if $message}<div class="error">{$message|translate}</div>{/if}
   <div class="get-card">
-    <div><a id="get-card" href="{$path}/MyResearch/GetCard">Click here to get a card.</a></div>
+    <div><a id="get-card" href="{$path}/MyAccount/GetCard">Click here to get a card.</a></div>
     <h1>{translate text='Need an Anythink card?'}</h1>
-    <h2>Click <a class="button" href="{$path}/MyResearch/GetCard">here</a> to get a card.</h2>
+    <h2>Click <a class="button" href="{$path}/MyAccount/GetCard">here</a> to get a card.</h2>
   </div>
   <script type="text/javascript">$('#username').focus();</script>
 </div>
