@@ -87,7 +87,7 @@ if (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $request
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['action'] = $matches[2];
 }
-if ($_GET['module'] == 'MyAccount'){
+if (isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
 	$_GET['module'] = 'MyResearch';
 	$_REQUEST['module'] = 'MyResearch';
 }
