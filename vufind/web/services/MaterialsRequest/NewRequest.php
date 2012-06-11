@@ -51,6 +51,19 @@ class NewRequest extends Action
 		$availableFormats = MaterialsRequest::getFormats();
 		$interface->assign('availableFormats', $availableFormats);
 		
+		//Setup a default title based on the search term
+		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){ 
+			$request = new MaterialsRequest();
+			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
+			if (strcasecmp($searchType, 'author') == 0){
+				$request->author = $_REQUEST['lookfor'];
+			}else{
+				$request->title = $_REQUEST['lookfor'];
+			}
+			$interface->assign('materialsRequest', $request);
+			$interface->assign('new', true);
+		}
+		
 		$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
 		$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
 		$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);

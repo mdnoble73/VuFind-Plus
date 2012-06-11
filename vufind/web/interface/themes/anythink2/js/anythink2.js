@@ -226,7 +226,9 @@
     }
   }
 
-  setIsbnAndOclcNumberAnythink = function(isbn, oclcNumber) {
+  setIsbnAndOclcNumberAnythink = function(title, author, isbn, oclcNumber) {
+  	$("#title").val(title);
+  	$("#author").val(author);
     $("#isbn").val(isbn);
     $("#oclcNumber").val(oclcNumber);
     var item = $('[data-isbn_oclc="' + isbn + '--' + oclcNumber +'"]').clone();

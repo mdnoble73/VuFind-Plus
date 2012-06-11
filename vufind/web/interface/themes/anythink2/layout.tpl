@@ -98,11 +98,11 @@
         <div id="header">
           {* This needs to be heavily refactored.
           {if $user}
-            <span id="myAccountNameLink" class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyResearch/Home">{if $user->displayName}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></span>
-            <span class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></span>
-            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></span>
+            <span id="myAccountNameLink" class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyAccount/Home">{if $user->displayName}{$user->displayName}{else}{$user->firstname|capitalize} {$user->lastname|capitalize}{/if}</a></span>
+            <span class="menu-account-link logoutOptions top-menu-item"><a href="{$path}/MyAccount/Logout">{translate text="Log Out"}</a></span>
+            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></span>
           {else}
-            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></span>
+            <span class="menu-account-link loginOptions top-menu-item"><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></span>
           {/if}
           *}
           <a id="logo" href="{if $homeLink}{$homeLink}{else}{$url}{/if}">{translate text="Anythink Libraries"}</a>
@@ -131,11 +131,11 @@
           <div id="header-utility-bottom">
             <ul class="inline right">
               {if !$user}
-                <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
-                <li><a href="{$path}/MyResearch/GetCard">{translate text="Get a Card"}</a></li>
+                <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
+                <li><a href="{$path}/MyAccount/GetCard">{translate text="Get a Card"}</a></li>
               {else}
-                <li><a href="{$path}/MyResearch/Home">{translate text="My Account"}</a></li>
-                <li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
+                <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
+                <li><a href="{$path}/MyAccount/Logout">{translate text="Log Out"}</a></li>
               {/if}
             </ul>
           </div>

@@ -32,7 +32,7 @@
 				<td>{$suggestion.author|truncate:60}</td>
 				<td>{$suggestion.isbn}</td>
 				<td>{$suggestion.oclcNumber}</td>
-				<td><input type="button" value="Use This" onclick="setIsbnAndOclcNumber('{$suggestion.isbn}', '{$suggestion.oclcNumber}')" /></td>
+				<td><input type="button" value="Use This" onclick="setIsbnAndOclcNumber('{$suggestion.title|escape}', '{$suggestion.author|escape}', '{$suggestion.isbn}', '{$suggestion.oclcNumber}')" /></td>
 			</tr>
 			{/foreach}
 		</tbody>

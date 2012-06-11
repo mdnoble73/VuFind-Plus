@@ -1,4 +1,4 @@
-{if $materialsRequest}
+{if $materialsRequest && !$new}
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
 <fieldset>
@@ -164,7 +164,7 @@
 			<input name="publicationYear" id="publicationYear" size="4" maxlength="4" value="{$materialsRequest->publicationYear}"/>
 		</div>
 	</fieldset>
-	{if !$materialsRequest}
+	{if !$materialsRequest || $new}
 		{if $showPlaceHoldField || $showIllField}
 		<fieldset>
 			<legend>Access</legend>
