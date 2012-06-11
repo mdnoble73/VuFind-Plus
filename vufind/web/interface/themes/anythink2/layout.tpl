@@ -154,13 +154,13 @@
             </ul>
           {/if}
           {if !($module == 'Search' && $action == 'Home')}
-            <a id="navigate-link" href="http://stage.anythinklibraries.org/">{translate text="Explore Anythink..."}</a>
+            <a id="navigate-link" href="http://www.anythinklibraries.org/">{translate text="Explore Anythink..."}</a>
           {/if}
         </div>
         <div id="central" class="clearfix{if $module == 'Search' && $action == 'Home'} with-column-outer{/if}">
           {if $module == 'Search' && $action == 'Home'}
           <div id="column-outer-wrapper"><div id="column-outer">
-            <iframe width="200" height="600" border="0" src="http://stage.anythinklibraries.org/vufind/sidebar"></iframe>
+            <iframe width="200" height="600" border="0" src="http://www.anythinklibraries.org/vufind/sidebar"></iframe>
           </div></div>
           {/if}
           <div id="column-central">
