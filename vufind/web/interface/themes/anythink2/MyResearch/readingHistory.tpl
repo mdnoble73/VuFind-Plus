@@ -14,7 +14,7 @@
   <div id="main-content">
     {if $user->cat_username}
       <div class="resulthead">
-        <h1>{translate text='Checkout History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</h1>
+        <h1>{translate text='My Checkout History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</h1>
           {if $userNoticeFile}
             {include file=$userNoticeFile}
           {/if}

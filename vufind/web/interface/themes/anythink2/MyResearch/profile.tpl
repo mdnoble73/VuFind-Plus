@@ -5,7 +5,7 @@
   </div></div>
   <div id="main-content">
     {if $user->cat_username}
-      <h1>{translate text='Your Profile'}</h1>
+      <h1>{translate text='My Profile'}</h1>
       {if $userNoticeFile}
         {include file=$userNoticeFile}
       {/if}

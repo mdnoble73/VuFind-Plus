@@ -1645,3 +1645,65 @@ div.popupBox ul li a {
   margin: 10px;
   padding: 10px;
 }
+
+.survey-container {
+  font-size: 1.2em;
+  position: relative;
+}
+
+.survey-faux-wrapper {
+  background-color: #000;
+  opacity: .5;
+  height: 124px;
+  width: 212px;
+}
+
+.survey {
+  background-color: #fff;
+  background-image: url(http://www.anythinklibraries.org/sites/all/modules/custom/anythink_survey/squiggle-test.png);
+  width: 200px;
+  height: 100px;
+  text-align: center;
+}
+
+.survey-container .survey {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.survey-inner {
+  padding: 1.5em 1em 0 1em;
+}
+
+#survey-close {
+  position: absolute;
+  top: .35em;
+  right: .35em;
+  font-size: .75em;
+  line-height: 1.333em;
+  display: inline-block;
+  text-align: right;
+  text-decoration: none;
+  color: #333;
+}
+
+#survey-close .x {
+  background-color: #666;
+  color: #FEF2E5;
+  display: inline-block;
+  font-weight: bold;
+  margin-left: 5px;
+  padding: .2em;
+  text-align: center;
+  line-height: .5em;
+  font-size: 1.5em;
+}
+
+#survey-close .text {
+  display: none;
+}
+
+#survey-close:hover .text {
+  display: inline-block;
+}

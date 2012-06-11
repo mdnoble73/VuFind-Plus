@@ -61,6 +61,14 @@
    </div>
    <div id="results-list">
      {include file=Search/list-list.tpl}
-     {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
+   </div>
+   <div id="results-bottom">
+   {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
+
+   {if $enableMaterialsRequest}
+   <div id="materialsRequestInfo">
+   {translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a>.</div>
+   </div>
+   {/if}
    </div>
 </div>
