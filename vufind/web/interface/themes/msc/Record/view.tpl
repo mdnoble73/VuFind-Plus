@@ -344,19 +344,17 @@ function redrawSaveStatus() {literal}{{/literal}
       <div id="moredetails-tabs">
       {* Define tabs for the display *}
       <ul>
-            <li><a href="#holdingstab" class="selected">Copies</a></li>
-            {if $notes}
-            <li><a href="#notestab">Notes</a></li>
-            {/if}
-            {if ($showAmazonReviews || $showStandardReviews) && $isbn}
-            <li><a href="#reviewtab">Editorial Reviews</a></li>
-            {/if}
-            {if $showComments == 1}
-            <li><a href="#readertab">Reader Reviews</a></li>
-            {/if}
-            <li><a href="#citetab">Citation</a></li>
-            <li><a href="#stafftab">Staff View</a></li>
-            </ul>
+      	<li><a href="#holdingstab">{translate text="Copies"}</a></li>
+				{if $notes}
+					<li><a href="#notestab">{translate text="Notes"}</a></li>
+				{/if}
+				{if $showAmazonReviews || $showStandardReviews}
+					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+				{/if}
+				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				<li><a href="#citetab">{translate text="Citation"}</a></li>
+				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
+      </ul>
             
             {if $notes}
             <div id ="notestab">
@@ -371,13 +369,16 @@ function redrawSaveStatus() {literal}{{/literal}
             </div>
             {/if}
             
-            {if ($showAmazonReviews || $showStandardReviews) && $isbn}
-            <a name = "reviews"></a>
-						<div id = "reviewtab">
-						{if !$tabbedDetails}<div class = "blockhead">{translate text='Editorial Reviews'}</div>{/if}
-						  <div id='reviewPlaceholder'></div>
-						</div>
-            {/if}
+			<div id="reviewtab">
+				<div id = "staffReviewtab" >
+				{include file="$module/view-staff-reviews.tpl"}
+				</div>
+				 
+				{if $showAmazonReviews || $showStandardReviews}
+				<h4>Professional Reviews</h4>
+				<div id='reviewPlaceholder'></div>
+				{/if}
+			</div>
                
             {if $showComments == 1}
             <div id = "readertab">

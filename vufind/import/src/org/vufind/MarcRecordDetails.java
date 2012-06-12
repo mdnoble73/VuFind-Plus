@@ -43,111 +43,132 @@ import bsh.Primitive;
 import bsh.UtilEvalError;
 
 public class MarcRecordDetails {
-	private MarcProcessor						marcProcessor;
-	private Logger									logger;
+	private MarcProcessor										marcProcessor;
+	private Logger													logger;
 
-	private Record									record;
-	private HashMap<String, Object>	fields	= new HashMap<String, Object>();
+	private Record													record;
+	private HashMap<String, Object>					mappedFields		= new HashMap<String, Object>();
 
-	private String									sourceUrl;
-	private String									purchaseUrl;
-	private boolean									urlsLoaded;
-	private long										checksum = -1;
+	private ArrayList<LibrarySpecificLink>	sourceUrls			= new ArrayList<LibrarySpecificLink>();
+	private String													purchaseUrl;
+	private boolean													urlsLoaded;
+	private long														checksum				= -1;
+
+	private boolean													allFieldsMapped	= false;
 
 	/**
-	 * Maps fields based on properties files for use in processors
+	 * Does basic mapping of fields to determine if the record has changed or not
 	 * 
 	 * @param marcProcessor
 	 * @param record
 	 * @param logger
 	 * @return
 	 */
-	public boolean mapRecord(MarcProcessor marcProcessor, Record record, Logger logger) {
+	public MarcRecordDetails(MarcProcessor marcProcessor, Record record, Logger logger) {
 		// Preload basic information that nearly everything will need
 		this.record = record;
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
-		// System.out.println(record);
 
+		// Map the id field
+		String fieldVal[] = marcProcessor.getMarcFieldProps().get("id");
+		mapField("id", fieldVal);
+	}
+
+	/**
+	 * Maps fields based on properties files for use in processors
+	 * 
+	 * @return
+	 */
+	public boolean mapRecord() {
+		if (allFieldsMapped) return true;
+		// System.out.println("Mapping record");
+		allFieldsMapped = true;
+
+		// Map all fields for the record
 		for (String fieldName : marcProcessor.getMarcFieldProps().keySet()) {
 			String fieldVal[] = marcProcessor.getMarcFieldProps().get(fieldName);
-			String indexField = fieldVal[0];
-			String indexType = fieldVal[1];
-			String indexParm = fieldVal[2];
-			String mapName = fieldVal[3];
-
-			if (indexType.equals("constant")) {
-				if (indexParm.contains("|")) {
-					String parts[] = indexParm.split("[|]");
-					Set<String> result = new LinkedHashSet<String>();
-					result.addAll(Arrays.asList(parts));
-					// if a zero length string appears, remove it
-					result.remove("");
-					addFields(fields, indexField, null, result);
-				} else
-					addField(fields, indexField, indexParm);
-			} else if (indexType.equals("first")) {
-				addField(fields, indexField, getFirstFieldVal(record, mapName, indexParm));
-			} else if (indexType.equals("all")) {
-				addFields(fields, indexField, mapName, getFieldList(record, indexParm));
-			} else if (indexType.startsWith("join")) {
-				String joinChar = " ";
-				if (indexType.contains("(") && indexType.endsWith(")")) joinChar = indexType.replace("join(", "").replace(")", "");
-				addField(fields, indexField, getFieldVals(indexParm, joinChar));
-			} else if (indexType.equals("std")) {
-				if (indexParm.equals("era")) {
-					addFields(fields, indexField, mapName, getEra(record));
-				} else {
-					addField(fields, indexField, getStd(record, indexParm));
-				}
-			} else if (indexType.startsWith("custom")) {
-				try {
-					handleCustom(fields, indexType, indexField, mapName, indexParm);
-				} catch (SolrMarcIndexerException e) {
-					String recCntlNum = null;
-					try {
-						recCntlNum = record.getControlNumber();
-					} catch (NullPointerException npe) { /* ignore */
-					}
-
-					if (e.getLevel() == SolrMarcIndexerException.DELETE) {
-						throw new SolrMarcIndexerException(SolrMarcIndexerException.DELETE, "Record " + (recCntlNum != null ? recCntlNum : "")
-								+ " purposely not indexed because " + fieldName + " field is empty");
-						// logger.error("Record " + (recCntlNum != null ? recCntlNum : "") +
-						// " not indexed because " + key + " field is empty -- " +
-						// e.getMessage(), e);
-					} else {
-						logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
-						throw (e);
-					}
-				}
-			} else if (indexType.startsWith("script")) {
-				try {
-					handleScript(fields, indexType, indexField, mapName, record, indexParm);
-				} catch (SolrMarcIndexerException e) {
-					String recCntlNum = null;
-					try {
-						recCntlNum = record.getControlNumber();
-					} catch (NullPointerException npe) { /* ignore */
-					}
-
-					if (e.getLevel() == SolrMarcIndexerException.DELETE) {
-						logger.error(
-								"Record " + (recCntlNum != null ? recCntlNum : "") + " purposely not indexed because " + fieldName + " field is empty -- " + e.getMessage(), e);
-					} else {
-						logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
-						throw (e);
-					}
-				}
-			}
+			mapField(fieldName, fieldVal);
 		}
 
 		return true;
 	}
 
-	public String getSourceUrl() {
+	private void mapField(String fieldName, String[] fieldVal) {
+		String indexField = fieldVal[0];
+		String indexType = fieldVal[1];
+		String indexParm = fieldVal[2];
+		String mapName = fieldVal[3];
+
+		if (indexType.equals("constant")) {
+			if (indexParm.contains("|")) {
+				String parts[] = indexParm.split("[|]");
+				Set<String> result = new LinkedHashSet<String>();
+				result.addAll(Arrays.asList(parts));
+				// if a zero length string appears, remove it
+				result.remove("");
+				addFields(mappedFields, indexField, null, result);
+			} else
+				addField(mappedFields, indexField, indexParm);
+		} else if (indexType.equals("first")) {
+			addField(mappedFields, indexField, getFirstFieldVal(record, mapName, indexParm));
+		} else if (indexType.equals("all")) {
+			addFields(mappedFields, indexField, mapName, getFieldList(record, indexParm));
+		} else if (indexType.startsWith("join")) {
+			String joinChar = " ";
+			if (indexType.contains("(") && indexType.endsWith(")")) joinChar = indexType.replace("join(", "").replace(")", "");
+			addField(mappedFields, indexField, getFieldVals(indexParm, joinChar));
+		} else if (indexType.equals("std")) {
+			if (indexParm.equals("era")) {
+				addFields(mappedFields, indexField, mapName, getEra(record));
+			} else {
+				addField(mappedFields, indexField, getStd(record, indexParm));
+			}
+		} else if (indexType.startsWith("custom")) {
+			try {
+				handleCustom(mappedFields, indexType, indexField, mapName, indexParm);
+			} catch (SolrMarcIndexerException e) {
+				String recCntlNum = null;
+				try {
+					recCntlNum = record.getControlNumber();
+				} catch (NullPointerException npe) { /* ignore */
+				}
+
+				if (e.getLevel() == SolrMarcIndexerException.DELETE) {
+					throw new SolrMarcIndexerException(SolrMarcIndexerException.DELETE, "Record " + (recCntlNum != null ? recCntlNum : "")
+							+ " purposely not indexed because " + fieldName + " field is empty");
+					// logger.error("Record " + (recCntlNum != null ? recCntlNum : "") +
+					// " not indexed because " + key + " field is empty -- " +
+					// e.getMessage(), e);
+				} else {
+					logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
+					throw (e);
+				}
+			}
+		} else if (indexType.startsWith("script")) {
+			try {
+				handleScript(mappedFields, indexType, indexField, mapName, record, indexParm);
+			} catch (SolrMarcIndexerException e) {
+				String recCntlNum = null;
+				try {
+					recCntlNum = record.getControlNumber();
+				} catch (NullPointerException npe) { /* ignore */
+				}
+
+				if (e.getLevel() == SolrMarcIndexerException.DELETE) {
+					logger.error(
+							"Record " + (recCntlNum != null ? recCntlNum : "") + " purposely not indexed because " + fieldName + " field is empty -- " + e.getMessage(), e);
+				} else {
+					logger.error("Unable to index record " + (recCntlNum != null ? recCntlNum : "") + " due to field " + fieldName + " -- " + e.getMessage(), e);
+					throw (e);
+				}
+			}
+		}
+	}
+
+	public ArrayList<LibrarySpecificLink> getSourceUrls() {
 		loadUrls();
-		return sourceUrl;
+		return sourceUrls;
 	}
 
 	public String getPurchaseUrl() {
@@ -175,34 +196,67 @@ public class MarcRecordDetails {
 			}
 
 			if (text != null && url != null) {
+				boolean linkIsDownload = false;
 				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						// System.out.println("Found source url");
-						sourceUrl = url;
+						linkIsDownload = true;
+						sourceUrls.add(new LibrarySpecificLink(url, marcProcessor.getLibraryIdForLink(url)));
 					}
 				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
 					// File is an enrichment url
-				} else if (text.matches("(?i).*?purchase.*?")) {
+				} else if (text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
 				} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
-					sourceUrl = url;
+					linkIsDownload = true;
+					sourceUrls.add(new LibrarySpecificLink(url, marcProcessor.getLibraryIdForLink(url)));
 				} else {
 					logger.info("Unknown URL " + url + " " + text);
-
 				}
 			}
 		}
+		
+		//Get urls from item records
+		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)) {
+			@SuppressWarnings("unchecked")
+			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
+			for (DataField curItem : itemFields) {
+				Subfield urlField = curItem.getSubfield(marcProcessor.getUrlSubfield().charAt(0));
+				if (urlField != null) {
+					logger.info("Found item based url " + urlField.getData());
+					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
+					if (locationField != null) {
+						logger.info("  Location is " + locationField.getData());
+						long libraryId = getLibrarySystemIdForLocation(locationField.getData());
+						logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
+						sourceUrls.add(new LibrarySpecificLink(urlField.getData(), libraryId));
+					}
+				}
+			}
+		}
+		
+		if (sourceUrls.size() == 0 && marcProcessor.isScrapeItemsForLinks()) {
+			// Check the record in the ILS
+			getUrlsForItemsFromMillennium();
+		}
+
 		urlsLoaded = true;
+	}
+
+	private void getUrlsForItemsFromMillennium() {
+		String catalogUrl = "http://www.millennium.marmot.org";
+		String scope = "93";
+		String shortId = this.getId();
+		shortId = shortId.substring(1, shortId.length() - 1);
+		String itemUrl = catalogUrl + "/search~S" + scope + "?/Ypig&searchscope=" + scope + "&SORT=D/Ypig&searchscope=" + scope + "&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~" + shortId + "&FF=Ypig&2,2,";
 	}
 
 	public long getChecksum() {
 		if (checksum == -1) {
 			CRC32 crc32 = new CRC32();
 			crc32.update(record.toString().getBytes());
-			// System.out.println("CRC32: " + crc32.getValue());
 			checksum = crc32.getValue();
-			//System.out.println("CRC32: " + checksum);
 		}
 		return checksum;
 	}
@@ -685,7 +739,7 @@ public class MarcRecordDetails {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Write a marc record as a binary string to the
 	 * 
@@ -699,7 +753,7 @@ public class MarcRecordDetails {
 		MarcWriter writer = new MarcStreamWriter(out, "UTF-8");
 		writer.write(record);
 		writer.close();
-		
+
 		String result = null;
 		try {
 			result = out.toString("UTF-8");
@@ -734,7 +788,7 @@ public class MarcRecordDetails {
 		}
 		return tmp;
 	}
-	
+
 	/**
 	 * get the era field values from 045a as a Set of Strings
 	 */
@@ -1124,8 +1178,8 @@ public class MarcRecordDetails {
 
 		return title;
 	}
-	
-	public String getDescription(){
+
+	public String getDescription() {
 		return getFirstFieldVal("520a");
 	}
 
@@ -1143,20 +1197,20 @@ public class MarcRecordDetails {
 
 	@SuppressWarnings("unchecked")
 	public String getId() {
-		Object idField = fields.get("id");
-		if (idField instanceof String){
-			return (String)idField;
-		}else if (idField instanceof Set){
-			return (String)(((Set<String>)fields).iterator().next());
-		}else{
+		Object idField = mappedFields.get("id");
+		if (idField instanceof String) {
+			return (String) idField;
+		} else if (idField instanceof Set) {
+			return (String) (((Set<String>) mappedFields).iterator().next());
+		} else {
 			return null;
 		}
 	}
-	
+
 	public String getShortId() {
 		String shortId = getId();
-		if (shortId.startsWith(".b") && shortId.length() == 10){
-			//Millennium id, trim off the leading . and the trailing checksum digit 
+		if (shortId.startsWith(".b") && shortId.length() == 10) {
+			// Millennium id, trim off the leading . and the trailing checksum digit
 			shortId = shortId.substring(1, 9);
 		}
 		return shortId;
@@ -1164,7 +1218,7 @@ public class MarcRecordDetails {
 
 	public String getIsbn() {
 		// return the first 13 digit isbn or 10 digit if there are no 13
-		Object isbnField = fields.get("isbn");
+		Object isbnField = getMappedFields().get("isbn");
 		if (isbnField instanceof String) {
 			String curIsbn = (String) isbnField;
 			if (curIsbn.indexOf(" ") > 0) {
@@ -1194,13 +1248,18 @@ public class MarcRecordDetails {
 		}
 	}
 
+	private HashMap<String, Object> getMappedFields() {
+		mapRecord();
+		return mappedFields;
+	}
+
 	public String getFirstFieldValueInSet(String fieldName) {
-		Object fieldValue = fields.get(fieldName);
+		Object fieldValue = getMappedFields().get(fieldName);
 		if (fieldValue instanceof String) {
 			return (String) fieldValue;
 		} else {
 			@SuppressWarnings("unchecked")
-			Set<String> fieldValues = (Set<String>) fields.get(fieldName);
+			Set<String> fieldValues = (Set<String>) getMappedFields().get(fieldName);
 			if (fieldValues != null && fieldValues.size() >= 1) {
 				return (String) fieldValues.iterator().next();
 			}
@@ -1209,15 +1268,15 @@ public class MarcRecordDetails {
 	}
 
 	public String getAuthor() {
-		return (String) fields.get("auth_author");
+		return (String) getMappedFields().get("auth_author");
 	}
 
 	public String getSortTitle() {
-		return (String) fields.get("title_sort");
+		return (String) getMappedFields().get("title_sort");
 	}
 
 	public HashMap<String, Object> getFields() {
-		return fields;
+		return getMappedFields();
 	}
 
 	/**
@@ -1403,14 +1462,14 @@ public class MarcRecordDetails {
 	public String getRating(String recordIdSpec) {
 		if (rating == null) {
 			String recordId = getFirstFieldVal(recordIdSpec);
-			//logger.info("Getting rating for " + recordId);
+			// logger.info("Getting rating for " + recordId);
 			// Check to see if the record has an eContent Record
 			rating = marcProcessor.getPrintRatings().get(recordId);
 			if (rating == null) {
 				rating = -2.5f;
 			}
-			
-			//logger.info("Rating = " + rating.toString());
+
+			// logger.info("Rating = " + rating.toString());
 		}
 		return Float.toString(rating);
 	}
@@ -1442,7 +1501,7 @@ public class MarcRecordDetails {
 		for (Object field : controlFields) {
 			ControlField dataField = (ControlField) field;
 			String data = dataField.getData();
-			data = data.replace( (char)31, ' ');
+			data = data.replace((char) 31, ' ');
 			allFieldData.append(data).append(" ");
 		}
 
@@ -1461,7 +1520,7 @@ public class MarcRecordDetails {
 	public Set<String> getLiteraryForm() {
 		Set<String> result = new LinkedHashSet<String>();
 		String leader = record.getLeader().toString();
-		
+
 		ControlField ohOhEightField = (ControlField) record.getVariableField("008");
 		ControlField ohOhSixField = (ControlField) record.getVariableField("006");
 
@@ -1639,14 +1698,14 @@ public class MarcRecordDetails {
 			return "0";
 		}
 	}
-	
+
 	public Set<String> getFormatFromCollectionOrStd(String collectionFieldSpec, String returnFirst) {
 		String collection = getFirstFieldVal(collectionFieldSpec);
-		if (collection != null){
+		if (collection != null) {
 			Set<String> result = new LinkedHashSet<String>();
 			result.add(collection);
 			return result;
-		}else{
+		} else {
 			return getFormat(returnFirst);
 		}
 	}
@@ -2075,7 +2134,7 @@ public class MarcRecordDetails {
 		Set<String> result = new LinkedHashSet<String>();
 		try {
 			String leader = record.getLeader().toString();
-			
+
 			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
 			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
 
@@ -2103,14 +2162,15 @@ public class MarcRecordDetails {
 					if (targetAudienceChar != ' ') {
 						result.add(Character.toString(targetAudienceChar));
 					}
-				} else {
+				} else if (result.size() == 0) {
 					result.add("Unknown");
 				}
 			} else {
 				result.add("Unknown");
 			}
 		} catch (Exception e) {
-			System.out.println("ERROR in getTargetAudience " + e.toString());
+			// leader not long enough to get target audience
+			logger.debug("ERROR in getTargetAudience ", e);
 			result.add("Unknown");
 		}
 
@@ -2241,11 +2301,11 @@ public class MarcRecordDetails {
 		} catch (ParseException e) {
 			logger.error("Error parsing date " + curDateStr + " in getRelativeTimeAdded");
 		}
-		
+
 		return null;
 	}
-	
-	public String getTimeSinceAddedForDate(Date curDate){
+
+	public String getTimeSinceAddedForDate(Date curDate) {
 		long timeDifferenceDays = (new Date().getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		if (timeDifferenceDays <= 1) {
@@ -2278,7 +2338,8 @@ public class MarcRecordDetails {
 
 	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
 			String branchCodes) {
-		//System.out.println("Branch Codes for " + activeSystem + " are " +  branchCodes);
+		// System.out.println("Branch Codes for " + activeSystem + " are " +
+		// branchCodes);
 		Set<String> result = new LinkedHashSet<String>();
 		// Get a list of all 989 tags that store per item information
 		@SuppressWarnings("unchecked")
@@ -2289,16 +2350,19 @@ public class MarcRecordDetails {
 		Date dateAddedDate = null;
 		char locationChar = locationSubfield.charAt(0);
 		char dateChar = dateSubfield.charAt(0);
-		//System.out.println("Active System: " + activeSystem);
+		// System.out.println("Active System: " + activeSystem);
 		while (iter.hasNext()) {
 			DataField curField = (DataField) iter.next();
 			try {
 				String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
-				//System.out.println("Testing branch code (" + branchCode + ") for " + activeSystem);
+				// System.out.println("Testing branch code (" + branchCode + ") for " +
+				// activeSystem);
 				if (branchCode.matches(branchCodes)) {
-					//System.out.println("Testing branch code (" + branchCode + ") for " + activeSystem);
+					// System.out.println("Testing branch code (" + branchCode + ") for "
+					// + activeSystem);
 					String dateAddedCurStr = curField.getSubfield(dateChar).getData();
-					//System.out.println("Branch: " + branchCode + " - " + dateAddedCurStr);
+					// System.out.println("Branch: " + branchCode + " - " +
+					// dateAddedCurStr);
 					Date dateAddedCurDate = formatter.parse(dateAddedCurStr);
 					if (dateAddedStr == null) {
 						dateAddedStr = dateAddedCurStr;
@@ -2314,12 +2378,13 @@ public class MarcRecordDetails {
 		}
 
 		if (dateAddedDate != null) {
-			//System.out.println("Date Added String:" + dateAddedStr + " Date: " + dateAddedDate.toString());
+			// System.out.println("Date Added String:" + dateAddedStr + " Date: " +
+			// dateAddedDate.toString());
 			addTimeSinceAddedForDateToResults(dateAddedDate, result);
 		}
-		/*for (String curResult :  result){
-			System.out.println("  " + curResult);
-		}*/
+		/*
+		 * for (String curResult : result){ System.out.println("  " + curResult); }
+		 */
 		return result;
 	}
 
@@ -2437,10 +2502,11 @@ public class MarcRecordDetails {
 	}
 
 	public String checkSuppression(String locationField, String locationsToSuppress, String manualSuppressionField, String manualSuppressionValue) {
-		// If all locations should be suppressed, then the record should be suppressed.
+		// If all locations should be suppressed, then the record should be
+		// suppressed.
 		Set<String> input = getFieldList(record, locationField);
 		boolean suppressRecord = false;
-		if (input != null && input.size() > 0){
+		if (input != null && input.size() > 0) {
 			Iterator<String> iter = input.iterator();
 			suppressRecord = true;
 			while (iter.hasNext()) {
@@ -2459,7 +2525,7 @@ public class MarcRecordDetails {
 		if (!suppressRecord) {
 			// Now, check for manually suppressed record where the 907c tag is set to
 			// W
-			if (manualSuppressionField != null & !manualSuppressionField.equals("null")){
+			if (manualSuppressionField != null & !manualSuppressionField.equals("null")) {
 				Set<String> input2 = getFieldList(record, manualSuppressionField);
 				Iterator<String> iter2 = input2.iterator();
 				suppressRecord = false;
@@ -2476,8 +2542,8 @@ public class MarcRecordDetails {
 		// Check to see if the record is already loaded into the eContent core
 		if (!suppressRecord) {
 			String ilsId = this.getId();
-			if (marcProcessor.getExistingEContentIds().contains(ilsId)){
-				System.out.println("Suppressing because there is an eContent record for " + ilsId);
+			if (marcProcessor.getExistingEContentIds().contains(ilsId)) {
+				logger.debug("Suppressing because there is an eContent record for " + ilsId);
 				suppressRecord = true;
 			}
 		}
@@ -2490,39 +2556,40 @@ public class MarcRecordDetails {
 			return "notSuppressed";
 		}
 	}
-	
+
 	/**
 	 * Determine Record Format(s)
-	 *
-	 * @param  Record          record
-	 * @return Set     format of record
+	 * 
+	 * @param Record
+	 *          record
+	 * @return Set format of record
 	 */
-	public Set<String> getAvailableLocations(String itemField, String statusSubField, String availableStatus, String locationSubField){
+	public Set<String> getAvailableLocations(String itemField, String statusSubField, String availableStatus, String locationSubField) {
 		Set<String> result = new LinkedHashSet<String>();
 		@SuppressWarnings("unchecked")
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
 		char statusSubFieldChar = statusSubField.charAt(0);
 		char locationSubFieldChar = locationSubField.charAt(0);
-		for (int i = 0; i < itemRecords.size(); i++){
+		for (int i = 0; i < itemRecords.size(); i++) {
 			Object field = itemRecords.get(i);
-			if (field instanceof DataField){
-				DataField dataField = (DataField)field;
-				//Get subfield u (status)
+			if (field instanceof DataField) {
+				DataField dataField = (DataField) field;
+				// Get subfield u (status)
 				Subfield subfieldU = dataField.getSubfield(statusSubFieldChar);
-				if (subfieldU != null){
-					if (subfieldU.getData().equals("online")){
-						//If the tile is available online, force the location to be online
+				if (subfieldU != null) {
+					if (subfieldU.getData().equals("online")) {
+						// If the tile is available online, force the location to be online
 						result.add("online");
-					}else if (subfieldU.getData().matches(availableStatus)){
-						//If the book is checked in, show it as available
-						//Get subfield m (location)
+					} else if (subfieldU.getData().matches(availableStatus)) {
+						// If the book is checked in, show it as available
+						// Get subfield m (location)
 						Subfield subfieldM = dataField.getSubfield(locationSubFieldChar);
 						result.add(subfieldM.getData().toLowerCase());
 					}
-					
+
 				}
 			}
-			
+
 		}
 		return result;
 	}
@@ -2530,105 +2597,94 @@ public class MarcRecordDetails {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<String> getAuthors() {
 		Set<String> result = new HashSet<String>();
-		Object author = fields.get("author");
-		if (author != null){
-			if (author instanceof String){
-				result.add((String)author);
-			}else{
-				result.addAll((Set)author);
+		Object author = getMappedFields().get("author");
+		if (author != null) {
+			if (author instanceof String) {
+				result.add((String) author);
+			} else {
+				result.addAll((Set) author);
 			}
 		}
-		Object author2 = fields.get("author2");
-		if (author2 != null){
-			if (author2 instanceof String){
-				result.add((String)author2);
-			}else{
-				result.addAll((Set)author2);
+		Object author2 = getMappedFields().get("author2");
+		if (author2 != null) {
+			if (author2 instanceof String) {
+				result.add((String) author2);
+			} else {
+				result.addAll((Set) author2);
 			}
 		}
 		return result;
 	}
-	
-	private Boolean isEContent = null;
-	private DetectionSettings eContentDetectionSettings = null;
+
+	private Boolean												isEContent								= null;
+	private HashMap<String, DetectionSettings>	eContentDetectionSettings	= new HashMap<String, DetectionSettings>();
+
 	/*
-	 * Determine if the record is eContent or not. 
+	 * Determine if the record is eContent or not.
 	 */
-	public boolean isEContent(){
-		if (isEContent == null){
+	public boolean isEContent() {
+		if (isEContent == null) {
 			isEContent = false;
-			//Treat the record as eContent if the records is:
+			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
 			// 2) It matches criteria in EContentRecordDetectionSettings
-			for (DetectionSettings curSettings : marcProcessor.getDetectionSettings()){
+			for (DetectionSettings curSettings : marcProcessor.getDetectionSettings()) {
 				Set<String> fieldData = getFieldList(record, curSettings.getFieldSpec());
 				boolean isMatch = false;
-				//logger.debug("Found " + fieldData.size() + " fields matching " + curSettings.getFieldSpec());
-				for (String curField : fieldData){
-					//logger.debug("Testing if value " + curField.toLowerCase() + " matches " + curSettings.getValueToMatch());
+				// logger.debug("Found " + fieldData.size() + " fields matching " +
+				// curSettings.getFieldSpec());
+				for (String curField : fieldData) {
+					// logger.debug("Testing if value " + curField.toLowerCase() +
+					// " matches " + curSettings.getValueToMatch());
 					isMatch = ((String) curField.toLowerCase()).matches(".*" + curSettings.getValueToMatch().toLowerCase() + ".*");
 					if (isMatch) break;
 				}
 				if (isMatch) {
 					isEContent = isMatch;
-					eContentDetectionSettings = curSettings;
-					break; 
+					DetectionSettings detectionSettingsForSource = eContentDetectionSettings.get(curSettings.getSource());
+					if (detectionSettingsForSource == null){
+						eContentDetectionSettings.put(curSettings.getSource(), curSettings);
+					}
 				}
 			}
-			
-			if (!isEContent){
+
+			if (!isEContent) {
 				String ilsId = this.getId();
-				if (marcProcessor.getExistingEContentIds().contains(ilsId)){
+				if (marcProcessor.getExistingEContentIds().contains(ilsId)) {
 					logger.info("Suppressing because there is an eContent record for " + ilsId);
 					isEContent = true;
 				}
 			}
-			/*if (isEContent){
-				logger.info("eContent record");
-			}else{
-				logger.info("Print record");
-			}*/
+			
 			return isEContent;
-		}else{
+		} else {
 			return isEContent;
 		}
 	}
-	public DetectionSettings getEContentDetectionSettings(){
-		if (isEContent()){
+
+	public HashMap<String, DetectionSettings> getEContentDetectionSettings() {
+		if (isEContent()) {
 			return eContentDetectionSettings;
-		}else{
+		} else {
 			return null;
 		}
 	}
 
-	public ArrayList<LibrarySpecificLink> getLibrarySpecificLinks() {
-		ArrayList<LibrarySpecificLink> librarySpecificLinks = new ArrayList<LibrarySpecificLink>();
-		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)){
-			@SuppressWarnings("unchecked")
-			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
-			for(DataField curItem : itemFields){
-				Subfield urlField = curItem.getSubfield(marcProcessor.getUrlSubfield().charAt(0));
-				if (urlField != null){
-					logger.info("Found item based url " + urlField.getData());
-					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
-					if (locationField != null){
-						logger.info("  Location is " + locationField.getData());
-						//Get the library system id for the location.  To do this, we are going to do a couple 
-						//Of lookups to avoid having to create an entirely new table or lookup map. 
-						//Eventually, we should store location codes in the database and automatically 
-						//generate translation maps which would streamline this process. 
-						//1) Get the facet name from the translation map
-						String librarySystemFacet = Utils.remap(locationField.getData(), marcProcessor.findMap("system_map.properties"), true);
-						//2) Now that we have the facet, get the id of the system 
-						Long librarySystemId = marcProcessor.getLibrarySystemIdFromFacet(librarySystemFacet);
-						if (librarySystemId != null){
-							logger.info("Adding local url " + urlField.getData() + " library system: " + librarySystemId);
-							librarySpecificLinks.add(new LibrarySpecificLink(urlField.getData(), librarySystemId));
-						}
-					}
-				}
-			}
+	protected long getLibrarySystemIdForLocation(String locationCode) {
+		// Get the library system id for the location. To do this, we are
+		// going to do a couple
+		// Of lookups to avoid having to create an entirely new table or
+		// lookup map.
+		// Eventually, we should store location codes in the database and
+		// automatically
+		// generate translation maps which would streamline this process.
+		// 1) Get the facet name from the translation map
+		String librarySystemFacet = Utils.remap(locationCode, marcProcessor.findMap("system_map.properties"), true);
+		// 2) Now that we have the facet, get the id of the system
+		Long librarySystemId = marcProcessor.getLibrarySystemIdFromFacet(librarySystemFacet);
+		if (librarySystemId == null) {
+			librarySystemId = -1L;
 		}
-		return librarySpecificLinks;
+		return librarySystemId;
 	}
 }

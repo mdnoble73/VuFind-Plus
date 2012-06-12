@@ -786,12 +786,16 @@ body.Search-Home #mini-nav {
   padding: 6px 6px 6px 13px;
   text-decoration: none;
 }
+
 #block-menu-primary-links .content li a.active {
-  color: #B31E3B;
+  color: #444;
+  background-color: #f0f0f0;
 }
+
 #block-menu-primary-links .content li a:hover {
-  color: #B8ABA2;
+  color: #998f86;
 }
+
 #block-anythink_common-login {
   position: absolute;
   right: 0;

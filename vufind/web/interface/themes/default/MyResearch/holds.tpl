@@ -46,10 +46,11 @@
 					{/if}
 					<div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
 						<div class='holdSectionBody'>
+							{if $sectionKey=='available' && $libraryHoursMessage}
+								<div class='libraryHours'>{$libraryHoursMessage}</div>
+							{/if}
 							{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
-								{if $sectionKey=='available' && $libraryHoursMessage}
-									<div class='libraryHours'>{$libraryHoursMessage}</div>
-								{/if}
+								
 								{* Form to update holds at one time *}
 								<div id='holdsWithSelected{$sectionKey}Top' class='holdsWithSelected{$sectionKey}'>
 									<form id='withSelectedHoldsFormTop{$sectionKey}' action='{$fullPath}'>
@@ -315,7 +316,7 @@
 												<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
 											{/if}
 											<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-											{if $allowChangeLocation}
+											{if $allowChangeLocation && $sectionKey=='unavailable'}
 												<div id='holdsUpdateBranchSelction'>
 													Change Pickup Location for Selected Items to: 
 													{html_options name="withSelectedLocation" options=$pickupLocations selected=$resource.currentPickupId}

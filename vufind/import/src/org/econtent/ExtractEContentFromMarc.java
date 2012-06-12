@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.log4j.Logger;
@@ -31,6 +32,8 @@ import au.com.bytecode.opencsv.CSVReader;
  */
 
 public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordProcessor{
+	private boolean reindexUnchangedRecords;
+	private boolean checkOverDriveAvailability;
 	private String econtentDBConnectionInfo;
 	private String overdriveUrl;
 	private ArrayList<GutenbergItemInfo> gutenbergItemInfo = null;
@@ -60,6 +63,20 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			return false;
 		}
 		results = new ProcessorResults("Extract eContent from ILS", reindexLogId, vufindConn, logger);
+		
+		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
+		if (reindexUnchangedRecordsVal == null){
+			reindexUnchangedRecords = true;
+		}else{
+			reindexUnchangedRecords = Boolean.parseBoolean(reindexUnchangedRecordsVal);
+		}
+		
+		String checkOverDriveAvailabilityVal = configIni.get("Reindex", "checkOverDriveAvailability");
+		if (checkOverDriveAvailabilityVal == null){
+			checkOverDriveAvailability = true;
+		}else{
+			checkOverDriveAvailability = Boolean.parseBoolean(checkOverDriveAvailabilityVal);
+		}
 		
 		try {
 			//Connect to the vufind database
@@ -96,147 +113,166 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				results.incSkipped();
 				return false;
 			}
+			
 			//Record is eContent, get additional details about how to process it.
-			DetectionSettings detectionSettings = recordInfo.getEContentDetectionSettings();
-			if (detectionSettings == null){
+			HashMap<String, DetectionSettings> detectionSettingsBySource = recordInfo.getEContentDetectionSettings();
+			if (detectionSettingsBySource == null || detectionSettingsBySource.size() == 0){
 				logger.error("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
 				results.addNote("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
 				results.incErrors();
 				return false;
-			}else{
-				logger.info("Record " + recordInfo.getId() + " is eContent, source is " + detectionSettings.getSource());
 			}
-			String source = detectionSettings.getSource();
-			String accessType = detectionSettings.getAccessType();
 			
-			//Check to see if the record already exists
-			String ilsId = recordInfo.getId();
-			if (ilsId.length() == 0){
-				//Get the ils id
-				ilsId = recordInfo.getId();
-			}
-			boolean importRecordIntoDatabase = true;
-			long eContentRecordId = -1;
-			if (ilsId.length() == 0){
-				logger.warn("ILS Id could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
-			}else{
-				doesIlsIdExist.setString(1, ilsId);
-				ResultSet ilsIdExists = doesIlsIdExist.executeQuery();
-				if (ilsIdExists.next()){
-					//The record already exists, check if it needs to be updated?
-					importRecordIntoDatabase = false;
-					eContentRecordId = ilsIdExists.getLong("id");
-				}else{
-					//Add to database
-					importRecordIntoDatabase = true;
+			for (String source : detectionSettingsBySource.keySet()){
+				logger.info("Record " + recordInfo.getId() + " is eContent, source is " + source);
+				DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
+				//Generally should only have one source, but in theory there could be multiple sources for a single record
+				String accessType = detectionSettings.getAccessType();
+				//Make sure that overdrive titles are updated if we need to check availability
+				if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
+					//Overdrive record, force processing to make sure we get updated availability
+				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
+					results.incSkipped();
+					return false;
 				}
-			}
-			
-			boolean recordAdded = false;
-			if (importRecordIntoDatabase){
-				//Add to database
-				logger.info("Adding ils id " + ilsId + " to the database.");
-				createEContentRecord.setString(1, recordInfo.getId());
-				createEContentRecord.setString(2, "");
-				createEContentRecord.setString(3, source);
-				createEContentRecord.setString(4, recordInfo.getFirstFieldValueInSet("title_short"));
-				createEContentRecord.setString(5, recordInfo.getFirstFieldValueInSet("title_sub"));
-				createEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
-				createEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getFields().get("author2")));
-				createEContentRecord.setString(8, recordInfo.getDescription());
-				createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getFields().get("contents")));
-				createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getFields().get("topic_facet")));
-				createEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
-				createEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
-				createEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
-				createEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getFields().get("isbn")));
-				createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getFields().get("issn")));
-				createEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("language"));
-				createEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
-				createEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getFields().get("topic")));
-				createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getFields().get("genre")));
-				createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getFields().get("geographic")));
-				createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getFields().get("era")));
-				createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
-				createEContentRecord.setString(23, recordInfo.getSourceUrl());
-				createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
-				createEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
-				createEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
-				createEContentRecord.setString(27, accessType);
-				createEContentRecord.setLong(28, new Date().getTime() / 1000);
-				createEContentRecord.setString(29, recordInfo.toString());
-				int rowsInserted = createEContentRecord.executeUpdate();
-				if (rowsInserted != 1){
-					logger.error("Could not insert row into the database");
-					results.incErrors();
-					results.addNote("Error inserting econtent record for id " + ilsId + " number of rows updated was not 1");
+				
+				//Check to see if the record already exists
+				String ilsId = recordInfo.getId();
+				if (ilsId.length() == 0){
+					//Get the ils id
+					ilsId = recordInfo.getId();
+				}
+				boolean importRecordIntoDatabase = true;
+				long eContentRecordId = -1;
+				if (ilsId.length() == 0){
+					logger.warn("ILS Id could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
 				}else{
-					ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
-					while (generatedKeys.next()){
-						eContentRecordId = generatedKeys.getLong(1);
-						recordAdded = true;
-						results.incAdded();
+					doesIlsIdExist.setString(1, ilsId);
+					ResultSet ilsIdExists = doesIlsIdExist.executeQuery();
+					if (ilsIdExists.next()){
+						//The record already exists, check if it needs to be updated?
+						importRecordIntoDatabase = false;
+						eContentRecordId = ilsIdExists.getLong("id");
+					}else{
+						//Add to database
+						importRecordIntoDatabase = true;
 					}
 				}
-			}else{
-				//Update the record
-				logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
-				updateEContentRecord.setString(1, recordInfo.getId());
-				updateEContentRecord.setString(2, "");
-				updateEContentRecord.setString(3, source);
-				updateEContentRecord.setString(4, recordInfo.getFirstFieldValueInSet("title_short"));
-				updateEContentRecord.setString(5, recordInfo.getFirstFieldValueInSet("title_sub"));
-				updateEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
-				updateEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getFields().get("author2")));
-				updateEContentRecord.setString(8, recordInfo.getDescription());
-				updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getFields().get("contents")));
-				updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getFields().get("topic_facet")));
-				updateEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
-				updateEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
-				updateEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
-				updateEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getFields().get("isbn")));
-				updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getFields().get("issn")));
-				updateEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("upc"));
-				updateEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
-				updateEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getFields().get("topic")));
-				updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getFields().get("genre")));
-				updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getFields().get("geographic")));
-				updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getFields().get("era")));
-				updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
-				updateEContentRecord.setString(23, recordInfo.getSourceUrl());
-				updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
-				updateEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
-				updateEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
-				updateEContentRecord.setString(27, accessType);
-				updateEContentRecord.setLong(28, new Date().getTime() / 1000);
-				updateEContentRecord.setString(29, recordInfo.toString());
-				updateEContentRecord.setLong(30, eContentRecordId);
-				int rowsInserted = updateEContentRecord.executeUpdate();
-				if (rowsInserted != 1){
-					logger.error("Could not insert row into the database");
-					results.incErrors();
-					results.addNote("Error updating econtent record for id " + ilsId + " number of rows updated was not 1");
+				
+				boolean recordAdded = false;
+				if (importRecordIntoDatabase){
+					//Add to database
+					logger.info("Adding ils id " + ilsId + " to the database.");
+					createEContentRecord.setString(1, recordInfo.getId());
+					createEContentRecord.setString(2, "");
+					createEContentRecord.setString(3, source);
+					createEContentRecord.setString(4, recordInfo.getFirstFieldValueInSet("title_short"));
+					createEContentRecord.setString(5, recordInfo.getFirstFieldValueInSet("title_sub"));
+					createEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
+					createEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getFields().get("author2")));
+					createEContentRecord.setString(8, recordInfo.getDescription());
+					createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getFields().get("contents")));
+					createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getFields().get("topic_facet")));
+					createEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
+					createEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
+					createEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
+					createEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getFields().get("isbn")));
+					createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getFields().get("issn")));
+					createEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("language"));
+					createEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
+					createEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getFields().get("topic")));
+					createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getFields().get("genre")));
+					createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getFields().get("geographic")));
+					createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getFields().get("era")));
+					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
+					String sourceUrl = "";
+					if (recordInfo.getSourceUrls().size() == 1){
+						sourceUrl = recordInfo.getSourceUrls().get(1).getUrl();
+					}
+					createEContentRecord.setString(23, sourceUrl);
+					createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
+					createEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
+					createEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
+					createEContentRecord.setString(27, accessType);
+					createEContentRecord.setLong(28, new Date().getTime() / 1000);
+					createEContentRecord.setString(29, recordInfo.toString());
+					int rowsInserted = createEContentRecord.executeUpdate();
+					if (rowsInserted != 1){
+						logger.error("Could not insert row into the database");
+						results.incErrors();
+						results.addNote("Error inserting econtent record for id " + ilsId + " number of rows updated was not 1");
+					}else{
+						ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
+						while (generatedKeys.next()){
+							eContentRecordId = generatedKeys.getLong(1);
+							recordAdded = true;
+							results.incAdded();
+						}
+					}
 				}else{
-					recordAdded = true;
-					results.incUpdated();
+					//Update the record
+					logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
+					updateEContentRecord.setString(1, recordInfo.getId());
+					updateEContentRecord.setString(2, "");
+					updateEContentRecord.setString(3, source);
+					updateEContentRecord.setString(4, recordInfo.getFirstFieldValueInSet("title_short"));
+					updateEContentRecord.setString(5, recordInfo.getFirstFieldValueInSet("title_sub"));
+					updateEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
+					updateEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getFields().get("author2")));
+					updateEContentRecord.setString(8, recordInfo.getDescription());
+					updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getFields().get("contents")));
+					updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getFields().get("topic_facet")));
+					updateEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
+					updateEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
+					updateEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
+					updateEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getFields().get("isbn")));
+					updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getFields().get("issn")));
+					updateEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("upc"));
+					updateEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
+					updateEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getFields().get("topic")));
+					updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getFields().get("genre")));
+					updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getFields().get("geographic")));
+					updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getFields().get("era")));
+					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
+					String sourceUrl = "";
+					if (recordInfo.getSourceUrls().size() == 1){
+						sourceUrl = recordInfo.getSourceUrls().get(1).getUrl();
+					}
+					updateEContentRecord.setString(23, sourceUrl);
+					updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
+					updateEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
+					updateEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
+					updateEContentRecord.setString(27, accessType);
+					updateEContentRecord.setLong(28, new Date().getTime() / 1000);
+					updateEContentRecord.setString(29, recordInfo.toString());
+					updateEContentRecord.setLong(30, eContentRecordId);
+					int rowsInserted = updateEContentRecord.executeUpdate();
+					if (rowsInserted != 1){
+						logger.error("Could not insert row into the database");
+						results.incErrors();
+						results.addNote("Error updating econtent record for id " + ilsId + " number of rows updated was not 1");
+					}else{
+						recordAdded = true;
+						results.incUpdated();
+					}
 				}
-			}
-			
-			logger.info("Finished initial insertion/update recordAdded = " + recordAdded);
-			
-			if (recordAdded){
-				if (source.equalsIgnoreCase("gutenberg")){
-					attachGutenbergItems(recordInfo, eContentRecordId, logger);
-				}else if (detectionSettings.getSource().equalsIgnoreCase("overdrive")){
-					setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
-				}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
-					//Automatically setup 856 links as external links
-					setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
+				
+				logger.info("Finished initial insertion/update recordAdded = " + recordAdded);
+				
+				if (recordAdded){
+					if (source.equalsIgnoreCase("gutenberg")){
+						attachGutenbergItems(recordInfo, eContentRecordId, logger);
+					}else if (detectionSettings.getSource().equalsIgnoreCase("overdrive")){
+						setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
+					}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
+						//Automatically setup 856 links as external links
+						setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
+					}
+					logger.info("Record processed successfully.");
+					reindexRecord(eContentRecordId, logger);
+				}else{
+					logger.info("Record NOT processed successfully.");
 				}
-				logger.info("Record processed successfully.");
-				reindexRecord(eContentRecordId, logger);
-			}else{
-				logger.info("Record NOT processed successfully.");
 			}
 			
 			/*updateRecordsProcessed.setLong(1, this.recordsProcessed + 1);
@@ -256,12 +292,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 
 	private void setupExternalLinks(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
-		String sourceUrl = recordInfo.getSourceUrl();
-		if (sourceUrl != null && sourceUrl.length() > 0){
-			addExternalLink(sourceUrl, -1, eContentRecordId, detectionSettings, logger);
+		ArrayList<LibrarySpecificLink> sourceUrls = recordInfo.getSourceUrls();
+		for (LibrarySpecificLink curLink : sourceUrls){
+			addExternalLink(curLink.getUrl(), curLink.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
 		}
+		
 		//Check the items within the record to see if there are any location specific links
-		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getLibrarySpecificLinks();
+		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getEContentLinks();
 		for(LibrarySpecificLink link : libraryLinks){
 			addExternalLink(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
 		}
@@ -304,13 +341,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 	
 	private void setupOverDriveItems(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger){
-		String sourceUrl = recordInfo.getSourceUrl();
-		if (sourceUrl != null && sourceUrl.length() > 0){
-			addOverdriveItem(sourceUrl, -1, eContentRecordId, detectionSettings, logger);
-		}
 		//Check the items within the record to see if there are any location specific links
-		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getLibrarySpecificLinks();
-		for(LibrarySpecificLink link : libraryLinks){
+		for(LibrarySpecificLink link : recordInfo.getSourceUrls()){
 			addOverdriveItem(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
 		}
 	}
@@ -355,48 +387,49 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 
 	private void attachGutenbergItems(MarcRecordDetails recordInfo, long eContentRecordId, Logger logger) {
-		//If no, load the source url 
-		String sourceUrl = recordInfo.getSourceUrl();
-		logger.info("Loading gutenberg items " + sourceUrl);
-		try {
-			//Get the source URL from the export of all items. 
-			for (GutenbergItemInfo curItem : gutenbergItemInfo){
-				if (curItem.getSourceUrl().equalsIgnoreCase(recordInfo.getSourceUrl())){
-					//Check to see if the item is already attached to the record.  
-					doesGutenbergItemExist.setLong(1, eContentRecordId);
-					doesGutenbergItemExist.setString(2, curItem.getFormat());
-					doesGutenbergItemExist.setString(3, curItem.getNotes());
-					ResultSet itemExistRs = doesGutenbergItemExist.executeQuery();
-					if (itemExistRs.next()){
-						//Check to see if the item needs to be updated (different folder or filename)
-						updateGutenbergItem.setString(1, curItem.getFilename());
-						updateGutenbergItem.setString(2, curItem.getFolder());
-						updateGutenbergItem.setString(3, curItem.getLink());
-						updateGutenbergItem.setLong(4, new Date().getTime());
-						updateGutenbergItem.setLong(5, eContentRecordId);
-						updateGutenbergItem.setString(6, curItem.getFormat());
-						updateGutenbergItem.setString(7, curItem.getNotes());
-						updateGutenbergItem.executeUpdate();
-					}else{
-						//Item does not exist, need to add it to the record.
-						addGutenbergItem.setLong(1, eContentRecordId);
-						addGutenbergItem.setString(2, curItem.getFormat());
-						addGutenbergItem.setString(3, curItem.getFilename());
-						addGutenbergItem.setString(4, curItem.getFolder());
-						addGutenbergItem.setString(5, curItem.getLink());
-						addGutenbergItem.setString(6, curItem.getNotes());
-						addGutenbergItem.setLong(7, new Date().getTime());
-						addGutenbergItem.setInt(8, -1);
-						addGutenbergItem.setLong(9, new Date().getTime());
-						addGutenbergItem.executeUpdate();
+		//If no, load the source url
+		for (LibrarySpecificLink curLink : recordInfo.getSourceUrls()){
+			String sourceUrl = curLink.getUrl();
+			logger.info("Loading gutenberg items " + sourceUrl);
+			try {
+				//Get the source URL from the export of all items. 
+				for (GutenbergItemInfo curItem : gutenbergItemInfo){
+					if (curItem.getSourceUrl().equalsIgnoreCase(sourceUrl)){
+						//Check to see if the item is already attached to the record.  
+						doesGutenbergItemExist.setLong(1, eContentRecordId);
+						doesGutenbergItemExist.setString(2, curItem.getFormat());
+						doesGutenbergItemExist.setString(3, curItem.getNotes());
+						ResultSet itemExistRs = doesGutenbergItemExist.executeQuery();
+						if (itemExistRs.next()){
+							//Check to see if the item needs to be updated (different folder or filename)
+							updateGutenbergItem.setString(1, curItem.getFilename());
+							updateGutenbergItem.setString(2, curItem.getFolder());
+							updateGutenbergItem.setString(3, curItem.getLink());
+							updateGutenbergItem.setLong(4, new Date().getTime());
+							updateGutenbergItem.setLong(5, eContentRecordId);
+							updateGutenbergItem.setString(6, curItem.getFormat());
+							updateGutenbergItem.setString(7, curItem.getNotes());
+							updateGutenbergItem.executeUpdate();
+						}else{
+							//Item does not exist, need to add it to the record.
+							addGutenbergItem.setLong(1, eContentRecordId);
+							addGutenbergItem.setString(2, curItem.getFormat());
+							addGutenbergItem.setString(3, curItem.getFilename());
+							addGutenbergItem.setString(4, curItem.getFolder());
+							addGutenbergItem.setString(5, curItem.getLink());
+							addGutenbergItem.setString(6, curItem.getNotes());
+							addGutenbergItem.setLong(7, new Date().getTime());
+							addGutenbergItem.setInt(8, -1);
+							addGutenbergItem.setLong(9, new Date().getTime());
+							addGutenbergItem.executeUpdate();
+						}
 					}
 				}
+				//Attach items based on the source URL
+			} catch (Exception e) {
+				logger.info("Unable to add items for " + eContentRecordId, e);
 			}
-			//Attach items based on the source URL
-		} catch (Exception e) {
-			logger.info("Unable to add items for " + eContentRecordId, e);
 		}
-		
 	}
 
 	private void reindexRecord(final long eContentRecordId, final Logger logger) {

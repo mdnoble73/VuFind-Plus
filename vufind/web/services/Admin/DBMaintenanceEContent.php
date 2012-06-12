@@ -330,6 +330,17 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 		
+		'overdriveItem_1' => array(
+			'title' => 'Overdrive Item Update 1',
+			'description' => 'Change Overdrive item to cache information about number of holds and waitlist',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE overdrive_item ADD COLUMN availableCopies int(11) DEFAULT 0;",
+				"ALTER TABLE overdrive_item ADD COLUMN totalCopies int(11) DEFAULT 0;",
+				"ALTER TABLE overdrive_item ADD COLUMN numHolds int(11) DEFAULT 0;",
+			),
+		),
+		
 		'eContentWishList'  => array(
 			'title' => 'eContent Wishlist',
 			'description' => 'Create table to allow econtent to be added to a user\'s wishlist if no items exits for the record.',
@@ -487,6 +498,35 @@ class DBMaintenanceEContent extends Admin {
 			'database' => 'dclecontent',
 			'sql' => array(
 				"DELETE econtent_item.* FROM `econtent_item` inner join econtent_record on econtent_record.id = econtent_item.recordId where source = 'Gale Group' and item_type = 'pdf' ",
+		),
+		),
+		
+		'econtent_file_packaging_log'  => array(
+			'title' => 'Create eContent Packaging Log',
+			'description' => 'Create eContent Packaging Log',
+			'dependencies' => array(),
+			'database' => 'dclecontent',
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS  econtent_file_packaging_log(".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+					"`filename` VARCHAR(255), ".
+					"`libraryFilename` VARCHAR(255), ".
+					"`publisher` VARCHAR(255), ".
+					"`distributorId` VARCHAR(128), ".
+					"`copies` INT, ".
+					"`dateFound` INT(11), ".
+					"`econtentRecordId` INT(11), ".
+					"`econtentItemId` INT(11), ".
+					"`dateSentToPackaging` INT(11), ".
+					"`packagingId` INT(11), ".
+					"`acsError` MEDIUMTEXT, ".
+					"`acsId` VARCHAR(128), ".
+					"`status` ENUM('detected', 'recordFound', 'copiedToLibrary', 'itemGenerated', 'sentToAcs', 'acsIdGenerated', 'acsError', 'processingComplete', 'skipped'), ".
+					"INDEX(distributorId), ".
+					"INDEX(publisher), ".
+					"INDEX(econtentItemId), ".
+					"INDEX(status) ".
+				") ENGINE = MYISAM COMMENT = 'A table to store information about diles that are being sent for packaging in the ACS server.' ",
 		),
 		),
 		

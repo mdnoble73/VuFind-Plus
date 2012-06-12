@@ -92,8 +92,8 @@ input[type="button"] {
   color: inherit;
   display: inline-block;
   font-weight: bold;
-  font-size: 1em;
-  line-height: 1.3em;
+  font-size: 1.2em;
+  line-height: 1.8em;
   font-family: inherit;
   outline: 0;
   overflow: visible;
@@ -187,7 +187,7 @@ input[type="week"] {
   margin: 0;
   padding: 2px 3px;
   text-align: left;
-  font-size: 1em;
+  font-size: 1.2em;
   font-family: inherit;
   height: 1.8em;
   vertical-align: top;
@@ -360,7 +360,7 @@ textarea::-moz-focus-inner {
   border-color: #848484 #c1c1c1 #e1e1e1;
   color: inherit;
   padding: 2px 3px 1px;
-  font-size: 1em;
+  font-size: 1.2em;
   font-family: inherit;
   vertical-align: top;
 }

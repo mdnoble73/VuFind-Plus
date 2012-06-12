@@ -8,9 +8,9 @@
 		<li><a href="index.html">Wish List <span class="ui-li-count">{$profile.numEContentWishList}</span></a></li>
 	{/if}
 	<li data-role="list-divider">OverDrive Titles</li>
-	<li><a href="index.html">My checked out items <span class="ui-li-count" id='checkedOutItemsOverDrivePlaceholder'>?</span></a></li>
-	<li><a href="index.html">My holds available <span class="ui-li-count" id='availableHoldsOverDrivePlaceholder'>?</span></a></li>
-	<li><a href="index.html">My holds unavailable <span class="ui-li-count" id='unavailableHoldsOverDrivePlaceholder'>?</span></a></li>
+	<li><a href="/MyResearch/OverdriveCheckedOut">My checked out items <span class="ui-li-count" id='checkedOutItemsOverDrivePlaceholder'>?</span></a></li>
+	<li><a href="/MyResearch/OverdriveHolds">My holds available <span class="ui-li-count" id='availableHoldsOverDrivePlaceholder'>?</span></a></li>
+	<li><a href="/MyResearch/OverdriveHolds">My holds unavailable <span class="ui-li-count" id='unavailableHoldsOverDrivePlaceholder'>?</span></a></li>
 	<li data-role="list-divider">Actions</li>
 	<li data-icon="delete"><a href="/MyResearch/Logout" data-ajax=false>Log Out</a></li>
 </ul>

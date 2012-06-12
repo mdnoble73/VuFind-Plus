@@ -57,7 +57,7 @@ class EditorialReview extends DB_DataObject {
 		array(
 			'property'=>'review', 
 			'type'=>'html', 
-			'allowableTags' => '<p><a><b><em><ul><ol><em><li><strong><i><br>',
+			'allowableTags' => '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe>',
 			'rows'=>6, 
 			'cols'=>80, 
 			'label'=>'Review', 

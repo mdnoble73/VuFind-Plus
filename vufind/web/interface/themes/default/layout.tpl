@@ -24,7 +24,6 @@
 	  	{css filename="search-results.css"}
 	  	{css filename="suggestions.css"}
 	  	{css filename="reports.css"}
-	    {css filename="dcl.css"}
     {/if}
 	
     {css media="print" filename="print.css"}
@@ -150,12 +149,12 @@
     {include file="library-footer.tpl"}
     </div> {* End page body *}
     
-    {* add analytics tracking code*}
+    {* add analytics tracking code - to add, uncomment this block and add your tracking code *}
 	{if $productionServer}{literal}
-	<script type="text/javascript">
+	<!-- <script type="text/javascript">
 	
 	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-4759493-8']);
+	  _gaq.push(['_setAccount', '{* Your tracking code goes here *}']);
 	  _gaq.push(['_trackPageview']);
 	  _gaq.push(['_trackPageLoadTime']);
 	
@@ -165,7 +164,7 @@
 	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 	  })();
 	
-	</script> 
+	</script>  -->
 	{/literal}{/if}  
   
   {* Strands tracking *}

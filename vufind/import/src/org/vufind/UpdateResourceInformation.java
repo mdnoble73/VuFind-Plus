@@ -96,6 +96,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			while (locationsRS.next()){
 				locations.put(locationsRS.getString("code").toLowerCase(),locationsRS.getLong("locationId") );
 			}
+			locationsRS.close();
 			
 			clearResourceCallnumbersStmt = vufindConn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
 			addCallnumberToResourceStmt = vufindConn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
@@ -118,6 +119,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				BasicResourceInfo resourceInfo = new BasicResourceInfo(ilsId, existingResourceRS.getLong("id"), existingResourceRS.getLong("marc_checksum"), existingResourceRS.getBoolean("deleted"));
 				existingResources.put(ilsId, resourceInfo);
 			}
+			existingResourceRS.close();
 			
 		} catch (SQLException ex) {
 			// handle any errors
@@ -260,8 +262,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 		} catch (SQLException ex) {
 			// handle any errors
-			logger.error("Error updating resource for record " + recordInfo.getId(), ex);
-			System.out.println(recordInfo.getTitle());
+			logger.error("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle(), ex);
+			System.out.println("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle() + " " + ex.toString());
 			results.incErrors();
 		}finally{
 			if (results.getRecordsProcessed() % 100 == 0){
@@ -273,17 +275,25 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 
 	@Override
 	public void finish() {
+		results.addNote("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
+		results.saveResults();
 		//Mark any resources that no longer exist as deleted.
-		logger.info("Deleting resources that no longer from resources table.");
+		logger.info("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
 		for (BasicResourceInfo resourceInfo : existingResources.values()){
 			try {
 				deleteResourceStmt.setLong(1, resourceInfo.getResourceId());
 				deleteResourceStmt.executeUpdate();
 			} catch (SQLException e) {
 				logger.error("Unable to delete "  + resourceInfo.getResourceId(), e);
+				break;
 			}
 			results.incDeleted();
+			if (results.getNumDeleted() % 100 == 0){
+				results.saveResults();
+			}
 		}
+		results.addNote("Finished deleting resources");
+		results.saveResults();
 	}
 
 	@Override

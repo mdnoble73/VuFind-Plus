@@ -164,6 +164,25 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
 				),
 			),
+			'library_8' => array(
+				'title' => 'Library 8',
+				'description' => 'Add eContenLinkRules to determine how to load library specific link urls',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `eContentLinkRules` VARCHAR(512) DEFAULT '';",
+				),
+			),
+			
+			'location_1' => array(
+				'title' => 'Location 1',
+				'description' => 'Add fields orginally defined for Marmot',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `location` ADD `defaultPType` INT(11) NOT NULL DEFAULT '-1';",
+					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
+				),
+			),
 		
       'user_display_name' => array(
         'title' => 'User display name',
@@ -524,7 +543,16 @@ class DBMaintenance extends Admin {
 					') ENGINE=InnoDB',
 				),
 			),
-
+			
+			'resource_subject_1' => array(
+				'title' => 'Resource subject update 1',
+				'description' => 'Increase the length of the subject column',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE subject CHANGE subject subject VARCHAR(512) NOT NULL'
+				),
+			),
+			
 			'readingHistory' => array(
         'title' => 'Reading History Creation',
         'description' => 'Update reading History to include an id table',
@@ -891,7 +919,26 @@ class DBMaintenance extends Admin {
 			'description' => 'Increase the length of the checksum field for the marc import.',
 			'dependencies' => array(),
 			'sql' => array(
-				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id when it was last imported.'",
+				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id as it currently exists in the active index.'",
+			),
+		),
+		'marcImport_2' => array(
+			'title' => 'Marc Import table Update 2',
+			'description' => 'Increase the length of the checksum field for the marc import.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import ADD COLUMN `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+				"ALTER TABLE marc_import ADD COLUMN `eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the active index.'",
+				"ALTER TABLE marc_import ADD COLUMN `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
+			),
+		),
+		'marcImport_3' => array(
+			'title' => 'Marc Import table Update 3',
+			'description' => 'Make backup fields optional.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE marc_import CHANGE `backup_checksum` `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+				"ALTER TABLE marc_import CHANGE `backup_eContent` `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
 			),
 		),
 		'add_indexes' => array(
@@ -1001,8 +1048,80 @@ class DBMaintenance extends Admin {
 				  PRIMARY KEY (`locationId`)
 				) ENGINE=MyISAM"
 		),
+
 		),
-		
+		'location_hours' => array(
+			'title' => 'Location Hours',
+			'description' => 'Create table to store hours for a location',
+			'dependencies' => array(),
+			'sql' => array(				
+				"CREATE TABLE IF NOT EXISTS location_hours (" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
+					"`locationId` INT NOT NULL COMMENT 'The location id', " .
+					"`day` INT NOT NULL COMMENT 'Day of the week 0 to 7 (Sun to Monday)', " .
+					"`closed` TINYINT NOT NULL DEFAULT '0' COMMENT 'Whether or not the library is closed on this day', ".
+					"`open` varchar(10) NOT NULL COMMENT 'Open hour (24hr format) HH:MM', " . 
+					"`close` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
+					"PRIMARY KEY ( `id` ), " .
+					"UNIQUE KEY (`locationId`, `day`) " .
+				") ENGINE=InnoDB",
+			),
+		),
+		'holiday' => array(
+			'title' => 'Holidays',
+			'description' => 'Create table to store holidays',
+			'dependencies' => array(),
+			'sql' => array(				
+				"CREATE TABLE IF NOT EXISTS holiday (" .
+					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of holiday', " .
+					"`libraryId` INT NOT NULL COMMENT 'The library system id', " .
+					"`date` date NOT NULL COMMENT 'Date of holiday', " .
+					"`name` varchar(100) NOT NULL COMMENT 'Name of holiday', " .
+					"PRIMARY KEY ( `id` ), " .
+					"UNIQUE KEY (`date`) " .
+				") ENGINE=InnoDB",
+			),
+		),
+		'book_store' => array(
+			'title' => 'Book store table',
+			'description' => 'Create a table to store information about book stores.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS book_store(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the book store', " .
+					"`storeName` VARCHAR(100) NOT NULL COMMENT 'The name of the book store', " .
+					"`link` VARCHAR(256) NOT NULL COMMENT 'The URL prefix for searching', " .
+					"`linkText` VARCHAR(100) NOT NULL COMMENT 'The link text', " .
+					"`image` VARCHAR(256) NOT NULL COMMENT 'The URL to the icon/image to display', " .
+					"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB"
+			),
+		),
+		'book_store_1' => array(
+			'title' => 'Book store table update 1',
+			'description' => 'Add a default column to determine if a book store should be used if a library does not override.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE book_store ADD COLUMN `showByDefault` TINYINT NOT NULL DEFAULT 1 COMMENT 'Whether or not the book store should be used by default for al library systems.'",
+				"ALTER TABLE book_store CHANGE `image` `image` VARCHAR(256) NULL COMMENT 'The URL to the icon/image to display'",
+			),
+		),
+		'nearby_book_store' => array(
+			'title' => 'Nearby book stores',
+			'description' => 'Create a table to store book stores near a location.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
+					"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
+					"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
+					"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
+					"KEY ( `libraryId`, `storeId` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB"
+			),
+		),
 		);
 	}
 	

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="VuFind+ Packaging App/PackagingApp.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/VuFind+ Packaging App/PackagingApp.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" mainClassHandleIdentifier="=VuFind+ Packaging App/src&lt;org.vufind{ACSPackager.java[ACSPackager" manifestLocation="/VuFind+ Packaging App/Packaging_App.manifest" manifestVersion="1.0" reuseManifest="false" saveManifest="true" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=VuFind+ Packaging App/src"/>
+    </selectedElements>
+</jardesc>

@@ -4,10 +4,10 @@ require_once 'SessionInterface.php';
 class MemcacheSession extends SessionInterface {
 
 	static private $connection;
-
-	public function init($lt) {
+	
+	public function init($lt, $rememberMeLifetime) {
 		global $configArray;
-
+	
 		// Set defaults if nothing set in config file.
 		$host = isset($configArray['Session']['memcache_host']) ?
 		$configArray['Session']['memcache_host'] : 'localhost';
@@ -23,7 +23,7 @@ class MemcacheSession extends SessionInterface {
 		}
 
 		// Call standard session initialization from this point.
-		parent::init($lt);
+		parent::init($lt, $rememberMeLifetime);
 	}
 
 	static public function read($sess_id)
@@ -33,7 +33,12 @@ class MemcacheSession extends SessionInterface {
 	 
 	static public function write($sess_id, $data)
 	{
-		return self::$connection->set("vufind_sessions/{$sess_id}", $data, 0, self::$lifetime);
+		if (isset($_SESSION['rememberMe']) && $_SESSION['rememberMe'] == true){
+			$sessionLifetime = self::$rememberMeLifetime; 
+		}else{
+			$sessionLifetime = self::$lifetime;
+		}
+		return self::$connection->set("vufind_sessions/{$sess_id}", $data, 0, $sessionLifetime);
 	}
 
 	static public function destroy($sess_id)

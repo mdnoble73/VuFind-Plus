@@ -188,9 +188,9 @@ class AJAX extends Action {
 		}
 
 		$interface->assign('commentList', $commentList['user']);
-		$userComments = $interface->fetch('EContentRecord/view-comments-list.tpl');
+		$userComments = $interface->fetch('Record/view-comments-list.tpl');
 		$interface->assign('staffCommentList', $commentList['staff']);
-		$staffComments = $interface->fetch('EContentRecord/view-staff-reviews-list.tpl');
+		$staffComments = $interface->fetch('Record/view-staff-reviews-list.tpl');
 
 		return json_encode(array(
 			'staffComments' => $staffComments,
@@ -356,6 +356,11 @@ class AJAX extends Action {
 		$overDriveDriver = new OverDriveDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
+		
+		//Var for the IDCLREADER TEMPLATE
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','{translate text="Loan Period"}');
+		
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
 	
@@ -367,8 +372,7 @@ class AJAX extends Action {
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
+				$overDriveId = $eContentRecord->getOverDriveId();
 			}
 		}else{
 			$overDriveId = $_REQUEST['overDriveId'];

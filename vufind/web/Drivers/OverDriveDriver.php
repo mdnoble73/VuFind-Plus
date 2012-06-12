@@ -229,7 +229,7 @@ class OverDriveDriver {
 			}
 		
 			//Extract information from the holds page
-			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?"{(.*?)}".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
+			preg_match_all('/<img.*?src="http:\/\/(.*?)".*?>.*?<b>(.*?)<\/b>.*?DisplayEnhancedTitleLink.*?".*?", "(.*?)".*?<b><small>(.*?)<\/small><\/b>.*?<div style="padding-top:6px">(.*?)<script.*?<noscript>\\s*\\((.*?)\\)<\/noscript>.*?<div class="dlBtn">.*?<a href="(.*?)">.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>.*?<div>(\\w{3} \\d{1,2}. \\d{4})<\/div>/si', $bookshelfPage, $bookshelfInfo, PREG_SET_ORDER);
 			
 			for ($matchi = 0; $matchi < count($bookshelfInfo); $matchi++) {
 				$bookshelfItem = array();
@@ -292,7 +292,7 @@ class OverDriveDriver {
 			}
 			
 			//Extract unavailable hold information from the holds page
-			preg_match_all('/<a href="ContentDetails\\.htm\\?ID={(.*?)}"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID={(.*?)}">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
+			preg_match_all('/<a href="ContentDetails\\.htm\\?ID=(.*?)"><img.*?src="(.*?)".*?<\/a>.*?<strong><a href="ContentDetails\\.htm\\?ID=(.*?)">(.*?)<\/a><\/strong>.*?<small><strong>(.*?)<\/strong><\/small>.*?<small>.*?<\/noscript>\\s*(.*?)<\/small>.*?<small>(.*?)<table.*?>(.*?)<\/table>/si', $holdsPage, $holdInfo, PREG_SET_ORDER);
 			
 			for ($matchi = 0; $matchi < count($holdInfo); $matchi++) {
 				$hold = array();
@@ -314,7 +314,7 @@ class OverDriveDriver {
 				}
 				
 				//Check to see if the hold is available or unavailable
-				if (preg_match('/RemoveFromWaitingList&id={(.*?)}&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
+				if (preg_match('/RemoveFromWaitingList&id={?(.*?)}?&fo.*?rmat=(.*?)&/si', $linkInformation, $formatInfo)) {
 					//Set the format
 					$hold['formatId'] = $formatInfo[2];
 					
@@ -332,7 +332,7 @@ class OverDriveDriver {
 						$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
 					}
 					//Extract the formats that can be checked out.
-					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={(.*?)}&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
+					preg_match_all('/<td width="100%">(.*?)<\/td>.*?<a href="BANGCart\\.dll\\?Action=Add&ID={?(.*?)}?&Format=(.*?)"/si', $linkInformation, $formatInfo, PREG_SET_ORDER);
 					$hold['formats'] = array();
 					for ($i = 0; $i < count($formatInfo); $i++) {
 						$format = array();
@@ -413,6 +413,7 @@ class OverDriveDriver {
 	 */
 	public function placeOverDriveHold($overDriveId, $format, $user){
 		global $memcache;
+		global $configArray;
 
 		$holdResult = array();
 		$holdResult['result'] = false;
@@ -441,16 +442,19 @@ class OverDriveDriver {
 			$setEmailPage = curl_exec($overDriveInfo['ch']);
 			$setEmailPageInfo = curl_getinfo($ch);
 			
-			$secureBaseUrl = preg_replace('/SignIn.htm.*/', '', $setEmailPageInfo['url']);
-			
+			$secureBaseUrl = preg_replace('~[^/.]+?.htm.*~', '', $setEmailPageInfo['url']);
 			
 			//Login (again)
 			curl_setopt($overDriveInfo['ch'], CURLOPT_POST, true);
+			$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
+			$barcode = $user->$barcodeProperty;
 			$postParams = array(
-				'LibraryCardILS' => 'douglascounty',
-				'LibraryCardNumber' => $user->cat_username,
-				'URL' => "WaitingListForm.htm?ID={$overDriveId}&Format=$format",
+				'LibraryCardNumber' => $barcode,
+				'URL' => 'MyAccount.htm',
 			);
+			if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
+				$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
+			}
 			foreach ($postParams as $key => $value) {
 				$post_items[] = $key . '=' . urlencode($value);
 			}
@@ -480,7 +484,13 @@ class OverDriveDriver {
 				curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll?Action=LibraryWaitingList');
 				$waitingListConfirm = curl_exec($overDriveInfo['ch']);
 				
-				if (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
+				if (preg_match('/did not complete all of the required fields/', $waitingListConfirm)){
+					$holdResult['result'] = false;
+					$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your account.';
+				}elseif (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
+					$holdResult['result'] = false;
+					$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
+				}elseif (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
 					$holdResult['result'] = true;
 					$holdResult['message'] = 'Your hold was placed successfully.';
 					
@@ -507,6 +517,9 @@ class OverDriveDriver {
 				}else{
 					$holdResult['result'] = false;
 					$holdResult['message'] = 'There was an error placing your hold.';
+					$logger = new Logger();
+					$logger->log("Placing hold on OverDrive item. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
+					$logger->log('URL: '.$secureBaseUrl . "BANGAuthenticate.dll?Action=LibraryWaitingList $post_string\r\n" . $waitingListConfirm ,PEAR_LOG_INFO);
 				}
 			}
 		}
@@ -557,6 +570,10 @@ class OverDriveDriver {
 	
 	public function removeOverDriveItemFromWishlist($overDriveId, $user){
 		global $memcache;
+		
+		$logger = new Logger();
+		
+		
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -567,9 +584,11 @@ class OverDriveDriver {
 		
 		//Navigate to hold cancellation page
 		$wishlistCancelUrl = $overDriveInfo['baseLoginUrl'] . "?Action=AuthCheck&ForceLoginFlag=0&URL=BANGCart.dll%3FAction%3DWishListRemove%26ID%3D{$overDriveId}";
+		
 		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $wishlistCancelUrl);
 		$cancellationResult = curl_exec($overDriveInfo['ch']);
-		
+		$logger->log("wishlistCancelUrlID--->". $overDriveId, PEAR_LOG_INFO);
+		$logger->log("wishlistCancelUrl--->". $cancellationResult, PEAR_LOG_INFO);
 		if (!preg_match("/$overDriveId/", $cancellationResult)){
 			$cancelHoldResult['result'] = true;
 			$cancelHoldResult['message'] = 'The title was successfully removed from your wishlist.';
@@ -582,7 +601,6 @@ class OverDriveDriver {
 		}
 		
 		curl_close($overDriveInfo['ch']);
-		
 		return $cancelHoldResult;
 	}
 	
@@ -625,10 +643,14 @@ class OverDriveDriver {
 		if (preg_match('/We\'re sorry, but there are currently no copies of the selected title available for check out./', $addCartConfirmation)){
 			$addToCartResult['result'] = false;
 			$addToCartResult['message'] = 'There are no copies available for checkout.  You can place a hold on the item instead.';
-		}elseif (preg_match('/Titles added to your (cart|Book Bag) will remain there for 30 minutes/', $addCartConfirmation)){
+		}elseif (preg_match('/Titles added to your (?:cart|Book Bag|Digital Cart) will remain there for (\d+) minutes/i', $addCartConfirmation, $confirmationMatches)){
 			$addToCartResult['result'] = true;
-			$addToCartResult['message'] = "The title was added to your cart successfully.  You have 30 minutes to check out the title before it is returned to the library's collection.";
+			$timePeriod = isset($confirmationMatches[1]) ? $confirmationMatches[1] : 30;
+			$addToCartResult['message'] = "The title was added to your cart successfully.  You have $confirmationMatches[1] minutes to check out the title before it is returned to the library's collection.";
 		}else{
+			$logger = new Logger();
+			$logger->log("Adding OverDrive Item to cart. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
+			$logger->log('URL: '.$addToCartUrl ."\r\n$addCartConfirmation",PEAR_LOG_INFO);
 			$addToCartResult['result'] = false;
 			$addToCartResult['message'] = 'There was an error adding the item to your cart.';
 		}
@@ -675,7 +697,8 @@ class OverDriveDriver {
 			$addCartConfirmation = curl_exec($overDriveInfo['ch']);
 			$addCartConfirmationInfo = curl_getinfo($ch);
 			
-			if (preg_match('/<td class="(?:pghead|colhead|collhead)">Wish List<\/td>./', $addCartConfirmation)){
+			if (preg_match('/<td class="(?:pghead|colhead|collhead)">Wish List<\/td>./', $addCartConfirmation)
+					|| preg_match('/<h1>Wish List<\/h1>/', $addCartConfirmation)){
 				$addToCartResult['result'] = true;
 				$addToCartResult['message'] = 'The title was added to your wishlist.';
 				//Check to see if wishlist information has been closed and if so, clear it.
@@ -686,7 +709,7 @@ class OverDriveDriver {
 				$addToCartResult['result'] = false;
 				$addToCartResult['message'] = 'There was an error adding the item to your wishlist.';
 				$logger = new Logger();
-				$logger->log("Error adding item to wishlist, page did not have wishlist\r\n$addCartConfirmation", PEAR_LOG_INFO);
+				$logger->log("Error adding item to wishlist ($addToWishlistUrl), page did not have wishlist\r\n$addCartConfirmation", PEAR_LOG_INFO);
 			}
 			
 			curl_close($overDriveInfo['ch']);
@@ -733,15 +756,19 @@ class OverDriveDriver {
 				'x' => 'y', 
 			);
 			if ($lendingPeriod == -1){
-				preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">.*?<option value="([^"]*)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
+				preg_match_all('/<select size="1" name="([^"]+)" class="lendingperiodcombo">.*?<option value="([^"]*)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
 				for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
 					$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriodInfo[$matchi][2];
 				}
 			}else{
-				preg_match_all('/<select size="1" name="(.*?)" class="lendingperiodcombo">/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
+				preg_match_all('/<select size="1" name="([^"]+)" class="lendingperiodcombo">/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
 				for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
 					$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriod;
 				}
+			}
+			//Get the submit url if any 
+			if (preg_match('/<input type="submit" value="(.*?)" label="(.*?)"><\/input>/i', $checkoutPage, $submitInfo)){
+				$postParams['submit'] = $submitInfo[1];
 			}
 			
 			foreach ($postParams as $key => $value) {
@@ -753,7 +780,7 @@ class OverDriveDriver {
 			$processCartConfirmation =  curl_exec($overDriveInfo['ch']);
 			$processCartConfirmationInfo =  curl_getinfo($overDriveInfo['ch']);
 			
-			if (preg_match('/now available for download/si', $processCartConfirmation) || preg_match('/<td class="collhead">Download<\/td>/si', $processCartConfirmation)){
+			if (preg_match('/now available for download/si', $processCartConfirmation) || preg_match('/<td class="collhead">Download<\/td>/si', $processCartConfirmation) || preg_match('/<h1>Digital Media - Download<\/h1>/si', $processCartConfirmation)){
 				$processCartResult['result'] = true;
 				$processCartResult['message'] = "Your titles were checked out successfully. You may now download the titles from your Account.";
 				//Remove all cached account information since th user can checkout from holds or wishlist page
@@ -766,7 +793,8 @@ class OverDriveDriver {
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = 'There was an error processing your cart.';
 				
-				$logger->log("Error processing your cart", PEAR_LOG_INFO);
+				$logger->log("Error processing your cart {$secureBaseUrl}BANGPurchase.dll?Action=LibraryCheckout $post_string", PEAR_LOG_INFO);
+				
 				$logger->log("$processCartConfirmation", PEAR_LOG_INFO);
 			}
 		}else{
@@ -873,10 +901,12 @@ class OverDriveDriver {
 		$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
 		$barcode = $user->$barcodeProperty;
 		$postParams = array(
-			'LibraryCardILS' => $configArray['OverDrive']['LibraryCardILS'],
 			'LibraryCardNumber' => $barcode,
 			'URL' => 'MyAccount.htm',
 		);
+		if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
+			$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
+		}
 		foreach ($postParams as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -887,8 +917,8 @@ class OverDriveDriver {
 		$myAccountMenuContent = curl_exec($ch);
 		$accountPageInfo = curl_getinfo($ch);
 		
-		$matchAccount = preg_match('/<td class="(?:pghead|collhead)">My (?:OverDrive\s|Digital\sMedia\s)?Account<\/td>/i', $myAccountMenuContent);
-		$matchCart = preg_match('/One or more titles from a previous session have been added to your (cart|Book Cart)/i', $myAccountMenuContent);  
+		$matchAccount = preg_match('/(?:<td class="(?:pghead|collhead)">|<h1>)(?:\sto\s)?My (?:OverDrive\s|Digital\sMedia\s|Digital\s)?Account(?:<\/td>|<\/h1>)/is', $myAccountMenuContent);
+		$matchCart = preg_match('/One or more titles from a previous session have been added to your (cart|Book Cart|Digital Cart)/i', $myAccountMenuContent);  
 		if (($matchAccount > 0) || ($matchCart > 0)){
 		
 			$overDriveInfo = array(
@@ -928,7 +958,7 @@ class OverDriveDriver {
 			$items = array();
 		}else{
 			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if ($items == false){
+			if (true || $items == false){
 				$items = array();
 				//Check to see if the file has been cached
 				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
@@ -942,12 +972,22 @@ class OverDriveDriver {
 				}
 				//echo($overdrivePage);
 				//Extract the Format Information section 
-				if (preg_match('/<h1>Format Information<\/h1>(.*?)<h1>/s', $overdrivePage, $extraction)){
+				
+				if (preg_match('/Available copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
+					$availableCopies = $extraction[1];
+				}
+				if (preg_match('/(\d+) patron\(s\) on waiting list/s', $overdrivePage, $extraction)){
+					$holdQueueLength = $extraction[1];
+				}
+				if (preg_match('/Library copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
+					$totalCopies = $extraction[1];
+				}
+				if (preg_match('/<h[13]>Format Information<\/h[13]>(.*?)<h[13]>/s', $overdrivePage, $extraction)){
 					$formatSection = $extraction[1];
 					//Strip out information we don't care about
 					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
 					//Extract the actual formats from the remaining text.
-					if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)">(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/s', $formatSection, $itemInfoAll)) {
+					if (preg_match_all('/(?:(?:<a name="checkout" class="skip">Format Information for Check Out options<\/a>)|(?:<td nowrap>))<b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)"(?:\\sclass=".*?")?>(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/si', $formatSection, $itemInfoAll)) {
 						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
 							$overdriveItem = new OverdriveItem();
 							$overdriveItem->recordId = $eContentRecord->id;
@@ -955,8 +995,13 @@ class OverDriveDriver {
 							$overdriveItem->formatId = $itemInfoAll[2][$matchi];
 							//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
 							$overdriveItem->size = $itemInfoAll[4][$matchi];
-							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0);
+							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to digital cart') == 0);
 							$overdriveItem->lastLoaded = time();
+							
+							$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
+							$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
+							$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
+							
 							$items[] = $overdriveItem;
 						}
 					}

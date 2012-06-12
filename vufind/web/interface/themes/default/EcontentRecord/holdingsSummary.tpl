@@ -25,7 +25,7 @@
 					{$holdingsSummary.onOrderCopies} {if $holdingsSummary.onOrderCopies == 1}is{else}are{/if} on order. 
 				{/if}
 			{/if}
-			{if $holdingsSummary.numHolds >= 0}
+			{if $holdingsSummary.holdQueueLength >= 0}
 				<br/>{$holdingsSummary.holdQueueLength} {if $holdingsSummary.holdQueueLength == 1}person is{else}people are{/if} on the wait list.
 			{/if}
 		{/if} 

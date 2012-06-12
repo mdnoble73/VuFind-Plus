@@ -78,12 +78,14 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
-		results.incRecordsProcessed();
-		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
-			logger.info("Skipping record because it hasn't changed");
-			results.incSkipped();
-		}
 		try {
+			results.incRecordsProcessed();
+			if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
+				//logger.info("Skipping record because it hasn't changed");
+				results.incSkipped();
+				return true;
+			}
+			
 			if (!recordInfo.isEContent()){
 				//Create the XML document for the record
 				String xmlDoc = createXmlDocForRecord(recordInfo);

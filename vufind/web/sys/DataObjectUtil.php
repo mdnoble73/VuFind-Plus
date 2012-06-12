@@ -37,6 +37,14 @@ class DataObjectUtil
 
 		//Define the structure of the object.
 		$interface->assign('structure', $objectStructure);
+		//Check to see if the request should be multipart/form-data
+		$contentType = null;
+		foreach ($objectStructure as $property){
+			if ($property['type'] == 'image' || $property['type'] == 'file'){
+				$contentType = 'multipart/form-data';
+			}
+		}
+		$interface->assign('contentType', $contentType);
 		return  $interface->fetch('DataObjectUtil/objectEditForm.tpl');
 	}
 
@@ -315,35 +323,40 @@ class DataObjectUtil
 				if ($property['sortable'] == true){
 					$weights = $_REQUEST[$propertyName . 'Weight'];
 				}
-				$idsToSave = $_REQUEST[$propertyName.'Id'];
-				$existingValues = $object->$propertyName;
-				$subObjectType = $property['subObjectType'];
-				$subStructure = $property['structure'];
-				foreach ($idsToSave as $id){
-					//Create the subObject
-					if ($id < 0){
-						$subObject = new $subObjectType();
-					}else{
-						$subObject = $existingValues[$id];
-					}
-					
-					$deleted = isset($deletions[$id]) ? $deletions[$id] : false;
-					if ($deleted == 'true'){
-						$subObject->deleteOnSave = true;
-					}else{
-						//Update properties of each associated object
-						foreach ($subStructure as $subProperty){
-							if (in_array($subProperty['type'], array('text', 'enum') )){
-								$subObject->$subProperty['property'] = $_REQUEST[$propertyName . '_' . $subProperty['property']][$id];
+				if (isset($_REQUEST[$propertyName.'Id'])){
+					$idsToSave = $_REQUEST[$propertyName.'Id'];
+					$existingValues = $object->$propertyName;
+					$subObjectType = $property['subObjectType'];
+					$subStructure = $property['structure'];
+					foreach ($idsToSave as $id){
+						//Create the subObject
+						if ($id < 0){
+							$subObject = new $subObjectType();
+						}else{
+							$subObject = $existingValues[$id];
+						}
+						
+						$deleted = isset($deletions[$id]) ? $deletions[$id] : false;
+						if ($deleted == 'true'){
+							$subObject->deleteOnSave = true;
+						}else{
+							//Update properties of each associated object
+							foreach ($subStructure as $subProperty){
+								$requestKey = $propertyName . '_' . $subProperty['property'];
+								if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
+									$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
+								}elseif (in_array($subProperty['type'], array('checkbox') )){
+									$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+								}
 							}
 						}
+						if ($property['sortable'] == true){
+							$subObject->weight = $weights[$id];
+						}
+						
+						//Update the values array
+						$values[$id] = $subObject;
 					}
-					if ($property['sortable'] == true){
-						$subObject->weight = $weights[$id];
-					}
-					
-					//Update the values array
-					$values[$id] = $subObject;
 				}
 				
 				$object->$propertyName = $values;

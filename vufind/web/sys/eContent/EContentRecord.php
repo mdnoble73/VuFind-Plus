@@ -37,6 +37,7 @@ class EContentRecord extends SolrDataObject {
 	public $ilsId;
 	public $source;
 	public $sourceUrl;
+	public $externalId; //An external id for use in systems like OverDrive, 3M, etc.
 	public $purchaseUrl;
 	public $addedBy; //Id of the user who added the record or -1 for imported
 	public $reviewedBy; //Id of a cataloging use who reviewed the item for consistency
@@ -51,7 +52,7 @@ class EContentRecord extends SolrDataObject {
 	public $literary_form_full;
 	public $marcRecord;
 	public $status; //'active', 'archived', or 'deleted'
-
+	
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentRecord',$k,$v); }
 
@@ -159,6 +160,16 @@ class EContentRecord extends SolrDataObject {
 		  'required'=> false,
 		  'storeDb' => true,
 		  'storeSolr' => true,
+		),
+		'status' => array(
+		  'property' => 'status',
+		  'type' => 'enum',
+		  'values' => array('active' => 'Active', 'archived' => 'Archived', 'deleted' => 'Deleted'),
+		  'label' => 'Status',
+		  'description' => 'The Current Status of the record.',
+		  'required'=> true,
+		  'storeDb' => true,
+		  'storeSolr' => false,
 		),
 		'accessType' => array(
       'property'=>'accessType', 
@@ -337,6 +348,12 @@ class EContentRecord extends SolrDataObject {
 		),
 		'format' => array(
 		  'property' => 'format',
+		  'type' => 'method',
+		  'storeDb' => false,
+		  'storeSolr' => true,
+		),
+		'econtent_device' => array(
+		  'property' => 'econtent_device',
 		  'type' => 'method',
 		  'storeDb' => false,
 		  'storeSolr' => true,
@@ -806,7 +823,9 @@ class EContentRecord extends SolrDataObject {
 		}
 	}
 	function bib_suppression(){
-		if ($this->status == 'active' || $this->status == 'archived'){
+		if (!isset($this->status)){
+			return "notsuppressed";
+		}elseif ($this->status == 'active' || $this->status == 'archived'){
 			return "notsuppressed";
 		}else{
 			return "suppressed";
@@ -907,14 +926,59 @@ class EContentRecord extends SolrDataObject {
 		$items = $this->getItems(false);
 		if (strcasecmp($this->source, 'OverDrive') == 0){
 			foreach ($items as $item){
-				$formats[$item->format] = translate($item->format);
+				$formatValue = translate($item->format);
+				$formats[$formatValue] = $formatValue;
 			}
 		}else{
 			foreach ($items as $item){
-				$formats[$item->item_type] = translate($item->item_type);
+				$formatValue = translate($item->item_type);
+				$formats[$formatValue] = $formatValue;
 			}
 		}
 		return $formats;
+	}
+	
+	/**
+	 * Get a list of devices that this title should work on based on format. 
+	 */
+	function econtent_device(){
+		$formats = $this->format();
+		$devices = array();
+		$deviceCompatibilityMap = $this->getDeviceCompatibilityMap();
+		foreach ($formats as $format){
+			if (array_key_exists($format, $deviceCompatibilityMap)){
+				$devices = array_merge($devices, $deviceCompatibilityMap[$format]);
+			}
+		}
+		return $devices;
+	}
+	
+	/**
+	 * Get a list of all formats that are in the catalog with a list of devices that support that format. 
+	 * Information is stored in device_compatibility_map.ini with a format per line and devices that support 
+	 * the format separated by line. 
+	 */
+	function getDeviceCompatibilityMap(){
+		global $memcache;
+		global $configArray;
+		global $servername;
+		$deviceMap = $memcache->get('device_compatibility_map');
+		if ($deviceMap == false){
+			$deviceMap = array();
+			if (file_exists("../../sites/$servername/conf/device_compatibility_map.ini")){
+				// Return the file path (note that all ini files are in the conf/ directory)
+				$deviceMapFile = "../../sites/$servername/conf/device_compatibility_map.ini";
+			}else{
+				$deviceMapFile = "../../sites/default/conf/device_compatibility_map.ini";
+			}
+			$formatInformation = parse_ini_file($deviceMapFile);
+			foreach ($formatInformation as $format => $devicesCsv){
+				$devices = explode(",", $devicesCsv);
+				$deviceMap[$format] = $devices;
+			}
+			$memcache->set('device_compatibility_map', $deviceMap, 0, $configArray['Caching']['device_compatibility_map']);
+		}
+		return $deviceMap;
 	}
 
 	function econtentText(){
@@ -967,6 +1031,9 @@ class EContentRecord extends SolrDataObject {
 									$cachedItem->available = $currentItem->available;
 									$currentItem->update();
 								}
+								$cachedItem->availableCopies = $currentItem->availableCopies;
+								$cachedItem->totalCopies = $currentItem->totalCopies;
+								$cachedItem->numHolds = $currentItem->numHolds;
 								$this->items[] = $cachedItem;
 								unset($currentItems[$currentKey]);
 								unset($cachedItems[$cacheKey]);
@@ -998,12 +1065,18 @@ class EContentRecord extends SolrDataObject {
 					if ($item->available){
 						$links[] = array(
 							'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$item->formatId}');",
-							'text' => 'Check Out'
+							'text' => 'Check Out',
+							'overDriveId' => $overDriveId,
+							'formatId' => $item->formatId,
+							'action' => 'CheckOut'
 							);
 					}else{
 						$links[] = array(
 							'onclick' => "return placeOverDriveHold('$overDriveId', '{$item->formatId}');",
-							'text' => 'Place Hold'
+							'text' => 'Place Hold',
+							'overDriveId' => $overDriveId,
+							'formatId' => $item->formatId,
+							'action' => 'Hold'
 							);
 					}
 					$item->links = $links;
@@ -1184,6 +1257,8 @@ class EContentRecord extends SolrDataObject {
 		if ($overdriveUrl == null || strlen($overdriveUrl) < 36){
 			return null;
 		}else{
+			$overdriveUrl = preg_replace('/[&|?]Format=\d+/i', '', $overdriveUrl);
+			$overdriveUrl = preg_replace('/[{}]/i', '', $overdriveUrl);
 			return substr($overdriveUrl, -36);
 		}
 	}

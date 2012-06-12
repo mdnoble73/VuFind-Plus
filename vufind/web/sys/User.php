@@ -41,6 +41,11 @@ class UserAccount
 	public static function updateSession($user)
 	{
 		$_SESSION['userinfo'] = serialize($user);
+		if (isset($_REQUEST['rememberMe'])){
+			$_SESSION['rememberMe'] = true;
+		}else{
+			$_SESSION['rememberMe'] = false;
+		}
 	}
 
 	// Try to log in the user using current query parameters; return User object

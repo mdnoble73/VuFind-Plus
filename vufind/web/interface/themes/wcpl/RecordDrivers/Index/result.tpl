@@ -54,7 +54,7 @@
 <div id ="searchStars{$summId|escape}" class="resultActions">
     {* Place hold link *}
     <div class='requestThisLink' id="placeHold{$summId|escape:"url"}" style="display:none">
-      <a href="{$url}/Record/{$summId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+      <a href="{$url}/Record/{$summId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
     </div>
     {* Access eBook*}
     <div class='eBookLink' id="eBookLink{$summId|escape:"url"}" style="display:none">

@@ -2383,3 +2383,15 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 #otherEditionsPopup{
 	min-width: 530px;
 }
+
+.suggestedIdentifier .worldCatTitle {
+	font-weight: bold;
+	font-size: 120%;
+}
+
+#eContentImportDetails dt{
+	font-weight: bold;
+}
+#eContentImportDetails dd{
+	margin-left: 10px;
+}

@@ -53,14 +53,14 @@ $timer->logTime("Initialize Memcache");
 //Deal with old path based urls by removing the leading path.
 $requestURI = $_SERVER['REQUEST_URI'];
 $requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
-if (preg_match("/(MyResearch)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+if (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['id'] = $matches[3];
 	$_GET['action'] = $matches[2];
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['id'] = $matches[3];
 	$_REQUEST['action'] = $matches[2];
-}elseif (preg_match("/(MyResearch)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+}elseif (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 	$_GET['module'] = $matches[1];
 	$_GET['action'] = $matches[2];
 	$_REQUEST['id'] = '';
@@ -87,7 +87,10 @@ if (preg_match("/(MyResearch)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matc
 	$_REQUEST['module'] = $matches[1];
 	$_REQUEST['action'] = $matches[2];
 }
-
+if (isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
+	$_GET['module'] = 'MyResearch';
+	$_REQUEST['module'] = 'MyResearch';
+}
 // Try to set the locale to UTF-8, but fail back to the exact string from the config
 // file if this doesn't work -- different systems may vary in their behavior here.
 setlocale(LC_MONETARY, array($configArray['Site']['locale'] . ".UTF-8",
@@ -143,6 +146,7 @@ $timer->logTime('Setup database connection');
 // Initiate Session State
 $session_type = $configArray['Session']['type'];
 $session_lifetime = $configArray['Session']['lifetime'];
+$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
 register_shutdown_function('session_write_close');
 if (isset($configArray['Site']['cookie_domain'])){
 	session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
@@ -150,7 +154,7 @@ if (isset($configArray['Site']['cookie_domain'])){
 require_once 'sys/' . $session_type . '.php';
 if (class_exists($session_type)) {
 	$session = new $session_type();
-	$session->init($session_lifetime);
+	$session->init($session_lifetime, $session_rememberMeLifetime);
 }
 $timer->logTime('Session initialization ' . $session_type);
 
@@ -208,6 +212,11 @@ if ($locationSingleton->getActiveLocation() != null){
 }else{
 	$interface->assign('librarySystemName', 'Marmot');
 }
+if ($locationSingleton->getIPLocation() != null){
+	$interface->assign('inLibrary', true);
+}else{
+	$interface->assign('inLibrary', false);
+}
 
 $productionServer = $configArray['Site']['isProduction'];
 $interface->assign('productionServer', $productionServer);
@@ -256,6 +265,7 @@ if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && 
 }else{
 	$interface->assign('showStrands', false);
 }
+$interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
 // Check system availability
@@ -412,25 +422,6 @@ if ($module == null && $action == null){
 	$module = $configArray['Site']['defaultModule'];
 	$action = 'Home';
 
-}elseif ($module == 'MyResearch' && ($action == null || $action == 'Home')){
-	//We are going to the "main page of My Research"
-	//Be smart about this depending on the user's information.
-	if ($user && !$interface->isMobile()){
-		// Connect to Database
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-		$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
-		$profile = $catalog->getMyProfile($patron);
-		if ($profile['numCheckedOut'] > 0){
-			$action ='CheckedOut';
-		}elseif ($profile['numHolds'] > 0){
-			$action ='Holds';
-		}else{
-			$action ='Favorites';
-		}
-	}else{
-		//Go to the login page which is the home page
-		$action = 'Home';
-	}
 }elseif ($action == null){
 	$action = 'Home';
 }

@@ -50,15 +50,9 @@ class Home extends Action {
 		
 		//Get AVG Rating eContent
 		$listAPI = new ListAPI();
-		//Highest rated
-		//$listTitlesHR = $listAPI->getListTitles('EContentStrands:home_3');//Check success key
 		//New Ebooks
 		$listTitlesNE = $listAPI->getListTitles('newebooks');//Check if the list is empty or not
-		//Free Ebooks
-		//$listTitlesFE = $listAPI->getListTitles('freeEbooks');//Check success key
-		
 		//Assign lists to Smarty var
-		//$interface->assign('HR',($listTitlesHR['success'] ? $listTitlesHR['titles'] : ""));
 		$interface->assign('NE',(!empty($listTitlesNE['titles']) ? $listTitlesNE['titles'] : ""));
 		
 		// Cache homepage

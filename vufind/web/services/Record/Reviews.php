@@ -404,7 +404,9 @@ class Reviews extends Record
 
 				$review[$i]['Source'] = $sourceInfo['title'];  //changes the xml to actual title
 				$review[$i]['ISBN'] = $isbn; //show more link
-				$review[$i]['username'] = $configArray['BookReviews']['id'];
+				if (isset($configArray['BookReviews']['id'])){
+					$review[$i]['username'] = $configArray['BookReviews']['id'];
+				}
 
 				$i++;
 			}

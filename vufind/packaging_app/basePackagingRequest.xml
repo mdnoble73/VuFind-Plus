@@ -1,0 +1,35 @@
+<package xmlns="http://ns.adobe.com/adept/">
+	<action>**OPT add|replace</action>
+	<resource>**OPT resource ID</resource>
+	<voucher>**OPT voucher ID for GBLink fulfillment</voucher>
+	<resourceItem>**OPT resource item index</resourceItem>
+	<fileName>**OPT file name to use for this packaged resource</fileName>
+	<location>**OPT upload location for packaged resource (file name or FTP
+		URL) </location>
+	<src>**OPT download location for the packaged resource (HTTP URL)</src>
+	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+		**OPT
+		<dc:title>**OPT Book Title</dc:title>
+		<dc:description>**OPT Book Description</dc:description>
+		<dc:language>**OPT Book Language</dc:language>
+		<dc:creator>**OPT Book Creator</dc:creator>
+		<dc:publisher>
+			**OPT Book Publisher
+		</dc:creator>
+			<dc:format>**OPT Book mimetype</dc:format>
+			<dc:identifier>**OPT Book identifier</dc:identifier>
+	</metadata>
+	<permissions>
+		**OPT
+		<display>**OPT rights elements</display>
+		<play>**OPT rights elements</play>
+		<excerpt>**OPT rights elements</excerpt>
+		<print>**OPT rights elements</print>
+	</permissions>
+	<dataPath>**OPT instead of data element, specifies local eBook location
+		on packaging server</dataPath>
+	<data> Base64-encoded book bytes </data>
+	<expiration> W3CDTF expiration</expiration>
+	<nonce> Base64-encoded nonce </nonce>
+	<hmac> Base64-encoded HMAC </hmac>
+</package>

@@ -1,7 +1,9 @@
 <script type="text/javascript" src="{$path}/services/EcontentRecord/ajax.js"></script>
+<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
+
 <div class="ui-grid-a" id='searchForm'>
 	<div class="ui-block-a">
-		<img src='{$bookCoverUrl}' heigth='90'/>
+		<img src='{$bookCoverUrl}'/>
 	</div>
 	<div class="ui-block-b">
 		<h2>{$eContentRecord->title}</h2>
@@ -11,6 +13,7 @@
 			{else}
 				{$eContentRecord->description|escape}
 			{/if}
+			<br/><br/>
 		</p>
 		<p>
 			<div id='holdingsSummaryPlaceholder'>

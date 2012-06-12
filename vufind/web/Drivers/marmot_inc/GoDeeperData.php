@@ -141,8 +141,8 @@ class GoDeeperData{
 				}
 			}catch (Exception $e) {
 				$logger = new Logger();
-				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERROR);
-				$logger->log("Request URL was $requestUrl", PEAR_LOG_ERROR);
+				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
+				$logger->log("Request URL was $requestUrl", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
 			$memcache->set("syndetics_summary_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_summary']);

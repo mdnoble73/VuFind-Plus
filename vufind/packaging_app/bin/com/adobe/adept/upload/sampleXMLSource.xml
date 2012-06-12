@@ -1,0 +1,28 @@
+<package xmlns="http://ns.adobe.com/adept">
+  <resource>urn:uuid:ca801ab6-c8c6-45c6-9736-b08959d43e33</resource>
+  <resourceItem>0</resourceItem>
+  <fileName>xmlConfigTest.pdf</fileName>
+ 	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+ 		<dc:title>XML Config Test</dc:title>
+ 		<dc:creator>Piotr Kula</dc:creator>
+ 		<dc:publisher>Adobe Systems Inc</dc:publisher>
+ 		<dc:format>application/pdf</dc:format>
+ 	</metadata>
+ 	<permissions>
+ 		<display>
+ 			<device/>
+ 			<until>2008-06-11T10:10:49-07:00</until>
+ 		</display>
+ 		<play>
+ 			<device/>
+ 			<until>2008-06-11T10:10:49-07:00</until>
+ 		</play>
+ 		<excerpt>
+ 			<until>2008-06-11T10:10:49-07:00</until>			
+ 		</excerpt>
+ 		<print>
+ 			<count initial="10" max="20" incrementInterval="3600"/>
+ 			<maxResolution>300</maxResolution>
+ 		</print>
+ 	</permissions>
+ </package>

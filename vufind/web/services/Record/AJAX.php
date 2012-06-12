@@ -89,7 +89,7 @@ class AJAX extends Action {
 							$showLink = true;
 							//Process some links differently so we can either hide them
 							//or show them in different areas of the catalog.
-							if (preg_match('/purchase/i', $linkText) ||
+							if (preg_match('/purchase|buy/i', $linkText) ||
 							preg_match('/barnesandnoble|tatteredcover|amazon\.com/i', $link)){
 								if (preg_match('/barnesandnoble/i', $link)){
 									$purchaseLinks[] = array(
@@ -123,6 +123,14 @@ class AJAX extends Action {
 											'image' => '/images/smashwords.png',
 											'field856Index' => $field856Index,
 									);
+								}else{
+									$purchaseLinks[] = array(
+	                    'link' => $link,
+	                    'linkText' => $linkText,
+	                  	'storeName' => 'Smashwords', 
+											'image' => '',
+											'field856Index' => $field856Index,
+									);
 								}
 								$showLink = false;
 							}
@@ -136,16 +144,20 @@ class AJAX extends Action {
 				}else{
 					$resource = new Resource();
 					$resource->record_id = $id;
-					$resource->fetch(true);
+					$resource->source = 'VuFind';
+					if ($resource->find(true)){
 					
-					$title = $resource->title;
-					require_once 'services/Record/Purchase.php';
-					$purchaseLinks = Purchase::getStoresForTitle($title);
-					
-					if (count($purchaseLinks) > 0){
-						$interface->assign('purchaseLinks', $purchaseLinks);
+						$title = $resource->title;
+						require_once 'services/Record/Purchase.php';
+						$purchaseLinks = Purchase::getStoresForTitle($title);
+						
+						if (count($purchaseLinks) > 0){
+							$interface->assign('purchaseLinks', $purchaseLinks);
+						}else{
+							$interface->assign('errors', array("Sorry we couldn't find any stores that offer this title."));
+						}
 					}else{
-						$interface->assign('errors', array("Sorry we couldn't find any stores that offer this title."));
+						$interface->assign('errors', array("Sorry we couldn't find a resource for that id."));
 					}
 				}
 			}else{

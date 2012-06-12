@@ -1,5 +1,13 @@
 @CHARSET "ISO-8859-1";
 
+
+ul#headerNewEbooksHome li.ui-li-divider
+{
+	font-size:large;
+	margin-left:3%;
+	width:15%;
+}
+
 span.warningDueDate
 {
 	color:#E58E29;
@@ -41,6 +49,8 @@ div.widthEContentTitle
 h3.titleNE
 {
 	text-align: center;
+	font-size: x-large;
+	font-weight: bolder;
 }
 
 div#imageGallery_NE div.jcarousel-container
@@ -114,13 +124,19 @@ div#idclReaderContent .ui-block-b h2
 
 div#idclReaderContent div#searchForm div.ui-block-a
 {
-	width:45%;
-	margin-right: 10%;
+	width:30%;
+	margin-right: 5%;
+}
+
+div#idclReaderContent div#searchForm div.ui-block-a img
+{
+	width:80%;
+	margin-top:25%
 }
 
 div#idclReaderContent div#searchForm div.ui-block-b
 {
-	width:45%;
+	width:65%;
 }
 
 

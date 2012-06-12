@@ -18,12 +18,22 @@
 						<input type="password" name="password" id="password" size="15"/>
 					</div>
 				</div>
+				{*
 				<div id ='loginPasswordRow2' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>
 					<div class='loginField'>
 						&nbsp;<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
 					</div>
 				</div>
+				*}
+				{if !$inLibrary}
+				<div id ='loginPasswordRow3' class='loginFormRow'>
+					<div class='loginLabel'>&nbsp;</div>
+					<div class='loginField'>
+						<input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+					</div>
+				</div>
+				{/if}
 				<div id='loginSubmitButtonRow' class='loginFormRow'>
 					<input id="loginButton" type="image" name="submit" value="Login" src='{$path}/interface/themes/default/images/login.png' alt='{translate text="Login to your account"}' />
 					{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
@@ -42,7 +52,7 @@
 	</div>
 	<div id='needACardWrapper'>
 		<div id='needCardLabel' class='loginFormRow'>
-			<a href="http://getacard.org">I need a Douglas County Libraries Card</a>
+			<a href="http://getacard.org">I need a Douglas County Library Card</a>
 		</div>
 		<div class='loginFormRow'>
 		<a href="http://getacard.org"><img src="{$path}/interface/themes/{$theme}/images/library_card.gif" alt="Get a Library Card" /></a>

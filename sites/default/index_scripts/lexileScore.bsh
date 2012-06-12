@@ -28,7 +28,7 @@ public String getLexileScore(Record record){
 						String lexileData = RegexMatcher.group(1);
 						
 						result = lexileData;
-						System.out.println("Lexile Score " + result);
+						//System.out.println("Lexile Score " + result);
 						return result;
 					} 
 				} catch (PatternSyntaxException ex) {

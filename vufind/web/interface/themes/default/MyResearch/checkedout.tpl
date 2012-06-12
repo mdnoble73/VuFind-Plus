@@ -35,7 +35,9 @@
       {if $userNoticeFile}
         {include file=$userNoticeFile}
       {/if}
-      
+      {if $libraryHoursMessage}
+				<div class='libraryHours'>{$libraryHoursMessage}</div>
+			{/if}
       {if $transList}
       	
 	      <form id="renewForm" action="{$path}/MyResearch/RenewMultiple">

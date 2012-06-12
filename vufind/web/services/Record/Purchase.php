@@ -53,16 +53,14 @@ class Purchase extends Action {
 		$title = str_replace("/", "", $titleTerm);
 
 		if ($field856Index == null){
-			switch ($store){
-				case "Tattered Cover":
-					$purchaseLinkUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title) . "?source=" . urlencode($libraryName) ;
-					break;
-				case "Barnes and Noble":
-					$purchaseLinkUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title) . "&source=" . urlencode($libraryName);
-					break;
-				case "Amazon":
-					$purchaseLinkUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title) . "&source=" . urlencode($libraryName);
-					break;
+			// Find the store in the database
+			require_once 'Drivers/marmot_inc/BookStore.php';
+			$storeDbObj = new BookStore();
+			$storeDbObj->storeName = $store;
+			$storeDbObj->find();
+			if ($storeDbObj->N > 0){
+				$storeDbObj->fetch();
+				$purchaseLinkUrl = self::getPurchaseLinkForTitle($storeDbObj->link, $title, $libraryName);
 			}
 		}else{
 			// Process MARC Data
@@ -113,44 +111,39 @@ class Purchase extends Action {
 	static function getStoresForTitle($title){
 		$title = str_replace("/", "", $title);
 		$purchaseLinks = array();
-			
-		$tatteredCoverUrl = "http://www.tatteredcover.com/search/apachesolr_search/" . urlencode($title);
-		$input = file_get_contents($tatteredCoverUrl);
-		$regexp = "/Your search yielded no results/i";
-		if(!preg_match($regexp, $input)) {
-			$purchaseLinks[] = array(
-				'link' => $tatteredCoverUrl,
-				'linkText' => 'Buy from Tattered Cover',
-				'image' => '/images/tattered_cover.png',
-				'storeName' => 'Tattered Cover', 
-			);
-		}
-			
-		$amazonUrl = "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($title);
-		$input = file_get_contents($amazonUrl);
-		$regexp = "/did not match any products/i";
-		if(!preg_match($regexp, $input)) {
-			$purchaseLinks[] = array(
-				'link' => $amazonUrl,
-				'linkText' => 'Buy from Amazon',
-				'image' => '/images/amazon.png',
-				'storeName' => 'Amazon', 
-			);
-		}
-			
-		$barnesAndNobleUrl = "http://www.barnesandnoble.com/s/?title=" . urlencode($title);
-		$input = file_get_contents($barnesAndNobleUrl);
-		$regexp = "/Please try another search/i";
-		if(!preg_match($regexp, $input)) {
-			$purchaseLinks[] = array(
-				'link' => $barnesAndNobleUrl,
-				'linkText' => 'Buy from Barnes &amp; Noble',
-				'image' => '/images/barnes_and_noble.png',
-				'storeName' => 'Barnes and Noble', 
-			);
-		}
 		
+		$stores = Library::getBookStores();
+		foreach ($stores as $store) {
+			$url = self::getPurchaseLinkForTitle($store->link, $title);
+			$input = file_get_contents($url);
+			$regexp = $store->resultRegEx;
+			if(!preg_match($regexp, $input)) {
+				global $configArray;
+				$uploadedImage = $configArray['Site']['local'] . '/files/original/' . $store->image;
+				$uploadedImageURL = $configArray['Site']['path'] . '/files/original/' . $store->image;
+				$purchaseLinks[] = array(
+					'link' => $url,
+					'linkText' => $store->linkText,
+					'image' => (file_exists($uploadedImage) ? $uploadedImageURL : $store->image),
+					'storeName' => $store->storeName,
+				);
+			}
+		}
 		return $purchaseLinks;
 	}
 
+	private static function getPurchaseLinkForTitle($baseURL, $title, $libraryName='') {
+		$url = $baseURL;
+		// substitute the library name place holder with the real library name
+		if (strpos($url, '{libraryName}') !== false) {
+			$url = str_replace('{libraryName}', urlencode($libraryName), $url);
+		}
+		// substitute title place holder with real title
+		if (strpos($url, '{title}') !== false) {
+			$url = str_replace('{title}', urlencode($title), $url);
+		} else {
+			$url .= urlencode($title);
+		}
+		return $url;
+	}
 }

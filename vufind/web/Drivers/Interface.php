@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
- 
- 
+
+
 /**
  * Catalog Specific Driver Class
  *
@@ -32,10 +32,9 @@
  */
 interface DriverInterface
 {
-    public function getStatus($id);
-    public function getStatuses($ids);
-    public function getHolding($id);
-    public function getPurchaseHistory($id);
+	public function getStatus($id);
+	public function getStatuses($ids);
+	public function getHolding($id);
+	public function getPurchaseHistory($id);
 }
-
 ?>

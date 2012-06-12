@@ -53,12 +53,20 @@ class ReadingHistory extends MyResearch
 				}
 
 				// Define sorting options
-				$sortOptions = array('title' => 'Title',
-				                     'author' => 'Author',
-				                     'checkedOut' => 'Checkout Date',
-				                     'returned' => 'Return Date',
-				                     'format' => 'Format',
-				);
+				if (strcasecmp($configArray['Catalog']['ils'], 'Millennium') == 0){
+					$sortOptions = array('title' => 'Title',
+					                     'author' => 'Author',
+					                     'checkedOut' => 'Checkout Date',
+					                     'format' => 'Format',
+					);
+				}else{
+					$sortOptions = array('title' => 'Title',
+					                     'author' => 'Author',
+					                     'checkedOut' => 'Checkout Date',
+					                     'returned' => 'Return Date',
+					                     'format' => 'Format',
+					);
+				}
 				$interface->assign('sortOptions', $sortOptions);
 				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
 				$interface->assign('defaultSortOption', $selectedSortOption);

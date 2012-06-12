@@ -39,7 +39,7 @@
     <div id="menu-header-links">
      <!--<span class="top-menu-item"><a href="{$url}">{translate text="New Search"}</a></span>-->
       <span class="top-menu-item"><a href="{$path}/Search/Advanced">{translate text="Advanced Search"}</a></span>
-      <span class="top-menu-item"><a href="{$url}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}<!--&nbsp;<img id='searchHelpIcon' src="{$url}/interface/themes/{$theme}/images/help.png" alt="{translate text='Search Tips'}" />--></a></span>
+      <span class="top-menu-item"><a href="{$url}/Help/Home?topic=faq" title="{translate text='Help'}" onclick="window.open('{$url}/Help/Home?topic=faq', 'Help', 'width=720, height=430'); return false;">{translate text='Help'}<!--&nbsp;<img id='searchHelpIcon' src="{$url}/interface/themes/{$theme}/images/help.png" alt="{translate text='Search Tips'}" />--></a></span>
       <span class="top-menu-item"><a href="{$path}/MyResearch/GetCard">{translate text='Get Library Card'}</a></span>
       <div class="searchTools-link">
         <form method="post" id="langForm" action="">
@@ -64,23 +64,24 @@
     
     <div class="searchcontent">
       
-      {if $pageTemplate != 'advanced.tpl'}
-        {if $module=="Summon"}
-          {include file="Summon/searchbox.tpl"}
-        {elseif $module=="WorldCat"}
-          {include file="WorldCat/searchbox.tpl"}
-        {else}
-          {include file="Search/searchbox.tpl"}
+        {if $pageTemplate != 'advanced.tpl'}
+          {if $module=="Summon"}
+            {include file="Summon/searchbox.tpl"}
+          {elseif $module=="WorldCat"}
+            {include file="WorldCat/searchbox.tpl"}
+          {else}
+            {include file="Search/searchbox.tpl"}
+          {/if}
         {/if}
-      {/if}
-      
+  
     </div><!-- end searchcontent-->
     
   
   
   </div><!-- end searchheader-->
 
-<!-- <a href="http://www.surveymonkey.com/s/brian_feedback2" target="_blank"><div id="survey">What do you think<br />of our new catalog?</div><img src="{$path}/interface/themes/wcpl/images/survey_arrow.png" id="surv_arrow" /></a> -->
+
+<!--<a href="http://www.surveymonkey.com/s/brian_feedback2" target="_blank"><div id="survey">What do you think<br />of our new catalog?</div><img src="{$path}/interface/themes/wcpl/images/survey_arrow.png" id="surv_arrow" /></a>-->
   
 </div><!-- end header-->
 

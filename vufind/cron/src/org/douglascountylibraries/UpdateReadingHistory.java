@@ -128,37 +128,25 @@ public class UpdateReadingHistory implements IProcessHandler {
 				try {
 					JSONObject patronData = new JSONObject(patronDataJson);
 					JSONObject result = patronData.getJSONObject("result");
-					if (result.getBoolean("success") && result.has("checkedOutItems") && result.get("checkedOutItems").getClass() == JSONObject.class) {
-						JSONObject checkedOutItems = result.getJSONObject("checkedOutItems");
-						@SuppressWarnings("unchecked")
-						Iterator<String> keys = (Iterator<String>) checkedOutItems.keys();
-						while (keys.hasNext()) {
-							String curKey = keys.next();
-							JSONObject checkedOutItem = checkedOutItems.getJSONObject(curKey);
-							// System.out.println(checkedOutItem.toString());
-							String bibId = checkedOutItem.getString("id");
-							String checkoutDateStr = checkedOutItem.getString("checkoutdate");
-							logger.debug(bibId + " : " + checkoutDateStr);
-
-							// Get the resource for this bibId
-							long resourceId = getResourceForBib(bibId, "VuFind");
-							if (resourceId == -1){
-								logger.error("Could not retrieve or create resource for bib Id " + bibId);
-								processLog.incErrors();
-								processLog.addNote("Could not retrieve or create resource for bib Id " + bibId);
-								continue;
-							}else{
-								// Update the reading history
-								try {
-									Date checkoutDate = checkoutDateFormat.parse(checkoutDateStr);
-									updateReadingHistory(userId, bibId, resourceId, checkoutDate);
-									processLog.incUpdated();
-								} catch (ParseException e) {
-									logger.error("Could not parse checkout date " + e.toString());
-									processLog.incErrors();
-									processLog.addNote("Could not parse checkout date " + e.toString());
-								}
+					if (result.getBoolean("success") && result.has("checkedOutItems")) {
+						if (result.get("checkedOutItems").getClass() == JSONObject.class){
+							JSONObject checkedOutItems = result.getJSONObject("checkedOutItems");
+							@SuppressWarnings("unchecked")
+							Iterator<String> keys = (Iterator<String>) checkedOutItems.keys();
+							while (keys.hasNext()) {
+								String curKey = keys.next();
+								JSONObject checkedOutItem = checkedOutItems.getJSONObject(curKey);
+								processCheckedOutTitle(checkedOutItem, userId);
+								
 							}
+						}else if (result.get("checkedOutItems").getClass() == JSONArray.class){
+							JSONArray checkedOutItems = result.getJSONArray("checkedOutItems");
+							for (int i = 0; i < checkedOutItems.length(); i++){
+								processCheckedOutTitle(checkedOutItems.getJSONObject(i), userId);
+							}
+						}else{
+							processLog.incErrors();
+							processLog.addNote("Unexpected JSON for patron checked out items received " + result.get("checkedOutItems").getClass());
 						}
 					} else {
 						logger.info("Call to getPatronCheckedOutItems returned a success code of false for " + cat_username);
@@ -179,6 +167,35 @@ public class UpdateReadingHistory implements IProcessHandler {
 		} catch (IOException e) {
 			logger.error("Unable to retrieve information from patron API for " + cat_username + ": " + e.toString());
 			processLog.incErrors();
+		}
+	}
+	
+	private boolean processCheckedOutTitle(JSONObject checkedOutItem, long userId) throws JSONException, SQLException, IOException{
+		// System.out.println(checkedOutItem.toString());
+		String bibId = checkedOutItem.getString("id");
+		String checkoutDateStr = checkedOutItem.getString("checkoutdate");
+		logger.debug(bibId + " : " + checkoutDateStr);
+
+		// Get the resource for this bibId
+		long resourceId = getResourceForBib(bibId, "VuFind");
+		if (resourceId == -1){
+			logger.error("Could not retrieve or create resource for bib Id " + bibId);
+			processLog.incErrors();
+			processLog.addNote("Could not retrieve or create resource for bib Id " + bibId);
+			return false;
+		}else{
+			// Update the reading history
+			try {
+				Date checkoutDate = checkoutDateFormat.parse(checkoutDateStr);
+				updateReadingHistory(userId, bibId, resourceId, checkoutDate);
+				processLog.incUpdated();
+				return true;
+			} catch (ParseException e) {
+				logger.error("Could not parse checkout date " + e.toString());
+				processLog.incErrors();
+				processLog.addNote("Could not parse checkout date " + e.toString());
+				return false;
+			}
 		}
 	}
 
