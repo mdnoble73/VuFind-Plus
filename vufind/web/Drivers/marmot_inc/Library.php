@@ -66,6 +66,7 @@ class Library extends DB_DataObject
 	public $holdDisclaimer;
 	public $enableAlphaBrowse;
 	public $enableMaterialsRequest;
+	public $eContentLinkRules;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }

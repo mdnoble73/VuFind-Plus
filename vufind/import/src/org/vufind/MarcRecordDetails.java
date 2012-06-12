@@ -178,6 +178,7 @@ public class MarcRecordDetails {
 
 	public void loadUrls() {
 		if (urlsLoaded) return;
+		logger.info("Loading urls from 856 field");
 		@SuppressWarnings("unchecked")
 		List<VariableField> eightFiftySixFields = record.getVariableFields("856");
 		for (VariableField eightFiftySixField : eightFiftySixFields) {
@@ -196,11 +197,9 @@ public class MarcRecordDetails {
 			}
 
 			if (text != null && url != null) {
-				boolean linkIsDownload = false;
 				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						// System.out.println("Found source url");
-						linkIsDownload = true;
 						sourceUrls.add(new LibrarySpecificLink(url, marcProcessor.getLibraryIdForLink(url)));
 					}
 				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
@@ -209,7 +208,6 @@ public class MarcRecordDetails {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
 				} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
-					linkIsDownload = true;
 					sourceUrls.add(new LibrarySpecificLink(url, marcProcessor.getLibraryIdForLink(url)));
 				} else {
 					logger.info("Unknown URL " + url + " " + text);
@@ -218,6 +216,7 @@ public class MarcRecordDetails {
 		}
 		
 		//Get urls from item records
+		logger.info("Loading records from item records");
 		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
@@ -236,7 +235,10 @@ public class MarcRecordDetails {
 			}
 		}
 		
+		logger.info("Num source urls found: " + sourceUrls.size());
+		logger.info("Scrape for links = " + marcProcessor.isScrapeItemsForLinks());
 		if (sourceUrls.size() == 0 && marcProcessor.isScrapeItemsForLinks()) {
+			logger.info("Loading records from millennium");
 			// Check the record in the ILS
 			getUrlsForItemsFromMillennium();
 		}
@@ -245,11 +247,32 @@ public class MarcRecordDetails {
 	}
 
 	private void getUrlsForItemsFromMillennium() {
-		String catalogUrl = "http://www.millennium.marmot.org";
+		String catalogUrl = "https://www.millennium.marmot.org";
 		String scope = "93";
 		String shortId = this.getId();
 		shortId = shortId.substring(1, shortId.length() - 1);
-		String itemUrl = catalogUrl + "/search~S" + scope + "?/Ypig&searchscope=" + scope + "&SORT=D/Ypig&searchscope=" + scope + "&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~" + shortId + "&FF=Ypig&2,2,";
+		String itemUrl = catalogUrl + "/search~S" + scope + "/." + shortId + "/." + shortId + "/1,1,1,B/holdings~" + shortId;
+		logger.debug("itemUrl = " + itemUrl);
+		URLPostResponse response = Util.getURL(itemUrl, logger);
+		if (response.isSuccess()){
+			//Extract the items from the page
+			try {
+				Pattern Regex = Pattern.compile("<td align=\"center\" colspan=\"3\">\\s*<a href=\"(.*?)\">(.*?)\\s*</td>", Pattern.CANON_EQ);
+				Matcher RegexMatcher = Regex.matcher(response.getMessage());
+				while (RegexMatcher.find()) {
+					String url = RegexMatcher.group(1);
+					String linkText = RegexMatcher.group(2);
+					long libraryId = marcProcessor.getLibraryIdForLink(url);
+					logger.info("Adding local url " + url + " library system: " + libraryId + " linkText: " + linkText);
+					sourceUrls.add(new LibrarySpecificLink(url, libraryId));
+				} 
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
+				logger.error("Could not extract items from millennium, regex was invalid " + ex.toString());
+			}
+		}else{
+			logger.error("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
+		}
 	}
 
 	public long getChecksum() {
@@ -2655,6 +2678,7 @@ public class MarcRecordDetails {
 					isEContent = true;
 				}
 			}
+			logger.debug("This record is eContent: " + isEContent);
 			
 			return isEContent;
 		} else {

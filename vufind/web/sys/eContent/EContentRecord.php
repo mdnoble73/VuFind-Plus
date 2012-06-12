@@ -138,7 +138,13 @@ class EContentRecord extends SolrDataObject {
     	'storeDb' => false, 
     	'storeSolr' => true, 
 		),
-
+		'institution' => array(
+    	'property'=>'institution', 
+    	'type'=>'method', 
+    	'methodName'=>'institution', 
+    	'storeDb' => false, 
+    	'storeSolr' => true, 
+		),
 		'title' => array(
 		  'property' => 'title',
 		  'type' => 'text',
@@ -711,9 +717,32 @@ class EContentRecord extends SolrDataObject {
 
 		return $structure;
 	}
-	
 	static function getValidAccessTypes(){
 		return array('free' => 'No Usage Restrictions', 'acs' => 'Adobe Content Server', 'singleUse' => 'Single use per copy');
+	}
+	function institution(){
+		$institutions = array();
+		$items = $this->getItems(false);
+		if (strcasecmp($this->source, 'OverDrive') == 0){
+			//For now, return the global setting
+			$institutions[] = "Digital Collection";
+		}else{
+			foreach ($items as $item){
+				$libraryId = $item->libraryId;
+				if ($libraryId == -1){
+					$institutions[] = "Digital Collection";
+				}else{
+					$library = new Library();
+					$library->libraryId = $item->libraryId;
+					if ($library->find(true)){
+						$institutions[] = $library->facetLabel;
+					}else{
+						$institutions[] = "Unknown";
+					}
+				}
+			}
+		}
+		return $institutions;
 	}
 	function title_sort(){
 		$tmpTitle = $this->title;

@@ -187,7 +187,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
 					String sourceUrl = "";
 					if (recordInfo.getSourceUrls().size() == 1){
-						sourceUrl = recordInfo.getSourceUrls().get(1).getUrl();
+						sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
 					}
 					createEContentRecord.setString(23, sourceUrl);
 					createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
@@ -298,7 +298,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		
 		//Check the items within the record to see if there are any location specific links
-		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getEContentLinks();
+		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getSourceUrls();
 		for(LibrarySpecificLink link : libraryLinks){
 			addExternalLink(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
 		}

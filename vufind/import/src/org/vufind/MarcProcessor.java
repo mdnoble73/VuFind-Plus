@@ -154,7 +154,7 @@ public class MarcProcessor {
 		urlSubfield = configIni.get("Reindex", "itemUrlSubfield");
 		locationSubfield = configIni.get("Reindex", "locationSubfield");
 		sharedEContentLocation = configIni.get("Reindex", "sharedEContentLocation");
-		String scrapeItemsForLinksStr = configIni.get("Reindex", "sharedEContentLocation");
+		String scrapeItemsForLinksStr = configIni.get("Reindex", "scrapeItemsForLinks");
 		if (scrapeItemsForLinksStr != null) {
 			scrapeItemsForLinks = Boolean.parseBoolean(scrapeItemsForLinksStr);
 		}
@@ -247,6 +247,7 @@ public class MarcProcessor {
 				librarySystemFacets.put(librarySystemFacetRS.getString("facetLabel"), librarySystemFacetRS.getLong("libraryId"));
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
 				if (eContentLinkRulesStr != null && eContentLinkRulesStr.length() > 0) {
+					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
 					eContentLinkRules.put(eContentLinkRulesStr, librarySystemFacetRS.getLong("libraryId"));
 				}
 			}
@@ -698,7 +699,7 @@ public class MarcProcessor {
 	public Long getLibraryIdForLink(String link){
 		String lowerLink = link.toLowerCase();
 		for (String curRule : eContentLinkRules.keySet()){
-			if (lowerLink.matches(curRule.toLowerCase())){
+			if (lowerLink.matches(curRule)){
 				return eContentLinkRules.get(curRule);
 			}
 		}

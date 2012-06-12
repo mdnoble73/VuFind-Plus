@@ -57,13 +57,18 @@ class AJAX extends Action {
 		
 		$holdings = $driver->getHolding($id);
 		$showEContentNotes = false;
+		$showSize = false;
 		foreach ($holdings as $holding){
 			if (strlen($holding->notes) > 0){
 				$showEContentNotes = true;
-			} 
+			}
+			if ($holding->getSize() != 'Unknown'){
+				$showSize = true;
+			}
 		}
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
+		$interface->assign('showSize', $showSize);
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
 			$interface->assign('showOtherEditionsPopup', false);
 		}

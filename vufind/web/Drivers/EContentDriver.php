@@ -135,6 +135,8 @@ class EContentDriver implements DriverInterface{
 				$links = array();
 				if ($checkedOut){
 					$links = $this->_getCheckedOutEContentLinks($eContentRecord, $item, $eContentCheckout);
+				}else if ($eContentRecord->accessType == 'free' && $item->isExternalItem()){
+					$links = $this->_getFreeExternalLinks($eContentRecord, $item);
 				}else if ($onHold){
 					$links = $this->getOnHoldEContentLinks($eContentHold);
 				}
@@ -269,7 +271,21 @@ class EContentDriver implements DriverInterface{
 		
 		//Determine which buttons to show
 		$statusSummary['source'] = $eContentRecord->source;
+		$isFreeExternalLink = false;
+		if ($drmType == 'free'){
+			$isFreeExternalLink = true;
+			foreach ($holdings as $holding){
+				if (!$holding->isExternalItem()){
+					$isFreeExternalLink = false;
+				}
+			}
+		}
 		if ($overdriveTitle){
+			$statusSummary['showPlaceHold'] = false;
+			$statusSummary['showCheckout'] = false;
+			$statusSummary['showAddToWishlist'] = false;
+			$statusSummary['showAccessOnline'] = true;
+		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;
 			$statusSummary['showCheckout'] = false;
 			$statusSummary['showAddToWishlist'] = false;
@@ -410,6 +426,28 @@ class EContentDriver implements DriverInterface{
 		return $return;
 	}
 
+	private function _getFreeExternalLinks($eContentRecord, $eContentItem){
+		global $configArray;
+		global $user;
+		$links = array();
+		$addDefaultTypeLinks = false;
+		if ($eContentItem != null){
+			//Single usage or free
+			//default links to read the title or download
+			$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $eContentItem));
+		}else{
+			$eContentItems = $eContentRecord->getItems();
+			foreach ($eContentItems as $item){
+				//Single usage or free
+				//default links to read the title or download
+				$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $item));
+				$links[ArrayUtils::getLastKey($links)]['item_type'] = $item->item_type;
+			}
+		}
+		
+		return $links;
+	}
+	
 	private function _getCheckedOutEContentLinks($eContentRecord, $eContentItem, $eContentCheckout){
 		global $configArray;
 		global $user;
