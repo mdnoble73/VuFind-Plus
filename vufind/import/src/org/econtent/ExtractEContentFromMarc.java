@@ -238,7 +238,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
 					String sourceUrl = "";
 					if (recordInfo.getSourceUrls().size() == 1){
-						sourceUrl = recordInfo.getSourceUrls().get(1).getUrl();
+						sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
 					}
 					updateEContentRecord.setString(23, sourceUrl);
 					updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
