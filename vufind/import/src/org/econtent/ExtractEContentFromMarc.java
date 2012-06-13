@@ -43,11 +43,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private PreparedStatement doesIlsIdExist;
 	private PreparedStatement createEContentRecord;
 	private PreparedStatement updateEContentRecord;
+	private PreparedStatement deleteEContentItem;
 	private PreparedStatement doesGutenbergItemExist;
 	private PreparedStatement addGutenbergItem;
 	private PreparedStatement updateGutenbergItem;
 	
-	private PreparedStatement doesSourceUrlExist;
+	private PreparedStatement existingEContentRecordLinks;
 	private PreparedStatement addSourceUrl;
 	private PreparedStatement updateSourceUrl;
 	
@@ -83,12 +84,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			doesIlsIdExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
+			deleteEContentItem = econtentConn.prepareStatement("DELETE FROM econtent_item where id = ?");
 			
 			doesGutenbergItemExist = econtentConn.prepareStatement("SELECT id from econtent_item WHERE recordId = ? AND item_type = ? and notes = ?");
 			addGutenbergItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, link, notes, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			updateGutenbergItem = econtentConn.prepareStatement("UPDATE econtent_item SET filename = ?, folder = ?, link = ?, date_updated =? WHERE recordId = ? AND item_type = ? AND notes = ?");
 			
-			doesSourceUrlExist = econtentConn.prepareStatement("SELECT id, link from econtent_item WHERE recordId = ? AND item_type = ? AND libraryId = ?");
+			existingEContentRecordLinks = econtentConn.prepareStatement("SELECT id, link, libraryId from econtent_item WHERE recordId = ?");
 			addSourceUrl = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			updateSourceUrl = econtentConn.prepareStatement("UPDATE econtent_item SET link = ?, date_updated =? WHERE id = ?");
 			
@@ -124,7 +126,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 			
 			for (String source : detectionSettingsBySource.keySet()){
-				logger.info("Record " + recordInfo.getId() + " is eContent, source is " + source);
+				//logger.info("Record " + recordInfo.getId() + " is eContent, source is " + source);
 				DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
 				//Generally should only have one source, but in theory there could be multiple sources for a single record
 				String accessType = detectionSettings.getAccessType();
@@ -162,7 +164,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				boolean recordAdded = false;
 				if (importRecordIntoDatabase){
 					//Add to database
-					logger.info("Adding ils id " + ilsId + " to the database.");
+					//logger.info("Adding ils id " + ilsId + " to the database.");
 					createEContentRecord.setString(1, recordInfo.getId());
 					createEContentRecord.setString(2, "");
 					createEContentRecord.setString(3, source);
@@ -211,7 +213,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					}
 				}else{
 					//Update the record
-					logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
+					//logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
 					updateEContentRecord.setString(1, recordInfo.getId());
 					updateEContentRecord.setString(2, "");
 					updateEContentRecord.setString(3, source);
@@ -292,28 +294,56 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 
 	private void setupExternalLinks(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
+		//Get existing links from the record
+		ArrayList<LinkInfo> allLinks = new ArrayList<LinkInfo>();
+		try {
+			existingEContentRecordLinks.setLong(1, eContentRecordId);
+			ResultSet allExistingUrls = existingEContentRecordLinks.executeQuery();
+			if (allExistingUrls.next()){
+				LinkInfo curLinkInfo = new LinkInfo();
+				curLinkInfo.setItemId(allExistingUrls.getLong("id"));
+				curLinkInfo.setLink(allExistingUrls.getString("link"));
+				curLinkInfo.setLibraryId(allExistingUrls.getLong("libraryId"));
+				allLinks.add(curLinkInfo);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//Add the links that are currently available for the record
 		ArrayList<LibrarySpecificLink> sourceUrls = recordInfo.getSourceUrls();
 		for (LibrarySpecificLink curLink : sourceUrls){
-			addExternalLink(curLink.getUrl(), curLink.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
+			//Look for an existing link
+			LinkInfo linkForSourceUrl = null;
+			for (LinkInfo tmpLinkInfo : allLinks){
+				if (tmpLinkInfo.getLibraryId() == curLink.getLibrarySystemId()){
+					linkForSourceUrl = tmpLinkInfo;
+				}
+			}
+			addExternalLink(linkForSourceUrl, curLink.getUrl(), curLink.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
+			if (linkForSourceUrl != null){
+				allLinks.remove(linkForSourceUrl);
+			}
 		}
 		
-		//Check the items within the record to see if there are any location specific links
-		ArrayList<LibrarySpecificLink> libraryLinks = recordInfo.getSourceUrls();
-		for(LibrarySpecificLink link : libraryLinks){
-			addExternalLink(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
+		//Remove any links that no longer exist
+		for (LinkInfo tmpLinkInfo : allLinks){
+			try {
+				deleteEContentItem.setLong(1, tmpLinkInfo.getItemId());
+				deleteEContentItem.executeUpdate();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
-	private void addExternalLink(String sourceUrl, long libraryId, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
+	private void addExternalLink(LinkInfo existingLinkInfo, String sourceUrl, long libraryId, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
 		//Check to see if the link already exists
 		try {
-			doesSourceUrlExist.setLong(1, eContentRecordId);
-			doesSourceUrlExist.setString(2, detectionSettings.getItem_type());
-			doesSourceUrlExist.setLong(3, libraryId);
-			ResultSet existingUrl = doesSourceUrlExist.executeQuery();
-			if (existingUrl.next()){
-				String existingUrlValue = existingUrl.getString("link");
-				Long existingItemId = existingUrl.getLong("id");
+			if (existingLinkInfo != null){
+				String existingUrlValue = existingLinkInfo.getLink();
+				Long existingItemId = existingLinkInfo.getItemId();
 				if (!existingUrlValue.equals(sourceUrl)){
 					//Url does not match, add it to the record. 
 					updateSourceUrl.setString(1, sourceUrl);

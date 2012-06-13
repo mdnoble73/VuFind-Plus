@@ -178,7 +178,7 @@ public class MarcRecordDetails {
 
 	public void loadUrls() {
 		if (urlsLoaded) return;
-		logger.info("Loading urls from 856 field");
+		//logger.info("Loading urls from 856 field");
 		@SuppressWarnings("unchecked")
 		List<VariableField> eightFiftySixFields = record.getVariableFields("856");
 		for (VariableField eightFiftySixField : eightFiftySixFields) {
@@ -200,7 +200,12 @@ public class MarcRecordDetails {
 				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						// System.out.println("Found source url");
-						sourceUrls.add(new LibrarySpecificLink(url, marcProcessor.getLibraryIdForLink(url)));
+						long libraryId = marcProcessor.getLibraryIdForLink(url);
+						if (libraryId == -1){
+							//Also check link text for the record
+							libraryId = marcProcessor.getLibraryIdForLink(text);
+						}
+						sourceUrls.add(new LibrarySpecificLink(url, libraryId));
 					}
 				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
 					// File is an enrichment url
@@ -208,7 +213,12 @@ public class MarcRecordDetails {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
 				} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
-					sourceUrls.add(new LibrarySpecificLink(url, marcProcessor.getLibraryIdForLink(url)));
+					long libraryId = marcProcessor.getLibraryIdForLink(url);
+					if (libraryId == -1){
+						//Also check link text for the record
+						libraryId = marcProcessor.getLibraryIdForLink(text);
+					}
+					sourceUrls.add(new LibrarySpecificLink(url, libraryId));
 				} else {
 					logger.info("Unknown URL " + url + " " + text);
 				}
@@ -216,29 +226,29 @@ public class MarcRecordDetails {
 		}
 		
 		//Get urls from item records
-		logger.info("Loading records from item records");
+		//logger.info("Loading records from item records");
 		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 			for (DataField curItem : itemFields) {
 				Subfield urlField = curItem.getSubfield(marcProcessor.getUrlSubfield().charAt(0));
 				if (urlField != null) {
-					logger.info("Found item based url " + urlField.getData());
+					//logger.info("Found item based url " + urlField.getData());
 					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
 					if (locationField != null) {
-						logger.info("  Location is " + locationField.getData());
+						//logger.info("  Location is " + locationField.getData());
 						long libraryId = getLibrarySystemIdForLocation(locationField.getData());
-						logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
+						//logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
 						sourceUrls.add(new LibrarySpecificLink(urlField.getData(), libraryId));
 					}
 				}
 			}
 		}
 		
-		logger.info("Num source urls found: " + sourceUrls.size());
-		logger.info("Scrape for links = " + marcProcessor.isScrapeItemsForLinks());
+		//logger.info("Num source urls found: " + sourceUrls.size());
+		//logger.info("Scrape for links = " + marcProcessor.isScrapeItemsForLinks());
 		if (sourceUrls.size() == 0 && marcProcessor.isScrapeItemsForLinks()) {
-			logger.info("Loading records from millennium");
+			//logger.info("Loading records from millennium");
 			// Check the record in the ILS
 			getUrlsForItemsFromMillennium();
 		}
@@ -252,7 +262,7 @@ public class MarcRecordDetails {
 		String shortId = this.getId();
 		shortId = shortId.substring(1, shortId.length() - 1);
 		String itemUrl = catalogUrl + "/search~S" + scope + "/." + shortId + "/." + shortId + "/1,1,1,B/holdings~" + shortId;
-		logger.debug("itemUrl = " + itemUrl);
+		//logger.debug("itemUrl = " + itemUrl);
 		URLPostResponse response = Util.getURL(itemUrl, logger);
 		if (response.isSuccess()){
 			//Extract the items from the page
@@ -263,7 +273,11 @@ public class MarcRecordDetails {
 					String url = RegexMatcher.group(1);
 					String linkText = RegexMatcher.group(2);
 					long libraryId = marcProcessor.getLibraryIdForLink(url);
-					logger.info("Adding local url " + url + " library system: " + libraryId + " linkText: " + linkText);
+					if (libraryId == -1){
+						//Also check link text for the record
+						libraryId = marcProcessor.getLibraryIdForLink(linkText);
+					}
+					//logger.info("Adding local url " + url + " library system: " + libraryId + " linkText: " + linkText);
 					sourceUrls.add(new LibrarySpecificLink(url, libraryId));
 				} 
 			} catch (PatternSyntaxException ex) {
@@ -2674,11 +2688,10 @@ public class MarcRecordDetails {
 			if (!isEContent) {
 				String ilsId = this.getId();
 				if (marcProcessor.getExistingEContentIds().contains(ilsId)) {
-					logger.info("Suppressing because there is an eContent record for " + ilsId);
+					//logger.info("Suppressing because there is an eContent record for " + ilsId);
 					isEContent = true;
 				}
 			}
-			logger.debug("This record is eContent: " + isEContent);
 			
 			return isEContent;
 		} else {
