@@ -2724,4 +2724,8 @@ public class MarcRecordDetails {
 		}
 		return librarySystemId;
 	}
+	
+	public String toString(){
+		return getRawRecord();
+	}
 }

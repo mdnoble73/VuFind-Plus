@@ -25,6 +25,8 @@
 	  	{css filename="suggestions.css"}
 	  	{css filename="reports.css"}
 	  	{css filename="prospector.css"}
+	  	{css filename="formalize.css"}
+	  	{css filename="normalize.css"}
 	  	{css filename="marmot.css"}
 	  	{css filename="extra_styles.css"}
     {/if}
@@ -44,6 +46,7 @@
 	    <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
 
 	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
+      <script src="{$path}/interface/themes/js/jquery.formalize.min.js" type="text/javascript"></script>
       
 	    {if $enableBookCart}
 	    <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>

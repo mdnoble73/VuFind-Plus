@@ -432,7 +432,7 @@ class EContentItem extends DB_DataObject {
 			$library = new Library();
 			$library->libraryId = $this->libraryId;
 			if ($library->find(true)){
-				$notes = "Available to {$library->displayName} patrons only.";
+				$notes = "Available to <b>{$library->displayName} patrons</b> only.";
 			}else{
 				$notes = "Could not load library information.";
 			}

@@ -310,6 +310,16 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 		
+		'eContentItem_3'  => array(
+			'title' => 'eContent Item Update 2',
+			'description' => 'Allow items to be restricted by library system',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE econtent_item CHANGE overDriveId overDriveId VARCHAR(36) NULL",
+			),
+		),
+		
 		'overdriveItem' => array(
 			'title' => 'Overdrive Item',
 			'description' => 'Setup of Overdrive item to cache information about items from OverDrive for performance',
