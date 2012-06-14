@@ -102,7 +102,7 @@
     // Navigate link.
     var navigate_link = $('#navigate-link');
     if (navigate_link.length > 0) {
-      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="600" border="0" src="http://stage.anythinklibraries.org/vufind/sidebar"></div></div>');
+      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="700" border="0" src="http://stage.anythinklibraries.org/vufind/sidebar"></div></div>');
       // Add iFrame.
       iframe.css({width: 0});
       $('#central').prepend(iframe);
