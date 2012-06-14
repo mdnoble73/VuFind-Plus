@@ -57,17 +57,7 @@ public class Cron {
 		}
 
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
-		Ini ini = new Ini();
-		File configFile = new File("../../sites/" + serverName + "/conf/config.ini");
-		try {
-			ini.load(new FileReader(configFile));
-		} catch (InvalidFileFormatException e) {
-			logger.error("Configuration file is not valid.  Please check the syntax of the file.");
-		} catch (FileNotFoundException e) {
-			logger.error("Configuration file (" + configFile.getPath() + ") could not be found.  You must supply a configuration file in conf called config.ini.");
-		} catch (IOException e) {
-			logger.error("Configuration file could not be read.");
-		}
+		Ini ini = loadConfigFile("config.ini");
 		
 		//Connect to the database
 		String databaseConnectionInfo = Util.cleanIniValue(ini.get("Database","database_vufind_jdbc"));
@@ -104,18 +94,8 @@ public class Cron {
 		}
 		
 		// Read the cron INI file to get information about the processes to run
-		Ini cronIni = new Ini();
+		Ini cronIni = loadConfigFile("config.cron.ini");
 		File cronConfigFile = new File("../../sites/" + serverName + "/conf/config.cron.ini");
-		try {
-			cronIni.load(new FileReader(cronConfigFile));
-		} catch (InvalidFileFormatException e) {
-			logger.error("Cron Configuration file is not valid.  Please check the syntax of the file.");
-		} catch (FileNotFoundException e) {
-			logger.error("Cron Configuration file (" + cronConfigFile.getPath() + ") could not be found.  You must supply a configuration file in conf called config.ini.");
-		} catch (IOException e) {
-			logger.error("Cron Configuration file could not be read.");
-		}
-		
 		
 		//Check to see if a specific task has been specified to be run
 		ArrayList<ProcessToRun> processesToRun = new ArrayList<ProcessToRun>();
@@ -276,6 +256,54 @@ public class Cron {
 			}
 		}
 		return processesToRun;
+	}
+	
+	private static Ini loadConfigFile(String filename){
+		//First load the default config file 
+		String configName = "../../sites/default/conf/" + filename;
+		logger.info("Loading configuration from " + configName);
+		File configFile = new File(configName);
+		if (!configFile.exists()) {
+			logger.error("Could not find configuration file " + configName);
+			System.exit(1);
+		}
+
+		// Parse the configuration file
+		Ini ini = new Ini();
+		try {
+			ini.load(new FileReader(configFile));
+		} catch (InvalidFileFormatException e) {
+			logger.error("Configuration file is not valid.  Please check the syntax of the file.", e);
+		} catch (FileNotFoundException e) {
+			logger.error("Configuration file could not be found.  You must supply a configuration file in conf called config.ini.", e);
+		} catch (IOException e) {
+			logger.error("Configuration file could not be read.", e);
+		}
+		
+		//Now override with the site specific configuration
+		String siteSpecificFilename = "../../sites/" + serverName + "/conf/" + filename;
+		logger.info("Loading site specific config from " + siteSpecificFilename);
+		File siteSpecificFile = new File(siteSpecificFilename);
+		if (!siteSpecificFile.exists()) {
+			logger.error("Could not find server specific config file");
+			System.exit(1);
+		}
+		try {
+			Ini siteSpecificIni = new Ini();
+			siteSpecificIni.load(new FileReader(siteSpecificFile));
+			for (Section curSection : siteSpecificIni.values()){
+				for (String curKey : curSection.keySet()){
+					logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					ini.put(curSection.getName(), curKey, curSection.get(curKey));
+				}
+			}
+		} catch (InvalidFileFormatException e) {
+			logger.error("Site Specific config file is not valid.  Please check the syntax of the file.", e);
+		} catch (IOException e) {
+			logger.error("Site Specific config file could not be read.", e);
+		}
+		return ini;
 	}
 
 }

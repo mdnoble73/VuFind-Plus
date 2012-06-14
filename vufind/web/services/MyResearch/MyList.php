@@ -82,6 +82,15 @@ class MyList extends Action {
 		if (!$list->public && $list->user_id != $user->id) {
 			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
 		}
+		
+		//Reindex can happen by anyone since it needs to be called by cron
+		if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
+			$actionToPerform = $_REQUEST['myListActionHead'];
+			if ($actionToPerform == 'reindex'){
+				$solrConnector = new User_list_solr($configArray['Index']['url']);
+				$solrConnector->saveList($list);
+			}
+		}
 
 		//Perform an action on the list, but verify that the user has permission to do so.
 		if ($user != false && $user->id == $list->user_id && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){

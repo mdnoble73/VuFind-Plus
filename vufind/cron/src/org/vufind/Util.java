@@ -19,6 +19,7 @@ import java.security.MessageDigest;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.vufind.CopyNoOverwriteResult.CopyResult;
 
 public class Util {
@@ -240,4 +241,107 @@ public class Util {
 		return result;
 	}
 
+	public static URLPostResponse getURL(String url, Logger logger) {
+		URLPostResponse retVal;
+		try {
+			URL emptyIndexURL = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			
+			StringBuffer response = new StringBuffer();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " getting " + url);
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
+			}
+
+		} catch (MalformedURLException e) {
+			logger.error("URL to post (" + url + ") is malformed", e);
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
+		} catch (IOException e) {
+			logger.error("Error posting to url \r\n" + url, e);
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}
+		return retVal;
+	}
+
+	public static URLPostResponse postToURL(String url, String postData, Logger logger) {
+		URLPostResponse retVal;
+		try {
+			URL emptyIndexURL = new URL(url);
+			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn.setDoInput(true);
+			if (postData != null && postData.length() > 0) {
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
+				conn.setRequestProperty("Content-Language", "en-US");
+
+				conn.setDoOutput(true);
+				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
+				wr.write(postData);
+				wr.flush();
+				wr.close();
+			}
+
+			StringBuffer response = new StringBuffer();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				retVal = new URLPostResponse(true, 200, response.toString());
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
+				logger.info(postData);
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+
+				rd.close();
+				
+				if (response.length() == 0){
+					//Try to load the regular body as well
+					// Get the response
+					BufferedReader rd2 = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					while ((line = rd2.readLine()) != null) {
+						response.append(line);
+					}
+
+					rd.close();
+				}
+				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
+			}
+
+		} catch (MalformedURLException e) {
+			logger.error("URL to post (" + url + ") is malformed", e);
+			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
+		} catch (IOException e) {
+			logger.error("Error posting to url \r\n" + url, e);
+			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}
+		return retVal;
+	}
 }
