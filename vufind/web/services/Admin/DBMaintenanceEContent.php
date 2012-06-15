@@ -306,17 +306,18 @@ class DBMaintenanceEContent extends Admin {
 			'sql' => array(
 				"ALTER TABLE econtent_item ADD libraryId INT(11) NOT NULL DEFAULT -1",
 				"ALTER TABLE econtent_item ADD overDriveId INT(11) NOT NULL DEFAULT -1",
-				"ALTER TABLE `econtent_item` CHANGE `type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
+				"ALTER TABLE `econtent_item` CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
 			),
 		),
 		
 		'eContentItem_3'  => array(
-			'title' => 'eContent Item Update 2',
-			'description' => 'Allow items to be restricted by library system',
+			'title' => 'eContent Item Update 3',
+			'description' => 'Add Overdrive item capabilities',
 			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE econtent_item CHANGE overDriveId overDriveId VARCHAR(36) NULL",
+				"ALTER TABLE `econtent_item` CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
 			),
 		),
 		
@@ -348,6 +349,18 @@ class DBMaintenanceEContent extends Admin {
 				"ALTER TABLE overdrive_item ADD COLUMN availableCopies int(11) DEFAULT 0;",
 				"ALTER TABLE overdrive_item ADD COLUMN totalCopies int(11) DEFAULT 0;",
 				"ALTER TABLE overdrive_item ADD COLUMN numHolds int(11) DEFAULT 0;",
+			),
+		),
+		
+		'overdriveItem_2' => array(
+			'title' => 'Overdrive Item Update 2',
+			'description' => 'Change Overdrive item to cache information based on overdriveId rather than record id since we may have more than 1 overdrive records on a record',
+			'dependencies' => array(),
+			'sql' => array(
+				"TRUNCATE TABLE overdrive_item;",
+				"ALTER TABLE overdrive_item DROP COLUMN recordId;",
+				"ALTER TABLE overdrive_item ADD COLUMN overDriveId VARCHAR(36) NOT NULL;",
+				"ALTER TABLE overdrive_item ADD INDEX `OverDriveId` (overDriveId);",
 			),
 		),
 		

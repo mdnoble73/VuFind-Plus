@@ -197,7 +197,7 @@ public class MarcRecordDetails {
 			}
 
 			if (text != null && url != null) {
-				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media).*?")) {
+				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						// System.out.println("Found source url");
 						long libraryId = marcProcessor.getLibraryIdForLink(url);
@@ -2726,6 +2726,10 @@ public class MarcRecordDetails {
 	}
 	
 	public String toString(){
-		return getRawRecord();
+		String rawRecord = getRawRecord();
+		rawRecord = rawRecord.replaceAll("\\x1F", "#31;");
+		rawRecord = rawRecord.replaceAll("\\x1E", "#30;");
+		rawRecord = rawRecord.replaceAll("\\x1D", "#29;");
+		return rawRecord;
 	}
 }

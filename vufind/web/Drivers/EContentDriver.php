@@ -189,7 +189,7 @@ class EContentDriver implements DriverInterface{
 					break;
 				}
 			}
-			if ($holding){
+			if (isset($holding)){
 				$statusSummary['totalCopies'] = $holding->totalCopies;
 				$statusSummary['availableCopies'] = $holding->availableCopies;
 				$statusSummary['numHolds'] = $holding->numHolds;

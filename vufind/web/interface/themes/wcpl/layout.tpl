@@ -25,6 +25,7 @@
 			{css filename="search-results.css"}
 			{css filename="suggestions.css"}
 			{css filename="brian_help.css"}
+			{css filename="wcpl.css"}
 		{/if}
 	
     {css media="print" filename="print.css"}

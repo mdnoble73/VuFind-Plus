@@ -62,8 +62,14 @@ class AJAX extends Action {
 			if (strlen($holding->notes) > 0){
 				$showEContentNotes = true;
 			}
-			if ($holding->getSize() != 'Unknown'){
-				$showSize = true;
+			if ($holding instanceof OverdriveItem){
+			if (is_numeric($holding->size)){
+					$showSize = true;
+				}
+			}else{
+				if ($holding->getSize() != 'Unknown'){
+					$showSize = true;
+				}
 			}
 		}
 		$interface->assign('source', $eContentRecord->source);

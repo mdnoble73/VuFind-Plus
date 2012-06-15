@@ -944,7 +944,7 @@ class OverDriveDriver {
 		return $overDriveInfo;
 	}
 	
-	public function getOverdriveHoldings($eContentRecord){
+	public function getOverdriveHoldings($overDriveId, $overdriveUrl){
 		require_once('sys/eContent/OverdriveItem.php');
 		//get the url for the page in overdrive 
 		global $memcache;
@@ -952,9 +952,7 @@ class OverDriveDriver {
 		global $timer;
 		$timer->logTime('Starting _getOverdriveHoldings');
 		
-		$overDriveId = $eContentRecord->getOverDriveId();
-		$overdriveUrl = $eContentRecord->sourceUrl;
-		if ($overDriveId == null ){
+		if ($overDriveId == null || strlen($overDriveId) == 0 ){
 			$items = array();
 		}else{
 			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
@@ -990,11 +988,15 @@ class OverDriveDriver {
 					if (preg_match_all('/(?:(?:<a name="checkout" class="skip">Format Information for Check Out options<\/a>)|(?:<td nowrap>))<b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)"(?:\\sclass=".*?")?>(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/si', $formatSection, $itemInfoAll)) {
 						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
 							$overdriveItem = new OverdriveItem();
-							$overdriveItem->recordId = $eContentRecord->id;
+							$overdriveItem->overDriveId = $overDriveId;
 							$overdriveItem->format = $itemInfoAll[1][$matchi];
 							$overdriveItem->formatId = $itemInfoAll[2][$matchi];
 							//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
-							$overdriveItem->size = $itemInfoAll[4][$matchi];
+							if (preg_match('/unknown/i', $itemInfoAll[4][$matchi])){
+								$overdriveItem->size = 'unknown';
+							}else{
+								$overdriveItem->size = $itemInfoAll[4][$matchi];
+							}
 							$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to digital cart') == 0);
 							$overdriveItem->lastLoaded = time();
 							

@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.econtent.GutenbergItemInfo;
@@ -32,6 +34,7 @@ import au.com.bytecode.opencsv.CSVReader;
  */
 
 public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordProcessor{
+	private Logger logger;
 	private boolean reindexUnchangedRecords;
 	private boolean checkOverDriveAvailability;
 	private String econtentDBConnectionInfo;
@@ -58,7 +61,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	public ProcessorResults results;
 	
+	private int numReindexingThreadsRunning;
+	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
+		this.logger = logger;
 		//Import a marc record into the eContent core. 
 		if (!loadConfig(configIni, logger)){
 			return false;
@@ -94,9 +100,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			addSourceUrl = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			updateSourceUrl = econtentConn.prepareStatement("UPDATE econtent_item SET link = ?, date_updated =? WHERE id = ?");
 			
-			doesOverDriveIdExist =  econtentConn.prepareStatement("SELECT id, overDriveId from econtent_item WHERE recordId = ? AND item_type = ? AND libraryId = ?");
-			addOverDriveId = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, overDriveId, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?)");
-			updateOverDriveId = econtentConn.prepareStatement("UPDATE econtent_item SET overDriveId = ?, date_updated =? WHERE id = ?");
+			doesOverDriveIdExist =  econtentConn.prepareStatement("SELECT id, overDriveId, link from econtent_item WHERE recordId = ? AND item_type = ? AND libraryId = ?");
+			addOverDriveId = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, overDriveId, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+			updateOverDriveId = econtentConn.prepareStatement("UPDATE econtent_item SET overDriveId = ?, link = ?, date_updated =? WHERE id = ?");
 			
 		} catch (Exception ex) {
 			// handle any errors
@@ -379,7 +385,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private void addOverdriveItem(String sourceUrl, long libraryId, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
 		//Check to see if the link already exists
-		String overDriveId = sourceUrl.substring(sourceUrl.length() - 36);
+		Pattern Regex = Pattern.compile("[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}", Pattern.CANON_EQ);
+		Matcher RegexMatcher = Regex.matcher(sourceUrl);
+		String overDriveId = null;
+		if (RegexMatcher.find()) {
+			overDriveId = RegexMatcher.group();
+		} 
 		logger.info("Found overDrive url\r\n" + sourceUrl + "\r\nlibraryId: " + libraryId + "  overDriveId: " + overDriveId);
 
 		try {
@@ -388,13 +399,15 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			doesOverDriveIdExist.setLong(3, libraryId);
 			ResultSet existingOverDriveId = doesOverDriveIdExist.executeQuery();
 			if (existingOverDriveId.next()){
-				String existingOVerDriveIdValue = existingOverDriveId.getString("link");
+				String existingOverDriveIdValue = existingOverDriveId.getString("overDriveId");
 				Long existingItemId = existingOverDriveId.getLong("id");
-				if (!existingOVerDriveIdValue.equals(overDriveId)){
+				String existingLink = existingOverDriveId.getString("link");
+				if (!overDriveId.equals(existingOverDriveIdValue) | !sourceUrl.equals(existingLink)){
 					//Url does not match, add it to the record. 
 					updateOverDriveId.setString(1, overDriveId);
-					updateOverDriveId.setLong(2, new Date().getTime());
-					updateOverDriveId.setLong(3, existingItemId);
+					updateOverDriveId.setString(2, sourceUrl);
+					updateOverDriveId.setLong(3, new Date().getTime());
+					updateOverDriveId.setLong(4, existingItemId);
 					updateOverDriveId.executeUpdate();
 				}
 			}else{
@@ -402,10 +415,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				addOverDriveId.setLong(1, eContentRecordId);
 				addOverDriveId.setString(2, detectionSettings.getItem_type());
 				addOverDriveId.setString(3, overDriveId);
-				addOverDriveId.setLong(4, new Date().getTime());
-				addOverDriveId.setLong(5, -1);
-				addOverDriveId.setLong(6, new Date().getTime());
-				addOverDriveId.setLong(7, libraryId);
+				addOverDriveId.setString(4, sourceUrl);
+				addOverDriveId.setLong(5, new Date().getTime());
+				addOverDriveId.setLong(6, -1);
+				addOverDriveId.setLong(7, new Date().getTime());
+				addOverDriveId.setLong(8, libraryId);
 				addOverDriveId.executeUpdate();
 			}
 		} catch (SQLException e) {
@@ -464,7 +478,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 
 	private void reindexRecord(final long eContentRecordId, final Logger logger) {
 		//reindex the new record
-		new Thread(new Runnable() {
+		Thread reindexThread = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -476,12 +490,28 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						String updateIndexResponse = Util.convertStreamToString((InputStream) reindexResultRaw);
 						logger.info("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
 					}
+					logger.info("Finished reindex " + numReindexingThreadsRunning);
+					numReindexingThreadsRunning--;
+					logger.info("Remove thread " + numReindexingThreadsRunning);
 				} catch (Exception e) {
 					logger.info("Unable to reindex record " + eContentRecordId, e);
 				}
 			}
-		}).start();
-		
+		});
+		while (numReindexingThreadsRunning > 50){
+			logger.info("There are more than 50 reindex threads running, waiting for some to finish, " + numReindexingThreadsRunning + " remain open");
+			try {
+				Thread.yield();
+				Thread.sleep(250);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error("The thread was interrupted");
+				break;
+			}
+		}
+		numReindexingThreadsRunning++;
+		reindexThread.start();
 	}
 
 	protected boolean loadConfig(Ini configIni, Logger logger) {
@@ -547,7 +577,18 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 
 	@Override
 	public void finish() {
-		
+		while (numReindexingThreadsRunning > 0){
+			logger.info("Waiting for all reindex threads to finish, " + numReindexingThreadsRunning + " remain open");
+			try {
+				Thread.yield();
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error("The thread was interrupted");
+				break;
+			}
+		}
 	}
 	
 	@Override

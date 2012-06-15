@@ -215,12 +215,26 @@ public class ReindexProcess {
 		
 		logger.info("Processing resources");
 		try {
-			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet allResources = allResourcesStmt.executeQuery();
-			while (allResources.next()){
-				for (IResourceProcessor resourceProcessor : resourceProcessors){
-					resourceProcessor.processResource(allResources);
+			long batchCount = 0;
+			PreparedStatement resourceCountStmt = vufindConn.prepareStatement("SELECT count(id) FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet resourceCountRs = resourceCountStmt.executeQuery();
+			long numResources = resourceCountRs.getLong(1);
+			logger.info("There are " + numResources + " resources currently loaded");
+			long firstResourceToProcess = 0;
+			long batchSize = 1000;
+			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource LIMIT ?, ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			while (firstResourceToProcess <= numResources){
+				logger.debug("processing batch " + ++batchCount);
+				allResourcesStmt.setLong(1, firstResourceToProcess);
+				allResourcesStmt.setLong(2, batchSize);
+				ResultSet allResources = allResourcesStmt.executeQuery();
+				while (allResources.next()){
+					for (IResourceProcessor resourceProcessor : resourceProcessors){
+						resourceProcessor.processResource(allResources);
+					}
 				}
+				allResources.close();
+				firstResourceToProcess += batchSize;
 			}
 		} catch (Exception e) {
 			logger.error("Exception processing resources", e);
@@ -325,26 +339,8 @@ public class ReindexProcess {
 		
 		logger.info("Starting Reindex for " + serverName);
 
-		// Load the configuration file
-		String configName = "../../sites/" + serverName + "/conf/config.ini";
-		logger.info("Loading configuration from " + configName);
-		File configFile = new File(configName);
-		if (!configFile.exists()) {
-			logger.error("Could not find configuration file " + configName);
-			System.exit(1);
-		}
-
 		// Parse the configuration file
-		configIni = new Ini();
-		try {
-			configIni.load(new FileReader(configFile));
-		} catch (InvalidFileFormatException e) {
-			logger.error("Configuration file is not valid.  Please check the syntax of the file.", e);
-		} catch (FileNotFoundException e) {
-			logger.error("Configuration file could not be found.  You must supply a configuration file in conf called config.ini.", e);
-		} catch (IOException e) {
-			logger.error("Configuration file could not be read.", e);
-		}
+		configIni = loadConfigFile("config.ini");
 		
 		if (indexSettings != null){
 			logger.info("Loading index settings from override file " + indexSettings);
@@ -472,5 +468,53 @@ public class ReindexProcess {
 		} catch (SQLException e) {
 			logger.error("Unable to update reindex log with completion time.", e);
 		}
+	}
+	
+	private static Ini loadConfigFile(String filename){
+		//First load the default config file 
+		String configName = "../../sites/default/conf/" + filename;
+		logger.info("Loading configuration from " + configName);
+		File configFile = new File(configName);
+		if (!configFile.exists()) {
+			logger.error("Could not find configuration file " + configName);
+			System.exit(1);
+		}
+
+		// Parse the configuration file
+		Ini ini = new Ini();
+		try {
+			ini.load(new FileReader(configFile));
+		} catch (InvalidFileFormatException e) {
+			logger.error("Configuration file is not valid.  Please check the syntax of the file.", e);
+		} catch (FileNotFoundException e) {
+			logger.error("Configuration file could not be found.  You must supply a configuration file in conf called config.ini.", e);
+		} catch (IOException e) {
+			logger.error("Configuration file could not be read.", e);
+		}
+		
+		//Now override with the site specific configuration
+		String siteSpecificFilename = "../../sites/" + serverName + "/conf/" + filename;
+		logger.info("Loading site specific config from " + siteSpecificFilename);
+		File siteSpecificFile = new File(siteSpecificFilename);
+		if (!siteSpecificFile.exists()) {
+			logger.error("Could not find server specific config file");
+			System.exit(1);
+		}
+		try {
+			Ini siteSpecificIni = new Ini();
+			siteSpecificIni.load(new FileReader(siteSpecificFile));
+			for (Section curSection : siteSpecificIni.values()){
+				for (String curKey : curSection.keySet()){
+					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					ini.put(curSection.getName(), curKey, curSection.get(curKey));
+				}
+			}
+		} catch (InvalidFileFormatException e) {
+			logger.error("Site Specific config file is not valid.  Please check the syntax of the file.", e);
+		} catch (IOException e) {
+			logger.error("Site Specific config file could not be read.", e);
+		}
+		return ini;
 	}
 }

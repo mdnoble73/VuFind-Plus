@@ -27,7 +27,7 @@
 class OverdriveItem extends DB_DataObject{
 	public $__table = 'overdrive_item';
 	public $id;
-	public $recordId;
+	public $overDriveId;
 	public $source = 'OverDrive'; 
 	public $format;
 	public $formatId;
