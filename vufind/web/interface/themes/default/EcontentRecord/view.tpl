@@ -607,9 +607,7 @@ function redrawSaveStatus() {literal}{{/literal}
       
       {if $eContentRecord->marcRecord}
         <div id = "stafftab">
-        	<pre style="overflow:auto">{strip}
-	        {$eContentRecord->marcRecord}
-	        {/strip}</pre>
+        	{include file=$staffDetails}
 	      </div>
       {/if}
     </div> {* End of tabs*}
