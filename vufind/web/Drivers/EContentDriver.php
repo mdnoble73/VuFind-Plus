@@ -87,6 +87,7 @@ class EContentDriver implements DriverInterface{
 			return EContentDriver::$holdings[$id];
 		}
 		global $user;
+		$libaryScopeId = $this->getLibraryScopingId();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
@@ -126,6 +127,9 @@ class EContentDriver implements DriverInterface{
 	
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $id;
+			if ($libaryScopeId != -1){
+				$eContentItem->whereAdd("libraryId = -1 or libraryId = $libaryScopeId");
+			}
 			$items = array();
 			$eContentItem->find();
 			while ($eContentItem->fetch()){
@@ -151,6 +155,20 @@ class EContentDriver implements DriverInterface{
 		
 		EContentDriver::$holdings[$id] = $items;
 		return $items;
+	}
+	
+	public function getLibraryScopingId(){
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+
+		//Load the holding label for the branch where the user is physically.
+		if (!is_null($searchLocation)){
+			return $searchLocation->libraryId;
+		}else if (isset($searchLibrary)) {
+			return $searchLibrary->libraryId;
+		}else{
+			return -1;
+		}
 	}
 	
 	public function getStatusSummary($id, $holdings){
@@ -975,7 +993,7 @@ class EContentDriver implements DriverInterface{
 					//Link to Freegal
 					$links[] = array(
 									'url' => $url,
-									'text' => 'Access&nbsp;on&nbsp;' . $eContentRecord->source,
+									'text' => 'Get&nbsp;MP3&nbsp;From&nbsp;Freegal',
 					);
 				}else{
 					$links[] = array(
@@ -986,13 +1004,13 @@ class EContentDriver implements DriverInterface{
 			}else{
 				$links[] = array(
 							'url' => $eContentItem->link,
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
+							'text' => 'Access&nbsp;MP3',
 				);
 			}
 		}elseif (in_array($eContentItem->item_type, array('externalLink', 'interactiveBook'))){
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
+							'text' => 'Access&nbsp;eBook',
 			);
 		}
 		return $links;

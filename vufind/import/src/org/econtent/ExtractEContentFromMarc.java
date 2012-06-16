@@ -71,7 +71,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		results = new ProcessorResults("Extract eContent from ILS", reindexLogId, vufindConn, logger);
 		
-		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
+		String reindexUnchangedRecordsVal = configIni.get("Reindex", "updateUnchangedRecords");
 		if (reindexUnchangedRecordsVal == null){
 			reindexUnchangedRecords = true;
 		}else{
@@ -132,7 +132,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 			
 			for (String source : detectionSettingsBySource.keySet()){
-				//logger.info("Record " + recordInfo.getId() + " is eContent, source is " + source);
+				logger.debug("Record " + recordInfo.getId() + " is eContent, source is " + source);
 				DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
 				//Generally should only have one source, but in theory there could be multiple sources for a single record
 				String accessType = detectionSettings.getAccessType();
@@ -140,6 +140,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
 					//Overdrive record, force processing to make sure we get updated availability
 				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
+					logger.debug("Skipping because the record is not changed");
 					results.incSkipped();
 					return false;
 				}
@@ -305,7 +306,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		try {
 			existingEContentRecordLinks.setLong(1, eContentRecordId);
 			ResultSet allExistingUrls = existingEContentRecordLinks.executeQuery();
-			if (allExistingUrls.next()){
+			while (allExistingUrls.next()){
 				LinkInfo curLinkInfo = new LinkInfo();
 				curLinkInfo.setItemId(allExistingUrls.getLong("id"));
 				curLinkInfo.setLink(allExistingUrls.getString("link"));
@@ -316,8 +317,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		logger.debug("Found " + allLinks.size() + " existing links");
+		
 		//Add the links that are currently available for the record
 		ArrayList<LibrarySpecificLink> sourceUrls = recordInfo.getSourceUrls();
+		logger.info("Found " + sourceUrls.size() + " urls for " + recordInfo.getId());
 		for (LibrarySpecificLink curLink : sourceUrls){
 			//Look for an existing link
 			LinkInfo linkForSourceUrl = null;
@@ -333,6 +337,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		
 		//Remove any links that no longer exist
+		logger.info("There are " + allLinks.size() + " links that need to be deleted");
 		for (LinkInfo tmpLinkInfo : allLinks){
 			try {
 				deleteEContentItem.setLong(1, tmpLinkInfo.getItemId());
@@ -348,6 +353,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		//Check to see if the link already exists
 		try {
 			if (existingLinkInfo != null){
+				logger.debug("Updating link " + sourceUrl + " libraryId = " + libraryId);
 				String existingUrlValue = existingLinkInfo.getLink();
 				Long existingItemId = existingLinkInfo.getItemId();
 				if (!existingUrlValue.equals(sourceUrl)){
@@ -358,6 +364,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					updateSourceUrl.executeUpdate();
 				}
 			}else{
+				logger.debug("Adding link " + sourceUrl + " libraryId = " + libraryId);
 				//the url does not exist, insert it
 				addSourceUrl.setLong(1, eContentRecordId);
 				addSourceUrl.setString(2, detectionSettings.getItem_type());
