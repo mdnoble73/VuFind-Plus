@@ -218,23 +218,25 @@ public class ReindexProcess {
 			long batchCount = 0;
 			PreparedStatement resourceCountStmt = vufindConn.prepareStatement("SELECT count(id) FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet resourceCountRs = resourceCountStmt.executeQuery();
-			long numResources = resourceCountRs.getLong(1);
-			logger.info("There are " + numResources + " resources currently loaded");
-			long firstResourceToProcess = 0;
-			long batchSize = 1000;
-			PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource LIMIT ?, ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			while (firstResourceToProcess <= numResources){
-				logger.debug("processing batch " + ++batchCount);
-				allResourcesStmt.setLong(1, firstResourceToProcess);
-				allResourcesStmt.setLong(2, batchSize);
-				ResultSet allResources = allResourcesStmt.executeQuery();
-				while (allResources.next()){
-					for (IResourceProcessor resourceProcessor : resourceProcessors){
-						resourceProcessor.processResource(allResources);
+			if (resourceCountRs.next()){
+				long numResources = resourceCountRs.getLong(1);
+				logger.info("There are " + numResources + " resources currently loaded");
+				long firstResourceToProcess = 0;
+				long batchSize = 1000;
+				PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource LIMIT ?, ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				while (firstResourceToProcess <= numResources){
+					logger.debug("processing batch " + ++batchCount);
+					allResourcesStmt.setLong(1, firstResourceToProcess);
+					allResourcesStmt.setLong(2, batchSize);
+					ResultSet allResources = allResourcesStmt.executeQuery();
+					while (allResources.next()){
+						for (IResourceProcessor resourceProcessor : resourceProcessors){
+							resourceProcessor.processResource(allResources);
+						}
 					}
+					allResources.close();
+					firstResourceToProcess += batchSize;
 				}
-				allResources.close();
-				firstResourceToProcess += batchSize;
 			}
 		} catch (Exception e) {
 			logger.error("Exception processing resources", e);

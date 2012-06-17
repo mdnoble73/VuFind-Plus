@@ -44,11 +44,27 @@ class OverdriveItem extends DB_DataObject{
 	public $checkedOut;
 	public $onHold;
 	public $holdPosition;
+	public $libraryId;
 	
 	/**
 	 * Dynamic information that can't be cached very long
 	 */
 	public $usageLink;
-
 	
+
+	function getUsageNotes(){
+		$notes = '';
+		if ($this->libraryId == -1){
+			$notes = "Must be checked out to read.";
+		}else{
+			$library = new Library();
+			$library->libraryId = $this->libraryId;
+			if ($library->find(true)){
+				$notes = "Available to <b>{$library->displayName} patrons</b> only.";
+			}else{
+				$notes = "Could not load library information.";
+			}
+		}
+		return $notes;
+	}
 }

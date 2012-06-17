@@ -1118,6 +1118,7 @@ class EContentRecord extends SolrDataObject {
 					
 				//Check each of the cached items to see if it has changed
 				foreach ($currentItems as $currentKey => $currentItem){
+					$currentItem->libraryId = $currentItem->libraryId;
 					
 					$cachedItemFound = false;
 					foreach ($cachedItems as $cacheKey => $cachedItem){
@@ -1176,6 +1177,7 @@ class EContentRecord extends SolrDataObject {
 								);
 				}
 				$item->links = $links;
+				$item->libraryId = $curItem->libraryId;
 				$overDriveItems[$itemKey] = $item;
 			}
 			$overDriveItemsForAllItems = array_merge($overDriveItemsForAllItems, $overDriveItems);

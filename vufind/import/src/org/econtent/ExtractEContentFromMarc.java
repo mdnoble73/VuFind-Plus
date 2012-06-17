@@ -384,6 +384,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 	
 	private void setupOverDriveItems(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger){
+		ArrayList<LibrarySpecificLink> sourceUrls = recordInfo.getSourceUrls();
+		logger.info("Found " + sourceUrls.size() + " urls for overdrive id " + recordInfo.getId());
 		//Check the items within the record to see if there are any location specific links
 		for(LibrarySpecificLink link : recordInfo.getSourceUrls()){
 			addOverdriveItem(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);

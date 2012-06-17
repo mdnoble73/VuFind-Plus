@@ -15,8 +15,10 @@
 			<tr id="itemRow{$index}">
 				<td>{translate text=$eContentItem->format}</td>
 				<td>OverDrive</td>
-				<td>Must be checked out to read</td>
+				<td>{$eContentItem->getUsageNotes()}</td>
+				{if $showSize}
 				<td>{$eContentItem->size}</td>
+				{/if}
 				<td>
 					{* Options for the user to view online or download *}
 					{foreach from=$eContentItem->links item=link}

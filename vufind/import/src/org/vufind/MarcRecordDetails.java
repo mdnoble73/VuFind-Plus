@@ -197,15 +197,11 @@ public class MarcRecordDetails {
 			}
 
 			if (text != null && url != null) {
+				boolean isSourceUrl = false;
 				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
-						// System.out.println("Found source url");
-						long libraryId = marcProcessor.getLibraryIdForLink(url);
-						if (libraryId == -1){
-							//Also check link text for the record
-							libraryId = marcProcessor.getLibraryIdForLink(text);
-						}
-						sourceUrls.add(new LibrarySpecificLink(url, libraryId));
+						isSourceUrl = true;
+						
 					}
 				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
 					// File is an enrichment url
@@ -213,14 +209,39 @@ public class MarcRecordDetails {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
 				} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
+					isSourceUrl = true;
+				} else {
+					logger.info("Unknown URL " + url + " " + text);
+				}
+				if (isSourceUrl){
+					// System.out.println("Found source url");
+					boolean addedUrl = false;
 					long libraryId = marcProcessor.getLibraryIdForLink(url);
 					if (libraryId == -1){
 						//Also check link text for the record
 						libraryId = marcProcessor.getLibraryIdForLink(text);
 					}
-					sourceUrls.add(new LibrarySpecificLink(url, libraryId));
-				} else {
-					logger.info("Unknown URL " + url + " " + text);
+					//If the library Id is still not set, check item records to see which library (or libraries own the title).
+					if (libraryId == -1 && marcProcessor.getItemTag() != null && marcProcessor.getSharedEContentLocation() != null){
+						@SuppressWarnings("unchecked")
+						List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
+						for (DataField curItem : itemFields) {
+							Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
+							if (locationField != null){
+								String location = locationField.getData();
+								//Get the libraryId based on the location
+								libraryId = getLibrarySystemIdForLocation(location);
+								if (libraryId != -1L){
+									sourceUrls.add(new LibrarySpecificLink(url, libraryId));
+									addedUrl = true;
+								}
+							}
+						}
+					}
+					if (!addedUrl){
+						//This only happens if there are no items and the 
+						sourceUrls.add(new LibrarySpecificLink(url, libraryId));
+					}
 				}
 			}
 		}
@@ -2716,7 +2737,11 @@ public class MarcRecordDetails {
 		// automatically
 		// generate translation maps which would streamline this process.
 		// 1) Get the facet name from the translation map
-		String librarySystemFacet = Utils.remap(locationCode, marcProcessor.findMap("system_map.properties"), true);
+		Map systemMap = marcProcessor.findMap("system_map");
+		if (systemMap == null){
+			logger.error("Unable to load system map!");
+		}
+		String librarySystemFacet = Utils.remap(locationCode, systemMap, true);
 		// 2) Now that we have the facet, get the id of the system
 		Long librarySystemId = marcProcessor.getLibrarySystemIdFromFacet(librarySystemFacet);
 		if (librarySystemId == null) {
