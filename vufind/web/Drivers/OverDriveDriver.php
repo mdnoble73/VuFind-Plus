@@ -441,85 +441,90 @@ class OverDriveDriver {
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $waitingListUrl);
 			$setEmailPage = curl_exec($overDriveInfo['ch']);
 			$setEmailPageInfo = curl_getinfo($ch);
-			
-			$secureBaseUrl = preg_replace('~[^/.]+?.htm.*~', '', $setEmailPageInfo['url']);
-			
-			//Login (again)
-			curl_setopt($overDriveInfo['ch'], CURLOPT_POST, true);
-			$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
-			$barcode = $user->$barcodeProperty;
-			$postParams = array(
-				'LibraryCardNumber' => $barcode,
-				'URL' => 'MyAccount.htm',
-			);
-			if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
-				$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
-			}
-			foreach ($postParams as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
-			curl_setopt($overDriveInfo['ch'], CURLOPT_POSTFIELDS, $post_string);
-			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll');
-			$waitingListPage = curl_exec($overDriveInfo['ch']);
-			$waitingListPageInfo = curl_getinfo($overDriveInfo['ch']);
-			if (preg_match('/We\'re sorry, but you are already on the waiting list for the selected title or have it checked out./', $waitingListPage)){
+			if (preg_match('/already on/', $setEmailPage)){
 				$holdResult['result'] = false;
 				$holdResult['message'] = "We're sorry, but you are already on the waiting list for the selected title or have it checked out.";
 			}else{
 			
-				//Fill out the email address to use for notification
+				$secureBaseUrl = preg_replace('~[^/.]+?.htm.*~', '', $setEmailPageInfo['url']);
+				
+				//Login (again)
+				curl_setopt($overDriveInfo['ch'], CURLOPT_POST, true);
+				$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
+				$barcode = $user->$barcodeProperty;
 				$postParams = array(
-					'ID' => $overDriveId,
-					'Format' => $format,
-					'URL' => 'WaitingListConfirm.htm',
-					'Email' => $user->email,
-					'Email2' => $user->email,
+					'LibraryCardNumber' => $barcode,
+					'URL' => 'MyAccount.htm',
 				);
+				if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
+					$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
+				}
 				foreach ($postParams as $key => $value) {
 					$post_items[] = $key . '=' . urlencode($value);
 				}
 				$post_string = implode ('&', $post_items);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
-				curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll?Action=LibraryWaitingList');
-				$waitingListConfirm = curl_exec($overDriveInfo['ch']);
-				
-				if (preg_match('/did not complete all of the required fields/', $waitingListConfirm)){
+				curl_setopt($overDriveInfo['ch'], CURLOPT_POSTFIELDS, $post_string);
+				curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll');
+				$waitingListPage = curl_exec($overDriveInfo['ch']);
+				$waitingListPageInfo = curl_getinfo($overDriveInfo['ch']);
+				if (preg_match('/already on/', $waitingListPage)){
 					$holdResult['result'] = false;
-					$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your account.';
-				}elseif (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
-					$holdResult['result'] = false;
-					$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
-				}elseif (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
-					$holdResult['result'] = true;
-					$holdResult['message'] = 'Your hold was placed successfully.';
-					
-					$memcache->delete('overdrive_holds_' . $user->id);
-					$memcache->delete('overdrive_summary_' . $user->id);
-					
-					//Record that the entry was checked out in strands
-					global $configArray;
-					if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-						//Get the record for the item
-						$eContentRecord = new EContentRecord();
-						$eContentRecord->whereAdd("sourceUrl like '%$overDriveId'");
-						if ($eContentRecord->find(true)){
-							$orderId = $user->id . '_' . time() ;
-							$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$eContentRecord->id}::0.00::1&user={$user->id}&orderid={$orderId}";
-							$ret = file_get_contents($strandsUrl);
-							/*$logger = new Logger();
-							$logger->log("Strands Hold\r\n$ret", PEAR_LOG_INFO);*/
-						}
-					}
-					
-					//Delete the cache for the record
-					$memcache->delete('overdrive_record_' . $overDriveId);
+					$holdResult['message'] = "We're sorry, but you are already on the waiting list for the selected title or have it checked out.";
 				}else{
-					$holdResult['result'] = false;
-					$holdResult['message'] = 'There was an error placing your hold.';
-					$logger = new Logger();
-					$logger->log("Placing hold on OverDrive item. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
-					$logger->log('URL: '.$secureBaseUrl . "BANGAuthenticate.dll?Action=LibraryWaitingList $post_string\r\n" . $waitingListConfirm ,PEAR_LOG_INFO);
+				
+					//Fill out the email address to use for notification
+					$postParams = array(
+						'ID' => $overDriveId,
+						'Format' => $format,
+						'URL' => 'WaitingListConfirm.htm',
+						'Email' => $user->email,
+						'Email2' => $user->email,
+					);
+					foreach ($postParams as $key => $value) {
+						$post_items[] = $key . '=' . urlencode($value);
+					}
+					$post_string = implode ('&', $post_items);
+					curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
+					curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGAuthenticate.dll?Action=LibraryWaitingList');
+					$waitingListConfirm = curl_exec($overDriveInfo['ch']);
+					
+					if (preg_match('/did not complete all of the required fields/', $waitingListConfirm)){
+						$holdResult['result'] = false;
+						$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your account.';
+					}elseif (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
+						$holdResult['result'] = false;
+						$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
+					}elseif (preg_match('/You have successfully placed a hold on the selected title./', $waitingListConfirm)){
+						$holdResult['result'] = true;
+						$holdResult['message'] = 'Your hold was placed successfully.';
+						
+						$memcache->delete('overdrive_holds_' . $user->id);
+						$memcache->delete('overdrive_summary_' . $user->id);
+						
+						//Record that the entry was checked out in strands
+						global $configArray;
+						if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
+							//Get the record for the item
+							$eContentRecord = new EContentRecord();
+							$eContentRecord->whereAdd("sourceUrl like '%$overDriveId'");
+							if ($eContentRecord->find(true)){
+								$orderId = $user->id . '_' . time() ;
+								$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$eContentRecord->id}::0.00::1&user={$user->id}&orderid={$orderId}";
+								$ret = file_get_contents($strandsUrl);
+								/*$logger = new Logger();
+								$logger->log("Strands Hold\r\n$ret", PEAR_LOG_INFO);*/
+							}
+						}
+						
+						//Delete the cache for the record
+						$memcache->delete('overdrive_record_' . $overDriveId);
+					}else{
+						$holdResult['result'] = false;
+						$holdResult['message'] = 'There was an error placing your hold.';
+						$logger = new Logger();
+						$logger->log("Placing hold on OverDrive item. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
+						$logger->log('URL: '.$secureBaseUrl . "BANGAuthenticate.dll?Action=LibraryWaitingList $post_string\r\n" . $waitingListConfirm ,PEAR_LOG_INFO);
+					}
 				}
 			}
 		}
@@ -927,7 +932,7 @@ class OverDriveDriver {
 				'lendingPeriodsUrl' => str_replace('Default.htm', 'EditLendingPeriod.htm',  $urlWithSession),
 				'bookshelfUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=MyBookshelf.htm&ForceLoginFlag=0',  $urlWithSession),
 				'wishlistUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=WishList.htm&ForceLoginFlag=0',  $urlWithSession),
-				'waitingListUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=WaitingListForm.htm&ForceLoginFlag=0',  $urlWithSession),
+				'waitingListUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&ForceLoginFlag=0&URL=WaitingListForm.htm',  $urlWithSession),
 				'placeHoldUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=LibraryWatingList',  $urlWithSession),
 				'baseLoginUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll',  $urlWithSession),
 				'contentInfoPage' => str_replace('Default.htm', 'ContentDetails.htm',  $urlWithSession),
