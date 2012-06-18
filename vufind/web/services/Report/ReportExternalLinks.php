@@ -69,7 +69,7 @@ class ReportExternalLinks extends Report{
 		$externalLinkTracking = new ExternalLinkTracking();
 		$externalLinkTracking->query($queryHostsFilter);
 
-		$allStores = array();
+		$allHosts = array();
 		$i=0;
 		while ($externalLinkTracking->fetch()) {
 			$allHosts[] = $externalLinkTracking->linkHost;
@@ -86,7 +86,7 @@ class ReportExternalLinks extends Report{
 		$interface->assign('selectedHosts', $selectedHosts);
 
 		$baseQueryLinks = "SELECT COUNT(externalLinkId) AS timesFollowed, linkUrl, linkHost ".
-				"FROM externalLinkTracking ".
+				"FROM external_link_tracking ".
 				"WHERE (DATE_FORMAT(trackingDate, '%Y-%m-%d')) BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' "; 
 		if (count($selectedHosts) > 0) {
 			$hosts = join("','",$selectedHosts);
@@ -98,8 +98,13 @@ class ReportExternalLinks extends Report{
 		$queryPurchasesCount = "SELECT COUNT(*) AS RowCount from ( ". $baseQueryLinks . ") As ResultCount";
 
 		$resPurchasesCount = mysql_query($queryPurchasesCount);
-		$rowCount = mysql_fetch_object($resPurchasesCount);
-		$totalResultCount = $rowCount->RowCount;
+		if ($resPurchasesCount > 0){
+			$rowCount = mysql_fetch_object($resPurchasesCount);
+			$totalResultCount = $rowCount->RowCount;
+		}else{
+			$totalResultCount = 0;
+			$rowCount = 0;
+		}
 
 		//////////Create the items per page array
 		$itemsPerPageList = array();
@@ -168,16 +173,18 @@ class ReportExternalLinks extends Report{
 
 		$resPurchases = mysql_query($baseQueryLinks);
 
-		//Build an array based on the data to dump out to the grid
 		$resultsPurchases = array();
-		$i=0;
-		while ($r=mysql_fetch_array($resPurchases)) {
-			$tmp = array(
-      	'timesFollowed' => $r['timesFollowed'],  
-				'linkHost' => $r['linkHost'],
-				'linkUrl' => $r['linkUrl']
-			);
-			$resultsPurchases[$i++] = $tmp;
+		if ($resPurchases > 0){
+			//Build an array based on the data to dump out to the grid
+			$i=0;
+			while ($r=mysql_fetch_array($resPurchases)) {
+				$tmp = array(
+	      	'timesFollowed' => $r['timesFollowed'],  
+					'linkHost' => $r['linkHost'],
+					'linkUrl' => $r['linkUrl']
+				);
+				$resultsPurchases[$i++] = $tmp;
+			}
 		}
 		$interface->assign('resultLinks', $resultsPurchases);
 
