@@ -294,10 +294,6 @@ function redrawSaveStatus() {literal}{{/literal}
           <br />
 		  </div>
 		  <div class="recordTools"> 
-          {if !$tabbedDetails}
-            <li><a href="{$url}/Record/{$id|escape:"url"}/Cite" class="cite" onclick='getLightbox("Record", "Cite", "{$id|escape}", null, "{translate text='Cite this'}"); return false;'>{translate text="Cite this"}</a></li>
-          {/if}
-          &nbsp;&nbsp;
           {if $showTextThis == 1}
             <a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a>
           {/if}

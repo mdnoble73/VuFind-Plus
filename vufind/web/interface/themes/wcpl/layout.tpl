@@ -33,6 +33,7 @@
     <script type="text/javascript">
       path = '{$path}';
       loggedIn = {if $user}true{else}false{/if}
+
     </script>
     
     {if $consolidateJs}
@@ -60,6 +61,7 @@
     
     <!-- ben: brian help script -->
     {js filename="brian_help.js"}
+    {js filename="wcpl.js"}
     
     {if isset($theme_css)}
     <link rel="stylesheet" type="text/css" href="{$theme_css}" />
