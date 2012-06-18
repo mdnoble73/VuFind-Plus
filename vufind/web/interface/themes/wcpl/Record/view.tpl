@@ -183,7 +183,7 @@ function redrawSaveStatus() {literal}{{/literal}
     
     <div id="similarAuthorPlaceholder" class="sidegroup" style='display:none'></div>
     
-    {if is_array($editions)}
+    {if is_array($editions) && !$showOtherEditionsPopup}
       <h3><a href="#">{translate text="Other Editions"}</a></h3>
       <div class="sidegroupContents">
         {foreach from=$editions item=edition}
@@ -251,6 +251,12 @@ function redrawSaveStatus() {literal}{{/literal}
           </a>
         </div>
       </div>  
+      
+      {if $showOtherEditionsPopup}
+			<div id="otherEditionCopies">
+				<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+			</div>
+			{/if}
       
 
     

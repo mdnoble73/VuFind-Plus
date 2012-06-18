@@ -79,6 +79,11 @@ class FavoriteHandler
 	{
 		global $interface;
 		
+		// Initialise from the current search globals
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init();
+		$interface->assign('sortList', $searchObject->getSortList());
+		
 		$resourceList = array();
 		if (is_array($this->favorites)) {
 			foreach($this->favorites as $currentResource) {

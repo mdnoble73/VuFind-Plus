@@ -33,7 +33,7 @@
     	<div class="myAccountLink{if $pageTemplate=="overDriveHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds">{translate text='Unavailable Holds'} (<span id="unavailableHoldsOverDrivePlaceholder">?</span>)</a></div>
     	<div class="myAccountLink{if $pageTemplate=="overDriveWishList.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveWishList">{translate text='Wish List'} (<span id="wishlistOverDrivePlaceholder">?</span>)</a></div>
     </div>
-    <div class="myAccountLink{if $pageTemplate=="list.tpl"} active{/if}"><a href="{$path}/MyResearch/MyList">{translate text='My Lists'}</a></div>
+    <div class="myAccountLink{if $pageTemplate=="list.tpl"} active{/if}"><a href="{$path}/MyResearch/MyLists">{translate text='My Lists'}</a></div>
     <div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyResearch/Profile">{translate text='Profile'}</a></div>
     {if $enableMaterialsRequest}
       <div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>

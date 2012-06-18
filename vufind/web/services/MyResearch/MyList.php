@@ -62,19 +62,21 @@ class MyList extends Action {
 			$list = User_list::staticGet($_GET['id']);
 		}else{
 			//Use the first list.
-			$firstListId = reset(array_keys($allLists));
-			if ($firstListId == false || $firstListId == -1){
-				$list = new User_list();
-				$list->user_id = $user->id;
-				$list->public = false;
-				$list->title = "My Favorites";
-			}else{
-				$list = User_list::staticGet($firstListId);
+			if (isset($allLists)){
+				$firstListId = reset(array_keys($allLists));
+				if ($firstListId == false || $firstListId == -1){
+					$list = new User_list();
+					$list->user_id = $user->id;
+					$list->public = false;
+					$list->title = "My Favorites";
+				}else{
+					$list = User_list::staticGet($firstListId);
+				}
 			}
 		}
 
 		// Ensure user have privs to view the list
-		if (!$list->public && !UserAccount::isLoggedIn()) {
+		if (!isset($list) || (!$list->public && !UserAccount::isLoggedIn())) {
 			require_once 'Login.php';
 			Login::launch();
 			exit();

@@ -31,6 +31,20 @@
         <a href="{$url}/Author/Home?author={$listAuthor|escape:"url"}">{$listAuthor|highlight:$lookfor}</a>
       {/if}
     {/if}
+    
+    {if $listTags}
+      {translate text='Your Tags'}:
+      {foreach from=$listTags item=tag name=tagLoop}
+        <a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
+      {/foreach}
+      <br>
+    {/if}
+    {if $listNotes}
+      {translate text='Notes'}: 
+      {foreach from=$listNotes item=note}
+        {$note|escape:"html"}<br>
+      {/foreach}
+    {/if}
  
     {if $listDate}{translate text='Published'} {$listDate.0|escape}{/if}
   </div>
