@@ -84,9 +84,9 @@ class Description extends Record{
 		$descriptionArray = $memcache->get("record_description_{$isbn}_{$upc}_{$allowExternalDescription}");
 		if (!$descriptionArray){
 			$marcDescription = null;
-			if ($description = $marcRecord->getField('520')) {
-				if ($description = $description->getSubfield('a')) {
-					$description = trim($description->getData());
+			if ($descriptionField = $marcRecord->getField('520')) {
+				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
+					$description = trim($descriptionSubfield->getData());
 					$marcDescription = Description::trimDescription($description);
 				}
 			}
