@@ -1082,6 +1082,18 @@ class DBMaintenance extends Admin {
 				") ENGINE=InnoDB",
 			),
 		),
+		
+		'holiday_1' => array(
+			'title' => 'Holidays 1',
+			'description' => 'Update indexes for holidays',
+			'dependencies' => array(),
+			'sql' => array(				
+				"ALTER TABLE holiday DROP INDEX `date`",
+				"ALTER TABLE holiday ADD INDEX Date (`date`) ",
+				"ALTER TABLE holiday ADD INDEX Library (`libraryId`) ",
+				"ALTER TABLE holiday ADD UNIQUE KEY LibraryDate(`date`, `libraryId`) ",
+			),
+		),
 		'book_store' => array(
 			'title' => 'Book store table',
 			'description' => 'Create a table to store information about book stores.',
