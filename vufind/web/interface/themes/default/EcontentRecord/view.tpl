@@ -8,7 +8,7 @@
 	{if $isbn || $upc}
     GetEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}');
   {/if}
-  {if $isbn}
+  {if $isbn && ($showComments || $showAmazonReviews || $showStandardReviews)}
     GetReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}');
   {/if}
   	{if $enablePospectorIntegration == 1}
@@ -525,10 +525,12 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $notes}
 					<li><a href="#notestab">{translate text="Notes"}</a></li>
 				{/if}
-				{if $showAmazonReviews || $showStandardReviews}
+				{if $showAmazonReviews || $showStandardReviews || $showComments}
 					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
 				{/if}
+				{if $showComments}
 				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
 				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
       </ul>
@@ -544,17 +546,20 @@ function redrawSaveStatus() {literal}{{/literal}
         </div>
       {/if}
       
-      
+      {if $showAmazonReviews || $showStandardReviews || $showComments}
 			<div id="reviewtab">
+				{if $showComments}
 				<div id = "staffReviewtab" >
 				{include file="Record/view-staff-reviews.tpl"}
 				</div>
+				{/if}
 				 
 				{if $showAmazonReviews || $showStandardReviews}
 				<h4>Professional Reviews</h4>
 				<div id='reviewPlaceholder'></div>
 				{/if}
 			</div>
+			{/if}
       
       {if $showComments == 1}
         <div id = "readertab" >
