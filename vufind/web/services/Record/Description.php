@@ -108,7 +108,9 @@ class Description extends Record{
 			if ($useMarcSummary){
 				if ($marcDescription != null){
 					$descriptionArray['description'] = $marcDescription;
+					$description = $marcDescription;
 				}else{
+					$description = "Description Not Provided";
 					$descriptionArray['description'] = "Description Not Provided";
 				} 
 			}
