@@ -18,6 +18,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private Logger logger;
 	
 	private boolean updateUnchangedResources = false;
+	private boolean removeTitlesNotInMarcExport = false;
 	
 	private PreparedStatement resourceUpdateStmt = null;
 	private PreparedStatement resourceInsertStmt = null;
@@ -72,12 +73,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			updateUnchangedResources = Boolean.parseBoolean(updateUnchangedResourcesVal);
 		}
 		
+		String removeTitlesNotInMarcExportVal = configIni.get("Reindex", "removeTitlesNotInMarcExport");
+		if (removeTitlesNotInMarcExportVal != null && removeTitlesNotInMarcExportVal.length() > 0){
+			removeTitlesNotInMarcExport = Boolean.parseBoolean(removeTitlesNotInMarcExportVal);
+		}
+		
 		
 		try {
 			// Setup prepared statements
 			resourceUpdateStmt = vufindConn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
 			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
-			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -137,6 +143,12 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		
 		boolean updateSubjectAndCallNumber = true;
 		results.incRecordsProcessed();
+		
+		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
+			//logger.info("Skipping record because it hasn't changed");
+			results.incSkipped();
+			return true;
+		}
 		try {
 			//Check to see if we have an existing resource
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
@@ -213,7 +225,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				clearResourceCallnumbersStmt.setLong(1, resourceId);
 				clearResourceCallnumbersStmt.executeUpdate();
 				//Add subjects 
-				Object subjects = recordInfo.getFields().get("topic_facet");
+				Object subjects = recordInfo.getMappedField("topic_facet");
 				Set<String> subjectsToProcess = new HashSet<String>();
 				if (subjects != null){
 					if (subjects instanceof String){
@@ -275,25 +287,45 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 
 	@Override
 	public void finish() {
-		results.addNote("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
-		results.saveResults();
-		//Mark any resources that no longer exist as deleted.
-		logger.info("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
-		for (BasicResourceInfo resourceInfo : existingResources.values()){
-			try {
-				deleteResourceStmt.setLong(1, resourceInfo.getResourceId());
-				deleteResourceStmt.executeUpdate();
-			} catch (SQLException e) {
-				logger.error("Unable to delete "  + resourceInfo.getResourceId(), e);
-				break;
+		if (removeTitlesNotInMarcExport){
+			results.addNote("Deleting resources that no longer exist from resources table, there are " + existingResources.size() + " resources to be deleted.");
+			results.saveResults();
+			//Mark any resources that no longer exist as deleted.
+			logger.info("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
+			int maxResourcesToDelete = 100;
+			int numResourcesAdded = 0;
+			for (BasicResourceInfo resourceInfo : existingResources.values()){
+				try {
+					deleteResourceStmt.setLong(++numResourcesAdded, resourceInfo.getResourceId());
+					if (numResourcesAdded == maxResourcesToDelete){
+						deleteResourceStmt.executeUpdate();
+						numResourcesAdded = 0;
+					}
+				} catch (SQLException e) {
+					logger.error("Unable to delete resources", e);
+					break;
+				}
+				results.incDeleted();
+				if (results.getNumDeleted() % 1000 == 0){
+					results.saveResults();
+				}
 			}
-			results.incDeleted();
-			if (results.getNumDeleted() % 100 == 0){
-				results.saveResults();
+			if (numResourcesAdded > 0 && numResourcesAdded == maxResourcesToDelete){
+				try {
+					for (int i = numResourcesAdded + 1; i < maxResourcesToDelete; i++){
+						deleteResourceStmt.setLong(i, -1);
+					}
+					if (numResourcesAdded == maxResourcesToDelete){
+						deleteResourceStmt.executeUpdate();
+						numResourcesAdded = 0;
+					}
+				} catch (SQLException e) {
+					logger.error("Unable to delete final resources", e);
+				}
 			}
+			results.addNote("Finished deleting resources");
+			results.saveResults();
 		}
-		results.addNote("Finished deleting resources");
-		results.saveResults();
 	}
 
 	@Override

@@ -71,11 +71,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		results = new ProcessorResults("Extract eContent from ILS", reindexLogId, vufindConn, logger);
 		
-		String reindexUnchangedRecordsVal = configIni.get("Reindex", "updateUnchangedRecords");
+		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
 		if (reindexUnchangedRecordsVal == null){
+			logger.debug("Did not get a value for reindexUnchangedRecordsVal");
 			reindexUnchangedRecords = true;
 		}else{
 			reindexUnchangedRecords = Boolean.parseBoolean(reindexUnchangedRecordsVal);
+			logger.debug("reindexUnchangedRecords = " + reindexUnchangedRecords + " " + reindexUnchangedRecordsVal);
 		}
 		
 		String checkOverDriveAvailabilityVal = configIni.get("Reindex", "checkOverDriveAvailability");
@@ -139,11 +141,19 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Make sure that overdrive titles are updated if we need to check availability
 				if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
 					//Overdrive record, force processing to make sure we get updated availability
-				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
-					logger.debug("Skipping because the record is not changed");
-					results.incSkipped();
-					return false;
+					logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
+				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED){
+					if (reindexUnchangedRecords){
+						logger.debug("Record is unchanged, but reindex unchanged records is on");
+					}else{
+						logger.debug("Skipping because the record is not changed");
+						results.incSkipped();
+						return false;
+					}
+				}else{
+					logger.debug("Record has changed or is new");
 				}
+				
 				
 				//Check to see if the record already exists
 				String ilsId = recordInfo.getId();
@@ -178,22 +188,22 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					createEContentRecord.setString(4, recordInfo.getFirstFieldValueInSet("title_short"));
 					createEContentRecord.setString(5, recordInfo.getFirstFieldValueInSet("title_sub"));
 					createEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
-					createEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getFields().get("author2")));
+					createEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
 					createEContentRecord.setString(8, recordInfo.getDescription());
-					createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getFields().get("contents")));
-					createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getFields().get("topic_facet")));
+					createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
+					createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
 					createEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
 					createEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
 					createEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
-					createEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getFields().get("isbn")));
-					createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getFields().get("issn")));
+					createEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getMappedField("isbn")));
+					createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
 					createEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("language"));
 					createEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
-					createEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getFields().get("topic")));
-					createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getFields().get("genre")));
-					createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getFields().get("geographic")));
-					createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getFields().get("era")));
-					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
+					createEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getMappedField("topic")));
+					createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getMappedField("genre")));
+					createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getMappedField("geographic")));
+					createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getMappedField("era")));
+					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getMappedField("target_audience")));
 					String sourceUrl = "";
 					if (recordInfo.getSourceUrls().size() == 1){
 						sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
@@ -227,22 +237,22 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					updateEContentRecord.setString(4, recordInfo.getFirstFieldValueInSet("title_short"));
 					updateEContentRecord.setString(5, recordInfo.getFirstFieldValueInSet("title_sub"));
 					updateEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
-					updateEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getFields().get("author2")));
+					updateEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
 					updateEContentRecord.setString(8, recordInfo.getDescription());
-					updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getFields().get("contents")));
-					updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getFields().get("topic_facet")));
+					updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
+					updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
 					updateEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
 					updateEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
 					updateEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
-					updateEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getFields().get("isbn")));
-					updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getFields().get("issn")));
+					updateEContentRecord.setString(14, Util.getCRSeparatedString(recordInfo.getMappedField("isbn")));
+					updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
 					updateEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("upc"));
 					updateEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
-					updateEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getFields().get("topic")));
-					updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getFields().get("genre")));
-					updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getFields().get("geographic")));
-					updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getFields().get("era")));
-					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getFields().get("target_audience")));
+					updateEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getMappedField("topic")));
+					updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getMappedField("genre")));
+					updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getMappedField("geographic")));
+					updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getMappedField("era")));
+					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getMappedField("target_audience")));
 					String sourceUrl = "";
 					if (recordInfo.getSourceUrls().size() == 1){
 						sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();

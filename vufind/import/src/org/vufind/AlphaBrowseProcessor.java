@@ -28,6 +28,9 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 	public boolean processResource(ResultSet resource) {
 		//For alpha browse processing, everything is handled in the finish method
 		results.incResourcesProcessed();
+		if (results.getResourcesProcessed() % 2500 == 0){
+			results.saveResults();
+		}
 		return true;
 	}
 

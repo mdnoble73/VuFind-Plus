@@ -194,23 +194,23 @@ public class StrandsProcessor implements IMarcRecordProcessor, IEContentProcesso
 			writer.write("|'" + Util.prepForCsv(recordInfo.getDescription(), false, false) + "'");
 
 			// Get the genre
-			String genres = Util.getSemiColonSeparatedString(recordInfo.getFields().get("genre"), true);
+			String genres = Util.getSemiColonSeparatedString(recordInfo.getMappedField("genre"), true);
 			writer.write("|'" + genres + "'");
 
 			// Get the format
-			String formats = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format"), true);
+			String formats = Util.getSemiColonSeparatedString(recordInfo.getMappedField("format"), true);
 			writer.write("|'" + formats.toString() + "'");
 
 			// Get the subjects
-			String subjects = Util.getSemiColonSeparatedString(recordInfo.getFields().get("topic"), true);
+			String subjects = Util.getSemiColonSeparatedString(recordInfo.getMappedField("topic"), true);
 			writer.write("|'" + subjects.toString() + "'");
 
 			// Get the audiences
-			String audiences = Util.getSemiColonSeparatedString(recordInfo.getFields().get("target_audience"), true);
+			String audiences = Util.getSemiColonSeparatedString(recordInfo.getMappedField("target_audience"), true);
 			writer.write("|'" + audiences.toString() + "'");
 
 			// Get the format categories
-			String categories = Util.getSemiColonSeparatedString(recordInfo.getFields().get("format_category"), true);
+			String categories = Util.getSemiColonSeparatedString(recordInfo.getMappedField("format_category"), true);
 			writer.write("|'" + categories.toString() + "'");
 
 			writer.write("\r\n");

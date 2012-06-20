@@ -586,9 +586,17 @@ public class MarcProcessor {
 								MarcIndexInfo marcIndexedInfo = null;
 								if (marcIndexInfo.containsKey(marcInfo.getId())) {
 									marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
-									if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum() || marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()
-											|| marcInfo.isEContent() != marcIndexedInfo.isEContent() || marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()) {
-										// logger.info("Record is changed");
+									if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
+										logger.debug("Record is changed - checksum");
+										recordStatus = RECORD_CHANGED;
+									}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
+										logger.debug("Record is changed - backup checksum");
+										recordStatus = RECORD_CHANGED;
+									}else if (marcInfo.isEContent() != marcIndexedInfo.isEContent()){
+										logger.debug("Record is changed - econtent");
+										recordStatus = RECORD_CHANGED;
+									}else if (marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()) {
+										logger.debug("Record is changed - backup econtent");
 										recordStatus = RECORD_CHANGED;
 									} else {
 										// logger.info("Record is unchanged");

@@ -21,6 +21,10 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.zip.CRC32;
 
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
 import org.apache.log4j.Logger;
 import org.econtent.DetectionSettings;
 import org.econtent.LibrarySpecificLink;
@@ -35,6 +39,8 @@ import org.marc4j.marc.VariableField;
 import org.solrmarc.tools.CallNumUtils;
 import org.solrmarc.tools.SolrMarcIndexerException;
 import org.solrmarc.tools.Utils;
+
+import com.jamesmurty.utils.XMLBuilder;
 
 import bsh.BshMethod;
 import bsh.EvalError;
@@ -80,9 +86,9 @@ public class MarcRecordDetails {
 	 * 
 	 * @return
 	 */
-	public boolean mapRecord() {
+	private boolean mapRecord(String source) {
 		if (allFieldsMapped) return true;
-		// System.out.println("Mapping record");
+		logger.debug("Mapping record " + getId() + " " + source);
 		allFieldsMapped = true;
 
 		// Map all fields for the record
@@ -381,6 +387,9 @@ public class MarcRecordDetails {
 		}
 	}
 
+	public Set<String> getFieldList(String tagStr) {
+		return this.getFieldList(this.record, tagStr);
+	}
 	/**
 	 * Get Set of Strings as indicated by tagStr. For each field spec in the
 	 * tagStr that is NOT about bytes (i.e. not a 008[7-12] type fieldspec), the
@@ -402,7 +411,7 @@ public class MarcRecordDetails {
 	 * @return the contents of the indicated marc field(s)/subfield(s), as a set
 	 *         of Strings.
 	 */
-	public Set<String> getFieldList(Record record, String tagStr) {
+	private Set<String> getFieldList(Record record, String tagStr) {
 		String[] tags = tagStr.split(":");
 		Set<String> result = new LinkedHashSet<String>();
 		for (int i = 0; i < tags.length; i++) {
@@ -1276,7 +1285,7 @@ public class MarcRecordDetails {
 
 	public String getIsbn() {
 		// return the first 13 digit isbn or 10 digit if there are no 13
-		Object isbnField = getMappedFields().get("isbn");
+		Object isbnField = getMappedFields("isbn").get("isbn");
 		if (isbnField instanceof String) {
 			String curIsbn = (String) isbnField;
 			if (curIsbn.indexOf(" ") > 0) {
@@ -1306,18 +1315,18 @@ public class MarcRecordDetails {
 		}
 	}
 
-	private HashMap<String, Object> getMappedFields() {
-		mapRecord();
+	private HashMap<String, Object> getMappedFields(String source) {
+		mapRecord(source);
 		return mappedFields;
 	}
 
 	public String getFirstFieldValueInSet(String fieldName) {
-		Object fieldValue = getMappedFields().get(fieldName);
+		Object fieldValue = getMappedFields(fieldName).get(fieldName);
 		if (fieldValue instanceof String) {
 			return (String) fieldValue;
 		} else {
 			@SuppressWarnings("unchecked")
-			Set<String> fieldValues = (Set<String>) getMappedFields().get(fieldName);
+			Set<String> fieldValues = (Set<String>)fieldValue;
 			if (fieldValues != null && fieldValues.size() >= 1) {
 				return (String) fieldValues.iterator().next();
 			}
@@ -1326,15 +1335,19 @@ public class MarcRecordDetails {
 	}
 
 	public String getAuthor() {
-		return (String) getMappedFields().get("auth_author");
+		return (String) getMappedFields("auth_author").get("auth_author");
 	}
 
 	public String getSortTitle() {
-		return (String) getMappedFields().get("title_sort");
+		return (String) getMappedFields("title_sort").get("title_sort");
 	}
 
-	public HashMap<String, Object> getFields() {
-		return getMappedFields();
+	private HashMap<String, Object> getFields(String source) {
+		return getMappedFields(source);
+	}
+	
+	public Object getMappedField(String fieldName){
+		return getMappedFields(fieldName).get(fieldName);
 	}
 
 	/**
@@ -2412,26 +2425,30 @@ public class MarcRecordDetails {
 		while (iter.hasNext()) {
 			DataField curField = (DataField) iter.next();
 			try {
-				String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
-				// System.out.println("Testing branch code (" + branchCode + ") for " +
-				// activeSystem);
-				if (branchCode.matches(branchCodes)) {
-					// System.out.println("Testing branch code (" + branchCode + ") for "
-					// + activeSystem);
-					String dateAddedCurStr = curField.getSubfield(dateChar).getData();
-					// System.out.println("Branch: " + branchCode + " - " +
-					// dateAddedCurStr);
-					Date dateAddedCurDate = formatter.parse(dateAddedCurStr);
-					if (dateAddedStr == null) {
-						dateAddedStr = dateAddedCurStr;
-						dateAddedDate = dateAddedCurDate;
-					} else if (dateAddedCurDate.getTime() < dateAddedDate.getTime()) {
-						dateAddedStr = dateAddedCurStr;
-						dateAddedDate = dateAddedCurDate;
+				if (curField.getSubfield(locationChar) != null && curField.getSubfield(locationChar).getData() != null){
+					String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
+					// System.out.println("Testing branch code (" + branchCode + ") for " +
+					// activeSystem);
+					if (branchCode.matches(branchCodes)) {
+						// System.out.println("Testing branch code (" + branchCode + ") for "
+						// + activeSystem);
+						if (curField.getSubfield(dateChar) != null){
+							String dateAddedCurStr = curField.getSubfield(dateChar).getData();
+							// System.out.println("Branch: " + branchCode + " - " +
+							// dateAddedCurStr);
+							Date dateAddedCurDate = formatter.parse(dateAddedCurStr);
+							if (dateAddedStr == null) {
+								dateAddedStr = dateAddedCurStr;
+								dateAddedDate = dateAddedCurDate;
+							} else if (dateAddedCurDate.getTime() < dateAddedDate.getTime()) {
+								dateAddedStr = dateAddedCurStr;
+								dateAddedDate = dateAddedCurDate;
+							}
+						}
 					}
 				}
 			} catch (Exception e) {
-				logger.debug("Non-fatal error loading relative time added " + e);
+				logger.debug("Non-fatal error loading relative time added", e);
 			}
 		}
 
@@ -2622,32 +2639,31 @@ public class MarcRecordDetails {
 	 *          record
 	 * @return Set format of record
 	 */
-	public Set<String> getAvailableLocations(String itemField, String statusSubField, String availableStatus, String locationSubField) {
+	public Set<String> getAvailableLocations(String itemField, String statusSubFieldIndicator, String availableStatus, String locationSubField) {
 		Set<String> result = new LinkedHashSet<String>();
 		@SuppressWarnings("unchecked")
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
-		char statusSubFieldChar = statusSubField.charAt(0);
+		char statusSubFieldChar = statusSubFieldIndicator.charAt(0);
 		char locationSubFieldChar = locationSubField.charAt(0);
 		for (int i = 0; i < itemRecords.size(); i++) {
 			Object field = itemRecords.get(i);
 			if (field instanceof DataField) {
 				DataField dataField = (DataField) field;
 				// Get subfield u (status)
-				Subfield subfieldU = dataField.getSubfield(statusSubFieldChar);
-				if (subfieldU != null) {
-					if (subfieldU.getData().equals("online")) {
+				Subfield statusSubfield = dataField.getSubfield(statusSubFieldChar);
+				if (statusSubfield != null) {
+					String status = statusSubfield.getData().trim();
+					if (status.equals("online")) {
 						// If the tile is available online, force the location to be online
 						result.add("online");
-					} else if (subfieldU.getData().matches(availableStatus)) {
+					} else if (status.matches(availableStatus)) {
 						// If the book is checked in, show it as available
 						// Get subfield m (location)
 						Subfield subfieldM = dataField.getSubfield(locationSubFieldChar);
 						result.add(subfieldM.getData().toLowerCase());
 					}
-
 				}
 			}
-
 		}
 		return result;
 	}
@@ -2655,7 +2671,7 @@ public class MarcRecordDetails {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Set<String> getAuthors() {
 		Set<String> result = new HashSet<String>();
-		Object author = getMappedFields().get("author");
+		Object author = getMappedFields("author").get("author");
 		if (author != null) {
 			if (author instanceof String) {
 				result.add((String) author);
@@ -2663,7 +2679,7 @@ public class MarcRecordDetails {
 				result.addAll((Set) author);
 			}
 		}
-		Object author2 = getMappedFields().get("author2");
+		Object author2 = getMappedFields("author2").get("author2");
 		if (author2 != null) {
 			if (author2 instanceof String) {
 				result.add((String) author2);
@@ -2687,7 +2703,7 @@ public class MarcRecordDetails {
 			// 1) It is already in the eContent database
 			// 2) It matches criteria in EContentRecordDetectionSettings
 			for (DetectionSettings curSettings : marcProcessor.getDetectionSettings()) {
-				Set<String> fieldData = getFieldList(record, curSettings.getFieldSpec());
+				Set<String> fieldData = getFieldList(curSettings.getFieldSpec());
 				boolean isMatch = false;
 				// logger.debug("Found " + fieldData.size() + " fields matching " +
 				// curSettings.getFieldSpec());
@@ -2737,7 +2753,7 @@ public class MarcRecordDetails {
 		// automatically
 		// generate translation maps which would streamline this process.
 		// 1) Get the facet name from the translation map
-		Map systemMap = marcProcessor.findMap("system_map");
+		Map<String, String> systemMap = marcProcessor.findMap("system_map");
 		if (systemMap == null){
 			logger.error("Unable to load system map!");
 		}
@@ -2748,6 +2764,37 @@ public class MarcRecordDetails {
 			librarySystemId = -1L;
 		}
 		return librarySystemId;
+	}
+	
+	public String createXmlDoc() throws ParserConfigurationException, FactoryConfigurationError, TransformerException { 
+		XMLBuilder builder = XMLBuilder.create("add");
+		XMLBuilder doc = builder.e("doc");
+		HashMap <String, Object> allFields = getFields("createXmlDoc");
+		Iterator<String> keyIterator = allFields.keySet().iterator();
+		while (keyIterator.hasNext()){
+			String fieldName = keyIterator.next();
+			Object fieldValue = allFields.get(fieldName);
+			if (fieldValue instanceof String){
+				if (fieldName.equals("fullrecord")){
+					//doc.e("field").a("name", fieldName).cdata( ((String)fieldValue).getBytes() );
+					//doc.e("field").a("name", fieldName).data( ((String)fieldValue).getBytes());
+					doc.e("field").a("name", fieldName).data( Util.encodeSpecialCharacters((String)fieldValue).getBytes());
+					System.out.println(Util.encodeSpecialCharacters((String)fieldValue));
+				}else{
+					doc.e("field").a("name", fieldName).t((String)fieldValue);
+				}
+			}else if (fieldValue instanceof Set){
+				@SuppressWarnings("unchecked")
+				Set<String> fieldValues = (Set<String>)fieldValue;
+				Iterator<String> fieldValuesIter = fieldValues.iterator();
+				while(fieldValuesIter.hasNext()){
+					doc.e("field").a("name", fieldName).t(fieldValuesIter.next());
+				}
+			}
+		}
+		String recordXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + builder.asString();
+		//logger.info("XML for " + recordInfo.getId() + "\r\n" + recordXml);
+		return recordXml;
 	}
 	
 	public String toString(){

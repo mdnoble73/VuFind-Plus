@@ -1,13 +1,9 @@
 package org.vufind;
 
 import java.sql.Connection;
-import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-
-import com.jamesmurty.utils.XMLBuilder;
 
 public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private String solrPort;
@@ -86,26 +82,33 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 				return true;
 			}
 			
+			
 			if (!recordInfo.isEContent()){
 				//Create the XML document for the record
-				String xmlDoc = createXmlDocForRecord(recordInfo);
-				if (xmlDoc != null){
-					//Post to the Solr instance
-					URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
-					if (response.isSuccess()){
-						if (recordStatus == MarcProcessor.RECORD_NEW){
-							results.incAdded();
+				try {
+					String xmlDoc = recordInfo.createXmlDoc();
+					if (xmlDoc != null){
+						//Post to the Solr instance
+						URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
+						if (response.isSuccess()){
+							if (recordStatus == MarcProcessor.RECORD_NEW){
+								results.incAdded();
+							}else{
+								results.incUpdated();
+							}
+							return true;
 						}else{
-							results.incUpdated();
+							results.incErrors();
+							results.addNote(response.getMessage());
+							return false;
 						}
-						return true;
 					}else{
 						results.incErrors();
-						results.addNote(response.getMessage());
 						return false;
 					}
-				}else{
-					results.incErrors();
+				} catch (Exception e) {
+					results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
+					e.printStackTrace();
 					return false;
 				}
 			}else{
@@ -123,42 +126,6 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			if (results.getRecordsProcessed() % 100 == 0){
 				results.saveResults();
 			}
-		}
-	}
-
-	private String createXmlDocForRecord(MarcRecordDetails recordInfo) {
-		try {
-			XMLBuilder builder = XMLBuilder.create("add");
-			XMLBuilder doc = builder.e("doc");
-			Iterator<String> keyIterator = recordInfo.getFields().keySet().iterator();
-			while (keyIterator.hasNext()){
-				String fieldName = keyIterator.next();
-				Object fieldValue = recordInfo.getFields().get(fieldName);
-				if (fieldValue instanceof String){
-					if (fieldName.equals("fullrecord")){
-						//doc.e("field").a("name", fieldName).cdata( ((String)fieldValue).getBytes() );
-						//doc.e("field").a("name", fieldName).data( ((String)fieldValue).getBytes());
-						doc.e("field").a("name", fieldName).data( Util.encodeSpecialCharacters((String)fieldValue).getBytes());
-						System.out.println(Util.encodeSpecialCharacters((String)fieldValue));
-					}else{
-						doc.e("field").a("name", fieldName).t((String)fieldValue);
-					}
-				}else if (fieldValue instanceof Set){
-					@SuppressWarnings("unchecked")
-					Set<String> fieldValues = (Set<String>)fieldValue;
-					Iterator<String> fieldValuesIter = fieldValues.iterator();
-					while(fieldValuesIter.hasNext()){
-						doc.e("field").a("name", fieldName).t(fieldValuesIter.next());
-					}
-				}
-			}
-			String recordXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + builder.asString();
-			//logger.info("XML for " + recordInfo.getId() + "\r\n" + recordXml);
-			return recordXml;
-		} catch (Exception e) {
-			results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
-			e.printStackTrace();
-			return null;
 		}
 	}
 	
