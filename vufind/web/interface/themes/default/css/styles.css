@@ -2395,3 +2395,15 @@ table.tablesorter thead tr .headerSortDown,table.tablesorter thead tr .headerSor
 #eContentImportDetails dd{
 	margin-left: 10px;
 }
+
+.advancedSearchFacetDetails{
+  display: inline-block;
+  margin: 5px;
+}
+.advancedSearchFacetHeader{
+  font-weight: bold;
+}
+.advancedSearchFacetFormatCategory{
+  display: inline-block;
+  margin: 5px;
+}

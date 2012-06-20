@@ -24,7 +24,6 @@
 	  	{css filename="search-results.css"}
 	  	{css filename="suggestions.css"}
 	  	{css filename="reports.css"}
-	    {css filename="dcl.css"}
     {/if}
 	
     {css media="print" filename="print.css"}

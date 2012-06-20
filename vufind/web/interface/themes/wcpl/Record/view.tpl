@@ -183,7 +183,7 @@ function redrawSaveStatus() {literal}{{/literal}
     
     <div id="similarAuthorPlaceholder" class="sidegroup" style='display:none'></div>
     
-    {if is_array($editions)}
+    {if is_array($editions) && !$showOtherEditionsPopup}
       <h3><a href="#">{translate text="Other Editions"}</a></h3>
       <div class="sidegroupContents">
         {foreach from=$editions item=edition}
@@ -210,7 +210,7 @@ function redrawSaveStatus() {literal}{{/literal}
   <div id="main-content" class="full-result-content">
     <div id="record-header">
       {if isset($previousId)}
-        <div id="previousRecordLink"><a href="{$path}/Record/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/wcpl/images/prev.png" alt="Previous Record"/></a></div>
+        <div id="previousRecordLink"><a href="{$path}/Record/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}"><img src="{img filename=prev.png}" alt="Previous Record"/></a></div>
       {/if}
       <div id="recordTitleAuthorGroup">
         {* Display Title *}
@@ -232,7 +232,7 @@ function redrawSaveStatus() {literal}{{/literal}
       </div>
       <div id ="recordTitleRight">
       	{if isset($nextId)}
-		      <div id="nextRecordLink"><a href="{$path}/Record/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/wcpl/images/next.png" alt="Next Record"/></a></div>
+		      <div id="nextRecordLink"><a href="{$path}/Record/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}"><img src="{img filename=next.png}" alt="Next Record"/></a></div>
 		    {/if}
       	{if $lastsearch}
 	      <div id="returnToSearch">
@@ -251,6 +251,12 @@ function redrawSaveStatus() {literal}{{/literal}
           </a>
         </div>
       </div>  
+      
+      {if $showOtherEditionsPopup}
+			<div id="otherEditionCopies">
+				<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+			</div>
+			{/if}
       
 
     
@@ -273,7 +279,7 @@ function redrawSaveStatus() {literal}{{/literal}
         <div id="actionTools">
           {* Place hold link *}
 			    <div class='requestThisLink' id="placeHoldSummary{$id|escape:"url"}" style="display:none">
-			      <a href="{$url}/Record/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+			      <a href="{$url}/Record/{$id|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
 			    </div>
 			    <div class='eBookLink' id="eBookLink{$id|escape:"url"}" style="display:none">
 			    </div>
@@ -294,10 +300,6 @@ function redrawSaveStatus() {literal}{{/literal}
           <br />
 		  </div>
 		  <div class="recordTools"> 
-          {if !$tabbedDetails}
-            <li><a href="{$url}/Record/{$id|escape:"url"}/Cite" class="cite" onclick='getLightbox("Record", "Cite", "{$id|escape}", null, "{translate text='Cite this'}"); return false;'>{translate text="Cite this"}</a></li>
-          {/if}
-          &nbsp;&nbsp;
           {if $showTextThis == 1}
             <a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a>
           {/if}
@@ -432,7 +434,7 @@ function redrawSaveStatus() {literal}{{/literal}
         </div>
         {* Place hold link *}
         <div class='requestThisLink' id="placeHoldHoldings{$id|escape:"url"}" style="display:none">
-          <a href="{$url}/Record/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+          <a href="{$url}/Record/{$id|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
         </div>
       </div>
       

@@ -108,10 +108,14 @@ class MillenniumDriver implements DriverInterface
 
 	public function isUserStaff(){
 		global $configArray;
-		$staffPTypes = $configArray['Staff P-Types'];
-		$pType = $this->getPType();
-		if (array_key_exists($pType, $staffPTypes)){
-			return true;
+		if (isset($configArray['Staff P-Types'])){
+			$staffPTypes = $configArray['Staff P-Types'];
+			$pType = $this->getPType();
+			if (array_key_exists($pType, $staffPTypes)){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
 			return false;
 		}
@@ -1093,8 +1097,7 @@ class MillenniumDriver implements DriverInterface
 		
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$id2 = $patron[$barcodeProperty];
+			$id2 = $this->_getBarcode();
 		}else{
 			$id2= $patron['id'];
 		}
@@ -1188,9 +1191,10 @@ class MillenniumDriver implements DriverInterface
 		
 		$numHoldsAvailable = 0;
 		$numHoldsRequested = 0;
+		$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
 		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
 			foreach ($patronDump['HOLD'] as $hold){
-				if (preg_match('/ST=(105|98),/', $hold)){
+				if (preg_match("$availableStatusRegex", $hold)){
 					$numHoldsAvailable++;
 				}else{
 					$numHoldsRequested++;
@@ -1388,7 +1392,7 @@ class MillenniumDriver implements DriverInterface
 	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
 	{
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Load the information from millenium using CURL
 		$sresult = $this->_fetchPatronInfoPage($patronDump, 'items');
@@ -1574,7 +1578,7 @@ class MillenniumDriver implements DriverInterface
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $timer;
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Load the information from millenium using CURL
 		$pageContents = $this->_fetchPatronInfoPage($patronDump, 'readinghistory');
@@ -1592,6 +1596,7 @@ class MillenniumDriver implements DriverInterface
 		$scount = 0;
 		$skeys = array_pad(array(),10,"");
 		$readingHistoryTitles = array();
+		$itemindex = 0;
 		foreach ($srows as $srow) {
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			$historyEntry = array();
@@ -1635,6 +1640,7 @@ class MillenniumDriver implements DriverInterface
 			} //Done processing row
 
 			if ($scount > 1){
+				$historyEntry['itemindex'] = $itemindex++;
 				//Get additional information from resources table
 				if ($historyEntry['shortId'] && strlen($historyEntry['shortId']) > 0){
 					$resource = new Resource();
@@ -1697,7 +1703,7 @@ class MillenniumDriver implements DriverInterface
 	function doReadingHistoryAction($patron, $action, $selectedTitles){
 		global $configArray;
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 		//Load the reading history page
 		$scope = $this->getDefaultScope();
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory";
@@ -1713,8 +1719,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -1769,7 +1774,7 @@ class MillenniumDriver implements DriverInterface
 		global $timer;
 		global $configArray;
 		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		//Load the information from millenium using CURL
 		$sresult = $this->_fetchPatronInfoPage($patronDump, 'holds');
@@ -2008,7 +2013,7 @@ class MillenniumDriver implements DriverInterface
 								$expireDate = DateTime::createFromFormat('m-d-y', $exipirationDate);
 								$curHold['expire'] = $expireDate->getTimestamp();
 								
-							}elseif (preg_match('/READY FOR PICKUP/i', $status, $matches)){
+							}elseif (preg_match('/READY\sFOR\sPICKUP/i', $status, $matches)){
 								$curHold['status'] = 'Ready';
 							}else{
 								$curHold['status'] = $status;
@@ -2144,6 +2149,7 @@ class MillenniumDriver implements DriverInterface
 			return $result;
 
 		} else {
+			
 			//User is logged in before they get here, always use the info from patrondump
 			$username = $patronDump['PATRN_NAME'];
 
@@ -2188,9 +2194,8 @@ class MillenniumDriver implements DriverInterface
 			$header[] = "Accept-Language: en-us,en;q=0.5";
 			$id=$patronDump['RECORD_#'];
 			$cookie = tempnam ("/tmp", "CURLCOOKIE");
-			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
-			//echo "$curl_url";
-			$curl_connection = curl_init($curl_url);
+			
+			$curl_connection = curl_init();
 			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
 			curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -2200,12 +2205,33 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-			curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
-
-
-			$post_data = $this->_getLoginFormValues($patronInfo);
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+			
+			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
+				//User must be logged in as a separate step to placing holds
+				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+				$post_data = $this->_getLoginFormValues($patronDump);
+				$post_data['submit.x']="35";
+				$post_data['submit.y']="21";
+				$post_data['submit']="submit";
+				curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
+				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . $value;
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$sresult = curl_exec($curl_connection);
+				$post_data = array();
+			}else{
+				$post_data = $this->_getLoginFormValues($patronInfo);
+			}
+			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
+			//echo "$curl_url";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			
 			$post_data['needby_Month']= $Month;
 			$post_data['needby_Day']= $Day;
 			$post_data['needby_Year']=$Year;
@@ -2234,70 +2260,73 @@ class MillenniumDriver implements DriverInterface
 			curl_close($curl_connection);
 
 			//Parse the response to get the status message
-			//Get rid of header and footer information and just get the main content
-			$matches = array();
+			$hold_result = $this->_getHoldResult($sresult);
+			$hold_result['title']  = $title;
+			$hold_result['bid'] = $bib1;
+			return $hold_result;
+		}
+	}
+	
+	protected function _getHoldResult($holdResultPage){
+		$hold_result = array();
+		//Get rid of header and footer information and just get the main content
+		$matches = array();
 
-			$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $sresult, $matches);
-			$hold_result = array(
-                        'result' => true,
-                        'title'  => $title,
-                        'bid' => $bib1);
-			if ($numMatches > 0){
-				$logger->log('Place Hold Body Text\n' . $matches[1], PEAR_LOG_INFO);
-				$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
-				$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
-				$cleanResponse = trim(strip_tags($cleanResponse));
-					
-				list($book,$reason)= explode("\n",$cleanResponse);
-				if (preg_match('/success/', $cleanResponse)){
-					//Hold was successful
-					$hold_result['result'] = true;
-					if (!isset($reason) || strlen($reason) == 0){
-						$hold_result['message'] = 'Your hold was placed successfully';
-					}else{
-						$hold_result['message'] = $reason;
-					}
-				}else if (!isset($reason) || strlen($reason) == 0){
-					//Didn't get a reason back.  This really shouldn't happen.
-					$hold_result['result'] = false;
-					$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+		$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $holdResultPage, $matches);
+		
+		if ($numMatches > 0){
+			//$logger->log('Place Hold Body Text\n' . $matches[1], PEAR_LOG_INFO);
+			$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
+			$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
+			$cleanResponse = trim(strip_tags($cleanResponse));
+				
+			list($book,$reason)= explode("\n",$cleanResponse);
+			if (preg_match('/success/', $cleanResponse)){
+				//Hold was successful
+				$hold_result['result'] = true;
+				if (!isset($reason) || strlen($reason) == 0){
+					$hold_result['message'] = 'Your hold was placed successfully';
 				}else{
-					//Got an error message back.
-					$hold_result['result'] = false;
 					$hold_result['message'] = $reason;
 				}
+			}else if (!isset($reason) || strlen($reason) == 0){
+				//Didn't get a reason back.  This really shouldn't happen.
+				$hold_result['result'] = false;
+				$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
 			}else{
-				if (preg_match('/Choose one item from the list below/', $sresult)){
-					//Get information about the items that are available for holds
-					preg_match_all('/<tr\\s+class="bibItemsEntry">.*?<input type="radio" name="radio" value="(.*?)".*?>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<\/tr>/s', $sresult, $itemInfo, PREG_PATTERN_ORDER);
-					$items = array();
-					for ($i = 0; $i < count($itemInfo[0]); $i++) {
-						$items[] = array(
+				//Got an error message back.
+				$hold_result['result'] = false;
+				$hold_result['message'] = $reason;
+			}
+		}else{
+			if (preg_match('/Choose one item from the list below/', $sresult)){
+				//Get information about the items that are available for holds
+				preg_match_all('/<tr\\s+class="bibItemsEntry">.*?<input type="radio" name="radio" value="(.*?)".*?>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<td.*?>(.*?)<\/td>.*?<\/tr>/s', $sresult, $itemInfo, PREG_PATTERN_ORDER);
+				$items = array();
+				for ($i = 0; $i < count($itemInfo[0]); $i++) {
+					$items[] = array(
                         'itemNumber' => $itemInfo[1][$i],
                         'location' => trim(str_replace('&nbsp;', '', $itemInfo[2][$i])),
                         'callNumber' => trim(str_replace('&nbsp;', '', $itemInfo[3][$i])),
                         'status' => trim(str_replace('&nbsp;', '', $itemInfo[4][$i])),
-						);
-					}
-					$hold_result['items'] = $items;
-					if (count($items) > 0){
-						$message = 'This title requires item level holds, please select an item to place a hold on.';
-					}else{
-						$message = 'There are no holdable items for this title.';
-					}
-				}else{
-					$message = 'Unable to contact the circulation system.  Please try again in a few minutes.';
+					);
 				}
-				$hold_result['result'] = false;
-				$hold_result['message'] = $message;
-
-				$logger = new Logger();
-				$logger->log('Place Hold Full HTML\n' . $sresult, PEAR_LOG_INFO);
+				$hold_result['items'] = $items;
+				if (count($items) > 0){
+					$message = 'This title requires item level holds, please select an item to place a hold on.';
+				}else{
+					$message = 'There are no holdable items for this title.';
+				}
+			}else{
+				$message = 'Unable to contact the circulation system.  Please try again in a few minutes.';
 			}
-			return $hold_result;
+			$hold_result['result'] = false;
+			$hold_result['message'] = $message;
 
+			$logger = new Logger();
+			$logger->log('Place Hold Full HTML\n' . $sresult, PEAR_LOG_INFO);
 		}
-
+		return $hold_result;
 	}
 
 	public function updateHold($requestId, $patronId, $type, $title){
@@ -2339,7 +2368,7 @@ class MillenniumDriver implements DriverInterface
 			$location->find();
 			if ($location->N == 1) {
 				$location->fetch();
-				$paddedLocation = trim($location->code);
+				$paddedLocation = str_pad(trim($location->code), 5, "+");
 			}
 		}else{
 			$paddedLocation = null;
@@ -2424,7 +2453,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
 		$holds = $this->parseHoldsPage($sresult);
-		$numHoldsStart = count($holds);
+		$numHoldsStart = count($holds['available'] + $holds['unavailable']);
 
 		//Issue a get request with the information about what to do with the holds
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
@@ -2441,7 +2470,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 		$sresult = curl_exec($curl_connection);
 		$holds = $this->parseHoldsPage($sresult);
-		$numHoldsEnd = count($holds);
+		$numHoldsEnd = count($holds['available'] + $holds['unavailable']);
 
 		curl_close($curl_connection);
 
@@ -2457,7 +2486,8 @@ class MillenniumDriver implements DriverInterface
 		
 		//Make sure to clear any cached data
 		global $memcache;
-		$memcache->delete("patron_dump_$patronId");
+		$memcache->delete("patron_dump_{$this->_getBarcode()}");
+		usleep(250);
 		//Clear holds for the patron
 		unset($this->holds[$patronId]);
 
@@ -2491,7 +2521,7 @@ class MillenniumDriver implements DriverInterface
 		$barcode = $this->_getBarcode();
 		$patronDump = $this->_getPatronDump($barcode);
 		$curCheckedOut = $patronDump['CUR_CHKOUT'];
-		$totalRenewals = $patronDump['TOT_RENEWAL'];
+		$totalRenewals = $patronDump['TOT_RENWAL'];
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -2542,9 +2572,10 @@ class MillenniumDriver implements DriverInterface
 		$sresult = curl_exec($curl_connection);
 		
 		//Clear the existing patron info and get new information.
-		$memcache->delete("patron_dump_$barcode");
+		$memcache->delete("patron_dump_{$this->_getBarcode()}");
+		usleep(250);
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
-		$newTotalRenewals = $patronDump['TOT_RENEWAL'];
+		$newTotalRenewals = $patronDump['TOT_RENWAL'];
 		
 		$hold_result = array();
 		$hold_result['Total'] = $curCheckedOut;
@@ -2552,7 +2583,7 @@ class MillenniumDriver implements DriverInterface
 		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
 		if ($hold_result['Unrenewed'] > 0) {
 			$hold_result['result'] = false;
-			$message = 'Unable to all items, too many renewals.';
+			$message = 'Some items could not be renewed.';
 		}else{
 			$hold_result['result'] = true;
 			$hold_result['message'] = "All items were renewed successfully.";
@@ -2569,7 +2600,7 @@ class MillenniumDriver implements DriverInterface
 
 		//Setup the call to Millennium
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
 		$extraGetInfo = array(
             'currentsortorder' => 'current_checkout',
@@ -2600,8 +2631,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -2646,50 +2676,20 @@ class MillenniumDriver implements DriverInterface
 
 		//Setup the call to Millennium
 		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($id2);
-
-		//Validate that the input data is correct
-		if (preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
-			PEAR::raiseError('The 1st location had an incorrect format.');
-		}
-		if (preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
-			PEAR::raiseError('The 2nd location had an incorrect format.');
-		}
-		if (isset($_REQUEST['bypassAutoLogout'])){
-			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
-				$user->bypassAutoLogout = 1;
-			}else{
-				$user->bypassAutoLogout = 0;
-			}
-		}
-		//Make sure the selected location codes are in the database.
-		$location = new Location();
-		$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-		$location->find();
-		if ($location->N != 1) {
-			PEAR::raiseError('The 1st location couuld not be found in the database.');
-		}
-		$location->whereAdd();
-		$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-		$location->find();
-		if ($location->N != 1) {
-			PEAR::raiseError('The 2nd location couuld not be found in the database.');
-		}
-		$user->myLocation1Id = $_POST['myLocation1'];
-		$user->myLocation2Id = $_POST['myLocation2'];
-		$user->update();
-		//Update the serialized instance stored in the session
-		$_SESSION['userinfo'] = serialize($user);
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+		
+		$this->_updateVuFindPatronInfo($patronId);
 
 		//Update profile information
-		$extraPostInfo = array(
-            'addr1a' => $_REQUEST['address1'],
-            'addr1b' => $_REQUEST['city'] . ', ' . $_REQUEST['state'] . ' ' . $_REQUEST['zip'],
-            'addr1c' => '',
-            'addr1d' => '',
-            'tele1'  => $_REQUEST['phone'],
-            'email'  => $_REQUEST['email'],
-		);
+		$extraPostInfo = array();
+		if (isset($_REQUEST['address1'])){
+			$extraPostInfo['addr1a'] = $_REQUEST['address1'];
+			$extraPostInfo['addr1b'] = $_REQUEST['city'] . ', ' . $_REQUEST['state'] . ' ' . $_REQUEST['zip'];
+			$extraPostInfo['addr1c'] = '';
+			$extraPostInfo['addr1d'] = '';
+		}
+		$extraPostInfo['tele1'] = $_REQUEST['phone'];
+		$extraPostInfo['email'] = $_REQUEST['email'];
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -2707,8 +2707,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data['name'] = $patronDump['PATRN_NAME'];
-		$post_data['code'] = $patronDump['P_BARCODE'];
+		$post_data = $this->_getLoginFormValues($patronDump);
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -2732,15 +2731,63 @@ class MillenniumDriver implements DriverInterface
 		
 		//Make sure to clear any cached data
 		global $memcache;
-		$memcache->delete("patron_dump_$patronId");
+		$memcache->delete("patron_dump_{$this->_getBarcode()}");
+		usleep(250);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
+			$user->phone = $_REQUEST['phone'];
+			$user->email = $_REQUEST['email'];
+			$user->update();
+			//Update the serialized instance stored in the session
+			$_SESSION['userinfo'] = serialize($user);
 			return true;
 		}else{
 			return false;
 		}
 
+	}
+	
+	protected function _updateVuFindPatronInfo($barcode){
+		global $user;
+		global $configArray;
+		
+		//Validate that the input data is correct
+		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
+			PEAR::raiseError('The 1st location had an incorrect format.');
+		}
+		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
+			PEAR::raiseError('The 2nd location had an incorrect format.');
+		}
+		if (isset($_REQUEST['bypassAutoLogout'])){
+			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
+				$user->bypassAutoLogout = 1;
+			}else{
+				$user->bypassAutoLogout = 0;
+			}
+		}
+		//Make sure the selected location codes are in the database.
+		if (isset($_POST['myLocation1'])){
+			$location = new Location();
+			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR::raiseError('The 1st location couuld not be found in the database.');
+			}
+			$user->myLocation1Id = $_POST['myLocation1'];
+		}
+		if (isset($_POST['myLocation2'])){
+			$location->whereAdd();
+			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR::raiseError('The 2nd location couuld not be found in the database.');
+			}
+			$user->myLocation2Id = $_POST['myLocation2'];
+		}
+		$user->update();
+		//Update the serialized instance stored in the session
+		$_SESSION['userinfo'] = serialize($user);
 	}
 
 	var $ptype;

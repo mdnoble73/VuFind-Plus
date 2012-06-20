@@ -38,7 +38,6 @@
 #previousRecordLink, #nextRecordLink{
 	display: inline-block;
 	vertical-align: top;
-	<?php //Hacks for IE 6 & 7 ?>
 	zoom: 1;
 	*display: inline;
 	margin: 5px 4px 0px 4px;
@@ -67,7 +66,6 @@
   text-align: center;
   display: inline-block;
   position: relative;
-  <?php //Hacks for IE 6 & 7 ?>
   zoom: 1;
   *display: inline;
   max-width: 188px;
@@ -78,7 +76,6 @@
 	vertical-align: top;
 	border: 0px solid #000000;
 	width: 335px;
-	<?php //Hacks for IE 6 & 7 ?>
 	zoom: 1;
 	*display: inline;
 }
@@ -105,7 +102,6 @@
 	width: 210px;
 	vertical-align: top;
 	text-align: center;
-	<?php //Hacks for IE 6 & 7 ?>
 	zoom: 1;
 	*display: inline;
 }
@@ -113,7 +109,6 @@
 	display: inline-block;
 	width: 460px;
 	vertical-align: top;
-	<?php //Hacks for IE 6 & 7 ?>
 	zoom: 1;
 	*display: inline;
 }
@@ -129,7 +124,6 @@
 	border: 0px solid #000000;
 	width: 330px;
 	padding-left: 8px;
-	<?php //Hacks for IE 6 & 7 ?>
 	zoom: 1;
 	font-size: 11px;    
 }
@@ -145,7 +139,6 @@
 	padding-top:10px;
 	border: 0px solid #000000;
 	width: 480px;
-	<?php //Hacks for IE 6 & 7 ?>
 	zoom: 1;
 	*display: inline;     
 }
@@ -243,6 +236,17 @@
 .epubLink{
   cursor: pointer;
 }
+#editEContentLink, #deleteEContentLink, #archiveEContentLink{
+	font-size: 8px;
+}
+#eContentStatus{
+	color: red;
+}
+#econtentSource{
+	font-size: 10px;
+	margin-top: 8px;
+}
+
 .ltfl_reviews{
 	margin-bottom: 10px;
 	margin-left: 10px;

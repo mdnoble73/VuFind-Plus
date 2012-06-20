@@ -574,7 +574,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/if}
 				<div id="holdingsPlaceholder"></div>
 				{if $enablePurchaseLinks == 1 && !$purchaseLinks}
-					<div class='purchaseTitle'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+					<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
 				{/if}
 				
 			</div>

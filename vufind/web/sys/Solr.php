@@ -835,7 +835,7 @@ class Solr implements IndexEngine {
 		switch ($sortField) {
 			case 'year':
 			case 'publishDate':
-				$sortField = 'publishDate';
+				$sortField = 'publishDateSort';
 				$defaultSortDirection = 'desc';
 				break;
 			case 'author':

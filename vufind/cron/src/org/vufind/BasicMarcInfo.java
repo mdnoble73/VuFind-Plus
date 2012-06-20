@@ -463,7 +463,7 @@ public class BasicMarcInfo {
 			}
 			
 			if (text != null && url != null){
-				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media).*?")  ){
+				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title).*?")  ){
 					if (!url.matches("(?i).*?vufind.*?")){
 						//System.out.println("Found source url");
 						sourceUrl = url;

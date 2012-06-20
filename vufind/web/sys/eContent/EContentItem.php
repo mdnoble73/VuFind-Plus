@@ -15,6 +15,8 @@ class EContentItem extends DB_DataObject {
 	public $acsId;          //varchar(128)
 	public $recordId;       //The id of the record to attach the item to
 	public $item_type;           //pdf, epub, etc
+	public $overDriveId;
+	public $libraryId;
 	public $notes; //Notes to the user for display (i.e. version with images, version without images).
 	public $addedBy;
 	public $date_added;
@@ -33,6 +35,17 @@ class EContentItem extends DB_DataObject {
 
 	function getObjectStructure(){
 		global $configArray;
+		
+		//Load Libraries for lookup values
+		$library = new Library();
+		$library->orderBy('displayName');
+		$library->find();
+		$libraryList = array();
+		$libraryList[-1] = "All Libraries";
+		while ($library->fetch()){
+			$libraryList[$library->libraryId] = $library->displayName;
+		}
+		
 		$structure = array(
 		'id' => array(
       'property'=>'id', 
@@ -47,6 +60,16 @@ class EContentItem extends DB_DataObject {
 		  'label' => 'Type',
 		  'values' => EContentItem::getValidItemTypes(), 
 		  'description' => 'The type of file being added',
+		  'required'=> true,
+		  'storeDb' => true,
+		  'storeSolr' => false,
+		),
+		'libraryId' => array(
+		  'property' => 'libraryId',
+		  'type' => 'enum',
+		  'label' => 'For use by',
+		  'values' => $libraryList, 
+		  'description' => 'The library system that has access to the link',
 		  'required'=> true,
 		  'storeDb' => true,
 		  'storeSolr' => false,
@@ -167,8 +190,12 @@ class EContentItem extends DB_DataObject {
 			'externalMP3' => 'External MP3',
 			'interactiveBook' => 'Interactive Book',
 			'externalLink' => 'External Link',
+			'overdrive' => 'OverDrive',
 		);
 	} 
+	function isExternalItem(){
+		return array_key_exists($this->item_type, EContentItem::getExternalItemTypes());
+	}
 	function validateCover(){
 		//Setup validation return array
 		$validationResults = array(
@@ -388,7 +415,29 @@ class EContentItem extends DB_DataObject {
 				return 0;
 			}
 		}else{
-			return 0;
+			return 'Unknown';
 		}
 	}
+	function getUsageNotes(){
+		$notes = '';
+		if ($this->libraryId == -1){
+			if ($this->isExternalItem()){
+				$notes = "Available from external provider.";
+			}elseif ($this->getAccessType() == 'free'){
+				$notes = "Must be checked out to read.";
+			}elseif ($this->getAccessType() == 'acs' || $this->getAccessType() == 'singleUse'){
+				$notes = "Must be checked out to read."; 
+			}
+		}else{
+			$library = new Library();
+			$library->libraryId = $this->libraryId;
+			if ($library->find(true)){
+				$notes = "Available to <b>{$library->displayName} patrons</b> only.";
+			}else{
+				$notes = "Could not load library information.";
+			}
+		}
+		return $notes;
+	}
+	
 }

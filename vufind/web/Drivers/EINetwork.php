@@ -113,7 +113,7 @@ class EINetwork extends MillenniumDriver{
 			$loginData['code'] = $configArray['Catalog']['ils_admin_pwd'];
 		}else{
 			$loginData['pin'] = $user->cat_password;
-			$loginData['code'] = $patronInfo['P_BARCODE'];
+			$loginData['code'] = $user->cat_username;
 		}
 		$loginData['submit'] = 'submit';
 		return $loginData;
@@ -122,5 +122,111 @@ class EINetwork extends MillenniumDriver{
 	protected function _getBarcode(){
 		global $user;
 		return $user->cat_username;
+	}
+	
+	protected function _getHoldResult($holdResultPage){
+		$hold_result = array();
+		//Get rid of header and footer information and just get the main content
+		$matches = array();
+
+		if (preg_match('/success/', $holdResultPage)){
+			//Hold was successful
+			$hold_result['result'] = true;
+			if (!isset($reason) || strlen($reason) == 0){
+				$hold_result['message'] = 'Your hold was placed successfully';
+			}else{
+				$hold_result['message'] = $reason;
+			}
+		}else if (preg_match('/<font color="red" size="\+2">(.*?)<\/font>/is', $holdResultPage, $reason)){
+			//Got an error message back.
+			$hold_result['result'] = false;
+			$hold_result['message'] = $reason[1];
+		}else{
+			//Didn't get a reason back.  This really shouldn't happen.
+			$hold_result['result'] = false;
+			$hold_result['message'] = 'Did not receive a response from the circulation system.  Please try again in a few minutes.';
+		}
+
+		return $hold_result;
+	}
+	
+	public function updatePatronInfo($patronId){
+		global $user;
+		global $configArray;
+		$logger = new Logger();
+
+		//Setup the call to Millennium
+		$id2= $patronId;
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+		$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+
+		$this->_updateVuFindPatronInfo($patronId);
+		
+		//Update profile information
+		$extraPostInfo = array();
+		$extraPostInfo['tele1'] = $_REQUEST['phone'];
+		$extraPostInfo['email'] = $_REQUEST['email'];
+
+		//Login to the patron's account
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$success = false;
+
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+
+		$curl_connection = curl_init($curl_url);
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		$post_data = $this->_getLoginFormValues($patronDump);
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$sresult = curl_exec($curl_connection);
+
+		//Issue a post request to update the patron information
+		$post_items = array();
+		foreach ($extraPostInfo as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$patronUpdateParams = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
+		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+		$sresult = curl_exec($curl_connection);
+
+		curl_close($curl_connection);
+		unlink($cookieJar);
+		
+		//Make sure to clear any cached data
+		global $memcache;
+		$memcache->delete("patron_dump_{$this->_getBarcode()}");
+		usleep(500);
+		$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
+
+		//Should get Patron Information Updated on success
+		if (preg_match('/Patron information updated/', $sresult)){
+			$patronDump = $this->_getPatronDump($this->_getBarcode());
+			$logger->log("Reloaded patron dump phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+			$memcache->delete("patron_dump_{$this->_getBarcode()}");
+			usleep(500);
+			$patronDump = $this->_getPatronDump($this->_getBarcode());
+			$logger->log("Reloaded patron dump again Patron phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+			$user->phone = $_REQUEST['phone'];
+			$user->email = $_REQUEST['email'];
+			//Update the serialized instance stored in the session
+			$_SESSION['userinfo'] = serialize($user);
+			return true;
+		}else{
+			return false;
+		}
+
 	}
 }

@@ -72,7 +72,7 @@ class Profile extends MyResearch
 		}
 
 		$interface->setTemplate('profile.tpl');
-		$interface->setPageTitle('My Profile');
+		$interface->setPageTitle(translate('My Profile'));
 		$interface->display('layout.tpl');
 	}
 

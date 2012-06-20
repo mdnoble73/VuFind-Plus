@@ -66,6 +66,7 @@ class Library extends DB_DataObject
 	public $holdDisclaimer;
 	public $enableAlphaBrowse;
 	public $enableMaterialsRequest;
+	public $eContentLinkRules;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -112,7 +113,7 @@ class Library extends DB_DataObject
           'showTagging'  => array('property'=>'showTagging', 'type'=>'checkbox', 'label'=>'Show Tagging', 'description'=>'Whether or not tags are shown (also disables adding tags)'),
           'showRatings'  => array('property'=>'showRatings', 'type'=>'checkbox', 'label'=>'Show Ratings', 'description'=>'Whether or not ratings are shown'),
           'showFavorites'  => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Show Favorites', 'description'=>'Whether or not users can maintain favorites lists'),
-          'exportOptions' => array('property'=>'exportOptions', 'type'=>'text', 'label'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.'),
+          'exportOptions' => array('property'=>'exportOptions', 'type'=>'text', 'label'=>'Export Options', 'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.'),
           'showEcommerceLink'  => array('property'=>'showEcommerceLink', 'type'=>'checkbox', 'label'=>'Show E-Commerce Link', 'description'=>'Whether or not users should be given a link to classic opac to pay fines'),
           'minimumFineAmount'  => array('property'=>'minimumFineAmount', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Minimum Fine Amount', 'description'=>'The minimum fine amount to display the e-commerce link'),
           'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link next to the search box.  It will still appear in the footer.'),
@@ -142,6 +143,7 @@ class Library extends DB_DataObject
           'enableAlphaBrowse' => array('property'=>'enableAlphaBrowse', 'type'=>'checkbox', 'label'=>'Enable Alphabetic Browse', 'description'=>'Enable Alphabetic Browsing of titles, authors, etc.'),
           'enableMaterialsRequest' => array('property'=>'enableMaterialsRequest', 'type'=>'checkbox', 'label'=>'Enable Materials Request', 'description'=>'Enable Materials Request functionality so patrons can request items not in the catalog.'),
           'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.'),
+          'eContentLinkRules' => array('property'=>'eContentLinkRules', 'type'=>'text', 'label'=>'EContent Link Rules', 'description'=>'A regular expression defining a set of criteria to determine whether or not a link belongs to this library.'),
           'holdDisclaimer' => array('property'=>'holdDisclaimer', 'type'=>'text', 'label'=>'Hold Disclaimer', 'description'=>'A disclaimer to display to patrons when they are placing a hold on items letting them know that their information may be available to other libraries.  Leave blank to not show a discalaimer.'),
 		  'holidays' => array(
 				'property' => 'holidays',
@@ -165,6 +167,7 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'NearbyBookStore',
 				'structure' => $nearbyBookStoreStructure,
+				'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true
 			),

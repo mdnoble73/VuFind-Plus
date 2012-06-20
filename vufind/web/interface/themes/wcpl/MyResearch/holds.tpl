@@ -22,7 +22,7 @@
       {foreach from=$recordList item=recordData key=sectionKey}
       
         {* Check to see if there is data for the secion *}
-        {if is_array($recordList.$sectionKey)}
+        {if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
           <div class='holdSection'>
             <div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
               <div class='holdSectionBody'>

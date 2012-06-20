@@ -14,7 +14,7 @@ class EContentRecordDetectionSettings extends DB_DataObject {
 	public $item_type;
 	public $add856FieldsAsExternalLinks;
 	
-/* Static get */
+	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentRecordDetectionSettings',$k,$v); }
 
 	function keys() {

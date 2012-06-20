@@ -66,6 +66,7 @@ div.yui-b.first {background-color:#fff;}
     border-top:#304c7e 2px solid;
     color: white;
 }
+
 .searchHomeForm a, .searchHomeForm a:hover {color:#fff;}
 .searchHomeBrowse {background-color:#94c632;}
 .searchHomeBrowseInner {    padding:0 25px;font-size:90%;}
@@ -77,6 +78,9 @@ div.yui-b.first {background-color:#fff;}
     padding: 1em 2em 1em 0;
     width:12em;
     min-height:16em;
+}
+.searchHomeForm input,.searchHomeForm select{
+	color: #392529 !important;
 }
 .searchHomeBrowseHeader {background-color:#fff;padding:0 25px;font-size:90%;min-height:3em;}
 #lookfor{
@@ -2012,4 +2016,16 @@ ul.hold_items li{
 }
 #eContentImportDetails dd{
 	margin-left: 10px;
+}
+
+.advancedSearchFacetDetails{
+  display: inline-block;
+  margin: 5px;
+}
+.advancedSearchFacetHeader{
+  font-weight: bold;
+}
+.advancedSearchFacetFormatCategory{
+  display: inline-block;
+  margin: 5px;
 }

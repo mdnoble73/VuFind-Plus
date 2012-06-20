@@ -61,3 +61,13 @@ function SendMyListEmail(to, from, message, id, strings) {
 	    + "&" + "message=" + encodeURIComponent(message) + "&listId=" + id;
 	sendAJAXEmail(url, params, strings);
 }
+
+function changeList(){
+	var availableLists = $("#availableLists");
+	window.location = path + "/MyResearch/MyList/" + availableLists.val();
+}
+
+function printListAction(){
+	window.print();
+	return false;
+}

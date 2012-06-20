@@ -1,0 +1,21 @@
+a {
+    text-decoration:none;
+    color:#2f4790;
+}
+a:hover {
+    color:#2f4790;
+}
+
+body {
+    font-family: "Arial Unicode MS", Arial, Sans-Serif;
+    color:#676769;
+    font-size: 12px;
+    padding:0px;
+    margin:0px;
+}
+
+li{
+	list-style-image: none;
+	list-style-position: inside;
+	list-style-type: none;
+}

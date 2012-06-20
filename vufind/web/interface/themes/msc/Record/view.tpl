@@ -12,7 +12,7 @@
 	{if $isbn || $upc}
 		GetEnrichmentInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', '{$upc|escape:"url"}', {$showSeriesAsTab});
 	{/if}
-	{if $isbn}
+	{if $isbn && ($showComments || $showAmazonReviews || $showStandardReviews)}
 		GetReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}');
 	{/if}
 		{if $enablePospectorIntegration == 1}
@@ -348,10 +348,12 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $notes}
 					<li><a href="#notestab">{translate text="Notes"}</a></li>
 				{/if}
-				{if $showAmazonReviews || $showStandardReviews}
+				{if $showAmazonReviews || $showStandardReviews || $showComments}
 					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
 				{/if}
-				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{if $showComments}
+					<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
 				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
       </ul>
@@ -368,19 +370,23 @@ function redrawSaveStatus() {literal}{{/literal}
             </ul>
             </div>
             {/if}
-            
-			<div id="reviewtab">
-				<div id = "staffReviewtab" >
-				{include file="$module/view-staff-reviews.tpl"}
+
+			{if $showAmazonReviews || $showStandardReviews || $showComments}
+				<div id="reviewtab">
+					{if $showComments}
+					<div id = "staffReviewtab" >
+					{include file="$module/view-staff-reviews.tpl"}
+					</div>
+					{/if}
+					 
+					{if $showAmazonReviews || $showStandardReviews}
+					<h4>Professional Reviews</h4>
+					<div id='reviewPlaceholder'></div>
+					{/if}
 				</div>
-				 
-				{if $showAmazonReviews || $showStandardReviews}
-				<h4>Professional Reviews</h4>
-				<div id='reviewPlaceholder'></div>
-				{/if}
-			</div>
+			{/if}
                
-            {if $showComments == 1}
+            {if $showComment}
             <div id = "readertab">
               {if !$tabbedDetails}
 	            <div class = "blockhead">Reader Reviews 

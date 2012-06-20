@@ -825,7 +825,7 @@ class ListAPI extends Action {
 				require_once 'sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
-					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
+					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
 					
 					if (isset($descriptions) && isset($descriptions[$record['id']])){
 						$descriptiveInfo['description'] = $descriptions[$record['id']];

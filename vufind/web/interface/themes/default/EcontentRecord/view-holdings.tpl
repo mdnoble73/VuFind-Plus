@@ -1,7 +1,13 @@
 {if count($holdings) > 0}
 	<table>
 	<thead>
-		<tr><th>Type</th><th>Source</th><th>Usage</th>{if $showEContentNotes}<th>Notes</th>{/if}<th>Size</th><th>&nbsp;</th>
+		<tr>
+			<th>Type</th>
+			<th>Source</th>
+			<th>Usage</th>
+			{if $showEContentNotes}<th>Notes</th>{/if}
+			{if $showSize}<th>Size</th>{/if}
+			<th>&nbsp;</th>
 	</thead>
 	<tbody>
 	{foreach from=$holdings item=eContentItem key=index}
@@ -9,8 +15,10 @@
 			<tr id="itemRow{$index}">
 				<td>{translate text=$eContentItem->format}</td>
 				<td>OverDrive</td>
-				<td>Must be checked out to read</td>
+				<td>{$eContentItem->getUsageNotes()}</td>
+				{if $showSize}
 				<td>{$eContentItem->size}</td>
+				{/if}
 				<td>
 					{* Options for the user to view online or download *}
 					{foreach from=$eContentItem->links item=link}
@@ -22,9 +30,11 @@
 			<tr id="itemRow{$eContentItem->id}">
 				<td>{translate text=$eContentItem->item_type}</td>
 				<td>{$eContentItem->source}</td>
-				<td>{if $eContentItem->getAccessType() == 'free'}No Usage Restrictions{elseif $eContentItem->getAccessType() == 'acs' || $eContentItem->getAccessType() == 'singleUse'}Must be checked out to read{/if}</td>
+				<td>{$eContentItem->getUsageNotes()}</td>
 				{if $showEContentNotes}<td>{$eContentItem->notes}</td>{/if}
-				<td>{$eContentItem->getSize()|file_size}</td>
+				{if $showSize}
+				<td>{if $eContentItem->getSize() !='Unknown'}{$eContentItem->getSize()|file_size}{else}Unknown{/if}</td>
+				{/if}
 				<td>
 					{* Options for the user to view online or download *}
 					{foreach from=$eContentItem->links item=link}

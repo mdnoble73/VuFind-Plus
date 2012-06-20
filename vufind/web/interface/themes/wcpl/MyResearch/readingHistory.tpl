@@ -83,7 +83,7 @@
 						    </a>
 						    {* Place hold link *}
 						    <div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
-						      <a href="{$url}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+						      <a href="{$url}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
 						    </div>
 						</div>
 				    

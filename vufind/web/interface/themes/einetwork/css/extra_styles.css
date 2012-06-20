@@ -1,0 +1,51 @@
+@CHARSET "ISO-8859-1";
+
+
+#loginFormWrapper{
+	border-right: 0px solid black;
+}
+.loginField{
+	width: 175px;
+	text-align: right;
+}
+
+.loginLabel{
+	width: 150px;
+}
+#loginFormWrapper{
+	width: 350px;
+}
+.ui-autocomplete{
+	font-size:10px;
+}
+.ui-widget-content a {
+	color: #003399;
+}
+
+.copiesSummary, .copiesSummary a{
+  color:#646464;font-size:8pt;
+}
+.holdableCopiesSummary{
+    color:#646464;font-size:8pt;
+} 
+.holdingsSummary{
+  background: #F9F9F9;
+  margin-left:5px;
+  padding: 7px;
+}
+
+#holdingsSummary a{
+	color: inherit;
+	font-size: 13px;
+}
+#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList{
+	color: #003399;
+}
+.holdingsSummary .availableAtList{
+	color: #392529;
+	font-size: 12px;
+}
+.holdingsSummary .callNumber, .holdingsSummary .callNumber a{
+	color: black;
+	font-weight: bold;
+  

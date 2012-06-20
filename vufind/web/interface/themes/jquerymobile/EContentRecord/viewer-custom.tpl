@@ -320,7 +320,7 @@
     
   </head>
 
-  <body>
+  <body oncontextmenu="return false;">
   	<div id='hideableHeader'>
 	  	<div id="menu-header">
 				

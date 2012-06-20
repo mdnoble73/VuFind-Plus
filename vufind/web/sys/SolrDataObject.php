@@ -140,9 +140,11 @@ abstract class SolrDataObject extends DB_DataObject{
 			//$logger->log('XML ' . print_r($xml, true), PEAR_LOG_INFO);
 			$timer->logTime('Created XML to save to the main index');
 			if ($index->saveRecord($xml)) {
-				//$result = $index->commit();
-				//$logger->log($xml, PEAR_LOG_INFO);
-				//$logger->log("Result saving to $corename index " . print_r($result, true), PEAR_LOG_INFO);
+				if (!$this->_quickReindex){
+					$result = $index->commit();
+					//$logger->log($xml, PEAR_LOG_INFO);
+					//$logger->log("Result saving to $corename index " . print_r($result, true), PEAR_LOG_INFO);
+				}
 			} else {
 				return new PEAR_Error("Could not save to $corename");
 			}

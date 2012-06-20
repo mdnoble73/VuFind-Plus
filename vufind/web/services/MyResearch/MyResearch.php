@@ -96,6 +96,8 @@ class MyResearch extends Action
 					}
 
 					$profile = $this->catalog->getMyProfile($patron);
+					$logger = new Logger();
+					$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
 					if (!PEAR::isError($profile)) {
 						$interface->assign('profile', $profile);
 					}

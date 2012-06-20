@@ -69,7 +69,9 @@
 					{*
 					<input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard{$shard|replace:' ':''|escape}" /> <label for="shard{$shard|replace:' ':''|escape}">{$shard|translate}</label>
 					*}
+					{*
 					<input type="checkbox" checked="checked" name="shard[]" value='{$shard|escape}' id="shard{$shard|replace:' ':''|escape}" /> <label for="shard{$shard|replace:' ':''|escape}">{$shard|translate}</label>
+					*}
 				{/foreach}
 			{/if}
       </div>

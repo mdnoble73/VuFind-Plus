@@ -1,13 +1,14 @@
 package org.econtent;
 
-public class DetectionSettings {
+public class DetectionSettings{
+	//Data loaded from the database
 	private String fieldSpec;
 	private String valueToMatch;
 	private String source;
 	private String accessType;
 	private String item_type;
 	private boolean add856FieldsAsExternalLinks;
-	
+
 	public String getFieldSpec() {
 		return fieldSpec;
 	}
