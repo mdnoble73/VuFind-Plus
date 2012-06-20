@@ -62,6 +62,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	public ProcessorResults results;
 	
 	private int numReindexingThreadsRunning;
+	private long lastThreadStartTime; 
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -513,6 +514,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					numReindexingThreadsRunning--;
 					logger.info("Remove thread " + numReindexingThreadsRunning);
 				} catch (Exception e) {
+					numReindexingThreadsRunning--;
 					logger.info("Unable to reindex record " + eContentRecordId, e);
 				}
 			}
@@ -530,6 +532,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 		}
 		numReindexingThreadsRunning++;
+		lastThreadStartTime = new Date().getTime();
 		reindexThread.start();
 	}
 
@@ -596,7 +599,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 
 	@Override
 	public void finish() {
-		while (numReindexingThreadsRunning > 0){
+		//Wait a maximum of 5 minutes for all threads to finish indexing.
+		while (numReindexingThreadsRunning > 0 && ((new Date().getTime() - lastThreadStartTime) > 5 * 60 * 1000)){
 			logger.info("Waiting for all reindex threads to finish, " + numReindexingThreadsRunning + " remain open");
 			try {
 				Thread.yield();

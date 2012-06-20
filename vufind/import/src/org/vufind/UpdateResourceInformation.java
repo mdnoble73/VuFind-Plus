@@ -290,24 +290,33 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		if (removeTitlesNotInMarcExport){
 			results.addNote("Deleting resources that no longer exist from resources table, there are " + existingResources.size() + " resources to be deleted.");
 			results.saveResults();
+			
 			//Mark any resources that no longer exist as deleted.
-			logger.info("Deleting resources that no longer from resources table, there are " + existingResources.size() + " resources to be deleted.");
+			int numResourcesToDelete = 0;
+			for (BasicResourceInfo resourceInfo : existingResources.values()){
+				if (resourceInfo.getDeleted() == false){
+					numResourcesToDelete++;
+				}
+			}
+			logger.info("Deleting resources that no longer from resources table, there are " + numResourcesToDelete + " of "+ existingResources.size() + " resources to be deleted.");
 			int maxResourcesToDelete = 100;
 			int numResourcesAdded = 0;
 			for (BasicResourceInfo resourceInfo : existingResources.values()){
-				try {
-					deleteResourceStmt.setLong(++numResourcesAdded, resourceInfo.getResourceId());
-					if (numResourcesAdded == maxResourcesToDelete){
-						deleteResourceStmt.executeUpdate();
-						numResourcesAdded = 0;
+				if (resourceInfo.getDeleted() == false){
+					try {
+						deleteResourceStmt.setLong(++numResourcesAdded, resourceInfo.getResourceId());
+						if (numResourcesAdded == maxResourcesToDelete){
+							deleteResourceStmt.executeUpdate();
+							numResourcesAdded = 0;
+						}
+					} catch (SQLException e) {
+						logger.error("Unable to delete resources", e);
+						break;
 					}
-				} catch (SQLException e) {
-					logger.error("Unable to delete resources", e);
-					break;
-				}
-				results.incDeleted();
-				if (results.getNumDeleted() % 1000 == 0){
-					results.saveResults();
+					results.incDeleted();
+					if (results.getNumDeleted() % 1000 == 0){
+						results.saveResults();
+					}
 				}
 			}
 			if (numResourcesAdded > 0 && numResourcesAdded == maxResourcesToDelete){
