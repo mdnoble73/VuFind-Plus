@@ -2205,7 +2205,6 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-			curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
 			curl_setopt($curl_connection, CURLOPT_POST, true);
@@ -2217,6 +2216,7 @@ class MillenniumDriver implements DriverInterface
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
+				curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 				foreach ($post_data as $key => $value) {
 					$post_items[] = $key . '=' . $value;
