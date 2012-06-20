@@ -2212,7 +2212,7 @@ class MillenniumDriver implements DriverInterface
 			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
 				//User must be logged in as a separate step to placing holds
 				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-				$post_data = $this->_getLoginFormValues($patronInfo);
+				$post_data = $this->_getLoginFormValues($patronDump);
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
@@ -2275,7 +2275,7 @@ class MillenniumDriver implements DriverInterface
 		$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $holdResultPage, $matches);
 		
 		if ($numMatches > 0){
-			$logger->log('Place Hold Body Text\n' . $matches[1], PEAR_LOG_INFO);
+			//$logger->log('Place Hold Body Text\n' . $matches[1], PEAR_LOG_INFO);
 			$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
 			$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
 			$cleanResponse = trim(strip_tags($cleanResponse));
