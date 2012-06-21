@@ -62,7 +62,9 @@ class Login extends Action
 			// attach the list ID to the action:
 			$finalAction = $action;
 			if ($finalAction == 'MyList') {
-				$finalAction .= '/' . $_GET['id'];
+				if (isset($_GET['id'])){
+					$finalAction .= '/' . $_GET['id'];
+				}
 			}
 			$interface->assign('followupAction', isset($_REQUEST['followupAction']) ? $_REQUEST['followupAction'] : $finalAction);
 

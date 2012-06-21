@@ -369,7 +369,7 @@ abstract class ObjectEditor extends Admin
 			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
 				header("Location: " . $_SESSION['redirect_location']);
 			}else{
-				header("Location: {$configArray['Site']['url']}/Admin/{$this->getToolName()}");
+				header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}");
 			}
 		}else{
 			header("Location: {$redirectLocation}");
@@ -386,6 +386,9 @@ abstract class ObjectEditor extends Admin
 	
 	function getFilters(){
 		return array();
+	}
+	function getModule(){
+		return 'Admin';
 	}
 
 	function getFilterValues(){

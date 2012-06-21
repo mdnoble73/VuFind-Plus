@@ -98,7 +98,7 @@
 							<tr id="record{$record.recordId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
 					{/if}
 					<td class="titleSelectCheckedOut myAccountCell">
-						<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" id="selected{$record.recordId|escape:"url"}" />
+						<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" id="selected{$record.shortId|escape:"url"}" />
 						</td>
 						<td class="myAccountCell">
 				    	{if $user->disableCoverArt != 1}

@@ -201,6 +201,9 @@
 .adminMenuLink{
 	font-size: 12px;
 	color: #256292;
+	margin-bottom: 6px;
+	margin-left: 10px;
+	text-indent: -10px;
 }
 .adminMenuHeader{
 	padding-top: 5px;

@@ -199,4 +199,5 @@ class EcontentRecordDriver extends IndexRecord
 	{
 		return isset($this->fields['title_short']) ? $this->fields['title_short'] : $this->eContentRecord->title;
 	}
+	
 }

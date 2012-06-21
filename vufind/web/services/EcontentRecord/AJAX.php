@@ -57,13 +57,24 @@ class AJAX extends Action {
 		
 		$holdings = $driver->getHolding($id);
 		$showEContentNotes = false;
+		$showSize = false;
 		foreach ($holdings as $holding){
 			if (strlen($holding->notes) > 0){
 				$showEContentNotes = true;
-			} 
+			}
+			if ($holding instanceof OverdriveItem){
+			if (is_numeric($holding->size)){
+					$showSize = true;
+				}
+			}else{
+				if ($holding->getSize() != 'Unknown'){
+					$showSize = true;
+				}
+			}
 		}
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
+		$interface->assign('showSize', $showSize);
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
@@ -372,8 +383,7 @@ class AJAX extends Action {
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
+				$overDriveId = $eContentRecord->getOverDriveId();
 			}
 		}else{
 			$overDriveId = $_REQUEST['overDriveId'];

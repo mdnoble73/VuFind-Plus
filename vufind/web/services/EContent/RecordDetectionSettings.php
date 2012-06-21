@@ -56,5 +56,7 @@ class RecordDetectionSettings extends ObjectEditor
 	function getAllowableRoles(){
 		return array('epubAdmin');
 	}
-
+	function getModule(){
+		return 'EContent';
+	} 
 }

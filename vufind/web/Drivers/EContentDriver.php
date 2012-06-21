@@ -87,6 +87,7 @@ class EContentDriver implements DriverInterface{
 			return EContentDriver::$holdings[$id];
 		}
 		global $user;
+		$libaryScopeId = $this->getLibraryScopingId();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
@@ -126,6 +127,9 @@ class EContentDriver implements DriverInterface{
 	
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $id;
+			if ($libaryScopeId != -1){
+				$eContentItem->whereAdd("libraryId = -1 or libraryId = $libaryScopeId");
+			}
 			$items = array();
 			$eContentItem->find();
 			while ($eContentItem->fetch()){
@@ -135,6 +139,8 @@ class EContentDriver implements DriverInterface{
 				$links = array();
 				if ($checkedOut){
 					$links = $this->_getCheckedOutEContentLinks($eContentRecord, $item, $eContentCheckout);
+				}else if ($eContentRecord->accessType == 'free' && $item->isExternalItem()){
+					$links = $this->_getFreeExternalLinks($eContentRecord, $item);
 				}else if ($onHold){
 					$links = $this->getOnHoldEContentLinks($eContentHold);
 				}
@@ -149,6 +155,20 @@ class EContentDriver implements DriverInterface{
 		
 		EContentDriver::$holdings[$id] = $items;
 		return $items;
+	}
+	
+	public function getLibraryScopingId(){
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+
+		//Load the holding label for the branch where the user is physically.
+		if (!is_null($searchLocation)){
+			return $searchLocation->libraryId;
+		}else if (isset($searchLibrary)) {
+			return $searchLibrary->libraryId;
+		}else{
+			return -1;
+		}
 	}
 	
 	public function getStatusSummary($id, $holdings){
@@ -187,6 +207,13 @@ class EContentDriver implements DriverInterface{
 					break;
 				}
 			}
+			if (isset($holding)){
+				$statusSummary['totalCopies'] = $holding->totalCopies;
+				$statusSummary['availableCopies'] = $holding->availableCopies;
+				$statusSummary['numHolds'] = $holding->numHolds;
+				$statusSummary['holdQueueLength'] = $holding->numHolds;
+			}
+		
 			if ($available){
 				$statusSummary['status'] = 'Available from OverDrive';
 			}else{
@@ -262,7 +289,21 @@ class EContentDriver implements DriverInterface{
 		
 		//Determine which buttons to show
 		$statusSummary['source'] = $eContentRecord->source;
+		$isFreeExternalLink = false;
+		if ($drmType == 'free'){
+			$isFreeExternalLink = true;
+			foreach ($holdings as $holding){
+				if (!$holding->isExternalItem()){
+					$isFreeExternalLink = false;
+				}
+			}
+		}
 		if ($overdriveTitle){
+			$statusSummary['showPlaceHold'] = false;
+			$statusSummary['showCheckout'] = false;
+			$statusSummary['showAddToWishlist'] = false;
+			$statusSummary['showAccessOnline'] = true;
+		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;
 			$statusSummary['showCheckout'] = false;
 			$statusSummary['showAddToWishlist'] = false;
@@ -403,6 +444,28 @@ class EContentDriver implements DriverInterface{
 		return $return;
 	}
 
+	private function _getFreeExternalLinks($eContentRecord, $eContentItem){
+		global $configArray;
+		global $user;
+		$links = array();
+		$addDefaultTypeLinks = false;
+		if ($eContentItem != null){
+			//Single usage or free
+			//default links to read the title or download
+			$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $eContentItem));
+		}else{
+			$eContentItems = $eContentRecord->getItems();
+			foreach ($eContentItems as $item){
+				//Single usage or free
+				//default links to read the title or download
+				$links = array_merge($links, $this->getDefaultEContentLinks($eContentRecord, $item));
+				$links[ArrayUtils::getLastKey($links)]['item_type'] = $item->item_type;
+			}
+		}
+		
+		return $links;
+	}
+	
 	private function _getCheckedOutEContentLinks($eContentRecord, $eContentItem, $eContentCheckout){
 		global $configArray;
 		global $user;
@@ -930,7 +993,7 @@ class EContentDriver implements DriverInterface{
 					//Link to Freegal
 					$links[] = array(
 									'url' => $url,
-									'text' => 'Access&nbsp;on&nbsp;' . $eContentRecord->source,
+									'text' => 'Get&nbsp;MP3&nbsp;From&nbsp;Freegal',
 					);
 				}else{
 					$links[] = array(
@@ -941,13 +1004,13 @@ class EContentDriver implements DriverInterface{
 			}else{
 				$links[] = array(
 							'url' => $eContentItem->link,
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
+							'text' => 'Access&nbsp;MP3',
 				);
 			}
 		}elseif (in_array($eContentItem->item_type, array('externalLink', 'interactiveBook'))){
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Download&nbsp;from&nbsp;' . $eContentRecord->source,
+							'text' => 'Access&nbsp;eBook',
 			);
 		}
 		return $links;

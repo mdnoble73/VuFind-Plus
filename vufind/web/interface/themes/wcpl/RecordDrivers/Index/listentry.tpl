@@ -31,6 +31,20 @@
         <a href="{$url}/Author/Home?author={$listAuthor|escape:"url"}">{$listAuthor|highlight:$lookfor}</a>
       {/if}
     {/if}
+    
+    {if $listTags}
+      {translate text='Your Tags'}:
+      {foreach from=$listTags item=tag name=tagLoop}
+        <a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
+      {/foreach}
+      <br>
+    {/if}
+    {if $listNotes}
+      {translate text='Notes'}: 
+      {foreach from=$listNotes item=note}
+        {$note|escape:"html"}<br>
+      {/foreach}
+    {/if}
  
     {if $listDate}{translate text='Published'} {$listDate.0|escape}{/if}
   </div>
@@ -53,7 +67,7 @@
   <div class="rate{$listId|escape} stat">
     {* Place hold link *}
     <div class='requestThisLink' id="placeHold{$listId|escape:"url"}" style="display:none">
-      <a href="{$url}/Record/{$listId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+      <a href="{$url}/Record/{$listId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
     </div>
       <div id="saveLink{$listId|escape}">
         {if $listEditAllowed}

@@ -14,10 +14,8 @@
 					Switch to List: 
 					<select name='availableLists' id='availableLists'>
 						{foreach from=$allLists key=listId item=listTitle}
-							{if $listId != $favList->id}
-							<option name="listOption" value="{$listId}">{$listTitle}</option>
-							{/if}
-						{/foreach}
+							<option name="listOption" value="{$listId}" {if $listId == $favList->id}selected="selected"{/if}>{$listTitle}</option>
+					{/foreach}
 					</select>
 					<input type="submit" value="Switch" onclick="changeList(); return false;"/>
 					</div>

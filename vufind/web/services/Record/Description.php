@@ -83,11 +83,18 @@ class Description extends Record{
 		
 		$descriptionArray = $memcache->get("record_description_{$isbn}_{$upc}_{$allowExternalDescription}");
 		if (!$descriptionArray){
-				
+			$marcDescription = null;
+			if ($descriptionField = $marcRecord->getField('520')) {
+				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
+					$description = trim($descriptionSubfield->getData());
+					$marcDescription = Description::trimDescription($description);
+				}
+			}
+			
 			//Load the description
 			//Check to see if there is a description in Syndetics and use that instead if available
 			$useMarcSummary = true;
-			if ($allowExternalDescription){
+			if ($allowExternalDescription || $marcDescription == null){
 				if (!is_null($isbn) || !is_null($upc)){
 					require_once 'Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
@@ -97,17 +104,18 @@ class Description extends Record{
 					}
 				}
 			}
+			
 			if ($useMarcSummary){
-				if ($description = $marcRecord->getField('520')) {
-					if ($description = $description->getSubfield('a')) {
-						$description = trim($description->getData());
-						$descriptionArray['description'] = Description::trimDescription($description);
-						$interface->assign('description', $description);
-					}
+				if ($marcDescription != null){
+					$descriptionArray['description'] = $marcDescription;
+					$description = $marcDescription;
 				}else{
+					$description = "Description Not Provided";
 					$descriptionArray['description'] = "Description Not Provided";
-				}
+				} 
 			}
+			$interface->assign('description', $description);
+			
 	
 			//Load page count
 			if ($length = $marcRecord->getField('300')){

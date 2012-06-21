@@ -163,10 +163,10 @@ class Home extends Action{
 				}
 				$timer->logTime('Got Other editions');
 			}
-			
+
 			//Load the citations
 			$this->loadCitation($eContentRecord);
-				
+
 			// Retrieve User Search History
 			$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
 			$_SESSION['lastSearchURL'] : false);
@@ -181,7 +181,7 @@ class Home extends Action{
 			$tags = $resource->getTags($limit);
 			$interface->assign('tagList', $tags);
 			$timer->logTime('Got tag list');
-			
+
 			//Load the Editorial Reviews
 			//Populate an array of editorialReviewIds that match up with the recordId
 			$editorialReview = new EditorialReview();
@@ -194,7 +194,7 @@ class Home extends Action{
 				}
 			}
 			$interface->assign('editorialReviewResults', $editorialReviewResults);
-			
+
 			//Build the actual view
 			$interface->setTemplate('view.tpl');
 
@@ -204,13 +204,30 @@ class Home extends Action{
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','&nbsp;');
-			
+
+			//Load Staff Details
+			$interface->assign('staffDetails', $this->getStaffView($eContentRecord));
+
 			// Display Page
 			$interface->display('layout.tpl');
 
 		}
 	}
 
+	public function getStaffView($eContentRecord){
+		global $interface;
+		$marcRecord = $eContentRecord->marcRecord;
+		$marc = trim($marcRecord);
+		$marc = preg_replace('/#31;/', "\x1F", $marc);
+		$marc = preg_replace('/#30;/', "\x1E", $marc);
+		$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
+
+		if (!($marcRecord = $marc->next())) {
+			PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
+		}
+		$interface->assign('marcRecord', $marcRecord);
+		return 'RecordDrivers/Marc/staff.tpl';
+	}
 
 	/**
 	 * Load information from the review provider and update the interface with the data.
@@ -316,7 +333,7 @@ class Home extends Action{
 							}else{
 								$previousRecord = $recordSet[$currentResultIndex - 1 - (($currentPage -1) * $recordsPerPage)];
 							}
-							
+
 							//Convert back to 1 based index
 							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 							$interface->assign('previousTitle', $previousRecord['title']);

@@ -737,6 +737,13 @@ public function getMyHoldsViaDB($patron)
 		if (!isset($location) && $location == null){
 			$location = $locationSingleton->getUserHomeLocation();
 		}
+		if (isset($ipLocation)){
+			$ipLibrary = new Library();
+			$ipLibrary->libraryId = $ipLocation->getLibraryId;
+			if (!$ipLibrary->find(true)){
+				$ipLibrary = null;
+			}
+		}
 		if (!isset($location) && $location == null){
 			$locationId = -1;
 		}else{
@@ -981,7 +988,8 @@ public function getMyHoldsViaDB($patron)
 				$timer->logTime('Checked for downloadable link in 856 tag');
 			}
 	
-			if ($availableHere){
+			$showItsHere = ($ipLibrary == null) ? true : ($ipLibrary->showItsHere == 1);
+			if ($availableHere && $showItsHere){
 				$summaryInformation['status'] = "It's Here";
 				$summaryInformation['class'] = 'here';
 				unset($availableLocations[$location->code]);

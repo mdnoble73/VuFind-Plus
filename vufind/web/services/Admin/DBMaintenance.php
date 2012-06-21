@@ -164,6 +164,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
 				),
 			),
+			'library_8' => array(
+				'title' => 'Library 8',
+				'description' => 'Add eContenLinkRules to determine how to load library specific link urls',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `eContentLinkRules` VARCHAR(512) DEFAULT '';",
+				),
+			),
+			
 			'location_1' => array(
 				'title' => 'Location 1',
 				'description' => 'Add fields orginally defined for Marmot',
@@ -534,7 +543,16 @@ class DBMaintenance extends Admin {
 					') ENGINE=InnoDB',
 				),
 			),
-
+			
+			'resource_subject_1' => array(
+				'title' => 'Resource subject update 1',
+				'description' => 'Increase the length of the subject column',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE subject CHANGE subject subject VARCHAR(512) NOT NULL'
+				),
+			),
+			
 			'readingHistory' => array(
         'title' => 'Reading History Creation',
         'description' => 'Update reading History to include an id table',
@@ -1062,6 +1080,18 @@ class DBMaintenance extends Admin {
 					"PRIMARY KEY ( `id` ), " .
 					"UNIQUE KEY (`date`) " .
 				") ENGINE=InnoDB",
+			),
+		),
+		
+		'holiday_1' => array(
+			'title' => 'Holidays 1',
+			'description' => 'Update indexes for holidays',
+			'dependencies' => array(),
+			'sql' => array(				
+				"ALTER TABLE holiday DROP INDEX `date`",
+				"ALTER TABLE holiday ADD INDEX Date (`date`) ",
+				"ALTER TABLE holiday ADD INDEX Library (`libraryId`) ",
+				"ALTER TABLE holiday ADD UNIQUE KEY LibraryDate(`date`, `libraryId`) ",
 			),
 		),
 		'book_store' => array(

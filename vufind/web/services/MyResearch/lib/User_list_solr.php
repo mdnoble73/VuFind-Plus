@@ -50,7 +50,7 @@ class User_list_solr{
 		$doc['num_titles'] = count($resources);
 		$doc['num_holdings'] = count($resources);
 		//Boosting to get towards the top of results
-		$doc['format_boost'] = 200;
+		$doc['format_boost'] = 100;
 		$doc['language_boost'] = 500;
 		//Add the list of titles and authors to the content
 		$contents = '';

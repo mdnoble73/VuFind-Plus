@@ -128,13 +128,13 @@ hr.selctedTitleSeparator{
 	width: 30px;
 	float: left;
 	cursor: pointer;
-	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-left.png) no-repeat left center;
+	background:url(/interface/themes/wcpl/images/scroll-left.png) no-repeat left center;
 	
 	zoom: 1;
 	*display: inline;
 }
 .leftScrollerButton:hover{
-	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-left-hover.png) no-repeat left center;
+	background:url(/interface/themes/wcpl/images/scroll-left-hover.png) no-repeat left center;
 }
 
 .rightScrollerButton{
@@ -143,14 +143,14 @@ hr.selctedTitleSeparator{
 	width: 30px;
 	float: right;
 	cursor: pointer;
-	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-right.png) no-repeat left center;
+	background:url(/interface/themes/wcpl/images/scroll-right.png) no-repeat left center;
 	z-index: 100;
 	
 	zoom: 1;
 	*display: inline;
 }
 .rightScrollerButton:hover{
-	background:url(<?php echo $configArray['Site']['path'];?>/interface/themes/<?php echo $configArray['Site']['theme'];?>/images/scroll-right-hover.png) no-repeat left center;
+	background:url(/interface/themes/wcpl/images/scroll-right-hover.png) no-repeat left center;
 }
 .titleScrollerSelectedTitle{
 	width: 100%;

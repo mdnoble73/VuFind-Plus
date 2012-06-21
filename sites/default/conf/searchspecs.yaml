@@ -425,6 +425,37 @@ id:
       - [onephrase, ~]
       - [or, ~]
 
+# Fields for exact matches originating from alphabetic browse
+ids:
+  QueryFields:
+    - id:
+      - [or, ~]
+
+TopicBrowse:
+  QueryFields:
+    - topic_browse:
+      - [onephrase, ~]
+
+AuthorBrowse:
+  QueryFields:
+    - author_browse:
+      - [onephrase, ~]
+
+TitleBrowse:
+  QueryFields:
+    - title_full:
+      - [onephrase, ~]
+
+DeweyBrowse:
+  QueryFields:
+    - dewey-raw:
+      - [onephrase, ~]
+
+LccBrowse:
+  QueryFields:
+    - callnumber-a:
+      - [onephrase, ~]
+
 CallNumber:
   CustomMunge:
     callnumber:
