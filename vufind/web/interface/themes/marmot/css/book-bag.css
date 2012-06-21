@@ -152,11 +152,6 @@ color: #caff42;
 
 /* BOOK BAG BUTTONS */
 #book_bag .button {
-    background-color:#88ABC2;
-    color: #132248;
-    border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;
-		border-style:solid;
-		border-width:1px;
     font-size: 12px;
     font-family:  Verdana, Helvetica,arial,sans-serif;
     display:inline-block;
@@ -273,7 +268,6 @@ color: #caff42;
 #bag_actions .bag_hide_button {
     background-color:#443636;
     border-color:#443636;
-    color:#FFFFFF;
     top:1px;
     width: auto;
 }
@@ -294,5 +288,9 @@ color: #caff42;
 }
 #bag_login_submit{
 	text-align: center;
+}
+
+#book_bag input,#book_bag select{
+	color: #392529 !important;
 }
 /* END BOOK BAG ACTIONS */

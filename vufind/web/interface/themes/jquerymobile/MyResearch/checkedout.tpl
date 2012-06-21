@@ -38,7 +38,7 @@
             {/if}
             </div>
             {if !empty($resource.id)}</a>{/if}
-            <a href="{$path}/MyResearch/Renew?itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" data-icon="refresh">Renew Item</a>
+            <a href="{$path}/MyResearch/Renew?itemId={if $resource.barcode}{$resource.barcode}{else}{$resource.itemid}{/if}&itemIndex={$resource.itemindex}" data-role="button" rel="external" data-icon="refresh">Renew Item</a>
           </li>
         {/foreach}
         </ul>

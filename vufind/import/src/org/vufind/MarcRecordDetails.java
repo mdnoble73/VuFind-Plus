@@ -411,7 +411,7 @@ public class MarcRecordDetails {
 	 * @return the contents of the indicated marc field(s)/subfield(s), as a set
 	 *         of Strings.
 	 */
-	private Set<String> getFieldList(Record record, String tagStr) {
+	public Set<String> getFieldList(Record record, String tagStr) {
 		String[] tags = tagStr.split(":");
 		Set<String> result = new LinkedHashSet<String>();
 		for (int i = 0; i < tags.length; i++) {
@@ -1563,6 +1563,165 @@ public class MarcRecordDetails {
 		} else {
 			return "Unrated";
 		}
+	}
+	
+	public Set<String> getAwardName(String fieldSpec) {
+		Set<String> result = new LinkedHashSet<String>();
+		// Loop through the specified MARC fields:
+		Set<String> fields = getFieldList(fieldSpec);
+		Iterator<String> fieldsIter = fields.iterator();
+		if (fields != null) {
+			while(fieldsIter.hasNext()) {
+				// Get the current string to work on:
+				String current = fieldsIter.next();
+				//Strip extra data after the award name. 
+				if (current.indexOf(",") > 0){
+					current = current.substring(0, current.indexOf(","));
+				}
+				result.add(current.trim());
+			}
+		}
+		// return set of awards to SolrMarc
+		if (result.size() == 0){
+			return null;
+		}
+		return result;
+	}
+	
+	public String getLexileScore(){
+		String result = null;
+		//Get a list of all tags that may contain the lexile score.  
+		@SuppressWarnings("unchecked")
+		List<VariableField> input = record.getVariableFields("521");
+		Iterator<VariableField> iter = input.iterator();
+
+		DataField field;
+		while (iter.hasNext()) {
+			field = (DataField) iter.next();
+	    
+			if (field.getSubfield('b') == null){
+				continue;
+			}else{
+				String type = field.getSubfield('b').getData();
+				if (type.matches("(?i).*?lexile.*?")){
+					String lexileRawData = field.getSubfield('a').getData();
+					try {
+						Pattern Regex = Pattern.compile("(\\d+)",
+							Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+						Matcher RegexMatcher = Regex.matcher(lexileRawData);
+						if (RegexMatcher.find()) {
+							String lexileData = RegexMatcher.group(1);
+							
+							result = lexileData;
+							//System.out.println("Lexile Score " + result);
+							return result;
+						} 
+					} catch (PatternSyntaxException ex) {
+						// Syntax error in the regular expression
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+	
+	public String getAcceleratedReaderReadingLevel(){
+		String result = null;
+		//Get a list of all tags that may contain the lexile score.  
+		@SuppressWarnings("unchecked")
+		List<VariableField> input = record.getVariableFields("526");
+		Iterator<VariableField> iter = input.iterator();
+
+		DataField field;
+		while (iter.hasNext()) {
+			field = (DataField) iter.next();
+	    
+			if (field.getSubfield('a') == null){
+				continue;
+			}else{
+				String type = field.getSubfield('a').getData();
+				if (type.matches("(?i)accelerated reader")){
+					String rawData = field.getSubfield('c').getData();
+					try {
+						Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+						Matcher RegexMatcher = Regex.matcher(rawData);
+						if (RegexMatcher.find()) {
+							String arData = RegexMatcher.group(1);
+							result = arData;
+							//System.out.println("AR Reading Level " + result);
+							return result;
+						} 
+					} catch (PatternSyntaxException ex) {
+						// Syntax error in the regular expression
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public String getAcceleratedReaderPointLevel(){
+		String result = null;
+		//Get a list of all tags that may contain the lexile score.  
+		@SuppressWarnings("unchecked")
+		List<VariableField> input = record.getVariableFields("526");
+		Iterator<VariableField> iter = input.iterator();
+
+		DataField field;
+		while (iter.hasNext()) {
+			field = (DataField) iter.next();
+	    
+			if (field.getSubfield('a') == null){
+				continue;
+			}else{
+				String type = field.getSubfield('a').getData();
+				if (type.matches("(?i)accelerated reader")){
+					String rawData = field.getSubfield('d').getData();
+					try {
+						Pattern Regex = Pattern.compile("([\\d.]+)",
+							Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+						Matcher RegexMatcher = Regex.matcher(rawData);
+						if (RegexMatcher.find()) {
+							String arData = RegexMatcher.group(1);
+							result = arData;
+							//System.out.println("AR Point Level " + result);
+							return result;
+						} 
+					} catch (PatternSyntaxException ex) {
+						// Syntax error in the regular expression
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public String getAcceleratedReaderInterestLevel(){
+		String result = null;
+		//Get a list of all tags that may contain the lexile score.  
+		@SuppressWarnings("unchecked")
+		List<VariableField> input = record.getVariableFields("526");
+		Iterator<VariableField> iter = input.iterator();
+
+		DataField field;
+		while (iter.hasNext()) {
+			field = (DataField) iter.next();
+	    
+			if (field.getSubfield('a') == null){
+				continue;
+			}else{
+				String type = field.getSubfield('a').getData();
+				if (type.matches("(?i)accelerated reader")){
+					String arReadingLevel = field.getSubfield('b').getData();
+					return arReadingLevel;
+				}
+			}
+		}
+
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
