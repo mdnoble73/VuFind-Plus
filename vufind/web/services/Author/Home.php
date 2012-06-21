@@ -161,6 +161,24 @@ class Home extends Action
 		$interface->assign('sideRecommendations',
 		$searchObject->getRecommendationsTemplates('side'));
 
+		//Enable and disable functionality based on library settings
+		global $library;
+		global $locationSingleton;
+		$location = $locationSingleton->getActiveLocation();
+		if (isset($library) && $location != null){
+			$interface->assign('showFavorites', $library->showFavorites);
+			$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
+		}else if ($location != null){
+			$interface->assign('showFavorites', 1);
+			$interface->assign('showHoldButton', $location->showHoldButton);
+		}else if (isset($library)){
+			$interface->assign('showFavorites', $library->showFavorites);
+			$interface->assign('showHoldButton', $library->showHoldButton);
+		}else{
+			$interface->assign('showFavorites', 1);
+			$interface->assign('showHoldButton', 1);
+		}
+		
 		// Big one - our results
 		$authorTitles = $searchObject->getResultRecordHTML();
 		$interface->assign('recordSet',  $authorTitles);
@@ -191,24 +209,6 @@ class Home extends Action
 
 		// Setup Display
 		$interface->assign('sitepath', $configArray['Site']['path']);
-
-		//Enable and disable functionality based on library settings
-		global $library;
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		if (isset($library) && $location != null){
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-		}else if ($location != null){
-			$interface->assign('showFavorites', 1);
-			$interface->assign('showHoldButton', $location->showHoldButton);
-		}else if (isset($library)){
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('showHoldButton', $library->showHoldButton);
-		}else{
-			$interface->assign('showFavorites', 1);
-			$interface->assign('showHoldButton', 1);
-		}
 
 		// Process Paging
 		$link = $searchObject->renderLinkPageTemplate();
