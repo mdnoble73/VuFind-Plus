@@ -83,9 +83,10 @@
       })(jQuery);
       {/literal}
     </script>
+    <script src="{$path}/interface/themes/anythink2/js/anythink-survey.js" type="text/javascript"></script>
   </head>
   <body class="{$module} {$action} {$module}--{$action} {$module}--{$action}--{$recordCount}">
-    <div style="text-align: center; background-color: #B31E3B; color: #FFF; padding: .5em 0; font-size: 1.2em;"><marquee>It's our new catalog! It's still being tested, so pardon us if you find a bug.</marquee></div>
+    <div style="text-align: center; background-color: #B31E3B; color: #FFF; padding: .5em 0; font-size: 1.2em;">It's Anythink's new catalog! Tell us what you think. We're still testing and tweaking, so pardon us if you find a bug.</div>
     <div id="container"><div id="inner">
       <!-- Current Physical Location: {$physicalLocation} -->
       {* LightBox *}
@@ -153,13 +154,13 @@
             </ul>
           {/if}
           {if !($module == 'Search' && $action == 'Home')}
-            <a id="navigate-link" href="http://stage.anythinklibraries.org/">{translate text="Explore Anythink..."}</a>
+            <a id="navigate-link" href="http://www.anythinklibraries.org/">{translate text="Explore Anythink..."}</a>
           {/if}
         </div>
         <div id="central" class="clearfix{if $module == 'Search' && $action == 'Home'} with-column-outer{/if}">
           {if $module == 'Search' && $action == 'Home'}
           <div id="column-outer-wrapper"><div id="column-outer">
-            <iframe width="200" height="600" border="0" src="http://stage.anythinklibraries.org/vufind/sidebar"></iframe>
+            <iframe width="200" height="700" border="0" src="http://www.anythinklibraries.org/vufind/sidebar"></iframe>
           </div></div>
           {/if}
           <div id="column-central">
