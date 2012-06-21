@@ -411,7 +411,7 @@ public class MarcRecordDetails {
 	 * @return the contents of the indicated marc field(s)/subfield(s), as a set
 	 *         of Strings.
 	 */
-	private Set<String> getFieldList(Record record, String tagStr) {
+	public Set<String> getFieldList(Record record, String tagStr) {
 		String[] tags = tagStr.split(":");
 		Set<String> result = new LinkedHashSet<String>();
 		for (int i = 0; i < tags.length; i++) {
