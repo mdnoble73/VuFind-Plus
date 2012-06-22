@@ -104,7 +104,7 @@
 				    	{if $user->disableCoverArt != 1}
 				    	<div class="imageColumn"> 
 						    
-						    <a href="{$url}/{if strcasecmp($readingHistory->source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+						    <a href="{$url}/{if strcasecmp($record.source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
 						    <img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 						    </a>
 						    
@@ -114,11 +114,11 @@
 						{/if}
 						    {* Place hold link *}
 						    <div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
-						      <a href="{$url}/{if strcasecmp($readingHistory->source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+						      <a href="{$url}/{if strcasecmp($record.source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
 						    </div>				    
 				      <div class="myAccountTitleDetails">
 						  <div class="resultItemLine1">
-							<a href="{$url}/{if strcasecmp($readingHistory->source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+							<a href="{$url}/{if strcasecmp($record.source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 							{if $record.title2}
 						    <div class="searchResultSectionInfo">
 						      {$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
