@@ -171,7 +171,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
 					resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 					resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
-					resourceUpdateStmt.setBytes(9, recordInfo.getRawRecord().getBytes());
+					resourceUpdateStmt.setString(9, recordInfo.getRawRecord());
 					resourceUpdateStmt.setString(10, recordInfo.getShortId());
 					resourceUpdateStmt.setLong(11, new Date().getTime() / 1000);
 					resourceUpdateStmt.setLong(12, resourceId);
@@ -202,7 +202,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				resourceInsertStmt.setString(8, recordInfo.getId());
 				resourceInsertStmt.setString(9, recordInfo.getShortId());
 				resourceInsertStmt.setLong(10, recordInfo.getChecksum());
-				resourceInsertStmt.setBytes(11, recordInfo.getRawRecord().getBytes());
+				resourceInsertStmt.setString(11, recordInfo.getRawRecord());
 				resourceInsertStmt.setString(12, "VuFind");
 
 				int rowsUpdated = resourceInsertStmt.executeUpdate();
@@ -242,7 +242,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 						Long subjectId = existingSubjects.get(curSubject);
 						if (subjectId == null){
 							//Insert the subject into the subject table
-							insertSubjectStmt.setString(1, curSubject);
+							insertSubjectStmt.setString(1, Util.trimTo(512, curSubject));
 							insertSubjectStmt.executeUpdate();
 							ResultSet generatedKeys = insertSubjectStmt.getGeneratedKeys();
 							if (generatedKeys.next()){

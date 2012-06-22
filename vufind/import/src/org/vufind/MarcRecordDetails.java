@@ -1663,65 +1663,75 @@ public class MarcRecordDetails {
 	}
 
 	public String getAcceleratedReaderPointLevel(){
-		String result = null;
-		//Get a list of all tags that may contain the lexile score.  
-		@SuppressWarnings("unchecked")
-		List<VariableField> input = record.getVariableFields("526");
-		Iterator<VariableField> iter = input.iterator();
+		try {
+			String result = null;
+			//Get a list of all tags that may contain the lexile score.  
+			@SuppressWarnings("unchecked")
+			List<VariableField> input = record.getVariableFields("526");
+			Iterator<VariableField> iter = input.iterator();
 
-		DataField field;
-		while (iter.hasNext()) {
-			field = (DataField) iter.next();
-	    
-			if (field.getSubfield('a') == null){
-				continue;
-			}else{
-				String type = field.getSubfield('a').getData();
-				if (type.matches("(?i)accelerated reader")){
-					String rawData = field.getSubfield('d').getData();
-					try {
-						Pattern Regex = Pattern.compile("([\\d.]+)",
-							Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-						Matcher RegexMatcher = Regex.matcher(rawData);
-						if (RegexMatcher.find()) {
-							String arData = RegexMatcher.group(1);
-							result = arData;
-							//System.out.println("AR Point Level " + result);
-							return result;
-						} 
-					} catch (PatternSyntaxException ex) {
-						// Syntax error in the regular expression
+			DataField field;
+			while (iter.hasNext()) {
+				field = (DataField) iter.next();
+			  
+				if (field.getSubfield('a') == null){
+					continue;
+				}else{
+					String type = field.getSubfield('a').getData();
+					if (type.matches("(?i)accelerated reader")){
+						String rawData = field.getSubfield('d').getData();
+						try {
+							Pattern Regex = Pattern.compile("([\\d.]+)",
+								Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+							Matcher RegexMatcher = Regex.matcher(rawData);
+							if (RegexMatcher.find()) {
+								String arData = RegexMatcher.group(1);
+								result = arData;
+								//System.out.println("AR Point Level " + result);
+								return result;
+							} 
+						} catch (PatternSyntaxException ex) {
+							// Syntax error in the regular expression
+						}
 					}
 				}
 			}
-		}
 
-		return result;
+			return result;
+		} catch (Exception e) {
+			logger.error("Error mapping AR points");
+			return null;
+		}
 	}
 
 	public String getAcceleratedReaderInterestLevel(){
-		String result = null;
-		//Get a list of all tags that may contain the lexile score.  
-		@SuppressWarnings("unchecked")
-		List<VariableField> input = record.getVariableFields("526");
-		Iterator<VariableField> iter = input.iterator();
+		try {
+			String result = null;
+			//Get a list of all tags that may contain the lexile score.  
+			@SuppressWarnings("unchecked")
+			List<VariableField> input = record.getVariableFields("526");
+			Iterator<VariableField> iter = input.iterator();
 
-		DataField field;
-		while (iter.hasNext()) {
-			field = (DataField) iter.next();
-	    
-			if (field.getSubfield('a') == null){
-				continue;
-			}else{
-				String type = field.getSubfield('a').getData();
-				if (type.matches("(?i)accelerated reader")){
-					String arReadingLevel = field.getSubfield('b').getData();
-					return arReadingLevel;
+			DataField field;
+			while (iter.hasNext()) {
+				field = (DataField) iter.next();
+			  
+				if (field.getSubfield('a') == null){
+					continue;
+				}else{
+					String type = field.getSubfield('a').getData();
+					if (type.matches("(?i)accelerated reader")){
+						String arReadingLevel = field.getSubfield('b').getData();
+						return arReadingLevel;
+					}
 				}
 			}
-		}
 
-		return result;
+			return result;
+		} catch (Exception e) {
+			logger.error("Error mapping AR interest level");
+			return null;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -2958,9 +2968,21 @@ public class MarcRecordDetails {
 	
 	public String toString(){
 		String rawRecord = getRawRecord();
+		/*for (int i = 128; i <= 255; i++ ){
+			rawRecord = rawRecord.replaceAll("\\x" + Integer.toHexString(i), "#" + i + ";");
+		}
+		for (int i = 1; i <= 31; i++ ){
+			rawRecord = rawRecord.replaceAll("\\x" + Integer.toHexString(i), "#" + i + ";");
+		}*/
+		
+
 		rawRecord = rawRecord.replaceAll("\\x1F", "#31;");
 		rawRecord = rawRecord.replaceAll("\\x1E", "#30;");
 		rawRecord = rawRecord.replaceAll("\\x1D", "#29;");
+		rawRecord = rawRecord.replaceAll("\\xA3", "#163;");
+		rawRecord = rawRecord.replaceAll("\\xA9", "#169;");
+		rawRecord = rawRecord.replaceAll("\\xAE", "#174;");
+		rawRecord = rawRecord.replaceAll("\\xE6", "#230;");
 		return rawRecord;
 	}
 }
