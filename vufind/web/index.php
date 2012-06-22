@@ -548,7 +548,7 @@ if ($action == "AJAX" || $action == "JSON"){
 $ipLocation = $locationSingleton->getIPLocation();
 $ipId = $locationSingleton->getIPid();
 
-if (!is_null($ipLocation) && $user){
+if (!is_null($ipLocation) && $ipLocation != false && $user){
 	$interface->assign('onInternalIP', true);
 	if (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1){
 		$interface->assign('includeAutoLogoutCode', false);
