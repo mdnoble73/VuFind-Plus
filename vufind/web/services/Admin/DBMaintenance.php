@@ -515,7 +515,7 @@ class DBMaintenance extends Admin {
 			
 			'resource_update8' => array(
 				'title' => 'Update resource table 8',
-				'description' => 'Updates resources to sotre marc records in text for easier debugging and UTF compatibility. ',
+				'description' => 'Updates resources to store marc records in text for easier debugging and UTF compatibility. ',
 				'sql' => array(
 					"UPDATE resource set marc = null, marc_checksum = -1;",
 					"ALTER TABLE `resource` CHANGE `marc` `marc` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ;"

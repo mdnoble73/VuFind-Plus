@@ -551,8 +551,10 @@ function redrawSaveStatus() {
           <li><a href="#notestab">{translate text="Notes"}</a></li>
         {/if}
         {if $showAmazonReviews || $showStandardReviews}
-          <li><a href="#reviewtab">{translate text="Reviews and Trailers"}</a></li>
-        {/if}
+					{foreach from=$editorialReviews key=key item=reviewTabInfo}
+						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
+					{/foreach}
+				{/if}
         <li><a href="#readertab">{translate text="Comments"}</a></li>
         <li><a href="#citetab">{translate text="Citations"}</a></li>
         <li><a href="#stafftab">{translate text="Staff View"}</a></li>
@@ -560,6 +562,13 @@ function redrawSaveStatus() {
         <li><a href="#marctab">{translate text="Links"}</a></li>
         {/if}
       </ul>
+
+      <div id="holdingstab">
+        <div id="holdingsPlaceholder"></div>
+        {if $enablePurchaseLinks == 1 && !$purchaseLinks}
+          <div class='purchaseTitle'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+        {/if}
+      </div>
 
       {* Display the content of individual tabs *}
       {if $notes}
@@ -572,33 +581,26 @@ function redrawSaveStatus() {
         </div>
       {/if}
 
-      <div id="reviewtab">
-        <div id="staffReviewtab" >
-        {include file="$module/view-staff-reviews.tpl"}
-        </div>
-
-        {if $showAmazonReviews || $showStandardReviews}
-        <h4>Professional Reviews</h4>
-        {* Add editorial reviews that have been entered *}
-        {if $editorialReviewResults && count($editorialReviewResults) > 0}
-	        <div id="editorialReviews">
-	        	{foreach from=$editorialReviewResults item=review}
-	        	
-				    <div id = 'review{php}$index ++;echo $index;{/php}'>
-				    	<div class='reviewTitle'>{$review->title}</div>
-				    	<div class="reviewContent">{$review->review}</div>
-				    	{if $review->source}
-					      <div class='reviewSource'>From: {$review->source}</div>
-					    {/if}
-				    </div>
-				    
-	        	{/foreach}
-	        </div>
-        {/if}
-        <div id='reviewPlaceholder'></div>
-        {/if}
-      </div>
-
+      {foreach from=$editorialReviews key=key item=reviewTabInfo}
+			<div id="{$key}">
+				{if $key == 'reviews'} 
+					<div id = "staffReviewtab" >
+					{include file="$module/view-staff-reviews.tpl"}
+					</div>
+					
+					{if $showAmazonReviews || $showStandardReviews}
+					<h4>Professional Reviews</h4>
+					<div id='reviewPlaceholder'></div>
+					{/if}
+				{/if}
+				 
+				{foreach from=$reviewTabInfo.reviews item=review}
+					{assign var=review value=$review}
+					{include file="Resource/view-review.tpl"}
+				{/foreach}
+			</div>
+			{/foreach}
+			
       {if $showComments == 1}
         <div id="readertab">
           <div class="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">{translate text="Add a Comment"}</span></div>
@@ -614,13 +616,6 @@ function redrawSaveStatus() {
 
       <div id="citetab" >
         {include file="$module/cite.tpl"}
-      </div>
-
-      <div id="holdingstab">
-        <div id="holdingsPlaceholder"></div>
-        {if $enablePurchaseLinks == 1 && !$purchaseLinks}
-          <div class='purchaseTitle'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-        {/if}
       </div>
 
       <div id="stafftab">
