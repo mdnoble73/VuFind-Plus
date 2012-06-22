@@ -1258,13 +1258,13 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * @param string $barcode the patron's barcode
 	 */
-	protected function _getPatronDump($barcode)
+	protected function _getPatronDump($barcode, $forceReload = false)
 	{
 		global $configArray;
 		global $memcache;
 		global $timer;
 		$patronDump = $memcache->get("patron_dump_$barcode");
-		if (!$patronDump){
+		if (!$patronDump || $forceReload){
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
@@ -2573,11 +2573,13 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
 		$sresult = curl_exec($curl_connection);
+
+		curl_close($curl_connection);
+		unlink($cookieJar);
 		
 		//Clear the existing patron info and get new information.
-		$memcache->delete("patron_dump_{$this->_getBarcode()}");
 		usleep(250);
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
+		$patronDump = $this->_getPatronDump($this->_getBarcode(), true);
 		$newTotalRenewals = $patronDump['TOT_RENWAL'];
 		
 		$hold_result = array();
@@ -2591,8 +2593,6 @@ class MillenniumDriver implements DriverInterface
 			$hold_result['result'] = true;
 			$hold_result['message'] = "All items were renewed successfully.";
 		}
-		curl_close($curl_connection);
-		unlink($cookieJar);
 
 		return $hold_result;
 	}
