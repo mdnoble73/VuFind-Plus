@@ -144,9 +144,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		boolean updateSubjectAndCallNumber = true;
 		results.incRecordsProcessed();
 		
+		if (recordInfo.isEContent()){
+			results.incSkipped();
+			logger.debug("Skipping updating resource for record because it is eContent");
+		}
 		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
 			//logger.info("Skipping record because it hasn't changed");
 			results.incSkipped();
+			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
+			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
+				existingResources.remove(recordInfo.getId());
+			}
 			return true;
 		}
 		try {
@@ -276,6 +284,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			// handle any errors
 			logger.error("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle(), ex);
 			System.out.println("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle() + " " + ex.toString());
+			results.addNote("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle() + " " + ex.toString());
 			results.incErrors();
 		}finally{
 			if (results.getRecordsProcessed() % 100 == 0){
