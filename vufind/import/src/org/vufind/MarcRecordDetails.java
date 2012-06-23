@@ -88,7 +88,7 @@ public class MarcRecordDetails {
 	 */
 	private boolean mapRecord(String source) {
 		if (allFieldsMapped) return true;
-		logger.debug("Mapping record " + getId() + " " + source);
+		//logger.debug("Mapping record " + getId() + " " + source);
 		allFieldsMapped = true;
 
 		// Map all fields for the record
@@ -2983,6 +2983,9 @@ public class MarcRecordDetails {
 		rawRecord = rawRecord.replaceAll("\\xA9", "#169;");
 		rawRecord = rawRecord.replaceAll("\\xAE", "#174;");
 		rawRecord = rawRecord.replaceAll("\\xE6", "#230;");
+		rawRecord = rawRecord.replaceAll("\\xE7", "#231;");
+		rawRecord = rawRecord.replaceAll("\\xE8", "#232;");
+		rawRecord = rawRecord.replaceAll("\\xE9", "#233;");
 		return rawRecord;
 	}
 }
