@@ -306,9 +306,9 @@
       id: id,
       description: data.find('description').text(),
       length: data.find('length').text(),
-      publisher: data.find('publisher').text(),
-    };
-  };
+      publisher: data.find('publisher').text()
+    }
+  }
 
 
   bookInBagAnythink = function(book) {
