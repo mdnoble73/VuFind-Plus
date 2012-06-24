@@ -64,8 +64,7 @@ class ReportPurchase extends Report{
 		$interface->assign('selectedDateEnd', $selectedDateEnd);
 
 		//////////Populate the Stores Filter
-		$queryStoresFilter = "SELECT DISTINCT store AS Store FROM purchase_link_tracking
-				ORDER BY Store ASC";
+		$queryStoresFilter = "SELECT DISTINCT store AS Store FROM purchase_link_tracking ORDER BY Store ASC";
 		$resStoresFilter = mysql_query($queryStoresFilter);
 
 		$allStores = array();
@@ -330,7 +329,8 @@ class ReportPurchase extends Report{
 		$myPicture->drawLegend(80,20,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_HORIZONTAL));
 
 		/* Render the picture (choose the best way) */
-		$chartHref = "/images/charts/dailyPurchases.png";
+		$time = time();
+		$chartHref = "/images/charts/dailyPurchases{$time}.png";
 		$chartPath = $configArray['Site']['local'] . $chartHref;
 		$myPicture->render($chartPath);
 		$interface->assign('chartPath', $chartHref);

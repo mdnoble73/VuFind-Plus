@@ -306,7 +306,8 @@ class ReportExternalLinks extends Report{
 		$myPicture->drawLegend(80,20,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_HORIZONTAL));
 
 		/* Render the picture (choose the best way) */
-		$chartHref = "/images/charts/dailyPurchases.png";
+		$time = time();
+		$chartHref = "/images/charts/dailyPurchases{$time}.png";
 		$chartPath = $configArray['Site']['local'] . $chartHref;
 		$myPicture->render($chartPath);
 		$interface->assign('chartPath', $chartHref);

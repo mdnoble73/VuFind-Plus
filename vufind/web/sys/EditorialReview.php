@@ -14,6 +14,8 @@ class EditorialReview extends DB_DataObject {
 	public $review;
 	public $source;
 	public $pubDate;
+	
+	public $tabName;
 
 	/* Storage for Dynamic Properties */
 	private $data;
@@ -51,7 +53,6 @@ class EditorialReview extends DB_DataObject {
 			'label'=>'Title', 
 			'description'=>'The title of the review is required.', 
 			'storeDb' => true, 
-			'serverValidation' => 'validateTitle',
 			'required' => true,
 		),
 		array(
@@ -71,6 +72,16 @@ class EditorialReview extends DB_DataObject {
 			'maxLength'=>25, 
 			'label'=>'Source', 
 			'description'=>'Source.', 
+			'storeDb' => true, 
+		),
+		array(
+			'property'=>'tabName', 
+			'type'=>'text', 
+			'size' => 25,
+			'maxLength'=>25, 
+			'label'=>'Tab Name', 
+			'description'=>'The Tab to display the review on', 
+			'default' => 'Reviews',
 			'storeDb' => true, 
 		),
 		array(
