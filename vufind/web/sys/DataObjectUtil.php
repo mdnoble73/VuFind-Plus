@@ -89,14 +89,19 @@ class DataObjectUtil
 			if ($primaryKeySet){
 				
 				$result = $object->update();
-				$validationResults['saveOk'] = $result;
+				$validationResults['saveOk'] = ($result == 1);
 			}else{
 				$result = $object->insert();
 				$validationResults['saveOk'] = $result;
 			}
 			if (!$validationResults['saveOk']){
 				//TODO: Display the PEAR error (in certain circumstances only?)
-				$validationResults['errors'][] = 'Save failed';
+				$error = &PEAR::getStaticProperty('DB_DataObject','lastError');
+				if (isset($error)){
+					$validationResults['errors'][] = 'Save failed ' . $error->getMessage();
+				}else{
+					$validationResults['errors'][] = 'Save failed';
+				}
 			}
 		}
 		return $validationResults;

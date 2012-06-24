@@ -510,12 +510,32 @@ function redrawSaveStatus() {literal}{{/literal}
 					<li><a href="#notestab">{translate text="Notes"}</a></li>
 				{/if}
 				{if $showAmazonReviews || $showStandardReviews}
-					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+					{foreach from=$editorialReviews key=key item=reviewTabInfo}
+						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
+					{/foreach}
 				{/if}
 				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
 				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 			</ul>
+			
+			<div id = "holdingstab">
+				{if $internetLinks}
+				<h3>{translate text="Internet"}</h3>
+				{foreach from=$internetLinks item=internetLink}
+				{if $proxy}
+				<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+				{else}
+				<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+				{/if}
+				{/foreach}
+				{/if}
+				<div id="holdingsPlaceholder"></div>
+				{if $enablePurchaseLinks == 1 && !$purchaseLinks}
+					<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+				{/if}
+					
+			</div>
 			
 			{* Display the content of individual tabs *}
 			{if $notes}
@@ -529,16 +549,25 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			
 			
-			<div id="reviewtab">
-				<div id = "staffReviewtab" >
-				{include file="$module/view-staff-reviews.tpl"}
-				</div>
-				 
-				{if $showAmazonReviews || $showStandardReviews}
-				<h4>Professional Reviews</h4>
-				<div id='reviewPlaceholder'></div>
+			{foreach from=$editorialReviews key=key item=reviewTabInfo}
+			<div id="{$key}">
+				{if $key == 'reviews'} 
+					<div id = "staffReviewtab" >
+					{include file="$module/view-staff-reviews.tpl"}
+					</div>
+					
+					{if $showAmazonReviews || $showStandardReviews}
+					<h4>Professional Reviews</h4>
+					<div id='reviewPlaceholder'></div>
+					{/if}
 				{/if}
+				 
+				{foreach from=$reviewTabInfo.reviews item=review}
+					{assign var=review value=$review}
+					{include file="Resource/view-review.tpl"}
+				{/foreach}
 			</div>
+			{/foreach}
 			
 			{if $showComments == 1}
 				<div id = "readertab" >
@@ -559,24 +588,6 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			<div id = "stafftab">
 				{include file=$staffDetails}
-			</div>
-			
-			<div id = "holdingstab">
-		{if $internetLinks}
-		<h3>{translate text="Internet"}</h3>
-		{foreach from=$internetLinks item=internetLink}
-		{if $proxy}
-		<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-		{else}
-		<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
-		{/if}
-		{/foreach}
-		{/if}
-				<div id="holdingsPlaceholder"></div>
-				{if $enablePurchaseLinks == 1 && !$purchaseLinks}
-					<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-				{/if}
-				
 			</div>
 		</div> {* End of tabs*}
 		

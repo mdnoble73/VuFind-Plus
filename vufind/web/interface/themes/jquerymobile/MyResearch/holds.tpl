@@ -21,7 +21,7 @@
 								{if !empty($resource.id)}<a rel="external" href="{$path}/Record/{$resource.id|escape}">{/if}
 								<div class="result">
 									{* If $resource.id is set, we have the full Solr record loaded and should display a link... *}
-									{if !empty($resource.id)}
+									{if !empty($resource.title)}
 										<h3>{$resource.title|trim:'/:'|escape}</h3>
 									{* If the record is not available in Solr, perhaps the ILS driver sent us a title we can show... *}
 									{elseif !empty($resource.ils_details.title)}

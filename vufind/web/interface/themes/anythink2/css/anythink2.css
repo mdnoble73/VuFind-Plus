@@ -1651,6 +1651,10 @@ div.popupBox ul li a {
   position: relative;
 }
 
+#survey-link {
+  color: inherit;
+}
+
 .survey-faux-wrapper {
   background-color: #000;
   opacity: .5;

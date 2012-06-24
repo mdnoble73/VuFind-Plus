@@ -192,10 +192,14 @@ class CheckedOut extends MyResearch{
 			}else{
 				$authorCell = '';
 			}
-			if (is_array($row['format'])){
-				$formatString = implode(', ', $row['format']);
+			if (isset($row['format'])){
+				if (is_array($row['format'])){
+					$formatString = implode(', ', $row['format']);
+				}else{
+					$formatString = $row['format'];
+				}
 			}else{
-				$formatString = $row['format'];
+				$formatString ='';
 			}
 			$activeSheet = $objPHPExcel->setActiveSheetIndex(0);
 			$curCol = 0;
@@ -203,9 +207,9 @@ class CheckedOut extends MyResearch{
 			$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $authorCell);
 			$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $formatString);
 			if ($showOut){
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', strtotime($row['checkoutdate'])));
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['checkoutdate']));
 			}
-			$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', strtotime($row['duedate'])));
+			$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
 			if ($showRenewed){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
 			}

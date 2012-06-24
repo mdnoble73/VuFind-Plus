@@ -9,12 +9,12 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
  *
  */
 
@@ -184,97 +184,97 @@ class DBMaintenance extends Admin {
 				),
 			),
 		
-      'user_display_name' => array(
-        'title' => 'User display name',
-        'description' => 'Add displayName field to User table to allow users to have aliases',
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE user ADD displayName VARCHAR( 30 ) NOT NULL DEFAULT ''",
+			'user_display_name' => array(
+				'title' => 'User display name',
+				'description' => 'Add displayName field to User table to allow users to have aliases',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE user ADD displayName VARCHAR( 30 ) NOT NULL DEFAULT ''",
 		),
 		),
 		
 		'user_phone' => array(
-        'title' => 'User phone',
-        'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
+				'title' => 'User phone',
+				'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
 				'continueOnError' => true,
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
 		),
 		),
 		
 		'user_ilsType' => array(
-        'title' => 'User Type',
-        'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
-        'dependencies' => array(),
+				'title' => 'User Type',
+				'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
+				'dependencies' => array(),
 				'continueOnError' => true,
-        'sql' => array(
-          "ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
+				'sql' => array(
+					"ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
 		),
 		),
-    	 
-      'list_widgets' => array(
-        'title' => 'Setup Configurable List Widgets',
-        'description' => 'Create tables related to configurable list widgets',
-        'dependencies' => array(),
-        'sql' => array(
-          "CREATE TABLE IF NOT EXISTS list_widgets (".
-            "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
-            "`name` VARCHAR(50) NOT NULL, " . 
-            "`description` TEXT, " .
-            "`showTitleDescriptions` TINYINT DEFAULT 1, " .
-            "`onSelectCallback` VARCHAR(255) DEFAULT '' " .
-          ") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
-          "CREATE TABLE IF NOT EXISTS list_widget_lists (".
-            "`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
-            "`listWidgetId` INT NOT NULL, " .
-            "`weight` INT NOT NULL DEFAULT 0, " .
-            "`displayFor` ENUM('all', 'loggedIn', 'notLoggedIn') NOT NULL DEFAULT 'all', " .
-            "`name` VARCHAR(50) NOT NULL, " .
-            "`source` VARCHAR(500) NOT NULL, " . 
-            "`fullListLink` VARCHAR(500) DEFAULT '' " .
-          ") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
-    	     ),
-    	     ),
-      
-      'list_widgets_home' => array(
-        'title' => 'List Widget Home',
-        'description' => 'Create the default homepage widget',
-        'dependencies' => array(),
-        'sql' => array(
+				
+			'list_widgets' => array(
+				'title' => 'Setup Configurable List Widgets',
+				'description' => 'Create tables related to configurable list widgets',
+				'dependencies' => array(),
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS list_widgets (".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+						"`name` VARCHAR(50) NOT NULL, " . 
+						"`description` TEXT, " .
+						"`showTitleDescriptions` TINYINT DEFAULT 1, " .
+						"`onSelectCallback` VARCHAR(255) DEFAULT '' " .
+					") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
+					"CREATE TABLE IF NOT EXISTS list_widget_lists (".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+						"`listWidgetId` INT NOT NULL, " .
+						"`weight` INT NOT NULL DEFAULT 0, " .
+						"`displayFor` ENUM('all', 'loggedIn', 'notLoggedIn') NOT NULL DEFAULT 'all', " .
+						"`name` VARCHAR(50) NOT NULL, " .
+						"`source` VARCHAR(500) NOT NULL, " . 
+						"`fullListLink` VARCHAR(500) DEFAULT '' " .
+					") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
+						),
+						),
+			
+			'list_widgets_home' => array(
+				'title' => 'List Widget Home',
+				'description' => 'Create the default homepage widget',
+				'dependencies' => array(),
+				'sql' => array(
 					"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
 					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor, fullListLink) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all', '')",
 					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor, fullListLink) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all', '')",
 				),
 			),
 
-      'list_wdiget_list_update_1' => array(
-        'title' => 'List Widget List Source Length Update',
-        'description' => 'Update length of source field to accommodate search source type',
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
-        ),
-      ),
+			'list_wdiget_list_update_1' => array(
+				'title' => 'List Widget List Source Length Update',
+				'description' => 'Update length of source field to accommodate search source type',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
+				),
+			),
 			
-      'index_search_stats' => array(
-        'title' => 'Index search stats table',
-        'description' => 'Add index to search stats table to improve autocomplete speed',
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
-        ),
-      ),
-      'list_wdiget_update_1' => array(
-        'title' => 'Update List Widget 1',
-        'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
-          "ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
-        ),
-      ),
-      'library_4' => array(
+			'index_search_stats' => array(
+				'title' => 'Index search stats table',
+				'description' => 'Add index to search stats table to improve autocomplete speed',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
+				),
+			),
+			'list_wdiget_update_1' => array(
+				'title' => 'Update List Widget 1',
+				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
+					"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
+				),
+			),
+			'library_4' => array(
 				'title' => 'Library 4',
 				'description' => 'Update Library table to include enableAlphaBrowse column',
 				'dependencies' => array(),
@@ -341,7 +341,7 @@ class DBMaintenance extends Admin {
 					`sourcePage` VARCHAR( 25 ) NULL ,
 					`contents` MEDIUMTEXT NULL ,
 					`picture` VARCHAR( 255 ) NULL
-					) ENGINE = MYISAM  COMMENT = 'Information about an obituary for a person';",
+					) ENGINE = MYISAM	COMMENT = 'Information about an obituary for a person';",
 				),
 			),
 			
@@ -364,65 +364,75 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE person ADD COLUMN importedFrom VARCHAR(50) NULL",
 				),
 			),
-      
-      'recommendations_optOut' => array(
-        'title' => 'Recommendations Opt Out',
-        'description' => 'Add tracking for whether the user wants to opt out of recommendations',
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE `user` ADD `disableRecommendations` TINYINT NOT NULL DEFAULT '0'",
-    	     ),
-    	     ),
+			
+			'recommendations_optOut' => array(
+				'title' => 'Recommendations Opt Out',
+				'description' => 'Add tracking for whether the user wants to opt out of recommendations',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `user` ADD `disableRecommendations` TINYINT NOT NULL DEFAULT '0'",
+						),
+						),
 
-      'editorial_review' => array(
-        'title' => 'Create Editorial Review table',
-        'description' => 'Create table to store editorial reviews from external reviews, i.e. book-a-day blog',
-        'dependencies' => array(),
-        'sql' => array(
-          "CREATE TABLE editorial_reviews (".
-            "editorialReviewId int NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-            "recordId VARCHAR(50) NOT NULL, ".
-            "title VARCHAR(255) NOT NULL, ".
-            "pubDate BIGINT NOT NULL, ".
-            "review TEXT, ".
-            "source VARCHAR(50) NOT NULL".
-          ")",
-    	     ),
-    	     ),
+			'editorial_review' => array(
+				'title' => 'Create Editorial Review table',
+				'description' => 'Create table to store editorial reviews from external reviews, i.e. book-a-day blog',
+				'dependencies' => array(),
+				'sql' => array(
+					"CREATE TABLE editorial_reviews (".
+						"editorialReviewId int NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"recordId VARCHAR(50) NOT NULL, ".
+						"title VARCHAR(255) NOT NULL, ".
+						"pubDate BIGINT NOT NULL, ".
+						"review TEXT, ".
+						"source VARCHAR(50) NOT NULL".
+					")",
+				),
+			),
+			
+			'editorial_review_1' => array(
+				'title' => 'Add tabname and sourceUrl to editorial reviews',
+				'description' => 'Create table to store editorial reviews from external reviews, i.e. book-a-day blog',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE editorial_reviews add tabName VARCHAR(25) DEFAULT 'Reviews';",
+				),
+			),
+						
 			'purchase_link_tracking' => array(
-        'title' => 'Create Purchase Link Tracking Table',
-        'description' => 'Create table to track data about the Purchase Links that were clicked',
-        'dependencies' => array(),
-        'sql' => array(
-				  'CREATE TABLE IF NOT EXISTS purchase_link_tracking (' .
-				  'purchaseLinkId int(11) NOT NULL AUTO_INCREMENT, '.
-				  'ipAddress varchar(30) NULL, '.
-          'recordId VARCHAR(50) NOT NULL, '.
-          'store VARCHAR(255) NOT NULL, '.
-				  'trackingDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, '.
-				  'PRIMARY KEY (purchaseLinkId) '.
+				'title' => 'Create Purchase Link Tracking Table',
+				'description' => 'Create table to track data about the Purchase Links that were clicked',
+				'dependencies' => array(),
+				'sql' => array(
+					'CREATE TABLE IF NOT EXISTS purchase_link_tracking (' .
+					'purchaseLinkId int(11) NOT NULL AUTO_INCREMENT, '.
+					'ipAddress varchar(30) NULL, '.
+					'recordId VARCHAR(50) NOT NULL, '.
+					'store VARCHAR(255) NOT NULL, '.
+					'trackingDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, '.
+					'PRIMARY KEY (purchaseLinkId) '.
 					') ENGINE=InnoDB',
 
-           'ALTER TABLE purchase_link_tracking ADD INDEX ( `purchaseLinkId` )',
-    	     ),
+						'ALTER TABLE purchase_link_tracking ADD INDEX ( `purchaseLinkId` )',
+						),
 			),
-      'usage_tracking' => array(
-        'title' => 'Create Usage Tracking Table',
-        'description' => 'Create table to track aggregate page view data',
-        'dependencies' => array(),
-        'sql' => array(
-				  'CREATE TABLE IF NOT EXISTS usage_tracking (' .
-				  'usageId int(11) NOT NULL AUTO_INCREMENT, '.
-				  'ipId INT NOT NULL, ' .
+			'usage_tracking' => array(
+				'title' => 'Create Usage Tracking Table',
+				'description' => 'Create table to track aggregate page view data',
+				'dependencies' => array(),
+				'sql' => array(
+					'CREATE TABLE IF NOT EXISTS usage_tracking (' .
+					'usageId int(11) NOT NULL AUTO_INCREMENT, '.
+					'ipId INT NOT NULL, ' .
 					'locationId INT NOT NULL, ' .
 					'numPageViews INT NOT NULL DEFAULT "0", ' .
 					'numHolds INT NOT NULL DEFAULT "0", ' .
 					'numRenewals INT NOT NULL DEFAULT "0", ' .
-          "trackingDate BIGINT NOT NULL, ".
-				  'PRIMARY KEY (usageId) '.
+					"trackingDate BIGINT NOT NULL, ".
+					'PRIMARY KEY (usageId) '.
 					') ENGINE=InnoDB',
 
-           'ALTER TABLE usage_tracking ADD INDEX ( `usageId` )',
+					'ALTER TABLE usage_tracking ADD INDEX ( `usageId` )',
 				),
 			),		
 			
@@ -468,7 +478,7 @@ class DBMaintenance extends Admin {
 				'description' => 'Update resource table to include a field for the actual marc record',
 				'dependencies' => array(),
 				'continueOnError' => true,
-        'sql' => array(
+				'sql' => array(
 					"ALTER TABLE `resource` ADD marc BLOB",
 				),
 			),
@@ -488,7 +498,7 @@ class DBMaintenance extends Admin {
 				'description' => 'Add a deleted column to determine if a resource has been removed from the catalog',
 				'dependencies' => array(),
 				'continueOnError' => true,
-        'sql' => array(
+				'sql' => array(
 					"ALTER TABLE `resource` ADD deleted TINYINT DEFAULT '0'",
 					"ALTER TABLE `resource` ADD INDEX (deleted)", 
 				),
@@ -503,14 +513,23 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'resource_update8' => array(
+				'title' => 'Update resource table 8',
+				'description' => 'Updates resources to store marc records in text for easier debugging and UTF compatibility. ',
+				'sql' => array(
+					"UPDATE resource set marc = null, marc_checksum = -1;",
+					"ALTER TABLE `resource` CHANGE `marc` `marc` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ;"
+				),
+			),
+			
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
 				'description' => 'Create table to store call numbers for resources',
 				'dependencies' => array(),
 				'sql' => array(
-				  'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
-				  'id int(11) NOT NULL AUTO_INCREMENT, '.
-				  'resourceId INT NOT NULL, ' .
+					'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
+					'id int(11) NOT NULL AUTO_INCREMENT, '.
+					'resourceId INT NOT NULL, ' .
 					'locationId INT NOT NULL, ' .
 					'callnumber VARCHAR(50) NOT NULL DEFAULT "", ' .
 					'PRIMARY KEY (id), '.
@@ -527,15 +546,15 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS subject (' .
-				  'id int(11) NOT NULL AUTO_INCREMENT, '.
-				  'subject VARCHAR(100) NOT NULL, ' .
+					'id int(11) NOT NULL AUTO_INCREMENT, '.
+					'subject VARCHAR(100) NOT NULL, ' .
 					'PRIMARY KEY (id), '.
 					'INDEX (`subject`)' .
 					') ENGINE=InnoDB',
 			
-				  'CREATE TABLE IF NOT EXISTS resource_subject (' .
-				  'id int(11) NOT NULL AUTO_INCREMENT, '.
-				  'resourceId INT(11) NOT NULL, ' .
+					'CREATE TABLE IF NOT EXISTS resource_subject (' .
+					'id int(11) NOT NULL AUTO_INCREMENT, '.
+					'resourceId INT(11) NOT NULL, ' .
 					'subjectId INT(11) NOT NULL, ' .
 					'PRIMARY KEY (id), '.
 					'INDEX (`resourceId`), ' .
@@ -554,84 +573,84 @@ class DBMaintenance extends Admin {
 			),
 			
 			'readingHistory' => array(
-        'title' => 'Reading History Creation',
-        'description' => 'Update reading History to include an id table',
-        'dependencies' => array(),
-        'sql' => array(
-			    "CREATE TABLE IF NOT EXISTS  user_reading_history(" .
-				    "`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', " .
+				'title' => 'Reading History Creation',
+				'description' => 'Update reading History to include an id table',
+				'dependencies' => array(),
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS	user_reading_history(" .
+						"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', " .
 						"`resourceId` INT NOT NULL COMMENT 'The record id of the item that was checked out', " .
 						"`lastCheckoutDate` DATE NOT NULL COMMENT 'The first day we detected that the item was checked out to the patron', " .
 						"`firstCheckoutDate` DATE NOT NULL COMMENT 'The last day we detected the item was checked out to the patron', " .
 						"`daysCheckedOut` INT NOT NULL COMMENT 'The total number of days the item was checked out even if it was checked out multiple times.', " .
 						"PRIMARY KEY ( `userId` , `resourceId` )" .
 					") ENGINE = MYISAM COMMENT = 'The reading history for patrons';",
-	      ),
+				),
 			),
 			
-      'coverArt_suppress' => array(
-        'title' => 'Cover Art Suppress',
-        'description' => 'Add tracking for whether the user wants to suppress cover art',
-        'dependencies' => array(),
-        'sql' => array(
-          "ALTER TABLE `user` ADD `disableCoverArt` TINYINT NOT NULL DEFAULT '0'",
-        ),
-      ),
-      
-      'externalLinkTracking' => array(
-        'title' => 'Create External Link Tracking Table',
-        'description' => 'Create table to track links to external sites from 856 tags or eContent',
-        'dependencies' => array(),
-        'sql' => array(
-				  'CREATE TABLE IF NOT EXISTS external_link_tracking (' .
-				  'externalLinkId int(11) NOT NULL AUTO_INCREMENT, '.
-				  'ipAddress varchar(30) NULL, '.
-          'recordId varchar(50) NOT NULL, '.
-          'linkUrl varchar(400) NOT NULL, '.
-          'linkHost varchar(200) NOT NULL, '.
-				  'trackingDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, '.
-				  'PRIMARY KEY (externalLinkId) '.
+			'coverArt_suppress' => array(
+				'title' => 'Cover Art Suppress',
+				'description' => 'Add tracking for whether the user wants to suppress cover art',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `user` ADD `disableCoverArt` TINYINT NOT NULL DEFAULT '0'",
+				),
+			),
+			
+			'externalLinkTracking' => array(
+				'title' => 'Create External Link Tracking Table',
+				'description' => 'Create table to track links to external sites from 856 tags or eContent',
+				'dependencies' => array(),
+				'sql' => array(
+					'CREATE TABLE IF NOT EXISTS external_link_tracking (' .
+					'externalLinkId int(11) NOT NULL AUTO_INCREMENT, '.
+					'ipAddress varchar(30) NULL, '.
+					'recordId varchar(50) NOT NULL, '.
+					'linkUrl varchar(400) NOT NULL, '.
+					'linkHost varchar(200) NOT NULL, '.
+					'trackingDate timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, '.
+					'PRIMARY KEY (externalLinkId) '.
 					') ENGINE=InnoDB',
-	      ),
+				),
 			),
 			
 			'readingHistoryUpdate1' => array(
-        'title' => 'Reading History Update 1',
-        'description' => 'Update reading History to include an id table',
-        'dependencies' => array(),
-        'sql' => array(
-			    'ALTER TABLE `user_reading_history` DROP PRIMARY KEY',
-			    'ALTER TABLE `user_reading_history` ADD UNIQUE `user_resource` ( `userId` , `resourceId` ) ',
-          'ALTER TABLE `user_reading_history` ADD `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST ',
-	      ),
+				'title' => 'Reading History Update 1',
+				'description' => 'Update reading History to include an id table',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE `user_reading_history` DROP PRIMARY KEY',
+					'ALTER TABLE `user_reading_history` ADD UNIQUE `user_resource` ( `userId` , `resourceId` ) ',
+					'ALTER TABLE `user_reading_history` ADD `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST ',
+				),
 			),
 			
 			'materialsRequest' => array(
-        'title' => 'Materials Request Table Creation',
-        'description' => 'Update reading History to include an id table',
-        'dependencies' => array(),
-        'sql' => array(
-				  'CREATE TABLE IF NOT EXISTS materials_request (' .
-				  'id int(11) NOT NULL AUTO_INCREMENT, '.
-				  'title varchar(255), '.
-          'author varchar(255), '.
-          'format varchar(25), '.
-          'ageLevel varchar(25), '.
-				  'isbn_upc varchar(15), '.
-				  'oclcNumber varchar(30), '.
-				  'publisher varchar(255), '.
-				  'publicationYear varchar(4), '.
-				  'articleInfo varchar(255), '.
-				  'abridged TINYINT, '.
-				  'about TEXT, '.
-				  'comments TEXT, '.
-				  "status enum('pending', 'owned', 'purchased', 'referredToILL', 'ILLplaced', 'ILLreturned', 'notEnoughInfo', 'notAcquiredOutOfPrint', 'notAcquiredNotAvailable', 'notAcquiredFormatNotAvailable', 'notAcquiredPrice', 'notAcquiredPublicationDate', 'requestCancelled') DEFAULT 'pending', ".
-				  'dateCreated int(11), '.
-				  'createdBy int(11), ' .
-				  'dateUpdated int(11), '.
-				  'PRIMARY KEY (id) '.
+				'title' => 'Materials Request Table Creation',
+				'description' => 'Update reading History to include an id table',
+				'dependencies' => array(),
+				'sql' => array(
+					'CREATE TABLE IF NOT EXISTS materials_request (' .
+					'id int(11) NOT NULL AUTO_INCREMENT, '.
+					'title varchar(255), '.
+					'author varchar(255), '.
+					'format varchar(25), '.
+					'ageLevel varchar(25), '.
+					'isbn_upc varchar(15), '.
+					'oclcNumber varchar(30), '.
+					'publisher varchar(255), '.
+					'publicationYear varchar(4), '.
+					'articleInfo varchar(255), '.
+					'abridged TINYINT, '.
+					'about TEXT, '.
+					'comments TEXT, '.
+					"status enum('pending', 'owned', 'purchased', 'referredToILL', 'ILLplaced', 'ILLreturned', 'notEnoughInfo', 'notAcquiredOutOfPrint', 'notAcquiredNotAvailable', 'notAcquiredFormatNotAvailable', 'notAcquiredPrice', 'notAcquiredPublicationDate', 'requestCancelled') DEFAULT 'pending', ".
+					'dateCreated int(11), '.
+					'createdBy int(11), ' .
+					'dateUpdated int(11), '.
+					'PRIMARY KEY (id) '.
 					') ENGINE=InnoDB',
-	      ),
+				),
 			),
 			
 			'materialsRequest_update1' => array(
@@ -694,23 +713,23 @@ class DBMaintenance extends Admin {
 			),
 			
 			'materialsRequestStatus' => array(
-        'title' => 'Materials Request Status Table Creation',
-        'description' => 'Update reading History to include an id table',
-        'dependencies' => array(),
-        'sql' => array(
-				  'CREATE TABLE IF NOT EXISTS materials_request_status (' .
-				  'id int(11) NOT NULL AUTO_INCREMENT, '.
-				  'description varchar(80), '.
-          'isDefault TINYINT DEFAULT 0, '.
-				  'sendEmailToPatron TINYINT, '.
-          'emailTemplate TEXT, '.
-				  'isOpen TINYINT, '.
-				  'isPatronCancel TINYINT, '.
-				  'PRIMARY KEY (id) '.
+				'title' => 'Materials Request Status Table Creation',
+				'description' => 'Update reading History to include an id table',
+				'dependencies' => array(),
+				'sql' => array(
+					'CREATE TABLE IF NOT EXISTS materials_request_status (' .
+					'id int(11) NOT NULL AUTO_INCREMENT, '.
+					'description varchar(80), '.
+					'isDefault TINYINT DEFAULT 0, '.
+					'sendEmailToPatron TINYINT, '.
+					'emailTemplate TEXT, '.
+					'isOpen TINYINT, '.
+					'isPatronCancel TINYINT, '.
+					'PRIMARY KEY (id) '.
 					') ENGINE=InnoDB',
 			
 					"INSERT INTO materials_request_status (description, isDefault, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Request Pending', 1, 0, '', 1)",
-					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Already owned/On order', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The Library already owns this item or it is already on order. Please access our catalog to place this item on hold.  Please check our online catalog periodically to put a hold for this item.', 0)",
+					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Already owned/On order', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The Library already owns this item or it is already on order. Please access our catalog to place this item on hold.	Please check our online catalog periodically to put a hold for this item.', 0)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Item purchased', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. Outcome: The library is purchasing the item you requested. Please check our online catalog periodically to put yourself on hold for this item. We anticipate that this item will be available soon for you to place a hold.', 0)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Referred to Collection Development - Adult', 0, '', 1)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Referred to Collection Development - J/YA', 0, '', 1)",
@@ -750,7 +769,7 @@ class DBMaintenance extends Admin {
 				'description' => 'Update Usage Tracking to include index based on ip and tracking date',
 				'dependencies' => array(),
 				'continueOnError' => true,
-        'sql' => array(
+				'sql' => array(
 					"ALTER TABLE `usage_tracking` ADD INDEX `IP_DATE` ( `ipId` , `trackingDate` )",
 				), 
 			),
@@ -800,7 +819,7 @@ class DBMaintenance extends Admin {
 			'title' => 'Index resources',
 			'description' => 'Add a new index to resources table to make record id and source unique',
 			'continueOnError' => true,
-      'dependencies' => array(),
+			'dependencies' => array(),
 			'sql' => array(
 				//Update resource table indexes
 				"ALTER TABLE `resource` ADD UNIQUE `records_by_source` (`record_id`, `source`)" 
@@ -844,11 +863,11 @@ class DBMaintenance extends Admin {
 		),
 		
 		'reindexLog' => array(
-      'title' => 'Reindex Log table',
-      'description' => 'Create Reindex Log table to track reindexing.',
-      'dependencies' => array(),
-      'sql' => array(
-		    "CREATE TABLE IF NOT EXISTS reindex_log(" .
+			'title' => 'Reindex Log table',
+			'description' => 'Create Reindex Log table to track reindexing.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS reindex_log(" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
 					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
 					"`endTime` INT(11) NULL COMMENT 'The timestamp when the reindex process ended', " .
@@ -858,10 +877,10 @@ class DBMaintenance extends Admin {
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex process', " .
 					"`reindex_id` INT(11) NOT NULL COMMENT 'The id of the reindex log this process ran during', " .
 					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
-					"`recordsProcessed` INT(11) NOT NULL COMMENT 'The number of records processed from marc files', "  . 
-					"`eContentRecordsProcessed` INT(11) NOT NULL COMMENT 'The number of econtent records processed from the database', "  . 
-					"`resourcesProcessed` INT(11) NOT NULL COMMENT 'The number of resources processed from the database', "  . 
-					"`numErrors` INT(11) NOT NULL COMMENT 'The number of errors that occurred during the process', "  . 
+					"`recordsProcessed` INT(11) NOT NULL COMMENT 'The number of records processed from marc files', "	. 
+					"`eContentRecordsProcessed` INT(11) NOT NULL COMMENT 'The number of econtent records processed from the database', "	. 
+					"`resourcesProcessed` INT(11) NOT NULL COMMENT 'The number of resources processed from the database', "	. 
+					"`numErrors` INT(11) NOT NULL COMMENT 'The number of errors that occurred during the process', "	. 
 					"`numAdded` INT(11) NOT NULL COMMENT 'The number of additions that occurred during the process', " .
 					"`numUpdated` INT(11) NOT NULL COMMENT 'The number of items updated during the process', " .
 					"`numDeleted` INT(11) NOT NULL COMMENT 'The number of items deleted during the process', " .
@@ -870,15 +889,15 @@ class DBMaintenance extends Admin {
 					"PRIMARY KEY ( `id` ), INDEX ( `reindex_id` ), INDEX ( `processName` )" .
 				") ENGINE = MYISAM;",
 				
-      ),
+			),
 		),
 		
 		'cronLog' => array(
-      'title' => 'Cron Log table',
-      'description' => 'Create Cron Log table to track reindexing.',
-      'dependencies' => array(),
-      'sql' => array(
-		    "CREATE TABLE IF NOT EXISTS cron_log(" .
+			'title' => 'Cron Log table',
+			'description' => 'Create Cron Log table to track reindexing.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS cron_log(" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
 					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the cron run started', " .
 					"`endTime` INT(11) NULL COMMENT 'The timestamp when the cron run ended', " .
@@ -890,29 +909,29 @@ class DBMaintenance extends Admin {
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of cron process', " .
 					"`cronId` INT(11) NOT NULL COMMENT 'The id of the cron run this process ran during', " .
 					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
-					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the process started', "  . 
+					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the process started', "	. 
 					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the process last updated (to check for stuck processes)', " .
-					"`endTime` INT(11) NULL COMMENT 'The timestamp when the process ended', "  . 
-					"`numErrors` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of errors that occurred during the process', "  . 
+					"`endTime` INT(11) NULL COMMENT 'The timestamp when the process ended', "	. 
+					"`numErrors` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of errors that occurred during the process', "	. 
 					"`numUpdates` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of updates, additions, etc. that occurred', " .
 					"`notes` TEXT COMMENT 'Additional information about the process', " .
 					"PRIMARY KEY ( `id` ), INDEX ( `cronId` ), INDEX ( `processName` )" .
 				") ENGINE = MYISAM;",
 				
-      ),
+			),
 		),
 		
 		'marcImport' => array(
-      'title' => 'Marc Import table',
-      'description' => 'Create a table to store information about marc records that are being imported.',
-      'dependencies' => array(),
-      'sql' => array(
-		    "CREATE TABLE IF NOT EXISTS marc_import(" .
-			    "`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
+			'title' => 'Marc Import table',
+			'description' => 'Create a table to store information about marc records that are being imported.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS marc_import(" .
+					"`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
 					"`checksum` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = MYISAM;",
-      ),
+			),
 		),
 		'marcImport_1' => array(
 			'title' => 'Marc Import table Update 1',
@@ -946,7 +965,7 @@ class DBMaintenance extends Admin {
 			'description' => 'Add indexes to tables that were not defined originally',
 			'dependencies' => array(),
 			'continueOnError' => true,
-      'sql' => array(
+			'sql' => array(
 				'ALTER TABLE `editorial_reviews` ADD INDEX `RecordId` ( `recordId` ) ',
 				'ALTER TABLE `list_widget_lists` ADD INDEX `ListWidgetId` ( `listWidgetId` ) ',
 				'ALTER TABLE `location` ADD INDEX `ValidHoldPickupBranch` ( `validHoldPickupBranch` ) ',
@@ -958,7 +977,7 @@ class DBMaintenance extends Admin {
 			'description' => 'Add additional indexes to tables that were not defined originally',
 			'dependencies' => array(),
 			'continueOnError' => true,
-      'sql' => array(
+			'sql' => array(
 				'ALTER TABLE `user_rating` ADD INDEX `Resourceid` ( `resourceid` ) ',
 				'ALTER TABLE `user_rating` ADD INDEX `UserId` ( `userid` ) ',
 				'ALTER TABLE `materials_request_status` ADD INDEX ( `isDefault` )',
@@ -1024,28 +1043,28 @@ class DBMaintenance extends Admin {
 				'continueOnError' => true,
 				'sql' => array(
 				"CREATE TABLE `millennium_cache` (
-				    `recordId` VARCHAR( 20 ) NOT NULL COMMENT 'The recordId being checked',
-				    `scope` int(16) NOT NULL COMMENT 'The scope that was loaded',
-				    `holdingsInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium for holdings',
-				    `framesetInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium on the frameset page',
-				    `cacheDate` int(16) NOT NULL COMMENT 'When the entry was recorded in the cache'
+						`recordId` VARCHAR( 20 ) NOT NULL COMMENT 'The recordId being checked',
+						`scope` int(16) NOT NULL COMMENT 'The scope that was loaded',
+						`holdingsInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium for holdings',
+						`framesetInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium on the frameset page',
+						`cacheDate` int(16) NOT NULL COMMENT 'When the entry was recorded in the cache'
 				) ENGINE = MYISAM COMMENT = 'Caches information from Millennium so we do not have to continually load it.';",
 				"ALTER TABLE `millennium_cache` ADD PRIMARY KEY ( `recordId` , `scope` ) ;",
 		
 				"CREATE TABLE IF NOT EXISTS `ptype_restricted_locations` (
-				  `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
-				  `millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
-				  `holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
-				  `allowablePtypes` varchar(50) NOT NULL COMMENT 'A list of PTypes that are allowed to place holds on items with this location separated with pipes (|).',
-				  PRIMARY KEY (`locationId`)
+					`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
+					`millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
+					`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
+					`allowablePtypes` varchar(50) NOT NULL COMMENT 'A list of PTypes that are allowed to place holds on items with this location separated with pipes (|).',
+					PRIMARY KEY (`locationId`)
 				) ENGINE=MyISAM",
 		
 				"CREATE TABLE IF NOT EXISTS `non_holdable_locations` (
-				  `locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
-				  `millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
-				  `holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
-				  `availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
-				  PRIMARY KEY (`locationId`)
+					`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
+					`millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
+					`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
+					`availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
+					PRIMARY KEY (`locationId`)
 				) ENGINE=MyISAM"
 		),
 
@@ -1212,9 +1231,9 @@ class DBMaintenance extends Admin {
 		if (!$tableFound){
 			//Create the table to mark which updates have been run.
 			mysql_query("CREATE TABLE db_update (" .
-                    "update_key VARCHAR( 100 ) NOT NULL PRIMARY KEY ," .
-                    "date_run TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" .
-                    ") ENGINE = InnoDB");
+										"update_key VARCHAR( 100 ) NOT NULL PRIMARY KEY ," .
+										"date_run TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" .
+										") ENGINE = InnoDB");
 		}
 	}
 
