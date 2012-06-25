@@ -19,6 +19,7 @@
 				<div id='listTopButtons'>
 					{if $allowEdit}
 						<button value="editList" id="FavEdit" onclick='return editListAction()'>Edit List</button>
+						<button value="batchAdd" id="FavBatchAdd" onclick='return batchAddToListAction({$favList->id})'>Batch Add Titles</button>
 						<button value="saveList" id="FavSave" style="display:none" onclick='return updateListAction()'>Save Changes</button>
 						{if $favList->public == 0}
 							<button value="makePublic" id="FavPublic" onclick='return makeListPublicAction()'>Make Public</button>
@@ -54,7 +55,6 @@
 				<div class="list-actions">
 					<button value="placeHolds" id="FavPlaceHolds" onclick='return requestMarkedAction()'>Request Marked</button>
 					{if $allowEdit}
-					<button value="batchAdd" id="FavBatchAdd" onclick='return batchAddToListAction()'>Batch Add Titles</button>
 					<button value="deleteMarked" id="FavDeleteMarked" onclick='return deletedMarkedAction()'>Delete Marked</button>
 					<button value="deleteAll" id="FavDeleteAll" onclick='return deleteAllAction()'>Delete All</button>
 					{/if}

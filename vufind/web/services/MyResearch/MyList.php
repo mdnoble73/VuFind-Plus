@@ -119,6 +119,8 @@ class MyList extends Action {
 					$list->delete();
 					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
 					die();
+				}elseif ($actionToPerform == 'bulkAddTitles'){
+					$notes = $this->bulkAddTitles($list);
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
 				$actionToPerform = $_REQUEST['myListActionItem'];
@@ -212,5 +214,53 @@ class MyList extends Action {
 
 		$interface->setTemplate('list.tpl');
 		$interface->display('layout.tpl');
+	}
+	
+	function bulkAddTitles($list){
+		global $user;
+		$notes = array();
+		$titlesToAdd = $_REQUEST['titlesToAdd'];
+		$titleSearches[] = preg_split("/\\r\\n|\\r|\\n/", $titlesToAdd);
+		
+		foreach ($titleSearches[0] as $titleSearch){
+			$_REQUEST['lookfor'] = $titleSearch;
+			$_REQUEST['type'] = 'Keyword';
+			// Initialise from the current search globals
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->setLimit(1);
+			$searchObject->init();
+			$searchObject->clearFacets();
+			$results = $searchObject->processSearch(false, false);
+			if ($results['response'] && $results['response']['numFound'] >= 1){
+				$firstDoc = $results['response']['docs'][0];
+				//Get the id of the document
+				$id = $firstDoc['id'];
+				if (preg_match('/eContentRecord/', $id)){
+					$source = 'eContent';
+					$id = substr($id, 14);
+				}else{
+					$source = 'VuFind';
+				}
+				//Get the resource for the id
+				$resource = new Resource();
+				$resource->record_id = $id;
+				$resource->source = $source;
+				if ($resource->find(true)){
+					$user->addResource($resource, $list, null, false);
+				}else{
+					//Could not find a resource for the id
+					$notes[] = "Could not find a resource matching " . $titleSearch;
+				}
+			}else{
+				$notes[] = "Could not find a title matching " . $titleSearch;
+			}
+		}
+		
+		//Update solr
+		global $configArray;
+		$solrConnector = new User_list_solr($configArray['Index']['url']);
+		$solrConnector->saveList($list);
+		
+		return $notes;
 	}
 }

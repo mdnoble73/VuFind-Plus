@@ -61,9 +61,11 @@ function SendMyListEmail(to, from, message, id, strings) {
 	    + "&" + "message=" + encodeURIComponent(message) + "&listId=" + id;
 	sendAJAXEmail(url, params, strings);
 }
-function batchAddToListAction(){
-	
+function batchAddToListAction(id){
+	ajaxLightbox(path + '/MyResearch/AJAX/?method=getBulkAddToListForm&listId=' + id);
+	return false;
 }
+
 function changeList(){
 	var availableLists = $("#availableLists");
 	window.location = path + "/MyResearch/MyList/" + availableLists.val();
