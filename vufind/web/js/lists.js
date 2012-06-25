@@ -51,7 +51,7 @@ function deleteAllAction(){
 	return false;
 }
 function emailListAction(id) {
-	getLightbox('MyResearch', 'EmailList', id, null, 'Email list');
+	ajaxLightbox(path + '/MyResearch/EmailList/' + id);
 	return false;
 }
 
@@ -61,7 +61,9 @@ function SendMyListEmail(to, from, message, id, strings) {
 	    + "&" + "message=" + encodeURIComponent(message) + "&listId=" + id;
 	sendAJAXEmail(url, params, strings);
 }
-
+function batchAddToListAction(){
+	
+}
 function changeList(){
 	var availableLists = $("#availableLists");
 	window.location = path + "/MyResearch/MyList/" + availableLists.val();

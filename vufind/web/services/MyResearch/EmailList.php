@@ -41,11 +41,11 @@ class EmailList extends Action {
 		}
 
 		// Display Page
-		if (isset($_GET['lightbox'])) {
-			$interface->assign('listId', strip_tags($_REQUEST['id']));
-			$interface->assign('title', strip_tags($_GET['message']));
-			return $interface->fetch('MyResearch/emailListPopup.tpl');
-		}
+		$interface->assign('listId', strip_tags($_REQUEST['id']));
+		$interface->assign('popupTitle', 'Email a list');
+		$pageContent = $interface->fetch('MyResearch/emailListPopup.tpl');
+		$interface->assign('popupContent', $pageContent);
+		echo $interface->fetch('popup-wrapper.tpl');
 	}
 
 	function sendEmail($to, $from, $message) {
