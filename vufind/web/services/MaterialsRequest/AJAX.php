@@ -253,7 +253,7 @@ class AJAX extends Action{
 					}
 				}
 				
-			$contentChildren = $item->children('content', TRUE);
+				$contentChildren = $item->children('content', TRUE);
 				foreach ($contentChildren as $child){
 					if ($child->getName() == 'encoded'){
 						$curTitle['citation'] = (string)$child;
