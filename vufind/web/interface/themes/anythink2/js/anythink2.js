@@ -102,7 +102,7 @@
     // Navigate link.
     var navigate_link = $('#navigate-link');
     if (navigate_link.length > 0) {
-      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="700" border="0" frameBorder="0" src="http://stage.anythinklibraries.org/vufind/sidebar"></div></div>');
+      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="700" border="0" frameBorder="0" src="http://www.anythinklibraries.org/vufind/sidebar"></div></div>');
       // Add iFrame.
       iframe.css({width: 0});
       $('#central').prepend(iframe);
@@ -306,9 +306,9 @@
       id: id,
       description: data.find('description').text(),
       length: data.find('length').text(),
-      publisher: data.find('publisher').text(),
-    };
-  };
+      publisher: data.find('publisher').text()
+    }
+  }
 
 
   bookInBagAnythink = function(book) {
