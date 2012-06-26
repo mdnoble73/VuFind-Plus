@@ -453,6 +453,17 @@ if (isset($_REQUEST['basicType'])){
 }else{
 	$interface->assign('basicSearchIndex', 'Keyword');
 }
+$interface->assign('curFormatCategory', 'Everything');
+if (isset($_REQUEST['filter'])){
+	foreach ($_REQUEST['filter'] as $curFilter){
+		$filterInfo = split(":", $curFilter);
+		if ($filterInfo[0] == 'format_category'){
+			$curFormatCategory = str_replace('"', '', $filterInfo[1]);
+			$interface->assign('curFormatCategory', $curFormatCategory);
+			break;
+		}
+	}
+}
 if (isset($_REQUEST['genealogyType'])){
 	$interface->assign('genealogySearchIndex', $_REQUEST['genealogyType']);
 }else{
