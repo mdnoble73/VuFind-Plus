@@ -38,7 +38,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('LoginForm'))){
+		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -274,5 +274,15 @@ class AJAX extends Action {
 	function LoginForm(){
 		global $interface;
 		return $interface->fetch('MyResearch/ajax-login.tpl');
+	}
+	
+	function getBulkAddToListForm(){
+		global $interface;
+		// Display Page
+		$interface->assign('listId', strip_tags($_REQUEST['listId']));
+		$interface->assign('popupTitle', 'Add titles to list');
+		$pageContent = $interface->fetch('MyResearch/bulkAddToListPopup.tpl');
+		$interface->assign('popupContent', $pageContent);
+		echo $interface->fetch('popup-wrapper.tpl');
 	}
 }

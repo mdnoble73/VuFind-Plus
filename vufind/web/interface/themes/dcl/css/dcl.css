@@ -94,3 +94,9 @@
 	font-weight: bold;
 	font-style: italic;
 }
+.searchcontent img.alignleft{
+margin: 10px 0 15px 80px;
+}
+.searchform #searchForm {
+margin: 25px 100px 0 0;
+}

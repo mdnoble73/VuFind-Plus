@@ -24,7 +24,6 @@
           {/if}
           <div class="clearer"></div>
 	        <div id='listTopButtons'>
-          <button value="emailList" id="FavEmail" class="listButton" onclick='return emailListAction({$favList->id})'>Email List</button>
           {if $allowEdit}
 	          <button value="editList" id="FavEdit" class="listButton" onclick='return editListAction()'>Edit List</button>
             <button value="saveList" id="FavSave" class="listButton" style="display:none" onclick='return updateListAction()'>Save Changes</button>
@@ -35,6 +34,8 @@
 	          {/if}
 	          <button value="deleteList" id="FavDelete" class="listButton" onclick='return deleteListAction()'>Delete List</button>
           {/if}
+          <button value="emailList" id="FavEmail" class="listButton" onclick='return emailListAction({$favList->id})'>Email List</button>
+          <button value="printList" id="FavPrint" class="listButton" onclick='return printListAction();'>Print List</button>
           </div>
           {if $allowEdit}
           </form>

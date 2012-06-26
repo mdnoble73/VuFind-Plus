@@ -325,7 +325,7 @@ class DataObjectUtil
 				//Check for deleted associations
 				$deletions = isset($_REQUEST[$propertyName . 'Deleted']) ? $_REQUEST[$propertyName . 'Deleted'] : array();
 				//Check for changes to the sort order
-				if ($property['sortable'] == true){
+				if ($property['sortable'] == true && isset($_REQUEST[$propertyName . 'Weight'])){
 					$weights = $_REQUEST[$propertyName . 'Weight'];
 				}
 				if (isset($_REQUEST[$propertyName.'Id'])){

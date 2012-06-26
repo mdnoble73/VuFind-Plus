@@ -27,7 +27,7 @@ class User_list extends DB_DataObject
 	{
 		$resourceList = array();
 
-		$sql = "SELECT DISTINCT resource.*, user_resource.saved FROM resource, user_resource " .
+		$sql = "SELECT DISTINCT resource.*, user_resource.saved, user_resource.notes FROM resource, user_resource " .
                "WHERE resource.id = user_resource.resource_id " .
                "AND user_resource.user_id = '$this->user_id' " .
                "AND user_resource.list_id = '$this->id'";
@@ -48,6 +48,7 @@ class User_list extends DB_DataObject
 			while ($resource->fetch()) {
 				$cleanedResource = $this->cleanResource(clone($resource));
 				if ($cleanedResource != false){
+					$cleanedResource->tags = $cleanedResource->getTagsForList($this->id);
 					$resourceList[] = $cleanedResource;
 				}
 			}

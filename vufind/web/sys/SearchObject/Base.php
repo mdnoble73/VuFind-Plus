@@ -175,7 +175,7 @@ abstract class SearchObject_Base
 			$this->filterList[$field][] = $value;
 		}
 	}
-
+	
 	/**
 	 * Remove a filter from the list.
 	 *
@@ -211,6 +211,13 @@ abstract class SearchObject_Base
 	{
 		return isset($this->facetConfig[$field]) ?
 		$this->facetConfig[$field] : ucwords(str_replace("_"," ",$field));
+	}
+	
+	/**
+	 * Clear all facets which will speed up searching if we won't be using the facets.
+	 */
+	public function clearFacets(){
+		$this->facetConfig = array();
 	}
 
 	/**

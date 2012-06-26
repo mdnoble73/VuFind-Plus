@@ -43,7 +43,11 @@
 					{assign var="display" value="false"}
 				{/if}
 			{/if}
-			{include file=titleScroller.tpl}
+			{if $widget->showMultipleTitles == 1}
+				{include file=titleScroller.tpl}
+			{else}
+				{include file=singleTitleWidget.tpl}
+			{/if}
   	{/if}
   {/foreach}
   
@@ -67,7 +71,7 @@
      		{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
       	{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
       		{if $index == 0}
-	      	  listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}');
+	      	  listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if});
 			  	  listScroller{$listName}.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id={$list->source}&scrollerName={$listName}', false);
 			  	{/if}
 		  	  {assign var=index value=$index+1}

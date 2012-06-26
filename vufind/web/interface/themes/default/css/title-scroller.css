@@ -158,3 +158,24 @@
 	width: 100%;
 	text-align: right;
 }
+
+.singleTitleWidget {
+	width: 200px;
+}
+.singleTitleWidget .scrollerTitle img{
+	display: inline-block;
+	opacity: 1;
+}
+.singleTitleWidget .scrollerTitle.selected img{
+	display: inline-block;
+}
+.singleTitleWidget .scrollerTitle.selected{
+	border: 0px solid black;
+	border-radius: 3px;
+	padding: 0px;
+}
+.singleTitleWidget .scrollerBodyContainer{
+	margin: 5px 0px;
+	text-align: center;
+	width: 100%;
+}

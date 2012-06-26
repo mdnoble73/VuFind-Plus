@@ -16,7 +16,7 @@
           <input type="button" value="Use This" onclick="setIsbnAndOclcNumberAnythink('{$suggestion.title|escape}', '{$suggestion.author|escape}', '{$suggestion.isbn}', '{$suggestion.oclcNumber}')" />
         </div>
         <div class="desc-identifier">
-          <h3>{$suggestion.title}</h3>
+          <h3><a href="{$suggestion.link}">{$suggestion.title}</a></h3>
           <h4>{$suggestion.author|truncate:60}</h4>
           <div id="worldCatDescription{$rownum}">
             <div class="short">
@@ -27,6 +27,9 @@
             {$suggestion.description|escape}
             <a href="#" onclick="{literal}${/literal}('.full', '#worldCatDescription{$rownum}').hide();{literal}${/literal}('.short', '#worldCatDescription{$rownum}').show();return false;">Less</a>
             </div>
+          </div>
+          <div class="worldCatCitaion">
+            {$suggestion.citation}
           </div>
           <div class="fine-print">{translate text="ISBN"}&nbsp;{$suggestion.isbn}</div>
           <div class="fine-print">{translate text="OCLC"}&nbsp;{$suggestion.oclcNumber}</div>
