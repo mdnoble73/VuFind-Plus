@@ -239,10 +239,9 @@ class DBMaintenance extends Admin {
 						
 			'list_widgets_update_1' => array(
 				'title' => 'List Widget List Update 1',
-				'description' => 'Update length of source field to accommodate search source type',
+				'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
 				'dependencies' => array(),
 				'sql' => array(
-					"ALTER TABLE `list_widgets` ADD COLUMN `showRatings` TINYINT NOT NULL DEFAULT '0'",
 					"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
 					"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
 				),

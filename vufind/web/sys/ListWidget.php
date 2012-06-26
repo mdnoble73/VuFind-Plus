@@ -13,7 +13,6 @@ class ListWidget extends DB_DataObject
 	public $name;                    //varchar(255)
 	public $description;                    //varchar(255)
 	public $showTitleDescriptions;
-	public $showRatings;
 	public $onSelectCallback;
 	public $fullListLink;
 	public $customCss;
@@ -65,12 +64,6 @@ class ListWidget extends DB_DataObject
         'label' => 'Should the description pop-up be shown when hovering over titles?',
         'storeDb' => true,
         'default' => true,
-      ),
-      'showRatings' => array(
-        'property' => 'showRatings',
-        'type' => 'checkbox',
-        'label' => 'Should ratings be shown in the widget?',
-        'storeDb' => true,
       ),
       'showMultipleTitles' => array(
         'property' => 'showMultipleTitles',
