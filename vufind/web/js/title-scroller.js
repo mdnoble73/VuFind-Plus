@@ -16,6 +16,7 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 	this.scrollerId = scrollerId;
 	this.scrollerShortName = scrollerShortName;
 	this.container = container;
+	this.scrollInterval = 0;
 	
 	if (typeof enableDescription == "undefined") {
 		this.enableDescription = true;
@@ -131,9 +132,11 @@ TitleScroller.prototype.finishLoadingScroller = function() {
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 	var curScroller = this;
 	if (this.autoScroll){
-		setInterval(function() {
-			curScroller.scrollToRight()
-		}, 5000);
+		if (this.scrollInterval == 0){
+			this.scrollInterval = setInterval(function() {
+					curScroller.scrollToRight()
+				}, 5000);
+		}
 	}
 	if (this.enableDescription) {
 		for ( var i in this.scrollerTitles) {
