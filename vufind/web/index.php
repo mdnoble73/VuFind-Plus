@@ -367,7 +367,6 @@ if ($user) {
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
-
 } else if (// Special case for Shibboleth:
 ($configArray['Authentication']['method'] == 'Shibboleth' && $module == 'MyResearch') ||
 // Default case for all other authentication methods:

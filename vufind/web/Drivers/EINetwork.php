@@ -44,15 +44,67 @@ class EINetwork extends MillenniumDriver{
 		global $configArray;
 		global $memcache;
 		global $timer;
+		
+		if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
+			//User is setting a pin for the first time.  Need to do an actual login rather than just checking patron dump
+			$header=array();
+			$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+			$header[] = "Cache-Control: max-age=0";
+			$header[] = "Connection: keep-alive";
+			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+			$header[] = "Accept-Language: en-us,en;q=0.5";
+			$cookie = tempnam ("/tmp", "CURLCOOKIE");
+			
+			$curl_connection = curl_init();
+			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+			curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
+			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
+			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+			curl_setopt($curl_connection, CURLOPT_HEADER, false);
+			
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			
+			//User is setting pin number for the first time
+			$post_data['submit.x']="35";
+			$post_data['submit.y']="21";
+			$post_data['code']= $barcode;
+			$post_data['pin1']= $pin;
+			$post_data['pin2']= $_REQUEST['password2'];
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+			curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			set_time_limit(15);
+			$sresult = curl_exec($curl_connection);
+			$post_data = array();
+			
+			unlink($cookie);
+			if (preg_match('/the information you submitted was invalid/', $sresult)){
+				PEAR::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
+			}
+		}
 
 		//Load the raw information about the patron
-		$patronDump = $this->_getPatronDump($barcode);
+		$patronDump = $this->_getPatronDump($barcode, true);
 
 		//Check the pin number that was entered
 		$pin = urlencode($pin);
-		if (strlen($barcode) < 14) { $barcode = ".p" . $barcode; }
+		$patronDumpBarcode = $barcode;
+		if (strlen($patronDumpBarcode) < 14) { $patronDumpBarcode = ".p" . $patronDumpBarcode; }
 		$host=$configArray['OPAC']['patron_host'];
-		$apiurl = $host . "/PATRONAPI/$barcode/$pin/pintest";
+		$apiurl = $host . "/PATRONAPI/$patronDumpBarcode/$pin/pintest";
 		
 		$api_contents = file_get_contents($apiurl);
 		$api_contents = trim(strip_tags($api_contents));
@@ -226,6 +278,66 @@ class EINetwork extends MillenniumDriver{
 			return true;
 		}else{
 			return false;
+		}
+
+	}
+	
+	function selfRegister(){
+		$logger = new Logger();
+		global $configArray;
+
+		$firstName = $_REQUEST['firstName'];
+		$middleInitial = $_REQUEST['middleInitial'];
+		$lastName = $_REQUEST['lastName'];
+		$address1 = $_REQUEST['address1'];
+		$address2 = $_REQUEST['address2'];
+		$address3 = $_REQUEST['address3'];
+		$address4 = $_REQUEST['address4'];
+		$email = $_REQUEST['email'];
+		$gender = $_REQUEST['gender'];
+		$birthDate = $_REQUEST['birthDate'];
+		$phone = $_REQUEST['phone'];
+
+		$cookie = tempnam ("/tmp", "CURLCOOKIE");
+		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getMillenniumScope();
+		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+		//echo "$curl_url";
+		$curl_connection = curl_init($curl_url);
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+
+		$post_data['nfirst'] = $firstName;
+		$post_data['nmiddle'] = $middleInitial;
+		$post_data['nlast'] = $lastName;
+		$post_data['stre_aaddress'] = $address1;
+		$post_data['city_aaddress'] = $address2;
+		$post_data['stre_haddress2'] = $address3;
+		$post_data['city_haddress2'] = $address4;
+		$post_data['zemailaddr'] = $email;
+		$post_data['F045pcode2'] = $gender;
+		$post_data['F051birthdate'] = $birthDate;
+		$post_data['tphone1'] = $phone;
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$sresult = curl_exec($curl_connection);
+
+		curl_close($curl_connection);
+
+		//Parse the library card number from the response
+		if (preg_match('/Your temporary library card number is :.*?(\\d+)<\/(b|strong|span)>/si', $sresult, $matches)) {
+			$barcode = $matches[1];
+			return array('success' => true, 'barcode' => $barcode);
+		} else {
+			$logger = new Logger();
+			$logger->log("$sresult", PEAR_LOG_DEBUG);
+			return array('success' => false, 'barcode' => null);
 		}
 
 	}
