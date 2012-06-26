@@ -69,17 +69,42 @@ class EINetwork extends MillenniumDriver{
 			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
 			
+			//Go to the login page
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+			$sresult = curl_exec($curl_connection);
+			
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			
-			//User is setting pin number for the first time
+			//First post without the pin number
+			$post_data = array();
 			$post_data['submit.x']="35";
 			$post_data['submit.y']="21";
 			$post_data['code']= $barcode;
+			$post_data['pin']= "";
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sresult = curl_exec($curl_connection);
+			if (!preg_match('/Please enter your PIN/i', $sresult)){
+				PEAR::raiseError('Unable to register your new pin #.  Did not get to registration page.');
+			}
+			
+			//Now post with both pins
+			$post_data = array();
+			$post_items = array();
+			$post_data['code']= $barcode;
 			$post_data['pin1']= $pin;
 			$post_data['pin2']= $_REQUEST['password2'];
+			$post_data['submit.x']="35";
+			$post_data['submit.y']="15";
 			curl_setopt($curl_connection, CURLOPT_POST, true);
-			curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			foreach ($post_data as $key => $value) {
 				$post_items[] = $key . '=' . $value;
@@ -91,8 +116,10 @@ class EINetwork extends MillenniumDriver{
 			$post_data = array();
 			
 			unlink($cookie);
-			if (preg_match('/the information you submitted was invalid/', $sresult)){
+			if (preg_match('/the information you submitted was invalid/i', $sresult)){
 				PEAR::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
+			}else if (preg_match('/PIN insertion failed/i', $sresult)){
+				PEAR::raiseError('Unable to register your new pin #.  PIN insertion failed.');
 			}
 		}
 
@@ -117,10 +144,10 @@ class EINetwork extends MillenniumDriver{
 	
 		if (!isset($api_data['RETCOD'])){
 			$userValid = false;
-		}else if ($api_data['RETCOD'] == 1){
-			$userValid = false;
-		}else{
+		}else if ($api_data['RETCOD'] == 0){
 			$userValid = true;
+		}else{
+			$userValid = false;
 		}
 
 		//Create a variety of possible name combinations for testing purposes.
