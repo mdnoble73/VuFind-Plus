@@ -94,7 +94,7 @@ class Description extends Record{
 			//Load the description
 			//Check to see if there is a description in Syndetics and use that instead if available
 			$useMarcSummary = true;
-			if ($allowExternalDescription || $marcDescription == null){
+			if ($allowExternalDescription || is_null($marcDescription)){
 				if (!is_null($isbn) || !is_null($upc)){
 					require_once 'Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
@@ -111,7 +111,7 @@ class Description extends Record{
 					$description = $marcDescription;
 				}else{
 					$description = "Description Not Provided";
-					$descriptionArray['description'] = "Description Not Provided";
+					$descriptionArray['description'] = $description;
 				} 
 			}
 			$interface->assign('description', $description);

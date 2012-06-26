@@ -234,8 +234,19 @@ class DBMaintenance extends Admin {
 						"`source` VARCHAR(500) NOT NULL, " . 
 						"`fullListLink` VARCHAR(500) DEFAULT '' " .
 					") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
-						),
-						),
+				),
+			),
+						
+			'list_widgets_update_1' => array(
+				'title' => 'List Widget List Update 1',
+				'description' => 'Update length of source field to accommodate search source type',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `showRatings` TINYINT NOT NULL DEFAULT '0'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
+				),
+			),
 			
 			'list_widgets_home' => array(
 				'title' => 'List Widget Home',
