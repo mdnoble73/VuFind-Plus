@@ -1501,30 +1501,41 @@ public class MarcRecordDetails {
 		return (value);
 	}
 
+	Pattern mpaaRatingRegex1 = null;
+	Pattern mpaaRatingRegex2 = null;
 	public String getMpaaRating() {
+		if (mpaaRatingRegex1 == null){
+			mpaaRatingRegex1 = Pattern.compile("(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
+		}
+		if (mpaaRatingRegex2 == null){
+			mpaaRatingRegex2 = Pattern.compile("(?:.*?)(G|PG-13|PG|R|NC-17|NR|X)\\sRated(?:.*)", Pattern.CANON_EQ);
+		}
 		String val = getFirstFieldVal("521a");
 
 		if (val != null) {
 			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
 				return "Not Rated";
-			} else if (val.matches("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)\\.?")) {
-				try {
-					Pattern Regex = Pattern.compile("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)", Pattern.CANON_EQ);
-					Matcher RegexMatcher = Regex.matcher(val);
-					if (RegexMatcher.find()) {
-						return RegexMatcher.group(1) + " Rated";
+			}
+			try {
+				Matcher mpaaMatcher1 = mpaaRatingRegex1.matcher(val);
+				if (mpaaMatcher1.find()) {
+					//System.out.println("Matched matcher 1, " + mpaaMatcher1.group(1) + " Rated " + getId());
+					return mpaaMatcher1.group(1) + " Rated";
+				} else {
+					Matcher mpaaMatcher2 = mpaaRatingRegex2.matcher(val);
+					if (mpaaMatcher2.find()) {
+						//System.out.println("Matched matcher 2, " + mpaaMatcher2.group(1) + " Rated " + getId());
+						return mpaaMatcher2.group(1) + " Rated";
 					} else {
-						return val;
+						return null;
 					}
-				} catch (PatternSyntaxException ex) {
-					// Syntax error in the regular expression
-					return null;
 				}
-			} else {
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
 				return null;
 			}
 		} else {
-			return val;
+			return null;
 		}
 	}
 
