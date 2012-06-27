@@ -237,7 +237,7 @@ class EINetwork extends MillenniumDriver{
 		//Setup the call to Millennium
 		$id2= $patronId;
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
-		$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+		//$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
 
 		$this->_updateVuFindPatronInfo($patronId);
 		
@@ -287,7 +287,7 @@ class EINetwork extends MillenniumDriver{
 		curl_close($curl_connection);
 		unlink($cookieJar);
 		
-		$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
+		//$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){

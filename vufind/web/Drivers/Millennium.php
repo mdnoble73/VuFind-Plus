@@ -2574,18 +2574,17 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
 		$sresult = curl_exec($curl_connection);
+		$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
 
 		curl_close($curl_connection);
 		unlink($cookieJar);
 		
 		//Clear the existing patron info and get new information.
-		usleep(250);
-		$patronDump = $this->_getPatronDump($this->_getBarcode(), true);
-		$newTotalRenewals = $patronDump['TOT_RENWAL'];
-		
 		$hold_result = array();
 		$hold_result['Total'] = $curCheckedOut;
-		$hold_result['Renewed'] = $newTotalRenewals - $totalRenewals;
+		preg_match_all("/RENEWED successfully/si", $sresult, $matches);
+		$numRenewals = count($matches[0]);
+		$hold_result['Renewed'] = isset($numRenewals) ? $numRenewals : 0;
 		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
 		if ($hold_result['Unrenewed'] > 0) {
 			$hold_result['result'] = false;
