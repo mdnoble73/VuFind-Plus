@@ -9,6 +9,9 @@
     {if $user->cat_username}
       <div class="resulthead">
       <h3>{translate text='Your Profile'}</h3></div>
+      {if $profileUpdateErrors}
+      <div class="error">{$profileUpdateErrors}</div>
+      {/if}
       
       <div class="page">
       <form action='' method='post'>
@@ -38,6 +41,8 @@
 	      {/if}
       {/if}
       </form>
+      
+      <a href="#" onclick="ajaxLightbox('/MyResearch/AJAX?method=getPinUpdateForm');return false;" class="button">Modify PIN Number</a>
       
       {* Display user roles if the user has any roles*}
       {if count($user->roles) > 0}

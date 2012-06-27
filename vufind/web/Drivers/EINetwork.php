@@ -284,29 +284,118 @@ class EINetwork extends MillenniumDriver{
 		curl_close($curl_connection);
 		unlink($cookieJar);
 		
-		//Make sure to clear any cached data
-		global $memcache;
-		$memcache->delete("patron_dump_{$this->_getBarcode()}");
-		usleep(500);
 		$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
-			$patronDump = $this->_getPatronDump($this->_getBarcode());
-			$logger->log("Reloaded patron dump phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
-			$memcache->delete("patron_dump_{$this->_getBarcode()}");
-			usleep(500);
-			$patronDump = $this->_getPatronDump($this->_getBarcode());
-			$logger->log("Reloaded patron dump again Patron phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+			$patronDump = $this->_getPatronDump($this->_getBarcode(), true);
 			$user->phone = $_REQUEST['phone'];
 			$user->email = $_REQUEST['email'];
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
-			return true;
+			return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
 		}else{
-			return false;
+			return "Your patron information could not be updated.";
 		}
 
+	}
+	
+	function updatePin(){
+		global $user;
+		global $configArray;
+		if (!$user){
+			return "You must be logged in to update your pin number.";
+		}
+		if (isset($_REQUEST['pin'])){
+			$pin = $_REQUEST['pin'];
+		}else{
+			return "Please enter your current pin number";
+		}
+		if ($user->cat_password != $pin){
+			return "The current pin number is incorrect";
+		}
+		if (isset($_REQUEST['pin1'])){
+			$pin1 = $_REQUEST['pin1'];
+		}else{
+			return "Please enter the new pin number";
+		}
+		if (isset($_REQUEST['pin2'])){
+			$pin2 = $_REQUEST['pin2'];
+		}else{
+			return "Please enter the new pin number again";
+		}
+		if ($pin1 != $pin2){
+			return "The pin numberdoes not match the confirmed number, please try again.";
+		}
+		
+		//Login to the patron's account
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$success = false;
+
+		$barcode = $this->_getBarcode();
+		$patronDump = $this->_getPatronDump($barcode);
+		
+		//Login to the site
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+		
+		$curl_connection = curl_init($curl_url);
+		$header=array();
+		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+		$header[] = "Cache-Control: max-age=0";
+		$header[] = "Connection: keep-alive";
+		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+		$header[] = "Accept-Language: en-us,en;q=0.5";
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		$post_data = $this->_getLoginFormValues($patronDump);
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$sresult = curl_exec($curl_connection);
+		
+		//Issue a post request to update the pin
+		$post_data = array();
+		$post_data['pin']= $pin;
+		$post_data['pin1']= $pin1;
+		$post_data['pin2']= $pin2;
+		$post_data['submit.x']="35";
+		$post_data['submit.y']="15";
+		$post_items = array();
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$curl_url = $configArray['Catalog']['url'] . "/patroninfo/" .$patronDump['RECORD_#'] . "/newpin";
+		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+		$sresult = curl_exec($curl_connection);
+
+		curl_close($curl_connection);
+		unlink($cookieJar);
+		
+		if ($sresult){
+			if (preg_match('/<FONT COLOR=RED SIZE= 2><EM>(.*?)</EM></FONT>/i', $sresult, $matches)){
+				return $matches[1];
+			}else{
+				$user->cat_password = $pin1;
+				$user->update();
+				UserAccount::updateSession($user);
+				return "Your pin number was updated sucessfully.";
+			}
+		}else{
+			return "Sorry, we could not update your pin number. Please try again later.";
+		}
 	}
 	
 	function selfRegister(){
