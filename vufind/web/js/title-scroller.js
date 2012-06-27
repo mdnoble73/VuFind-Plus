@@ -179,11 +179,13 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 	}
 	var scrollerBody = $('#' + this.scrollerId
 			+ " .scrollerBodyContainer .scrollerBody");
+	//Make sure to clear the current tooltip if any
+	$("#tooltip").hide();
+	//Update the actual display
 	if (this.showMultipleTitles){
 		var scrollerTitleId = "#scrollerTitle" + this.scrollerShortName
 				+ currentScrollerIndex;
 		if ($(scrollerTitleId).length != 0) {
-			
 				var widthItemsLeft = $(scrollerTitleId).position().left;
 				var widthCurrent = $(scrollerTitleId).width();
 				var containerWidth = $('#' + this.scrollerId + " .scrollerBodyContainer")
