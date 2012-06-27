@@ -221,6 +221,14 @@ class MillenniumDriver implements DriverInterface
 
 		//Get information about holdings, order information, and issue information
 		$millenniumInfo = $this->getMillenniumRecordInfo($id);
+		
+		//Get the number of holds
+		if (preg_match('/(\d+) hold(s?) on .*? of \d+ (copies|copy)/', $millenniumInfo->framesetInfo, $matches)){
+			$holdQueueLength = $matches[1];
+		}else{
+			$holdQueueLength = 0;
+		}
+		
 
 		// Load Record Page
 		$r = substr($millenniumInfo->holdingsInfo, stripos($millenniumInfo->holdingsInfo, 'bibItems'));
@@ -370,6 +378,7 @@ class MillenniumDriver implements DriverInterface
 				$numHoldings++;
 				$curHolding['id'] = $id;
 				$curHolding['number'] = $numHoldings;
+				$curHolding['holdQueueLength'] = $holdQueueLength;
 				$ret[] = $curHolding;
 			}
 			$count++;
@@ -722,6 +731,7 @@ class MillenniumDriver implements DriverInterface
 		$availableLocations = array();
 		$additionalAvailableLocations = array();
 		$unavailableStatus = null;
+		$holdQueueLength = 0;
 		//The status of all items.  Will be set to an actual status if all are the same
 		//or null if the item statuses are inconsistent
 		$allItemStatus = '';
@@ -732,6 +742,9 @@ class MillenniumDriver implements DriverInterface
 				$allItemStatus = $holding['statusfull'];
 			}elseif($allItemStatus != $holding['statusfull']){
 				$allItemStatus = null;
+			}
+			if (isset($holding['holdQueueLength'])){
+				$holdQueueLength = $holding['holdQueueLength'];
 			}
 			if (isset($holding['availability']) && $holding['availability'] == 1){
 				$numAvailableCopies++;
@@ -832,6 +845,8 @@ class MillenniumDriver implements DriverInterface
 		}else{
 			$summaryInformation['numCopies'] = $numCopies;
 		}
+		
+		$summaryInformation['holdQueueLength'] = $holdQueueLength;
 
 		if ($unavailableStatus != 'ONLINE'){
 			$summaryInformation['unavailableStatus'] = $unavailableStatus;
@@ -2584,7 +2599,7 @@ class MillenniumDriver implements DriverInterface
 		$hold_result['Total'] = $curCheckedOut;
 		preg_match_all("/RENEWED successfully/si", $sresult, $matches);
 		$numRenewals = count($matches[0]);
-		$hold_result['Renewed'] = isset($numRenewals) ? $numRenewals : 0;
+		$hold_result['Renewed'] = $numRenewals;
 		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
 		if ($hold_result['Unrenewed'] > 0) {
 			$hold_result['result'] = false;
