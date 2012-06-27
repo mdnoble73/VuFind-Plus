@@ -300,7 +300,7 @@ class AJAX extends Action {
 			$comment = new Comments();
 			$comment->id = $_GET['commentId'];
 			if ($comment->find(true)) {
-				if ($user->id == $comment->user_id) {
+				if ($user->id == $comment->user_id || $user->hasRole('opacAdmin')) {
 					$comment->delete();
 				}
 			}

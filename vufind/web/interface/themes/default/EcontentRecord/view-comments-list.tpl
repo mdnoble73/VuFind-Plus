@@ -2,7 +2,7 @@
   <div class='comment'>
   	<div class="commentHeader">
     <div class='commentDate'>{$comment->created|date_format}
-	    {if $comment->user_id == $user->id}
+	    {if $comment->user_id == $user->id || $user->hasRole('opacAdmin')}
 	    <span onclick='deleteEContentComment({$id|escape:"url"}, {$comment->id}, {literal}{{/literal}save_error: "{translate text='comment_error_save'}", load_error: "{translate text='comment_error_load'}", save_title: "{translate text='Save Comment'}"{literal}}{/literal});' class="delete tool deleteComment">{translate text='Delete'}</span>
 	    {/if}
     </div>
