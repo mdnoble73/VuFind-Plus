@@ -38,7 +38,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm'))){
+		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -284,5 +284,14 @@ class AJAX extends Action {
 		$pageContent = $interface->fetch('MyResearch/bulkAddToListPopup.tpl');
 		$interface->assign('popupContent', $pageContent);
 		echo $interface->fetch('popup-wrapper.tpl');
+	}
+	
+	function getPinUpdateForm(){
+		global $user; 
+		global $interface;
+		$interface->assign('popupTitle', 'Modify PIN number');
+		$pageContent = $interface->fetch('MyResearch/modifyPinPopup.tpl');
+		$interface->assign('popupContent', $pageContent);
+		return $interface->fetch('popup-wrapper.tpl');
 	}
 }
