@@ -1228,6 +1228,7 @@ class MillenniumDriver implements DriverInterface
 				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 				'ptype' => $patronDump['P_TYPE'],
+				'notices' => $patronDump['NOTICE_PREF'],
 		);
 
 		//Get eContent info as well
@@ -2693,6 +2694,10 @@ class MillenniumDriver implements DriverInterface
 		}
 		$extraPostInfo['tele1'] = $_REQUEST['phone'];
 		$extraPostInfo['email'] = $_REQUEST['email'];
+		
+		if (isset($_REQUEST['notices'])){
+			$extraPostInfo['notices'] = $_REQUEST['notices'];
+		}
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");

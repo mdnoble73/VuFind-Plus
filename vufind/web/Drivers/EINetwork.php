@@ -245,6 +245,9 @@ class EINetwork extends MillenniumDriver{
 		$extraPostInfo = array();
 		$extraPostInfo['tele1'] = $_REQUEST['phone'];
 		$extraPostInfo['email'] = $_REQUEST['email'];
+		if (isset($_REQUEST['notices'])){
+			$extraPostInfo['notices'] = $_REQUEST['notices'];
+		}
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -291,6 +294,7 @@ class EINetwork extends MillenniumDriver{
 			$patronDump = $this->_getPatronDump($this->_getBarcode(), true);
 			$user->phone = $_REQUEST['phone'];
 			$user->email = $_REQUEST['email'];
+			$user->update();
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
 			return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
