@@ -51,6 +51,8 @@ class Purchase extends Action {
 
 		$titleTerm = $record["title"];
 		$title = str_replace("/", "", $titleTerm);
+		$authorTerm = $record["auth_author"];
+		$author = str_replace("/", "", $authorTerm);
 
 		if ($field856Index == null){
 			// Find the store in the database
@@ -60,7 +62,7 @@ class Purchase extends Action {
 			$storeDbObj->find();
 			if ($storeDbObj->N > 0){
 				$storeDbObj->fetch();
-				$purchaseLinkUrl = self::getPurchaseLinkForTitle($storeDbObj->link, $title, $libraryName);
+				$purchaseLinkUrl = self::getPurchaseLinkForTitle($storeDbObj->link, $title, $author, $libraryName);
 			}
 		}else{
 			// Process MARC Data
@@ -108,13 +110,13 @@ class Purchase extends Action {
 			
 	}
 
-	static function getStoresForTitle($title){
-		$title = str_replace("/", "", $title);
+	static function getStoresForTitle($title, $author){
+		
 		$purchaseLinks = array();
 		
 		$stores = Library::getBookStores();
 		foreach ($stores as $store) {
-			$url = self::getPurchaseLinkForTitle($store->link, $title);
+			$url = self::getPurchaseLinkForTitle($store->link, $title, $author);
 			$input = file_get_contents($url);
 			$regexp = $store->resultRegEx;
 			if(!preg_match($regexp, $input)) {
@@ -132,7 +134,14 @@ class Purchase extends Action {
 		return $purchaseLinks;
 	}
 
-	private static function getPurchaseLinkForTitle($baseURL, $title, $libraryName='') {
+	private static function getPurchaseLinkForTitle($baseURL, $title, $author, $libraryName='') {
+		$title = str_replace("/", "", $title);
+		if (strpos($title, ':') > 0){
+			$title = trim(substr($title, 0, strpos($title, ':')));
+		}
+		if (strpos($author, ',') > 0){
+			$author = trim(substr($author, 0, strpos($author, ',')));
+		}
 		$url = $baseURL;
 		// substitute the library name place holder with the real library name
 		if (strpos($url, '{libraryName}') !== false) {
@@ -143,6 +152,12 @@ class Purchase extends Action {
 			$url = str_replace('{title}', urlencode($title), $url);
 		} else {
 			$url .= urlencode($title);
+		}
+		// substitute author place holder with real title
+		if (strpos($url, '{author}') !== false) {
+			$url = str_replace('{author}', urlencode($author), $url);
+		} else {
+			$url .= '+' . urlencode($author);
 		}
 		return $url;
 	}

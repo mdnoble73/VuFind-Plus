@@ -223,12 +223,13 @@ class MillenniumDriver implements DriverInterface
 		$millenniumInfo = $this->getMillenniumRecordInfo($id);
 		
 		//Get the number of holds
-		if (preg_match('/(\d+) hold(s?) on .*? of \d+ (copies|copy)/', $millenniumInfo->framesetInfo, $matches)){
-			$holdQueueLength = $matches[1];
-		}else{
-			$holdQueueLength = 0;
+		if ($millenniumInfo->framesetInfo){
+			if (preg_match('/(\d+) hold(s?) on .*? of \d+ (copies|copy)/', $millenniumInfo->framesetInfo, $matches)){
+				$holdQueueLength = $matches[1];
+			}else{
+				$holdQueueLength = 0;
+			}
 		}
-		
 
 		// Load Record Page
 		$r = substr($millenniumInfo->holdingsInfo, stripos($millenniumInfo->holdingsInfo, 'bibItems'));

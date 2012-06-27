@@ -447,8 +447,9 @@ class AJAX extends Action {
 					$interface->assign('purchaseLinks', $purchaseLinks);
 				}else{
 					$title = $eContentRecord->title;
+					$author = $eContentRecord->author;
 					require_once 'services/Record/Purchase.php';
-					$purchaseLinks = Purchase::getStoresForTitle($title);
+					$purchaseLinks = Purchase::getStoresForTitle($title, $author);
 					
 					if (count($purchaseLinks) > 0){
 						$interface->assign('purchaseLinks', $purchaseLinks);
