@@ -69,7 +69,7 @@ class Record extends Action
 		}
 		if ($configArray['Catalog']['ils'] == 'Millennium'){
 			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
-			$interface->assign('classicUrl', $configArray['Catalog']['url']);
+			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
 		}
 		 
 		// Setup Search Engine Connection

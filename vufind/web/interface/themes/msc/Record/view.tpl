@@ -455,6 +455,32 @@ $("#moredetails-tabs").tabs();
 {/literal}
 </script> 
    
+    <div class="left_sidebar">
+    {* Display in Prospector Sidebar *}
+    <div id="inProspectorPlaceholder"></div>
+    </div>
+    
+    {if is_array($editions)}
+    <div class="left_sidebar">
+      <h4>{translate text="Other Editions"}</h4>
+      <ul class="similar">
+        {foreach from=$editions item=edition}
+        <li>
+          {if is_array($edition.format)}
+            <span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+          {else}
+            <span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+          {/if}
+          <a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          </span>
+          {$edition.edition|escape}
+          {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
+        </li>
+        {/foreach}
+      </ul>
+    </div>
+    {/if}
+    
     <div id='similarTitles' class="left_sidebar" style='display:none'>
      {* Display either similar tiles from novelist or from the catalog*}
      <div id="similarTitlePlaceholder" style='display:none'></div>
@@ -481,31 +507,4 @@ $("#moredetails-tabs").tabs();
      </div>
      {/if}
     </div>
-    
-    
-    <div class="left_sidebar">
-    {* Display in Prospector Sidebar *}
-    <div id="inProspectorPlaceholder"></div>
-    </div>
-    
-    {if is_array($editions)}
-    <div class="left_sidebar">
-      <h4>{translate text="Other Editions"}</h4>
-      <ul class="similar">
-        {foreach from=$editions item=edition}
-        <li>
-          {if is_array($edition.format)}
-            <span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-          {else}
-            <span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-          {/if}
-          <a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-          </span>
-          {$edition.edition|escape}
-          {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
-        </li>
-        {/foreach}
-      </ul>
-    </div>
-    {/if}
   </div>

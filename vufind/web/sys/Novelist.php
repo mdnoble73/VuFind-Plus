@@ -163,6 +163,8 @@ class Novelist{
 			//See if we can get the series title from the record
 			if (isset($ownedRecord['series'])){
 				$series = $ownedRecord['series'][0];
+			}else{
+				$series = '';
 			}
 			$titleList[] = array(
                 'title' => $ownedRecord['title'],
