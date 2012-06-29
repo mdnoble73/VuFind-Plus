@@ -10,7 +10,7 @@ class MarcLoader{
 			$resource = new Resource;
 			$resource->record_id = $record['id'];
 			$resource->source = 'VuFind';
-			$resource->deleted = 0;
+			//$resource->deleted = 0;
 			$resource->whereAdd('marc is not null');
 			if ($resource->find(true)){
 				$marc = trim($resource->marc);

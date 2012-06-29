@@ -50,7 +50,7 @@ class Purchase extends Action {
 		$interface->assign('record', $record);
 
 		$titleTerm = $record["title"];
-		$title = str_replace("/", "", $titleTerm);
+		$title = str_replace(":", " ", $titleTerm);
 		$authorTerm = $record["auth_author"];
 		$author = str_replace("/", "", $authorTerm);
 

@@ -51,20 +51,21 @@ body.search.Home #content_span{
 	margin-top: 0px;
 }
 #ft_contents div {
-    float:left;
-    border-right: 1px dotted #cccccc;
-    margin-right:1em;
-    padding: 0 2em 1em 0;
-    width:12em;
+	float:left;
+	border-right: 1px dotted #cccccc;
+	margin-right:1em;
+	padding: 0 2em 1em 0;
+	width:12em;
 }
 #ft{
 	margin: 20px auto auto;
 	width: 960px;
 	border: solid #B0B0B0 1px; 
 	-moz-border-radius: 20px 20px 20px 20px;
-  border-radius: 20px 20px 20px 20px;
-  padding: 7px 0px 7px 0px;
-  text-align: center;
+	border-radius: 20px 20px 20px 20px;
+	padding: 7px 0px 7px 0px;
+	text-align: center;
+	clear: both;
 }
 div#ft_contents{
 	margin: auto;
@@ -191,3 +192,13 @@ td{
 }
 #main-content{
 	width: 696px;
+}
+.callNumber{
+	font-weight: bold;
+}
+.result.alt{
+	background-color: #ECEAE8;
+}
+.sidegroup{
+	border: 0px solid black;
+}

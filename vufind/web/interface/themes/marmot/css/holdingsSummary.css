@@ -14,7 +14,6 @@
 
 #holdingsSummary a{
 	color: inherit;
-	font-size: 13px;
 }
 #holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList{
 	color: #003399;
@@ -27,4 +26,8 @@
 	color: black;
 	font-weight: bold;
   font-size: 13px;
+}
+#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine a{
+	font-weight: bold;
+	font-size: 14px;
 }
