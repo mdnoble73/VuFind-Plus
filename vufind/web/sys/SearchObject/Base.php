@@ -878,7 +878,7 @@ abstract class SearchObject_Base
 	 */
 	protected function getLimitOptions()
 	{
-		return $this->limitOptions;
+		return isset($this->limitOptions) ? $this->limitOptions : array();
 	}
 	
 	/**

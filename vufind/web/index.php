@@ -762,7 +762,7 @@ function handlePEARError($error, $method = null){
 	$baseError = $error->toString();
 	$basicServer = " (Server: IP = {$_SERVER['REMOTE_ADDR']}, " .
         "Referer = " . (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '') . ", " .
-        "User Agent = {$_SERVER['HTTP_USER_AGENT']}, " .
+        "User Agent = " . (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') . ", " .
         "Request URI = {$_SERVER['REQUEST_URI']})";
 	$detailedServer = "\nServer Context:\n" . print_r($_SERVER, true);
 	$basicBacktrace = "\nBacktrace:\n";

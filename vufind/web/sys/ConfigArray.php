@@ -106,7 +106,7 @@ function ini_merge($config_ini, $custom_ini)
 {
 	foreach ($custom_ini as $k => $v) {
 		if (is_array($v)) {
-			$config_ini[$k] = ini_merge($config_ini[$k], $custom_ini[$k]);
+			$config_ini[$k] = ini_merge(isset($config_ini[$k]) ? $config_ini[$k] : array(), $custom_ini[$k]);
 		} else {
 			$config_ini[$k] = $v;
 		}
@@ -146,7 +146,7 @@ function readConfig()
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
 	//If we are accessing the site via a subdomain, need to preserve the subdomain
-	if ($_SERVER['HTTPS']){
+	if (isset($_SERVER['HTTPS'])){
 		$mainArray['Site']['url'] = "https://" . $serverUrl;
 	}else{
 		$mainArray['Site']['url'] = "http://" . $serverUrl;
