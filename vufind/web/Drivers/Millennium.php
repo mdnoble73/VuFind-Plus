@@ -2349,7 +2349,7 @@ class MillenniumDriver implements DriverInterface
 			$hold_result['message'] = $message;
 
 			$logger = new Logger();
-			$logger->log('Place Hold Full HTML\n' . $sresult, PEAR_LOG_INFO);
+			$logger->log('Place Hold Full HTML\n' . $holdResultPage, PEAR_LOG_INFO);
 		}
 		return $hold_result;
 	}
@@ -2484,7 +2484,7 @@ class MillenniumDriver implements DriverInterface
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
-		curl_setopt($curl_connection, CURLOPT_HTTPPOST, true);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
 		$sresult = curl_exec($curl_connection);
 		$holds = $this->parseHoldsPage($sresult);
 		//At this stage, we get messages if there were any errors freezing holds.
