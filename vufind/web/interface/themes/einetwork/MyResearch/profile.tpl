@@ -23,6 +23,16 @@
         <tr><th>{translate text='Zip'}:</th><td>{$profile.zip|escape}</td></tr>
         <tr><th>{translate text='Phone Number'}:</th><td>{if $edit == true}<input name='phone' value='{$profile.phone|escape}' size='50' maxlength='75' />{else}{$profile.phone|escape}{/if}</td></tr>
         <tr><th>{translate text='E-mail'}:</th><td>{if $edit == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</td></tr>
+        <tr><th>{translate text='Receive Notices By'}:</th>
+        	<td>
+        		{if $edit == true}
+        			<input type="radio" name='notices' value='p' id='phoneNotice' {if $profile.notices == 'p'}checked='checked'{/if}/><label for='phoneNotice'>Phone</label>
+        			<input type="radio" name='notices' value='z' id='emailNotice' {if $profile.notices == 'z'}checked='checked'{/if}/><label for='emalNotice'>Email</label>
+        		{else}
+        			{if $profile.notices == 'p'}Phone{else}Email{/if}
+        		{/if}
+        	</td>
+        </tr>
         <tr><th>{translate text='Fines'}:</th><td>{$profile.fines|escape}</td></tr>
         <tr><th>{translate text='Expiration Date'}:</th><td>{$profile.expires|escape}</td></tr>
         <tr><th>{translate text='Home Library'}:</th><td>{$profile.homeLocation|escape}</td></tr>

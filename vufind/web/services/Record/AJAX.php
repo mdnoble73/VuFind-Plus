@@ -148,8 +148,9 @@ class AJAX extends Action {
 					if ($resource->find(true)){
 					
 						$title = $resource->title;
+						$author = $resource->author;
 						require_once 'services/Record/Purchase.php';
-						$purchaseLinks = Purchase::getStoresForTitle($title);
+						$purchaseLinks = Purchase::getStoresForTitle($title, $author);
 						
 						if (count($purchaseLinks) > 0){
 							$interface->assign('purchaseLinks', $purchaseLinks);
@@ -299,7 +300,7 @@ class AJAX extends Action {
 			$comment = new Comments();
 			$comment->id = $_GET['commentId'];
 			if ($comment->find(true)) {
-				if ($user->id == $comment->user_id) {
+				if ($user->id == $comment->user_id || $user->hasRole('opacAdmin')) {
 					$comment->delete();
 				}
 			}

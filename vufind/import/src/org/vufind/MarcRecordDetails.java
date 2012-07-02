@@ -2767,7 +2767,7 @@ public class MarcRecordDetails {
 			while (iter.hasNext()) {
 				String curLocationCode = iter.next();
 				try {
-					if (!curLocationCode.matches("locationsToSuppress")) {
+					if (!curLocationCode.matches(locationsToSuppress)) {
 						suppressRecord = false;
 						break;
 					}
@@ -2787,6 +2787,7 @@ public class MarcRecordDetails {
 				while (iter2.hasNext()) {
 					String curCode = iter2.next();
 					if (curCode.matches(manualSuppressionValue)) {
+						logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
 						suppressRecord = true;
 						break;
 					}

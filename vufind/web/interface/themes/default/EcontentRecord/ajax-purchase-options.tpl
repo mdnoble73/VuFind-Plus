@@ -16,11 +16,13 @@
 				{foreach from=$purchaseLinks item=purchaseLink}
 					<tr>
 					<td>
+					<a href='/EcontentRecord/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>
 					{if $purchaseLink.image}
 						<img src="{$purchaseLink.image}" alt="{$purchaseLink.storeName}" />
 					{else}
 						{$purchaseLink.storeName}
 					{/if}
+					</a>
 					</td>
 					<td><div class='purchaseTitle button'><a href='/EcontentRecord/{$id}/Purchase?store={$purchaseLink.storeName|escape:"url"}{if $purchaseLink.field856Index}&index={$purchaseLink.field856Index}{/if}' target='_blank'>Buy Now</a></div></td>
 					

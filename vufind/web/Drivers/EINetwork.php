@@ -237,7 +237,7 @@ class EINetwork extends MillenniumDriver{
 		//Setup the call to Millennium
 		$id2= $patronId;
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
-		$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
+		//$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
 
 		$this->_updateVuFindPatronInfo($patronId);
 		
@@ -245,6 +245,9 @@ class EINetwork extends MillenniumDriver{
 		$extraPostInfo = array();
 		$extraPostInfo['tele1'] = $_REQUEST['phone'];
 		$extraPostInfo['email'] = $_REQUEST['email'];
+		if (isset($_REQUEST['notices'])){
+			$extraPostInfo['notices'] = $_REQUEST['notices'];
+		}
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -284,13 +287,14 @@ class EINetwork extends MillenniumDriver{
 		curl_close($curl_connection);
 		unlink($cookieJar);
 		
-		$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
+		//$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
 			$patronDump = $this->_getPatronDump($this->_getBarcode(), true);
 			$user->phone = $_REQUEST['phone'];
 			$user->email = $_REQUEST['email'];
+			$user->update();
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
 			return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
