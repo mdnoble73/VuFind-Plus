@@ -341,9 +341,11 @@ if ((isset($_GET['isn']) && !empty($_GET['isn'])) || (isset($_GET['upc']) && !em
 		dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
 	}
 
-} else {
+} else if (isset($category)){
 	$logger->log("Could not find a cover, using default based on category $category.", PEAR_LOG_INFO);
 	dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
+}else{
+	dieWithFailImage($bookCoverPath, $_GET['size'], null, $cacheName);
 }
 
 /**
