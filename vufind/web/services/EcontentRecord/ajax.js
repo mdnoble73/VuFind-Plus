@@ -176,6 +176,6 @@ function editItem(id, itemId){
 	return false;
 }
 function showEcontentPurchaseOptions(id){
-	var url = path + "/EContentRecord/" + id + "/AJAX?method=getPurchaseOptions";
+	var url = path + "/EcontentRecord/" + id + "/AJAX?method=getPurchaseOptions";
 	ajaxLightbox(url)
 }
