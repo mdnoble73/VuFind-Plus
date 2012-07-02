@@ -739,7 +739,7 @@ class MillenniumDriver implements DriverInterface
 		foreach ($holdings as $holdingKey => $holding){
 			if (is_null($allItemStatus)){
 				//Do nothing, the status is not distinct
-			}else if ($allItemStatus == ''){
+			}else if ($allItemStatus == '' && isset($holding['statusfull'])){
 				$allItemStatus = $holding['statusfull'];
 			}elseif(isset($holding['statusfull']) && $allItemStatus != $holding['statusfull']){
 				$allItemStatus = null;
@@ -773,7 +773,7 @@ class MillenniumDriver implements DriverInterface
 					$additionalAvailableLocations[] = $holding['libraryDisplayName'];
 				}
 			}else{
-				if ($unavailableStatus == null){
+				if ($unavailableStatus == null && isset($holding['status'])){
 					$unavailableStatus = $holding['status'];
 				}
 			}
@@ -1047,27 +1047,27 @@ class MillenniumDriver implements DriverInterface
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($id2);
 
-		//TODO:  Verify this will work with all types of names including hypenation
-
 		//Create a variety of possible name combinations for testing purposes.
-		$Fullname = str_replace(","," ",$patronDump['PATRN_NAME']);
-		$Fullname = str_replace(";"," ",$Fullname);
-		$Fullname = str_replace(";","'",$Fullname);
-		$allNameComponents = preg_split('^[\s-]^', strtolower($Fullname));
-		$nameParts = explode(' ',$Fullname);
-		$lastname = strtolower($nameParts[0]);
-		$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
-		$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
-
-		//Get the first name that the user supplies.
-		//This expects the user to enter one or two names and only
-		//Validates the first name that was entered.
-		$enteredNames=preg_split('^[\s-]^', strtolower($username));
 		$userValid = false;
-		foreach ($enteredNames as $name){
-			if (in_array($name, $allNameComponents, false)){
-				$userValid = true;
-				break;
+		if (isset($patronDump['PATRN_NAME'])){
+			$Fullname = str_replace(","," ",$patronDump['PATRN_NAME']);
+			$Fullname = str_replace(";"," ",$Fullname);
+			$Fullname = str_replace(";","'",$Fullname);
+			$allNameComponents = preg_split('^[\s-]^', strtolower($Fullname));
+			$nameParts = explode(' ',$Fullname);
+			$lastname = strtolower($nameParts[0]);
+			$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
+			$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
+	
+			//Get the first name that the user supplies.
+			//This expects the user to enter one or two names and only
+			//Validates the first name that was entered.
+			$enteredNames=preg_split('^[\s-]^', strtolower($username));
+			foreach ($enteredNames as $name){
+				if (in_array($name, $allNameComponents, false)){
+					$userValid = true;
+					break;
+				}
 			}
 		}
 		if ($userValid){
