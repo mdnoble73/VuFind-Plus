@@ -48,7 +48,7 @@
 <script  type="text/javascript">
   {literal}
   $(function() {
-    $( "#canceldate" ).datepicker({ minDate: 0, showOn: "button", buttonImage: "{/literal}{$path}{literal}/interface/themes/marmot/images/silk/calendar.png", numberOfMonths: 2,  buttonImageOnly: true});
+    $( "#canceldate" ).datepicker({ minDate: 0, showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 2,  buttonImageOnly: true});
   });
   {/literal}
 </script>
