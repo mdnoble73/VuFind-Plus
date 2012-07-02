@@ -1229,7 +1229,7 @@ class MillenniumDriver implements DriverInterface
 				'state' => $State,
 				'zip'=> $Zip,
 				'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-				'phone' => $patronDump['TELEPHONE'],
+				'phone' => isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : '',
 				'fines' => $patronDump['MONEY_OWED'],
 				'finesval' =>$finesVal,
 				'expires' =>$patronDump['EXP_DATE'],
