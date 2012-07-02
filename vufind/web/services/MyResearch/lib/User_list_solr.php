@@ -20,6 +20,7 @@ class User_list_solr{
 		$this->backupIndex = new Solr($host, 'biblio2');
 	}
 
+	private $updateStarted = false;
 	/**
 	 * Save a list to Solr
 	 *
@@ -28,10 +29,15 @@ class User_list_solr{
 	public function saveList($list){
 		global $user;
 		global $timer;
+		if ($this->updateStarted){
+			return true;
+		}
+		$this->updateStarted = true;
 
 		$fullList = User_list::staticGet('id', $list->id);
 		$timer->logTime('Loaded User list to save to solr');
 		if ($fullList->public != 1){
+			$this->updateStarted = false;
 			return false;
 		}
 		$resources = $fullList->getResources();
@@ -73,6 +79,7 @@ class User_list_solr{
 			$this->mainIndex->commit();
 			$savedToMainIndex = true;
 		} else {
+			$this->updateStarted = false;
 			return new PEAR_Error('Could not save list to main index');
 		}
 		$timer->logTime('Saved List to the main index');
@@ -86,6 +93,7 @@ class User_list_solr{
 		}
 		$timer->logTime('Saved List to the backup index');
 
+		$this->updateStarted = false;
 		return $savedToMainIndex && $savedToBackupIndex;
 	}
 

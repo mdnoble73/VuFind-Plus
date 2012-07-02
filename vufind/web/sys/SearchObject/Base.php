@@ -172,6 +172,15 @@ abstract class SearchObject_Base
 
 		// Check for duplicates -- if it's not in the array, we can add it
 		if (!$this->hasFilter($newFilter)) {
+			if ($field == 'literary-form'){
+				$field = 'literary_form';
+			}else if ($field == 'literary-form-full'){
+				$field = 'literary_form_full';
+			}else if ($field == 'target-audience'){
+				$field = 'target_audience';
+			}else if ($field == 'target-audience-full'){
+				$field = 'target_audience_full';
+			}
 			$this->filterList[$field][] = $value;
 		}
 	}

@@ -11,11 +11,18 @@ abstract class SolrDataObject extends DB_DataObject{
 	function update(){
 		return $this->updateDetailed(true);
 	}
+	private $updateStarted = false;
 	function updateDetailed($insertInSolr = true){
+		if ($this->updateStarted){
+			return true;
+		}
+		$this->updateStarted = true;
+		
 		$logger = new Logger();
 		$result = parent::update();
 		if (!$insertInSolr){
 			$logger->log("updateDetailed, not inserting in solr because insertInSolr was false", PEAR_LOG_DEBUG);
+			$this->updateStarted = false;
 			return $result == 1;
 		}else{
 			if ($result !== FALSE){
@@ -23,12 +30,15 @@ abstract class SolrDataObject extends DB_DataObject{
 				if (!$this->saveToSolr()){
 					$logger->log("Could not update Solr", PEAR_LOG_ERROR);
 					//Could not save to solr
+					$this->updateStarted = false;
 					return false;
 				}
 			}else{
 				$logger->log("Saving to database failed, not updating solr", PEAR_LOG_ERROR);
+				$this->updateStarted = false;
 				return false;
 			}
+			$this->updateStarted = false;
 			return true;
 		}
 	}

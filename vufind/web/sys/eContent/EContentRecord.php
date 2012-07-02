@@ -1150,7 +1150,9 @@ class EContentRecord extends SolrDataObject {
 				}
 				//Mark that the record should be reindexed.
 				if ($dataChanged){
-					$this->updateDetailed(true);
+					//MDN 7/1/2012 - Do not reindex OverDrive titles automatically to try to prevent downtime
+					//$this->updateDetailed(true);
+					$this->updateDetailed(false);
 				}
 			}else{
 				$overDriveItems = $cachedItems;
