@@ -380,7 +380,7 @@ class AJAX extends Action {
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
 		$showSimilarTitles = false;
-		if (isset($enrichmentData['novelist']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['similarTitles']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
 			foreach ($enrichmentData['novelist']['similarTitles'] as $title){
 				if ($title['recordId'] != -1){
 					$showSimilarTitles = true;
