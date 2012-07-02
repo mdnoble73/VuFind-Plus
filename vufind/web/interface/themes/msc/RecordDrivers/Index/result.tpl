@@ -8,12 +8,7 @@
 			
 			<div id='descriptionPlaceholder{$summShortId|escape}'	style='display:none'></div>
 			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="pretty{$summShortId|escape:"url"}">
-				
-			{if $summISBN || $summUPC}
-			<img src="{$path}/bookcover.php?isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
-			{else}
-			<img src="{$path}/interface/themes/marmot/images/{$summFormatCategory.0|escape:"url"}.png" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
-			{/if}
+				<img src="{$path}/bookcover.php?isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 			
 		 
