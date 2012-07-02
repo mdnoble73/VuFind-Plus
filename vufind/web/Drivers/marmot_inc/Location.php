@@ -369,15 +369,15 @@ class Location extends DB_DataObject
 		return $this->ipId;
 	}
 
-	private $activeIp;
+	private $activeIp = null;
 	function getActiveIp(){
-		if (isset($this->activeIp)) return $this->activeIp;
+		if (!empty($this->activeIp)) return $this->activeIp;
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
 			$ip = $_GET['test_ip'];
 			//Set a coookie so we don't have to transfer the ip from page to page.
 			setcookie('test_ip', $ip, 0, '/');
-		}elseif (isset($_COOKIE['test_ip'])){
+		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
 			$ip = $_COOKIE['test_ip'];
 		}else{
 			$ip = $_SERVER['REMOTE_ADDR'];
