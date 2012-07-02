@@ -169,7 +169,7 @@ class Novelist{
 			$titleList[] = array(
                 'title' => $ownedRecord['title'],
                 'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
-                'author' => $ownedRecord['author'],
+                'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
                 'publicationDate' => (string)$item->PublicationDate,
                 'isbn' => $isbn13,
                 'isbn10' => $isbn10,

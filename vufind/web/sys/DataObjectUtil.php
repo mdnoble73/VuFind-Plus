@@ -239,7 +239,7 @@ class DataObjectUtil
 							$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
 							$logger->log("Copied file to $destFullPath", PEAR_LOG_DEBUG);
 						}else{
-							$logger->log("Creating thumbnails for $propertyName");
+							$logger->log("Creating thumbnails for $propertyName", PEAR_LOG_DEBUG);
 							$destFileName = $propertyName . $_FILES[$propertyName]["name"];
 							$destFolder = $configArray['Site']['local'] . '/files/original';
 							$pathToThumbs = $configArray['Site']['local'] . '/files/thumbnail';
