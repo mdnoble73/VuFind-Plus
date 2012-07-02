@@ -363,9 +363,9 @@ class Resource extends DB_DataObject {
 			}
 	
 			//Create a graph of the individual ratings
-			if ($configArray['Content']['ratingsGraph']){
+			/*if ($configArray['Content']['ratingsGraph']){
 				$ratingData['summaryGraph'] = $this->createRatingGraph($ratingData);
-			}
+			}*/
 			$memcache->set("rating_{$this->record_id}", $ratingData, 0, $configArray['Caching']['rating']);
 		}
 		return $ratingData;

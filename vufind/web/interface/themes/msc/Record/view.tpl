@@ -114,9 +114,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				          </div>
 				     <center><span class="smallText">Average Patron Rating</span></center><br />
 				       {$ratingData.count} ratings<br />
-				    
+				    {*
 				    <img src="{$url}/{$ratingData.summaryGraph}" alt='Ratings Summary'> 
-				  
+				  	*}
 				    <br />
 				    <br />      
 				       </div>
