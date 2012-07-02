@@ -2299,8 +2299,13 @@ class MillenniumDriver implements DriverInterface
 			$cleanResponse = preg_replace("^\n|\r|&nbsp;^", "", $matches[1]);
 			$cleanResponse = preg_replace("^<br\s*/>^", "\n", $cleanResponse);
 			$cleanResponse = trim(strip_tags($cleanResponse));
-				
-			list($book,$reason)= explode("\n",$cleanResponse);
+
+			if (strpos($cleanResponse, "\n") > 0){
+				list($book,$reason)= explode("\n",$cleanResponse);
+			}else{
+				$book = $cleanResponse;
+				$reason = '';
+			}
 			if (preg_match('/success/', $cleanResponse)){
 				//Hold was successful
 				$hold_result['result'] = true;

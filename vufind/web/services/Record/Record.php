@@ -599,9 +599,10 @@ class Record extends Action
 							if (isset($previousResults)){
 								$previousRecord = $previousResults[count($previousResults) -1];
 							}else{
-								$previousRecord = $recordSet[$currentResultIndex - 1 - (($currentPage -1) * $recordsPerPage)];
+								$previousId = $currentResultIndex - 1;
+								$previousRecord = $recordSet[$previousId];
 							}
-						//Convert back to 1 based index
+							//Convert back to 1 based index
 							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
 							$interface->assign('previousTitle', $previousRecord['title']);
 							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
@@ -617,7 +618,7 @@ class Record extends Action
 							if (isset($nextResults)){
 								$nextRecord = $nextResults[0];
 							}else{
-								$nextRecordIndex = $currentResultIndex + 1 - (($currentPage -1) * $recordsPerPage);
+								$nextRecordIndex = $currentResultIndex + 1;
 								if (isset($recordSet[$nextRecordIndex])){
 									$nextRecord = $recordSet[$nextRecordIndex];
 								}
