@@ -152,7 +152,7 @@ function redrawSaveStatus() {literal}{{/literal}
             {if $marcField}
             <div class="resultInformation">
             	<span class="resultLabel">{translate text='Uniform Title:'}</span>
-            	<span class="resultValue"><a href="{$url}/Union/Search?searchSource=local&lookfor={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'m'}{$marcField|getvalue:'m'|escape:"url"}{/if}{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'|escape:"url"}{/if}{if $marcField|getvalue:'o'}{$marcField|getvalue:'o'|escape:"url"}{/if}">{$marcField|getvalue:'a'}{if $marcField|getvalue:'m'}{$marcField|getvalue:'m'}{/if}{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'}{/if}{if $marcField|getvalue:'o'}{$marcField|getvalue:'o'}{/if}</a></span>
+            	<span class="resultValue"><a href="{$url}/Union/Search?searchSource=local&basicType=Title&lookfor={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'m'}{$marcField|getvalue:'m'|escape:"url"}{/if}{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'|escape:"url"}{/if}{if $marcField|getvalue:'o'}{$marcField|getvalue:'o'|escape:"url"}{/if}">{$marcField|getvalue:'a'}{if $marcField|getvalue:'m'}{$marcField|getvalue:'m'}{/if}{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'}{/if}{if $marcField|getvalue:'o'}{$marcField|getvalue:'o'}{/if}</a></span>
         	</div>
         	{/if}
           {if $contributors}
