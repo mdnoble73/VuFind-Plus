@@ -151,7 +151,7 @@ if (!isset($_GET['reload'])){
 		echo readfile($filename);
 		//$logger->log("Found cached jpg file for isbn", PEAR_LOG_INFO);
 		return;
-	}else if (strlen($_GET['upc']) > 0 && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg')) {
+	}else if (isset($_GET['upc']) && strlen($_GET['upc']) > 0 && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg')) {
 		// Load local cache if available
 		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg';
 		header('Content-type: image/jpeg');
@@ -532,7 +532,7 @@ function syndetics($id)
 
 	$url = isset($configArray['Syndetics']['url']) ?
 	$configArray['Syndetics']['url'] : 'http://syndetics.com';
-	$url .= "/index.aspx?type=xw12&isbn={$_GET['isn']}/{$size}&client={$id}&upc={$_GET['upc']}";
+	$url .= "/index.aspx?type=xw12&isbn={$_GET['isn']}/{$size}&client={$id}&upc=" . (isset($_GET['upc']) ? $_GET['upc'] : '');
 	return processImageURL($url);
 }
 
