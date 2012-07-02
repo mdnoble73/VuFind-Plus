@@ -379,7 +379,7 @@ class MillenniumDriver implements DriverInterface
 				$numHoldings++;
 				$curHolding['id'] = $id;
 				$curHolding['number'] = $numHoldings;
-				$curHolding['holdQueueLength'] = $holdQueueLength;
+				$curHolding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
 				$ret[] = $curHolding;
 			}
 			$count++;
@@ -813,14 +813,14 @@ class MillenniumDriver implements DriverInterface
 				$summaryInformation['class'] = 'nearby';
 			}elseif (!isset($summaryInformation['status']) &&
 			((!$showItsHere && substr($holdingKey, 0, 1) <= 5) || substr($holdingKey, 0, 1) == 5 || !isset($library) ) &&
-			$holding['availability'] == 1){
+			(isset($holding['availability']) && $holding['availability'] == 1)){
 				//The item is at a location either in the same system or another system.
 				$summaryInformation['status'] = "Available At";
 				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
 				$summaryInformation['class'] = 'available';
 			}elseif (!isset($summaryInformation['status']) &&
 			(substr($holdingKey, 0, 1) == 6 ) &&
-			$holding['availability'] == 1){
+			(isset($holding['availability']) && $holding['availability'] == 1)){
 				//The item is at a location either in the same system or another system.
 				$summaryInformation['status'] = "Marmot";
 				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
@@ -2659,6 +2659,7 @@ class MillenniumDriver implements DriverInterface
 		$sresult = curl_exec($curl_connection);
 
 		//Go to the items page
+		$scope = $this->getDefaultScope();
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
