@@ -313,7 +313,7 @@ class Record extends Action
 		$interface->assign('recordFormat', $record['format']);
 		$format_category = $record['format_category'][0];
 		$interface->assign('format_category', $record['format_category'][0]);
-		$interface->assign('recordLanguage', $record['language']);
+		$interface->assign('recordLanguage', isset($record['language']) ? $record['language'] : null);
 		
 		$timer->logTime('Got detailed data from Marc Record');
 		

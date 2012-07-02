@@ -540,7 +540,7 @@ class AJAX extends Action {
 
 		// Build an XML tag representing the current comment:
 		$output .= "	<description><![CDATA[" . $descriptionArray['description'] . "]]></description>\n";
-		$output .= "	<length><![CDATA[" . $descriptionArray['length'] . "]]></length>\n";
+		$output .= "	<length><![CDATA[" . (isset($descriptionArray['length']) ? $descriptionArray['length'] : '') . "]]></length>\n";
 		$output .= "	<publisher><![CDATA[" . $descriptionArray['publisher'] . "]]></publisher>\n";
 
 		$output .= "</result>\n";

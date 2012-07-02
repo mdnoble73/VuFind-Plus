@@ -295,8 +295,12 @@ class JSON extends Action {
 				$available = true;
 			}
 			// Store call number/location info:
-			$callNumbers[] = $info['callnumber'];
-			$locations[] = $info['location'];
+			if (isset($info['callnumber'])){
+				$callNumbers[] = $info['callnumber'];
+			}
+			if (isset($info['location'])){
+				$locations[] = $info['location'];
+			}
 		}
 
 		// Determine call number string based on findings:

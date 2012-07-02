@@ -95,6 +95,9 @@ $options = $configArray['Database'];
 // Sanitize incoming parameters to avoid filesystem attacks.  We'll make sure the
 // provided size matches a whitelist, and we'll strip illegal characters from the
 // ISBN.
+if (!isset($_GET['size'])){
+	$_GET['size'] = 'small';
+}
 $validSizes = array('small', 'medium', 'large');
 if (!in_array($_GET['size'], $validSizes)) {
 	if ($configArray['System']['debug']) {

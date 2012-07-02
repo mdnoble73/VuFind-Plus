@@ -2574,6 +2574,7 @@ class MillenniumDriver implements DriverInterface
 		$sresult = curl_exec($curl_connection);
 
 		//Go to the items page
+		$scope = $this->getDefaultScope();
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
