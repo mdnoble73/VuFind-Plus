@@ -896,7 +896,10 @@ class MillenniumDriver implements DriverInterface
 
 			//If there is a link, add that status information.
 			if (isset($linkURL) && !preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/', $linkURL)){
-				$linkTestText = $linkText . ' ' . $linkURL;
+				$linkTestText = $linkURL;
+				if (isset($linkText)){
+					$linkTestText .= ' ' . $linkText;
+				}
 				$isDownload = preg_match('/SpringerLink|NetLibrary|digital media|Online version\.|ebrary|gutenberg/i', $linkTestText);
 				if ($linkTestText == 'digital media') $linkText = 'OverDrive';
 				if (preg_match('/netlibrary/i', $linkURL)){
