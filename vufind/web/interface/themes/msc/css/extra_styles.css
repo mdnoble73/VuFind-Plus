@@ -1,34 +1,32 @@
-<?php
-Header ("Content-type: text/css");
-$configArray = parse_ini_file('../../../../conf/config.ini', true);
-?>
-
 /*****************Homepage*******************/
 .searchHomeForm {
-    background-color:#660033;
-    border-top:#494949 2px solid;
+	background-color: #660033;
+	border-top: #494949 2px solid;
 }
 
-html, body {
-    background-color: #B5A899;
+html,body {
+	background-color: #B5A899;
 }
 
-#searchbar, .searchHomeForm{
+#searchbar,.searchHomeForm {
 	color: white;
 	background-color: #5D0022;
 	margin: 0px -20px;
 }
-#searchbar a{
-  color: white;
+
+#searchbar a {
+	color: white;
 }
-#outer_span{
+
+#outer_span {
 	margin: auto;
 	width: 1000px;
 	background-image: url("/interface/themes/msc/images/sub_content_bg.png");
 	background-repeat: repeat-y;
 	padding: 0 20px 20px;
 }
-#content_span{
+
+#content_span {
 	background-image: none;
 	padding-top: 0px;
 	background-color: #FFFFFF;
@@ -36,117 +34,143 @@ html, body {
 	margin-bottom: 10px;
 }
 
-div.breadcrumbs{
+div.breadcrumbs {
 	border-bottom: thin solid #B0B0B0;
 	margin: 0px -20px;
 }
-div.breadcrumbs span{
+
+div.breadcrumbs span {
 	opacity: 1;
 }
-body.search.Home #content_span{
+
+body.search.Home #content_span {
 	position: relative;
 	top: 15px;
 }
-.searchHome{
+
+.searchHome {
 	margin-top: 0px;
 }
+
 #ft_contents div {
-	float:left;
+	float: left;
 	border-right: 1px dotted #cccccc;
-	margin-right:1em;
+	margin-right: 1em;
 	padding: 0 2em 1em 0;
-	width:12em;
+	width: 12em;
 }
-#ft{
+
+#ft {
 	margin: 20px auto auto;
 	width: 960px;
-	border: solid #B0B0B0 1px; 
+	border: solid #B0B0B0 1px;
 	-moz-border-radius: 20px 20px 20px 20px;
 	border-radius: 20px 20px 20px 20px;
 	padding: 7px 0px 7px 0px;
 	text-align: center;
 	clear: both;
 }
-div#ft_contents{
+
+div#ft_contents {
 	margin: auto;
 	float: none;
 	width: 61em; /* Needs to be increased when a column is added. */
 	border: none;
 }
-#maroon_right{
+
+#maroon_right {
 	padding-top: 15px;
 }
-.left_sidebar{
+
+.left_sidebar {
 	border: thin solid #B0B0B0;
 	background-color: white;
 	float: left;
-  margin-top: 15px;
-  width: 170px;
+	margin-top: 15px;
+	width: 170px;
 }
-#main_content_with_sidebar{
+
+#main_content_with_sidebar {
 	width: 755px;
 	border: thin solid #B0B0B0;
-  background-color: white;
-  margin: 15px 0px 15px 0px;
-  float: right;
+	background-color: white;
+	margin: 15px 0px 15px 0px;
+	float: right;
 }
-#searchResultSummary{
+
+#searchResultSummary {
 	float: left;
 }
-.resulthead{
-	padding: 3px 3px 5px 3px ;
+
+.resulthead {
+	padding: 3px 3px 5px 3px;
 	border-bottom: thin solid #B0B0B0;
 }
-.pagination.top{
+
+.pagination.top {
 	margin: 0px;
 	padding: .5em;
 }
-.resultLabel{
+
+.resultLabel {
 	width: 100px;
 	color: graytext;
 	display: inline-block;
 	vertical-align: top;
 }
-.resultValue{
+
+.resultValue {
 	display: inline-block;
 	vertical-align: top;
 }
-.boldedResultValue{
+
+.boldedResultValue {
 	font-weight: bold;
 }
-.resultInformation{
+
+.resultInformation {
 	margin-top: 3px;
 }
-.listResultImage{
+
+.listResultImage {
 	float: right;
 }
-.resultitem{
+
+.resultitem {
 	margin-left: 25px;
 }
-.toolbar{
+
+.toolbar {
 	margin-top: 6px;
 	border-bottom: thin solid #B0B0B0;
 }
-.titledetails{
+
+.titledetails {
 	clear: none;
 }
-#fullRecordSummaryAndImage{
+
+#fullRecordSummaryAndImage {
 	float: right;
 	text-align: center;
 }
-#fullRecordTitleDetails{
+
+#fullRecordTitleDetails {
 	width: 475px;
 }
-#fullRecordTitleDetails .resultValue{
+
+#fullRecordTitleDetails .resultValue {
 	max-width: 365px;
 }
-.recordcover{
+
+.recordcover {
 	margin: auto;
 }
-#fullcontent{
+
+#fullcontent {
 	margin: 15px;
 }
-.left_sidebar h4{
+
+.left_sidebar h4 {
 	color: #000000;
 	font-size: 140%;
 	font-weight: normal;
@@ -154,51 +178,65 @@ div#ft_contents{
 	padding-left: 7px;
 	border-bottom: 2px solid #D5D5D5;
 }
-ul.similar{
+
+ul.similar {
 	margin-left: 7px;
 }
-.tabcontent{
+
+.tabcontent {
 	width: 690px;
 }
-#staffView, #fullViewLink, #classicViewLink{
+
+#staffView,#fullViewLink,#classicViewLink {
 	padding: 0px;
 	margin: 10px;
-	float:left; 
+	float: left;
 }
-.amazonLink{
+
+.amazonLink {
 	float: right;
 	margin: 10px;
 }
-.holdingsCallNumber{
+
+.holdingsCallNumber {
 	font-weight: bold;
 }
-#ratingSummary{
-	margin:  15px auto 15px auto;
+
+#ratingSummary {
+	margin: 15px auto 15px auto;
 }
-td{
+
+td {
 	background-color: white;
 }
+
 /* Adjust the width of the series box */
 .jcarousel-skin-tango .jcarousel-clip-horizontal {
-  height: auto;
-  width: 575px;
+	height: auto;
+	width: 575px;
 }
+
 .jcarousel-skin-tango .jcarousel-container-horizontal {
-  padding: 20px 40px;
-  width: 625px;
+	padding: 20px 40px;
+	width: 625px;
 }
-#prospectorAvailabilityTitle{
+
+#prospectorAvailabilityTitle {
 	font-size: 110%;
 }
-#main-content{
+
+#main-content {
 	width: 696px;
 }
-.callNumber{
+
+.callNumber {
 	font-weight: bold;
 }
-.result.alt{
+
+.result.alt {
 	background-color: #ECEAE8;
 }
-.sidegroup{
+
+.sidegroup {
 	border: 0px solid black;
 }

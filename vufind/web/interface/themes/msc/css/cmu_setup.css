@@ -1,7 +1,3 @@
-<?php
-Header ("Content-type: text/css");
-$configArray = parse_ini_file('../../../../conf/config.ini', true);
-?>
 @charset "utf-8";
 /* CSS Document */
 body {

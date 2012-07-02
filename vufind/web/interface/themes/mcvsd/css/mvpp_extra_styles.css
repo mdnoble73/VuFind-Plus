@@ -1,9 +1,4 @@
-<?php
-Header ("Content-type: text/css");
-$configArray = parse_ini_file('../../../../conf/config.ini', true);
-?>
-
-.searchHomeForm{
-    background-color: #C9A37A;
-    border-color: black;
+.searchHomeForm {
+	background-color: #C9A37A;
+	border-color: black;
 }
