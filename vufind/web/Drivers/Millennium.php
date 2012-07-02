@@ -1129,18 +1129,26 @@ class MillenniumDriver implements DriverInterface
 		//Load the raw information about the patron
 		$patronDump = $this->_getPatronDump($id2);
 
-		$Fulladdress = $patronDump['ADDRESS'];
-		$addressParts =explode('$',$Fulladdress);
-		$Address1 = $addressParts[0];
-		$City = isset($addressParts[1]) ? $addressParts[1] : '';
-		$State = isset($addressParts[2]) ? $addressParts[2] : '';
-		$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
-
-		if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
-			$City = $matches[1];
-			$State = $matches[2];
-			$Zip = $matches[3];
+		if (isset($patronDump['ADDRESS'])){
+			$Fulladdress = $patronDump['ADDRESS'];
+			$addressParts =explode('$',$Fulladdress);
+			$Address1 = $addressParts[0];
+			$City = isset($addressParts[1]) ? $addressParts[1] : '';
+			$State = isset($addressParts[2]) ? $addressParts[2] : '';
+			$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
+	
+			if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
+				$City = $matches[1];
+				$State = $matches[2];
+				$Zip = $matches[3];
+			}
+		}else{
+			$Address1 = "";
+			$City = "";
+			$State = "";
+			$Zip = "";
 		}
+		
 		$Fullname = $patronDump['PATRN_NAME'];
 
 		$nameParts = explode(', ',$Fullname);
