@@ -105,7 +105,9 @@ if (!in_array($_GET['size'], $validSizes)) {
 	}
 	dieWithFailImage($bookCoverPath, '');
 }
-$_GET['isn'] = preg_replace('/[^0-9xX]/', '', $_GET['isn']);
+if (isset($_GET['isn'])){
+	$_GET['isn'] = preg_replace('/[^0-9xX]/', '', $_GET['isn']);
+}
 if (isset($_GET['upc'])){
 	$_GET['upc'] = preg_replace('/[^0-9xX]/', '', $_GET['upc']);
 }
