@@ -741,7 +741,7 @@ class MillenniumDriver implements DriverInterface
 				//Do nothing, the status is not distinct
 			}else if ($allItemStatus == ''){
 				$allItemStatus = $holding['statusfull'];
-			}elseif($allItemStatus != $holding['statusfull']){
+			}elseif(isset($holding['statusfull']) && $allItemStatus != $holding['statusfull']){
 				$allItemStatus = null;
 			}
 			if (isset($holding['holdQueueLength'])){
