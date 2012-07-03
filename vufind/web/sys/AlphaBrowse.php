@@ -28,13 +28,13 @@ class AlphaBrowse{
 		//Get the count of the rows in the database
 		$query = "SELECT COUNT(id) as numRows from $browseTable";
 		$result = mysql_query($query);
-		$numRowsRS = mysql_fetch_assoc($result);
-		if (!$numRowsRS){
+		if (!$result){
 			return array(
 				'success' => false,
 				'message' => "Sorry, unable to browse $browseType right now, please try again later."
 			);
 		}
+		$numRowsRS = mysql_fetch_assoc($result);
 		$numRows = $numRowsRS['numRows'];
 		
 		$foundMatch = false;
