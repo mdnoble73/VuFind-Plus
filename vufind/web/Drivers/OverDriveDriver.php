@@ -228,6 +228,12 @@ class OverDriveDriver {
 			$closeSession = false;
 			if ($overDriveInfo == null){
 				$ch = curl_init();
+				if (!$ch){
+					$logger = new Logger();
+					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
+					$bookshelf['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+					return $bookshelf;
+				}
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				$closeSession = true;
 			}
@@ -289,7 +295,12 @@ class OverDriveDriver {
 			if ($overDriveInfo == null){
 				//Start a curl session 
 				$ch = curl_init();
-				
+				if (!$ch){
+					$logger = new Logger();
+					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
+					$holds['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+					return $holds;
+				}
 				//Login to overdrive 
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				$closeSession = true;
