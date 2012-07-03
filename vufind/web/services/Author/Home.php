@@ -244,7 +244,7 @@ class Home extends Action
 			$this->lang = $lang;
 		}
 
-		$url = "http://$this->lang.wikipedia.org/w/api.php" .
+		$url = "http://{$this->lang}.wikipedia.org/w/api.php" .
                '?action=query&prop=revisions&rvprop=content&format=php' .
                '&list=allpages&titles=' . urlencode($author);
 		$client = new Proxy_Request();
@@ -273,7 +273,7 @@ class Home extends Action
 	 */
 	private function getWikipediaImageURL($imageName)
 	{
-		$url = "http://$this->lang.wikipedia.org/w/api.php" .
+		$url = "http://{$this->lang}.wikipedia.org/w/api.php" .
                '?prop=imageinfo&action=query&iiprop=url&iiurlwidth=150&format=php' .
                '&titles=Image:' . $imageName;
 
@@ -321,7 +321,7 @@ class Home extends Action
 		global $configArray;
 
 		// Check if data exists or not
-		if(isset($body['query']['pages']['-1'])) {
+		if(!isset($body['query']['pages']) || isset($body['query']['pages']['-1'])) {
 			return new PEAR_Error('No page found');
 		}
 
