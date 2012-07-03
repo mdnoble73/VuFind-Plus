@@ -630,17 +630,21 @@ class Record extends Action
 								$previousRecord = $previousResults[count($previousResults) -1];
 							}else{
 								$previousId = $currentResultIndex - 1;
-								$previousRecord = $recordSet[$previousId];
+								if (isset($recordSet[$previousId])){
+									$previousRecord = $recordSet[$previousId];
+								}
 							}
 							//Convert back to 1 based index
-							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-							$interface->assign('previousTitle', $previousRecord['title']);
-							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('previousType', 'EcontentRecord');
-								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-							}else{
-								$interface->assign('previousType', 'Record');
-								$interface->assign('previousId', $previousRecord['id']);
+							if (isset($previousRecord)){
+								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+								$interface->assign('previousTitle', $previousRecord['title']);
+								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
+									$interface->assign('previousType', 'EcontentRecord');
+									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+								}else{
+									$interface->assign('previousType', 'Record');
+									$interface->assign('previousId', $previousRecord['id']);
+								}
 							}
 						}
 						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
@@ -656,7 +660,7 @@ class Record extends Action
 							//Convert back to 1 based index
 							if (isset($nextRecord)){
 								$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-								$interface->assign('nextTitle', $nextRecord['title']);
+								$interface->assign('nextTitle', isset($nextRecord['title']) ? $nextRecord['title'] : '');
 								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
 									$interface->assign('nextType', 'EcontentRecord');
 									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));

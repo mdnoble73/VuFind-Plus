@@ -329,8 +329,14 @@ class Solr implements IndexEngine {
 				PEAR::raiseError($result);
 			}
 	
-			$record = $result['response']['docs'][0];
-			$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
+			if (isset($result['response']['docs'][0])){
+				$record = $result['response']['docs'][0];
+				$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
+			}else{
+				$logger = new Logger();
+				$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
+				PEAR::raiseError("Record not found $id");
+			}
 		}
 		return $record;
 	}
