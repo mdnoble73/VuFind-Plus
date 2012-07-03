@@ -916,7 +916,7 @@ class ListAPI extends Action {
 	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
 	          'title' => $record['title'],
 	          'author' => isset($record['author']) ? $record['author'] : '',
-				    'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['length'] : null,
+				    'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
 	          'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
 	          'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
 				);

@@ -228,7 +228,7 @@ class DataObjectUtil
 						//return an error to the browser
 						$logger->log("Error in file upload for $propertyName", PEAR_LOG_ERR);
 					}else if (in_array($_FILES[$propertyName]["type"], array('image/gif', 'image/jpeg', 'image/png'))){
-						$logger->log("Processing uploaded file for $propertyName");
+						$logger->log("Processing uploaded file for $propertyName", PEAR_LOG_DEBUG);
 						//Copy the full image to the files directory
 						//Filename is the name of the object + the original filename
 						global $configArray;

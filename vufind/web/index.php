@@ -768,7 +768,7 @@ function handlePEARError($error, $method = null){
 	if (is_array($error->backtrace)) {
 		foreach($error->backtrace as $line) {
 			$basicBacktrace .= "{$line['file']} line {$line['line']} - " .
-                "class = {$line['class']}, function = {$line['function']}\n";
+                "class = " . (isset($line['class']) ? $line['class'] : 'none') . ", function = {$line['function']}\n";
 		}
 	}
 	$detailedBacktrace = "\nBacktrace:\n" . print_r($error->backtrace, true);

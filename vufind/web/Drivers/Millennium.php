@@ -1668,11 +1668,13 @@ class MillenniumDriver implements DriverInterface
 					$historyEntry['borrower_num'] = $patron['id'];
 				} //Done processing column 
 			} //Done processing row
+			
+			$historyEntry['title_sort'] = strtolower($historyEntry['title']);
 
 			if ($scount > 1){
 				$historyEntry['itemindex'] = $itemindex++;
 				//Get additional information from resources table
-				if ($historyEntry['shortId'] && strlen($historyEntry['shortId']) > 0){
+				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
 					$resource = new Resource();
 					$resource->shortId = $historyEntry['shortId'];
 					if ($resource->find(true)){
