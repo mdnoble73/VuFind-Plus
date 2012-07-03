@@ -28,7 +28,7 @@ class AlphaBrowse{
 		//Get the count of the rows in the database
 		$query = "SELECT COUNT(id) as numRows from $browseTable";
 		$result = mysql_query($query);
-		if (!$result){
+		if ($result == FALSE){
 			return array(
 				'success' => false,
 				'message' => "Sorry, unable to browse $browseType right now, please try again later."
