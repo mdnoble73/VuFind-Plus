@@ -89,6 +89,9 @@ abstract class SolrDataObject extends DB_DataObject{
 		require_once 'sys/Solr.php';
 		global $configArray;
 		$host = $configArray[$this->getConfigSection()]['url'];
+		
+		$logger = new Logger();
+		$logger->log("Deleting Record {$this->solrId()}", PEAR_LOG_DEBUG);
 
 		$cores = $this->cores();
 		foreach ($cores as $corename){
@@ -109,7 +112,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		$this->_quickReindex = $quick;
 		$host = $configArray[$this->getConfigSection()]['url'];
 		$logger = new Logger();
-		$logger->log("Updating " . $this->solrId() . " in solr");
+		$logger->log("Updating " . $this->solrId() . " in solr", PEAR_LOG_DEBUG);
 
 		$cores = $this->cores();
 		$objectStructure = $this->getObjectStructure();
@@ -171,6 +174,9 @@ abstract class SolrDataObject extends DB_DataObject{
 
 		$cores = $this->cores();
 		foreach ($cores as $corename){
+			$logger = new Logger();
+			$logger->log("Optimizing Solr Core! $corename", PEAR_LOG_DEBUG);
+		
 			$index = new Solr($host, $corename);
 			$index->optimize();
 		}
