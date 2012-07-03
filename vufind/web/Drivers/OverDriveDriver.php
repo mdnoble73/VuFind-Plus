@@ -241,7 +241,6 @@ class OverDriveDriver {
 					$bookshelf['error'] = 'Sorry, we could not login to OverDrive, please try again in a few minutes.';
 					return $bookshelf;
 				}
-				}
 				$closeSession = true;
 			}
 			
