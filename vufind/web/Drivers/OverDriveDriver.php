@@ -68,6 +68,12 @@ class OverDriveDriver {
 		$closeSession = false;
 		if ($overDriveInfo == null){
 			$ch = curl_init();
+			if (!$ch){
+				$logger = new Logger();
+				$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
+				$cart['message'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+				return $cart;
+			}
 			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 			$closeSession = true;
 		}
@@ -132,6 +138,12 @@ class OverDriveDriver {
 			$closeSession = false;
 			if ($overDriveInfo == null){
 				$ch = curl_init();
+				if (!$ch){
+					$logger = new Logger();
+					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
+					$wishlist['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+					return $cart;
+				}
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				$closeSession = true;
 			}
@@ -625,8 +637,18 @@ class OverDriveDriver {
 		$closeSession = false;
 		if ($overDriveInfo == null){
 			$ch = curl_init();
+			if (!$ch){
+				$logger = new Logger();
+				$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
+				$addToCartResult['message'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+				return $addToCartResult;
+			}
 			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 			$closeSession = true;
+		}
+		if ($overDriveInfo == null){
+			$addToCartResult['message'] = 'Sorry, we could not log you in to OverDrive.  Please check your login information and try again in a few minutes.';
+			return $addToCartResult;
 		}
 		
 		//Switch back to get method
