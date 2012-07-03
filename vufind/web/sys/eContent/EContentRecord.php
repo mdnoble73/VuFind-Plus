@@ -671,12 +671,6 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => false,
 		  'storeSolr' => true,
 		),
-		'format_boost' => array(
-		  'property' => 'format_boost',
-		  'type' => 'method',
-		  'storeDb' => false,
-		  'storeSolr' => true,
-		),
 		'language_boost' => array(
 		  'property' => 'language_boost',
 		  'type' => 'method',

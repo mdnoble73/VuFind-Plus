@@ -150,7 +150,7 @@ class Hold extends Action {
 		if ($record) {
 			$interface->assign('record', $record);
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot find record'));
+			PEAR::raiseError(new PEAR_Error('Cannot find record ' . $_GET['id']));
 		}
 
 		$interface->assign('id', $_GET['id']);

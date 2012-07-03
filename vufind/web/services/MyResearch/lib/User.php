@@ -102,11 +102,7 @@ class User extends DB_DataObject
 			}
 
 			if ($updateSolr){
-				//Update Solr Index
-				global $configArray;
-				require_once 'User_list_solr.php';
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
-				$solrConnector->saveList($list);
+				$list->updateDetailed(true);
 			}
 				
 			//Make a call to strands to update that the item was added to the list

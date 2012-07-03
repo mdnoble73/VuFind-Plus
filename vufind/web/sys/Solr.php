@@ -1273,7 +1273,7 @@ class Solr implements IndexEngine {
 			echo "<pre>Commit</pre>\n";
 		}
 
-		$body = '<commit/>';
+		$body = '<commit softCommit="true" waitSearcher = "false"/>';
 
 		$result = $this->_update($body);
 		if (PEAR::isError($result)) {

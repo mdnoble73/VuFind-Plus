@@ -1266,7 +1266,7 @@ abstract class SearchObject_Base
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search
-				if ($search->session_id == session_id() || $search->user_id == $user->id) {
+				if ($search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
 					// They do, deminify it to a new object.
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);
