@@ -109,6 +109,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		$this->_quickReindex = $quick;
 		$host = $configArray[$this->getConfigSection()]['url'];
 		$logger = new Logger();
+		$logger->log("Updating " . $this->solrId() . " in solr");
 
 		$cores = $this->cores();
 		$objectStructure = $this->getObjectStructure();
