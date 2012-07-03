@@ -57,9 +57,13 @@ class Record extends Action
 		global $configArray;
 		global $library;
 		global $timer;
+		$logger = new Logger();
 
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);
+		
+		//Determine whether or not materials request functionality should be enabled
+		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 		
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
@@ -78,6 +82,18 @@ class Record extends Action
 			die();
 		}
 		
+		//Check to see if the record exists within the resources table 
+		$resource = new Resource();
+		$resource->record_id = $this->id;
+		$resource->source = 'VuFind';
+		$resource->deleted = 0;
+		if (!$resource->find()){
+			$logger->log("Did not find a record for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
+			$interface->setTemplate('invalidRecord.tpl');
+			$interface->display('layout.tpl');
+			die();
+		}
+		
 		if ($configArray['Catalog']['ils'] == 'Millennium'){
 			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
 			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
@@ -93,7 +109,10 @@ class Record extends Action
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR::raiseError(new PEAR_Error("Record {$this->id} Does Not Exist"));
+			$logger->log("Did not find a record for id {$this->id} in solr." , PEAR_LOG_DEBUG);
+			$interface->setTemplate('invalidRecord.tpl');
+			$interface->display('layout.tpl');
+			die();
 		}
 		$this->record = $record;
 		$interface->assign('record', $record);
