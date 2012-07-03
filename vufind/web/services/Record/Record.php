@@ -67,6 +67,17 @@ class Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		
+		//Check to see if the record has been converted to an eContent record
+		require_once 'sys/eContent/EContentRecord.php';
+		$econtentRecord = new EContentRecord();
+		$econtentRecord->ilsId = $this->id;
+		$econtentRecord->status = 'active';
+		if ($econtentRecord->find(true)){
+			header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
+			die();
+		}
+		
 		if ($configArray['Catalog']['ils'] == 'Millennium'){
 			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
 			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
