@@ -28,13 +28,13 @@ abstract class SolrDataObject extends DB_DataObject{
 			if ($result !== FALSE){
 				$logger->log("Updating Solr", PEAR_LOG_DEBUG);
 				if (!$this->saveToSolr()){
-					$logger->log("Could not update Solr", PEAR_LOG_ERROR);
+					$logger->log("Could not update Solr", PEAR_LOG_ERR);
 					//Could not save to solr
 					$this->updateStarted = false;
 					return false;
 				}
 			}else{
-				$logger->log("Saving to database failed, not updating solr", PEAR_LOG_ERROR);
+				$logger->log("Saving to database failed, not updating solr", PEAR_LOG_ERR);
 				$this->updateStarted = false;
 				return false;
 			}

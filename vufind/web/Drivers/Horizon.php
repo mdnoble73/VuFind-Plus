@@ -55,7 +55,7 @@ class Horizon implements DriverInterface{
 				}
 			}catch (Exception $e){
 				$logger = new Logger();
-				$logger->log("Could not load Horizon database", PEAR_LOG_ERROR);
+				$logger->log("Could not load Horizon database", PEAR_LOG_ERR);
 			}
 		}else{
 			$this->useDb = false;

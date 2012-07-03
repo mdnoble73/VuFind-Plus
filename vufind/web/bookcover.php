@@ -219,7 +219,7 @@ if ($configArray['EContent']['library'] && isset($_GET['econtent']) && isset($id
 						exit();
 					}
 				}else{
-					$logger->log("Did not find econtent cover file $filename", PEAR_LOG_ERROR);
+					$logger->log("Did not find econtent cover file $filename", PEAR_LOG_ERR);
 				}
 			}
 		}

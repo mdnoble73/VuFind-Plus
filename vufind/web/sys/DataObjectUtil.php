@@ -69,7 +69,7 @@ class DataObjectUtil
 					if ($object->find(true)){
 						$logger->log("Loaded existing object from database", PEAR_LOG_DEBUG);
 					}else{
-						$logger->log("Could not find existing object in database", PEAR_LOG_ERROR);
+						$logger->log("Could not find existing object in database", PEAR_LOG_ERR);
 					}
 					
 					//Reload from UI
@@ -226,7 +226,7 @@ class DataObjectUtil
 						//No image supplied, use the existing value
 					}else if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] > 0){
 						//return an error to the browser
-						$logger->log("Error in file upload for $propertyName", PEAR_LOG_ERROR);
+						$logger->log("Error in file upload for $propertyName", PEAR_LOG_ERR);
 					}else if (in_array($_FILES[$propertyName]["type"], array('image/gif', 'image/jpeg', 'image/png'))){
 						$logger->log("Processing uploaded file for $propertyName");
 						//Copy the full image to the files directory
@@ -311,7 +311,7 @@ class DataObjectUtil
 						if ($copyResult){
 							$logger->log("Copied file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_INFO);
 						}else{
-							$logger->log("Could not copy file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_ERROR);
+							$logger->log("Could not copy file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_ERR);
 						}
 						//store the actual filename
 						$object->$propertyName = $destFileName;

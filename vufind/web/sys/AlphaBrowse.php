@@ -29,6 +29,12 @@ class AlphaBrowse{
 		$query = "SELECT COUNT(id) as numRows from $browseTable";
 		$result = mysql_query($query);
 		$numRowsRS = mysql_fetch_assoc($result);
+		if (!$numRowsRS){
+			return array(
+				'success' => false,
+				'message' => "Sorry, unable to browse $browseType right now, please try again later."
+			);
+		}
 		$numRows = $numRowsRS['numRows'];
 		
 		$foundMatch = false;
