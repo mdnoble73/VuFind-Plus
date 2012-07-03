@@ -142,6 +142,11 @@ function readConfig()
 		array_shift($serverParts);
 	}
 	
+	if ($servername == 'default'){
+		$logger = new Logger();
+		$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
+	}
+	
 	if ($mainArray == false){
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}

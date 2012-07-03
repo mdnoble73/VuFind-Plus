@@ -309,6 +309,12 @@ class OverDriveDriver {
 				}
 				//Login to overdrive 
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
+				if ($overDriveInfo == null){
+					$logger = new Logger();
+					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
+					$holds['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+					return $holds;
+				}
 				$closeSession = true;
 			}
 			
