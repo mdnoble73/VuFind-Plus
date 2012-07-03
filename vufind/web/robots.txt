@@ -3,3 +3,4 @@ Disallow: /cgi-bin/
 Disallow: /Search/
 Disallow: /Browse/
 Disallow: /MyResearch/
+Disallow: /images/fiveStar/

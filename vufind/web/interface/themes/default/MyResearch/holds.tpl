@@ -152,9 +152,13 @@
 												{if $user->disableCoverArt != 1}
 												<div class="imageColumn"> 
 													<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
+													{if $record.recordId}
 													<a href="{$url}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+													{/if}
 													<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+													{if $record.recordId}
 													</a>
+													{/if}
 												</div>
 												{/if}
 									
