@@ -235,6 +235,13 @@ class OverDriveDriver {
 					return $bookshelf;
 				}
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
+				if ($overDriveInfo == null){
+					$logger = new Logger();
+					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
+					$bookshelf['error'] = 'Sorry, we could not login to OverDrive, please try again in a few minutes.';
+					return $bookshelf;
+				}
+				}
 				$closeSession = true;
 			}
 			
