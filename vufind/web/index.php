@@ -21,6 +21,7 @@
 /** CORE APPLICATION CONTROLLER **/
 $startTime = microtime(true);
 // Retrieve values from configuration file
+require_once 'sys/Logger.php';
 require_once 'sys/ConfigArray.php';
 $configArray = readConfig();
 require_once 'sys/Timer.php';
@@ -102,8 +103,6 @@ require_once 'PEAR.php';
 $timer->logTime("Include PEAR");
 require_once 'sys/Interface.php';
 $timer->logTime("Include Interface");
-require_once 'sys/Logger.php';
-$timer->logTime("Include Logger");
 require_once 'sys/User.php';
 $timer->logTime("Include User");
 require_once 'sys/Translator.php';
