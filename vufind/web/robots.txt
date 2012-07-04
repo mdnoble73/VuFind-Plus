@@ -4,3 +4,5 @@ Disallow: /Search/
 Disallow: /Browse/
 Disallow: /MyResearch/
 Disallow: /images/fiveStar/
+Disallow: /bookcover.php
+Disallow: /vufind/
