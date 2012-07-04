@@ -255,18 +255,28 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			//Transfer comments
 			transferCommentsStmt.setLong(1, idToTransferFrom);
 			transferCommentsStmt.setLong(2, idToTransferTo);
+			int numCommentsMoved = transferCommentsStmt.executeUpdate();
+			if (numCommentsMoved > 0) System.out.println("Moved " + numCommentsMoved + " comments");
 			//Transfer tags
 			transferTagsStmt.setLong(1, idToTransferFrom);
 			transferTagsStmt.setLong(2, idToTransferTo);
+			int numTagsMoved = transferTagsStmt.executeUpdate();
+			if (numTagsMoved > 0) System.out.println("Moved " + numTagsMoved + " tags");
 			//Transfer ratings
 			transferRatingsStmt.setLong(1, idToTransferFrom);
 			transferRatingsStmt.setLong(2, idToTransferTo);
+			int numRatingsMoved = transferRatingsStmt.executeUpdate();
+			if (numRatingsMoved > 0) System.out.println("Moved " + numRatingsMoved + " ratings");
 			//Transfer reading history
 			transferReadingHistoryStmt.setLong(1, idToTransferFrom);
 			transferReadingHistoryStmt.setLong(2, idToTransferTo);
+			int numReadingHistoryMoved = transferReadingHistoryStmt.executeUpdate();
+			if (numReadingHistoryMoved > 0) System.out.println("Moved " + numReadingHistoryMoved + " reading history entries");
 			//Transfer User Resource Information 
 			transferUserResourceStmt.setLong(1, idToTransferFrom);
 			transferUserResourceStmt.setLong(2, idToTransferTo);
+			int numUserResourceMoved = transferUserResourceStmt.executeUpdate();
+			if (numUserResourceMoved > 0) System.out.println("Moved " + numUserResourceMoved + " user resource (list) entries");
 			
 			results.incUpdated();
 		} catch (SQLException e) {
