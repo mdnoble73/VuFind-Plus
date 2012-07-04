@@ -151,13 +151,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			transferTagsStmt = vufindConn.prepareStatement("UPDATE resource_tags set resource_id = ? where resource_id = ?");
 			transferRatingsStmt = vufindConn.prepareStatement("UPDATE user_rating set resourceid = ? where resourceid = ?");
 			transferReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history set resourceId = ? where resourceId = ?");
-			transferUserResourceStmt = vufindConn.prepareStatement("UPDATE user_resource set resource_id = ? where resourc_eid = ?");
+			transferUserResourceStmt = vufindConn.prepareStatement("UPDATE user_resource set resource_id = ? where resource_id = ?");
 			cleanupDulicateResources();
 			
 			//Get a list of resources that have already been installed. 
 			results.addNote("Loading existing resources");
 			results.saveResults();
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum from resource where source = 'VuFind' and deleted=0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind' and deleted=0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
 			while (existingResourceRS.next()){
 				String ilsId = existingResourceRS.getString("record_id");
