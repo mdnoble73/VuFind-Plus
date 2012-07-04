@@ -151,7 +151,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			transferTagsStmt = vufindConn.prepareStatement("UPDATE resource_tags set resource_id = ? where resource_id = ?");
 			transferRatingsStmt = vufindConn.prepareStatement("UPDATE user_rating set resourceid = ? where resourceid = ?");
 			transferReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history set resourceId = ? where resourceId = ?");
-			transferUserResourceStmt = vufindConn.prepareStatement("UPDATE user_resource set resourceid = ? where resourceid = ?");
+			transferUserResourceStmt = vufindConn.prepareStatement("UPDATE user_resource set resource_id = ? where resourc_eid = ?");
 			cleanupDulicateResources();
 			
 			//Get a list of resources that have already been installed. 
@@ -282,7 +282,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			
 			results.incUpdated();
 		} catch (SQLException e) {
-			logger.error("Error transferring resource infor for user from " + idToTransferFrom + " to " + idToTransferTo, e);
+			logger.error("Error transferring resource info for user from " + idToTransferFrom + " to " + idToTransferTo, e);
 		}
 	}
 
