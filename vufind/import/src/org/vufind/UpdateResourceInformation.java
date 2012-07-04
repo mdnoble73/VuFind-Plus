@@ -60,6 +60,20 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement	getRelatedRecordsStmt;
 
 	private PreparedStatement	deleteResoucePermanentStmt;
+
+	private PreparedStatement	deleteResouceCallNumberPermanentStmt;
+
+	private PreparedStatement	deleteResouceSubjectPermanentStmt;
+
+	private PreparedStatement	transferCommentsStmt;
+
+	private PreparedStatement	transferTagsStmt;
+
+	private PreparedStatement	transferRatingsStmt;
+
+	private PreparedStatement	transferReadingHistoryStmt;
+
+	private PreparedStatement	transferUserResourceStmt;
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -93,6 +107,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
 			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			deleteResoucePermanentStmt = vufindConn.prepareStatement("DELETE from resouce where id = ?");
+			deleteResouceCallNumberPermanentStmt = vufindConn.prepareStatement("DELETE from resouce_callnumber where resourceId = ?");
+			deleteResouceSubjectPermanentStmt = vufindConn.prepareStatement("DELETE from resouce_subject where resourceId = ?");
 			
 			getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -131,6 +147,11 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			distinctResourceCountStatement = vufindConn.prepareStatement("SELECT count(distinct record_id) FROM resource");
 			getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getRelatedRecordsStmt = vufindConn.prepareStatement("SELECT id, deleted FROM resource where record_id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			transferCommentsStmt = vufindConn.prepareStatement("UPDATE comments set resource_id = ? where resource_id = ?");
+			transferTagsStmt = vufindConn.prepareStatement("UPDATE resource_tags set resource_id = ? where resource_id = ?");
+			transferRatingsStmt = vufindConn.prepareStatement("UPDATE user_rating set resourceid = ? where resourceid = ?");
+			transferReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history set resourceId = ? where resourceId = ?");
+			transferUserResourceStmt = vufindConn.prepareStatement("UPDATE user_resource set resourceid = ? where resourceid = ?");
 			cleanupDulicateResources();
 			
 			//Get a list of resources that have already been installed. 
@@ -184,8 +205,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 						for (Long curRecordId : relatedRecords.keySet()){
 							if (curIndex != 0){
 								System.out.println("Deleting all resources (except first) for record id " + ilsId);
-								//deleteResoucePermanentStmt.setLong(1, curRecordId);
-								//deleteResoucePermanentStmt.executeUpdate();
+								deleteResourcePermanently(curRecordId);
+								
 							}
 							curIndex++;
 						}
@@ -195,8 +216,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 							if (curRecordId != firstActiveRecordId){
 								System.out.println("Transferring user info for " + curRecordId + " to " + firstActiveRecordId + " because it is redundant");
 								transferUserInfo(curRecordId, firstActiveRecordId);
-								//deleteResoucePermanentStmt.setLong(1, curRecordId);
-								//deleteResoucePermanentStmt.executeUpdate();
+								deleteResourcePermanently(curRecordId);
 							}
 						}
 					}
@@ -216,8 +236,42 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		
 	}
 
-	private void transferUserInfo(Long curRecordId, Long firstActiveRecordId) {
-		
+	private void deleteResourcePermanently(Long curRecordId) {
+		try {
+			deleteResoucePermanentStmt.setLong(1, curRecordId);
+			deleteResoucePermanentStmt.executeUpdate();
+			deleteResouceCallNumberPermanentStmt.setLong(1, curRecordId);
+			deleteResouceCallNumberPermanentStmt.executeUpdate();
+			deleteResouceSubjectPermanentStmt.setLong(1, curRecordId);
+			deleteResouceSubjectPermanentStmt.executeUpdate();
+			results.incDeleted();
+		} catch (SQLException e) {
+			logger.error("Error deleting resource permanently " + curRecordId, e);
+		}
+	}
+
+	private void transferUserInfo(Long idToTransferFrom, Long idToTransferTo) {
+		try {
+			//Transfer comments
+			transferCommentsStmt.setLong(1, idToTransferFrom);
+			transferCommentsStmt.setLong(2, idToTransferTo);
+			//Transfer tags
+			transferTagsStmt.setLong(1, idToTransferFrom);
+			transferTagsStmt.setLong(2, idToTransferTo);
+			//Transfer ratings
+			transferRatingsStmt.setLong(1, idToTransferFrom);
+			transferRatingsStmt.setLong(2, idToTransferTo);
+			//Transfer reading history
+			transferReadingHistoryStmt.setLong(1, idToTransferFrom);
+			transferReadingHistoryStmt.setLong(2, idToTransferTo);
+			//Transfer User Resource Information 
+			transferUserResourceStmt.setLong(1, idToTransferFrom);
+			transferUserResourceStmt.setLong(2, idToTransferTo);
+			
+			results.incUpdated();
+		} catch (SQLException e) {
+			logger.error("Error transferring resource infor for user from " + idToTransferFrom + " to " + idToTransferTo, e);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
