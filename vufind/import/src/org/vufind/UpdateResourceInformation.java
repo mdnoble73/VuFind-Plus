@@ -56,6 +56,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement	resourceCountStatement;
 	private PreparedStatement	distinctResourceCountStatement;
 	private PreparedStatement	getDistinctRecordIdsStmt;
+
+	private PreparedStatement	getRelatedRecordsStmt;
+
+	private PreparedStatement	deleteResoucePermanentStmt;
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -88,6 +92,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			resourceUpdateStmt = vufindConn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
 			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
 			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			deleteResoucePermanentStmt = vufindConn.prepareStatement("DELETE from resouce where id = ?");
 			
 			getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -125,13 +130,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			resourceCountStatement = vufindConn.prepareStatement("SELECT count(id) FROM resource");
 			distinctResourceCountStatement = vufindConn.prepareStatement("SELECT count(distinct record_id) FROM resource");
 			getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			
+			getRelatedRecordsStmt = vufindConn.prepareStatement("SELECT id, deleted FROM resource where record_id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			cleanupDulicateResources();
 			
 			//Get a list of resources that have already been installed. 
 			results.addNote("Loading existing resources");
 			results.saveResults();
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum from resource where source = 'VuFind' and deleted=0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
 			while (existingResourceRS.next()){
 				String ilsId = existingResourceRS.getString("record_id");
@@ -155,7 +160,51 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			results.saveResults();
 			
 			//Get a list of the total number of resources 
-			
+			ResultSet distinctIdRS = getDistinctRecordIdsStmt.executeQuery();
+			while (distinctIdRS.next()){
+				String ilsId = distinctIdRS.getString("record_id");
+				getRelatedRecordsStmt.setString(1, ilsId);
+				ResultSet relatedRecordsRS = getRelatedRecordsStmt.executeQuery();
+				HashMap<Long, Boolean> relatedRecords = new HashMap<Long, Boolean>();
+				while (relatedRecordsRS.next()){
+					relatedRecords.put(relatedRecordsRS.getLong("id"), relatedRecordsRS.getBoolean("deleted"));
+				}
+				if (relatedRecords.size() > 1){
+					//Need to get rid of some records since there should only be one resource for a given ILS Id
+					Long firstActiveRecordId = null;
+					for (Long curRecordId : relatedRecords.keySet()){
+						if (relatedRecords.get(curRecordId) == false){
+							firstActiveRecordId = curRecordId;
+							break;
+						}
+					}
+					if (firstActiveRecordId == null){
+						//All records were deleted, can delete all but the first
+						int curIndex = 0;
+						for (Long curRecordId : relatedRecords.keySet()){
+							if (curIndex != 0){
+								System.out.println("Deleting all resources (except first) for record id " + ilsId);
+								//deleteResoucePermanentStmt.setLong(1, curRecordId);
+								//deleteResoucePermanentStmt.executeUpdate();
+							}
+							curIndex++;
+						}
+					}else{
+						//We have an active record
+						for (Long curRecordId : relatedRecords.keySet()){
+							if (curRecordId != firstActiveRecordId){
+								System.out.println("Transferring user info for " + curRecordId + " to " + firstActiveRecordId + " because it is redundant");
+								transferUserInfo(curRecordId, firstActiveRecordId);
+								//deleteResoucePermanentStmt.setLong(1, curRecordId);
+								//deleteResoucePermanentStmt.executeUpdate();
+							}
+						}
+					}
+				}
+				//Check to see if the record is eContent.  If so, make sure there is a resource for the eContent record and delete the record
+				//for VuFind
+				
+			}
 			
 			//Get a list of distinct ids
 		} catch (Exception e) {
@@ -164,6 +213,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			results.incErrors();
 			results.saveResults();
 		}
+		
+	}
+
+	private void transferUserInfo(Long curRecordId, Long firstActiveRecordId) {
 		
 	}
 
