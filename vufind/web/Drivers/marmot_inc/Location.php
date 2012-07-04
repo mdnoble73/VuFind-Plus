@@ -216,6 +216,7 @@ class Location extends DB_DataObject
 			$locationCode = $this->getBranchLocationCode();
 
 			if ($locationCode != null && $locationCode != '' && $locationCode != 'all'){
+				$activeLocation = new Location();
 				$activeLocation->code = $locationCode;
 				if ($activeLocation->find(true)){
 					//Only use the location if we are in the subdomain for the parent library
