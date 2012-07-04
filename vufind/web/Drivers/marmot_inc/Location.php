@@ -544,7 +544,11 @@ class Location extends DB_DataObject
 					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
 				}else if ($currentHour > $closeHour){
 					$tomorrowsLibraryHours = Location::getLibraryHours($locationId,  time() + (24 * 60 * 60));
-					$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+					if (isset($tomorrowsLibraryHours['closed'])  && ($todaysLibraryHours['closed'] == true || $todaysLibraryHours['closed'] == 1)){
+						$libraryHoursMessage = "The library will be closed tomorrow for $closureReason.";
+					}else{
+						$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+					}
 				}else{
 					$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
 				}
