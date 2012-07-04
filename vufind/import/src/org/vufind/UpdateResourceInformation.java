@@ -205,6 +205,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 						for (Long curRecordId : relatedRecords.keySet()){
 							if (curIndex != 0){
 								System.out.println("Deleting all resources (except first) for record id " + ilsId);
+								logger.debug("Deleting all resources (except first) for record id " + ilsId);
 								deleteResourcePermanently(curRecordId);
 								
 							}
@@ -215,6 +216,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 						for (Long curRecordId : relatedRecords.keySet()){
 							if (curRecordId != firstActiveRecordId){
 								System.out.println("Transferring user info for " + curRecordId + " to " + firstActiveRecordId + " because it is redundant");
+								logger.debug("Transferring user info for " + curRecordId + " to " + firstActiveRecordId + " because it is redundant");
 								transferUserInfo(curRecordId, firstActiveRecordId);
 								deleteResourcePermanently(curRecordId);
 							}
@@ -253,28 +255,28 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private void transferUserInfo(Long idToTransferFrom, Long idToTransferTo) {
 		try {
 			//Transfer comments
-			transferCommentsStmt.setLong(1, idToTransferFrom);
-			transferCommentsStmt.setLong(2, idToTransferTo);
+			transferCommentsStmt.setLong(1, idToTransferTo);
+			transferCommentsStmt.setLong(2, idToTransferFrom);
 			int numCommentsMoved = transferCommentsStmt.executeUpdate();
 			if (numCommentsMoved > 0) System.out.println("Moved " + numCommentsMoved + " comments");
 			//Transfer tags
-			transferTagsStmt.setLong(1, idToTransferFrom);
-			transferTagsStmt.setLong(2, idToTransferTo);
+			transferTagsStmt.setLong(1, idToTransferTo);
+			transferTagsStmt.setLong(2, idToTransferFrom);
 			int numTagsMoved = transferTagsStmt.executeUpdate();
 			if (numTagsMoved > 0) System.out.println("Moved " + numTagsMoved + " tags");
 			//Transfer ratings
-			transferRatingsStmt.setLong(1, idToTransferFrom);
-			transferRatingsStmt.setLong(2, idToTransferTo);
+			transferRatingsStmt.setLong(1, idToTransferTo);
+			transferRatingsStmt.setLong(2, idToTransferFrom);
 			int numRatingsMoved = transferRatingsStmt.executeUpdate();
 			if (numRatingsMoved > 0) System.out.println("Moved " + numRatingsMoved + " ratings");
 			//Transfer reading history
-			transferReadingHistoryStmt.setLong(1, idToTransferFrom);
-			transferReadingHistoryStmt.setLong(2, idToTransferTo);
+			transferReadingHistoryStmt.setLong(1, idToTransferTo);
+			transferReadingHistoryStmt.setLong(2, idToTransferFrom);
 			int numReadingHistoryMoved = transferReadingHistoryStmt.executeUpdate();
 			if (numReadingHistoryMoved > 0) System.out.println("Moved " + numReadingHistoryMoved + " reading history entries");
 			//Transfer User Resource Information 
-			transferUserResourceStmt.setLong(1, idToTransferFrom);
-			transferUserResourceStmt.setLong(2, idToTransferTo);
+			transferUserResourceStmt.setLong(1, idToTransferTo);
+			transferUserResourceStmt.setLong(2, idToTransferFrom);
 			int numUserResourceMoved = transferUserResourceStmt.executeUpdate();
 			if (numUserResourceMoved > 0) System.out.println("Moved " + numUserResourceMoved + " user resource (list) entries");
 			
