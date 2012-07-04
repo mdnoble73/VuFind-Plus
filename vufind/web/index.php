@@ -22,6 +22,7 @@
 $startTime = microtime(true);
 // Retrieve values from configuration file
 require_once 'sys/Logger.php';
+require_once 'PEAR.php';
 require_once 'sys/ConfigArray.php';
 $configArray = readConfig();
 require_once 'sys/Timer.php';
@@ -99,8 +100,6 @@ $configArray['Site']['locale']));
 date_default_timezone_set($configArray['Site']['timezone']);
 
 // Require System Libraries
-require_once 'PEAR.php';
-$timer->logTime("Include PEAR");
 require_once 'sys/Interface.php';
 $timer->logTime("Include Interface");
 require_once 'sys/User.php';
