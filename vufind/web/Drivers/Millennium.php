@@ -1669,9 +1669,9 @@ class MillenniumDriver implements DriverInterface
 				} //Done processing column 
 			} //Done processing row
 			
-			$historyEntry['title_sort'] = strtolower($historyEntry['title']);
-
 			if ($scount > 1){
+				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
+				
 				$historyEntry['itemindex'] = $itemindex++;
 				//Get additional information from resources table
 				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
