@@ -12,7 +12,7 @@
     GetReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}');
   {/if}
   	{if $enablePospectorIntegration == 1}
-    GetProspectorInfo('{$id|escape:"url"}');
+    GetProspectorInfo('econtentRecord{$id|escape:"url"}');
 	{/if}
   {if $user}
 	  redrawSaveStatus();
