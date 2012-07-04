@@ -268,11 +268,14 @@ class Results extends Action {
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
 				header("Location: " . $interface->getUrl() . "/MyResearch/MyList/{$listId}");
+				exit();
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
 				header("Location: " . $interface->getUrl() . "/EcontentRecord/$shortId/Home");
+				exit();
 			}else{
 				header("Location: " . $interface->getUrl() . "/Record/{$record['id']}/Home");
+				exit();
 			}
 			
 		} else {
