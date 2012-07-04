@@ -32,9 +32,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement linkResourceToSubjectStmt = null;
 	
 	//Setup prepared statements that we will use
-	PreparedStatement existingResourceStmt;
-	PreparedStatement addResourceStmt;
-	PreparedStatement updateResourceStmt;
+	private PreparedStatement existingResourceStmt;
+	private PreparedStatement addResourceStmt;
+	private PreparedStatement updateResourceStmt;
 	
 	
 	//Code related to call numbers
@@ -52,6 +52,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private HashMap<String, BasicResourceInfo> existingResources = new HashMap<String, BasicResourceInfo>();
 	
 	private ProcessorResults results;
+
+	private PreparedStatement	resourceCountStatement;
+	private PreparedStatement	distinctResourceCountStatement;
+	private PreparedStatement	getDistinctRecordIdsStmt;
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -117,8 +121,17 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			callNumberSubfield = configIni.get("Reindex", "callNumberSubfield");
 			locationSubfield = configIni.get("Reindex", "locationSubfield");
 			
+			//Cleanup duplicate resources
+			resourceCountStatement = vufindConn.prepareStatement("SELECT count(id) FROM resource");
+			distinctResourceCountStatement = vufindConn.prepareStatement("SELECT count(distinct record_id) FROM resource");
+			getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			
+			cleanupDulicateResources();
+			
 			//Get a list of resources that have already been installed. 
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'");
+			results.addNote("Loading existing resources");
+			results.saveResults();
+			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
 			while (existingResourceRS.next()){
 				String ilsId = existingResourceRS.getString("record_id");
@@ -133,6 +146,24 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			return false;
 		}
 		return true;
+		
+	}
+
+	private void cleanupDulicateResources() {
+		try {
+			results.addNote("Cleaning up duplicate resources");
+			results.saveResults();
+			
+			//Get a list of the total number of resources 
+			
+			
+			//Get a list of distinct ids
+		} catch (Exception e) {
+			logger.error("Error cleaning up duplicate resources", e);
+			results.addNote("Cleaning up duplicate resources");
+			results.incErrors();
+			results.saveResults();
+		}
 		
 	}
 
