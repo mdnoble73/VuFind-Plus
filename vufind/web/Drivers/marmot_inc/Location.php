@@ -216,10 +216,12 @@ class Location extends DB_DataObject
 			$locationCode = $this->getBranchLocationCode();
 
 			if ($locationCode != null && $locationCode != '' && $locationCode != 'all'){
-				$activeLocation = $this->staticGet('code', $locationCode);
-				//Only use the location if we are in the subdomain for the parent library
-				if ($activeLocation != null && $library->libraryId == $activeLocation->libraryId){
-					$this->activeLocation = clone($activeLocation);
+				$activeLocation->code = $locationCode;
+				if ($activeLocation->find(true)){
+					//Only use the location if we are in the subdomain for the parent library
+					if ($library->libraryId == $activeLocation->libraryId){
+						$this->activeLocation = clone($activeLocation);
+					}
 				}
 			}
 			global $timer;
