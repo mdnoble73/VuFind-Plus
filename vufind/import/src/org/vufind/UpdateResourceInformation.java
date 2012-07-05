@@ -53,8 +53,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	
 	private ProcessorResults results;
 
-	private PreparedStatement	resourceCountStatement;
-	private PreparedStatement	distinctResourceCountStatement;
 	private PreparedStatement	getDistinctRecordIdsStmt;
 
 	private PreparedStatement	getRelatedRecordsStmt;
@@ -143,8 +141,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			locationSubfield = configIni.get("Reindex", "locationSubfield");
 			
 			//Cleanup duplicate resources
-			resourceCountStatement = vufindConn.prepareStatement("SELECT count(id) FROM resource");
-			distinctResourceCountStatement = vufindConn.prepareStatement("SELECT count(distinct record_id) FROM resource");
 			getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getRelatedRecordsStmt = vufindConn.prepareStatement("SELECT id, deleted FROM resource where record_id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			transferCommentsStmt = vufindConn.prepareStatement("UPDATE comments set resource_id = ? where resource_id = ?");
@@ -223,8 +219,10 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 						}
 					}
 				}
+				
 				//Check to see if the record is eContent.  If so, make sure there is a resource for the eContent record and delete the record
 				//for VuFind
+				//TODO: Move reords to 
 				
 			}
 			
