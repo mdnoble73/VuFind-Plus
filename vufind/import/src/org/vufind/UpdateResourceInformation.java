@@ -153,7 +153,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			//Get a list of resources that have already been installed. 
 			results.addNote("Loading existing resources");
 			results.saveResults();
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind' and deleted=0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
 			while (existingResourceRS.next()){
 				String ilsId = existingResourceRS.getString("record_id");
@@ -295,6 +295,11 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		if (recordInfo.isEContent()){
 			results.incSkipped();
 			logger.debug("Skipping updating resource for record because it is eContent");
+			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
+			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
+				existingResources.remove(recordInfo.getId());
+			}
+			return true;
 		}
 		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
 			//logger.info("Skipping record because it hasn't changed");

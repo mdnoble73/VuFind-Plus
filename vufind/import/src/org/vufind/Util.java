@@ -251,7 +251,7 @@ public class Util {
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
 			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
+			conn.setReadTimeout(30000);
 			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
@@ -298,7 +298,7 @@ public class Util {
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
 			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(1000);
+			conn.setReadTimeout(30000);
 			logger.debug("Posting To URL " + url);
 			logger.debug("  Opened connection");
 			conn.setDoInput(true);

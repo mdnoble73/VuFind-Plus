@@ -1,8 +1,10 @@
 package org.vufind;
 
+import java.net.MalformedURLException;
 import java.sql.Connection;
 
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.ini4j.Ini;
 
 public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
@@ -10,13 +12,21 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	private Logger logger;
 	private boolean reindexUnchangedRecords;
 	private ProcessorResults results;
-	
+	private ConcurrentUpdateSolrServer updateServer;
 	@Override
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		results = new ProcessorResults("Update Solr", reindexLogId, vufindConn, logger);
 		solrPort = configIni.get("Reindex", "solrPort");
-
+		
+		//Initialize the updateServer
+		try {
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/biblio2", 1024, 10);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		//Check to see if we should clear the existing index
 		String clearMarcRecordsAtStartOfIndexVal = configIni.get("Reindex", "clearMarcRecordsAtStartOfIndex");
 		boolean clearMarcRecordsAtStartOfIndex;
