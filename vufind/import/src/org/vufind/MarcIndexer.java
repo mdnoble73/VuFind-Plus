@@ -102,6 +102,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 					if (doc != null){
 						//Post to the Solr instance
 						updateServer.add(doc, 5000);
+						results.incAdded();
 						/*URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
 						if (response.isSuccess()){
 							if (recordStatus == MarcProcessor.RECORD_NEW){

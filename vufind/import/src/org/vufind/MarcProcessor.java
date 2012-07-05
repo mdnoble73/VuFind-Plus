@@ -610,6 +610,7 @@ public class MarcProcessor {
 								for (IMarcRecordProcessor processor : recordProcessors) {
 									// System.out.println("Running processor " +
 									// processor.getClass().getName());
+									logger.debug(processor.getClass().getName() + " - " + marcInfo.getId());
 									processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 								}
 
