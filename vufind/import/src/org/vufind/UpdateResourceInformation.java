@@ -151,6 +151,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			cleanupDulicateResources();
 			
 			//Get a list of resources that have already been installed. 
+			logger.debug("Loading existing resources");
 			results.addNote("Loading existing resources");
 			results.saveResults();
 			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -161,6 +162,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				existingResources.put(ilsId, resourceInfo);
 			}
 			existingResourceRS.close();
+			logger.debug("Finished loading existing resources");
+			results.addNote("Finished loading existing resources");
+			results.saveResults();
 			
 		} catch (SQLException ex) {
 			// handle any errors
@@ -173,11 +177,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 
 	private void cleanupDulicateResources() {
 		try {
-			results.addNote("Cleaning up duplicate resources");
+			logger.debug("Cleaning up resources table");
+			results.addNote("Cleaning up resources table");
 			results.saveResults();
 			
 			//Get a list of the total number of resources 
 			ResultSet distinctIdRS = getDistinctRecordIdsStmt.executeQuery();
+			int resourcesProcessed = 0;
 			while (distinctIdRS.next()){
 				String ilsId = distinctIdRS.getString("record_id");
 				getRelatedRecordsStmt.setString(1, ilsId);
@@ -222,8 +228,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				
 				//Check to see if the record is eContent.  If so, make sure there is a resource for the eContent record and delete the record
 				//for VuFind
-				//TODO: Move reords to 
+				//TODO: Move records to eContent as needed 
 				
+				if (++resourcesProcessed % 100000 == 0){
+					logger.debug("Processed " + resourcesProcessed + " resources");
+					results.addNote("Processed " + resourcesProcessed + " resources");
+					results.saveResults();
+				}
 			}
 			
 			//Get a list of distinct ids
@@ -233,7 +244,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			results.incErrors();
 			results.saveResults();
 		}
-		
+		logger.debug("Cleaning up resources");
 	}
 
 	private void deleteResourcePermanently(Long curRecordId) {

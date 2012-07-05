@@ -26,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Logger;
+import org.apache.solr.common.SolrInputDocument;
 import org.econtent.DetectionSettings;
 import org.econtent.LibrarySpecificLink;
 import org.marc4j.MarcStreamWriter;
@@ -2999,5 +3000,14 @@ public class MarcRecordDetails {
 		rawRecord = rawRecord.replaceAll("\\xE8", "#232;");
 		rawRecord = rawRecord.replaceAll("\\xE9", "#233;");
 		return rawRecord;
+	}
+
+	public SolrInputDocument getSolrDocument() {
+		SolrInputDocument doc = new SolrInputDocument();
+		for (String fieldName : mappedFields.keySet()){
+			Object value = mappedFields.get(fieldName);
+			doc.addField(fieldName, value);
+		}
+		return doc;
 	}
 }

@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -26,6 +28,8 @@ public class ProcessorResults {
 	
 	private static PreparedStatement saveResultsStmt = null;
 	private static PreparedStatement updateResultsStmt = null;
+	
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public ProcessorResults(String processorName, long reindexLogId, Connection vufindConn, Logger logger){
 		this.processorName = processorName;
@@ -101,7 +105,8 @@ public class ProcessorResults {
 		return notes;
 	}
 	public void addNote(String note) {
-		this.notes.add(note);
+		Date date = new Date();
+		this.notes.add(dateFormat.format(date) + " - " + note);
 	}
 	public int getEContentRecordsProcessed() {
 		return eContentRecordsProcessed;
