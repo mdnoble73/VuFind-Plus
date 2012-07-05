@@ -246,18 +246,20 @@ public class Util {
 	public static URLPostResponse getURL(String url, Logger logger) {
 		URLPostResponse retVal;
 		try {
+			logger.debug("Making call to " + url);
 			URL emptyIndexURL = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
-			
+			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
+				logger.debug("  Got successful response");
 				// Get the response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				String line;
 				while ((line = rd.readLine()) != null) {
 					response.append(line);
 				}
-
+				logger.debug("  Finished reading response");
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
@@ -268,6 +270,7 @@ public class Util {
 				while ((line = rd.readLine()) != null) {
 					response.append(line);
 				}
+				logger.debug("  Finished reading response");
 
 				rd.close();
 				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
@@ -280,6 +283,7 @@ public class Util {
 			logger.error("Error posting to url \r\n" + url, e);
 			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
 		}
+		logger.debug("  Finished calling url");
 		return retVal;
 	}
 
