@@ -3006,8 +3006,9 @@ public class MarcRecordDetails {
 
 	public SolrInputDocument getSolrDocument() {
 		SolrInputDocument doc = new SolrInputDocument();
-		for (String fieldName : mappedFields.keySet()){
-			Object value = mappedFields.get(fieldName);
+		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		for (String fieldName : allFields.keySet()){
+			Object value = allFields.get(fieldName);
 			doc.addField(fieldName, value);
 		}
 		return doc;

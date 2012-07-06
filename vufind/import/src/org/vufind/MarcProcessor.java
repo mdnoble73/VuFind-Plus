@@ -562,24 +562,21 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			boolean useThreads = false;
+			boolean useThreads = true;
 			if (useThreads){
-				ArrayList<Thread> indexingThreads = new ArrayList<Thread>();
+				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
 				for (final File marcFile : marcFiles) {
-					Thread marcFileProcess = new Thread(new Runnable(){
-						public void run(){
-							processMarcFile(recordProcessors, logger, marcFile);
-						}
-					});
+					MarcProcessorThread marcFileProcess = new MarcProcessorThread(recordProcessors, logger, marcFile);
 					indexingThreads.add(marcFileProcess);
 					marcFileProcess.start();
 				}
 				
 				//Wait for the processes to stop
 				while (true){
-					for(Thread indexThread : indexingThreads){
-						if (indexThread.isAlive()){
-							Thread.currentThread().wait(1000);
+					for(MarcProcessorThread indexThread : indexingThreads){
+						if (!indexThread.isFinished()){
+							Thread.yield();
+							Thread.sleep(500);
 						}
 					}
 				}
@@ -750,5 +747,24 @@ public class MarcProcessor {
 
 	public boolean isScrapeItemsForLinks() {
 		return scrapeItemsForLinks;
+	}
+	
+	private class MarcProcessorThread extends Thread {
+		private ArrayList<IMarcRecordProcessor> recordProcessors;
+		private Logger logger;
+		private File marcFile;
+		private boolean finished;
+		public MarcProcessorThread(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
+			this.recordProcessors = recordProcessors;
+			this.logger = logger;
+			this.marcFile = marcFile;
+		}
+		public void run(){
+			MarcProcessor.this.processMarcFile(recordProcessors, logger, marcFile);
+			this.finished = true;
+		}
+		public boolean isFinished(){
+			return finished;
+		}
 	}
 }
