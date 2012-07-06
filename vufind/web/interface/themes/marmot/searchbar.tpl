@@ -4,7 +4,7 @@
 		<br />
 		<a href="{$path}/Search/Advanced?edit={$searchId}" class="small">{translate text="Edit this Advanced Search"}</a> |
 		<a href="{$path}/Search/Advanced" class="small">{translate text="Start a new Advanced Search"}</a> |
-		<a href="{$path}" class="small">{translate text="Start a new Basic Search"}</a>
+		<a href="{$path}/Search/Home" class="small">{translate text="Start a new Basic Search"}</a>
 	{else}
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="search">
 			<div>
