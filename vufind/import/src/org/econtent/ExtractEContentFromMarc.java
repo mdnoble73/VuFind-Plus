@@ -597,6 +597,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				break;
 			}
 		}
+		results.addNote("Finished eContent extraction");
+		results.saveResults();
 	}
 	
 	@Override
