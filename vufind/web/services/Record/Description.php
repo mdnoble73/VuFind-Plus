@@ -95,7 +95,7 @@ class Description extends Record{
 			//Load the description
 			//Check to see if there is a description in Syndetics and use that instead if available
 			$useMarcSummary = true;
-			if ($allowExternalDescription || is_null($marcDescription)){
+			if ($allowExternalDescription){
 				if (!is_null($isbn) || !is_null($upc)){
 					require_once 'Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
