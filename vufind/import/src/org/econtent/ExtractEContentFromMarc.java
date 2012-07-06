@@ -1,8 +1,6 @@
 package org.econtent;
 
 import java.io.FileReader;
-import java.io.InputStream;
-import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -121,10 +119,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			//Check the 856 tag to see if this is a source that we can handle. 
 			results.incRecordsProcessed();
 			if (!recordInfo.isEContent()){
+				logger.debug("Skipping record, it is not eContent");
 				results.incSkipped();
 				return false;
 			}
 			
+			logger.debug("Record is eContent, processing");
 			//Record is eContent, get additional details about how to process it.
 			HashMap<String, DetectionSettings> detectionSettingsBySource = recordInfo.getEContentDetectionSettings();
 			if (detectionSettingsBySource == null || detectionSettingsBySource.size() == 0){
@@ -298,6 +298,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			/*updateRecordsProcessed.setLong(1, this.recordsProcessed + 1);
 			updateRecordsProcessed.setLong(2, logEntryId);
 			updateRecordsProcessed.executeUpdate();*/
+			logger.debug("Finished processing record");
 			return true;
 		} catch (Exception e) {
 			logger.error("Error importing marc record ", e);
@@ -410,7 +411,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		String overDriveId = null;
 		if (RegexMatcher.find()) {
 			overDriveId = RegexMatcher.group();
-		} 
+		}
+		if (overDriveId == null){
+			logger.debug(sourceUrl + " was not a link to overdrive content");
+			return;
+		}
 		logger.info("Found overDrive url\r\n" + sourceUrl + "\r\nlibraryId: " + libraryId + "  overDriveId: " + overDriveId);
 
 		try {
@@ -422,7 +427,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				String existingOverDriveIdValue = existingOverDriveId.getString("overDriveId");
 				Long existingItemId = existingOverDriveId.getLong("id");
 				String existingLink = existingOverDriveId.getString("link");
-				if (!overDriveId.equals(existingOverDriveIdValue) | !sourceUrl.equals(existingLink)){
+				if (existingLink == null || existingOverDriveIdValue == null || !overDriveId.equals(existingOverDriveIdValue) || !sourceUrl.equals(existingLink)){
 					//Url does not match, add it to the record. 
 					updateOverDriveId.setString(1, overDriveId);
 					updateOverDriveId.setString(2, sourceUrl);
@@ -498,27 +503,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 
 	private void reindexRecord(final long eContentRecordId, final Logger logger) {
 		//reindex the new record
-		Thread reindexThread = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				// TODO Auto-generated method stub
-				try {
-					URL url = new URL(vufindUrl + "/EcontentRecord/" + eContentRecordId + "/Reindex");
-					Object reindexResultRaw = url.getContent();
-					if (reindexResultRaw instanceof InputStream) {
-						String updateIndexResponse = Util.convertStreamToString((InputStream) reindexResultRaw);
-						logger.info("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
-					}
-					logger.info("Finished reindex " + numReindexingThreadsRunning);
-					numReindexingThreadsRunning--;
-					logger.info("Remove thread " + numReindexingThreadsRunning);
-				} catch (Exception e) {
-					numReindexingThreadsRunning--;
-					logger.info("Unable to reindex record " + eContentRecordId, e);
-				}
-			}
-		});
+		Thread reindexThread = new EContentReindexThread(this, eContentRecordId, logger);
 		while (numReindexingThreadsRunning > 50){
 			logger.info("There are more than 50 reindex threads running, waiting for some to finish, " + numReindexingThreadsRunning + " remain open");
 			try {
@@ -617,5 +602,16 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	@Override
 	public ProcessorResults getResults() {
 		return results;
+	}
+
+	public String getVufindUrl() {
+		return vufindUrl;
+	}
+
+	public int getNumReindexingThreadsRunning() {
+		return numReindexingThreadsRunning;
+	}
+	public void decrementReindexingThreadsRunning() {
+		numReindexingThreadsRunning--;
 	}
 }

@@ -2880,6 +2880,7 @@ public class MarcRecordDetails {
 	 */
 	public boolean isEContent() {
 		if (isEContent == null) {
+			logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
@@ -2903,6 +2904,7 @@ public class MarcRecordDetails {
 					}
 				}
 			}
+			logger.debug("Finished checking detection settings");
 
 			if (!isEContent) {
 				String ilsId = this.getId();
@@ -2911,7 +2913,7 @@ public class MarcRecordDetails {
 					isEContent = true;
 				}
 			}
-			
+			logger.debug("Finished checking if record is eContent");
 			return isEContent;
 		} else {
 			return isEContent;

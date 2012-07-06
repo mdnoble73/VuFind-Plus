@@ -37,6 +37,8 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 	@Override
 	public void finish() {
 		logger.info("Building Alphabetic Browse tables");
+		results.addNote("Building Alphabetic Browse tables");
+		results.saveResults();
 		try {
 			//Run queries to create alphabetic browse tables from resources table
 			try {

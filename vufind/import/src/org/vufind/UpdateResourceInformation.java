@@ -313,7 +313,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			return true;
 		}
 		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
-			//logger.info("Skipping record because it hasn't changed");
+			logger.debug("Skipping record because it hasn't changed");
 			results.incSkipped();
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
@@ -325,6 +325,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			//Check to see if we have an existing resource
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
+				logger.debug("Updating the existing resource");
 				resourceId = basicResourceInfo.getResourceId();
 				//Remove the resource from the existingResourcesList so 
 				//We can determine which resources no longer exist
@@ -362,6 +363,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				
 
 			} else {
+				logger.debug("This is a brand new record, adding to resources table");
 				String author = recordInfo.getAuthor();
 				// Update resource SQL
 				resourceInsertStmt.setString(1, Util.trimTo(200, recordInfo.getTitle()));
@@ -392,6 +394,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 			
 			if (resourceId != -1 && updateSubjectAndCallNumber){
+				logger.debug("Updating subject and call number");
 				clearResourceSubjectsStmt.setLong(1, resourceId);
 				clearResourceSubjectsStmt.executeUpdate();
 				clearResourceCallnumbersStmt.setLong(1, resourceId);
@@ -455,6 +458,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				results.saveResults();
 			}
 		}
+		logger.debug("Finished updating resource");
 		return true;
 	}
 
