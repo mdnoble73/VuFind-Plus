@@ -255,10 +255,11 @@ Title:
       - [and, 250]
     - title_alt:
       - [and, 200]
+      - [or, ~]
     - title_new:
       - [and, 100]
     - title_old:
-      - [and, ~]  
+      - [and, ~]
     - series_proper:
       - [onephrase, 200]
       - [and, 100]
