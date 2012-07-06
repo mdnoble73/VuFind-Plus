@@ -298,7 +298,7 @@ class Location extends DB_DataObject
 
 	static function getSearchLocation(){
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if ($searchSource == 'local'){
+		if ($searchSource == 'local' || $searchSource == 'econtent'){
 			global $locationSingleton;
 			return $locationSingleton->getActiveLocation();
 		}else if ($searchSource == 'marmot'){

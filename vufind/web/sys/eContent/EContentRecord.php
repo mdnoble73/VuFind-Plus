@@ -163,6 +163,13 @@ class EContentRecord extends SolrDataObject {
     	'storeDb' => false, 
     	'storeSolr' => true, 
 		),
+		'building' => array(
+    	'property'=>'building', 
+    	'type'=>'method', 
+    	'methodName'=>'building', 
+    	'storeDb' => false, 
+    	'storeSolr' => true, 
+		),
 		'title' => array(
 		  'property' => 'title',
 		  'type' => 'text',
@@ -735,22 +742,36 @@ class EContentRecord extends SolrDataObject {
 	function institution(){
 		$institutions = array();
 		$items = $this->getItems(false);
-		if (strcasecmp($this->source, 'OverDrive') == 0){
-			//For now, return the global setting
-			$institutions[] = "Digital Collection";
-		}else{
-			foreach ($items as $item){
-				$libraryId = $item->libraryId;
-				if ($libraryId == -1){
-					$institutions[] = "Digital Collection";
+		foreach ($items as $item){
+			$libraryId = $item->libraryId;
+			if ($libraryId == -1){
+				$institutions[] = "Digital Collection";
+			}else{
+				$library = new Library();
+				$library->libraryId = $libraryId;
+				if ($library->find(true)){
+					$institutions[] = $library->facetLabel;
 				}else{
-					$library = new Library();
-					$library->libraryId = $item->libraryId;
-					if ($library->find(true)){
-						$institutions[] = $library->facetLabel;
-					}else{
-						$institutions[] = "Unknown";
-					}
+					$institutions[] = "Unknown";
+				}
+			}
+		}
+		return $institutions;
+	}
+	function building(){
+		$institutions = array();
+		$items = $this->getItems(false);
+		foreach ($items as $item){
+			$libraryId = $item->libraryId;
+			if ($libraryId == -1){
+				$institutions[] = "Digital Collection";
+			}else{
+				$library = new Library();
+				$library->libraryId = $libraryId;
+				if ($library->find(true)){
+					$institutions[] = $library->facetLabel . ' Online';
+				}else{
+					$institutions[] = "Unknown";
 				}
 			}
 		}
@@ -1144,9 +1165,7 @@ class EContentRecord extends SolrDataObject {
 				}
 				//Mark that the record should be reindexed.
 				if ($dataChanged){
-					//MDN 7/1/2012 - Do not reindex OverDrive titles automatically to try to prevent downtime
-					//$this->updateDetailed(true);
-					$this->updateDetailed(false);
+					$this->updateDetailed(true);
 				}
 			}else{
 				$overDriveItems = $cachedItems;

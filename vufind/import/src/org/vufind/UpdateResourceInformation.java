@@ -313,13 +313,21 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			return true;
 		}
 		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
-			logger.debug("Skipping record because it hasn't changed");
-			results.incSkipped();
+			boolean updateResource = false; 
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
-				existingResources.remove(recordInfo.getId());
+				if (basicResourceInfo.getMarcChecksum() == -1){
+					logger.debug("Forcing resource update because checksum is -1");
+					updateResource = true;
+				}else{
+					existingResources.remove(recordInfo.getId());
+				}
 			}
-			return true;
+			if (!updateResource){
+				logger.debug("Skipping record because it hasn't changed");
+				results.incSkipped();
+				return true;
+			}
 		}
 		try {
 			//Check to see if we have an existing resource
