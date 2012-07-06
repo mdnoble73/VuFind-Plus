@@ -562,7 +562,7 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			boolean useThreads = true;
+			boolean useThreads = false;
 			if (useThreads){
 				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
 				for (final File marcFile : marcFiles) {
