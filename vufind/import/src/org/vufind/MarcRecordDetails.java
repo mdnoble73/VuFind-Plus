@@ -1898,7 +1898,7 @@ public class MarcRecordDetails {
 		} else if (locationCode.matches("^(pcjv)$")) {
 			locationCodes.add("pitkinjuv");
 		} else if (locationCode.matches("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$")) {
-			locationCodes.add("gcpjuv");
+			locationCodes.add("gcjuv");
 		}
 	}
 
