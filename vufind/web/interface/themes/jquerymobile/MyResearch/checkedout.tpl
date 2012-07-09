@@ -30,7 +30,16 @@
               {/foreach}
             </p>
             {/if}
-            <p><strong>{translate text='Due'}</strong>: {$resource.duedate|escape}</p>
+            <p><strong>{translate text='Due'}</strong>: {$record.duedate|date_format}
+		        	{if $record.overdue}
+                <span class='overdueLabel'>OVERDUE</span>
+              {elseif $record.daysUntilDue == 0}
+                <span class='dueSoonLabel'>(Due today)</span>
+              {elseif $record.daysUntilDue == 1}
+                <span class='dueSoonLabel'>(Due tomorrow)</span>
+              {elseif $record.daysUntilDue <= 7}
+                <span class='dueSoonLabel'>(Due in {$record.daysUntilDue} days)</span>
+              {/if}</p>
             {if $resource.renewMessage}
               <p class='{if $resource.renewResult == true}renewPassed{else}renewFailed{/if}'>
                 {$resource.renewMessage|escape}
