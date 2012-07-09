@@ -249,6 +249,13 @@ class JSON extends Action {
 	 */
 	private function _pickValue($list, $mode, $msg)
 	{
+		if (!is_array($list)){
+			if (is_string($list)){
+				return $list;
+			}else{
+				return '';
+			}
+		}
 		// Make sure array contains only unique values:
 		$list = array_unique($list);
 
