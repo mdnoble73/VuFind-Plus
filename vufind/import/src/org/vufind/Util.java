@@ -245,19 +245,24 @@ public class Util {
 	
 	public static URLPostResponse getURL(String url, Logger logger) {
 		URLPostResponse retVal;
+		HttpURLConnection conn = null;
 		try {
+			logger.debug("Getting URL " + url);
 			URL emptyIndexURL = new URL(url);
-			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
-			
+			conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(30000);
+			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
+				logger.debug("  Got successful response");
 				// Get the response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				String line;
 				while ((line = rd.readLine()) != null) {
 					response.append(line);
 				}
-
+				logger.debug("  Finished reading response");
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
@@ -268,6 +273,7 @@ public class Util {
 				while ((line = rd.readLine()) != null) {
 					response.append(line);
 				}
+				logger.debug("  Finished reading response");
 
 				rd.close();
 				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
@@ -280,29 +286,39 @@ public class Util {
 			logger.error("Error posting to url \r\n" + url, e);
 			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
 		}
+		logger.debug("  Finished calling url");
 		return retVal;
 	}
 
 	public static URLPostResponse postToURL(String url, String postData, Logger logger) {
 		URLPostResponse retVal;
+		
+		HttpURLConnection conn = null;
 		try {
 			URL emptyIndexURL = new URL(url);
-			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(30000);
+			logger.debug("Posting To URL " + url);
+			logger.debug("  Opened connection");
 			conn.setDoInput(true);
 			if (postData != null && postData.length() > 0) {
 				conn.setRequestMethod("POST");
 				conn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
 				conn.setRequestProperty("Content-Language", "en-US");
+				
 
 				conn.setDoOutput(true);
 				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
 				wr.write(postData);
 				wr.flush();
 				wr.close();
+				logger.debug("  Sent post data");
 			}
 
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
+				logger.debug("  Got successful response");
 				// Get the response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				String line;
@@ -312,6 +328,7 @@ public class Util {
 
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
+				logger.debug("  Read response");
 			} else {
 				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
 				logger.info(postData);
@@ -343,6 +360,8 @@ public class Util {
 		} catch (IOException e) {
 			logger.error("Error posting to url \r\n" + url, e);
 			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}finally{
+			if (conn != null) conn.disconnect();
 		}
 		return retVal;
 	}

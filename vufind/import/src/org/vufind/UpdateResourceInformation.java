@@ -32,9 +32,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement linkResourceToSubjectStmt = null;
 	
 	//Setup prepared statements that we will use
-	PreparedStatement existingResourceStmt;
-	PreparedStatement addResourceStmt;
-	PreparedStatement updateResourceStmt;
+	private PreparedStatement existingResourceStmt;
+	private PreparedStatement addResourceStmt;
+	private PreparedStatement updateResourceStmt;
 	
 	
 	//Code related to call numbers
@@ -52,6 +52,26 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private HashMap<String, BasicResourceInfo> existingResources = new HashMap<String, BasicResourceInfo>();
 	
 	private ProcessorResults results;
+
+	private PreparedStatement	getDistinctRecordIdsStmt;
+
+	private PreparedStatement	getRelatedRecordsStmt;
+
+	private PreparedStatement	deleteResoucePermanentStmt;
+
+	private PreparedStatement	deleteResouceCallNumberPermanentStmt;
+
+	private PreparedStatement	deleteResouceSubjectPermanentStmt;
+
+	private PreparedStatement	transferCommentsStmt;
+
+	private PreparedStatement	transferTagsStmt;
+
+	private PreparedStatement	transferRatingsStmt;
+
+	private PreparedStatement	transferReadingHistoryStmt;
+
+	private PreparedStatement	transferUserResourceStmt;
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -84,6 +104,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			resourceUpdateStmt = vufindConn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
 			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
 			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			deleteResoucePermanentStmt = vufindConn.prepareStatement("DELETE from resource where id = ?");
+			deleteResouceCallNumberPermanentStmt = vufindConn.prepareStatement("DELETE from resource_callnumber where resourceId = ?");
+			deleteResouceSubjectPermanentStmt = vufindConn.prepareStatement("DELETE from resource_subject where resourceId = ?");
 			
 			getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject");
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
@@ -117,8 +140,21 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			callNumberSubfield = configIni.get("Reindex", "callNumberSubfield");
 			locationSubfield = configIni.get("Reindex", "locationSubfield");
 			
+			//Cleanup duplicate resources
+			getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getRelatedRecordsStmt = vufindConn.prepareStatement("SELECT id, deleted FROM resource where record_id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			transferCommentsStmt = vufindConn.prepareStatement("UPDATE comments set resource_id = ? where resource_id = ?");
+			transferTagsStmt = vufindConn.prepareStatement("UPDATE resource_tags set resource_id = ? where resource_id = ?");
+			transferRatingsStmt = vufindConn.prepareStatement("UPDATE user_rating set resourceid = ? where resourceid = ?");
+			transferReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history set resourceId = ? where resourceId = ?");
+			transferUserResourceStmt = vufindConn.prepareStatement("UPDATE user_resource set resource_id = ? where resource_id = ?");
+			cleanupDulicateResources();
+			
 			//Get a list of resources that have already been installed. 
-			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'");
+			logger.debug("Loading existing resources");
+			results.addNote("Loading existing resources");
+			results.saveResults();
+			PreparedStatement existingResourceStmt = vufindConn.prepareStatement("SELECT record_id, id, marc_checksum, deleted from resource where source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingResourceRS = existingResourceStmt.executeQuery();
 			while (existingResourceRS.next()){
 				String ilsId = existingResourceRS.getString("record_id");
@@ -126,6 +162,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				existingResources.put(ilsId, resourceInfo);
 			}
 			existingResourceRS.close();
+			logger.debug("Finished loading existing resources");
+			results.addNote("Finished loading existing resources");
+			results.saveResults();
 			
 		} catch (SQLException ex) {
 			// handle any errors
@@ -134,6 +173,126 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		}
 		return true;
 		
+	}
+
+	private void cleanupDulicateResources() {
+		try {
+			logger.debug("Cleaning up resources table");
+			results.addNote("Cleaning up resources table");
+			results.saveResults();
+			
+			//Get a list of the total number of resources 
+			ResultSet distinctIdRS = getDistinctRecordIdsStmt.executeQuery();
+			int resourcesProcessed = 0;
+			while (distinctIdRS.next()){
+				String ilsId = distinctIdRS.getString("record_id");
+				getRelatedRecordsStmt.setString(1, ilsId);
+				ResultSet relatedRecordsRS = getRelatedRecordsStmt.executeQuery();
+				HashMap<Long, Boolean> relatedRecords = new HashMap<Long, Boolean>();
+				while (relatedRecordsRS.next()){
+					relatedRecords.put(relatedRecordsRS.getLong("id"), relatedRecordsRS.getBoolean("deleted"));
+				}
+				if (relatedRecords.size() > 1){
+					//Need to get rid of some records since there should only be one resource for a given ILS Id
+					Long firstActiveRecordId = null;
+					for (Long curRecordId : relatedRecords.keySet()){
+						if (relatedRecords.get(curRecordId) == false){
+							firstActiveRecordId = curRecordId;
+							break;
+						}
+					}
+					if (firstActiveRecordId == null){
+						//All records were deleted, can delete all but the first
+						int curIndex = 0;
+						for (Long curRecordId : relatedRecords.keySet()){
+							if (curIndex != 0){
+								System.out.println("Deleting all resources (except first) for record id " + ilsId);
+								logger.debug("Deleting all resources (except first) for record id " + ilsId);
+								deleteResourcePermanently(curRecordId);
+								
+							}
+							curIndex++;
+						}
+					}else{
+						//We have an active record
+						for (Long curRecordId : relatedRecords.keySet()){
+							if (curRecordId != firstActiveRecordId){
+								System.out.println("Transferring user info for " + curRecordId + " to " + firstActiveRecordId + " because it is redundant");
+								logger.debug("Transferring user info for " + curRecordId + " to " + firstActiveRecordId + " because it is redundant");
+								transferUserInfo(curRecordId, firstActiveRecordId);
+								deleteResourcePermanently(curRecordId);
+							}
+						}
+					}
+				}
+				
+				//Check to see if the record is eContent.  If so, make sure there is a resource for the eContent record and delete the record
+				//for VuFind
+				//TODO: Move records to eContent as needed 
+				
+				if (++resourcesProcessed % 100000 == 0){
+					logger.debug("Processed " + resourcesProcessed + " resources");
+					results.addNote("Processed " + resourcesProcessed + " resources");
+					results.saveResults();
+				}
+			}
+			
+			//Get a list of distinct ids
+		} catch (Exception e) {
+			logger.error("Error cleaning up duplicate resources", e);
+			results.addNote("Cleaning up duplicate resources");
+			results.incErrors();
+			results.saveResults();
+		}
+		logger.debug("Cleaning up resources");
+	}
+
+	private void deleteResourcePermanently(Long curRecordId) {
+		try {
+			deleteResoucePermanentStmt.setLong(1, curRecordId);
+			deleteResoucePermanentStmt.executeUpdate();
+			deleteResouceCallNumberPermanentStmt.setLong(1, curRecordId);
+			deleteResouceCallNumberPermanentStmt.executeUpdate();
+			deleteResouceSubjectPermanentStmt.setLong(1, curRecordId);
+			deleteResouceSubjectPermanentStmt.executeUpdate();
+			results.incDeleted();
+		} catch (SQLException e) {
+			logger.error("Error deleting resource permanently " + curRecordId, e);
+		}
+	}
+
+	private void transferUserInfo(Long idToTransferFrom, Long idToTransferTo) {
+		try {
+			//Transfer comments
+			transferCommentsStmt.setLong(1, idToTransferTo);
+			transferCommentsStmt.setLong(2, idToTransferFrom);
+			int numCommentsMoved = transferCommentsStmt.executeUpdate();
+			if (numCommentsMoved > 0) System.out.println("Moved " + numCommentsMoved + " comments");
+			//Transfer tags
+			transferTagsStmt.setLong(1, idToTransferTo);
+			transferTagsStmt.setLong(2, idToTransferFrom);
+			int numTagsMoved = transferTagsStmt.executeUpdate();
+			if (numTagsMoved > 0) System.out.println("Moved " + numTagsMoved + " tags");
+			//Transfer ratings
+			transferRatingsStmt.setLong(1, idToTransferTo);
+			transferRatingsStmt.setLong(2, idToTransferFrom);
+			int numRatingsMoved = transferRatingsStmt.executeUpdate();
+			if (numRatingsMoved > 0) System.out.println("Moved " + numRatingsMoved + " ratings");
+			//Transfer reading history
+			transferReadingHistoryStmt.setLong(1, idToTransferTo);
+			transferReadingHistoryStmt.setLong(2, idToTransferFrom);
+			int numReadingHistoryMoved = transferReadingHistoryStmt.executeUpdate();
+			if (numReadingHistoryMoved > 0) System.out.println("Moved " + numReadingHistoryMoved + " reading history entries");
+			//Transfer User Resource Information 
+			transferUserResourceStmt.setLong(1, idToTransferTo);
+			transferUserResourceStmt.setLong(2, idToTransferFrom);
+			int numUserResourceMoved = transferUserResourceStmt.executeUpdate();
+			if (numUserResourceMoved > 0) System.out.println("Moved " + numUserResourceMoved + " user resource (list) entries");
+			
+			results.incUpdated();
+		} catch (SQLException e) {
+			logger.error("Error transferring resource info for user from " + idToTransferFrom + " to " + idToTransferTo, e);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -147,20 +306,34 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		if (recordInfo.isEContent()){
 			results.incSkipped();
 			logger.debug("Skipping updating resource for record because it is eContent");
-		}
-		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
-			//logger.info("Skipping record because it hasn't changed");
-			results.incSkipped();
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
 				existingResources.remove(recordInfo.getId());
 			}
 			return true;
 		}
+		if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
+			boolean updateResource = false; 
+			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
+			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
+				if (basicResourceInfo.getMarcChecksum() == -1){
+					logger.debug("Forcing resource update because checksum is -1");
+					updateResource = true;
+				}else{
+					existingResources.remove(recordInfo.getId());
+				}
+			}
+			if (!updateResource){
+				logger.debug("Skipping record because it hasn't changed");
+				results.incSkipped();
+				return true;
+			}
+		}
 		try {
 			//Check to see if we have an existing resource
 			BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (basicResourceInfo != null && basicResourceInfo.getResourceId() != null ){
+				logger.debug("Updating the existing resource");
 				resourceId = basicResourceInfo.getResourceId();
 				//Remove the resource from the existingResourcesList so 
 				//We can determine which resources no longer exist
@@ -198,6 +371,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				
 
 			} else {
+				logger.debug("This is a brand new record, adding to resources table");
 				String author = recordInfo.getAuthor();
 				// Update resource SQL
 				resourceInsertStmt.setString(1, Util.trimTo(200, recordInfo.getTitle()));
@@ -228,6 +402,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 			
 			if (resourceId != -1 && updateSubjectAndCallNumber){
+				logger.debug("Updating subject and call number");
 				clearResourceSubjectsStmt.setLong(1, resourceId);
 				clearResourceSubjectsStmt.executeUpdate();
 				clearResourceCallnumbersStmt.setLong(1, resourceId);
@@ -291,6 +466,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				results.saveResults();
 			}
 		}
+		logger.debug("Finished updating resource");
 		return true;
 	}
 

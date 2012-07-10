@@ -163,6 +163,13 @@ class EContentRecord extends SolrDataObject {
     	'storeDb' => false, 
     	'storeSolr' => true, 
 		),
+		'building' => array(
+    	'property'=>'building', 
+    	'type'=>'method', 
+    	'methodName'=>'building', 
+    	'storeDb' => false, 
+    	'storeSolr' => true, 
+		),
 		'title' => array(
 		  'property' => 'title',
 		  'type' => 'text',
@@ -671,12 +678,6 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => false,
 		  'storeSolr' => true,
 		),
-		'format_boost' => array(
-		  'property' => 'format_boost',
-		  'type' => 'method',
-		  'storeDb' => false,
-		  'storeSolr' => true,
-		),
 		'language_boost' => array(
 		  'property' => 'language_boost',
 		  'type' => 'method',
@@ -741,22 +742,36 @@ class EContentRecord extends SolrDataObject {
 	function institution(){
 		$institutions = array();
 		$items = $this->getItems(false);
-		if (strcasecmp($this->source, 'OverDrive') == 0){
-			//For now, return the global setting
-			$institutions[] = "Digital Collection";
-		}else{
-			foreach ($items as $item){
-				$libraryId = $item->libraryId;
-				if ($libraryId == -1){
-					$institutions[] = "Digital Collection";
+		foreach ($items as $item){
+			$libraryId = $item->libraryId;
+			if ($libraryId == -1){
+				$institutions[] = "Digital Collection";
+			}else{
+				$library = new Library();
+				$library->libraryId = $libraryId;
+				if ($library->find(true)){
+					$institutions[] = $library->facetLabel;
 				}else{
-					$library = new Library();
-					$library->libraryId = $item->libraryId;
-					if ($library->find(true)){
-						$institutions[] = $library->facetLabel;
-					}else{
-						$institutions[] = "Unknown";
-					}
+					$institutions[] = "Unknown";
+				}
+			}
+		}
+		return $institutions;
+	}
+	function building(){
+		$institutions = array();
+		$items = $this->getItems(false);
+		foreach ($items as $item){
+			$libraryId = $item->libraryId;
+			if ($libraryId == -1){
+				$institutions[] = "Digital Collection";
+			}else{
+				$library = new Library();
+				$library->libraryId = $libraryId;
+				if ($library->find(true)){
+					$institutions[] = $library->facetLabel . ' Online';
+				}else{
+					$institutions[] = "Unknown";
 				}
 			}
 		}

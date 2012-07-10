@@ -20,7 +20,6 @@
 
 require_once 'Action.php';
 require_once 'services/MyResearch/lib/FavoriteHandler.php';
-require_once 'services/MyResearch/lib/User_list_solr.php';
 
 
 /**
@@ -87,24 +86,18 @@ class MyLists extends Action
 		if ($user != false && $user->id == $list->user_id && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
 			if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
 				$actionToPerform = $_REQUEST['myListActionHead'];
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
 				if ($actionToPerform == 'makePublic'){
 					$list->public = 1;
 					$list->update();
-					$solrConnector->saveList($list);
 				}elseif ($actionToPerform == 'makePrivate'){
 					$list->public = 0;
-					$list->update();
-					$solrConnector->deleteList($list);
+					$list->updateDetailed(false);
+					$list->removeFromSolr();
 				}elseif ($actionToPerform == 'saveList'){
 					$list->title = $_REQUEST['newTitle'];
 					$list->description = $_REQUEST['newDescription'];
 					$list->update();
-					if ($list->public == 1){
-						$solrConnector->saveList($list);
-					}
 				}elseif ($actionToPerform == 'deleteList'){
-					$solrConnector->deleteList($list);
 					$list->delete();
 					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
 					die();
@@ -123,17 +116,11 @@ class MyLists extends Action
 				}elseif ($actionToPerform == 'deleteAll'){
 					$list->removeAllResources(isset($_GET['tag']) ? $_GET['tag'] : null);
 				}
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
-				if ($list->public == 1){
-					$solrConnector->saveList($list);
-				}
+				$list->update();
 			}elseif (isset($_GET['delete'])) {
 				$resource = Resource::staticGet('record_id', $_GET['delete']);
 				$list->removeResource($resource);
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
-				if ($list->public == 1){
-					$solrConnector->saveList($list);
-				}
+				$list->update();
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.

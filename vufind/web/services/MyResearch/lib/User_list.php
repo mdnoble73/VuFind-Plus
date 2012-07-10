@@ -4,18 +4,18 @@
  */
 require_once 'DB/DataObject.php';
 
-class User_list extends DB_DataObject
+class User_list extends SolrDataObject
 {
 	###START_AUTOCODE
 	/* the code below is auto generated do not remove the above tag */
 
-	public $__table = 'user_list';                       // table name
-	public $id;                              // int(11)  not_null primary_key auto_increment
-	public $user_id;                         // int(11)  not_null multiple_key
-	public $title;                           // string(200)  not_null
-	public $description;                     // string(500)
-	public $created;                         // datetime(19)  not_null binary
-	public $public;                          // int(11)  not_null
+	public $__table = 'user_list';												// table name
+	public $id;															// int(11)	not_null primary_key auto_increment
+	public $user_id;													// int(11)	not_null multiple_key
+	public $title;														// string(200)	not_null
+	public $description;											// string(500)
+	public $created;													// datetime(19)	not_null binary
+	public $public;													// int(11)	not_null
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('User_list',$k,$v); }
@@ -23,22 +23,197 @@ class User_list extends DB_DataObject
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
 
+	function cores(){
+		return array('biblio', 'biblio2');
+	}
+	
+	function solrId(){
+		return $this->recordtype() . $this->id;
+	}
+	
+	function recordtype(){
+		return 'list';
+	}
+	
+	function title(){
+		return $this->title;
+	}
+	function title_proper(){
+		return $this->title;
+	}
+	function title_sort(){
+		return $this->title;
+	}
+	function format_category(){
+		return 'Lists';
+	}
+	function format(){
+		return 'List';
+	}
+	function bib_suppression(){
+		return "notsuppressed";
+	}
+	function format_boost(){
+		return 100;
+	}
+	function language_bost(){
+		return 500;
+	}
+	function getObjectStructure(){
+		global $configArray;
+		$structure = array(
+			'id' => array(
+				'property'=>'id', 
+				'type'=>'hidden', 
+				'label'=>'Id', 
+				'primaryKey'=>true,
+				'description'=>'The unique id of the e-pub file.',
+				'storeDb' => true, 
+				'storeSolr' => false, 
+			),
+			'recordtype' => array(
+				'property'=>'recordtype', 
+				'type'=>'method', 
+				'methodName'=>'recordtype', 
+				'storeDb' => false, 
+				'storeSolr' => true, 
+			),
+			'solrId' => array(
+				'property'=>'id', 
+				'type'=>'method', 
+				'methodName'=>'solrId', 
+				'storeDb' => false, 
+				'storeSolr' => true, 
+			),
+			'title' => array(
+				'property' => 'title',
+				'type' => 'text',
+				'size' => 100,
+				'maxLength'=>255, 
+				'label' => 'Title',
+				'description' => 'The title of the item.',
+				'required'=> true,
+				'storeDb' => true,
+				'storeSolr' => true,
+			),
+			'title_proper' => array(
+				'property' => 'title_proper',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'title_sort' => array(
+				'property' => 'title_sort',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'format_category' => array(
+				'property' => 'format_category',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'format' => array(
+				'property' => 'format',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'description' => array(
+				'property' => 'description',
+				'type' => 'textarea',
+				'label' => 'Description',
+				'rows'=>3,
+				'cols'=>80,
+				'description' => 'A brief description of the file for indexing and display if there is not an existing record within the catalog.',
+				'required'=> false,
+				'storeDb' => true,
+				'storeSolr' => true,
+			),
+			'num_titles' => array(
+				'property' => 'num_titles',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'num_holdings' => array(
+				'property' => 'num_holdings',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'format_boost' => array(
+				'property' => 'format_boost',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'language_boost' => array(
+				'property' => 'language_boost',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'contents' => array(
+				'property' => 'contents',
+				'type' => 'method',
+				'required'=> false,
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'bib_suppression' => array(
+				'property' => 'bib_suppression',
+				'type' => 'method',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			
+		);
+
+		return $structure;
+	}
+	function contents(){
+		$resources = $this->getResources();
+		$contents = '';
+		foreach ($resources as $resource){
+			$contents .= ' ' . $resource->title . ' ' . (isset($resource->author) ? $resource->author : '') ;
+		}
+		return $contents;
+	}
+	function num_titles(){
+		return count($this->getResources());
+	}
+	function num_holdings(){
+		return count($this->getResources());
+	}
+	function updateDetailed($insertInSolr = true){
+		if ($this->public == 0){
+			parent::updateDetailed(false);
+		}else{
+			parent::updateDetailed($insertInSolr);
+		}
+	}
+	private $resourceList = null;
 	function getResources($tags = null)
 	{
+		if ($this->resourceList != null){
+			return $this->resourceList;
+		}
 		$resourceList = array();
 
 		$sql = "SELECT DISTINCT resource.*, user_resource.saved, user_resource.notes FROM resource, user_resource " .
-               "WHERE resource.id = user_resource.resource_id " .
-               "AND user_resource.user_id = '$this->user_id' " .
-               "AND user_resource.list_id = '$this->id'";
+								"WHERE resource.id = user_resource.resource_id " .
+								"AND user_resource.user_id = '$this->user_id' " .
+								"AND user_resource.list_id = '$this->id'";
 
 		if ($tags) {
 			for ($i=0; $i<count($tags); $i++) {
 				$sql .= " AND resource.id IN (SELECT DISTINCT resource_tags.resource_id " .
-                    "FROM resource_tags, tags " .
-                    "WHERE resource_tags.tag_id=tags.id AND tags.tag = '" . 
+										"FROM resource_tags, tags " .
+										"WHERE resource_tags.tag_id=tags.id AND tags.tag = '" . 
 				addslashes($tags[$i]) . "' AND resource_tags.user_id = '$this->user_id' " .
-                    "AND resource_tags.list_id = '$this->id')";
+										"AND resource_tags.list_id = '$this->id')";
 			}
 		}
 
@@ -54,7 +229,8 @@ class User_list extends DB_DataObject
 			}
 		}
 
-		return $resourceList;
+		$this->resourceList = $resourceList;
+		return $this->resourceList;
 	}
 
 	var $catalog;
@@ -110,10 +286,10 @@ class User_list extends DB_DataObject
 		$tagList = array();
 
 		$sql = "SELECT resource_tags.* FROM resource, resource_tags, user_resource " .
-               "WHERE resource.id = user_resource.resource_id " .
-               "AND resource.id = resource_tags.resource_id " .
-               "AND user_resource.user_id = '$this->user_id' " .
-               "AND user_resource.list_id = '$this->id'";
+								"WHERE resource.id = user_resource.resource_id " .
+								"AND resource.id = resource_tags.resource_id " .
+								"AND user_resource.user_id = '$this->user_id' " .
+								"AND user_resource.list_id = '$this->id'";
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -126,8 +302,8 @@ class User_list extends DB_DataObject
 	}
 
 	/**
-	 * @todo: delete any unused tags
-	 */
+		* @todo: delete any unused tags
+		*/
 	function removeResource($resource)
 	{
 		// Remove the Saved Resource
@@ -148,8 +324,8 @@ class User_list extends DB_DataObject
 	}
 
 	/**
-	 * remove all resources within this list
-	 */
+		* remove all resources within this list
+		*/
 	function removeAllResources($tags = null){
 		$allResources = $this->getResources($tags);
 		foreach ($allResources as $resource){

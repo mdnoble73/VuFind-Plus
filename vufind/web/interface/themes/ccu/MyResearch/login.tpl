@@ -8,7 +8,7 @@
 		<form method="post" action="{$path}/MyResearch/Home" id="loginForm">
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='loginFormRow'>
-					<div class='loginLabel'>{translate text='Login'}: </div>
+					<div class='loginLabel'>{translate text='Your Name'}: </div>
 					<div class='loginField'><input type="text" name="username" id="username" value="{$username|escape}" size="28"/></div>
 				</div>
 				<div id ='loginPasswordRow' class='loginFormRow'>

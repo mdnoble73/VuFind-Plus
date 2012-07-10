@@ -278,7 +278,7 @@ public final class Utils {
 	 *          String to parse
 	 * @return Numeric part of date String (or null)
 	 */
-	public static String cleanDate(final String date) {
+	public static synchronized String cleanDate(final String date) {
 		matcher_braces = FOUR_DIGIT_PATTERN_BRACES.matcher(date);
 		matcher_one_brace = FOUR_DIGIT_PATTERN_ONE_BRACE.matcher(date);
 		matcher_start_with_1_2 = FOUR_DIGIT_PATTERN_STARTING_WITH_1_2.matcher(date);

@@ -216,10 +216,13 @@ class Location extends DB_DataObject
 			$locationCode = $this->getBranchLocationCode();
 
 			if ($locationCode != null && $locationCode != '' && $locationCode != 'all'){
-				$activeLocation = $this->staticGet('code', $locationCode);
-				//Only use the location if we are in the subdomain for the parent library
-				if ($activeLocation != null && $library->libraryId == $activeLocation->libraryId){
-					$this->activeLocation = clone($activeLocation);
+				$activeLocation = new Location();
+				$activeLocation->code = $locationCode;
+				if ($activeLocation->find(true)){
+					//Only use the location if we are in the subdomain for the parent library
+					if ($library->libraryId == $activeLocation->libraryId){
+						$this->activeLocation = clone($activeLocation);
+					}
 				}
 			}
 			global $timer;
@@ -295,7 +298,7 @@ class Location extends DB_DataObject
 
 	static function getSearchLocation(){
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if ($searchSource == 'local'){
+		if ($searchSource == 'local' || $searchSource == 'econtent'){
 			global $locationSingleton;
 			return $locationSingleton->getActiveLocation();
 		}else if ($searchSource == 'marmot'){
@@ -369,15 +372,15 @@ class Location extends DB_DataObject
 		return $this->ipId;
 	}
 
-	private $activeIp;
+	private $activeIp = null;
 	function getActiveIp(){
-		if (isset($this->activeIp)) return $this->activeIp;
+		if (!empty($this->activeIp)) return $this->activeIp;
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
 			$ip = $_GET['test_ip'];
 			//Set a coookie so we don't have to transfer the ip from page to page.
 			setcookie('test_ip', $ip, 0, '/');
-		}elseif (isset($_COOKIE['test_ip'])){
+		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
 			$ip = $_COOKIE['test_ip'];
 		}else{
 			$ip = $_SERVER['REMOTE_ADDR'];
@@ -544,7 +547,11 @@ class Location extends DB_DataObject
 					$libraryHoursMessage = "The library will be open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
 				}else if ($currentHour > $closeHour){
 					$tomorrowsLibraryHours = Location::getLibraryHours($locationId,  time() + (24 * 60 * 60));
-					$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+					if (isset($tomorrowsLibraryHours['closed'])  && ($tomorrowsLibraryHours['closed'] == true || $tomorrowsLibraryHours['closed'] == 1)){
+						$libraryHoursMessage = "The library will be closed tomorrow for {$tomorrowsLibraryHours['closureReason']}.";
+					}else{
+						$libraryHoursMessage = "The library will be open tomorrow from " . $tomorrowsLibraryHours['openFormatted'] . " to " . $tomorrowsLibraryHours['closeFormatted'] . ".";
+					}
 				}else{
 					$libraryHoursMessage = "The library is open today from " . $todaysLibraryHours['openFormatted'] . " to " . $todaysLibraryHours['closeFormatted'] . ".";
 				}

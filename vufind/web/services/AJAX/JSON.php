@@ -249,6 +249,13 @@ class JSON extends Action {
 	 */
 	private function _pickValue($list, $mode, $msg)
 	{
+		if (!is_array($list)){
+			if (is_string($list)){
+				return $list;
+			}else{
+				return '';
+			}
+		}
 		// Make sure array contains only unique values:
 		$list = array_unique($list);
 
@@ -295,8 +302,12 @@ class JSON extends Action {
 				$available = true;
 			}
 			// Store call number/location info:
-			$callNumbers[] = $info['callnumber'];
-			$locations[] = $info['location'];
+			if (isset($info['callnumber'])){
+				$callNumbers[] = $info['callnumber'];
+			}
+			if (isset($info['location'])){
+				$locations[] = $info['location'];
+			}
 		}
 
 		// Determine call number string based on findings:

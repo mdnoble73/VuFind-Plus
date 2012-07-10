@@ -131,6 +131,7 @@ public class ReindexProcess {
 	private static void reloadSchema(String schemaName) {
 		boolean reloadIndex = true;
 		try {
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/schema.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/schema.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml"))){
 				logger.info("Unable to copy schema for " + schemaName);
 				reloadIndex = false;

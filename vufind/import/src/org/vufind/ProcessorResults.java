@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 
@@ -26,6 +28,8 @@ public class ProcessorResults {
 	
 	private static PreparedStatement saveResultsStmt = null;
 	private static PreparedStatement updateResultsStmt = null;
+	
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public ProcessorResults(String processorName, long reindexLogId, Connection vufindConn, Logger logger){
 		this.processorName = processorName;
@@ -51,10 +55,6 @@ public class ProcessorResults {
 		return eContentRecordsProcessed;
 	}
 
-	public void seteContentRecordsProcessed(int eContentRecordsProcessed) {
-		this.eContentRecordsProcessed = eContentRecordsProcessed;
-	}
-
 	public String getProcessorName() {
 		return processorName;
 	}
@@ -62,58 +62,34 @@ public class ProcessorResults {
 	public int getRecordsProcessed() {
 		return recordsProcessed;
 	}
-	public void setRecordsProcessed(int recordsProcessed) {
-		this.recordsProcessed = recordsProcessed;
-	}
 	public int getNumErrors() {
 		return numErrors;
-	}
-	public void setNumErrors(int numErrors) {
-		this.numErrors = numErrors;
 	}
 	public int getNumAdded() {
 		return numAdded;
 	}
-	public void setNumAdded(int numAdded) {
-		this.numAdded = numAdded;
-	}
 	public int getNumUpdated() {
 		return numUpdated;
 	}
-	public void setNumUpdated(int numUpdated) {
-		this.numUpdated = numUpdated;
-	}
 	public int getNumDeleted() {
 		return numDeleted;
-	}
-	public void setNumDeleted(int numDeleted) {
-		this.numDeleted = numDeleted;
 	}
 	public int getNumSkipped() {
 		return numSkipped;
 	}
 
-	public void setNumSkipped(int numSkipped) {
-		this.numSkipped = numSkipped;
-	}
-
 	public ArrayList<String> getNotes() {
 		return notes;
 	}
-	public void addNote(String note) {
-		this.notes.add(note);
+	public synchronized void addNote(String note) {
+		Date date = new Date();
+		this.notes.add(dateFormat.format(date) + " - " + note);
 	}
 	public int getEContentRecordsProcessed() {
 		return eContentRecordsProcessed;
 	}
-	public void setEContentRecordsProcessed(int eContentRecordsProcessed) {
-		this.eContentRecordsProcessed = eContentRecordsProcessed;
-	}
 	public int getResourcesProcessed() {
 		return resourcesProcessed;
-	}
-	public void setResourcesProcessed(int resourcesProcessed) {
-		this.resourcesProcessed = resourcesProcessed;
 	}
 	public String toCsv(){
 		return processorName + ", " 
@@ -127,32 +103,32 @@ public class ProcessorResults {
 				+ numSkipped;
 	}
 
-	public void incRecordsProcessed() {
+	public synchronized void incRecordsProcessed() {
 		recordsProcessed++;
 	}
-	public void incEContentRecordsProcessed() {
+	public synchronized void incEContentRecordsProcessed() {
 		eContentRecordsProcessed++;
 	}
-	public void incResourcesProcessed() {
+	public synchronized void incResourcesProcessed() {
 		resourcesProcessed++;
 	}
-	public void incErrors() {
+	public synchronized void incErrors() {
 		numErrors++;
 	}
-	public void incAdded() {
+	public synchronized void incAdded() {
 		numAdded++;
 	}
-	public void incUpdated() {
+	public synchronized void incUpdated() {
 		numUpdated++;
 	}
-	public void incDeleted() {
+	public synchronized void incDeleted() {
 		numDeleted++;
 	}
-	public void incSkipped() {
+	public synchronized void incSkipped() {
 		numSkipped++;
 	}
 
-	public String getNotesHtml() {
+	public synchronized String getNotesHtml() {
 		StringBuffer notesText = new StringBuffer("<ol class='processNotes'>");
 		for (String curNote : notes){
 			String cleanedNote = curNote;
@@ -177,7 +153,7 @@ public class ProcessorResults {
 	 * 
 	 * @param results
 	 */
-	public void saveResults() {
+	public synchronized void saveResults() {
 		try {
 			if (resultsId == null){
 				saveResultsStmt.setLong(1, reindexLogId);

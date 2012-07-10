@@ -33,9 +33,7 @@ class Holds extends MyResearch
 
 		if (isset($_REQUEST['multiAction'])){
 			$multiAction = $_REQUEST['multiAction'];
-			$waitingHoldSelected = $_REQUEST['waitingHoldSelected'];
-			$availableHoldSelected = $_REQUEST['availableHoldSelected'];
-			$locationId = $_REQUEST['location'];
+			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
 			$i = 0;
 			$xnum = array();
 			$cancelId = array();
@@ -56,7 +54,7 @@ class Holds extends MyResearch
 				$type = 'update';
 				$freeze = '';
 			}
-			$result = $this->catalog->driver->updateHoldDetailed($requestId, $user->password, $type, $title, null, $cancelId, $locationId, $freeze);
+			$result = $this->catalog->driver->updateHoldDetailed($requestId, $user->password, $type, '', null, $cancelId, $locationId, $freeze);
 
 			//Redirect back here without the extra parameters.
 			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title'));

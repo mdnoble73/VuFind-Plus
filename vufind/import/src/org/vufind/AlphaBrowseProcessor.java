@@ -37,6 +37,8 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 	@Override
 	public void finish() {
 		logger.info("Building Alphabetic Browse tables");
+		results.addNote("Building Alphabetic Browse tables");
+		results.saveResults();
 		try {
 			//Run queries to create alphabetic browse tables from resources table
 			try {
@@ -58,7 +60,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					if (titleSort != null && titleSort.length() > 0){
 						insertBrowseRow.setLong(1, curRow++);
 						insertBrowseRow.setLong(2, resourcesByTitleRS.getLong("numResults"));
-						insertBrowseRow.setString(3, resourcesByTitleRS.getString("title"));
+						insertBrowseRow.setString(3, Util.trimTo(255, resourcesByTitleRS.getString("title")));
 						insertBrowseRow.executeUpdate();
 						//System.out.print(".");
 					}
@@ -93,7 +95,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					if (sortKey != null && sortKey.length() > 0){
 						insertBrowseRow.setLong(1, curRow++);
 						insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
-						insertBrowseRow.setString(3, groupedSortedRS.getString("author"));
+						insertBrowseRow.setString(3, Util.trimTo(255, groupedSortedRS.getString("author")));
 						insertBrowseRow.executeUpdate();
 						//System.out.print(".");
 					}
@@ -128,7 +130,7 @@ public class AlphaBrowseProcessor implements IResourceProcessor, IRecordProcesso
 					if (sortKey != null && sortKey.length() > 0){
 						insertBrowseRow.setLong(1, curRow++);
 						insertBrowseRow.setLong(2, groupedSortedRS.getLong("numResults"));
-						insertBrowseRow.setString(3, groupedSortedRS.getString("subject"));
+						insertBrowseRow.setString(3, Util.trimTo(255, groupedSortedRS.getString("subject")));
 						insertBrowseRow.executeUpdate();
 						//System.out.print(".");
 					}

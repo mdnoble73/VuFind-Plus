@@ -57,9 +57,13 @@ class Record extends Action
 		global $configArray;
 		global $library;
 		global $timer;
+		$logger = new Logger();
 
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);
+		
+		//Determine whether or not materials request functionality should be enabled
+		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 		
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
@@ -67,9 +71,32 @@ class Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		
+		//Check to see if the record has been converted to an eContent record
+		require_once 'sys/eContent/EContentRecord.php';
+		$econtentRecord = new EContentRecord();
+		$econtentRecord->ilsId = $this->id;
+		$econtentRecord->status = 'active';
+		if ($econtentRecord->find(true)){
+			header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
+			die();
+		}
+		
+		//Check to see if the record exists within the resources table 
+		$resource = new Resource();
+		$resource->record_id = $this->id;
+		$resource->source = 'VuFind';
+		$resource->deleted = 0;
+		if (!$resource->find()){
+			$logger->log("Did not find a record for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
+			$interface->setTemplate('invalidRecord.tpl');
+			$interface->display('layout.tpl');
+			die();
+		}
+		
 		if ($configArray['Catalog']['ils'] == 'Millennium'){
 			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
-			$interface->assign('classicUrl', $configArray['Catalog']['url']);
+			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
 		}
 		 
 		// Setup Search Engine Connection
@@ -82,7 +109,10 @@ class Record extends Action
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR::raiseError(new PEAR_Error("Record {$this->id} Does Not Exist"));
+			$logger->log("Did not find a record for id {$this->id} in solr." , PEAR_LOG_DEBUG);
+			$interface->setTemplate('invalidRecord.tpl');
+			$interface->display('layout.tpl');
+			die();
 		}
 		$this->record = $record;
 		$interface->assign('record', $record);
@@ -313,7 +343,7 @@ class Record extends Action
 		$interface->assign('recordFormat', $record['format']);
 		$format_category = $record['format_category'][0];
 		$interface->assign('format_category', $record['format_category'][0]);
-		$interface->assign('recordLanguage', $record['language']);
+		$interface->assign('recordLanguage', isset($record['language']) ? $record['language'] : null);
 		
 		$timer->logTime('Got detailed data from Marc Record');
 		
@@ -599,17 +629,22 @@ class Record extends Action
 							if (isset($previousResults)){
 								$previousRecord = $previousResults[count($previousResults) -1];
 							}else{
-								$previousRecord = $recordSet[$currentResultIndex - 1 - (($currentPage -1) * $recordsPerPage)];
+								$previousId = $currentResultIndex - 1;
+								if (isset($recordSet[$previousId])){
+									$previousRecord = $recordSet[$previousId];
+								}
 							}
-						//Convert back to 1 based index
-							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-							$interface->assign('previousTitle', $previousRecord['title']);
-							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('previousType', 'EcontentRecord');
-								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-							}else{
-								$interface->assign('previousType', 'Record');
-								$interface->assign('previousId', $previousRecord['id']);
+							//Convert back to 1 based index
+							if (isset($previousRecord)){
+								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+								$interface->assign('previousTitle', $previousRecord['title']);
+								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
+									$interface->assign('previousType', 'EcontentRecord');
+									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+								}else{
+									$interface->assign('previousType', 'Record');
+									$interface->assign('previousId', $previousRecord['id']);
+								}
 							}
 						}
 						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
@@ -617,7 +652,7 @@ class Record extends Action
 							if (isset($nextResults)){
 								$nextRecord = $nextResults[0];
 							}else{
-								$nextRecordIndex = $currentResultIndex + 1 - (($currentPage -1) * $recordsPerPage);
+								$nextRecordIndex = $currentResultIndex + 1;
 								if (isset($recordSet[$nextRecordIndex])){
 									$nextRecord = $recordSet[$nextRecordIndex];
 								}
@@ -625,7 +660,7 @@ class Record extends Action
 							//Convert back to 1 based index
 							if (isset($nextRecord)){
 								$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-								$interface->assign('nextTitle', $nextRecord['title']);
+								$interface->assign('nextTitle', isset($nextRecord['title']) ? $nextRecord['title'] : '');
 								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
 									$interface->assign('nextType', 'EcontentRecord');
 									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));

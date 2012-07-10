@@ -28,6 +28,12 @@ class AlphaBrowse{
 		//Get the count of the rows in the database
 		$query = "SELECT COUNT(id) as numRows from $browseTable";
 		$result = mysql_query($query);
+		if ($result == FALSE){
+			return array(
+				'success' => false,
+				'message' => "Sorry, unable to browse $browseType right now, please try again later."
+			);
+		}
 		$numRowsRS = mysql_fetch_assoc($result);
 		$numRows = $numRowsRS['numRows'];
 		
@@ -37,7 +43,7 @@ class AlphaBrowse{
 			//If we didn't find a match, try the original value as well
 			$query = "SELECT MIN(id) as startRow from $browseTable WHERE value LIKE '$lookFor%' ";
 			$result = mysql_query($query);
-			if (mysql_num_rows ($result) > 0 ){
+			if ($result && mysql_num_rows ($result) > 0 ){
 				$startRowRS = mysql_fetch_assoc($result);
 				$startRow = $startRowRS['startRow'];
 				if ($startRow == null){
@@ -60,7 +66,7 @@ class AlphaBrowse{
 			}
 		}
 		//Didn't find a match, just start at the beginning of the table
-		return $this->loadBrowseItems($browseTable, 0, false, $relativePage, $resultsPerPage, $numRows);
+		return $this->loadBrowseItems($browseType, $browseTable, 0, false, $relativePage, $resultsPerPage, $numRows);
 	}
 	
 	function loadBrowseItems($browseType, $browseTable, $startRow, $exactMatch, $relativePage, $resultsPerPage, $numRows){

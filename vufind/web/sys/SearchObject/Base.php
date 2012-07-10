@@ -172,6 +172,15 @@ abstract class SearchObject_Base
 
 		// Check for duplicates -- if it's not in the array, we can add it
 		if (!$this->hasFilter($newFilter)) {
+			if ($field == 'literary-form'){
+				$field = 'literary_form';
+			}else if ($field == 'literary-form-full'){
+				$field = 'literary_form_full';
+			}else if ($field == 'target-audience'){
+				$field = 'target_audience';
+			}else if ($field == 'target-audience-full'){
+				$field = 'target_audience_full';
+			}
 			$this->filterList[$field][] = $value;
 		}
 	}
@@ -462,11 +471,22 @@ abstract class SearchObject_Base
 					} else {
 						$type = $this->defaultIndex;
 					}
+					
+					//Marmot - search both ISBN-10 and ISBN-13
+					//Check to see if the search term looks like an ISBN10 or ISBN13
+					$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
+					if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
+							(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
+							preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
+						require_once('sys/ISBN.php');
+						$isbn = new ISBN($lookfor);
+						$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
+					}
 
 					// Add term to this group
 					$group[] = array(
                         'field'   => $type,
-                        'lookfor' => strip_tags($_REQUEST['lookfor'.$groupCount][$i]),
+                        'lookfor' => $lookfor,
                         'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
 					);
 				}
@@ -878,7 +898,7 @@ abstract class SearchObject_Base
 	 */
 	protected function getLimitOptions()
 	{
-		return $this->limitOptions;
+		return isset($this->limitOptions) ? $this->limitOptions : array();
 	}
 	
 	/**
@@ -1257,7 +1277,7 @@ abstract class SearchObject_Base
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search
-				if ($search->session_id == session_id() || $search->user_id == $user->id) {
+				if ($search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
 					// They do, deminify it to a new object.
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);

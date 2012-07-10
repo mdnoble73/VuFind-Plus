@@ -26,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Logger;
+import org.apache.solr.common.SolrInputDocument;
 import org.econtent.DetectionSettings;
 import org.econtent.LibrarySpecificLink;
 import org.marc4j.MarcStreamWriter;
@@ -1897,7 +1898,7 @@ public class MarcRecordDetails {
 		} else if (locationCode.matches("^(pcjv)$")) {
 			locationCodes.add("pitkinjuv");
 		} else if (locationCode.matches("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$")) {
-			locationCodes.add("gcpjuv");
+			locationCodes.add("gcjuv");
 		}
 	}
 
@@ -2879,6 +2880,7 @@ public class MarcRecordDetails {
 	 */
 	public boolean isEContent() {
 		if (isEContent == null) {
+			logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
@@ -2902,6 +2904,7 @@ public class MarcRecordDetails {
 					}
 				}
 			}
+			logger.debug("Finished checking detection settings");
 
 			if (!isEContent) {
 				String ilsId = this.getId();
@@ -2910,7 +2913,7 @@ public class MarcRecordDetails {
 					isEContent = true;
 				}
 			}
-			
+			logger.debug("Finished checking if record is eContent");
 			return isEContent;
 		} else {
 			return isEContent;
@@ -2999,5 +3002,15 @@ public class MarcRecordDetails {
 		rawRecord = rawRecord.replaceAll("\\xE8", "#232;");
 		rawRecord = rawRecord.replaceAll("\\xE9", "#233;");
 		return rawRecord;
+	}
+
+	public SolrInputDocument getSolrDocument() {
+		SolrInputDocument doc = new SolrInputDocument();
+		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		for (String fieldName : allFields.keySet()){
+			Object value = allFields.get(fieldName);
+			doc.addField(fieldName, value);
+		}
+		return doc;
 	}
 }

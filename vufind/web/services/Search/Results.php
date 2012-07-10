@@ -268,11 +268,14 @@ class Results extends Action {
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
 				header("Location: " . $interface->getUrl() . "/MyResearch/MyList/{$listId}");
+				exit();
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
 				header("Location: " . $interface->getUrl() . "/EcontentRecord/$shortId/Home");
+				exit();
 			}else{
 				header("Location: " . $interface->getUrl() . "/Record/{$record['id']}/Home");
+				exit();
 			}
 			
 		} else {
@@ -351,7 +354,7 @@ class Results extends Action {
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
 			require_once('Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
-			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : $_GET['basicType']), $searchObject->getResultTotal());
+			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
 
 		// Save the ID of this search to the session so we can return to it easily:

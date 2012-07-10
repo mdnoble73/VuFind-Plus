@@ -12,12 +12,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.econtent.DetectionSettings;
@@ -83,11 +85,11 @@ public class MarcProcessor {
 	private PreparedStatement							insertMarcInfoStmt;
 	private PreparedStatement							updateMarcInfoStmt;
 
-	private HashSet<String>								existingEContentIds	= new HashSet<String>();
-	private HashMap<String, Float>				printRatings				= new HashMap<String, Float>();
-	private HashMap<String, Float>				econtentRatings			= new HashMap<String, Float>();
-	private HashMap<String, Long>					librarySystemFacets	= new HashMap<String, Long>();
-	private HashMap<String, Long>					eContentLinkRules		= new HashMap<String, Long>();
+	private Set<String>								existingEContentIds	= Collections.synchronizedSet(new HashSet<String>());
+	private Map<String, Float>				printRatings				= Collections.synchronizedMap(new HashMap<String, Float>());
+	private Map<String, Float>				econtentRatings			= Collections.synchronizedMap(new HashMap<String, Float>());
+	private Map<String, Long>					librarySystemFacets	= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 
 	private String												itemTag;
@@ -268,15 +270,15 @@ public class MarcProcessor {
 		return true;
 	}
 
-	public HashSet<String> getExistingEContentIds() {
+	public Set<String> getExistingEContentIds() {
 		return existingEContentIds;
 	}
 
-	public HashMap<String, Float> getPrintRatings() {
+	public Map<String, Float> getPrintRatings() {
 		return printRatings;
 	}
 
-	public HashMap<String, Float> getEcontentRatings() {
+	public Map<String, Float> getEcontentRatings() {
 		return econtentRatings;
 	}
 
@@ -539,7 +541,7 @@ public class MarcProcessor {
 		return basicInfo;
 	}
 
-	protected boolean processMarcFiles(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger) {
+	protected boolean processMarcFiles(final ArrayList<IMarcRecordProcessor> recordProcessors, final Logger logger) {
 		try {
 			// Get a list of Marc files to process
 			File marcRecordDirectory = new File(marcRecordPath);
@@ -560,93 +562,122 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			for (File marcFile : marcFiles) {
-				try {
-					logger.info("Processing file " + marcFile.toString());
-					// Open the marc record with Marc4j
-					InputStream input = new FileInputStream(marcFile);
-					MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
-					int recordNumber = 0;
-					while (reader.hasNext()) {
-						recordNumber++;
-						try {
-							// Loop through each record
-							Record record = reader.next();
-							// Process record
-							MarcRecordDetails marcInfo = mapMarcInfo(record, logger);
-							if (marcInfo != null) {
-								// Check to see if the record has been loaded before
-								int recordStatus;
-								String id = marcInfo.getId();
-								if (id == null) {
-									System.out.println("Could not load id for marc record " + recordNumber);
-									System.out.println(marcFieldProps.get("id").toString());
-									System.exit(1);
-								}
-								MarcIndexInfo marcIndexedInfo = null;
-								if (marcIndexInfo.containsKey(marcInfo.getId())) {
-									marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
-									if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
-										logger.debug("Record is changed - checksum");
-										recordStatus = RECORD_CHANGED;
-									}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
-										logger.debug("Record is changed - backup checksum");
-										recordStatus = RECORD_CHANGED;
-									}else if (marcInfo.isEContent() != marcIndexedInfo.isEContent()){
-										logger.debug("Record is changed - econtent");
-										recordStatus = RECORD_CHANGED;
-									}else if (marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()) {
-										logger.debug("Record is changed - backup econtent");
-										recordStatus = RECORD_CHANGED;
-									} else {
-										// logger.info("Record is unchanged");
-										recordStatus = RECORD_UNCHANGED;
-									}
-								} else {
-									logger.debug("Record is new");
-									recordStatus = RECORD_NEW;
-								}
-
-								for (IMarcRecordProcessor processor : recordProcessors) {
-									// System.out.println("Running processor " +
-									// processor.getClass().getName());
-									processor.processMarcRecord(this, marcInfo, recordStatus, logger);
-								}
-
-								// Update the checksum in the database
-								if (recordStatus == RECORD_CHANGED) {
-									updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
-									updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
-									updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-									updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
-									updateMarcInfoStmt.setString(5, marcInfo.getId());
-									updateMarcInfoStmt.executeUpdate();
-								} else if (recordStatus == RECORD_NEW) {
-									insertMarcInfoStmt.setString(1, marcInfo.getId());
-									insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
-									insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-
-									insertMarcInfoStmt.executeUpdate();
-								}
-							}
-							recordsProcessed++;
-							if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
-								logger.debug("Stopping processing because maximum number of records to process was reached.");
-								break;
-							}
-						} catch (Exception e) {
-							logger.error("Error processing record " + recordNumber, e);
+			boolean useThreads = false;
+			if (useThreads){
+				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
+				for (final File marcFile : marcFiles) {
+					MarcProcessorThread marcFileProcess = new MarcProcessorThread(recordProcessors, logger, marcFile);
+					indexingThreads.add(marcFileProcess);
+					marcFileProcess.start();
+				}
+				
+				//Wait for the processes to stop
+				while (true){
+					for(MarcProcessorThread indexThread : indexingThreads){
+						if (!indexThread.isFinished()){
+							Thread.yield();
+							Thread.sleep(500);
 						}
 					}
-					logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
-				} catch (Exception e) {
-					logger.error("Error processing file " + marcFile.toString(), e);
+				}
+			}else{
+				for (final File marcFile : marcFiles) {
+					processMarcFile(recordProcessors, logger, marcFile);
 				}
 			}
 			return true;
 		} catch (Exception e) {
 			logger.error("Unable to process marc files", e);
 			return false;
+		} catch (Error e) {
+			logger.error("Error processing marc files", e);
+			return false;
+		}
+	}
+
+	private void processMarcFile(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
+		try {
+			logger.info("Processing file " + marcFile.toString());
+			// Open the marc record with Marc4j
+			InputStream input = new FileInputStream(marcFile);
+			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
+			int recordNumber = 0;
+			while (reader.hasNext()) {
+				recordNumber++;
+				logger.debug("Reading record " + recordNumber);
+				try {
+					// Loop through each record
+					Record record = reader.next();
+					// Process record
+					MarcRecordDetails marcInfo = mapMarcInfo(record, logger);
+					if (marcInfo != null) {
+						// Check to see if the record has been loaded before
+						int recordStatus;
+						String id = marcInfo.getId();
+						if (id == null) {
+							System.out.println("Could not load id for marc record " + recordNumber);
+							System.out.println(marcFieldProps.get("id").toString());
+							System.exit(1);
+						}
+						MarcIndexInfo marcIndexedInfo = null;
+						if (marcIndexInfo.containsKey(marcInfo.getId())) {
+							marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
+							if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
+								logger.debug("Record is changed - checksum");
+								recordStatus = RECORD_CHANGED;
+							}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
+								logger.debug("Record is changed - backup checksum");
+								recordStatus = RECORD_CHANGED;
+							}else if (marcInfo.isEContent() != marcIndexedInfo.isEContent()){
+								logger.debug("Record is changed - econtent");
+								recordStatus = RECORD_CHANGED;
+							}else if (marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()) {
+								logger.debug("Record is changed - backup econtent");
+								recordStatus = RECORD_CHANGED;
+							} else {
+								// logger.info("Record is unchanged");
+								recordStatus = RECORD_UNCHANGED;
+							}
+						} else {
+							logger.debug("Record is new");
+							recordStatus = RECORD_NEW;
+						}
+
+						for (IMarcRecordProcessor processor : recordProcessors) {
+							// System.out.println("Running processor " +
+							// processor.getClass().getName());
+							logger.debug(recordNumber + " - " + processor.getClass().getName() + " - " + marcInfo.getId());
+							processor.processMarcRecord(this, marcInfo, recordStatus, logger);
+						}
+
+						// Update the checksum in the database
+						if (recordStatus == RECORD_CHANGED) {
+							updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
+							updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
+							updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+							updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
+							updateMarcInfoStmt.setString(5, marcInfo.getId());
+							updateMarcInfoStmt.executeUpdate();
+						} else if (recordStatus == RECORD_NEW) {
+							insertMarcInfoStmt.setString(1, marcInfo.getId());
+							insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
+							insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+
+							insertMarcInfoStmt.executeUpdate();
+						}
+					}
+					recordsProcessed++;
+					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
+						logger.debug("Stopping processing because maximum number of records to process was reached.");
+						break;
+					}
+				} catch (Exception e) {
+					logger.error("Error processing record " + recordNumber, e);
+				}
+			}
+			logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
+		} catch (Exception e) {
+			logger.error("Error processing file " + marcFile.toString(), e);
 		}
 	}
 
@@ -716,5 +747,24 @@ public class MarcProcessor {
 
 	public boolean isScrapeItemsForLinks() {
 		return scrapeItemsForLinks;
+	}
+	
+	private class MarcProcessorThread extends Thread {
+		private ArrayList<IMarcRecordProcessor> recordProcessors;
+		private Logger logger;
+		private File marcFile;
+		private boolean finished;
+		public MarcProcessorThread(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
+			this.recordProcessors = recordProcessors;
+			this.logger = logger;
+			this.marcFile = marcFile;
+		}
+		public void run(){
+			MarcProcessor.this.processMarcFile(recordProcessors, logger, marcFile);
+			this.finished = true;
+		}
+		public boolean isFinished(){
+			return finished;
+		}
 	}
 }
