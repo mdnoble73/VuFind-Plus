@@ -80,6 +80,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		global $configArray;
 		global $timer;
+		global $library;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
 		require_once "sys/$class.php";
@@ -101,6 +102,11 @@ class SearchObject_Solr extends SearchObject_Base
 
 		// Load search preferences:
 		$searchSettings = getExtraConfigArray('searches');
+		if (isset($library)){
+			if ($library->showTagging == 0){
+				unset($searchSettings['Basic_Searches']['tag']);
+			}
+		}
 		if (isset($searchSettings['General']['default_handler'])) {
 			$this->defaultIndex = $searchSettings['General']['default_handler'];
 		}
