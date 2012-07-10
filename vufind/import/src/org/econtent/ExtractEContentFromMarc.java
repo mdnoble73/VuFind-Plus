@@ -301,7 +301,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			logger.debug("Finished processing record");
 			return true;
 		} catch (Exception e) {
-			logger.error("Error importing marc record ", e);
+			logger.error("Error extracting eContent for record " + recordInfo.getId(), e);
 			results.incErrors();
 			results.addNote("Error extracting eContent for record " + recordInfo.getId() + " " + e.toString());
 			return false;
@@ -368,7 +368,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				logger.debug("Updating link " + sourceUrl + " libraryId = " + libraryId);
 				String existingUrlValue = existingLinkInfo.getLink();
 				Long existingItemId = existingLinkInfo.getItemId();
-				if (!existingUrlValue.equals(sourceUrl)){
+				if (existingUrlValue == null || !existingUrlValue.equals(sourceUrl)){
 					//Url does not match, add it to the record. 
 					updateSourceUrl.setString(1, sourceUrl);
 					updateSourceUrl.setLong(2, new Date().getTime());
