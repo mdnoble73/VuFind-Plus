@@ -248,7 +248,7 @@ if (isset($_GET['isn']) && strlen($_GET['isn']) >= 10 ){
 if (isset($_GET['category'])){
 	$category = strtolower(str_replace(" ", "", $_GET['category']));
 }
-if ($id && is_numeric($id) && $category && strtolower($category) == 'other'){
+if ($configArray['Content']['loadCoversFrom856'] && $id && is_numeric($id) && $category && strtolower($category) == 'other'){
 	$logger->log("Looking for picture as part of 856 tag.", PEAR_LOG_INFO);
 	//Check to see if the cached file already exists
 	global $localFile;
@@ -327,7 +327,7 @@ if ((isset($_GET['isn']) && !empty($_GET['isn'])) || (isset($_GET['upc']) && !em
 		}
 
 		//Have not found an image yet, check files uploaded by publisher
-		if (isset($isbn10) ){
+		if ($configArray['Content']['loadPublisherCovers'] && isset($isbn10) ){
 			$logger->log("Looking for image from publisher isbn10: $isbn10 isbn13: $isbn13 in $bookCoverPath/original/.", PEAR_LOG_INFO);
 			$localFile = $bookCoverPath . '/' . $_GET['size'] . '/' . $cacheName . '.jpg';
 			if (lookForPublisherFile($bookCoverPath . '/original/', $isbn10, $isbn13)){
