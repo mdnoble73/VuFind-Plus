@@ -257,7 +257,7 @@ class Solr implements IndexEngine {
 		// Generate data if not found in cache:
 		if (!($results = $cache->load($key))) {
 			$results = Horde_Yaml::load(
-			file_get_contents($this->searchSpecsFile)
+				file_get_contents($this->searchSpecsFile)
 			);
 			$cache->save($results, $key);
 		}

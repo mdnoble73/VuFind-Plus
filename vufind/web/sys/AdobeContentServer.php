@@ -294,7 +294,7 @@ class AdobeContentServer
 	}
 
 	static function signNode( $xmlDoc, $xmlNodeToBeSigned, $secretKey ){
-		require_once("/sys/XMLSigningSerializer.php");
+		require_once("sys/XMLSigningSerializer.php");
 		$serializer = new XMLSigningSerializer( false );
 		$signingSerialization = $serializer->serialize($xmlNodeToBeSigned);
 		$hmacData = base64_encode( hash_hmac("sha1", $signingSerialization, $secretKey, true ) );
