@@ -1,7 +1,7 @@
 <div id="holdingsSummary" class="holdingsSummary">
   {* Don't show status for non-drm EPUB files*}
   {if $holdingsSummary.status == 'Available At'}
-    <h3 class="available">Available</h3>
+    <h3 class="available">{translate text="Available"}</h3>
     <div>Locations: <span class='availableAtList'>{$holdingsSummary.availableAt}</span></div>
   {elseif $holdingsSummary.status != 'Available online'}
   <!-- <h3><a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status}</a></h3> -->
@@ -10,7 +10,7 @@
   {if $holdingsSummary.callnumber}
     <div class='callNumber'>
       <!-- Listed under <a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{$holdingsSummary.callnumber}</a> -->
-      Listed under <span class="listed">{$holdingsSummary.callnumber}</span>
+      {translate text="Shelved under"} <span class="listed">{$holdingsSummary.callnumber}</span>
     </div>
   {/if}
   {if $holdingsSummary.isDownloadable}
