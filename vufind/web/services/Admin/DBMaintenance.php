@@ -172,6 +172,16 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `eContentLinkRules` VARCHAR(512) DEFAULT '';",
 				),
 			),
+			'library_9' => array(
+				'title' => 'Library 9',
+				'description' => 'Add showOtherEditionsPopup to determine whether or not the Other Editions and Languages Popup is shown',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showOtherEditionsPopup` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `showTableOfContentsTab` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `notesTabName` VARCHAR(50) DEFAULT 'Notes';",
+				),
+			),
 			
 			'location_1' => array(
 				'title' => 'Location 1',

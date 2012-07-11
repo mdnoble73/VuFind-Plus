@@ -506,8 +506,11 @@ function redrawSaveStatus() {literal}{{/literal}
 			{* Define tabs for the display *}
 			<ul>
 				<li><a href="#holdingstab">{translate text="Copies"}</a></li>
+				{if $tableOfContents}
+					<li><a href="#tableofcontentstab">{translate text="Contents"}</a></li>
+				{/if}
 				{if $notes}
-					<li><a href="#notestab">{translate text="Notes"}</a></li>
+					<li><a href="#notestab">{translate text=$notesTabName}</a></li>
 				{/if}
 				{if $showAmazonReviews || $showStandardReviews}
 					{foreach from=$editorialReviews key=key item=reviewTabInfo}
@@ -536,6 +539,16 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 					
 			</div>
+			
+			{if $tableOfContents}
+				<div id ="tableofcontentstab">
+					<ul class='notesList'>
+					{foreach from=$tableOfContents item=note}
+						<li>{$note}</li>
+					{/foreach}
+					</ul>
+				</div>
+			{/if}
 			
 			{* Display the content of individual tabs *}
 			{if $notes}

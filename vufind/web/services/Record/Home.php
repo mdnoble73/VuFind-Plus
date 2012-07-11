@@ -100,6 +100,7 @@ class Home extends Record{
 			$interface->assign('showComments', $library->showComments);
 			$interface->assign('tabbedDetails', $library->tabbedDetails);
 			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
+			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup);
 		}else{
 			$interface->assign('showTextThis', 1);
 			$interface->assign('showEmailThis', 1);
@@ -121,8 +122,8 @@ class Home extends Record{
 			$interface->assign('showComments', 1);
 			$interface->assign('tabbedDetails', !isset($configArray['Content']['tabbedDetails']) || $configArray['Content']['tabbedDetails'] == false ? 0 : 1);
 			$interface->assign('showSeriesAsTab', 0);
+			$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		}
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
