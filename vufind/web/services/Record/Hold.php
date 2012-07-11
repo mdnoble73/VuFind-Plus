@@ -150,18 +150,18 @@ class Hold extends Action {
 		if ($record) {
 			$interface->assign('record', $record);
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot find record'));
+			PEAR::raiseError(new PEAR_Error('Cannot find record ' . $_GET['id']));
 		}
 
 		$interface->assign('id', $_GET['id']);
 		if ($showMessage && isset($return)) {
 			$hold_message_data = array(
-              'successful' => $return['result'] ? 'all' : 'none',
-              'error' => $return['error'],
-              'titles' => array(
-			$return,
-			),
-              'campus' => $_REQUEST['campus'],
+				'successful' => $return['result'] ? 'all' : 'none',
+				'error' => isset($return['error']) ? $return['error'] : '',
+				'titles' => array(
+					$return,
+				),
+				'campus' => $_REQUEST['campus'],
 			);
 			//Check to see if there are item level holds that need follow-up by the user
 			if (isset($return['items']) && count($return['items']) > 0){

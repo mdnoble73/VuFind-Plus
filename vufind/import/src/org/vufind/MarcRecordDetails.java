@@ -26,6 +26,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Logger;
+import org.apache.solr.common.SolrInputDocument;
 import org.econtent.DetectionSettings;
 import org.econtent.LibrarySpecificLink;
 import org.marc4j.MarcStreamWriter;
@@ -1501,30 +1502,41 @@ public class MarcRecordDetails {
 		return (value);
 	}
 
+	Pattern mpaaRatingRegex1 = null;
+	Pattern mpaaRatingRegex2 = null;
 	public String getMpaaRating() {
+		if (mpaaRatingRegex1 == null){
+			mpaaRatingRegex1 = Pattern.compile("(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
+		}
+		if (mpaaRatingRegex2 == null){
+			mpaaRatingRegex2 = Pattern.compile("(?:.*?)(G|PG-13|PG|R|NC-17|NR|X)\\sRated(?:.*)", Pattern.CANON_EQ);
+		}
 		String val = getFirstFieldVal("521a");
 
 		if (val != null) {
 			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
 				return "Not Rated";
-			} else if (val.matches("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)\\.?")) {
-				try {
-					Pattern Regex = Pattern.compile("Rated\\s(G|PG-13|PG|R|NC-17|NR|X)", Pattern.CANON_EQ);
-					Matcher RegexMatcher = Regex.matcher(val);
-					if (RegexMatcher.find()) {
-						return RegexMatcher.group(1) + " Rated";
+			}
+			try {
+				Matcher mpaaMatcher1 = mpaaRatingRegex1.matcher(val);
+				if (mpaaMatcher1.find()) {
+					//System.out.println("Matched matcher 1, " + mpaaMatcher1.group(1) + " Rated " + getId());
+					return mpaaMatcher1.group(1) + " Rated";
+				} else {
+					Matcher mpaaMatcher2 = mpaaRatingRegex2.matcher(val);
+					if (mpaaMatcher2.find()) {
+						//System.out.println("Matched matcher 2, " + mpaaMatcher2.group(1) + " Rated " + getId());
+						return mpaaMatcher2.group(1) + " Rated";
 					} else {
-						return val;
+						return null;
 					}
-				} catch (PatternSyntaxException ex) {
-					// Syntax error in the regular expression
-					return null;
 				}
-			} else {
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
 				return null;
 			}
 		} else {
-			return val;
+			return null;
 		}
 	}
 
@@ -1886,7 +1898,7 @@ public class MarcRecordDetails {
 		} else if (locationCode.matches("^(pcjv)$")) {
 			locationCodes.add("pitkinjuv");
 		} else if (locationCode.matches("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$")) {
-			locationCodes.add("gcpjuv");
+			locationCodes.add("gcjuv");
 		}
 	}
 
@@ -2756,7 +2768,7 @@ public class MarcRecordDetails {
 			while (iter.hasNext()) {
 				String curLocationCode = iter.next();
 				try {
-					if (!curLocationCode.matches("locationsToSuppress")) {
+					if (!curLocationCode.matches(locationsToSuppress)) {
 						suppressRecord = false;
 						break;
 					}
@@ -2776,6 +2788,7 @@ public class MarcRecordDetails {
 				while (iter2.hasNext()) {
 					String curCode = iter2.next();
 					if (curCode.matches(manualSuppressionValue)) {
+						logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
 						suppressRecord = true;
 						break;
 					}
@@ -2867,6 +2880,7 @@ public class MarcRecordDetails {
 	 */
 	public boolean isEContent() {
 		if (isEContent == null) {
+			logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
@@ -2890,6 +2904,7 @@ public class MarcRecordDetails {
 					}
 				}
 			}
+			logger.debug("Finished checking detection settings");
 
 			if (!isEContent) {
 				String ilsId = this.getId();
@@ -2898,7 +2913,7 @@ public class MarcRecordDetails {
 					isEContent = true;
 				}
 			}
-			
+			logger.debug("Finished checking if record is eContent");
 			return isEContent;
 		} else {
 			return isEContent;
@@ -2987,5 +3002,15 @@ public class MarcRecordDetails {
 		rawRecord = rawRecord.replaceAll("\\xE8", "#232;");
 		rawRecord = rawRecord.replaceAll("\\xE9", "#233;");
 		return rawRecord;
+	}
+
+	public SolrInputDocument getSolrDocument() {
+		SolrInputDocument doc = new SolrInputDocument();
+		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		for (String fieldName : allFields.keySet()){
+			Object value = allFields.get(fieldName);
+			doc.addField(fieldName, value);
+		}
+		return doc;
 	}
 }

@@ -17,7 +17,7 @@
 			<tr>
 			    <td>{if $isn}<img src="{$path}/bookcover.php?isn={$isn}&size=small" alt="book cover"/>{else}&nbsp;{/if}</td>
 				<td>
-				<div class="worldCatTitle">{$suggestion.title}</div>
+				<div class="worldCatTitle"><a href="{$suggestion.link}">{$suggestion.title}</a></div>
 				<div id="worldCatDescription{$rownum}">
 				  <div class="short">
 				  {$suggestion.description|truncate:150|escape}

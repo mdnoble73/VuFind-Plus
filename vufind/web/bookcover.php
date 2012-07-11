@@ -95,6 +95,9 @@ $options = $configArray['Database'];
 // Sanitize incoming parameters to avoid filesystem attacks.  We'll make sure the
 // provided size matches a whitelist, and we'll strip illegal characters from the
 // ISBN.
+if (!isset($_GET['size'])){
+	$_GET['size'] = 'small';
+}
 $validSizes = array('small', 'medium', 'large');
 if (!in_array($_GET['size'], $validSizes)) {
 	if ($configArray['System']['debug']) {
@@ -102,8 +105,12 @@ if (!in_array($_GET['size'], $validSizes)) {
 	}
 	dieWithFailImage($bookCoverPath, '');
 }
-$_GET['isn'] = preg_replace('/[^0-9xX]/', '', $_GET['isn']);
-$_GET['upc'] = preg_replace('/[^0-9xX]/', '', $_GET['upc']);
+if (isset($_GET['isn'])){
+	$_GET['isn'] = preg_replace('/[^0-9xX]/', '', $_GET['isn']);
+}
+if (isset($_GET['upc'])){
+	$_GET['upc'] = preg_replace('/[^0-9xX]/', '', $_GET['upc']);
+}
 $id = isset($_GET['id']) ? $_GET['id'] : null;
 $cacheName = $id;
 if (isset($_GET['econtent'])){
@@ -149,7 +156,7 @@ if (!isset($_GET['reload'])){
 		echo readfile($filename);
 		//$logger->log("Found cached jpg file for isbn", PEAR_LOG_INFO);
 		return;
-	}else if (strlen($_GET['upc']) > 0 && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg')) {
+	}else if (isset($_GET['upc']) && strlen($_GET['upc']) > 0 && is_readable($bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg')) {
 		// Load local cache if available
 		$filename = $bookCoverPath . '/' . $_GET['size'] . '/' . $_GET['upc'] . '.jpg';
 		header('Content-type: image/jpeg');
@@ -212,7 +219,7 @@ if ($configArray['EContent']['library'] && isset($_GET['econtent']) && isset($id
 						exit();
 					}
 				}else{
-					$logger->log("Did not find econtent cover file $filename", PEAR_LOG_ERROR);
+					$logger->log("Did not find econtent cover file $filename", PEAR_LOG_ERR);
 				}
 			}
 		}
@@ -336,9 +343,11 @@ if ((isset($_GET['isn']) && !empty($_GET['isn'])) || (isset($_GET['upc']) && !em
 		dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
 	}
 
-} else {
+} else if (isset($category)){
 	$logger->log("Could not find a cover, using default based on category $category.", PEAR_LOG_INFO);
 	dieWithFailImage($bookCoverPath, $_GET['size'], $category, $cacheName);
+}else{
+	dieWithFailImage($bookCoverPath, $_GET['size'], null, $cacheName);
 }
 
 /**
@@ -530,7 +539,7 @@ function syndetics($id)
 
 	$url = isset($configArray['Syndetics']['url']) ?
 	$configArray['Syndetics']['url'] : 'http://syndetics.com';
-	$url .= "/index.aspx?type=xw12&isbn={$_GET['isn']}/{$size}&client={$id}&upc={$_GET['upc']}";
+	$url .= "/index.aspx?type=xw12&isbn={$_GET['isn']}/{$size}&client={$id}&upc=" . (isset($_GET['upc']) ? $_GET['upc'] : '');
 	return processImageURL($url);
 }
 

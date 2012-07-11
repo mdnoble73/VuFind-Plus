@@ -72,7 +72,7 @@ class Novelist{
 	
 			}catch (Exception $e) {
 				$logger = new Logger();
-				$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERROR);
+				$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
 				$enrichment = null;
 			}
 			
@@ -163,11 +163,13 @@ class Novelist{
 			//See if we can get the series title from the record
 			if (isset($ownedRecord['series'])){
 				$series = $ownedRecord['series'][0];
+			}else{
+				$series = '';
 			}
 			$titleList[] = array(
                 'title' => $ownedRecord['title'],
-                'title_short' => $ownedRecord['title_short'],
-                'author' => $ownedRecord['author'],
+                'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
+                'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
                 'publicationDate' => (string)$item->PublicationDate,
                 'isbn' => $isbn13,
                 'isbn10' => $isbn10,

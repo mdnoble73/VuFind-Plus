@@ -88,6 +88,44 @@ class AJAX extends Action {
 		$interface->assign('holdingsSummary', $result);
 		return $interface->fetch('Record/ajax-holdings.tpl');
 	}
+	
+function GetProspectorInfo(){
+		require_once 'Drivers/marmot_inc/Prospector.php';
+		global $configArray;
+		global $interface;
+		$id = 'econtentRecord' . $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init();
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		$db = new $class($url);
+		if ($configArray['System']['debugSolr']) {
+			$db->debug = true;
+		}
+
+		// Retrieve Full record from Solr
+		if (!($record = $db->getRecord($id))) {
+			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+		}
+
+		$prospector = new Prospector();
+		//Check to see if the record exists within Prospector so we can get the prospector Id
+		$prospectorDetails = $prospector->getProspectorDetailsForLocalRecord($record);
+		$interface->assign('prospectorDetails', $prospectorDetails);
+
+		$searchTerms = array(
+		array('lookfor' => $record['title']),
+		);
+		if (isset($record['author'])){
+			$searchTerms[] = array('lookfor' => $record['author']);
+		}
+		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
+		$interface->assign('prospectorResults', $prospectorResults);
+		return $interface->fetch('Record/ajax-prospector.tpl');
+	}
 
 	// Email Record
 	function SendEmail()
@@ -447,8 +485,9 @@ class AJAX extends Action {
 					$interface->assign('purchaseLinks', $purchaseLinks);
 				}else{
 					$title = $eContentRecord->title;
+					$author = $eContentRecord->author;
 					require_once 'services/Record/Purchase.php';
-					$purchaseLinks = Purchase::getStoresForTitle($title);
+					$purchaseLinks = Purchase::getStoresForTitle($title, $author);
 					
 					if (count($purchaseLinks) > 0){
 						$interface->assign('purchaseLinks', $purchaseLinks);

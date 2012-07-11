@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>{$pageTitle|truncate:64:"..."}</title>
     {if $addHeader}{$addHeader}{/if}
-    <link type="image/x-icon" href="{$path}/interface/themes/{$theme}/images/favicon.png" rel="shortcut icon" />
+    <link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
     <link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" />
     {if $consolidateCss}
       {css filename="consolidated_css.css"}
@@ -46,7 +46,7 @@
 	    <script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
 
 	    <script type="text/javascript" src="{$path}/js/scripts.js"></script>
-      <script src="{$path}/interface/themes/js/jquery.formalize.min.js" type="text/javascript"></script>
+      <script src="{$path}/js/jquery.formalize.min.js" type="text/javascript"></script>
       
 	    {if $enableBookCart}
 	    <script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>

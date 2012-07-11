@@ -11,24 +11,34 @@ abstract class SolrDataObject extends DB_DataObject{
 	function update(){
 		return $this->updateDetailed(true);
 	}
+	private $updateStarted = false;
 	function updateDetailed($insertInSolr = true){
+		if ($this->updateStarted){
+			return true;
+		}
+		$this->updateStarted = true;
+		
 		$logger = new Logger();
 		$result = parent::update();
 		if (!$insertInSolr){
 			$logger->log("updateDetailed, not inserting in solr because insertInSolr was false", PEAR_LOG_DEBUG);
+			$this->updateStarted = false;
 			return $result == 1;
 		}else{
 			if ($result !== FALSE){
 				$logger->log("Updating Solr", PEAR_LOG_DEBUG);
 				if (!$this->saveToSolr()){
-					$logger->log("Could not update Solr", PEAR_LOG_ERROR);
+					$logger->log("Could not update Solr", PEAR_LOG_ERR);
 					//Could not save to solr
+					$this->updateStarted = false;
 					return false;
 				}
 			}else{
-				$logger->log("Saving to database failed, not updating solr", PEAR_LOG_ERROR);
+				$logger->log("Saving to database failed, not updating solr", PEAR_LOG_ERR);
+				$this->updateStarted = false;
 				return false;
 			}
+			$this->updateStarted = false;
 			return true;
 		}
 	}
@@ -79,6 +89,9 @@ abstract class SolrDataObject extends DB_DataObject{
 		require_once 'sys/Solr.php';
 		global $configArray;
 		$host = $configArray[$this->getConfigSection()]['url'];
+		
+		$logger = new Logger();
+		$logger->log("Deleting Record {$this->solrId()}", PEAR_LOG_INFO);
 
 		$cores = $this->cores();
 		foreach ($cores as $corename){
@@ -99,6 +112,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		$this->_quickReindex = $quick;
 		$host = $configArray[$this->getConfigSection()]['url'];
 		$logger = new Logger();
+		$logger->log("Updating " . $this->solrId() . " in solr", PEAR_LOG_INFO);
 
 		$cores = $this->cores();
 		$objectStructure = $this->getObjectStructure();
@@ -160,6 +174,9 @@ abstract class SolrDataObject extends DB_DataObject{
 
 		$cores = $this->cores();
 		foreach ($cores as $corename){
+			$logger = new Logger();
+			$logger->log("Optimizing Solr Core! $corename", PEAR_LOG_INFO);
+		
 			$index = new Solr($host, $corename);
 			$index->optimize();
 		}

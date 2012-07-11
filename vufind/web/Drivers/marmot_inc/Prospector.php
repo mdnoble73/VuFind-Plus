@@ -97,7 +97,9 @@ class Prospector{
 			if (strlen($search) > 0){
 				$search .= ' ';
 			}
-			$search .= $term['lookfor'];
+			if (isset($term['lookfor'])){
+				$search .= $term['lookfor'];
+			}
 		}
 		//Setup the link to Prospector (search classic)
 		//$prospectorUrl = "http://prospector.coalliance.org/search/?searchtype=X&searcharg=" . urlencode($search) . "&Da=&Db=&SORT=R";

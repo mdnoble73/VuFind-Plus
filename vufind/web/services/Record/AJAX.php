@@ -148,8 +148,9 @@ class AJAX extends Action {
 					if ($resource->find(true)){
 					
 						$title = $resource->title;
+						$author = $resource->author;
 						require_once 'services/Record/Purchase.php';
-						$purchaseLinks = Purchase::getStoresForTitle($title);
+						$purchaseLinks = Purchase::getStoresForTitle($title, $author);
 						
 						if (count($purchaseLinks) > 0){
 							$interface->assign('purchaseLinks', $purchaseLinks);
@@ -299,7 +300,7 @@ class AJAX extends Action {
 			$comment = new Comments();
 			$comment->id = $_GET['commentId'];
 			if ($comment->find(true)) {
-				if ($user->id == $comment->user_id) {
+				if ($user->id == $comment->user_id || $user->hasRole('opacAdmin')) {
 					$comment->delete();
 				}
 			}
@@ -379,7 +380,7 @@ class AJAX extends Action {
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
 		$showSimilarTitles = false;
-		if (isset($enrichmentData['novelist']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['similarTitles']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
 			foreach ($enrichmentData['novelist']['similarTitles'] as $title){
 				if ($title['recordId'] != -1){
 					$showSimilarTitles = true;
@@ -539,7 +540,7 @@ class AJAX extends Action {
 
 		// Build an XML tag representing the current comment:
 		$output .= "	<description><![CDATA[" . $descriptionArray['description'] . "]]></description>\n";
-		$output .= "	<length><![CDATA[" . $descriptionArray['length'] . "]]></length>\n";
+		$output .= "	<length><![CDATA[" . (isset($descriptionArray['length']) ? $descriptionArray['length'] : '') . "]]></length>\n";
 		$output .= "	<publisher><![CDATA[" . $descriptionArray['publisher'] . "]]></publisher>\n";
 
 		$output .= "</result>\n";

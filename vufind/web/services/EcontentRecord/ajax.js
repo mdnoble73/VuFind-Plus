@@ -18,6 +18,27 @@ function SendEContentSMS(id, to, provider, strings) {
 	sendAJAXSMS(url, params, strings);
 }
 
+function GetEContentProspectorInfo(id) {
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var params = "method=GetProspectorInfo";
+	var fullUrl = url + "?" + params;
+	$.ajax( {
+		url : fullUrl,
+		success : function(data) {
+			var inProspectorData = $(data).find("InProspector").text();
+			if (inProspectorData) {
+				if (inProspectorData.length > 0) {
+					$("#inProspectorPlaceholder").html(inProspectorData);
+				}
+			}
+			var prospectorCopies = $(data).find("OwningLibrariesFormatted").text();
+			if (prospectorCopies && prospectorCopies.length > 0) {
+				$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
+			}
+		}
+	});
+}
+
 function GetEContentHoldingsInfo(id, type, callback) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetHoldingsInfo";
@@ -176,6 +197,6 @@ function editItem(id, itemId){
 	return false;
 }
 function showEcontentPurchaseOptions(id){
-	var url = path + "/EContentRecord/" + id + "/AJAX?method=getPurchaseOptions";
+	var url = path + "/EcontentRecord/" + id + "/AJAX?method=getPurchaseOptions";
 	ajaxLightbox(url)
 }

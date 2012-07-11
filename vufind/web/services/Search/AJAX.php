@@ -644,7 +644,7 @@ class AJAX extends Action {
 		$cacheInfo = $listAPI->getCacheInfoForList();
 		
 		$listData = $memcache->get($cacheInfo['cacheName']);
-		if (!$listData || isset($_REQUEST['reload'])){
+		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
 			global $interface;
 	
 			$titles = $listAPI->getListTitles();

@@ -20,7 +20,6 @@
 
 require_once 'Action.php';
 require_once 'services/MyResearch/lib/FavoriteHandler.php';
-require_once 'services/MyResearch/lib/User_list_solr.php';
 require_once 'services/MyResearch/lib/Resource.php';
 require_once 'services/MyResearch/lib/User_resource.php';
 require_once 'services/MyResearch/lib/Resource_tags.php';
@@ -89,8 +88,7 @@ class MyList extends Action {
 		if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
 			$actionToPerform = $_REQUEST['myListActionHead'];
 			if ($actionToPerform == 'reindex'){
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
-				$solrConnector->saveList($list);
+				$list->updateDetailed(true);
 			}
 		}
 
@@ -98,27 +96,23 @@ class MyList extends Action {
 		if ($user != false && $user->id == $list->user_id && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
 			if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
 				$actionToPerform = $_REQUEST['myListActionHead'];
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
 				if ($actionToPerform == 'makePublic'){
 					$list->public = 1;
 					$list->update();
-					$solrConnector->saveList($list);
 				}elseif ($actionToPerform == 'makePrivate'){
 					$list->public = 0;
-					$list->update();
-					$solrConnector->deleteList($list);
+					$list->updateDetailed(false);
+					$list->removeFromSolr();
 				}elseif ($actionToPerform == 'saveList'){
 					$list->title = $_REQUEST['newTitle'];
 					$list->description = $_REQUEST['newDescription'];
 					$list->update();
-					if ($list->public == 1){
-						$solrConnector->saveList($list);
-					}
 				}elseif ($actionToPerform == 'deleteList'){
-					$solrConnector->deleteList($list);
 					$list->delete();
 					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
 					die();
+				}elseif ($actionToPerform == 'bulkAddTitles'){
+					$notes = $this->bulkAddTitles($list);
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
 				$actionToPerform = $_REQUEST['myListActionItem'];
@@ -134,17 +128,11 @@ class MyList extends Action {
 				}elseif ($actionToPerform == 'deleteAll'){
 					$list->removeAllResources(isset($_GET['tag']) ? $_GET['tag'] : null);
 				}
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
-				if ($list->public == 1){
-					$solrConnector->saveList($list);
-				}
+				$list->update();
 			}elseif (isset($_GET['delete'])) {
 				$resource = Resource::staticGet('record_id', $_GET['delete']);
 				$list->removeResource($resource);
-				$solrConnector = new User_list_solr($configArray['Index']['url']);
-				if ($list->public == 1){
-					$solrConnector->saveList($list);
-				}
+				$list->update();
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.
@@ -212,5 +200,51 @@ class MyList extends Action {
 
 		$interface->setTemplate('list.tpl');
 		$interface->display('layout.tpl');
+	}
+	
+	function bulkAddTitles($list){
+		global $user;
+		$notes = array();
+		$titlesToAdd = $_REQUEST['titlesToAdd'];
+		$titleSearches[] = preg_split("/\\r\\n|\\r|\\n/", $titlesToAdd);
+		
+		foreach ($titleSearches[0] as $titleSearch){
+			$_REQUEST['lookfor'] = $titleSearch;
+			$_REQUEST['type'] = 'Keyword';
+			// Initialise from the current search globals
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->setLimit(1);
+			$searchObject->init();
+			$searchObject->clearFacets();
+			$results = $searchObject->processSearch(false, false);
+			if ($results['response'] && $results['response']['numFound'] >= 1){
+				$firstDoc = $results['response']['docs'][0];
+				//Get the id of the document
+				$id = $firstDoc['id'];
+				if (preg_match('/eContentRecord/', $id)){
+					$source = 'eContent';
+					$id = substr($id, 14);
+				}else{
+					$source = 'VuFind';
+				}
+				//Get the resource for the id
+				$resource = new Resource();
+				$resource->record_id = $id;
+				$resource->source = $source;
+				if ($resource->find(true)){
+					$user->addResource($resource, $list, null, false);
+				}else{
+					//Could not find a resource for the id
+					$notes[] = "Could not find a resource matching " . $titleSearch;
+				}
+			}else{
+				$notes[] = "Could not find a title matching " . $titleSearch;
+			}
+		}
+		
+		//Update solr
+		$list->update();
+		
+		return $notes;
 	}
 }

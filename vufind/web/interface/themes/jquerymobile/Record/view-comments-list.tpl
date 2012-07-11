@@ -7,7 +7,7 @@
     <p class="posted-by">{translate text='Posted by'} <strong>{$comment->fullname|escape:"html"}</strong></p>
     <span class="ui-li-aside">{$comment->created|date_format:'%D'|escape:"html"}</span>
     </a>
-    {if $comment->user_id == $user->id}    
+    {if $user && $comment->user_id == $user->id}    
       <a rel="external" href="{$path}/Record/{$id|escape}/UserComments?delete={$comment->id}" data-comment-id="{$comment->id|escape}" class="deleteRecordComment">    
         {translate text="Delete"}  
       </a>

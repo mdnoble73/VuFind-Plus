@@ -15,9 +15,9 @@
       <div class="getacardRow">
       	<div class="getacardLabel">Preferred Language</span></div>
 	      <div class="getacardInput">
-	      	<select name="language" type="text">
+	      	<select name="language">
 	      		{foreach from=$selfRegLanguages key=value item=label}
-	      			<option value={$value}>{$label}</option>
+	      			<option value="{$value}">{$label}</option>
 	      		{/foreach}
 	      	</select>
 	      </div>
@@ -33,7 +33,7 @@
 	      <div class="getacardInput">
 	      	<select name="phoneType" type="text">
 	      		{foreach from=$selfRegPhoneType key=value item=label}
-	      			<option value={$value}>{$label}</option>
+	      			<option value="{$value}">{$label}</option>
 	      		{/foreach}
 	      	</select>
 	      </div>

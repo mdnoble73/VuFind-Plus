@@ -96,9 +96,9 @@ class EContentRating extends DB_DataObject
 		}
 
 		//Create a graph of the individual ratings
-		if ($showGraph){
+		/*if ($showGraph){
 			$ratingData['summaryGraph'] = $this->createRatingGraph($ratingData);
-		}
+		}*/
 
 		return $ratingData;
 	}

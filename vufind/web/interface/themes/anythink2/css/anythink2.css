@@ -277,6 +277,12 @@ body {
   margin-right: 10px;
 }
 
+#searchPreFilter {
+  font-size: 1.333em;
+  margin-top: 4px;
+  margin-right: 10px;
+}
+
 #type {
   display: inline-block;
   margin-top: 2px;

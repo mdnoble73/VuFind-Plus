@@ -181,7 +181,7 @@ class Library extends DB_DataObject
 
 	static function getSearchLibrary(){
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if ($searchSource == 'local'){
+		if ($searchSource == 'local' || $searchSource == 'econtent'){
 			return Library::getActiveLibrary();
 		}else if ($searchSource == 'marmot'){
 			return null;
@@ -225,10 +225,11 @@ class Library extends DB_DataObject
 			return self::getLibraryForLocation($physicalLocation->libraryId);
 		}
 		//Finally check to see if the user has logged in and if so, use that library
-		if (isset($user) && $user != false){
+		//MDN 7/9/2012 - Do not use home branch since that can lead to some very odd behavior. 
+		/*if (isset($user) && $user != false){
 			//Load the library based on the home branch for the user
 			return self::getLibraryForLocation($user->homeLocationId);
-		}
+		}*/
 
 	}
 

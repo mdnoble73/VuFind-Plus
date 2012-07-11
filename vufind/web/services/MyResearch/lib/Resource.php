@@ -19,7 +19,7 @@ class Resource extends DB_DataObject {
 	public $upc;
 	public $format;
 	public $format_category;
-	public $marc;
+	//public $marc;
 	public $marc_checksum;
 	public $source = 'VuFind';               // string(50)  not_null
 
@@ -49,6 +49,70 @@ class Resource extends DB_DataObject {
                  "WHERE resource_id = '{$this->id}' " .
                  "GROUP BY tags.tag " .
                  "ORDER BY cnt DESC, tags.tag LIMIT 0, $limit";
+		$tag = new Tags();
+		$tag->query($query);
+		if ($tag->N) {
+			//Load all bad words.
+			require_once('Drivers/marmot_inc/BadWord.php');
+			$badWords = new BadWord();
+			$badWordsList = $badWords->getBadWordExpressions();
+		
+			while ($tag->fetch()) {
+				//Determine if the current user added the tag
+				$userAddedThis = false;
+				if ($user){
+					$rTag = new Resource_tags();
+					$rTag->tag_id = $tag->id;
+					$rTag->user_id = $user->id;
+					$rTag->find();
+					if ($rTag->N > 0){
+						$userAddedThis = true;
+					}
+				}
+				$tag->userAddedThis = $userAddedThis;
+				//Filter the tags prior to display to censor bad words
+				$okToAdd = true;
+				if (!$userAddedThis){
+					//The user will always see their own tags no matter how filthy.
+					foreach ($badWordsList as $badWord){
+						if (preg_match($badWord, trim($tag->tag))){
+							$okToAdd = false;
+							break;
+						}
+					}
+				}
+				if ($okToAdd){
+					$tagList[] = clone($tag);
+					// Return prematurely if we hit the tag limit:
+					if ($limit > 0 && count($tagList) >= $limit) {
+						return $tagList;
+					}
+				}
+			}
+		}
+
+		return $tagList;
+	}
+	
+/**
+	 * Get tags associated with the current resource that the current user added.
+	 *
+	 * @access  public
+	 * @param   int     $limit          Max. number of tags to return (0 = no limit)
+	 * @return  array
+	 */
+	function getTagsForList($listId, $limit = 10)
+	{
+		//Get a reference to the scope we are in.
+		global $library;
+		global $user;
+			
+		$tagList = array();
+
+		$query = "SELECT tags.id as id, tags.tag " .
+                 "FROM tags inner join resource_tags on tags.id = resource_tags.tag_id " .
+                 "WHERE resource_id = '{$this->id}' and list_id = '{$listId}'" .
+                 "ORDER BY tags.tag LIMIT 0, $limit";
 		$tag = new Tags();
 		$tag->query($query);
 		if ($tag->N) {
@@ -299,9 +363,9 @@ class Resource extends DB_DataObject {
 			}
 	
 			//Create a graph of the individual ratings
-			if ($configArray['Content']['ratingsGraph']){
+			/*if ($configArray['Content']['ratingsGraph']){
 				$ratingData['summaryGraph'] = $this->createRatingGraph($ratingData);
-			}
+			}*/
 			$memcache->set("rating_{$this->record_id}", $ratingData, 0, $configArray['Caching']['rating']);
 		}
 		return $ratingData;

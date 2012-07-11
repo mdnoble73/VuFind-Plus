@@ -329,8 +329,14 @@ class Solr implements IndexEngine {
 				PEAR::raiseError($result);
 			}
 	
-			$record = $result['response']['docs'][0];
-			$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
+			if (isset($result['response']['docs'][0])){
+				$record = $result['response']['docs'][0];
+				$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
+			}else{
+				$logger = new Logger();
+				$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
+				PEAR::raiseError("Record not found $id");
+			}
 		}
 		return $record;
 	}
@@ -889,6 +895,7 @@ class Solr implements IndexEngine {
 	$method = HTTP_REQUEST_METHOD_POST, $returnSolrError = false)
 	{
 		global $timer;
+		global $configArray;
 		// Query String Parameters
 		$options = array('q' => $query, 'rows' => $limit, 'start' => $start, 'indent' => 'yes');
 
@@ -996,9 +1003,9 @@ class Solr implements IndexEngine {
 			global $librarySingleton;
 			global $locationSingleton;
 			$searchLibrary = Library::getSearchLibrary();
-			/*if (isset($searchLibrary) && !is_null($searchLibrary)){
+			if (isset($searchLibrary) && !is_null($searchLibrary)){
 				$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
-			}*/
+			}
 				
 			//Boost items owned at our location
 			require_once('Drivers/marmot_inc/Location.php');
@@ -1030,18 +1037,22 @@ class Solr implements IndexEngine {
 			//*************************
 			//Marmot overrides for filtering based on library system and location
 			//Only show visible records
-			$filter[] = 'bib_suppression:notsuppressed';
+			if (isset($configArray['Index']['ignoreBibSuppression']) && $configArray['Index']['ignoreBibSuppression'] == true){
+				$filter = array();
+			}else{
+				$filter[] = 'bib_suppression:notsuppressed';
+			}
 			if ($this->scopingDisabled == false){
 	
 				if (isset($searchLibrary)){
 					if (strlen($searchLibrary->defaultLibraryFacet) > 0){
-						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\" OR recordtype:\"econtentRecord\")";
+						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\" OR institution:\"{$searchLibrary->defaultLibraryFacet} Online\")";
 					}
 				}
 	
 				if ($searchLocation != null){
 					if (strlen($searchLocation->defaultLocationFacet)){
-						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\" OR recordtype:\"econtentRecord\")";
+						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\" OR building:\"{$searchLocation->defaultLocationFacet} Online\")";
 					}
 				}
 	
@@ -1273,7 +1284,7 @@ class Solr implements IndexEngine {
 			echo "<pre>Commit</pre>\n";
 		}
 
-		$body = '<commit/>';
+		$body = '<commit softCommit="true" waitSearcher = "false"/>';
 
 		$result = $this->_update($body);
 		if (PEAR::isError($result)) {

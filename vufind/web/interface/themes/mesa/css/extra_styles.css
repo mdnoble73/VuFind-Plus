@@ -1,60 +1,49 @@
-<?php
-Header ("Content-type: text/css");
-$configArray = parse_ini_file('../../../../conf/config.ini', true);
-?>
-
 .searchHomeForm{
-    background-color: #00317D;
-    border-color: #012475;
-    
-   
+	background-color: #00317D;
+	border-color: #012475;
 }
 
 	/* button navigation */
 .invent-button, #nav>li>a {
-    display:block;
-    line-height:26px;
-    color:#333333;
-    margin-left:12px;
-    font-weight:bold;
+	display:block;
+	line-height:26px;
+	color:#333333;
+	margin-left:12px;
+	font-weight:bold;
 }
 
 .invent-button span, #nav>li>a span {
-    display:block;
+	display:block;
 	color:#333333;
-    margin-left:-8px;
-    padding:0 10px 17px 10px;
+	margin-left:-8px;
+	padding:0 10px 17px 10px;
 	
 }
 
 .invent-button:hover, #nav>li>a:hover, #nav>li.sfHover>a, #nav>li>a:active {
-	    color:#008ab2;
-
+	color:#008ab2;
 }
 .invent-button:hover {
 
 }
 
-.invent-button:hover span, #nav>li>a:hover span, {
-		    color:#008ab2 !important;
-
+.invent-button:hover span, #nav>li>a:hover span{
+	color:#008ab2 !important;
 }
 
 
  #nav>li.current_page_item a span {
-    color:#008ab2;
-				background: url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/active.jpg') bottom center no-repeat;
+	color:#008ab2;
+	background: url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/active.jpg') bottom center no-repeat;
 }
 
 .sub-menu a span{
 	background:none !important;
-		color:#333333 !important;
-
+	color:#333333 !important;
 }
 
 .sub-menu a:hover span{
-		color:#008ab2 !important;
-
+	color:#008ab2 !important;
 }
 .sub-menu>li.current_page_item a span{
 	color:#008ab2 !important;
@@ -144,9 +133,9 @@ body {
 	padding:0;
 }
 h1#logo {
-float: left;
-    margin: 23px 0 0 -2px;
-    z-index: 15;
+	float: left;
+	margin: 23px 0 0 -2px;
+	z-index: 15;
 }
 #searchbar {
 	background:none;
@@ -156,8 +145,8 @@ float: left;
 	padding:0 0 0 10px;
 }
 .languageLink {
-    position: relative;
-    top: -15px;	
+	position: relative;
+	top: -15px;	
 }
 #nav {
 	margin:30px 0 0 0;
@@ -175,13 +164,13 @@ html {
 /* footer */
 
 #scrolltop-container-top {
-    position:relative;
-    width:100%;
-    padding:0;
-    margin:0;
-    border:0;
-    height:25px;
-    min-width:960px;
+	position:relative;
+	width:100%;
+	padding:0;
+	margin:0;
+	border:0;
+	height:25px;
+	min-width:960px;
 	margin-top:40px;
 }
 
@@ -213,13 +202,13 @@ html {
 }
 
 #scrolltop-container {
-    position:relative;
-    width:100%;
-    padding:0;
-    margin:0;
-    border:0;
-    height:27px;
-    min-width:960px;
+	position:relative;
+	width:100%;
+	padding:0;
+	margin:0;
+	border:0;
+	height:27px;
+	min-width:960px;
 	background:none repeat scroll 0 0 #2C2C2C;
 }
 
@@ -284,22 +273,22 @@ html {
 }
 
 #social {
-    list-style: none;
-    float:right;
-    padding:0;
+	list-style: none;
+	float:right;
+	padding:0;
 }
 
 #social li {
-    float:left;
-    padding: 10px 0 0 10px;
-    height:32px;
-    margin:0;
-    overflow:hidden;
+	float:left;
+	padding: 10px 0 0 10px;
+	height:32px;
+	margin:0;
+	overflow:hidden;
 }
 
 #social a {
-    padding-bottom:5px;
-    display:block;
+	padding-bottom:5px;
+	display:block;
 }
 
 #social.nojs a:hover { margin-top: -5px; }
@@ -334,10 +323,10 @@ html {
 #sidebar .widget-container>ul { margin:0 0 0px 0; padding:0; }
 
 #sidebar .widget-container>ul>li { 
-    margin: 0;
-    padding: 8px 0px 6px 0px;
-    background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/hr-220.png") left top no-repeat;
-    width:210px;
+	margin: 0;
+	padding: 8px 0px 6px 0px;
+	background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/hr-220.png") left top no-repeat;
+	width:210px;
 }
 
 #sidebar .widget-container>ul.upcoming {
@@ -368,8 +357,8 @@ html {
 
 .event-list-view {
 	display:inline-block;
-    margin: 0 25px 0 25px;
-    width: 247px;
+	margin: 0 25px 0 25px;
+	width: 247px;
 }
 
 div.summary {
@@ -396,10 +385,10 @@ span.tribe-events-calendar-buttons br {
 #sidebar .widget_meta>ul>li>a { background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/icons/14x14/text.png") no-repeat; }
 
 #sidebar .widget-container>ul>li>a:first-child {
-    background-position: 5px 3px;
-    display: inline;
-    padding-left:25px;
-    width: 160px;
+	background-position: 5px 3px;
+	display: inline;
+	padding-left:25px;
+	width: 160px;
 }
 
 #sidebar .widget_pages>ul>li>a { background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/icons/14x14/pin.png") no-repeat; }
@@ -407,16 +396,16 @@ span.tribe-events-calendar-buttons br {
 #sidebar .widget_pages ul.children { margin-left:-5px; }
 
 #sidebar .widget_pages ul.children>li>a { 
-    background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/icons/14x14/text.png") no-repeat;
-    background-position: 5px 50%;
-    padding-left:25px;
+	background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/icons/14x14/text.png") no-repeat;
+	background-position: 5px 50%;
+	padding-left:25px;
 }
 
 
-#sidebar .widget_nav_menu ul li a { background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/icons/14x14/folder.png") no-repeat;    padding-left:20px;}
+#sidebar .widget_nav_menu ul li a { background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/icons/14x14/folder.png") no-repeat;	padding-left:20px;}
 #sidebar .widget_nav_menu ul{margin-left:10px;}
 #sidebar .widget_nav_menu li{padding:10px 0 0 0;
-    background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/hr-220.png") left top no-repeat;}
+	background: url("http://mesacountylibraries.org/wp-content/themes/mcpl/images/hr-220.png") left top no-repeat;}
 #sidebar .widget_nav_menu>div>ul>li:first-child{ background:transparent; }
 #sidebar .widget_nav_menu ul.sub-menu { margin-left:10px; }
 
@@ -453,10 +442,10 @@ span.tribe-events-calendar-buttons br {
 #widgets-container  .widget_categories ul li,
 #widgets-container  .widget_links ul li,
 #widgets-container  .widget_nav_menu ul li{
-    margin-top: 0;
-    margin-bottom: 0;
-    padding:3px 0;
-    border-top: 1px solid #515151;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding:3px 0;
+	border-top: 1px solid #515151;
 	width:100%;
 }
 
@@ -469,10 +458,10 @@ span.tribe-events-calendar-buttons br {
 #widgets-container  .widget_categories ul,
 #widgets-container  .widget_links ul,
 #widgets-container  .widget_nav_menu ul{
-    margin-left: 0;
-    list-style: none;
-    width:200px;
-    padding-top:0;
+	margin-left: 0;
+	list-style: none;
+	width:200px;
+	padding-top:0;
 }
 
 
@@ -490,10 +479,10 @@ span.tribe-events-calendar-buttons br {
 #widgets-container  .widget_categories ul a,
 #widgets-container  .widget_links ul a,
 #widgets-container  .widget_nav_menu ul a{
-    padding:6px 0 5px 0;
-    list-style: none;
-    color:#a6a6a6;
-    display: block;
+	padding:6px 0 5px 0;
+	list-style: none;
+	color:#a6a6a6;
+	display: block;
 	border-radius:5px;
 	-webkit-border-radius: 5px;
 	-khtml-border-radius: 5px;
@@ -502,10 +491,10 @@ span.tribe-events-calendar-buttons br {
 
 #widgets-container  .widget_nav_menu ul a,
 #widgets-container  .widget_pages ul a{
-    padding:6px 0 5px 0;
-    list-style: none;
-    color:#a6a6a6;
-    display: block;
+	padding:6px 0 5px 0;
+	list-style: none;
+	color:#a6a6a6;
+	display: block;
 }
 
 #widgets-container .widget_nav_menu .sub-menu,#widgets-container .widget_pages .children{
@@ -549,8 +538,8 @@ span.tribe-events-calendar-buttons br {
 #widgets-container  .widget_meta ul a:hover,
 #widgets-container  .widget_archive ul a:hover,
 #widgets-container  .widget_links ul a:hover{
-    background-color: #424242;
-    color: #fff;
+	background-color: #424242;
+	color: #fff;
 }
 
 #widgets-container.nojs  .widget_recent_comments ul a:hover,
@@ -561,7 +550,7 @@ span.tribe-events-calendar-buttons br {
 #widgets-container.nojs  .widget_archive ul a:hover,
 #widgets-container.nojs  .widget_categories ul a:hover,
 #widgets-container.nojs  .widget_links ul a:hover {
-    padding-left: 28px;
+	padding-left: 28px;
 }
 
 #widgets-container  .widget_recent_comments ul li:first-child,
@@ -573,19 +562,19 @@ span.tribe-events-calendar-buttons br {
 #widgets-container  .widget_links ul li:first-child,
 #widgets-container  .widget_nav_menu>div>ul>li:first-child,
 #widgets-container  .widget_pages>ul>li:first-child{
-    border-top: 0;
+	border-top: 0;
 }
 
 #widgets-container .widget_search>form>div, #widgets-container .widget_calendar>div,
 #widgets-container .widget_tag_cloud>div {
-    padding:20px 0;
-    color:#a6a6a6;
+	padding:20px 0;
+	color:#a6a6a6;
 }
 
 #widgets-container .widget_text>div {
-    padding: 0;
-    color:#a6a6a6;
-    line-height:20px;
+	padding: 0;
+	color:#a6a6a6;
+	line-height:20px;
 }
 
 #widgets-container .widget_text em{
@@ -699,40 +688,40 @@ span.tribe-events-calendar-buttons br {
 .searchinput { width:130px; padding:0 5px; }
 
 .searchsubmit {
-    margin-left:10px;
-    width:auto;
-    padding:0 15px;
-    color: #767676;
-    clear:none;
-    height:34px;
+	margin-left:10px;
+	width:auto;
+	padding:0 15px;
+	color: #767676;
+	clear:none;
+	height:34px;
 }
 
 #sidebar .searchinput {
-    padding: 0 5px 0 5px;
-    height: 32px;
-    font-family: Helvetica, sans-serif;
-    margin: 0px 0px 10px 0px;
-    border: 1px solid #d9d9d9;
-    background: #f7f7f7;
-    float:left;
+	padding: 0 5px 0 5px;
+	height: 32px;
+	font-family: Helvetica, sans-serif;
+	margin: 0px 0px 10px 0px;
+	border: 1px solid #d9d9d9;
+	background: #f7f7f7;
+	float:left;
 	width:95px; }
 
 #sidebar .searchinput:focus{
-    border-color:#59aee4;
-    background:#fff;
-    -moz-box-shadow:0 0 3px #59aee4;
-    -webkit-box-shadow:0 0 3px #59aee4;
-    box-shadow:0 0 3px #59aee4;
+	border-color:#59aee4;
+	background:#fff;
+	-moz-box-shadow:0 0 3px #59aee4;
+	-webkit-box-shadow:0 0 3px #59aee4;
+	box-shadow:0 0 3px #59aee4;
 }
 #sidebar .searchsubmit {
 	width:80px;
-    padding: 0 15px 0 15px;
-    height: 34px;
-    font-family: Helvetica, sans-serif;
-    margin: 0px 0px 10px 10px;
-    border: 1px solid #d9d9d9;
-    background: #f7f7f7;
-    float:left;
+	padding: 0 15px 0 15px;
+	height: 34px;
+	font-family: Helvetica, sans-serif;
+	margin: 0px 0px 10px 10px;
+	border: 1px solid #d9d9d9;
+	background: #f7f7f7;
+	float:left;
 }
 
 .text-widget h3:first-child { margin: 0 0 25px 0 ; }
@@ -742,8 +731,8 @@ span.tribe-events-calendar-buttons br {
 #sidebar .text-widget p { margin: 0; padding-bottom: 17px; }
 
 .widget_text .textwidget {
-    padding: 0;
-    margin-bottom: -4px;
+	padding: 0;
+	margin-bottom: -4px;
 }
 
 .widget_text p { margin: 0 0 10px 0; padding: 0; }
@@ -799,9 +788,9 @@ span.tribe-events-calendar-buttons br {
 
 /* columns */
 .column-1-2, .column-1-3, .column-2-3, .column-1-4, .column-3-4 {
-    line-height:20px;
-    margin: 5px 20px 0 0;
-    float:left;
+	line-height:20px;
+	margin: 5px 20px 0 0;
+	float:left;
 }
 
 .column-1-2 { width: 460px; }
@@ -809,7 +798,7 @@ span.tribe-events-calendar-buttons br {
 .column-1-4 { width:220px; height:auto !important; }
 
 .column-3-4 { 
-    width: 700px; }
+	width: 700px; }
 
 .column-last { margin-right:0; }
 
@@ -829,30 +818,30 @@ span.tribe-events-calendar-buttons br {
 }
 
 ul.menu li, ul.menu {
-    background: none ;
-    border: none;
-    clear: left;
-    margin: 0;
-    text-align: left;
-    width: 100px;
+	background: none ;
+	border: none;
+	clear: left;
+	margin: 0;
+	text-align: left;
+	width: 100px;
 }
 
 .menu-footer-blogs-container {
-    display: inline-block;
-    float: right;
-    height: 160px;
-    width: 200px;
+	display: inline-block;
+	float: right;
+	height: 160px;
+	width: 200px;
 }
 
 .wrapper {
-    margin: 0 auto;
-    padding: 0 10px;
-    width: 940px;
+	margin: 0 auto;
+	padding: 0 10px;
+	width: 940px;
 }
 
 .searchcontent {
-    margin: 0 auto;
-    width: 73.076em;
+	margin: 0 auto;
+	width: 73.076em;
 }
 #record-details-column{
 	width: 464px;

@@ -137,8 +137,8 @@ class uagent_info
 	//The constructor. Initializes several default variables.
 	function uagent_info()
 	{
-		$this->useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
-		$this->httpaccept = strtolower($_SERVER['HTTP_ACCEPT']);
+		$this->useragent = isset($_SERVER['HTTP_USER_AGENT']) ? strtolower($_SERVER['HTTP_USER_AGENT']) : null;
+		$this->httpaccept = isset($_SERVER['HTTP_ACCEPT']) ? strtolower($_SERVER['HTTP_ACCEPT']) : null;
 	}
 	 
 	//**************************

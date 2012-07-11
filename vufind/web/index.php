@@ -21,6 +21,8 @@
 /** CORE APPLICATION CONTROLLER **/
 $startTime = microtime(true);
 // Retrieve values from configuration file
+require_once 'sys/Logger.php';
+require_once 'PEAR.php';
 require_once 'sys/ConfigArray.php';
 $configArray = readConfig();
 require_once 'sys/Timer.php';
@@ -98,12 +100,8 @@ $configArray['Site']['locale']));
 date_default_timezone_set($configArray['Site']['timezone']);
 
 // Require System Libraries
-require_once 'PEAR.php';
-$timer->logTime("Include PEAR");
 require_once 'sys/Interface.php';
 $timer->logTime("Include Interface");
-require_once 'sys/Logger.php';
-$timer->logTime("Include Logger");
 require_once 'sys/User.php';
 $timer->logTime("Include User");
 require_once 'sys/Translator.php';
@@ -367,7 +365,6 @@ if ($user) {
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
-
 } else if (// Special case for Shibboleth:
 ($configArray['Authentication']['method'] == 'Shibboleth' && $module == 'MyResearch') ||
 // Default case for all other authentication methods:
@@ -453,6 +450,17 @@ if (isset($_REQUEST['basicType'])){
 	$interface->assign('basicSearchIndex', $_REQUEST['basicType']);
 }else{
 	$interface->assign('basicSearchIndex', 'Keyword');
+}
+$interface->assign('curFormatCategory', 'Everything');
+if (isset($_REQUEST['filter'])){
+	foreach ($_REQUEST['filter'] as $curFilter){
+		$filterInfo = split(":", $curFilter);
+		if ($filterInfo[0] == 'format_category'){
+			$curFormatCategory = str_replace('"', '', $filterInfo[1]);
+			$interface->assign('curFormatCategory', $curFormatCategory);
+			break;
+		}
+	}
 }
 if (isset($_REQUEST['genealogyType'])){
 	$interface->assign('genealogySearchIndex', $_REQUEST['genealogyType']);
@@ -752,14 +760,14 @@ function handlePEARError($error, $method = null){
 	$baseError = $error->toString();
 	$basicServer = " (Server: IP = {$_SERVER['REMOTE_ADDR']}, " .
         "Referer = " . (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '') . ", " .
-        "User Agent = {$_SERVER['HTTP_USER_AGENT']}, " .
+        "User Agent = " . (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') . ", " .
         "Request URI = {$_SERVER['REQUEST_URI']})";
 	$detailedServer = "\nServer Context:\n" . print_r($_SERVER, true);
 	$basicBacktrace = "\nBacktrace:\n";
 	if (is_array($error->backtrace)) {
 		foreach($error->backtrace as $line) {
-			$basicBacktrace .= "{$line['file']} line {$line['line']} - " .
-                "class = {$line['class']}, function = {$line['function']}\n";
+			$basicBacktrace .= (isset($line['file']) ? $line['file'] : 'none') . "  line " . (isset($line['line']) ? $line['line'] : 'none') . " - " .
+                "class = " . (isset($line['class']) ? $line['class'] : 'none') . ", function = " . (isset($line['function']) ? $line['function'] : 'none') . "\n";
 		}
 	}
 	$detailedBacktrace = "\nBacktrace:\n" . print_r($error->backtrace, true);

@@ -6,11 +6,13 @@
   <br />{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
 {else}
   <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
-    <label id="type-label" for="basicType">{translate text='Search'}</label>
-    <select name="basicType" id="basicType">
-    {foreach from=$basicSearchTypes item=searchDesc key=searchVal}
-      <option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
-    {/foreach}
+    <input type="hidden" name="basicType" value="Keyword"/>
+    <label id="type-label" for="searchPreFilter">{translate text='Search'}</label>
+    <select name="filter[]" id="searchPreFilter">
+      <option value="format_category:*"{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>
+      <option value="format_category:Books"{if $curFormatCategory == 'Books'} selected="selected"{/if}>Books</option>
+      <option value="format_category:DVD"{if $curFormatCategory == 'DVD'} selected="selected"{/if}>Movies</option>
+      <option value="format_category:Music"{if $curFormatCategory == 'Music'} selected="selected"{/if}>Music</option>
     </select>
     <div id="search-input-wrapper">
       <div id="search-input" class="clearfix">

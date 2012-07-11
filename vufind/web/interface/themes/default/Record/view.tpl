@@ -276,7 +276,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			{* Place hold link *}
 		<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/Record/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+			<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
 		</div>
 		{if $showOtherEditionsPopup}
 		<div id="otherEditionCopies">

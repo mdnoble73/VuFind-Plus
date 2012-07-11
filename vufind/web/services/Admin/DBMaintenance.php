@@ -234,8 +234,18 @@ class DBMaintenance extends Admin {
 						"`source` VARCHAR(500) NOT NULL, " . 
 						"`fullListLink` VARCHAR(500) DEFAULT '' " .
 					") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
-						),
-						),
+				),
+			),
+						
+			'list_widgets_update_1' => array(
+				'title' => 'List Widget List Update 1',
+				'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
+				),
+			),
 			
 			'list_widgets_home' => array(
 				'title' => 'List Widget Home',
@@ -391,8 +401,8 @@ class DBMaintenance extends Admin {
 			),
 			
 			'editorial_review_1' => array(
-				'title' => 'Add tabname and sourceUrl to editorial reviews',
-				'description' => 'Create table to store editorial reviews from external reviews, i.e. book-a-day blog',
+				'title' => 'Add tabname to editorial reviews',
+				'description' => 'Update editorial reviews to include a tab name',
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE editorial_reviews add tabName VARCHAR(25) DEFAULT 'Reviews';",
