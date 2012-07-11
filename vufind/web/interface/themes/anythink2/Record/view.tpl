@@ -86,6 +86,15 @@ function redrawSaveStatus() {
       </div>
     </div>
 
+    {if $series}
+    <h4>{translate text='Series'}:</h4>
+    <ul>
+      {foreach from=$series item=seriesItem name=loop}
+        <li><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></li>
+      {/foreach}
+    </ul>
+    {/if}
+
     {if $mainAuthor}
     <h4>{translate text='Main Author'}:</h4>
     <ul>
@@ -194,15 +203,6 @@ function redrawSaveStatus() {
     <h4>{translate text='UPC'}:</h4>
     <ul>
       <li>{$upc|escape}</li>
-    </ul>
-    {/if}
-
-    {if $series}
-    <h4>{translate text='Series'}:</h4>
-    <ul>
-      {foreach from=$series item=seriesItem name=loop}
-        <li><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></li>
-      {/foreach}
     </ul>
     {/if}
 
