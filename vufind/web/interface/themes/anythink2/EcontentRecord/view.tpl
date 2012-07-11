@@ -75,6 +75,15 @@ function redrawSaveStatus() {literal}{{/literal}
       </div>
     </div>
 
+    {if count($seriesList) > 0}
+    <h4>{translate text='Series'}:</h4>
+    <ul>
+    {foreach from=$seriesList item=seriesListItem name=loop}
+      <li><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;type=Series">{$seriesListItem|escape}</a></li>
+    {/foreach}
+    </ul>
+    {/if}
+
     {if $eContentRecord->author}
     <h4>{translate text='Main Author'}:</h4>
     <ul>
@@ -160,15 +169,6 @@ function redrawSaveStatus() {literal}{{/literal}
     <ul>
     {foreach from=$upcList item=upcListItem name=loop}
       <li>{$upcListItem|escape}</li>
-    {/foreach}
-    </ul>
-    {/if}
-
-    {if count($seriesList) > 0}
-    <h4>{translate text='Series'}:</h4>
-    <ul>
-    {foreach from=$seriesList item=seriesListItem name=loop}
-      <li><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;type=Series">{$seriesListItem|escape}</a></li>
     {/foreach}
     </ul>
     {/if}
