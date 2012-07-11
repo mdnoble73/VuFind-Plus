@@ -29,18 +29,24 @@
           <tr><th>{translate text='Phone Number'}:</th><td>{if false && $edit == true}<input name='phone' value='{$profile.phone|escape}' size='50' maxlength='75' />{else}{$profile.phone|escape}{/if}</td></tr>
           <tr><th>{translate text='Expiration Date'}:</th><td>{$profile.expires|escape}</td></tr>
           <tr><th>{translate text='Home Library'}:</th><td>{$profile.homeLocationName|escape}</td></tr>
-          <tr><th>{translate text='Show Recommendations'}:</th><td><input type="radio" name='disableRecommendations' {if $user->disableRecommendations == 1}checked="checked"{/if} value="1"/>No <input type="radio" name='disableRecommendations' {if $user->disableRecommendations == 0}checked="checked"{/if} value="0"/> Yes</td></tr>
-          <tr><th>{translate text='Show Cover Art'}:</th><td><input type="radio" name='disableCoverArt' {if $user->disableCoverArt == 1}checked="checked"{/if} value="1"/>No <input type="radio" name='disableCoverArt' {if $user->disableCoverArt == 0}checked="checked"{/if} value="0"/> Yes</td></tr>
+        </table>
+        <br/>
+        <h3>Preferences</h3>
+        <table>
+          <tr><th>{translate text='Show Recommendations'}:</th><td><input type="radio" name='disableRecommendations' {if $user->disableRecommendations == 1}checked="checked"{/if} value="1"/> No <input type="radio" name='disableRecommendations' {if $user->disableRecommendations == 0}checked="checked"{/if} value="0"/> Yes</td></tr>
+          <tr><th>{translate text='Show Cover Art'}:</th><td><input type="radio" name='disableCoverArt' {if $user->disableCoverArt == 1}checked="checked"{/if} value="1"/> No <input type="radio" name='disableCoverArt' {if $user->disableCoverArt == 0}checked="checked"{/if} value="0"/> Yes</td></tr>
           {if $onInternalIP || $profile.bypassAutoLogout==1}
           <tr><th>{translate text='Bypass Automatic Logout'}:</th><td><input type='radio' name="bypassAutoLogout" value='yes' {if $profile.bypassAutoLogout==1}checked='checked'{/if}/>Yes&nbsp;&nbsp;<input type='radio' name="bypassAutoLogout" value='no' {if $profile.bypassAutoLogout==0}checked='checked'{/if}/>No<br/><em>Warning: If this is set to yes, you must manually logout of your account.  You should not use this setting if you regularly access the catalog from public computers.</em></td></tr>
           {/if}
           <tr><th colspan='2'><input type='submit' value='Update' name='update'/></th></tr>
         </table>
+        <br/>
         <h3>Email Information</h3>
         <table>
           <tr><th>{translate text='E-mail'}:</th><td>{if true || $edit == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</th></tr>
           <tr><th colspan='2'><input type='submit' value='Update' name='update'/></th></tr>
         </table>
+        <br/>
         <h3>Personal Identification Number (PIN)</h3>
         <div class="details">Or the last 4 digits of your telephone number</div>
         <table>
