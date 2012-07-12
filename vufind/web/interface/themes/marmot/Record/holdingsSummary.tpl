@@ -37,6 +37,7 @@
 	{if $holdingsSummary.isDownloadable}
 			<div><a href='{$holdingsSummary.downloadLink}'	target='_blank'>{$holdingsSummary.downloadText}</a></div>
 	{else}
+		{if $showCopiesLineInHoldingsSummary}
 		<div class="holdableCopiesSummary">
 			{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if}, 
 			{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf and 
@@ -48,6 +49,7 @@
 					{$holdingsSummary.numCopiesOnOrder} copies are on order.
 			{/if}	
 		</div>
+		{/if}
 	{/if}
 	{if $showOtherEditionsPopup}
 		<div class="otherEditions">

@@ -19,21 +19,21 @@
         </div>
         <div><p><strong>{translate text='Find More'}</strong></p>
           <ul>
-            <li><a href="http://www.steamboatlibrary.org/services/research-databases" target="_blank">{translate text='Databases &amp; Websites'}</a></li>
-            <li><a href="http://www.steamboatlibrary.org/books-and-media/books" target="_blank">{translate text='Great Reads'}</a></li>
-            <li><a href="http://www.steamboatlibrary.org/downloads" target="_blank">{translate text='Download Books & More'}</a></li>
-            <li><a href="http://www.steamboatlibrary.org/" target="_blank">{translate text='Library Homepage'}</a></li>
+            <li><a href="http://www.steamboatlibrary.org/services/research-databases" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Databases &amp; Websites'}</a></li>
+            <li><a href="http://www.steamboatlibrary.org/books-and-media/books" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Great Reads'}</a></li>
+            <li><a href="http://www.steamboatlibrary.org/downloads" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
+            <li><a href="http://www.steamboatlibrary.org/" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Library Homepage'}</a></li>
           </ul>
         </div>
         <div><p><strong>{translate text='Need Help?'}</strong></p>
           <ul>
             <li><a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
-            <li><a href="{$askALibrarianLink}" target="_blank">{translate text='Ask a Librarian'}</a></li>
+            <li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
             {if isset($illLink)}
-                <li><a href="{$illLink}" target="_blank">{translate text='Interlibrary Loan'}</a></li>
+                <li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
             {/if}
             {if isset($suggestAPurchaseLink)}
-                <li><a href="{$suggestAPurchaseLink}" target="_blank">{translate text='Suggest a Purchase'}</a></li>
+                <li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
             {/if}
             <li><a href="{$url}/Help/Home?topic=faq" onclick="window.open('{$url}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
             <li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>

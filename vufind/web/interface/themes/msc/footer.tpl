@@ -30,7 +30,7 @@
     <li><a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
     <li><a href="{$askALibrarianLink}" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
     {if isset($illLink)}
-        <li><a href="{$illLink}" target="_blank">{translate text='Interlibrary Loan'}</a></li>
+        <li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
     {/if}
     {if isset($suggestAPurchaseLink)}
         <li><a href="{$suggestAPurchaseLink}"  onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>

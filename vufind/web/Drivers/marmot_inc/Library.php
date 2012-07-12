@@ -26,6 +26,7 @@ class Library extends DB_DataObject
 	public $linkToAmazon;
 	public $showStandardReviews;
 	public $showHoldButton;
+	public $showHoldButtonInSearchResults;
 	public $showLoginButton;
 	public $showTextThis;
 	public $showEmailThis;
@@ -34,6 +35,7 @@ class Library extends DB_DataObject
 	public $showRatings;
 	public $illLink;
 	public $askALibrarianLink;
+	public $showCopiesLineInHoldingsSummary;
 	public $showFavorites;
 	public $showOtherEditionsPopup;
 	public $showTableOfContentsTab;
@@ -107,6 +109,7 @@ class Library extends DB_DataObject
 			'linkToAmazon'  => array('property'=>'linkToAmazon', 'type'=>'checkbox', 'label'=>'Link To Amazon', 'description'=>'Whether or not a purchase on Amazon link should be shown.  Should generally match showAmazonReviews setting'),
 			'showStandardReviews'  => array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.'),
 			'showHoldButton'  => array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items'),
+			'showHoldButtonInSearchResults'  => array('property'=>'showHoldButtonInSearchResults', 'type'=>'checkbox', 'label'=>'Show Hold Button within the search results', 'description'=>'Whether or not the hold button is displayed within the search results so patrons can place holds on items'),
 			'showHoldCancelDate'   => array('property'=>'showHoldCancelDate', 'type'=>'checkbox', 'label'=>'Show Cancellation Date', 'description'=>'Whether or not the patron should be able to set a cancellation date (not needed after date) when placing holds.'),
 			'showLoginButton'  => array('property'=>'showLoginButton', 'type'=>'checkbox', 'label'=>'Show Login Button', 'description'=>'Whether or not the login button is displayed so patrons can login to the site'),
 			'enableSelfRegistration' => array('property'=>'enableSelfRegistration', 'type'=>'checkbox', 'label'=>'Enable Self Registration', 'description'=>'Whether or not patrons can self register on the site'),
@@ -116,6 +119,7 @@ class Library extends DB_DataObject
 			'showTagging'  => array('property'=>'showTagging', 'type'=>'checkbox', 'label'=>'Show Tagging', 'description'=>'Whether or not tags are shown (also disables adding tags)'),
 			'showRatings'  => array('property'=>'showRatings', 'type'=>'checkbox', 'label'=>'Show Ratings', 'description'=>'Whether or not ratings are shown'),
 			'showFavorites'  => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Show Favorites', 'description'=>'Whether or not users can maintain favorites lists'),
+			'showCopiesLineInHoldingsSummary' => array('property'=>'showCopiesLineInHoldingsSummary', 'type'=>'checkbox', 'label'=>'Show Copies Line In Holdings Summary', 'description'=>'Whether or not the number of copies should be shown in the holdins summary', 'default'=>'1'),
 			'showOtherEditionsPopup' => array('property'=>'showOtherEditionsPopup', 'type'=>'checkbox', 'label'=>'Show Other Editions Popup', 'description'=>'Whether or not the Other Formats and Langauges popup will be shown (if not shows Other Editions sidebar)', 'default'=>'1'),
 			'showTableOfContentsTab' => array('property'=>'showTableOfContentsTab', 'type'=>'checkbox', 'label'=>'Show Table of Contents Tab', 'description'=>'Whether or not a separate ab willbe shown for table of contents 505 field.', 'default'=>'0'),
 			'notesTabName' => array('property'=>'notesTabName', 'type'=>'text', 'label'=>'Notes Tab Name', 'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50'),

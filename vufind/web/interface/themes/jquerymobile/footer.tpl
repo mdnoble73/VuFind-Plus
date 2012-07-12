@@ -1,5 +1,5 @@
 {if isset($boopsieLink)}
-  <span style="float:right;"><a href="{$boopsieLink}" target="_blank">{translate text='Download our mobile App'}</a></span>
+  <span style="float:right;"><a href="{$boopsieLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download our mobile App'}</a></span>
 {/if}
 
 <div class="footer-text"><a href="#" class="standard-view" rel="external">{translate text="Go to Standard View"}</a></div>

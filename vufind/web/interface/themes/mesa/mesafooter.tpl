@@ -2,7 +2,7 @@
 
 			<div id="scrolltop-top-left"></div>
 			<div id="scrolltop-top-right">	
-                						<div id="social-widget-3" class="widget-container Social_Widget"><h3 class="widget-title">Follow Us!</h3><div class="socialmedia-buttons smw_left"><a href="http://www.facebook.com/mesacountylib" rel="nofollow" target="_blank"><img src="http://mesacountylibraries.org/wp-content/plugins/social-media-widget/images/default/32/facebook.png" alt="Follow Us on Facebook" title="Follow Us on Facebook"  style="opacity: 0.8; -moz-opacity: 0.8;" class="fade" /></a><a href="http://twitter.com/mesacountylib" rel="nofollow" target="_blank"><img src="http://mesacountylibraries.org/wp-content/plugins/social-media-widget/images/default/32/twitter.png" alt="Follow Us on Twitter" title="Follow Us on Twitter"  style="opacity: 0.8; -moz-opacity: 0.8;" class="fade" /></a><a href="http://mesacountylibraries.org/blog/rss-feeds/" rel="nofollow" target="_blank"><img  src="http://mesacountylibraries.org/wp-content/plugins/social-media-widget/images/default/32/rss.png" alt="Follow Us on RSS" title="Follow Us on RSS"  style="opacity: 0.8; -moz-opacity: 0.8;" class="fade" /></a></div></div>							</div>
+                						<div id="social-widget-3" class="widget-container Social_Widget"><h3 class="widget-title">Follow Us!</h3><div class="socialmedia-buttons smw_left"><a href="http://www.facebook.com/mesacountylib" rel="nofollow" rel="external" onclick="window.open (this.href, 'child'); return false"><img src="http://mesacountylibraries.org/wp-content/plugins/social-media-widget/images/default/32/facebook.png" alt="Follow Us on Facebook" title="Follow Us on Facebook"  style="opacity: 0.8; -moz-opacity: 0.8;" class="fade" /></a><a href="http://twitter.com/mesacountylib" rel="nofollow" rel="external" onclick="window.open (this.href, 'child'); return false"><img src="http://mesacountylibraries.org/wp-content/plugins/social-media-widget/images/default/32/twitter.png" alt="Follow Us on Twitter" title="Follow Us on Twitter"  style="opacity: 0.8; -moz-opacity: 0.8;" class="fade" /></a><a href="http://mesacountylibraries.org/blog/rss-feeds/" rel="nofollow" rel="external" onclick="window.open (this.href, 'child'); return false"><img  src="http://mesacountylibraries.org/wp-content/plugins/social-media-widget/images/default/32/rss.png" alt="Follow Us on RSS" title="Follow Us on RSS"  style="opacity: 0.8; -moz-opacity: 0.8;" class="fade" /></a></div></div>							</div>
 		</div>
 
 		<div id="widgets-container" class="nojs">
@@ -79,7 +79,7 @@
 				<a href="http://mesacountylibraries.org/"><img src="http://mesacountylibraries.org/wp-content/uploads/2011/08/logo1.jpg" alt="Invent" /></a>
 													                <p>Mailing: 443 North 6th Street, Grand Junction, CO 81501<br/>
 (970) 243-4442     <a href="mailto:ask@mcpld.org">ask@mcpld.org</a><br/>
-Copyright 2011 Mesa County Libraries . All Rights Reserved   |        <a target="_blank" href="http://www.wickcreative.com">Designed by Wick Creative</a>
+Copyright 2011 Mesa County Libraries . All Rights Reserved   |        <a rel="external" onclick="window.open (this.href, 'child'); return false" href="http://www.wickcreative.com">Designed by Wick Creative</a>
 				</p>
 			</div>
 

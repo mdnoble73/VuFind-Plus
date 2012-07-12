@@ -18,10 +18,8 @@
 </div>
 <div><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
-		<li><a href="http://www.gcld.org/content/pages/online-resources">{translate text='Online Resources'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
-		<li><a href="http://www.gcld.org/content/pages/readers-advisory-tools">{translate text="Reader's Advisory Tools"}</a></li>
-		<li><a href="http://www.gcld.org/content/pages/library-hours">{translate text='Locations, Hours &amp; Events'}</a></li>
+		<li><a href="http://western.edu/academics/library/savage-library-hours.html">{translate text='Library Hours'}</a></li>
 	</ul>
 </div>
 <div><p><strong>{translate text='Need Help?'}</strong></p>
@@ -32,7 +30,7 @@
 			<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
 		{/if}
 		{if isset($suggestAPurchaseLink)}
-			<li><a href="{$suggestAPurchaseLink}" target="_blank">{translate text='Suggest a Purchase'}</a></li>
+			<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
 		<li><a href="{$url}/Help/Home?topic=faq" onclick="window.open('{$url}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
 		<li><a href="http://www.gcld.org/content/locations/district-office">{translate text='Contact Us'}</a></li>

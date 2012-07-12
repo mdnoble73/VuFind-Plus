@@ -35,7 +35,7 @@
 				<dl class="narrowList navmenu narrow_begin">
 					<dt>{translate text=$cluster.label}</dt>
 					<dd>
-						<form name='{$title}Filter' id='{$title}Filter' action='{$fullPath}'>
+						<form id='{$title}Filter' action='{$fullPath}'>
 						<div>
 							<label for="{$title}yearfrom" class='yearboxlabel'>From:</label>
 							<input type="text" size="4" maxlength="4" class="yearbox" name="{$title}yearfrom" id="{$title}yearfrom" value="" />

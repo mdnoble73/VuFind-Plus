@@ -80,10 +80,7 @@
         {if $savedSearch}<a href="{$url}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$url}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
         <a href="{$excelLink|escape}" class="exportToExcel">{translate text='Export To Excel'}</a>
       </div>
-      
-      <b class="bbot"><b></b></b>
     </div>
     {* End Main Listing *}
   </div>
 </div>
-

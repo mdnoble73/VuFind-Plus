@@ -1,6 +1,9 @@
 html, body {
 	height: 100%;
-	background-color:#eee;
+	background-color:#CCC;
+}
+#outer_span{
+	position: relative;
 }
 .content {
 	/*padding:10px 0 10px 0;*/
@@ -14,8 +17,9 @@ div.yui-b.first {background-color:#fff;}
 .filters {background-color:#ddd; padding:.5em}
 .crumbs {background-color:#000;}
 #pageBody{
-	margin: 5px auto 20px;
-	width: 990px;
+	margin: 0px auto 0px;
+	width: 1000px;
+	min-height: 100%;
 }
 #page-content, #ft{
 	padding: 10px;

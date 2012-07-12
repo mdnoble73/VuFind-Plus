@@ -192,11 +192,24 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		global $library;
 		
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+		$showOtherEditionsPopup = false;
+		if ($configArray['Content']['showOtherEditionsPopup']){
+			if ($library){
+				$showOtherEditionsPopup = ($library->showOtherEditionsPopup == 1);
+			}else{
+				$showOtherEditionsPopup = true;
+			}
+		}
+		$interface->assign('showOtherEditionsPopup', $showOtherEditionsPopup);
+		$showCopiesLineInHoldingsSummary = true;
+		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
+			$showCopiesLineInHoldingsSummary = false;
+		}
+		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
 
 		require_once 'CatalogConnection.php';
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 
 		// Try to find a copy that is available
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
@@ -240,8 +253,16 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		global $library;
 		
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+		$showOtherEditionsPopup = false;
+		if ($configArray['Content']['showOtherEditionsPopup']){
+			if ($library){
+				$showOtherEditionsPopup = ($library->showOtherEditionsPopup == 1);
+			}else{
+				$showOtherEditionsPopup = true;
+			}
+		}
 
 		require_once ('Drivers/EContentDriver.php');
 		$driver = new EContentDriver();

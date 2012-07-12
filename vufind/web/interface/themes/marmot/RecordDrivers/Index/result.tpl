@@ -1,3 +1,4 @@
+{strip}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList">
 <div class="selectTitle">
 	<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|regex_replace:"/(\/|:)$/":""|escape:"javascript"}', this);"{/if} />&nbsp;
@@ -11,9 +12,11 @@
 	</a>
 	{/if}
 	{* Place hold link *}
+	{if $showHoldButton}
 	<div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
 		<a href="{$url}/Record/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
 	</div>
+	{/if}
 </div>
 
 <div class="resultDetails">
@@ -63,36 +66,42 @@
 
 <div id ="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultActions">
 	<div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
-		<div class="statVal">
-			<span class="ui-rater">
-				<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-				(<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
-			</span>
-		</div>
-		<div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-			{if $user}
-				<div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
-				<script type="text/javascript">
-					getSaveStatuses('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
-				</script>
-			{/if}
-			{if $showFavorites == 1} 
+		{if $showRatings == 1}
+			<div class="statVal">
+				<span class="ui-rater">
+					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
+					(<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
+				</span>
+			</div>
+		{/if}
+		{if $showFavorites == 1} 
+			<div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
+				{if $user}
+					<div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
+					<script type="text/javascript">
+						getSaveStatuses('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
+					</script>
+				{/if}
 				<a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
-			{/if}
-		</div>
-		{assign var=id value=$summId scope="global"}
-		{assign var=shortId value=$summShortId scope="global"}
-		{include file="Record/title-review.tpl"}
+			</div>
+		{/if}
+		{if $showComments == 1} 
+			{assign var=id value=$summId scope="global"}
+			{assign var=shortId value=$summShortId scope="global"}
+			{include file="Record/title-review.tpl"}
+		{/if}
 	</div>
-	<script type="text/javascript">
-		$(
-			 function() {literal} { {/literal}
-					 $('.rate{if $summShortId}{$summShortId|escape}{else}{$summId|escape}{/if}').rater({literal}{ {/literal}module: 'Record', recordId: '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}',	rating:0.0, postHref: '{$url}/Record/{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}/AJAX?method=RateTitle'{literal} } {/literal});
-			 {literal} } {/literal}
-		);
-	</script>
-		
+	{if $showRatings == 1}
+		<script type="text/javascript">
+			$(
+				 function() {literal} { {/literal}
+						 $('.rate{if $summShortId}{$summShortId|escape}{else}{$summId|escape}{/if}').rater({literal}{ {/literal}module: 'Record', recordId: '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}',	rating:'0.0', postHref: '{$url}/Record/{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}/AJAX?method=RateTitle'{literal} } {/literal});
+				 {literal} } {/literal}
+			);
+		</script>
+	{/if}
 </div>
+
 
 
 <script type="text/javascript">
@@ -103,5 +112,5 @@
 	{literal} }); {/literal}
 	
 </script>
-
 </div>
+{/strip}

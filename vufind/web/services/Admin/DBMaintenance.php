@@ -182,6 +182,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `notesTabName` VARCHAR(50) DEFAULT 'Notes';",
 				),
 			),
+			'library_10' => array(
+				'title' => 'Library 10',
+				'description' => 'Add fields for showing copies in holdings summary, and hold button in results list',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showHoldButtonInSearchResults` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `showCopiesLineInHoldingsSummary` TINYINT DEFAULT '1';",
+				),
+			),
 			
 			'location_1' => array(
 				'title' => 'Location 1',

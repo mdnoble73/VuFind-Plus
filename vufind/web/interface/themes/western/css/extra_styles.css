@@ -6,19 +6,59 @@ html, body{
 	border-color: #9D1F35;
 }
 
-/*
-.searchheader{
-	background-color: #08223E;
-	background: url('/interface/themes/western/images/top_logo.jpg') no-repeat scroll left top transparent;
+.searchHomeForm {
+	background-color: #2B627F;
 	color: white;
-	width: 960px;
+	border-top: black 2px solid;
+}
+
+#header_logo{
+	position: relative;
+	left: 0px;
+	top: 0px;
+}
+#loginBlock{
+	position: absolute;
+	top: 10px;
+	right: 20px;
+}
+#searchbar, .breadcrumbs{
+	background-color: #2B627F; 
+	color: white;
+}
+
+#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{
+	color: white;
+}
+#searchbar a:hover, .breadcrumbs a:hover{
+	color: #C59019;
+}
+
+div.breadcrumbs{
+	border-top: thin solid white; 
+	height: 20px;
+	line-height: 20px;
+}
+
+div.breadcrumbs span{
+	background: none;
+	border-right: 2px solid white;
+	width: 2px;
+	opacity: 1;
+}
+
+.searchheader{
+	background-color: #7F8DD8;
+	color: white;
+	width: 1000px;
 	margin: 0px auto;
+	padding: 0px;
+	height: 105px;
 }
 
 .searchheader a, .searchheader a:visited{
 	color: white;
 }
 .searchheader a:hover{
-	color: #C59019;
+	color: #222;
 }
-*/

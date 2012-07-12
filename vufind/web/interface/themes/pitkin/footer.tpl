@@ -4,7 +4,7 @@
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_pitkin%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_pitkin%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_pitkin%3A"Month"&amp;filter[]=format%3A"DVD"'>{translate text='New DVDs'}</a></li>
-            <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_pitkin%3A"Month"&amp;filter[]=format_category%3A"Audio"'>{translate text='New Audio Books & CDs'}</a></li>
+            <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_pitkin%3A"Month"&amp;filter[]=format_category%3A"Audio"'>{translate text='New Audio Books &amp; CDs'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_pitkin%3A"Week"'>{translate text='New This Week'}</a></li>
           </ul>
         </div>
@@ -21,18 +21,18 @@
             <li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
             <!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li>
             <li><a href="{$path}/Search/NewItem">{translate text='New Items'}</a></li> -->
-            <li><a href="http://marmot.lib.overdrive.com" target="_blank">{translate text='Download Books & More'}</a></li>
+            <li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
           </ul>
         </div>
         <div><p><strong>{translate text='Need Help?'}</strong></p>
           <ul>
             <li><a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
-            <li><a href="{$askALibrarianLink}" target="_blank">{translate text='Ask a Librarian'}</a></li>
+            <li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
             {if isset($illLink)}
-                <li><a href="{$illLink}" target="_blank">{translate text='Interlibrary Loan'}</a></li>
+                <li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
             {/if}
             {if isset($suggestAPurchaseLink)}
-                <li><a href="{$suggestAPurchaseLink}" target="_blank">{translate text='Suggest a Purchase'}</a></li>
+                <li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
             {/if}
             <li><a href="{$url}/Help/Home?topic=faq" onclick="window.open('{$url}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
             <li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>

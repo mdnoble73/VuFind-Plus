@@ -27,7 +27,7 @@
         <a href ={$url}/Record/{$outer.recordId|escape:"url"}>
      {else if $outer.isbn10}
        {* Display a link to the record in amazon *}
-        <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url" target="_blank"}>
+        <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url" rel="external" onclick="window.open (this.href, 'child'); return false"}>
      {/if}
      {* Display the book jacket *}
      {if $outer.isbn}

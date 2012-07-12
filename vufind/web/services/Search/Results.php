@@ -207,19 +207,29 @@ class Results extends Action {
 		global $library;
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
+		$showHoldButton = 1;
+		$showHoldButtonInSearchResults = 1;
 		if (isset($library) && $location != null){
 			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
+			$interface->assign('showComments', $library->showComments);
+			$showHoldButton = (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0;
+			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
 		}else if ($location != null){
 			$interface->assign('showFavorites', 1);
-			$interface->assign('showHoldButton', $location->showHoldButton);
+			$showHoldButton = $location->showHoldButton;
 		}else if (isset($library)){
 			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('showHoldButton', $library->showHoldButton);
+			$showHoldButton = $library->showHoldButton;
+			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
+			$interface->assign('showComments', $library->showComments);
 		}else{
 			$interface->assign('showFavorites', 1);
-			$interface->assign('showHoldButton', 1);
+			$interface->assign('showComments', 1);
 		}
+		if ($showHoldButton == 0){
+			$showHoldButtonInSearchResults = 0;
+		}
+		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
 
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;

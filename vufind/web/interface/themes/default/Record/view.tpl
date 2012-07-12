@@ -219,7 +219,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/if}
 		
 		{if $classicId}
-		<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
+		<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
 		{/if}
 	</div> {* End sidebar *}
 	
@@ -294,7 +294,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			<div id="myrating" class="stat">
 			<div class="statVal">
 			<div class="ui-rater">
-				<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px"></span></span>
+				<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
 				</div>
 				</div>
 				<script type="text/javascript">
