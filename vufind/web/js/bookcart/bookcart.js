@@ -322,7 +322,7 @@ function updateBag(){
 			// update the list of bag items
 			var bagItem = "<div class=\"bag_book_title\">" +
 					"<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a></div>" +
-					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\"><img src='" + path + "/images/silk/delete.png' alt='Remove' title='Remove from book cart'></a>"
+					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\"><img src='" + path + "/images/silk/delete.png' alt='Remove' title='Remove from book cart'></a>" +
 					"</div><br />";
 			$("#bag_items").append(bagItem);
 		}				

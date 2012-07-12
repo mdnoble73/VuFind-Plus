@@ -1,29 +1,24 @@
+html, body{
+	background-color: #F0F0F0;
+}
 .searchHomeForm {
 	background-color: #C5112A;
 	border-color: #9D1F35;
 }
 
-/* Changes for the academic theme, make facets appear on the left */
-.yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main {
-	float: right;
-	margin-right: -15em;
+/*
+.searchheader{
+	background-color: #08223E;
+	background: url('/interface/themes/western/images/top_logo.jpg') no-repeat scroll left top transparent;
+	color: white;
+	width: 960px;
+	margin: 0px auto;
 }
 
-.yui-t4 .yui-b {
-	float: left;
+.searchheader a, .searchheader a:visited{
+	color: white;
 }
-
-/* Revert a few pages back */
-body.Record .yui-t4 .yui-b,body.Browse .yui-t4 .yui-b {
-	float: right;
+.searchheader a:hover{
+	color: #C59019;
 }
-
-body.Record .yui-t4 #yui-main,body.Record .yui-t5 #yui-main,body.Record .yui-t6 #yui-main {
-	float: left;
-	margin-right: -25em;
-}
-
-body.Browse .yui-t4 #yui-main,body.Browse .yui-t5 #yui-main,body.Browse .yui-t6 #yui-main {
-	float: left;
-	margin-right: -25em;
-}
+*/

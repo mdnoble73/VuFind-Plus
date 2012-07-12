@@ -117,7 +117,7 @@ class EcontentRecordDriver extends IndexRecord
 	
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&econtent=true&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;econtent=true&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		return $bookCoverUrl;
 	}
 	

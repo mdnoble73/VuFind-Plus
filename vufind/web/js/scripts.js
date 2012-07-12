@@ -1,3 +1,12 @@
+$(document).ready(function(){
+	if($("#searchForm") != null && $("#lookfor") != null){
+		$("#lookfor").focus();
+	}
+	if($("#loginForm") != null){
+		$("#username").focus();
+	}
+});
+
 function getLightbox(module, action, id, lookfor, message, followupModule,
 		followupAction, followupId, left, width, top, height) {
 	// Optional parameters
