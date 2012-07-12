@@ -2774,6 +2774,7 @@ public class MarcRecordDetails {
 					}
 				} catch (PatternSyntaxException ex) {
 					// Syntax error in the regular expression
+					logger.error("Invalid pattern for the locationsToSuppress", ex);
 				}
 			}
 		}
@@ -2781,7 +2782,7 @@ public class MarcRecordDetails {
 		if (!suppressRecord) {
 			// Now, check for manually suppressed record where the 907c tag is set to
 			// W
-			if (manualSuppressionField != null & !manualSuppressionField.equals("null")) {
+			if (manualSuppressionField != null && !manualSuppressionField.equals("null")) {
 				Set<String> input2 = getFieldList(record, manualSuppressionField);
 				Iterator<String> iter2 = input2.iterator();
 				suppressRecord = false;
