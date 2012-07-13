@@ -20,11 +20,6 @@
 		{if $includeAutoLogoutCode == true}
 		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
-	
-		
-		{if isset($theme_css)}
-		<link rel="stylesheet" type="text/css" href="{$theme_css}" >
-		{/if}
 	</head>
 
 	<body class="{$module} {$action}">
