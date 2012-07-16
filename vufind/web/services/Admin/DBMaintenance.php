@@ -203,6 +203,7 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `applyNumberOfHoldingsBoost` TINYINT DEFAULT '1';",
 					"ALTER TABLE `library` ADD `worldCatUrl` VARCHAR(100) DEFAULT '';",
 					"ALTER TABLE `library` ADD `worldCatQt` VARCHAR(20) DEFAULT '';",
+					"ALTER TABLE `library` ADD `preferSyndeticsSummary` TINYINT DEFAULT '1';",
 				),
 			),
 			
