@@ -372,6 +372,7 @@ class AJAX extends Action {
 	function GetEnrichmentInfo(){
 		require_once 'Enrichment.php';
 		global $configArray;
+		global $library;
 		$isbn = $_REQUEST['isbn'];
 		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];
@@ -388,7 +389,16 @@ class AJAX extends Action {
 				}
 			}
 		}
-		$interface->assign('showSimilarTitles', $showSimilarTitles);
+		if (isset($library) && $library->showSimilarTitles == 0){
+			$interface->assign('showSimilarTitles', false);
+		}else{
+			$interface->assign('showSimilarTitles', $showSimilarTitles);
+		}
+		if (isset($library) && $library->showSimilarAuthors == 0){
+			$interface->assign('showSimilarAuthors', false);
+		}else{
+			$interface->assign('showSimilarAuthors', true);
+		}
 
 		//Process series data
 		$titles = array();

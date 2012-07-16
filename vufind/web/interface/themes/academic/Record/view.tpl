@@ -403,7 +403,10 @@ function redrawSaveStatus() {literal}{{/literal}
 					<ul>
 						<li><a href="#holdingstab">{translate text="Copies"}</a></li>
 						{if $notes}
-							<li><a href="#notestab">{translate text="Notes"}</a></li>
+							<li><a href="#notestab">{translate text=$notesTabName}</a></li>
+						{/if}
+						{if $internetLinks && $show856LinksAsTab == 1}
+							<li><a href="#linkstab">{translate text="Links"}</a></li>
 						{/if}
 						{if $showAmazonReviews || $showStandardReviews || $showComments}
 							<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
@@ -423,19 +426,28 @@ function redrawSaveStatus() {literal}{{/literal}
 						
 						<div id="prospectorHoldingsPlaceholder"></div>
 					
-						{assign var=marcField value=$marc->getFields('856')}
-						{if $marcField}
-						<h3>{translate text="Internet"}</h3>
-						{foreach from=$marcField item=field name=loop}
-						{if $proxy}
-						<a href="{$proxy}/login?url={$field|getvalue:'u'|escape:"url"}">{if $field|getvalue:'3'}{$field|getvalue:'3'|escape}{elseif $field|getvalue:'z'}{$field|getvalue:'z'|escape}{else}{$field|getvalue:'u'|escape}{/if}</a><br/>
-						{else}
-						<a href="{$field|getvalue:'u'|escape}">{if $field|getvalue:'3'}{$field|getvalue:'3'|escape}{elseif $field|getvalue:'z'}{$field|getvalue:'z'|escape}{else}{$field|getvalue:'u'|escape}{/if}</a><br/>
-						{/if}
-						{/foreach}
+						{if $internetLinks && $show856LinksAsTab == 0}
+							<h3>{translate text="Internet"}</h3>
+							{foreach from=$internetLinks item=internetLink}
+								{if $proxy}
+								<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+								{else}
+								<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+								{/if}
+							{/foreach}
 						{/if}
 						
 					</div>
+					
+					{if $tableOfContents}
+						<div id ="tableofcontentstab">
+							<ul class='notesList'>
+							{foreach from=$tableOfContents item=note}
+								<li>{$note}</li>
+							{/foreach}
+							</ul>
+						</div>
+					{/if}
 					
 					{if $notes}
 						<div id ="notestab">
@@ -447,6 +459,18 @@ function redrawSaveStatus() {literal}{{/literal}
 								<li>{$note}</li>
 							{/foreach}
 							</ul>
+						</div>
+					{/if}
+					
+					{if $internetLinks && $show856LinksAsTab ==1}
+						<div id ="linkstab">
+							{foreach from=$internetLinks item=internetLink}
+							{if $proxy}
+							<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+							{else}
+							<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+							{/if}
+							{/foreach}
 						</div>
 					{/if}
 		

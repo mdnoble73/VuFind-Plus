@@ -1,5 +1,6 @@
+{strip}
 <SimilarAuthors>
-<![CDATA[{if $enrichment.novelist.similarAuthorCount != 0}
+<![CDATA[{if $enrichment.novelist.similarAuthorCount != 0 && $showSimilarAuthors}
   <h4 id="similarAuthorTitle" >Similar Authors</h4>
   {foreach from=$enrichment.novelist.authors item=similarAuthor}
     <div class="sidebarLabel">
@@ -69,3 +70,4 @@
 </ul>
 {/if}]]></SimilarTitles>
 <ShowGoDeeperData>{$showGoDeeper}</ShowGoDeeperData>
+{/strip}

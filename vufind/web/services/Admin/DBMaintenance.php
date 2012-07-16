@@ -191,6 +191,20 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showCopiesLineInHoldingsSummary` TINYINT DEFAULT '1';",
 				),
 			),
+			'library_11' => array(
+				'title' => 'Library 11',
+				'description' => 'Add fields for disabling some Novelist functionality and disabling boosting by number of holdings',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showSimilarAuthors` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `showSimilarTitles` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `showProspectorTitlesAsTab` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `show856LinksAsTab` TINYINT DEFAULT '0';",
+					"ALTER TABLE `library` ADD `applyNumberOfHoldingsBoost` TINYINT DEFAULT '1';",
+					"ALTER TABLE `library` ADD `worldCatUrl` VARCHAR(100) DEFAULT '';",
+					"ALTER TABLE `library` ADD `worldCatQt` VARCHAR(20) DEFAULT '';",
+				),
+			),
 			
 			'location_1' => array(
 				'title' => 'Location 1',

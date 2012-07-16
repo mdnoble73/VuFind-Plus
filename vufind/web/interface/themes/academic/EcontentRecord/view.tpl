@@ -135,6 +135,14 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if} 
 		</div>
 		
+		{if $enablePospectorIntegration == 1}
+			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
+				{* Display in Prospector Sidebar *}
+				<div id="inProspectorPlaceholder"></div>
+			</div>
+		{/if}
+		
+		
 		{if $showTagging == 1}
 			<div class="sidegroup" id="tagsSidegroup">
 				<h4>{translate text="Tags"}</h4>
@@ -209,12 +217,6 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 		{/if}
 		
-		{if $enablePospectorIntegration == 1}
-			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
-				{* Display in Prospector Sidebar *}
-				<div id="inProspectorPlaceholder"></div>
-			</div>
-		{/if}
 		
 		{if $classicId}
 			<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
