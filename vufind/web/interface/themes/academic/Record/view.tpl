@@ -158,7 +158,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if}
 				<div class='requestThisLink' style='display:none'>
-					<a href="{$url}/Record/{$id|escape:"url"}/Hold" class="holdRequest" style="display:inline-block;font-size:11pt;">{translate text="Request This"}</a><br />
+					<a href="{$url}/Record/{$id|escape:"url"}/Hold" class="holdRequest  button" style="display:inline-block;font-size:11pt;margin-top:10px;">{translate text="Request This"}</a><br />
 				</div>
 				
 				{if $showRatings == 1}
