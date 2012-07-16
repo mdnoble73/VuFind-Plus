@@ -35,6 +35,7 @@ function GetEContentProspectorInfo(id) {
 			if (prospectorCopies && prospectorCopies.length > 0) {
 				$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
 			}
+			$("#inProspectorSidegroup").show();
 		}
 	});
 }

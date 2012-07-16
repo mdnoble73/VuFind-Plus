@@ -69,7 +69,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	
 	<div id="sidebar">
 		{if $enablePospectorIntegration == 1}
-			<div class="sidegroup" id="inProspectorPlaceholderSidegroup" style="display:none">
+			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
 				{* Display in Prospector Sidebar *}
 				<div id="inProspectorPlaceholder"></div>
 			</div>
