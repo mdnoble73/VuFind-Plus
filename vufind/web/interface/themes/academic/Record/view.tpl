@@ -151,14 +151,14 @@ function redrawSaveStatus() {literal}{{/literal}
 							<img alt="{translate text='Book Cover'}" class="recordcover" src="{$path}/bookcover.php?isn={$isbn|@formatISBN}&amp;size=medium&amp;upc={$upc}&amp;category={$format_category|escape:"url"}&amp;format={$recordFormat.0|escape:"url"}" />
 						</a>
 						<div id="goDeeperLink" class="godeeper" style="display:none">
-							<a href="{$url}/Record/{$id|escape:"url"}/GoDeeper" onclick="getLightbox('Record', 'GoDeeper', '{$id|escape}', null, '{translate text="Go Deeper"}', undefined, undefined, undefined, '5%', '90%', 50, '85%'); return false;">
+							<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
 								<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png"/>
 							</a>
 						</div>
 					</div>
 				{/if}
 				<div class='requestThisLink' style='display:none'>
-					<a href="{$url}/Record/{$id|escape:"url"}/Hold" class="holdRequest  button" style="display:inline-block;font-size:11pt;margin-top:10px;">{translate text="Request This"}</a><br />
+					<a href="{$url}/Record/{$id|escape:"url"}/Hold" class="holdRequest  button" style="display:inline-block;font-size:11pt;margin-top:15px;">{translate text="Request This"}</a><br />
 				</div>
 				
 				{if $showRatings == 1}
