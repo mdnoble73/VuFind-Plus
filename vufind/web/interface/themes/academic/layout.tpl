@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html lang="{$userLang}">
+<html lang="{$userLang}">{strip}
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=8" />
@@ -10,7 +10,7 @@
 		<script type="text/javascript">
 		path = '{$path}';
 		url = '{$url}';
-		loggedIn = {if $user}true{else}false{/if}
+		loggedIn = {if $user}true{else}false{/if};
 		</script>
 		
 		{css filename="consolidated.min.css"}
@@ -22,6 +22,14 @@
 	</head>
 
 	<body class="{$module} {$action}">
+		{*- Set focus to the correct location by default *}
+		{if $focusElementId}
+		<script type="text/javascript">{literal}
+		jQuery(function (){
+			jQuery('#{/literal}{$focusElementId}{literal}').focus();
+		});{/literal}
+		</script>
+		{/if}
 	 {include file="bookcart.tpl"}
 	
 		<!-- Current Physical Location: {$physicalLocation} -->
@@ -53,38 +61,41 @@
 				</div>
 				{/if}
 				
-				<div id="doc2" class="yui-t4"> {* Change id for page width, class for menu layout. *}
-		
-					{if $useSolr || $useWorldcat || $useSummon}
-					<div id="toptab">
-						<ul>
-							{if $useSolr}
-							<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
-							{/if}
-							{if $useWorldcat}
-							<li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
-							{/if}
-							{if $useSummon}
-							<li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
-							{/if}
-						</ul>
-					</div>
-					<div style="clear: left;"></div>
-					{/if}
-		
-					{include file="$module/$pageTemplate"}
-					
-					{if $hold_message}
-						<script type="text/javascript">
-						lightbox();
-						document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
-						</script>
-					{/if}
-		
-				</div> {* End doc *}
+				{if $useSolr || $useWorldcat || $useSummon}
+				<div id="toptab">
+					<ul>
+						{if $useSolr}
+						<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
+						{/if}
+						{if $useWorldcat}
+						<li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
+						{/if}
+						{if $useSummon}
+						<li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
+						{/if}
+					</ul>
+				</div>
+				<div style="clear: left;"></div>
+				{/if}
+	
+				{include file="$module/$pageTemplate"}
+				
+				{if $hold_message}
+					<script type="text/javascript">
+					lightbox();
+					document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
+					</script>
+				{/if}
+				
+				{if $renew_message}
+					<script type="text/javascript">
+					lightbox();
+					document.getElementById('popupbox').innerHTML = "{$renew_message|escape:"javascript"}";
+					</script>
+				{/if}
 			</div> {* End content span *}
 			
-			<div id="ft">
+				<div id="ft">
 				<div id="ft_contents">
 					{include file="footer.tpl"}
 				</div>
@@ -93,4 +104,4 @@
 		
 		</div> {* End outer_span *}
 	</body>
-</html>
+</html>{/strip}

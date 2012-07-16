@@ -31,7 +31,7 @@
 		});{/literal}
 		</script>
 		{/if}
-	 {include file="bookcart.tpl"}
+		{include file="bookcart.tpl"}
 	
 		<!-- Current Physical Location: {$physicalLocation} -->
 		{* LightBox *}
@@ -46,63 +46,63 @@
 				{include file="header.tpl"}
 				
 				<div id="content_span">
-				{if $showTopSearchBox}
-					<div id='searchbar'>
-					{if $pageTemplate != 'advanced.tpl'}
-						{include file="searchbar.tpl"}
+					{if $showTopSearchBox}
+						<div id='searchbar'>
+						{if $pageTemplate != 'advanced.tpl'}
+							{include file="searchbar.tpl"}
+						{/if}
+						</div>
 					{/if}
+					
+					{if $showBreadcrumbs}
+					<div class="breadcrumbs">
+						<div class="breadcrumbinner">
+							<a href="{$homeBreadcrumbLink}">{translate text="Home"}</a> <span>&gt;</span>
+							{include file="$module/breadcrumbs.tpl"}
+						</div>
 					</div>
-				{/if}
-				
-				{if $showBreadcrumbs}
-				<div class="breadcrumbs">
-					<div class="breadcrumbinner">
-						<a href="{$homeBreadcrumbLink}">{translate text="Home"}</a> <span>&gt;</span>
-						{include file="$module/breadcrumbs.tpl"}
-					</div>
-				</div>
-				{/if}
+					{/if}
 				
 					{if $useSolr || $useWorldcat || $useSummon}
-					<div id="toptab">
-						<ul>
-							{if $useSolr}
-							<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
-							{/if}
-							{if $useWorldcat}
-							<li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
-							{/if}
-							{if $useSummon}
-							<li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
-							{/if}
-						</ul>
-					</div>
-					<div style="clear: left;"></div>
+						<div id="toptab">
+							<ul>
+								{if $useSolr}
+								<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
+								{/if}
+								{if $useWorldcat}
+								<li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
+								{/if}
+								{if $useSummon}
+								<li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
+								{/if}
+							</ul>
+						</div>
+						<div style="clear: left;"></div>
 					{/if}
 		
 					{include file="$module/$pageTemplate"}
-					
+				
 					{if $hold_message}
 						<script type="text/javascript">
 						lightbox();
 						document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
 						</script>
 					{/if}
-					
+				
 					{if $renew_message}
 						<script type="text/javascript">
 						lightbox();
 						document.getElementById('popupbox').innerHTML = "{$renew_message|escape:"javascript"}";
 						</script>
 					{/if}
-					
+				
 					<div id="ft">
 							{include file="footer.tpl"}
 					</div> {* End ft *}
-					
+						
 					<div class="clearer">&nbsp;</div>
 				</div>
-			</div> {* End page body *}
+			</div> {* End outer_span *}
  		</div>
 	</body>
 </html>{/strip}

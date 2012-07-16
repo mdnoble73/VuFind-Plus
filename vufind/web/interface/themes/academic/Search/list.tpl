@@ -4,17 +4,26 @@
 	alert("{$title}");
 </script>
 {/if}
-<div id="bd">
-	<div id="main_content_with_sidebar" class="content">
-		<div class="first">
-		
+<div id="page-content" class="content">
+	{* Narrow Search Options *}
+	<div id="sidebar">
+		{if $sideRecommendations}
+			{foreach from=$sideRecommendations item="recommendations"}
+				{include file=$recommendations}
+			{/foreach}
+		{/if}
+	</div>
+	{* End Narrow Search Options *}
+	
+	<div id="main-content">
+		<div id="searchInfo">
 			{* Recommendations *}
 			{if $topRecommendations}
 				{foreach from=$topRecommendations item="recommendations"}
 					{include file=$recommendations}
 				{/foreach}
 			{/if}
-
+	
 			{* Listing Options *}
 			<div class="resulthead">
 				<div id="searchResultSummary" >
@@ -33,7 +42,7 @@
 					</div>
 					{/if}
 				</div>
-
+	
 				<div class="toggle">
 					{if $recordCount}
 						{translate text='Sort'}
@@ -44,18 +53,18 @@
 						</select>
 					{/if}
 				</div>
-
+	
 				{if $pageLinks.all}<div class="top pagination">{$pageLinks.all}</div>{/if}
 			</div>
 			<div class="clearer"></div>
 			{* End Listing Options *}
-
+	
 			{if $subpage}
 				{include file=$subpage}
 			{else}
 				{$pageContent}
 			{/if}
-
+	
 			{if $prospectorNumTitlesToLoad > 0}
 				<script type="text/javascript">getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
 			{/if}
@@ -71,18 +80,8 @@
 				{if $savedSearch}<a href="{$url}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$url}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
 			</div>
 		</div>
-		{* End Main Listing *}
-		
 	</div>
-
-	{* Narrow Search Options *}
-	<div class="left_sidebar">
-		{if $sideRecommendations}
-			{foreach from=$sideRecommendations item="recommendations"}
-				{include file=$recommendations}
-			{/foreach}
-		{/if}
-	</div>
-	{* End Narrow Search Options *}
-
+	{* End Main Listing *}
+	
 </div>
+

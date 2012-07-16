@@ -512,12 +512,14 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $notes}
 					<li><a href="#notestab">{translate text=$notesTabName}</a></li>
 				{/if}
-				{if $showAmazonReviews || $showStandardReviews}
+				{if $showAmazonReviews || $showStandardReviews || $showComments}
 					{foreach from=$editorialReviews key=key item=reviewTabInfo}
 						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
 					{/foreach}
 				{/if}
-				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{if $showComments}
+					<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
 				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 			</ul>
@@ -564,21 +566,23 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			{foreach from=$editorialReviews key=key item=reviewTabInfo}
 			<div id="{$key}">
-				{if $key == 'reviews'} 
-					<div id = "staffReviewtab" >
-					{include file="$module/view-staff-reviews.tpl"}
-					</div>
-					
-					{if $showAmazonReviews || $showStandardReviews}
-					<h4>Professional Reviews</h4>
-					<div id='reviewPlaceholder'></div>
+				{if $showAmazonReviews || $showStandardReviews || $showComments}
+					{if $key == 'reviews'} 
+						<div id = "staffReviewtab" >
+						{include file="$module/view-staff-reviews.tpl"}
+						</div>
+						
+						<h4>Professional Reviews</h4>
+						<div id='reviewPlaceholder'></div>
 					{/if}
 				{/if}
-				 
-				{foreach from=$reviewTabInfo.reviews item=review}
-					{assign var=review value=$review}
-					{include file="Resource/view-review.tpl"}
-				{/foreach}
+				
+				{if $showComments}
+					{foreach from=$reviewTabInfo.reviews item=review}
+						{assign var=review value=$review}
+						{include file="Resource/view-review.tpl"}
+					{/foreach}
+				{/if}
 			</div>
 			{/foreach}
 			

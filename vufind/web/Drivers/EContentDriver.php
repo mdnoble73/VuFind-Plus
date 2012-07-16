@@ -1019,10 +1019,15 @@ class EContentDriver implements DriverInterface{
 							'text' => 'Access&nbsp;MP3',
 				);
 			}
-		}elseif (in_array($eContentItem->item_type, array('externalLink', 'interactiveBook'))){
+		}elseif (strcasecmp($eContentItem->item_type, 'interactiveBook') == 0){
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
 							'text' => 'Access&nbsp;eBook',
+			);
+		}else{
+			$links[] = array(
+							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
+							'text' => 'Click&nbsp;for&nbsp;Access',
 			);
 		}
 		return $links;

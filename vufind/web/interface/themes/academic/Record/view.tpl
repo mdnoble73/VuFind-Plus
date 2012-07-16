@@ -29,7 +29,7 @@ function redrawSaveStatus() {literal}{{/literal}
 {literal}}{/literal}
 </script>
 
-<div id="bd">
+<div id="page-content" class="content">
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
@@ -67,9 +67,80 @@ function redrawSaveStatus() {literal}{{/literal}
 		</ul>
 	</div>
 	
+	<div id="sidebar">
+		{if $enablePospectorIntegration == 1}
+			<div class="sidegroup" id="inProspectorPlaceholderSidegroup" style="display:none">
+				{* Display in Prospector Sidebar *}
+				<div id="inProspectorPlaceholder"></div>
+			</div>
+		{/if}
+	
+		{if is_array($editions)}
+		<div class="sidegroup">
+			<h4>{translate text="Other Editions"}</h4>
+			<ul class="similar">
+				{foreach from=$editions item=edition}
+				<li>
+					{if is_array($edition.format)}
+						<span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+					{else}
+						<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+					{/if}
+					<a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+					</span>
+					{$edition.edition|escape}
+					{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
+				</li>
+				{/foreach}
+			</ul>
+		</div>
+		{/if}
+	
+		<div id='similarAuthorsSidegroup' class="sidegroup" style='display:none'>
+			<span class="resultValue" id ="similarAuthorPlaceholder"></span>
+		</div>
+	
+		<div id='similarTitles' class="sidegroup" style='display:none'>
+			{* Display either similar tiles from novelist or from the catalog*}
+			<div id="similarTitlePlaceholder" style='display:none'>
+		</div>
+	
+		{if is_array($similarRecords)}
+			<div id="relatedTitles" class="sidegroup">
+				<h4>{translate text="Other Titles"}</h4>
+				<ul class="similar">
+					{foreach from=$similarRecords item=similar}
+					<li>
+						{if is_array($similar.format)}
+							<span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+						{else}
+							<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+						{/if}
+						<a href="{$url}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						</span>
+						<span style="font-size: 80%">
+						{if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
+						</span>
+					</li>
+					{/foreach}
+				</ul>
+			</div>
+		{/if}
+	
+		<div id = "classicViewLink">
+			<a href ="{$classicUrl}/record={$classicId|escape:"url"}" onclick="window.open (this.href, 'child'); return false">Classic View</a>
+		</div>
+		
+		{if $linkToAmazon == 1 && $isbn}
+			<div class="titledetails">
+				<a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink' onclick="window.open (this.href, 'child'); return false"> {translate text = "View on Amazon"}</a>
+			</div>
+		{/if}
+	</div>
+	</div>
 	{if $error}<p class="error">{$error}</p>{/if} 
 				
-	<div id="main_content_with_sidebar" class="content">
+	<div id="main-content" class="full-result-content">
 		<div id = "fullcontent">
 			<div id='fullRecordSummaryAndImage'>
 				<div class="clearer"></div>
@@ -165,7 +236,8 @@ function redrawSaveStatus() {literal}{{/literal}
 					</span>
 				</div>
 				{/if}
-					
+				
+				{if $recordFormat}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Format'}:</span>
 					<span class="resultValue">
@@ -178,6 +250,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/if}
 					</span>
 				</div>
+				{/if}
 					
 				{if $physicalDescriptions}
 				<div class="resultInformation">
@@ -240,8 +313,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 				{/if}
 					
-				<div class="resultInformation" ><span class="resultLabel">{translate text='Call Number'}:</span><span class="resultValue boldedResultValue" id="callNumberValue">Loading...</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue">Loading...</span></div>
+				<div class="resultInformation" ><span class="resultLabel">{translate text='Call Number'}:</span><span class="resultValue boldedResultValue" id="callNumberValue">Loading...</span></div>
 				<div class="resultInformation" id="downloadLink" style="display:none"><span class="resultLabel">{translate text='Download From'}:</span><span class="resultValue" id="downloadLinkValue">Loading...</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue">Loading...</span></div>
 					
@@ -428,72 +501,5 @@ function redrawSaveStatus() {literal}{{/literal}
 	});
 	{/literal}
 	</script> 
-		
-	<div class="left_sidebar">
-		{* Display in Prospector Sidebar *}
-		<div id="inProspectorPlaceholder"></div>
-	</div>
-	
-	{if is_array($editions)}
-	<div class="left_sidebar">
-		<h4>{translate text="Other Editions"}</h4>
-		<ul class="similar">
-			{foreach from=$editions item=edition}
-			<li>
-				{if is_array($edition.format)}
-					<span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-				{else}
-					<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-				{/if}
-				<a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-				</span>
-				{$edition.edition|escape}
-				{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
-			</li>
-			{/foreach}
-		</ul>
-	</div>
-	{/if}
-	
-	<div id='similarAuthorsSidegroup' class="left_sidebar" style='display:none'>
-		<span class="resultValue" id ="similarAuthorPlaceholder"></span>
-	</div>
-	
-	<div id='similarTitles' class="left_sidebar" style='display:none'>
-	{* Display either similar tiles from novelist or from the catalog*}
-	<div id="similarTitlePlaceholder" style='display:none'></div>
-	
-	{if is_array($similarRecords)}
-	<div id="relatedTitles">
-		<h4>{translate text="Other Titles"}</h4>
-		<ul class="similar">
-			{foreach from=$similarRecords item=similar}
-			<li>
-				{if is_array($similar.format)}
-					<span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-				{else}
-					<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-				{/if}
-				<a href="{$url}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-				</span>
-				<span style="font-size: 80%">
-				{if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
-				</span>
-			</li>
-			{/foreach}
-		</ul>
-		</div>
-		{/if}
-	</div>
-	
-	<div id = "classicViewLink">
-		<a href ="{$classicUrl}/record={$classicId|escape:"url"}" onclick="window.open (this.href, 'child'); return false">Classic View</a>
-	</div>
-	
-	{if $linkToAmazon == 1 && $isbn}
-		<div class="titledetails">
-			<a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink' onclick="window.open (this.href, 'child'); return false"> {translate text = "View on Amazon"}</a>
-		</div>
-	{/if}
 </div>
 {/strip}

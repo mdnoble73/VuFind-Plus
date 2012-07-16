@@ -59,8 +59,8 @@
 				{if $summPhysical}
 				<div class="resultInformation"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
 				{/if}
+				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue{$summShortId|escape}">Loading...</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Call Number'}:</span><span class="resultValue callNumber" id="callNumberValue{$summShortId|escape}">Loading...</span></div>
-				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue" id="locationValue{$summShortId|escape}">Loading...</span></div>
 				<div class="resultInformation" id="downloadLink{$summShortId|escape}" style="display:none"><span class="resultLabel">{translate text='Download From'}:</span><span class="resultValue" id="downloadLinkValue{$summShortId|escape}">Loading...</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue{$summShortId|escape}">Loading...</span></div>
 						

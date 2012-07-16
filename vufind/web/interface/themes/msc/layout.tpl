@@ -4,7 +4,8 @@
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=8" />
 		<title>{$pageTitle|truncate:64:"..."}</title>
-		{css filename="consolidated.min.css"}
+		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
+    {css filename="consolidated.min.css"}
 		{if $addHeader}{$addHeader}{/if}
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" />
 		<script type="text/javascript">

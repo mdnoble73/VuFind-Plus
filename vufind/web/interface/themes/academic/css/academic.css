@@ -81,12 +81,14 @@ div#ft_contents {
 	width: 170px;
 }
 
-#main_content_with_sidebar {
-	width: 755px;
+#main_content_with_sidebar, #main-content {
+	width: 725px;
 	border: thin solid #B0B0B0;
 	background-color: white;
 	margin: 15px 0px 15px 0px;
 	float: right;
+	border-radius: 0px;
+	margin-top: 15px;
 }
 
 #searchResultSummary {
@@ -104,10 +106,11 @@ div#ft_contents {
 }
 
 .resultLabel {
-	width: 100px;
+	width: 110px;
 	color: graytext;
 	display: inline-block;
 	vertical-align: top;
+	font-weight: bold;
 }
 
 .resultValue {
@@ -121,6 +124,7 @@ div#ft_contents {
 
 .resultInformation {
 	margin-top: 3px;
+	padding-top: 0px;
 }
 
 .listResultImage {
@@ -215,9 +219,13 @@ td {
 #prospectorAvailabilityTitle {
 	font-size: 110%;
 }
-
-#main-content {
-	width: 696px;
+#sidebar{
+	width: 170px;
+}
+.sidegroup{
+	margin-top: 15px;
+	border: thin solid #B0B0B0;
+	width: 170px;
 }
 
 .callNumber {
@@ -227,9 +235,9 @@ td {
 .result.alt {
 	background-color: #ECEAE8;
 }
-
-.sidegroup {
-	border: 0px solid black;
+.full-result-content{
+	border: thin solid #B0B0B0;
+	width: 726px;
 }
 
 .searchcontent {
