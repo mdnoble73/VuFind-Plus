@@ -365,132 +365,131 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 					
 				{if $showTagging == 1}
-				<div id="tagdetail">
-					<table>
-					<tr valign="top">
-							<th>{translate text='Tags'}: </th>
-							<td>
-								<span style="float:right;">
-									<a href="{$url}/Record/{$id|escape:"url"}/AddTag" class="tool add"
-											onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
-								</span>
-								<div id="tagList">
-									{if $tagList}
-										{foreach from=$tagList item=tag name=tagLoop}
-											<a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
-											{if $tag->userAddedThis}
-											<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
-												<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">
-											</a>
-											{/if} 
-											{if !$smarty.foreach.tagLoop.last}, {/if}
-										{/foreach}
-									{else}
-										{translate text='No Tags'}, {translate text='Be the first to tag this record'}!
-									{/if}
-								</div>
-							</td>
-						</tr>
+					<div id="tagdetail">
+						<table>
+							<tr valign="top">
+								<th>{translate text='Tags'}: </th>
+								<td>
+									<span style="float:right;">
+										<a href="{$url}/Record/{$id|escape:"url"}/AddTag" class="tool add"
+												onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
+									</span>
+									<div id="tagList">
+										{if $tagList}
+											{foreach from=$tagList item=tag name=tagLoop}
+												<a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
+												{if $tag->userAddedThis}
+												<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
+													<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">
+												</a>
+												{/if} 
+												{if !$smarty.foreach.tagLoop.last}, {/if}
+											{/foreach}
+										{else}
+											{translate text='No Tags'}, {translate text='Be the first to tag this record'}!
+										{/if}
+									</div>
+								</td>
+							</tr>
 						</table>
-						</div>
-						{/if}
-						</div>
-						
-						<div>
-				
-				
-				
-		<div class="clearer">&nbsp;</div>
-			<div id="seriesPlaceholder"></div>
-			<div id="moredetails-tabs">
-			{* Define tabs for the display *}
-			<ul>
-				<li><a href="#holdingstab">{translate text="Copies"}</a></li>
-				{if $notes}
-					<li><a href="#notestab">{translate text="Notes"}</a></li>
-				{/if}
-				{if $showAmazonReviews || $showStandardReviews || $showComments}
-					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
-				{/if}
-				{if $showComments}
-					<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
-				{/if}
-				<li><a href="#citetab">{translate text="Citation"}</a></li>
-				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
-			</ul>
-						
-						{if $notes}
-						<div id ="notestab">
-						{if !$tabbedDetails}
-						<div class = "blockhead">{translate text='Notes'}</div>
-						{/if}
-						<ul class='notesList'>
-						{foreach from=$notes item=note}
-							<li>{$note}</li>
-						{/foreach}
-						</ul>
-						</div>
-						{/if}
-
-			{if $showAmazonReviews || $showStandardReviews || $showComments}
-				<div id="reviewtab">
-					{if $showComments}
-					<div id = "staffReviewtab" >
-					{include file="$module/view-staff-reviews.tpl"}
 					</div>
-					{/if}
+				{/if}
+			</div>
+			<div>
+				<div class="clearer">&nbsp;</div>
+				<div id="seriesPlaceholder"></div>
+				<div id="moredetails-tabs">
+					{* Define tabs for the display *}
+					<ul>
+						<li><a href="#holdingstab">{translate text="Copies"}</a></li>
+						{if $notes}
+							<li><a href="#notestab">{translate text="Notes"}</a></li>
+						{/if}
+						{if $showAmazonReviews || $showStandardReviews || $showComments}
+							<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+						{/if}
+						{if $showComments}
+							<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+						{/if}
+						<li><a href="#citetab">{translate text="Citation"}</a></li>
+						<li><a href="#stafftab">{translate text="Staff View"}</a></li>
+					</ul>
+					
+					<div id = "holdingstab" >
+						<a name = "holdings"></a>
+						{if !$tabbedDetails}<div class = "blockhead">{translate text='Holdings'}</div>{/if}
 						
-					{if $showAmazonReviews || $showStandardReviews}
-					<h4>Professional Reviews</h4>
-					<div id='reviewPlaceholder'></div>
-					{/if}
-				</div>
-			{/if}
-								
-						{if $showComments == 1}
-							<div id = "readertab" >
-								<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
-								<div id="userreview{$shortId}" class="userreview">
-									<span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
-									<div class='addReviewTitle'>Add your Review</div>
-									{assign var=id value=$id}
-									{include file="$module/submit-comments.tpl"}
-								</div>
-								{include file="$module/view-comments.tpl"}
-							</div>
+						<div id="holdingsPlaceholder"></div>
+						
+						<div id="prospectorHoldingsPlaceholder"></div>
+					
+						{assign var=marcField value=$marc->getFields('856')}
+						{if $marcField}
+						<h3>{translate text="Internet"}</h3>
+						{foreach from=$marcField item=field name=loop}
+						{if $proxy}
+						<a href="{$proxy}/login?url={$field|getvalue:'u'|escape:"url"}">{if $field|getvalue:'3'}{$field|getvalue:'3'|escape}{elseif $field|getvalue:'z'}{$field|getvalue:'z'|escape}{else}{$field|getvalue:'u'|escape}{/if}</a><br/>
+						{else}
+						<a href="{$field|getvalue:'u'|escape}">{if $field|getvalue:'3'}{$field|getvalue:'3'|escape}{elseif $field|getvalue:'z'}{$field|getvalue:'z'|escape}{else}{$field|getvalue:'u'|escape}{/if}</a><br/>
+						{/if}
+						{/foreach}
 						{/if}
 						
-						{if $tabbedDetails}
+					</div>
+					
+					{if $notes}
+						<div id ="notestab">
+							{if !$tabbedDetails}
+							<div class = "blockhead">{translate text='Notes'}</div>
+							{/if}
+							<ul class='notesList'>
+							{foreach from=$notes item=note}
+								<li>{$note}</li>
+							{/foreach}
+							</ul>
+						</div>
+					{/if}
+		
+					{if $showAmazonReviews || $showStandardReviews || $showComments}
+						<div id="reviewtab">
+							{if $showComments}
+							<div id = "staffReviewtab" >
+							{include file="$module/view-staff-reviews.tpl"}
+							</div>
+							{/if}
+								
+							{if $showAmazonReviews || $showStandardReviews}
+							<h4>Professional Reviews</h4>
+							<div id='reviewPlaceholder'></div>
+							{/if}
+						</div>
+					{/if}
+										
+					{if $showComments == 1}
+						<div id = "readertab" >
+							<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
+							<div id="userreview{$shortId}" class="userreview">
+								<span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
+								<div class='addReviewTitle'>Add your Review</div>
+								{assign var=id value=$id}
+								{include file="$module/submit-comments.tpl"}
+							</div>
+							{include file="$module/view-comments.tpl"}
+						</div>
+					{/if}
+					
+					{if $tabbedDetails}
 						<div id = "citetab">
-						{if !$tabbedDetails}<div class = "blockhead">Citation </div>{/if}
+							{if !$tabbedDetails}<div class = "blockhead">Citation </div>{/if}
 							{include file="$module/cite.tpl"}
 						</div>
-						{/if}
-						
-						<div id = "holdingstab" >
-							<a name = "holdings"></a>
-							{if !$tabbedDetails}<div class = "blockhead">{translate text='Holdings'}</div>{/if}
-						
-							{assign var=marcField value=$marc->getFields('856')}
-							{if $marcField}
-							<h3>{translate text="Internet"}</h3>
-							{foreach from=$marcField item=field name=loop}
-							{if $proxy}
-							<a href="{$proxy}/login?url={$field|getvalue:'u'|escape:"url"}">{if $field|getvalue:'3'}{$field|getvalue:'3'|escape}{elseif $field|getvalue:'z'}{$field|getvalue:'z'|escape}{else}{$field|getvalue:'u'|escape}{/if}</a><br/>
-							{else}
-							<a href="{$field|getvalue:'u'|escape}">{if $field|getvalue:'3'}{$field|getvalue:'3'|escape}{elseif $field|getvalue:'z'}{$field|getvalue:'z'|escape}{else}{$field|getvalue:'u'|escape}{/if}</a><br/>
-							{/if}
-							{/foreach}
-							{/if}
-							<div id="holdingsPlaceholder"></div>
-							<div id="prospectorHoldingsPlaceholder"></div>
-						</div>
-						
-						<div id = "stafftab">
-							{include file=$staffDetails}
-						</div>
+					{/if}
+								
+					<div id = "stafftab">
+						{include file=$staffDetails}
 					</div>
 				</div>
+			</div>
 		</div>
 	</div>
 		
