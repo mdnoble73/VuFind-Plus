@@ -364,7 +364,7 @@ class Record extends Action
 			$notes = $this->processNoteFields($allFields);
 		}
 		
-		if (isset($library) && $library->showTableOfContentsTab == 0){
+		if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
 			$notes = array_merge($notes, $tableOfContents);
 		}else{
 			$interface->assign('tableOfContents', $tableOfContents);
