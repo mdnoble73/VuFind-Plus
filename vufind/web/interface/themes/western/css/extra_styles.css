@@ -62,3 +62,13 @@ div.breadcrumbs span{
 .searchheader a:hover{
 	color: #222;
 }
+#ft {
+	background-color: #2B627F;
+	color: #CC9933;
+}
+#ft a, #ft a:visited{
+	color: #A0A0A0;
+}
+#ft a:hover{
+	color: #CC9933;
+}

@@ -236,15 +236,24 @@ ul.menu li{
 }
 #ft {
 	padding:10px 25px;
-	margin:0 0 25px 0;
+	margin:0 auto 0px;
 	font-size:90%;
 }
-#ft div {
-	float:left;
+#ft div.footerCol {
 	border-right: 1px dotted #cccccc;
 	margin-right:1em;
 	padding: 0 2em 1em 0;
 	width:12em;
+	vertical-align:top;
+	display: inline-block;
+	zoom: 1;
+	*display: inline;
+}
+.footer_end{
+	float:none;
+	width: 100% !important;
+	text-align: center;
+	padding-top: 10px;
 }
 .result {
 	border-bottom: 1px solid #eee;

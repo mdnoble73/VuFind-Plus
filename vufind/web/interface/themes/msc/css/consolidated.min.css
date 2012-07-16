@@ -82,7 +82,7 @@ ul{display:inline;height:23px}.toolbar ul
 li{float:left;margin-left:.5em}ul.menu{display:none;margin-top:10px;border-right:1px solid #ccc;border-left:1px solid #ccc;position:absolute;background:white;height:auto}ul.menu
 li{border-bottom:1px solid #ccc;padding:5px;clear:left;position:block;width:100px;text-align:left;background:white;margin:0px}#ft{padding:10px
 25px;margin:0
-0 25px 0;font-size:90%}#ft
+auto 10px auto;font-size:90%}#ft
 div{float:left;border-right:1px dotted #ccc;margin-right:1em;padding:0
 2em 1em 0;width:12em}.result{border-bottom:1px solid #eee;padding:10px
 5px	15px 5px}div.record{padding:0

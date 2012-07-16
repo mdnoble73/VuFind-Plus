@@ -1,5 +1,5 @@
 {* Your footer *}
-<div><p><strong>{translate text='Featured Items'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
@@ -8,7 +8,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Week"'>{translate text='New This Week'}</a></li>
 	</ul>
 </div>
-<div><p><strong>{translate text='Search Options'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
 	<ul>
 		{if $user}
 		<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
@@ -16,7 +16,7 @@
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
 	</ul>
 </div>
-<div><p><strong>{translate text='Find More'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
 		<li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
 		<!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li>
@@ -24,7 +24,7 @@
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" >{translate text='Download Books &amp; More'}</a></li>
 	</ul>
 </div>
-<div><p><strong>{translate text='Need Help?'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
 	<ul>
 		<li><a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
 		
