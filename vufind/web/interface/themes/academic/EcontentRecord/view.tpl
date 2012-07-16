@@ -135,14 +135,6 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if} 
 		</div>
 		
-		{if $enablePospectorIntegration == 1}
-			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
-				{* Display in Prospector Sidebar *}
-				<div id="inProspectorPlaceholder"></div>
-			</div>
-		{/if}
-		
-		
 		{if $showTagging == 1}
 			<div class="sidegroup" id="tagsSidegroup">
 				<h4>{translate text="Tags"}</h4>
@@ -217,6 +209,12 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 		{/if}
 		
+		{if $enablePospectorIntegration == 1}
+			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
+				{* Display in Prospector Sidebar *}
+				<div id="inProspectorPlaceholder"></div>
+			</div>
+		{/if}
 		
 		{if $classicId}
 			<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
@@ -320,19 +318,21 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			{/if}
 					
+			
 			{if $showRatings}
-			<div id="myrating" class="stat">
-				<div class="statVal">
-				<div class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
-					</div>
+				<div id="myrating" class="stat">
+					<div class="statVal">
+						<div class="ui-rater">
+							<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
+						</div>
 					</div>
 					<script type="text/javascript">
 					$(function() {literal} { {/literal}
-								 $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-						 {literal} } {/literal});
+							$('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+					{literal} } {/literal});
 					</script>
-			</div>
+				</div>
+			{/if}
 			
 		</div> {* End image column *}
 		
