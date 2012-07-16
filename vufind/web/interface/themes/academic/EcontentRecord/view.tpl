@@ -320,20 +320,18 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			{/if}
 					
-				
+			{if $showRatings}
 			<div id="myrating" class="stat">
-			<div class="statVal">
-			<div class="ui-rater">
-				<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
-				</div>
-				</div>
-				<script type="text/javascript">
-				$(
-				 function() {literal} { {/literal}
-						 $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-				 {literal} } {/literal}
-			);
-				</script>
+				<div class="statVal">
+				<div class="ui-rater">
+					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
+					</div>
+					</div>
+					<script type="text/javascript">
+					$(function() {literal} { {/literal}
+								 $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+						 {literal} } {/literal});
+					</script>
 			</div>
 			
 		</div> {* End image column *}
