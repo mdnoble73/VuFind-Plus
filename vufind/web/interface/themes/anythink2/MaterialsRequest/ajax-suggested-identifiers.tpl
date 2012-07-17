@@ -29,9 +29,20 @@
             <a href="#" onclick="{literal}${/literal}('.full', '#worldCatDescription{$rownum}').hide();{literal}${/literal}('.short', '#worldCatDescription{$rownum}').show();return false;">Less</a>
             </div>
           </div>
-          <div class="fine-print worldCatCitaion"><strong>{translate text="Citation"}</strong>&nbsp;&nbsp;{$suggestion.citation}</div>
-          <div class="fine-print"><strong>{translate text="ISBN"}</strong>&nbsp;&nbsp;{$suggestion.isbn}</div>
-          <div class="fine-print"><strong>{translate text="OCLC"}</strong>&nbsp;&nbsp;{$suggestion.oclcNumber}</div>
+          <table class="worldcat-details">
+            <tr class="fine-print">
+              <td><strong>{translate text="Citation"}</strong></td>
+              <td>{$suggestion.citation}</td>
+            </tr>
+            <tr class="fine-print">
+              <td><strong>{translate text="ISBN"}</strong></td>
+              <td>{$suggestion.isbn}</td>
+            </tr>
+            <tr class="fine-print">
+              <td><strong>{translate text="OCLC"}</strong></td>
+              <td>{$suggestion.oclcNumber}</td>
+            </tr>
+          </table>
         </div>
       </div>
       {/foreach}

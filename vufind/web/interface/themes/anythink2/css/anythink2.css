@@ -1717,3 +1717,13 @@ div.popupBox ul li a {
 #survey-close:hover .text {
   display: inline-block;
 }
+
+.worldcat-details td {
+  padding-right: 1em;
+}
+
+.worldcat-details p {
+  margin: 0;
+  padding: 0;
+}
+
