@@ -33,10 +33,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
-				<li><a href="{$url}/Record/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
-			{/if}
-			{if !$tabbedDetails}
-				<li><a href="{$url}/Record/{$id|escape:"url"}/Cite" class="cite" onclick="getLightbox('Record', 'Cite', '{$id|escape}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li>
+				<li><a href="{$url}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
 				<li><a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
@@ -62,7 +59,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			<li id="HoldingsLink"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
 			{if isset($nextId)}
-				<li><a href="{$url}/Record/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
+				<li><a href="{$url}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
 			{/if}
 		</ul>
 	</div>
@@ -75,7 +72,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 		{/if}
 	
-		{if is_array($editions)}
+		{if is_array($editions) && !$showOtherEditionsPopup}
 		<div class="sidegroup">
 			<h4>{translate text="Other Editions"}</h4>
 			<ul class="similar">
@@ -162,32 +159,32 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 				
 				{if $showRatings == 1}
-				<div id="ratingSummary">
-					<span class="ratingHead">Patron Rating</span><br /><br />
-					<div id="rate{$noDot}" class="stat">
-						<div class="statVal">
-							<span class="ui-rater">
-								<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
-								<span class="ui-rater-rating">{$ratingData.average|string_format:"%.2f"}</span>&#160;(<span class="ui-rater-rateCount">{$ratingData.count}</span>)
-							</span>
+					<div id="ratingSummary">
+						<span class="ratingHead">Patron Rating</span><br /><br />
+						<div id="rate{$noDot}" class="stat">
+							<div class="statVal">
+								<span class="ui-rater">
+									<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
+									<span class="ui-rater-rating">{$ratingData.average|string_format:"%.2f"}</span>&#160;(<span class="ui-rater-rateCount">{$ratingData.count}</span>)
+								</span>
+							</div>
+							<script type="text/javascript">
+							$(
+								function() {literal} { {/literal}
+										$('#rate{$noDot}').rater({literal}{ {/literal} rating:'{$ratingData.average}', postHref: '{$url}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+								{literal} } {/literal}
+							);
+							</script>
 						</div>
-						<script type="text/javascript">
-						$(
-							function() {literal} { {/literal}
-									$('#rate{$noDot}').rater({literal}{ {/literal} rating:'{$ratingData.average}', postHref: '{$url}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-							{literal} } {/literal}
-						);
-						</script>
+						{*
+						<span class="smallText">Average Patron Rating</span><br />
+						{$ratingData.count} ratings<br />
+						<img src="{$url}/{$ratingData.summaryGraph}" alt='Ratings Summary'> 
+						*}
+						<br />
+						<br />
 					</div>
-					{*
-					<span class="smallText">Average Patron Rating</span><br />
-					{$ratingData.count} ratings<br />
-					<img src="{$url}/{$ratingData.summaryGraph}" alt='Ratings Summary'> 
-					*}
-					<br />
-					<br />
-				</div>
-							{/if}{* Ratings *}
+				{/if}{* Ratings *}
 			</div>
 			<div id='fullRecordTitleDetails'>	
 				{* Display Title *}
@@ -197,7 +194,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $mainAuthor}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Main Author'}:</span>
-					<span class="resultValue"><a href="{$url}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
+					<span class="resultValue"><a href="{$url}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$mainAuthor|escape}</a></span>
 				</div>
 				{/if}
 				

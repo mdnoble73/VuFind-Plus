@@ -102,14 +102,14 @@ function redrawSaveStatus() {literal}{{/literal}
 			{if count($seriesList) > 0}
 				<div class="sidebarLabel">{translate text='Series'}:</div>
 				{foreach from=$seriesList item=seriesListItem name=loop}
-					<div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;type=Series">{$seriesListItem|escape}</a></div>
+					<div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;basicType=Series">{$seriesListItem|escape}</a></div>
 				{/foreach}
 			{/if} 
 			
 			{if count($topicList) > 0}
 				<div class="sidebarLabel">{translate text='Topic'}:</div>
 				{foreach from=$topicList item=topicListItem name=loop}
-					<div class="sidebarValue">{$topicListItem|escape}</div>
+					<div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$topicListItem|escape:"url"}%22&amp;basicType=Subject">{$topicListItem|escape}</a></div>
 				{/foreach}
 			{/if}
 
