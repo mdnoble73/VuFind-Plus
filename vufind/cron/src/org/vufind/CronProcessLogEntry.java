@@ -53,7 +53,9 @@ public class CronProcessLogEntry {
 		return notes;
 	}
 	public void addNote(String note) {
-		this.notes.add(note);
+		if (this.notes.size() < 5000){
+			this.notes.add(note);
+		}
 	}
 	
 	public String getNotesHtml() {

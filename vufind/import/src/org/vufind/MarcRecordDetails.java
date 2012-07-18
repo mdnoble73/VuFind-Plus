@@ -89,7 +89,6 @@ public class MarcRecordDetails {
 	 */
 	private boolean mapRecord(String source) {
 		if (allFieldsMapped) return true;
-		//logger.debug("Mapping record " + getId() + " " + source);
 		allFieldsMapped = true;
 
 		// Map all fields for the record
@@ -97,7 +96,6 @@ public class MarcRecordDetails {
 			String fieldVal[] = marcProcessor.getMarcFieldProps().get(fieldName);
 			mapField(fieldName, fieldVal);
 		}
-
 		return true;
 	}
 
@@ -659,12 +657,14 @@ public class MarcRecordDetails {
 						}
 					}
 					if (buffer.length() > 0) resultSet.add(buffer.toString());
-				} else {
+				} else if (subfldsStr.length() == 1){
 					// get all instances of the single subfield
 					List<Subfield> subFlds = dfield.getSubfields(subfldsStr.charAt(0));
 					for (Subfield sf : subFlds) {
 						resultSet.add(sf.getData().trim());
 					}
+				} else {
+					logger.warn("No subfield provided when getting getSubfieldDataAsSet for " + fldTag);
 				}
 			} else {
 				// Control Field
@@ -1207,6 +1207,9 @@ public class MarcRecordDetails {
 			Subfield f = iter.next();
 			char code = f.getCode();
 			if (code == 'a' || code == 'b' || code == 'k') {
+				if (titleBuilder.length() > 0){
+					titleBuilder.append(" ");
+				}
 				titleBuilder.append(f.getData());
 			}
 		}
@@ -1805,8 +1808,12 @@ public class MarcRecordDetails {
 		return result;
 	}
 
+	Set<LocalCallNumber> localCallnumbers = null;
 	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield) {
-		Set<LocalCallNumber> localCallnumbers = new HashSet<LocalCallNumber>();
+		if (localCallnumbers != null){
+			return localCallnumbers;
+		}
+		localCallnumbers = new HashSet<LocalCallNumber>();
 		@SuppressWarnings("unchecked")
 		List<DataField> itemFields = record.getVariableFields(itemTag);
 		Iterator<DataField> itemFieldIterator = itemFields.iterator();
@@ -1819,7 +1826,10 @@ public class MarcRecordDetails {
 			if (callNumber != null && location != null) {
 				String callNumberData = callNumber.getData();
 				callNumberData = callNumberData.replaceAll("~", " ");
-				LocalCallNumber localCallNumber = new LocalCallNumber(location.getData(), callNumberData);
+				String locationCode = location.getData();
+				long locationId = getLocationIdForLocation(locationCode);
+				long libraryId = getLibrarySystemIdForLocation(locationCode);
+				LocalCallNumber localCallNumber = new LocalCallNumber(locationId, libraryId, callNumberData);
 				localCallnumbers.add(localCallNumber);
 			}
 		}
@@ -1827,7 +1837,7 @@ public class MarcRecordDetails {
 	}
 
 	private Set<String>	locationCodes;
-
+	private static Pattern locationExtractionPattern = null;
 	public Set<String> getLocationCodes(String locationSpecifier, String locationSpecifier2) {
 		if (locationCodes != null) {
 			return locationCodes;
@@ -1840,8 +1850,10 @@ public class MarcRecordDetails {
 		while (iter.hasNext()) {
 			String curLocationCode = iter.next();
 			try {
-				Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
-				Matcher RegexMatcher = Regex.matcher(curLocationCode);
+				if (locationExtractionPattern == null){
+					locationExtractionPattern = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
+				}
+				Matcher RegexMatcher = locationExtractionPattern.matcher(curLocationCode);
 				if (RegexMatcher.find()) {
 					curLocationCode = RegexMatcher.group(1);
 				}
@@ -1859,8 +1871,10 @@ public class MarcRecordDetails {
 				String curLocationCode = iter2.next();
 				if (curLocationCode.length() >= 2) {
 					try {
-						Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
-						Matcher RegexMatcher = Regex.matcher(curLocationCode);
+						if (locationExtractionPattern == null){
+							locationExtractionPattern = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
+						}
+						Matcher RegexMatcher = locationExtractionPattern.matcher(curLocationCode);
 						if (RegexMatcher.find()) {
 							curLocationCode = RegexMatcher.group(1);
 						}
@@ -1875,6 +1889,12 @@ public class MarcRecordDetails {
 		return locationCodes;
 	}
 
+	static Pattern steamboatJuvenileCodes = Pattern.compile("^(ssbj[aejlnpuvkbrm]|ssbyl|ssc.*|sst.*)$");
+	static Pattern evldJuvenileCodes = Pattern.compile("^(evabd|evaj|evajs|evebd|evej|evejs|evgbd|evgj|evgjs|evj|evajn|evejn|evgjn)$");
+	static Pattern mcpldJuvenileCodes = Pattern.compile("^(mpbj|mpcj|mpdj|mpfj|mpgj|mpmj|mpmja|mpmjm|mpmjn|mpoj|mppj|mpcja|mpfja|mppja|mpbja|mpdja|mpoja|mpgja)$");
+	static Pattern mcvsdelemCodes = Pattern.compile("^(mvap.*|mvbw.*|mvch.*|mvcl.*|mvco.*|mvcp.*|mvcs|mvdi.*|mvdr.*|mvem.*|mvfv.*|mvgp.*|mvlm.*|mvlo.*|mvlp.*|mvmv.*|mvni.*|mvoa.*|mvpo.*|mvpp.*|mvrm.*|mvrr.*|mvsc.*|mvsh.*|mvta.*|mvtm.*|mvto.*|mvwi.*)$");
+	static Pattern pitkinJuvenileCodes = Pattern.compile("^(pcjv)$");
+	static Pattern gcJuvenileCodes = Pattern.compile("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$");
 	private void addLocationCode(String locationCode, Set<String> locationCodes) {
 		locationCode = locationCode.trim();
 		for (String existingCode : locationCodes) {
@@ -1886,18 +1906,17 @@ public class MarcRecordDetails {
 		locationCodes.add(locationCode);
 		// Deal with special case collections which are treated as a branches, but
 		// are really a collection that crosses multiple branches.
-		if (locationCode.matches("^(ssbj[aejlnpuvkbrm]|ssbyl|ssc.*|sst.*)$")) {
+		if (steamboatJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("steamjuv");
-		} else if (locationCode.matches("^(evabd|evaj|evajs|evebd|evej|evejs|evgbd|evgj|evgjs|evj|evajn|evejn|evgjn)$")) {
+		} else if (evldJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("evldjuv");
-		} else if (locationCode.matches("^(mpbj|mpcj|mpdj|mpfj|mpgj|mpmj|mpmja|mpmjm|mpmjn|mpoj|mppj|mpcja|mpfja|mppja|mpbja|mpdja|mpoja|mpgja)$")) {
+		} else if (mcpldJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("mesajuv");
-		} else if (locationCode
-				.matches("^(mvap.*|mvbw.*|mvch.*|mvcl.*|mvco.*|mvcp.*|mvcs|mvdi.*|mvdr.*|mvem.*|mvfv.*|mvgp.*|mvlm.*|mvlo.*|mvlp.*|mvmv.*|mvni.*|mvoa.*|mvpo.*|mvpp.*|mvrm.*|mvrr.*|mvsc.*|mvsh.*|mvta.*|mvtm.*|mvto.*|mvwi.*)$")) {
+		} else if (mcvsdelemCodes.matcher(locationCode).matches()) {
 			locationCodes.add("mcvsdelem");
-		} else if (locationCode.matches("^(pcjv)$")) {
+		} else if (pitkinJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("pitkinjuv");
-		} else if (locationCode.matches("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$")) {
+		} else if (gcJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("gcjuv");
 		}
 	}
@@ -1927,6 +1946,7 @@ public class MarcRecordDetails {
 		}
 	}
 
+	static HashMap<String, Pattern> activeLocationPatterns = new HashMap<String, Pattern>();
 	public String getLocationBoost(String locationSpecifier, String locationSpecifier2, String activeLocation) {
 		Set<String> locationCodes = getLocationCodes(locationSpecifier, locationSpecifier2);
 
@@ -1937,8 +1957,11 @@ public class MarcRecordDetails {
 
 		boolean FoundMatch = false;
 		try {
-			Pattern Regex = Pattern.compile("(?:\\(\\d+\\))?(" + activeLocation + ".*?)(\\s|$)");
-			Matcher RegexMatcher = Regex.matcher(branchString);
+			if (!activeLocationPatterns.containsKey(activeLocation)){
+				activeLocationPatterns.put(activeLocation, Pattern.compile("(?:\\(\\d+\\))?(" + activeLocation + ".*?)(\\s|$)"));
+			}
+			Pattern activeLocationPattern = activeLocationPatterns.get(activeLocation);
+			Matcher RegexMatcher = activeLocationPattern.matcher(branchString);
 			FoundMatch = RegexMatcher.find();
 		} catch (PatternSyntaxException ex) {
 			// Syntax error in the regular expression
@@ -2588,8 +2611,8 @@ public class MarcRecordDetails {
 		result.add(getTimeSinceAddedForDate(curDate));
 	}
 
-	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
-			String branchCodes) {
+	static HashMap<String, Pattern> libraryRelativeTimeAddedBranchPatterns = new HashMap<String, Pattern>();
+	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem, String branchCodes) {
 		// System.out.println("Branch Codes for " + activeSystem + " are " +
 		// branchCodes);
 		Set<String> result = new LinkedHashSet<String>();
@@ -2610,7 +2633,10 @@ public class MarcRecordDetails {
 					String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
 					// System.out.println("Testing branch code (" + branchCode + ") for " +
 					// activeSystem);
-					if (branchCode.matches(branchCodes)) {
+					if (!libraryRelativeTimeAddedBranchPatterns.containsKey(branchCodes)){
+						libraryRelativeTimeAddedBranchPatterns.put(branchCodes, Pattern.compile(branchCodes));
+					}
+					if (libraryRelativeTimeAddedBranchPatterns.get(branchCodes).matcher(branchCode).matches()) {
 						// System.out.println("Testing branch code (" + branchCode + ") for "
 						// + activeSystem);
 						if (curField.getSubfield(dateChar) != null){
@@ -2881,7 +2907,7 @@ public class MarcRecordDetails {
 	 */
 	public boolean isEContent() {
 		if (isEContent == null) {
-			logger.debug("Checking if record is eContent");
+			//logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
@@ -2905,7 +2931,7 @@ public class MarcRecordDetails {
 					}
 				}
 			}
-			logger.debug("Finished checking detection settings");
+			/*logger.debug("Finished checking detection settings");
 
 			if (!isEContent) {
 				String ilsId = this.getId();
@@ -2913,8 +2939,8 @@ public class MarcRecordDetails {
 					//logger.info("Suppressing because there is an eContent record for " + ilsId);
 					isEContent = true;
 				}
-			}
-			logger.debug("Finished checking if record is eContent");
+			}*/
+			//logger.debug("Finished checking if record is eContent");
 			return isEContent;
 		} else {
 			return isEContent;
@@ -2930,6 +2956,7 @@ public class MarcRecordDetails {
 	}
 
 	protected long getLibrarySystemIdForLocation(String locationCode) {
+		locationCode = locationCode.trim();
 		// Get the library system id for the location. To do this, we are
 		// going to do a couple
 		// Of lookups to avoid having to create an entirely new table or
@@ -2949,6 +2976,32 @@ public class MarcRecordDetails {
 			librarySystemId = -1L;
 		}
 		return librarySystemId;
+	}
+	
+	protected long getLocationIdForLocation(String locationCode) {
+		// Get the library system id for the location. To do this, we are
+		// going to do a couple
+		// Of lookups to avoid having to create an entirely new table or
+		// lookup map.
+		// Eventually, we should store location codes in the database and
+		// automatically
+		// generate translation maps which would streamline this process.
+		// 1) Get the facet name from the translation map
+		locationCode = locationCode.trim();
+		Map<String, String> locationMap = marcProcessor.findMap("location_map");
+		if (locationMap == null){
+			logger.error("Unable to load location map!");
+		}
+		String locationFacet = Utils.remap(locationCode, locationMap, true);
+		// 2) Now that we have the facet, get the id of the system
+		Long locationId = marcProcessor.getLocationIdFromFacet(locationFacet);
+		if (locationId == null) {
+			logger.debug("Did not get locationId for location " + locationCode + " " + locationFacet);
+			locationId = -1L;
+		}else{
+			//logger.debug("Found locationId " + locationId + " for location " + locationCode + " " + locationFacet);
+		}
+		return locationId;
 	}
 	
 	public String createXmlDoc() throws ParserConfigurationException, FactoryConfigurationError, TransformerException { 

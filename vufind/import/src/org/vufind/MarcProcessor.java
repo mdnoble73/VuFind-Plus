@@ -58,6 +58,8 @@ public class MarcProcessor {
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
 
+	private boolean useThreads = false;
+	
 	public HashMap<String, String[]> getMarcFieldProps() {
 		return marcFieldProps;
 	}
@@ -89,6 +91,7 @@ public class MarcProcessor {
 	private Map<String, Float>				printRatings				= Collections.synchronizedMap(new HashMap<String, Float>());
 	private Map<String, Float>				econtentRatings			= Collections.synchronizedMap(new HashMap<String, Float>());
 	private Map<String, Long>					librarySystemFacets	= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 
@@ -117,6 +120,14 @@ public class MarcProcessor {
 		if (marcEncoding == null || marcEncoding.length() == 0) {
 			logger.error("Marc Encoding not found in Reindex Settings.  Please specify the path as the defaultEncoding key.");
 			return false;
+		}
+		
+		//Determine whether or not we should use threads to reduce processing time
+		String useThreadsStr = configIni.get("Reindex", "useThreads");
+		if (marcEncoding == null || marcEncoding.length() == 0) {
+			useThreads = false;
+		}else{
+			useThreads = Boolean.parseBoolean(useThreadsStr);
 		}
 
 		// Setup where to look for translation maps
@@ -255,6 +266,18 @@ public class MarcProcessor {
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load library System Facet information", e);
+			return false;
+		}
+		
+		try {
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, facetLabel from location");
+			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
+			while (locationFacetRS.next()) {
+				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
+				locationFacets.put(locationFacetRS.getString("facetLabel"), locationFacetRS.getLong("locationId"));
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to load location Facet information", e);
 			return false;
 		}
 
@@ -562,7 +585,6 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			boolean useThreads = false;
 			if (useThreads){
 				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
 				for (final File marcFile : marcFiles) {
@@ -617,7 +639,7 @@ public class MarcProcessor {
 						if (id == null) {
 							System.out.println("Could not load id for marc record " + recordNumber);
 							System.out.println(marcFieldProps.get("id").toString());
-							System.exit(1);
+							continue;
 						}
 						MarcIndexInfo marcIndexedInfo = null;
 						if (marcIndexInfo.containsKey(marcInfo.getId())) {
@@ -735,6 +757,9 @@ public class MarcProcessor {
 		return librarySystemFacets.get(librarySystemFacet);
 	}
 	
+	public Long getLocationIdFromFacet(String locationFacet){
+		return locationFacets.get(locationFacet);
+	}
 	public Long getLibraryIdForLink(String link){
 		String lowerLink = link.toLowerCase();
 		for (String curRule : eContentLinkRules.keySet()){

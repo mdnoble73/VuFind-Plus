@@ -223,7 +223,7 @@ public class ReindexProcess {
 				long numResources = resourceCountRs.getLong(1);
 				logger.info("There are " + numResources + " resources currently loaded");
 				long firstResourceToProcess = 0;
-				long batchSize = 100000;
+				long batchSize = 25000;
 				PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource LIMIT ?, ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				while (firstResourceToProcess <= numResources){
 					logger.debug("processing batch " + ++batchCount + " from " + firstResourceToProcess + " to " + (firstResourceToProcess + batchSize));

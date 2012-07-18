@@ -566,6 +566,17 @@ class DBMaintenance extends Admin {
 				),
 			),
 			
+			'resource_update9' => array(
+				'title' => 'Update resource 9',
+				'description' => 'Updates resources to use MyISAM rather than INNODB for . ',
+				'sql' => array(
+					//"UPDATE resource set marc = null, marc_checksum = -1;",
+					"ALTER TABLE resource_callnumber ENGINE = MYISAM",
+					"ALTER TABLE resource_subject ENGINE = MYISAM",
+					"ALTER TABLE `resource_callnumber` CHANGE `callnumber` `callnumber` VARCHAR( 50 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ''",
+				),
+			),
+			
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
 				'description' => 'Create table to store call numbers for resources',
@@ -870,41 +881,99 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
-		'alpha_browse_setup' => array(
+		/* This routine completely changed, removing alpha_browse_setup since alpha_browse_setup_1 complete redoes the tables */
+		'alpha_browse_setup_1' => array(
 			'title' => 'Setup Alphabetic Browse',
 			'description' => 'Create tables to handle alphabetic browse functionality.',
 			'dependencies' => array(),
 			'sql' => array(
+				"DROP TABLE IF EXISTS `title_browse`",
 				"CREATE TABLE `title_browse` ( 
-					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
+					`sortedRow` INT( 11 ) NOT NULL DEFAULT '-1' COMMENT 'The absolute sorted position',
 				PRIMARY KEY ( `id` ) ,
-				INDEX ( `value` )
-				) ENGINE = InnoDB;",
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
+				) ENGINE = MyISAM;",
+				"DROP TABLE IF EXISTS `title_browse_scoped_results`",
+				"CREATE TABLE `title_browse_scoped_results`( 
+					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`browseValueId` INT(11) NOT NULL,
+					`scope` TINYINT NOT NULL,
+					`scopeId` INT(11) NOT NULL,
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+				PRIMARY KEY ( `id` ) ,
+				UNIQUE ( `browseValueId`, `scope`, `scopeId` )
+				) ENGINE = MyISAM",
+		
+				"DROP TABLE IF EXISTS `author_browse`",
 				"CREATE TABLE `author_browse` ( 
-					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
 				PRIMARY KEY ( `id` ) ,
-				INDEX ( `value` )
-				) ENGINE = InnoDB;",
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
+				) ENGINE = MyISAM;",
+				"DROP TABLE IF EXISTS `author_browse_scoped_results`",
+				"CREATE TABLE `author_browse_scoped_results`( 
+					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`browseValueId` INT(11) NOT NULL,
+					`scope` TINYINT NOT NULL,
+					`scopeId` INT(11) NOT NULL,
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+				PRIMARY KEY ( `id` ) ,
+				UNIQUE ( `browseValueId`, `scope`, `scopeId` ) 
+				) ENGINE = MyISAM",
+		
+				"DROP TABLE IF EXISTS `callnumber_browse`",
 				"CREATE TABLE `callnumber_browse` ( 
-					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
 				PRIMARY KEY ( `id` ) ,
-				INDEX ( `value` )
-				) ENGINE = InnoDB;",
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
+				) ENGINE = MyISAM;",
+				"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
+				"CREATE TABLE `callnumber_browse_scoped_results`( 
+					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`browseValueId` INT(11) NOT NULL,
+					`scope` TINYINT NOT NULL,
+					`scopeId` INT(11) NOT NULL,
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+				PRIMARY KEY ( `id` ) ,
+				UNIQUE ( `browseValueId`, `scope`, `scopeId` ) 
+				) ENGINE = MyISAM",
+		
+				"DROP TABLE IF EXISTS `subject_browse`",
 				"CREATE TABLE `subject_browse` ( 
-					`id` INT NOT NULL COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
 				PRIMARY KEY ( `id` ) ,
-				INDEX ( `value` )
-				) ENGINE = InnoDB;",
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
+				) ENGINE = MyISAM;",
+				"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
+				"CREATE TABLE `subject_browse_scoped_results`( 
+					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+					`browseValueId` INT(11) NOT NULL,
+					`scope` TINYINT NOT NULL,
+					`scopeId` INT(11) NOT NULL,
+					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
+					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+				PRIMARY KEY ( `id` ) ,
+				UNIQUE ( `browseValueId`, `scope`, `scopeId` ) 
+				) ENGINE = MyISAM",
 			),
 		),
+		
 		
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
