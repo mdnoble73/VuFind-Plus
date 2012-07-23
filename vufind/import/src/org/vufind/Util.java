@@ -219,7 +219,7 @@ public class Util {
 		if (stringToTrim.length() > maxCharacters) {
 			stringToTrim = stringToTrim.substring(0, maxCharacters);
 		}
-		return stringToTrim;
+		return stringToTrim.trim();
 	}
 
 	public static HashMap<String, String> readPropertiesFile(File formatMapFile) throws IOException {

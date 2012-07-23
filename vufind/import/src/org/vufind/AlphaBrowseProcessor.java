@@ -16,19 +16,14 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private Connection vufindConn;
 	private ProcessorResults results;
 	
+	private PreparedStatement	getExistingTitleBrowseValue;
+	private PreparedStatement	getExistingAuthorBrowseValue;
+	private PreparedStatement	getExistingSubjectBrowseValue;
+	private PreparedStatement	getExistingCallNumberBrowseValue;
 	private PreparedStatement	insertTitleBrowseValue;
 	private PreparedStatement	insertAuthorBrowseValue;
 	private PreparedStatement	insertSubjectBrowseValue;
 	private PreparedStatement	insertCallNumberBrowseValue;
-	
-	//Browse information stored by:
-	// 1) First key is the system
-	// 2) Second key is the value to browse on 
-	// 3) Last key is a list of resources that match the value
-	//private TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>> titleBrowseInfo = new TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>>();
-	//private TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>> authorBrowseInfo = new TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>>();
-	//private TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>> callNumberBrowseInfo = new TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>>();
-	//private TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>> subjectBrowseInfo = new TreeMap<String, ArrayList<HashMap<Long, HashSet<String>>>>();
 	
 	private PreparedStatement	getLibraryIdsForEContent;
 	private PreparedStatement	getExistingTitleBrowseScopeValue;
@@ -68,6 +63,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		try {
 			//Setup prepared statements for later usage.  
 			getLibraryIdsForEContent = econtentConn.prepareStatement("SELECT distinct libraryId from econtent_item where recordId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			
+			getExistingTitleBrowseValue = vufindConn.prepareStatement("SELECT id from title_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingAuthorBrowseValue = vufindConn.prepareStatement("SELECT id from author_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingSubjectBrowseValue = vufindConn.prepareStatement("SELECT id from subject_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingCallNumberBrowseValue = vufindConn.prepareStatement("SELECT id from callnumber_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			
 			insertTitleBrowseValue = vufindConn.prepareStatement("INSERT INTO title_browse (value, sortValue) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			insertAuthorBrowseValue = vufindConn.prepareStatement("INSERT INTO author_browse (value, sortValue) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
@@ -241,36 +241,41 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		
 		//Check to see if the value is already in the table
 		PreparedStatement insertValueStatement;
+		PreparedStatement getExistingBrowseValueStatement;
 		PreparedStatement getExistingBrowseScopeValueStatement;
 		PreparedStatement insertBrowseScopeValueStatement;
 		PreparedStatement updateBrowseScopeValueStatement;
 		HashMap<String, Long> existingBrowseValues;
 		if (browseType.equals("title")){
 			insertValueStatement = insertTitleBrowseValue;
+			getExistingBrowseValueStatement = getExistingTitleBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingTitleBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertTitleBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateTitleBrowseScopeValue;
 			existingBrowseValues = existingBrowseValuesTitle;
 		}else if (browseType.equals("author")){
 			insertValueStatement = insertAuthorBrowseValue;
+			getExistingBrowseValueStatement = getExistingAuthorBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingAuthorBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertAuthorBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateAuthorBrowseScopeValue;
 			existingBrowseValues = existingBrowseValuesAuthor;
 		}else if (browseType.equals("subject")){
 			insertValueStatement = insertSubjectBrowseValue;
+			getExistingBrowseValueStatement = getExistingSubjectBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingSubjectBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertSubjectBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateSubjectBrowseScopeValue;
 			existingBrowseValues = existingBrowseValuesSubject;
 		}else{
 			insertValueStatement = insertCallNumberBrowseValue;
+			getExistingBrowseValueStatement = getExistingCallNumberBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingCallNumberBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertCallNumberBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateCallNumberBrowseScopeValue;
 			existingBrowseValues = existingBrowseValuesCallNumber;
 		}
-		Long browseValueId = insertBrowseValue(browseValue, sortValue, existingBrowseValues, insertValueStatement);
+		Long browseValueId = insertBrowseValue(browseType, browseValue, sortValue, existingBrowseValues, insertValueStatement,getExistingBrowseValueStatement);
 		if (browseValueId == null){
 			return;
 		}
@@ -313,25 +318,44 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		}
 	}
 
-	private Long insertBrowseValue(String browseValue, String sortValue, HashMap<String, Long> existingValues, PreparedStatement insertValueStatement) throws SQLException {
+	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, HashMap<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		browseValue = Util.trimTo(255, browseValue);
 		String browseValueKey = browseValue.toLowerCase();
 		if (existingValues.containsKey(browseValueKey)){
 			return existingValues.get(browseValue);
 		}else{
-			//Add the value to the table
-			insertValueStatement.setString(1, browseValue);
-			insertValueStatement.setString(2, Util.trimTo(255, sortValue));
-			insertValueStatement.executeUpdate();
-			ResultSet browseValueIdRS = insertValueStatement.getGeneratedKeys();
-			if (browseValueIdRS.next()){
-				Long browseValueId = browseValueIdRS.getLong(1);
-				//MySQL is case insensitive when it comes to unique values so we need to make sure that our 
-				//exisiting values are all case insensitve. 
-				existingValues.put(browseValueKey, browseValueId);
-				return browseValueId;
-			}else{
-				results.addNote("Could not add browse value to table");
+			try {
+				//Add the value to the table
+				insertValueStatement.setString(1, browseValue);
+				insertValueStatement.setString(2, Util.trimTo(255, sortValue));
+				insertValueStatement.executeUpdate();
+				ResultSet browseValueIdRS = insertValueStatement.getGeneratedKeys();
+				if (browseValueIdRS.next()){
+					Long browseValueId = browseValueIdRS.getLong(1);
+					//MySQL is case insensitive when it comes to unique values so we need to make sure that our 
+					//exisiting values are all case insensitve. 
+					existingValues.put(browseValueKey, browseValueId);
+					return browseValueId;
+				}else{
+					results.addNote("Could not add browse value to table");
+					results.incErrors();
+					return null;
+				}
+			} catch (SQLException e) {
+				//This is probably because the hashset is giving a false positive on uniqueness.  (Seems to happen with UTF-8 characters)
+				//Get the existing value straight from the db
+				try {
+					getExistingBrowseValueStatement.setString(1, browseValue);
+					ResultSet existingValue = getExistingBrowseValueStatement.executeQuery();
+					if (existingValue.next()){
+						return existingValue.getLong("id");
+					}
+				} catch (SQLException e1) {
+					results.addNote("Could get existing browse value '" + browseValue + "' in table " + browseType + ": " + e1.toString());
+					results.incErrors();
+					return null;
+				}
+				results.addNote("Could not add browse value '" + browseValue + "' to table " + browseType + ": " + e.toString());
 				results.incErrors();
 				return null;
 			}
