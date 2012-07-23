@@ -315,7 +315,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 
 	private Long insertBrowseValue(String browseValue, String sortValue, HashMap<String, Long> existingValues, PreparedStatement insertValueStatement) throws SQLException {
 		browseValue = Util.trimTo(255, browseValue);
-		if (existingValues.containsKey(browseValue.toLowerCase())){
+		String browseValueKey = browseValue.toLowerCase();
+		if (existingValues.containsKey(browseValueKey)){
 			return existingValues.get(browseValue);
 		}else{
 			//Add the value to the table
@@ -327,7 +328,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				Long browseValueId = browseValueIdRS.getLong(1);
 				//MySQL is case insensitive when it comes to unique values so we need to make sure that our 
 				//exisiting values are all case insensitve. 
-				existingValues.put(browseValue.toLowerCase(), browseValueId);
+				existingValues.put(browseValueKey, browseValueId);
 				return browseValueId;
 			}else{
 				results.addNote("Could not add browse value to table");
