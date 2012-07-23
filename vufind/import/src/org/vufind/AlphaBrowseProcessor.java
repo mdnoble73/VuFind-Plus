@@ -222,8 +222,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		if (browseValue == null){
 			return;
 		}
-		browseValue = browseValue.trim();
 		browseValue = browseValue.replaceAll("[.,:\\\\/]$", ""); //Remove trailing punctuation
+		browseValue = browseValue.trim();
 		if (browseValue.length() == 0){
 			return;
 		}
