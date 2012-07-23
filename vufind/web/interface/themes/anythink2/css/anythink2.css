@@ -941,7 +941,7 @@ body.Search--Home #fixed-wrapper {
 
 #book_bag #bag_open_button {
   background-color: transparent;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   border: none;
@@ -981,7 +981,7 @@ body.Search--Home #fixed-wrapper {
   background-color: transparent;
   border-top-left-radius: 0;
   padding: 0;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   cursor: pointer;
   height: auto;
 }
@@ -1394,7 +1394,7 @@ div.popupBox {
   width: 100%;
   text-align: center;
   font-weight: normal;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: 2em; /* 24 */
   line-height: 1.125em; /* 27 */
   margin-top: 0;
@@ -1405,7 +1405,7 @@ div.popupBox {
   width: 100%;
   text-align: center;
   font-weight: bold;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   margin-bottom: 10px;
 }
 
@@ -1438,7 +1438,7 @@ div.popupBox {
   margin-bottom: 0;
   text-align: inherit;
   background: inherit;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   padding: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -1481,14 +1481,14 @@ div.popupBox {
 .titleScrollerHeader {
   background: transparent;
   padding: 10px;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: inherit;
   font-weight: normal;
   height: auto;
 }
 
 .resultInformationLabel {
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: inherit;
   font-weight: bold;
   padding-bottom: 0;
@@ -1516,7 +1516,7 @@ div.popupBox .content {
 div.popupBox .header {
   cursor: move;
   background-color: #EEE;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: 1.167em;
   font-weight: bold;
   height: auto;
@@ -1545,7 +1545,7 @@ div.popupBox .header a {
   top: 10px;
   right: 10px;
   text-decoration: none;
-  color: inherit
+  color: inherit;
 }
 
 #results-actions form {
@@ -1586,7 +1586,7 @@ div.popupBox .header a {
 .holdSectionTitle {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-weight: bold;
   margin-top: 0;
   padding: 10px;
