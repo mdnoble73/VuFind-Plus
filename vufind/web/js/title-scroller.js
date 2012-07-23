@@ -124,27 +124,41 @@ TitleScroller.prototype.updateScroller = function() {
 	}
 
 };
+
 TitleScroller.prototype.finishLoadingScroller = function() {
-	$(".scrollerLoadingContainer").hide();
-	var scrollerBody = $('#' + this.scrollerId
-			+ " .scrollerBodyContainer .scrollerBody");
-	scrollerBody.show();
-	TitleScroller.prototype.activateCurrentTitle.call(this);
-	var curScroller = this;
-	if (this.autoScroll){
-		if (this.scrollInterval == 0){
-			this.scrollInterval = setInterval(function() {
-					curScroller.scrollToRight()
-				}, 5000);
-		}
-	}
-	if (this.enableDescription) {
-		for ( var i in this.scrollerTitles) {
-			resultDescription(this.scrollerTitles[i]['id'],
-					this.scrollerTitles[i]['id']);
-		}
-	}
-	
+  $(".scrollerLoadingContainer").hide();
+  var scrollerBody = $('#' + this.scrollerId
+      + " .scrollerBodyContainer .scrollerBody");
+  scrollerBody.show();
+  TitleScroller.prototype.activateCurrentTitle.call(this);
+  var curScroller = this;
+
+  // Whether we are hovering over an individual title or not.
+  $('.scrollerTitle').bind('mouseover', {scroller: curScroller}, function() {
+    curScroller.hovered = true;
+    console.log('over');
+  }).bind('mouseout', {scroller: curScroller}, function() {
+    curScroller.hovered = false;
+    console.log('out');
+  });
+
+  // Set initial state.
+  curScroller.hovered = false;
+
+  if (this.autoScroll && this.scrollInterval == 0){
+    this.scrollInterval = setInterval(function() {
+      // Only proceed if not hovering.
+      if (!curScroller.hovered) {
+        curScroller.scrollToRight();
+      }
+    }, 5000);
+  }
+  if (this.enableDescription) {
+    for ( var i in this.scrollerTitles) {
+      resultDescription(this.scrollerTitles[i]['id'],
+          this.scrollerTitles[i]['id']);
+    }
+  }
 };
 
 TitleScroller.prototype.scrollToRight = function() {
