@@ -131,6 +131,9 @@ function GetEContentHoldingsInfo(id, type, callback) {
 					$(".addToWishListLink").show();
 				}
 			}
+			var status = $(data).find("status").text();
+			$("#statusValue").html(status);
+			$("#statusValue").addClass(summaryDetails.find("class").text());
 			
 			if (typeof callback === 'function')
 			{

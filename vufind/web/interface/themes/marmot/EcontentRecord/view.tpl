@@ -605,7 +605,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 			 {if $eContentRecord->sourceUrl}
 				<div id="econtentSource">
-					<a href="{$eContentRecord->sourceUrl|escape:url}">Access original files</a>
+					<a href="{$eContentRecord->sourceUrl}">Access original files</a>
 				</div>
 				{/if}
 			</div>

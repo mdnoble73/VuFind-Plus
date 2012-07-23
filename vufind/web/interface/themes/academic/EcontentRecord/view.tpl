@@ -336,9 +336,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if} 
 			
-				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue">Loading...</span></div>
-				<div class="resultInformation" ><span class="resultLabel">{translate text='Call Number'}:</span><span class="resultValue boldedResultValue" id="callNumberValue">Loading...</span></div>
-				<div class="resultInformation" id="downloadLink" style="display:none"><span class="resultLabel">{translate text='Download From'}:</span><span class="resultValue" id="downloadLinkValue">Loading...</span></div>
+				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue">Online</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue">Loading...</span></div>
 					
 				{if count($subjectList) > 0}
@@ -425,7 +423,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/if}
 					 {if $eContentRecord->sourceUrl}
 						<div id="econtentSource">
-							<a href="{$eContentRecord->sourceUrl|escape:url}">Access original files</a>
+							<a href="{$eContentRecord->sourceUrl}">Access original files</a>
 						</div>
 						{/if}
 					</div>
