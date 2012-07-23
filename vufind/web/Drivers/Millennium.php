@@ -736,6 +736,7 @@ class MillenniumDriver implements DriverInterface
 		//The status of all items.  Will be set to an actual status if all are the same
 		//or null if the item statuses are inconsistent
 		$allItemStatus = '';
+		$firstCallNumber = null;
 		foreach ($holdings as $holdingKey => $holding){
 			if (is_null($allItemStatus)){
 				//Do nothing, the status is not distinct
@@ -797,7 +798,14 @@ class MillenniumDriver implements DriverInterface
 			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
 			$showItsHere = ($library == null) ? true : ($library->showItsHere == 1);
 			if (in_array(substr($holdingKey, 0, 1), array('1', '2', '3', '4', '5')) && !isset($summaryInformation['callnumber'])){
-				$summaryInformation['callnumber'] = $holding['callnumber'];
+				//Try to get an available non reserver call number
+				if ($holding['availability'] == 1 && $holding['holdable'] == 1){
+					//echo("Including call number " . $holding['callnumber'] . " because is  holdable");
+					$summaryInformation['callnumber'] = $holding['callnumber'];
+				}else if (is_null($firstCallNumber)){
+					//echo("Skipping call number " . $holding['callnumber'] . " because it is holdable");
+					$firstCallNumber = $holding['callnumber'];
+				}
 			}
 			if ($showItsHere && substr($holdingKey, 0, 1) == '1' && $holding['availability'] == 1){
 				//The item is available within the physical library.  Patron should go get it off the shelf
@@ -997,6 +1005,10 @@ class MillenniumDriver implements DriverInterface
 			$summaryInformation['unavailableStatus'] = '';
 		}
 
+		//REset cal nmber as needed 
+		if (!is_null($firstCallNumber) && !isset($summaryInformation['callnumber'])){
+			$summaryInformation['callnumber'] = $firstCallNumber;
+		}
 		return $summaryInformation;
 	}
 
