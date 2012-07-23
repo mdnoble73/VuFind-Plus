@@ -78,6 +78,8 @@ class Library extends DB_DataObject
 	public $worldCatUrl;
 	public $worldCatQt;
 	public $preferSyndeticsSummary;
+	public $showSimilarAuthors;
+	public $showSimilarTitles;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }

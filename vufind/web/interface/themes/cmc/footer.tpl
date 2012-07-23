@@ -1,6 +1,8 @@
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
+		<li><a href='http://cmc.opac.marmot.org/MyResearch/MyList/6190'>{translate text='Business Titles: CMC Steamboat'}</a></li>
+		<li><a href='http://cmc.opac.marmot.org/MyResearch/MyList/5889'>{translate text='Sustainability Titles: CMC Steamboat'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_cmc%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_cmc%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_cmc%3A"Month"&amp;filter[]=format%3A"DVD"'>{translate text='New DVDs'}</a></li>
