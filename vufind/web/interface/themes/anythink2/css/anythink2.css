@@ -28,14 +28,12 @@
 }
 
 .advancedSearchFacetDetails{
-  display: inline-block;
   margin: 5px;
 }
 .advancedSearchFacetHeader{
   font-weight: bold;
 }
 .advancedSearchFacetFormatCategory{
-  display: inline-block;
   margin: 5px;
 }
 
@@ -259,8 +257,9 @@ body {
   top: 40px;
 }
 
+#search-type-wrapper,
 #search-input-wrapper {
-  display: inline-block;
+  float: left;
 }
 
 #search-input-wrapper label {
@@ -284,13 +283,11 @@ body {
 }
 
 #type {
-  display: inline-block;
   margin-top: 2px;
 }
 
 #type-label {
   color: #666;
-  display: inline-block;
   font-size: 1.5em;
   font-weight: bold;
   margin-top: 3px;
@@ -1183,6 +1180,8 @@ table.adminTable tfoot tr th {
 
 ul.inline {
   list-style: none;
+  list-style-type: none;
+  list-style-image: none;
   padding: 0;
   margin-bottom: 0;
 }
@@ -1196,7 +1195,10 @@ ul.right {
 }
 
 ul.inline li {
-  display: inline-block;
+  float: left;
+  list-style: none;
+  list-style-type: none;
+  list-style-image: none;
 }
 
 ul.right li {
