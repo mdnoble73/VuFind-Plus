@@ -875,7 +875,7 @@ div.record {
   border-bottom-left-radius: 4px;
   float: right;
   position: relative;
-  z-index: 11;
+  z-index: 1;
   margin-right: 20px;
 }
 
@@ -1728,5 +1728,15 @@ div.popupBox ul li a {
 .worldcat-details p {
   margin: 0;
   padding: 0;
+}
+
+.ui-autocomplete {
+  z-index: 10;
+}
+
+.ui-autocomplete li {
+  list-style: none;
+  list-style-type: none;
+  list-style-image: none;
 }
 
