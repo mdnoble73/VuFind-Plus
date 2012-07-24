@@ -1420,6 +1420,9 @@ class SearchObject_Solr extends SearchObject_Base
 						$valueKey = '2' . $valueKey;
 						$numValidRelatedLocations++;
 					}elseif ($facet[0] == 'Digital Collection'){
+						$valueKey = '4' . $valueKey;
+						$numValidRelatedLocations++;
+					}elseif ($facet[0] == $currentLibrary->facetLabel . ' Online'){
 						$valueKey = '3' . $valueKey;
 						$numValidRelatedLocations++;
 					}
