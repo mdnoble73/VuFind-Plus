@@ -14,7 +14,7 @@
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />
   {/if}
   
-  <base href="{$url}" />
+  <base href="{$url}" target="_parent"/>
 </head>
 
 <body>
