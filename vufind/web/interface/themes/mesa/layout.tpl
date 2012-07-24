@@ -7,31 +7,8 @@
 		{if $addHeader}{$addHeader}{/if}
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" >
-		{if $consolidateCss}
-			{css filename="consolidated_css.css"}
-		{else}
-			{css filename="basicHtml.css"}
-			{css filename="layout.css"}
-			{css filename="jqueryui.css"}
-			{css media="screen" filename="styles.css"}
-			{css media ="screen" filename="book-bag.css"}
-			{css filename="title-scroller.css"}
-			{css filename="my-account.css"}
-			{css filename="holdingsSummary.css"}
-			{css filename="ratings.css"}
-			{css filename="book-bag.css"}
-			{css filename="jquery.tooltip.css"}
-			{css filename="tooltip.css"}
-			{css filename="record.css"}
-			{css filename="search-results.css"}
-			{css filename="suggestions.css"}
-			{css filename="reports.css"}
-			{css filename="prospector.css"}
-			{css filename="marmot.css"}
-			{css filename="extra_styles.css"}
-			<link rel="stylesheet" type="text/css" href="http://mesacountylibraries.org/wp-content/themes/mcpl/styles/superfish.css" />
-		{/if}
-		{css media="print" filename="print.css"}
+		{css filename="consolidated.min.css"}
+		<link rel="stylesheet" type="text/css" href="http://mesacountylibraries.org/wp-content/themes/mcpl/styles/superfish.css" />
 			
 		<script type="text/javascript">
 			path = '{$path}';
@@ -39,37 +16,13 @@
 			loggedIn = {if $user}true{else}false{/if}
 		</script>
 		
-		{if $consolidateJs}
-			<script type="text/javascript" src="{$path}/API/ConsolidatedJs"></script>
-		{else}
-			<script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
-			<script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
-			<script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
-			
-			<script type="text/javascript" src="{$path}/js/scripts.js"></script>
-			
-			{if $enableBookCart}
-			<script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-			<script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
-			{/if}
-			
-			<script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
-			<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-			<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-			
-			<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
-			
-		{/if}
+		{js filename="consolidated.min.js"}
 		
 		{* Files that should not be combined *}
 		{if $includeAutoLogoutCode == true}
 		<script	type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
-	
-		
-		{if isset($theme_css)}
-		<link rel="stylesheet" type="text/css" href="{$theme_css}" >
-		{/if}
+
 	</head>
 
 	<body class="{$module} {$action}" onload="{literal}if(document.searchForm != null && document.searchForm.lookfor != null){ document.searchForm.lookfor.focus();} if(document.loginForm != null){document.loginForm.username.focus();}{/literal}">
