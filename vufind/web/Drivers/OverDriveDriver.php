@@ -257,8 +257,11 @@ class OverDriveDriver {
 			
 			for ($matchi = 0; $matchi < count($bookshelfInfo); $matchi++) {
 				$bookshelfItem = array();
-				if ($bookshelfItem['imageUrl'])
-				$bookshelfItem['imageUrl'] = "http://" . $bookshelfInfo[$matchi][1];
+				if ($bookshelfInfo[$matchi][1]){
+					$bookshelfItem['imageUrl'] = "http://" . $bookshelfInfo[$matchi][1];
+				}else{
+					$bookshelfItem['imageUrl'] = "";
+				}
 				$bookshelfItem['title'] = $bookshelfInfo[$matchi][2];
 				$bookshelfItem['overDriveId'] = $bookshelfInfo[$matchi][3];
 				$bookshelfItem['subTitle'] = $bookshelfInfo[$matchi][4];
