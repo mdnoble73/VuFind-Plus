@@ -133,7 +133,7 @@ function GetEContentHoldingsInfo(id, type, callback) {
 			}
 			var status = $(data).find("status").text();
 			$("#statusValue").html(status);
-			$("#statusValue").addClass(summaryDetails.find("class").text());
+			$("#statusValue").addClass($(data).find("class").text());
 			
 			if (typeof callback === 'function')
 			{

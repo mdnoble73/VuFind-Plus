@@ -988,8 +988,10 @@ class EContentRecord extends SolrDataObject {
 		$items = $this->getItems(false);
 		if (strcasecmp($this->source, 'OverDrive') == 0){
 			foreach ($items as $item){
-				$formatValue = translate($item->format);
-				$formats[$formatValue] = $formatValue;
+				if (isset($item->format)){
+					$formatValue = translate($item->format);
+					$formats[$formatValue] = $formatValue;
+				}
 			}
 		}else{
 			foreach ($items as $item){

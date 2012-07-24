@@ -1020,22 +1020,26 @@ class OverDriveDriver {
 				}
 				//echo($overdrivePage);
 				//Extract the Format Information section 
-				
-				if (preg_match('/Available copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
-					$availableCopies = $extraction[1];
-				}
-				if (preg_match('/(\d+) patron\(s\) on waiting list/s', $overdrivePage, $extraction)){
-					$holdQueueLength = $extraction[1];
-				}
-				if (preg_match('/Library copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
-					$totalCopies = $extraction[1];
+				$isAdvantage = false;
+				if (preg_match('/Sign in to check availability/s', $overdrivePage)){
+					$isAdvantage = true;
+				}else{
+					if (preg_match('/Available copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
+						$availableCopies = $extraction[1];
+					}
+					if (preg_match('/(\d+) patron\(s\) on waiting list/s', $overdrivePage, $extraction)){
+						$holdQueueLength = $extraction[1];
+					}
+					if (preg_match('/Library copies:(?:.*?)(\d+)/s', $overdrivePage, $extraction)){
+						$totalCopies = $extraction[1];
+					}
 				}
 				if (preg_match('/<h[13]>Format Information<\/h[13]>(.*?)<h[13]>/s', $overdrivePage, $extraction)){
 					$formatSection = $extraction[1];
 					//Strip out information we don't care about
 					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
 					//Extract the actual formats from the remaining text.
-					if (preg_match_all('/(?:(?:<a name="checkout" class="skip">Format Information for Check Out options<\/a>)|(?:<td nowrap>))<b>(.*?)<\/b>.*?<a href=".*?Format=(.*?)"(?:\\sclass=".*?")?>(.*?)<\/a>.*?File size:.*?<td.*?>(.*?)<\/td>/si', $formatSection, $itemInfoAll)) {
+					if (preg_match_all('/(?:(?:<a name="checkout" class="skip">Format Information for Check Out options<\/a>)|(?:<td nowrap>))<b>(.*?)<\/b>.*?(?:<a href=".*?Format=(.*?)"(?:\\sclass=".*?")?>)?(.*?)(?:<\/a>)?.*?File size:.*?<td.*?>(.*?)<\/td>/si', $formatSection, $itemInfoAll)) {
 						for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
 							$overdriveItem = new OverdriveItem();
 							$overdriveItem->overDriveId = $overDriveId;
