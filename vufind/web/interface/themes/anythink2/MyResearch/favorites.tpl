@@ -6,7 +6,6 @@
 <div id="main-content">
   <h1>{translate text='My Favorites'}</h1>
   {if !empty($listList) || !empty($tagList)}
-  <p style="padding: 1em; background-color: #F99">NOTE: Do you have saved lists in the old catalog? Email them or keep a personal record by August 1st; lists will not transfer to the new catalog.</p>
   <p>Keep your favorite items organized using lists and tags. Manage these items below or create new ones straight from your search results.</p>
   {else}
   Keep your favorite items organized using lists and tags. Haven't created any lists yet? Click the "add tag" or "add to list" links right from your search results to get started. 
