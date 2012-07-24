@@ -1740,3 +1740,6 @@ div.popupBox ul li a {
   list-style-image: none;
 }
 
+input.yearbox {
+  width: auto;
+}
