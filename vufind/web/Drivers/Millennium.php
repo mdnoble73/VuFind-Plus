@@ -562,13 +562,15 @@ class MillenniumDriver implements DriverInterface
 			}
 			$i++;
 		}
-		$timer->logTime('finished processign holdings');
+		$timer->logTime('finished processing holdings');
 
 		//Load order records, these only show in the full page view, not the item display
 		$orderMatches = array();
 		if (preg_match_all('/<tr\\s+class="bibOrderEntry">.*?<td\\s*>(.*?)<\/td>/s', $millenniumInfo->framesetInfo, $orderMatches)){
 			for ($i = 0; $i < count($orderMatches[1]); $i++) {
 				$location = trim($orderMatches[1][$i]);
+				$location = preg_replace('/\\sC\\d{3}\\s/', '', $location);
+				//Remove courier code if any
 				$sorted_array['7' . $location . $i] = array(
                     'location' => $location,
                     'section' => 'On Order',
