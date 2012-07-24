@@ -73,24 +73,24 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/if}
 	
 		{if is_array($editions) && !$showOtherEditionsPopup}
-		<div class="sidegroup">
-			<h4>{translate text="Other Editions"}</h4>
-			<ul class="similar">
-				{foreach from=$editions item=edition}
-				<li>
-					{if is_array($edition.format)}
-						<span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-					{else}
-						<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-					{/if}
-					<a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-					</span>
-					{$edition.edition|escape}
-					{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
-				</li>
-				{/foreach}
-			</ul>
-		</div>
+			<div class="sidegroup">
+				<h4>{translate text="Other Editions"}</h4>
+				<ul class="similar">
+					{foreach from=$editions item=edition}
+					<li>
+						{if is_array($edition.format)}
+							<span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+						{else}
+							<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+						{/if}
+						<a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						</span>
+						{$edition.edition|escape}
+						{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
+					</li>
+					{/foreach}
+				</ul>
+			</div>
 		{/if}
 	
 		<div id='similarAuthorsSidegroup' class="sidegroup" style='display:none'>
@@ -99,7 +99,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	
 		<div id='similarTitles' class="sidegroup" style='display:none'>
 			{* Display either similar tiles from novelist or from the catalog*}
-			<div id="similarTitlePlaceholder" style='display:none'>
+			<div id="similarTitlePlaceholder" style='display:none'></div>
 		</div>
 	
 		{if is_array($similarRecords)}
@@ -133,7 +133,6 @@ function redrawSaveStatus() {literal}{{/literal}
 				<a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink' onclick="window.open (this.href, 'child'); return false"> {translate text = "View on Amazon"}</a>
 			</div>
 		{/if}
-	</div>
 	</div>
 	{if $error}<p class="error">{$error}</p>{/if} 
 				
