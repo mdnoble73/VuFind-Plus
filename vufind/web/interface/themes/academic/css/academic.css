@@ -244,3 +244,17 @@ td {
 	width: 1000px;
 	margin: 0px auto;
 }
+.resultIndex{
+	width: 20px;
+	display:inline-block;
+	zoom:1;
+	*display:inline;
+	font-weight: bold;
+	vertical-align:top;
+}
+.resultsList{
+	width: 665px;
+	display:inline-block;
+	zoom:1;
+	*display:inline;
+}
