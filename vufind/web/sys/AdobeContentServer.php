@@ -183,9 +183,25 @@ class AdobeContentServer
 	static function packageFile($filename, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		if (isset($configArray['EContent']['packageWithService']) && $configArray['EContent']['packageWithService'] == true){
-			
+			return packageFileWithService($filename, $existingResourceId, $numAvailable);
 		}else{
-			packageFileDirect($filename, $existingResourceId, $numAvailable);
+			return packageFileDirect($filename, $existingResourceId, $numAvailable);
+		}
+	}
+	
+	static function packageFileWithService($filename, $existingResourceId = '', $numAvailable){
+		global $configArray;
+		$logger = new Logger();
+		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
+			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
+			$distributorId = $configArray['EContent']['distributorId'];
+			$packagingServiceCall .= "?method=RequestFileProtection&distributorId={$distributorId}&filename={$filename}&copies={$numAvailable}";
+			$packagingResponse = file_get_contents($packagingServiceCall);
+			$jsonResponse = json_decode($packagingResponse);
+			return $jsonResponse;
+		}else{
+			$logger->log("Cannot package file because packagingURL is not set");
+			return array('success' => false);
 		}
 	}
 	
