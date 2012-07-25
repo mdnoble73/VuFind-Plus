@@ -181,6 +181,17 @@ class AdobeContentServer
 	 * Package a file to the ACS server and get back the ACS ID
 	 */
 	static function packageFile($filename, $existingResourceId = '', $numAvailable){
+		global $configArray;
+		if (isset($configArray['EContent']['packageWithService']) && $configArray['EContent']['packageWithService'] == true){
+			
+		}else{
+			packageFileDirect($filename, $existingResourceId, $numAvailable);
+		}
+	}
+	
+	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
+		global $configArray;
+		
 		$logger = new Logger();
 		$logger->log("packaging file $filename", PEAR_LOG_INFO);
 		$packageDoc = new DOMDocument('1.0', 'UTF-8');
@@ -200,7 +211,7 @@ class AdobeContentServer
 		$packageElem->appendChild($packageDoc->createElement("expiration", date(DATE_W3C, time() + (15 * 60) ))); //Request expiration, default to 15 minutes
 		$packageElem->appendChild($packageDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
-		global $configArray;
+		
 		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($packageDoc, $packageElem, $serverPassword);
@@ -208,7 +219,7 @@ class AdobeContentServer
 		$packagingURL = $configArray['EContent']['packagingURL'];
 		//$logger->log("Request:\r\n" . htmlentities($packageDoc->saveXML()), PEAR_LOG_INFO);
 		$response = AdobeContentServer::sendRequest($packageDoc->saveXML(),$packagingURL);
-
+		
 		$responseData = simplexml_load_string($response);
 		if (isset($responseData->error) || preg_match('/<error/', $response)){
 			$logger->log("Response:\r\n" . $response, PEAR_LOG_INFO);
