@@ -5,6 +5,7 @@
  <thead>
  <tr>
  <th>Location</th>
+ <th>Collection</th>
  <th>Shelved Under</th>
  <th>Status</th>
  <th>Due</th>
@@ -27,6 +28,9 @@
     {$holding.location|escape}
     {if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
     </strong></span></td>
+    
+  	{* Collection *}
+  	<td style = "padding-bottom:5px;">{$holding.collection|escape}</td>
     
     {* Call# *}
   	<td style = "padding-bottom:5px;">
