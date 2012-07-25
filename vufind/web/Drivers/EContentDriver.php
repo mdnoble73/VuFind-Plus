@@ -1142,10 +1142,12 @@ class EContentDriver implements DriverInterface{
 
 		//Download link
 		$downloadLink = AdobeContentServer::mintDownloadLink($eContentItem, $eContentCheckout);
-		$links[] = array(
-			'url' => $downloadLink,
-			'text' => 'Download',
-		);
+		if ($downloadLink != null){
+			$links[] = array(
+				'url' => $downloadLink,
+				'text' => 'Download',
+			);
+		}
 		return $links;
 	}
 	

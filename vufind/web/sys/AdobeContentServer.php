@@ -130,16 +130,20 @@ class AdobeContentServer
 			    "&gbauthdate=".urlencode($gbauthdate).
 			    "&dateval=".urlencode($dateval).
 			    "&gblver=4";
-	
-			$linkURL = $configArray['EContent']['linkURL'];
-			$sharedSecret = $configArray['EContent']['distributorSecret'];
-			$sharedSecret = base64_decode($sharedSecret);
-			$bookDownloadURL = $linkURL."?".$bookDownloadURL."&auth=".hash_hmac("sha1", $bookDownloadURL, $sharedSecret );
-		
-			$eContentCheckout->acsDownloadLink = $bookDownloadURL;
-			$eContentCheckout->update();
 			
-			return $bookDownloadURL;
+			$linkURL = $configArray['EContent']['linkURL'];
+			if (isset($configArray['EContent']['linkURL']) && strlen($configArray['EContent']['linkURL']) > 0){
+				$sharedSecret = $configArray['EContent']['distributorSecret'];
+				$sharedSecret = base64_decode($sharedSecret);
+				$bookDownloadURL = $linkURL."?".$bookDownloadURL."&auth=".hash_hmac("sha1", $bookDownloadURL, $sharedSecret );
+		
+				$eContentCheckout->acsDownloadLink = $bookDownloadURL;
+				$eContentCheckout->update();
+				return $bookDownloadURL;
+			}else{
+				return null;
+			}
+			
 		}else{
 			return $eContentCheckout->acsDownloadLink;
 		}
