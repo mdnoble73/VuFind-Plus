@@ -63,7 +63,7 @@ class Edit extends Action {
 		}
 
 		$isNew = true;
-		if (isset($_REQUEST['id']) && strlen($_REQUEST['id']) > 0 ){
+		if (isset($_REQUEST['id']) && strlen($_REQUEST['id']) > 0 && is_numeric($_REQUEST['id'])){
 			$object = EContentRecord::staticGet('id', strip_tags($_REQUEST['id']));
 			$interface->assign('object', $object);
 			$interface->setPageTitle('Edit EContentRecord');

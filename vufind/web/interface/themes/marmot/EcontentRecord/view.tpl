@@ -532,7 +532,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
-				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
+				{if $eContentRecord->marcRecord && $staffDetails != null}
+					<li><a href="#stafftab">{translate text="Staff View"}</a></li>
+				{/if}
 			</ul>
 			
 			{* Display the content of individual tabs *}
@@ -610,7 +612,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 			</div>
 			
-			{if $eContentRecord->marcRecord}
+			{if $eContentRecord->marcRecord && $staffDetails != null}
 				<div id = "stafftab">
 					{include file=$staffDetails}
 				</div>

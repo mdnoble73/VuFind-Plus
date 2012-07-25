@@ -183,9 +183,9 @@ class AdobeContentServer
 	static function packageFile($filename, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		if (isset($configArray['EContent']['packageWithService']) && $configArray['EContent']['packageWithService'] == true){
-			return packageFileWithService($filename, $existingResourceId, $numAvailable);
+			return AdobeContentServer::packageFileWithService($filename, $existingResourceId, $numAvailable);
 		}else{
-			return packageFileDirect($filename, $existingResourceId, $numAvailable);
+			return AdobeContentServer::packageFileDirect($filename, $existingResourceId, $numAvailable);
 		}
 	}
 	
@@ -196,10 +196,11 @@ class AdobeContentServer
 			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
 			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
 			$distributorId = $configArray['EContent']['distributorId'];
-			$packagingServiceCall .= "?method=RequestFileProtection&distributorId={$distributorId}&filename={$filename}&copies={$numAvailable}";
+			$filenameEncoded = urlencode($filename);
+			$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorId}&filename={$filenameEncoded}&copies={$numAvailable}";
 			$logger->log($packagingServiceCall, PEAR_LOG_INFO);
 			$packagingResponse = file_get_contents($packagingServiceCall);
-			$jsonResponse = json_decode($packagingResponse);
+			$jsonResponse = json_decode($packagingResponse, true);
 			return $jsonResponse;
 		}else{
 			$logger->log("Cannot package file because packagingURL is not set", PEAR_LOG_INFO);
