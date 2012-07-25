@@ -193,14 +193,16 @@ class AdobeContentServer
 		global $configArray;
 		$logger = new Logger();
 		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
+			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
 			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
 			$distributorId = $configArray['EContent']['distributorId'];
 			$packagingServiceCall .= "?method=RequestFileProtection&distributorId={$distributorId}&filename={$filename}&copies={$numAvailable}";
+			$logger->log($packagingServiceCall, PEAR_LOG_INFO);
 			$packagingResponse = file_get_contents($packagingServiceCall);
 			$jsonResponse = json_decode($packagingResponse);
 			return $jsonResponse;
 		}else{
-			$logger->log("Cannot package file because packagingURL is not set");
+			$logger->log("Cannot package file because packagingURL is not set", PEAR_LOG_INFO);
 			return array('success' => false);
 		}
 	}
