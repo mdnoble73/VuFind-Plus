@@ -206,18 +206,18 @@ class AdobeContentServer
 		AdobeContentServer::signNode($packageDoc, $packageElem, $serverPassword);
 
 		$packagingURL = $configArray['EContent']['packagingURL'];
-		$logger->log("Request:\r\n" . htmlentities($packageDoc->saveXML()), PEAR_LOG_INFO);
+		//$logger->log("Request:\r\n" . htmlentities($packageDoc->saveXML()), PEAR_LOG_INFO);
 		$response = AdobeContentServer::sendRequest($packageDoc->saveXML(),$packagingURL);
 
 		$responseData = simplexml_load_string($response);
 		if (isset($responseData->error) || preg_match('/<error/', $response)){
-			$logger->log("Response:\r\n" . htmlentities($response), PEAR_LOG_INFO);
+			$logger->log("Response:\r\n" . $response, PEAR_LOG_INFO);
 			return array('success' => false);
 		}else{
 			$acsId = (string)$responseData->resource;
 
 			//Setup distribution rights
-			$logger->log("Setting up distribution rights", PEAR_LOG_INFO);
+			$logger->log("Setting up distribution rights for acsid $acsId", PEAR_LOG_INFO);
 			$distributorId = $configArray['EContent']['distributorId'];
 			$distributionResult = AdobeContentServer::addDistributionRights($acsId, $distributorId, $numAvailable);
 			if ($distributionResult['success'] == false){
@@ -232,6 +232,8 @@ class AdobeContentServer
 	}
 
 	static function addDistributionRights($acsId, $distributorId, $numAvailable){
+		$logger = new Logger();
+		$logger->log("Setting up distribution rights for acsid $acsId for distributor $distributorId", PEAR_LOG_INFO);
 		$distributionDoc = new DOMDocument('1.0', 'UTF-8');
 		$distributionDoc->formatOutput = true;
 		$distributionElem = $distributionDoc->appendChild($distributionDoc->createElementNS("http://ns.adobe.com/adept", "request"));
@@ -259,7 +261,7 @@ class AdobeContentServer
 		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
 		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
-
+		$logger->log("'Response:\r\n $response");
 		//echo("Response:<br/>" . htmlentities($response) . "<br/>");
 		$responseData = simplexml_load_string($response);
 
