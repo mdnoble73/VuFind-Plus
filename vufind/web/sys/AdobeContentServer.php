@@ -181,6 +181,8 @@ class AdobeContentServer
 	 * Package a file to the ACS server and get back the ACS ID
 	 */
 	static function packageFile($filename, $existingResourceId = '', $numAvailable){
+		$logger = new Logger();
+		$logger->log("packaging file $filename", PEAR_LOG_INFO);
 		$packageDoc = new DOMDocument('1.0', 'UTF-8');
 		$packageDoc->formatOutput = true;
 		$packageElem = $packageDoc->appendChild($packageDoc->createElementNS("http://ns.adobe.com/adept", "package"));
@@ -204,17 +206,18 @@ class AdobeContentServer
 		AdobeContentServer::signNode($packageDoc, $packageElem, $serverPassword);
 
 		$packagingURL = $configArray['EContent']['packagingURL'];
-		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
+		$logger->log("Request:\r\n" . htmlentities($packageDoc->saveXML()), PEAR_LOG_INFO);
 		$response = AdobeContentServer::sendRequest($packageDoc->saveXML(),$packagingURL);
 
 		$responseData = simplexml_load_string($response);
 		if (isset($responseData->error) || preg_match('/<error/', $response)){
-			echo("Response:<br/>" . htmlentities($response) . "<br/>");
+			$logger->log("Response:\r\n" . htmlentities($response), PEAR_LOG_INFO);
 			return array('success' => false);
 		}else{
 			$acsId = (string)$responseData->resource;
 
 			//Setup distribution rights
+			$logger->log("Setting up distribution rights", PEAR_LOG_INFO);
 			$distributorId = $configArray['EContent']['distributorId'];
 			$distributionResult = AdobeContentServer::addDistributionRights($acsId, $distributorId, $numAvailable);
 			if ($distributionResult['success'] == false){
