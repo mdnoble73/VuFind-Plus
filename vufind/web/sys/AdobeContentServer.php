@@ -108,7 +108,10 @@ class AdobeContentServer
 		global $user;
 
 		if ($user == false){
-			return '';
+			return null;
+		}
+		if (is_null($eContentItem->acsId) || strlen($eContentItem->acsId) == 0){
+			return null;
 		}
 
 		//First check to see if we have already minted a download link for this resource
