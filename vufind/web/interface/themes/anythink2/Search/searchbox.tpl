@@ -9,7 +9,7 @@
     <input type="hidden" name="basicType" value="Keyword"/>
     <label id="type-label" for="searchPreFilter">{translate text='Search'}</label>
     <select name="filter[]" id="searchPreFilter">
-      <option value="format_category:*"{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>
+      <option value=""{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>
       <option value="format_category:Books"{if $curFormatCategory == 'Books'} selected="selected"{/if}>Books</option>
       <option value="format_category:DVD"{if $curFormatCategory == 'DVD'} selected="selected"{/if}>Movies</option>
       <option value="format_category:Music"{if $curFormatCategory == 'Music'} selected="selected"{/if}>Music</option>
