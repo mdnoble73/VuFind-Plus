@@ -266,37 +266,38 @@ class EContentItem extends DB_DataObject {
 		$this->addedBy = $user->id;
 		$this->date_updated = time();
 		
-		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
-			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, false, $this->getAvailableCopies());
-			if ($uploadResults['success']){
-				$this->acsId = $uploadResults['acsId'];
-				$fileUploaded  = true;
-			}else{
-				$fileUploaded = false;
+		//Save the item to the database
+		$ret =  parent::insert();
+		
+		if ($ret){
+			//Package the file as needed
+			if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
+				$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->id, false, $this->getAvailableCopies());
+				if ($uploadResults['success']){
+					$this->acsId = $uploadResults['acsId'];
+					$fileUploaded  = true;
+				}else{
+					return 0;
+				}
 			}
-		}else{
-			$fileUploaded = true;
 		}
-		if ($fileUploaded){
-			$ret =  parent::insert();
-			//Make sure to also update the record this is attached to so the full text can be generated
-			if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
-				$record = new EContentRecord();
-				$record->id = $this->recordId;
-				$record->find(true);
-				$record->update();
-			}
-			return $ret;
-		}else{
-			return 0;
+		
+		//Make sure to also update the record this is attached to so the full text can be generated
+		if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
+			$record = new EContentRecord();
+			$record->id = $this->recordId;
+			$record->find(true);
+			$record->update();
 		}
+		return $ret;
+
 	}
 
 	function update(){
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
 			require_once 'sys/AdobeContentServer.php';
 			global $configArray;
-			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->acsId, $this->getAvailableCopies());
+			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->id, $this->acsId, $this->getAvailableCopies());
 			if ($uploadResults['success']){
 				$oldAcs = $this->acsId;
 				$this->acsId = $uploadResults['acsId'];

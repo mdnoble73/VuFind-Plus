@@ -194,6 +194,13 @@ class AdobeContentServer
 		$logger = new Logger();
 		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
 			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
+			//Copy the file to the ftp service
+			$filenameNoPath = substr($filename, strrpos($filename, '/'));
+			$baseFilename = substr($filenameNoPath, 0, strpos($filename, '.'));
+			$extension = substr($filenameNoPath, strpos($filename, '.'));
+			$newFilename = AdobeContentServer::copyFileToFtp(filename);
+			
+			//Submit to the packaging service
 			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
 			$distributorId = $configArray['EContent']['distributorId'];
 			$filenameEncoded = urlencode($filename);
@@ -201,11 +208,22 @@ class AdobeContentServer
 			$logger->log($packagingServiceCall, PEAR_LOG_INFO);
 			$packagingResponse = file_get_contents($packagingServiceCall);
 			$jsonResponse = json_decode($packagingResponse, true);
+			if ($jsonResponse['success']){
+				//Save information to packaging log so it can be processed on the backend
+				$importDetails = new EContentImportDetailsEntry();
+				$importDetails->filename = $filename;
+				
+			}
+			
 			return $jsonResponse;
 		}else{
 			$logger->log("Cannot package file because packagingURL is not set", PEAR_LOG_INFO);
 			return array('success' => false);
 		}
+	}
+	
+	static function copyFileToFtp($filename){
+		
 	}
 	
 	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
