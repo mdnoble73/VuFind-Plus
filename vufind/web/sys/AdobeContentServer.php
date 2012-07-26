@@ -180,25 +180,25 @@ class AdobeContentServer
 	/**
 	 * Package a file to the ACS server and get back the ACS ID
 	 */
-	static function packageFile($filename, $existingResourceId = '', $numAvailable){
+	static function packageFile($filename, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		if (isset($configArray['EContent']['packageWithService']) && $configArray['EContent']['packageWithService'] == true){
-			return AdobeContentServer::packageFileWithService($filename, $existingResourceId, $numAvailable);
+			return AdobeContentServer::packageFileWithService($filename, $itemId, $existingResourceId, $numAvailable);
 		}else{
 			return AdobeContentServer::packageFileDirect($filename, $existingResourceId, $numAvailable);
 		}
 	}
 	
-	static function packageFileWithService($filename, $existingResourceId = '', $numAvailable){
+	static function packageFileWithService($filename, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		$logger = new Logger();
 		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
 			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
 			//Copy the file to the ftp service
-			$filenameNoPath = substr($filename, strrpos($filename, '/'));
-			$baseFilename = substr($filenameNoPath, 0, strpos($filename, '.'));
-			$extension = substr($filenameNoPath, strpos($filename, '.'));
-			$newFilename = AdobeContentServer::copyFileToFtp(filename);
+			$filenameNoPath = substr($filename, strrpos($filename, '/') + 1);
+			$baseFilename = substr($filenameNoPath, 0, strpos($filenameNoPath, '.'));
+			$extension = substr($filenameNoPath, -strpos($filenameNoPath, '.'));
+			$newFilename = AdobeContentServer::copyFileToFtp($filename, $itemId, $extension);
 			
 			//Submit to the packaging service
 			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
@@ -222,8 +222,13 @@ class AdobeContentServer
 		}
 	}
 	
-	static function copyFileToFtp($filename){
-		
+	static function copyFileToFtp($filename, $itemId, $extension){
+		global $configArray;
+		$logger = new Logger();
+		$destinationFilename = "{$itemId}.{$extension}";
+		$packagingFTP = $configArray['EContent']['packagingFTP'];
+		$ret = copy($filename, $packagingFTP . '/Data/' . $destinationFilename);
+		return $destinationFilename;
 	}
 	
 	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
