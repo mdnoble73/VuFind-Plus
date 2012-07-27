@@ -40,6 +40,10 @@
 		<div id="popupbox" class="popupBox"></div>
 		{* End LightBox *}
 		
+		{if $systemMessage}
+		<div id="systemMessage">{$systemMessage}</div>
+		{/if}
+		
 		{include file="header.tpl"}
 		
 		<div id="outer_span">

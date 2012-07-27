@@ -62,7 +62,7 @@ public class MarcRecordDetails {
 	private long														checksum				= -1;
 
 	private boolean													allFieldsMapped	= false;
-
+	
 	/**
 	 * Does basic mapping of fields to determine if the record has changed or not
 	 * 
@@ -283,7 +283,8 @@ public class MarcRecordDetails {
 	}
 
 	private void getUrlsForItemsFromMillennium() {
-		String catalogUrl = "https://www.millennium.marmot.org";
+		String catalogUrl = marcProcessor.getCatalogUrl();
+		
 		String scope = "93";
 		String shortId = this.getId();
 		shortId = shortId.substring(1, shortId.length() - 1);

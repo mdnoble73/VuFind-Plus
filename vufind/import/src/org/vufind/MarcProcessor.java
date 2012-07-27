@@ -101,6 +101,7 @@ public class MarcProcessor {
 	private String												urlSubfield;
 	private String												sharedEContentLocation;
 	private boolean												scrapeItemsForLinks;
+	private String												catalogUrl;
 
 	public static final int								RECORD_CHANGED			= 1;
 	public static final int								RECORD_UNCHANGED		= 2;
@@ -180,6 +181,7 @@ public class MarcProcessor {
 		if (scrapeItemsForLinksStr != null) {
 			scrapeItemsForLinks = Boolean.parseBoolean(scrapeItemsForLinksStr);
 		}
+		catalogUrl = configIni.get("Catalog", "url");
 
 		// Load the checksums of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -807,5 +809,9 @@ public class MarcProcessor {
 		public boolean isFinished(){
 			return finished;
 		}
+	}
+
+	public String getCatalogUrl() {
+		return catalogUrl;
 	}
 }
