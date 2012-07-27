@@ -41,6 +41,9 @@
 		<div id="popupbox" class="popupBox"></div>
 		{* End LightBox *}
 		
+		{if $systemMessage}
+		<div id="systemMessage">{$systemMessage}</div>
+		{/if}
 		<div id="pageBody" class="{$page_body_style}">
 			<div id="outer_span">
 				{include file="header.tpl"}

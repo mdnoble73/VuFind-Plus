@@ -27,7 +27,11 @@
 	</head>
 
 	<body class="{$module} {$action}" >
-	 {include file="bookcart.tpl"}
+		{if $systemMessage}
+		<div id="systemMessage">{$systemMessage}</div>
+		{/if}
+		
+		{include file="bookcart.tpl"}
 	
 		<!-- Current Physical Location: {$physicalLocation} -->
 		{* LightBox *}

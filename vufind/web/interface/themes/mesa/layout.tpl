@@ -73,7 +73,10 @@
 	</head>
 
 	<body class="{$module} {$action}" onload="{literal}if(document.searchForm != null && document.searchForm.lookfor != null){ document.searchForm.lookfor.focus();} if(document.loginForm != null){document.loginForm.username.focus();}{/literal}">
-	 {include file="bookcart.tpl"}
+		{if $systemMessage}
+		<div id="systemMessage">{$systemMessage}</div>
+		{/if}
+		{include file="bookcart.tpl"}
 	
 		<!-- Current Physical Location: {$physicalLocation} -->
 		{* LightBox *}
