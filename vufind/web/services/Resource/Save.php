@@ -128,6 +128,7 @@ class Save extends Action
 			$list = new User_list();
 			if ($_GET['list'] != '') {
 				$list->id = $_GET['list'];
+				$list->find(true);
 			} else {
 				$list->user_id = $this->user->id;
 				$list->title = "My Favorites";

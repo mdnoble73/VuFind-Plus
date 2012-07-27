@@ -9,32 +9,36 @@ require_once 'RecordDrivers/IndexRecord.php';
  */
 class ListRecord extends IndexRecord
 {
-    public function __construct($record)
-    {
-        // Call the parent's constructor...
-        parent::__construct($record);
-    }
-    
-    /**
-     * Assign necessary Smarty variables and return a template name to
-     * load in order to display a summary of the item suitable for use in
-     * search results.
-     *
-     * @access  public
-     * @return  string              Name of Smarty template file to display.
-     */
-    public function getSearchResult()
-    {
-        global $configArray;
-        global $interface;
+	public function __construct($record)
+	{
+		// Call the parent's constructor...
+		parent::__construct($record);
+	}
 
-        $id = $this->getUniqueID();
-        $interface->assign('summId', $id);
-        $interface->assign('summShortId', substr($id, 4)); //Trim the list prefix for the short id
-        $interface->assign('summTitle', $this->getTitle());
-        $interface->assign('summDescription', $this->fields['description']);
-        $interface->assign('summNumTitles', $this->fields['num_titles']);
-        
-       return 'RecordDrivers/List/result.tpl';
-    }
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * search results.
+	 *
+	 * @access  public
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getSearchResult()
+	{
+		global $configArray;
+		global $interface;
+
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$interface->assign('summShortId', substr($id, 4)); //Trim the list prefix for the short id
+		$interface->assign('summTitle', $this->getTitle());
+		if (isset($this->fields['description'])){
+			$interface->assign('summDescription', $this->fields['description']);
+		}
+		if (isset($this->fields['num_titles'])){
+			$interface->assign('summNumTitles', $this->fields['num_titles']);
+		}
+
+		return 'RecordDrivers/List/result.tpl';
+	}
 }
