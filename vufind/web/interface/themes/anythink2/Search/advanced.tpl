@@ -58,10 +58,12 @@
           <div class="advancedSearchFacetHeader">{translate text=$formatCategoryLimit.label}</div>
           <div class="advancedSearchFacetList">
             {foreach from=$formatCategoryLimit item="value" key="display"}
+              {if $value.filter != ''}
               <div class="advancedSearchFacetFormatCategory">
                 <div><img src="{img filename=$value.imageName}" alt="{translate text=$display}"/></div>
                 <div><input type="radio" name="filter[]" value="{$value.filter|escape}"{if $value.selected} checked="checked"{/if} /> <label>{translate text=$display}</label></div>
               </div>
+              {/if}
             {/foreach}
           </div>
         </div>
