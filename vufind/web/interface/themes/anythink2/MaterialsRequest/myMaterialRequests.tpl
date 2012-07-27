@@ -11,15 +11,15 @@
   {if $error}
     <div class="error">{$error}</div>
   {else}
+    <div id="materialsRequestFilters">
+      <form action="{$path}/MaterialsRequest/MyRequests" method="get">
+          <div>
+            <div><input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}/>&nbsp;<label for="openRequests">Show open requests</label></div>
+            <div><input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}/>&nbsp;<label for="allRequests">Show all requests</label></div>
+          <input type="submit" name="submit" value="Update"/></div>
+      </form>
+    </div>
     {if count($allRequests) > 0}
-      <div id="materialsRequestFilters">
-        <form action="{$path}/MaterialsRequest/MyRequests" method="get">
-            <div>
-              <div><input type="radio" id="openRequests" name="requestsToShow" value="openRequests" {if $showOpen}checked="checked"{/if}/>&nbsp;<label for="openRequests">Show open requests</label></div>
-              <div><input type="radio" id="allRequests" name="requestsToShow" value="allRequests" {if !$showOpen}checked="checked"{/if}/>&nbsp;<label for="allRequests">Show all requests</label></div>
-            <input type="submit" name="submit" value="Update"/></div>
-        </form>
-      </div>
       <table id="requestedMaterials" class="tablesorter">
         <thead>
           <tr>

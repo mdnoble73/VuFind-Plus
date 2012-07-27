@@ -1199,6 +1199,7 @@ ul.inline li {
   list-style: none;
   list-style-type: none;
   list-style-image: none;
+  margin-right: .75em;
 }
 
 ul.right li {
