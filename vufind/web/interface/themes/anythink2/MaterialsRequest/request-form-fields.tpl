@@ -64,14 +64,14 @@
     {/if}
     {if $useWorldCat}
     <div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
-      <input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiersAnythink();"/>
+      <input type="button" id="suggestIdentifiers" value="Find exact match" onclick="return getWorldCatIdentifiersAnythink();"/>
     </div>
     {/if}
     <div id="suggestedIdentifiers" style="display:none" class="form-item"></div>
     {if !$materialsRequest || $new}
       {if $showPlaceHoldField || $showIllField}
       <fieldset>
-        <legend>Access</legend>
+        <legend>Place a hold</legend>
         {if $showPlaceHoldField}
         <div class="form-item">
           <div>Place a hold for me when the item is available:</div>
@@ -106,6 +106,7 @@
   </fieldset>
   <fieldset class="anythink-collapsible">
     <legend>Tell us more</legend>
+    <p>Tell us more about the item you’re looking for. The more information you provide, the easier for us to find exactly what you need.</p>
     {* The following is set with JS, so we should probably leave for now.*}
     <fieldset>
       <legend>Identifiers</legend>
@@ -204,7 +205,7 @@
     <fieldset class="anythink-collapsible">
       <legend>Contact info</legend>
         <div id="materialRequestContactInfo">
-          Please enter your contact information so we can contact you if we have questions about your request.
+          <p>Review the contact details below to confirm we have your latest info on file.</p>
           {if $showPhoneField}
           <div class="form-item">
             <div><label for="phone">{translate text='Phone'}: </label></div>
