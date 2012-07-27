@@ -45,7 +45,7 @@
           <li><a class="button" href="{$url}/MyResearch/SaveSearch?save={$searchId}">{translate text='save_search'} +</a></li>
           {/if}
         {/if}
-        <li><a class="email" href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this'}</a></li>
+        <li><a class="email" href="{$url}/Search/Email" class="mail" onclick="ajaxLightbox('/Search/Email?lightbox'); return false;">{translate text='Email this'}</a></li>
         <li><a class="rss" href="{$rssLink|escape}" class="feed">{translate text='RSS feed'}</a></li>
       </ul>
     </div>
