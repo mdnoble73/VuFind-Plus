@@ -34,14 +34,14 @@ class Email extends Action
 				header('Location: ' . $_POST['url']);
 				exit();
 			} else {
-				$interface->assign('message', $result->getMessage());
+				$interface->assign('message', "Email this");
 			}
 		}
 
 		// Display Page
 		if (isset($_GET['lightbox'])) {
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('Search/email.tpl');
+			$interface->assign('title', "Email this");
+			echo $interface->fetch('Search/email.tpl');
 		} else {
 			// If the user has disabled HTTP referer, we can't email their search
 			// link without Javascript.
