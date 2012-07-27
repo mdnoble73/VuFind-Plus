@@ -20,6 +20,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
 import org.apache.log4j.Logger;
 
 public class Util {
@@ -250,8 +254,19 @@ public class Util {
 			logger.debug("Getting URL " + url);
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			if (conn instanceof HttpsURLConnection){
+				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+				sslConn.setHostnameVerifier(new HostnameVerifier() {
+					
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						//Do not verify host names
+						return true;
+					}
+				});
+			}
 			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(30000);
+			conn.setReadTimeout(60000);
 			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
