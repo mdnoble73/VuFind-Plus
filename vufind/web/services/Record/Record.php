@@ -185,7 +185,7 @@ class Record extends Action
 		if ($marcFields){
 			$physicalDescriptions = array();
 			foreach ($marcFields as $marcField){
-				$description = $this->getSubfieldData($marcField, 'a');
+				$description = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c', 'e', 'f', 'g'));
 				if ($description != 'p. cm.'){
 					$description = preg_replace("/[\/|;:]$/", '', $description);
 					$description = preg_replace("/p\./", 'pages', $description);

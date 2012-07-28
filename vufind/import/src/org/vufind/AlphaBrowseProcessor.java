@@ -4,9 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+//import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -44,10 +46,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private String callNumberSubfield;
 	private String locationSubfield;
 	
-	private HashMap<String, Long> existingBrowseValuesTitle = new HashMap<String, Long>();
+	/*private HashMap<String, Long> existingBrowseValuesTitle = new HashMap<String, Long>();
 	private HashMap<String, Long> existingBrowseValuesAuthor = new HashMap<String, Long>();
 	private HashMap<String, Long> existingBrowseValuesSubject = new HashMap<String, Long>();
-	private HashMap<String, Long> existingBrowseValuesCallNumber = new HashMap<String, Long>();
+	private HashMap<String, Long> existingBrowseValuesCallNumber = new HashMap<String, Long>();*/
 
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -113,11 +115,12 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				return true;
 			}
 			results.incRecordsProcessed();
-			String title = recordInfo.getTitle();
-			String sortTitle = recordInfo.getSortTitle();
-			String author = recordInfo.getAuthor();
+			Set<String> titles = recordInfo.getAllTitles();
+			logger.debug("found " + titles.size() + " titles for the resource");
+			Set<String> authors = recordInfo.getAuthors();
+			logger.debug("found " + authors.size() + " authors for the resource");
 			String recordIdFull = recordInfo.getId();
-			Object subjectsRaw = recordInfo.getMappedField("topic_facet");
+			Object subjectsRaw = recordInfo.getMappedField("topic");
 			Set<String> subjects = new HashSet<String>();
 			if (subjectsRaw != null){
 				if (subjectsRaw instanceof String){
@@ -126,18 +129,26 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					subjects.addAll((Set<String>)subjectsRaw);
 				}
 			}
+			logger.debug("found " + subjects.size() + " subjects for the resource");
 			Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
 			HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
 			//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
 			HashSet<Long> resourceLocations = getLocationsForPrintRecord(localCallNumbers);
 			//logger.debug("found " + resourceLocations.size() + " locations for the resource");
-			addRecordIdToBrowse("title", resourceLibraries, resourceLocations, title, sortTitle, recordIdFull);
+			for (String curTitle: titles){
+				logger.debug("  " + curTitle);
+				addRecordIdToBrowse("title", resourceLibraries, resourceLocations, curTitle, this.getSortableTitle(curTitle), recordIdFull);
+			}
 			
 			//Setup author browse
-			addRecordIdToBrowse("author", resourceLibraries, resourceLocations, author, author, recordIdFull);
+			for (String curAuthor: authors){
+				logger.debug("  " + curAuthor);
+				addRecordIdToBrowse("author", resourceLibraries, resourceLocations, curAuthor, curAuthor, recordIdFull);
+			}
 			
 			//Setup subject browse
 			for (String curSubject: subjects){
+				logger.debug("  " + curSubject);
 				addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, curSubject, curSubject, recordIdFull);
 			}
 			
@@ -159,6 +170,16 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		
 	}
 	
+	private Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
+	private String getSortableTitle(String curTitle) {
+		Matcher sortMatcher = sortTrimmingPattern.matcher(curTitle);
+		if (sortMatcher.matches()) {
+			return sortMatcher.group(1);
+		}else{
+			return curTitle;
+		}
+	}
+
 	private void addCallNumbersToBrowse(Set<LocalCallNumber> localCallNumbers, String recordIdFull) throws SQLException {
 		for (LocalCallNumber callNumber : localCallNumbers){
 			//Get the libraries and locations for this call nuber
@@ -245,37 +266,37 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		PreparedStatement getExistingBrowseScopeValueStatement;
 		PreparedStatement insertBrowseScopeValueStatement;
 		PreparedStatement updateBrowseScopeValueStatement;
-		HashMap<String, Long> existingBrowseValues;
+		//HashMap<String, Long> existingBrowseValues;
 		if (browseType.equals("title")){
 			insertValueStatement = insertTitleBrowseValue;
 			getExistingBrowseValueStatement = getExistingTitleBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingTitleBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertTitleBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateTitleBrowseScopeValue;
-			existingBrowseValues = existingBrowseValuesTitle;
+			//existingBrowseValues = existingBrowseValuesTitle;
 		}else if (browseType.equals("author")){
 			insertValueStatement = insertAuthorBrowseValue;
 			getExistingBrowseValueStatement = getExistingAuthorBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingAuthorBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertAuthorBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateAuthorBrowseScopeValue;
-			existingBrowseValues = existingBrowseValuesAuthor;
+			//existingBrowseValues = existingBrowseValuesAuthor;
 		}else if (browseType.equals("subject")){
 			insertValueStatement = insertSubjectBrowseValue;
 			getExistingBrowseValueStatement = getExistingSubjectBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingSubjectBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertSubjectBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateSubjectBrowseScopeValue;
-			existingBrowseValues = existingBrowseValuesSubject;
+			//existingBrowseValues = existingBrowseValuesSubject;
 		}else{
 			insertValueStatement = insertCallNumberBrowseValue;
 			getExistingBrowseValueStatement = getExistingCallNumberBrowseValue;
 			getExistingBrowseScopeValueStatement = getExistingCallNumberBrowseScopeValue;
 			insertBrowseScopeValueStatement = insertCallNumberBrowseScopeValue;
 			updateBrowseScopeValueStatement = updateCallNumberBrowseScopeValue;
-			existingBrowseValues = existingBrowseValuesCallNumber;
+			//existingBrowseValues = existingBrowseValuesCallNumber;
 		}
-		Long browseValueId = insertBrowseValue(browseType, browseValue, sortValue, existingBrowseValues, insertValueStatement,getExistingBrowseValueStatement);
+		Long browseValueId = insertBrowseValue(browseType, browseValue, sortValue/*, existingBrowseValues*/, insertValueStatement,getExistingBrowseValueStatement);
 		if (browseValueId == null){
 			return;
 		}
@@ -318,13 +339,18 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		}
 	}
 
-	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, HashMap<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
-		browseValue = Util.trimTo(255, browseValue);
-		String browseValueKey = browseValue.toLowerCase();
-		if (existingValues.containsKey(browseValueKey)){
-			return existingValues.get(browseValue);
-		}else{
-			try {
+	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, /*HashMap<String, Long> existingValues, */PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
+		try {
+			browseValue = Util.trimTo(255, browseValue);
+			//String browseValueKey = browseValue.toLowerCase();
+			getExistingBrowseValueStatement.setString(1, browseValue);
+			ResultSet existingValueRS = getExistingBrowseValueStatement.executeQuery();
+			if (existingValueRS.next()){
+				Long existingValue = existingValueRS.getLong("id");
+				existingValueRS.close();
+				return existingValue;
+			}else{
+				existingValueRS.close();
 				//Add the value to the table
 				insertValueStatement.setString(1, browseValue);
 				insertValueStatement.setString(2, Util.trimTo(255, sortValue));
@@ -334,31 +360,32 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					Long browseValueId = browseValueIdRS.getLong(1);
 					//MySQL is case insensitive when it comes to unique values so we need to make sure that our 
 					//exisiting values are all case insensitve. 
-					existingValues.put(browseValueKey, browseValueId);
+					/*existingValues.put(browseValueKey, browseValueId);*/
+					browseValueIdRS.close();
 					return browseValueId;
 				}else{
 					results.addNote("Could not add browse value to table");
 					results.incErrors();
 					return null;
 				}
-			} catch (SQLException e) {
-				//This is probably because the hashset is giving a false positive on uniqueness.  (Seems to happen with UTF-8 characters)
-				//Get the existing value straight from the db
-				try {
-					getExistingBrowseValueStatement.setString(1, browseValue);
-					ResultSet existingValue = getExistingBrowseValueStatement.executeQuery();
-					if (existingValue.next()){
-						return existingValue.getLong("id");
-					}
-				} catch (SQLException e1) {
-					results.addNote("Could get existing browse value '" + browseValue + "' in table " + browseType + ": " + e1.toString());
-					results.incErrors();
-					return null;
+			}
+		} catch (SQLException e) {
+			//This is probably because the hashset is giving a false positive on uniqueness.  (Seems to happen with UTF-8 characters)
+			//Get the existing value straight from the db
+			try {
+				getExistingBrowseValueStatement.setString(1, browseValue);
+				ResultSet existingValue = getExistingBrowseValueStatement.executeQuery();
+				if (existingValue.next()){
+					return existingValue.getLong("id");
 				}
-				results.addNote("Could not add browse value '" + browseValue + "' to table " + browseType + ": " + e.toString());
+			} catch (SQLException e1) {
+				results.addNote("Could get existing browse value '" + browseValue + "' in table " + browseType + ": " + e1.toString());
 				results.incErrors();
 				return null;
 			}
+			results.addNote("Could not add browse value '" + browseValue + "' to table " + browseType + ": " + e.toString());
+			results.incErrors();
+			return null;
 		}
 	}
 
