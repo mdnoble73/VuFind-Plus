@@ -424,6 +424,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			doesOverDriveIdExist.setLong(3, libraryId);
 			ResultSet existingOverDriveId = doesOverDriveIdExist.executeQuery();
 			if (existingOverDriveId.next()){
+				logger.debug("There is an existing item for this id");
 				String existingOverDriveIdValue = existingOverDriveId.getString("overDriveId");
 				Long existingItemId = existingOverDriveId.getLong("id");
 				String existingLink = existingOverDriveId.getString("link");
@@ -434,6 +435,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					updateOverDriveId.setLong(3, new Date().getTime());
 					updateOverDriveId.setLong(4, existingItemId);
 					updateOverDriveId.executeUpdate();
+					logger.debug("Updated the existing item " + existingItemId);
+				}else{
+					logger.debug("Existing item " + existingItemId + " is already up to date");
 				}
 			}else{
 				//the url does not exist, insert it
@@ -446,6 +450,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				addOverDriveId.setLong(7, new Date().getTime());
 				addOverDriveId.setLong(8, libraryId);
 				addOverDriveId.executeUpdate();
+				logger.debug("Added new item to record " + eContentRecordId);
 			}
 		} catch (SQLException e) {
 			logger.error("Error adding overdrive id to record " + eContentRecordId + " " + overDriveId, e);

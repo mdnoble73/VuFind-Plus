@@ -59,6 +59,7 @@ public class MarcProcessor {
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
 
 	private boolean useThreads = false;
+	private String idsToProcess = null;
 	
 	public HashMap<String, String[]> getMarcFieldProps() {
 		return marcFieldProps;
@@ -129,6 +130,14 @@ public class MarcProcessor {
 			useThreads = false;
 		}else{
 			useThreads = Boolean.parseBoolean(useThreadsStr);
+		}
+		
+		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
+		if (idsToProcess == null || idsToProcess.length() == 0){
+			idsToProcess = null;
+			logger.debug("Did not load a set of idsToProcess");
+		}else{
+			logger.debug("idsToProcess = " + idsToProcess);
 		}
 
 		// Setup where to look for translation maps
@@ -628,7 +637,6 @@ public class MarcProcessor {
 			int recordNumber = 0;
 			while (reader.hasNext()) {
 				recordNumber++;
-				logger.debug("Reading record " + recordNumber);
 				try {
 					// Loop through each record
 					Record record = reader.next();
@@ -642,6 +650,14 @@ public class MarcProcessor {
 							System.out.println("Could not load id for marc record " + recordNumber);
 							System.out.println(marcFieldProps.get("id").toString());
 							continue;
+						}
+						//Check the list of ids to process if any to see if we should skip this recod
+						if (idsToProcess != null){
+							if (!id.matches(idsToProcess)){
+								continue;
+							}else{
+								logger.debug("processing record " + id + " because it is in the list of ids to process " + idsToProcess);
+							}
 						}
 						MarcIndexInfo marcIndexedInfo = null;
 						if (marcIndexInfo.containsKey(marcInfo.getId())) {
@@ -666,7 +682,7 @@ public class MarcProcessor {
 							logger.debug("Record is new");
 							recordStatus = RECORD_NEW;
 						}
-
+						
 						for (IMarcRecordProcessor processor : recordProcessors) {
 							// System.out.println("Running processor " +
 							// processor.getClass().getName());

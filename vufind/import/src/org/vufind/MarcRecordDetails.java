@@ -1250,6 +1250,20 @@ public class MarcRecordDetails {
 
 		return title;
 	}
+	
+	public Set<String> getAllTitles(){
+		HashSet<String> titles = new HashSet<String>();
+		titles.add(this.getTitle());
+		Object altTitles = this.getMappedField("title_alt");
+		if (altTitles instanceof String){
+			titles.add((String)altTitles);
+		}else if (altTitles instanceof Set){
+			@SuppressWarnings("unchecked")
+			Set<String> altTitles2 = (Set<String>)altTitles;
+			titles.addAll(altTitles2);
+		}
+		return titles;
+	}
 
 	public String getDescription() {
 		return getFirstFieldVal("520a");
@@ -2257,8 +2271,24 @@ public class MarcRecordDetails {
 				case 'S':
 					switch (formatField.getData().toUpperCase().charAt(1)) {
 					case 'D':
-						result.add("SoundDisc");
-						break;
+						if (formatField.getData().length() >= 4){
+							char speed = formatField.getData().toUpperCase().charAt(3);
+							if (speed == 'A' || speed == 'B' || speed == 'C' || speed == 'D' || speed == 'E'){
+								result.add("Phonograph");
+								break;
+							}else if (speed == 'F'){
+								result.add("CompactDisc");
+							}else if (speed == 'K' || speed == 'L' || speed == 'M' || speed == 'O' || speed == 'P' || speed == 'R'){
+								result.add("TapeRecording");
+								break;
+							}else{
+								result.add("SoundDisc");
+								break;
+							}
+						}else{
+							result.add("SoundDisc");
+							break;
+						}
 					case 'S':
 						result.add("SoundCassette");
 						break;
