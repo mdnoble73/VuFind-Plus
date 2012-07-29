@@ -110,11 +110,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
 			//For alpha browse processing, everything is handled in the finish method
+			results.incRecordsProcessed();
 			if (recordInfo.isEContent()){
 				results.incSkipped();
 				return true;
 			}
-			results.incRecordsProcessed();
 			Set<String> titles = recordInfo.getAllTitles();
 			logger.debug("found " + titles.size() + " titles for the resource");
 			Set<String> authors = recordInfo.getAuthors();
