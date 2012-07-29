@@ -203,7 +203,7 @@ $interface->assign('largeLogo', $configArray['Site']['largeLogo']);
 $interface->assign('focusElementId', 'lookfor');
 
 //Set System Message
-$interface->assign('systemMessage', "The catalog will be undergoing maintenance on Sunday July 29th from 8am - noon.  The system may be unavailable during this period.");
+//$interface->assign('systemMessage', "The catalog will be undergoing maintenance on Sunday July 29th from 8am - noon.  The system may be unavailable during this period.");
 
 //Get the name of the active instance
 if ($locationSingleton->getActiveLocation() != null){
