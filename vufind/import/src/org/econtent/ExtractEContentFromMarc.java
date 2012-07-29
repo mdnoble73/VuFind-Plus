@@ -33,7 +33,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordProcessor{
 	private Logger logger;
-	private boolean extractEContentFromUnchangedRecords;
+	private boolean reindexUnchangedRecords;
 	private boolean checkOverDriveAvailability;
 	private String econtentDBConnectionInfo;
 	private String overdriveUrl;
@@ -70,13 +70,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		results = new ProcessorResults("Extract eContent from ILS", reindexLogId, vufindConn, logger);
 		
-		String extractEContentFromUnchangedRecordsVal = configIni.get("Reindex", "extractEContentFromUnchangedRecords");
-		if (extractEContentFromUnchangedRecordsVal == null){
+		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
+		if (reindexUnchangedRecordsVal == null){
 			logger.debug("Did not get a value for reindexUnchangedRecordsVal");
-			extractEContentFromUnchangedRecords = false;
+			reindexUnchangedRecords = true;
 		}else{
-			extractEContentFromUnchangedRecords = Boolean.parseBoolean(extractEContentFromUnchangedRecordsVal);
-			logger.debug("reindexUnchangedRecords = " + extractEContentFromUnchangedRecords + " " + extractEContentFromUnchangedRecords);
+			reindexUnchangedRecords = Boolean.parseBoolean(reindexUnchangedRecordsVal);
+			logger.debug("reindexUnchangedRecords = " + reindexUnchangedRecords + " " + reindexUnchangedRecordsVal);
 		}
 		
 		String checkOverDriveAvailabilityVal = configIni.get("Reindex", "checkOverDriveAvailability");
@@ -144,7 +144,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					//Overdrive record, force processing to make sure we get updated availability
 					logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
 				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED){
-					if (extractEContentFromUnchangedRecords){
+					if (reindexUnchangedRecords){
 						logger.debug("Record is unchanged, but reindex unchanged records is on");
 					}else{
 						logger.debug("Skipping because the record is not changed");
