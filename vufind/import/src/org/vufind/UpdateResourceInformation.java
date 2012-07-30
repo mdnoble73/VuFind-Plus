@@ -480,6 +480,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		int rowsUpdated = resourceInsertStmt.executeUpdate();
 		if (rowsUpdated == 0) {
 			logger.debug("Unable to insert record " + recordInfo.getId());
+			results.addNote("Unable to insert record " + recordInfo.getId());
 			results.incErrors();
 		} else {
 			results.incAdded();
@@ -512,6 +513,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		int rowsUpdated = resourceUpdateStmt.executeUpdate();
 		if (rowsUpdated == 0) {
 			logger.debug("Unable to update resource for record " + recordInfo.getId() + " " + resourceId);
+			results.addNote("Unable to update resource for record " + recordInfo.getId() + " " + resourceId);
 			results.incErrors();
 		}else{
 			results.incUpdated();
