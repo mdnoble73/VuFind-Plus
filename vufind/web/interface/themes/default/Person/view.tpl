@@ -28,15 +28,12 @@
 	        </div>
 	      </div> {* End of Sidebar*}
 	      <div id = "fulldetails">
-	        <h1>{$record.firstName|escape}{if $record.nickName} ({$record.nickName|escape}){/if} {$record.middleName|escape} {$record.lastName|escape}
+	        <h1>{$record.firstName|escape} {$record.middleName|escape}{if $record.nickName} "{$record.nickName|escape}"{/if}{if $record.maidenName} ({$record.maidenName}){/if} {$record.lastName|escape}
           {if $userIsAdmin}
             <a href='{$path}/Admin/People?objectAction=edit&amp;id={$id}' ><img alt='Edit this person' src='{$path}/images/silk/user_edit.png' /></a>
             <a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' onclick='return confirm("Removing this person will permanently remove them from the system.  Are you sure?")'><img alt='Delete this person' src='{$path}/images/silk/user_delete.png' /></a>
           {/if}
           </h1>
-          {if $record.maidenName}
-          <div class='personDetail'><span class='personDetailLabel'>Maiden Name:</span><span class='personDetailValue'>{$record.maidenName|escape}</span></div>
-          {/if}
           {if $record.otherName}
           <div class='personDetail'><span class='personDetailLabel'>Other Names:</span><span class='personDetailValue'>{$record.otherName|escape}</span></div>
           {/if}

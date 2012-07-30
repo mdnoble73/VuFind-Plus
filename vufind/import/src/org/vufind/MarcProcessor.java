@@ -715,6 +715,7 @@ public class MarcProcessor {
 					}
 					recordsProcessed++;
 					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
+						ReindexProcess.addNoteToCronLog("Stopping processing because maximum number of records to process was reached.");
 						logger.debug("Stopping processing because maximum number of records to process was reached.");
 						break;
 					}
@@ -722,6 +723,10 @@ public class MarcProcessor {
 						ReindexProcess.updateLastUpdateTime();
 					}
 				} catch (Exception e) {
+					ReindexProcess.addNoteToCronLog("Exception processing record " + recordNumber + " - " + e.toString());
+					logger.error("Exception processing record " + recordNumber, e);
+				} catch (Error e) {
+					ReindexProcess.addNoteToCronLog("Error processing record " + recordNumber + " - " + e.toString());
 					logger.error("Error processing record " + recordNumber, e);
 				}
 			}
