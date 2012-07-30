@@ -1005,11 +1005,62 @@ public class MarcRecordDetails {
 				for (int i = 0; i < numparms; i++) {
 					parmClasses[i] = String.class;
 					objParms[i] = Util.cleanIniValue(parms[i].trim());
+					parms[i] = Util.cleanIniValue(parms[i].trim());
 				}
-				method = marcProcessor.getCustomMethodMap().get(functionName);
-				if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
-				returnType = method.getReturnType();
-				retval = method.invoke(objectThatContainsMethod, objParms);
+				if (functionName.equals("getDate")){
+					retval = getDate();
+				}else if (functionName.equals("getAllFields")){
+					retval = getAllFields();
+				}else if (functionName.equals("getAllSearchableFields") && parms.length == 2){
+					retval = getAllSearchableFields(parms[0], parms[1]);
+				}else if (functionName.equals("getFormat") && parms.length == 1){
+					retval = getFormat(parms[0]);
+				}else if (functionName.equals("getFormat")){
+					retval = getFormat("false");
+				}else if (functionName.equals("getAllSubfields") && parms.length == 2){
+					retval = getAllSubfields(parms[0], parms[1]);
+				}else if (functionName.equals("getSortableTitle")){
+					retval = getSortableTitle();
+				}else if (functionName.equals("getFullCallNumber") && parms.length == 1){
+					retval = getFullCallNumber(parms[0]);
+				}else if (functionName.equals("getCallNumberSubject") && parms.length == 1){
+					retval = getCallNumberSubject(parms[0]);
+				}else if (functionName.equals("getCallNumberLabel") && parms.length == 1){
+					retval = getCallNumberLabel(parms[0]);
+				}else if (functionName.equals("isIllustrated")){
+					retval = isIllustrated();
+				}else if (functionName.equals("getLocationCodes") && parms.length == 2){
+					retval = getLocationCodes(parms[0], parms[1]);
+				}else if (functionName.equals("getLibrarySystemBoost") && parms.length == 4){
+					retval = getLibrarySystemBoost(parms[0], parms[1], parms[2], parms[3]);
+				}else if (functionName.equals("getLocationBoost") && parms.length == 3){
+					retval = getLocationBoost(parms[0], parms[1], parms[2]);
+				}else if (functionName.equals("getLiteraryForm")){
+					retval = getLiteraryForm();
+				}else if (functionName.equals("getTargetAudience")){
+					retval = getTargetAudience();
+				}else if (functionName.equals("getNumHoldings") && parms.length == 1){
+					retval = getNumHoldings(parms[0]);
+				}else if (functionName.equals("getMpaaRating")){
+					retval = getMpaaRating();
+				}else if (functionName.equals("getRating") && parms.length == 1){
+					retval = getRating(parms[0]);
+				}else if (functionName.equals("getRatingFacet") && parms.length == 1){
+					retval = getRatingFacet(parms[0]);
+				}else if (functionName.equals("getDateAdded") && parms.length == 2){
+					retval = getDateAdded(parms[0], parms[1]);
+				}else if (functionName.equals("getRelativeTimeAdded") && parms.length == 2){
+					retval = getRelativeTimeAdded(parms[0], parms[1]);
+				}else if (functionName.equals("getLibraryRelativeTimeAdded") && parms.length == 6){
+					retval = getLibraryRelativeTimeAdded(parms[0], parms[1], parms[2], parms[3], parms[4], parms[5]);
+				}else if (functionName.equals("checkSuppression") && parms.length == 4){
+					retval = checkSuppression(parms[0], parms[1], parms[2], parms[3]);
+				}else{
+					method = marcProcessor.getCustomMethodMap().get(functionName);
+					if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
+					returnType = method.getReturnType();
+					retval = method.invoke(objectThatContainsMethod, objParms);
+				}
 			} else {
 				method = marcProcessor.getCustomMethodMap().get(indexParm);
 				if (method == null) method = classThatContainsMethod.getMethod(indexParm);

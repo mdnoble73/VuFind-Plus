@@ -10,7 +10,9 @@ class ReindexLogEntry extends DB_DataObject
 	public $__table = 'reindex_log';   // table name
 	public $id;
 	public $startTime;
+	public $lastUpdate;
 	public $endTime;
+	public $notes;
 	private $_processes = null;
 
 	/* Static get */
