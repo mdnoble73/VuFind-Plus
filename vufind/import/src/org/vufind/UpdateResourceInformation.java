@@ -548,7 +548,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					break;
 				}
 				results.incDeleted();
-				if (results.getNumDeleted() % 1000 == 0){
+				if (results.getNumDeleted() % 100 == 0){
 					results.saveResults();
 				}
 			}

@@ -94,24 +94,30 @@ public class ReindexProcess {
 		}
 		
 		//Process all reords (marc records, econtent that has been added to the database, and resources)
-		ArrayList<IRecordProcessor> recordProcessors = loadRecordProcesors();
-		if (recordProcessors.size() > 0){
-			//Do processing of marc records with record processors loaded above. 
-			// includes indexing records
-			// extracting eContent from records
-			// Updating resource information
-			// Saving records to strands - may need to move to resources if we are doing partial exports
-			processMarcRecords(recordProcessors);
-			
-			//Process eContent records that have been saved to the database. 
-			processEContentRecords(recordProcessors);
-			
-			//Do processing of resources as needed (for extraction of resources).
-			processResources(recordProcessors);
-			
-			for (IRecordProcessor processor : recordProcessors){
-				processor.finish();
+		ArrayList<IRecordProcessor> recordProcessors;
+		recordProcessors = loadRecordProcesors();
+		try {
+			if (recordProcessors.size() > 0){
+				//Do processing of marc records with record processors loaded above. 
+				// includes indexing records
+				// extracting eContent from records
+				// Updating resource information
+				// Saving records to strands - may need to move to resources if we are doing partial exports
+				processMarcRecords(recordProcessors);
+				
+				//Process eContent records that have been saved to the database. 
+				processEContentRecords(recordProcessors);
+				
+				//Do processing of resources as needed (for extraction of resources).
+				processResources(recordProcessors);
+				
+				for (IRecordProcessor processor : recordProcessors){
+					processor.finish();
+				}
 			}
+		} catch (Error e) {
+			logger.error("Error processing reindex ", e);
+			addNoteToCronLog("Error processing reindex " + e.toString());
 		}
 		
 		// Send completion information
