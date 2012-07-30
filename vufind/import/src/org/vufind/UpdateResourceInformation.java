@@ -366,12 +366,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			//Check to see if we have an existing resource
 			//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 			if (existingResourceId != null){
+				resourceId = existingResourceId;
 				//Remove the resource from the existingResourcesList so 
 				//We can determine which resources no longer exist
 				existingResourceIds.remove(recordInfo.getId());
 				existingResourceChecksums.remove(recordInfo.getId());
 				if (updateUnchangedResources || existingChecksum == null || existingChecksum == -1 || (existingChecksum != recordInfo.getChecksum())){
-					updateResourceInDb(recordInfo, logger, resourceId);
+					updateResourceInDb(recordInfo, logger, existingResourceId);
 				}else{
 					updateSubjectAndCallNumber = false;
 					results.incSkipped();
