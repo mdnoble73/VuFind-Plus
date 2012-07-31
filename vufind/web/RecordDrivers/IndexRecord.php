@@ -158,7 +158,7 @@ class IndexRecord implements RecordInterface
             'pubPlace' => count($pubPlaces) > 0 ? $pubPlaces[0] : null,
             'pubName' => count($publishers) > 0 ? $publishers[0] : null,
             'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
-            'edition' => array($this->getEdition())
+            'edition' => $this->getEdition()
 		);
 
 		// Build the citation:
@@ -166,8 +166,14 @@ class IndexRecord implements RecordInterface
 		switch($format) {
 			case 'APA':
 				return $citation->getAPA();
+			case 'AMA':
+				return $citation->getAMA();
+			case 'Chicago':
+				return $citation->getChicago();
 			case 'MLA':
 				return $citation->getMLA();
+			case 'Turabian':
+				return $citation->getTurabian();
 		}
 	}
 
@@ -180,7 +186,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCitationFormats()
 	{
-		return array('APA', 'MLA');
+		return array('AMA', 'APA', 'Chicago', 'MLA', 'Turabian');
 	}
 
 	/**
