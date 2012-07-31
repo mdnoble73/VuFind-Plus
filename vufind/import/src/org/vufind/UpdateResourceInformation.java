@@ -384,12 +384,12 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				resourceId = addResourceToDb(recordInfo, logger, resourceId);
 			}
 			
-			if (resourceId != -1 && updateSubjectAndCallNumber){
+			/*if (resourceId != -1 && updateSubjectAndCallNumber){
 				logger.debug("Updating subject and call number");
 				updateResourceSubjects(recordInfo, resourceId);
 				
 				updateResourceCallNumbers(recordInfo, logger, resourceId);
-			}
+			}*/
 		} catch (SQLException ex) {
 			// handle any errors
 			logger.error("Error updating resource for record " + recordInfo.getId() + " " + recordInfo.getTitle(), ex);
@@ -404,7 +404,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		return true;
 	}
 
-	private void updateResourceCallNumbers(MarcRecordDetails recordInfo, Logger logger, Long resourceId) throws SQLException {
+	/*private void updateResourceCallNumbers(MarcRecordDetails recordInfo, Logger logger, Long resourceId) throws SQLException {
 		clearResourceCallnumbersStmt.setLong(1, resourceId);
 		clearResourceCallnumbersStmt.executeUpdate();
 		if (callNumberSubfield != null && callNumberSubfield.length() > 0 && locationSubfield != null && locationSubfield.length() > 0){
@@ -428,7 +428,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		clearResourceSubjectsStmt.executeUpdate();
 		
 		//Add subjects 
-		Object subjects = recordInfo.getMappedField("topic_facet");
+		Object subjects = recordInfo.getMappedField("topic");
 		Set<String> subjectsToProcess = new HashSet<String>();
 		if (subjects != null){
 			if (subjects instanceof String){
@@ -460,7 +460,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				}
 			}
 		}
-	}
+	}*/
 
 	private Long addResourceToDb(MarcRecordDetails recordInfo, Logger logger, Long resourceId) throws SQLException {
 		String author = recordInfo.getAuthor();
