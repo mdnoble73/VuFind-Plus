@@ -19,8 +19,9 @@ html, body{
 }
 #loginBlock{
 	position: absolute;
-	top: 10px;
+	top: 5px;
 	right: 20px;
+	line-height: 16px;
 }
 #searchbar, .breadcrumbs{
 	background-color: #2B627F; 
@@ -48,16 +49,16 @@ div.breadcrumbs span{
 }
 
 .searchheader{
-	background-color: #7F8DD8;
-	color: white;
+	background-color: white;
+	color: #67676A;
 	width: 1000px;
 	margin: 0px auto;
 	padding: 0px;
-	height: 105px;
+	height: 81px;
 }
 
 .searchheader a, .searchheader a:visited{
-	color: white;
+	color: #67676A;
 }
 .searchheader a:hover{
 	color: #222;

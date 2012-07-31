@@ -1005,6 +1005,17 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'reindexLog_1' => array(
+			'title' => 'Reindex Log table update 1',
+			'description' => 'Update Reindex Log table to include notes and last update.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE reindex_log ADD COLUMN `notes` TEXT COMMENT 'Notes related to the overall process'",
+				"ALTER TABLE reindex_log ADD `lastUpdate` INT(11) COMMENT 'The last time the log was updated'",
+			),
+		),
+		
+		
 		'cronLog' => array(
 			'title' => 'Cron Log table',
 			'description' => 'Create Cron Log table to track reindexing.',

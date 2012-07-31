@@ -187,6 +187,7 @@ public class MarcProcessor {
 		// This allows us to detect whether or not the record is new, has changed,
 		// or is deleted
 		logger.info("Loading existing checksums for records");
+		ReindexProcess.addNoteToCronLog("Loading existing checksums for records");
 		try {
 			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import");
 			ResultSet existingRecordChecksumsRS = existingRecordChecksumsStmt.executeQuery();
@@ -200,17 +201,19 @@ public class MarcProcessor {
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load checksums for existing records", e);
+			ReindexProcess.addNoteToCronLog("Unable to load checksums for existing records " + e.toString());
 			return false;
 		}
 
 		// Load the ILS ids of any eContent records that have been loaded so we can
 		// suppress the record in the regular content
 		logger.info("Loading ils ids for econtent records for suppression");
+		ReindexProcess.addNoteToCronLog("Loading ils ids for econtent records for suppression");
 		try {
 			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record");
 			ResultSet existingEContentRecordRS = existingEContentRecordStmt.executeQuery();
 			while (existingEContentRecordRS.next()) {
-				existingEContentIds.add(existingEContentRecordRS.getString("ilsId"));
+				existingEContentIds.add(existingEContentRecordRS.getString(1));
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load checksums for existing records", e);
@@ -219,6 +222,7 @@ public class MarcProcessor {
 
 		// Load detection settings to determine if a record is eContent.
 		logger.info("Loading record detection settings");
+		ReindexProcess.addNoteToCronLog("Loading record detection settings");
 		try {
 			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings");
 			ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
@@ -239,6 +243,7 @@ public class MarcProcessor {
 
 		// Load ratings for print and eContent titles
 		logger.info("Loading ratings");
+		ReindexProcess.addNoteToCronLog("Loading ratings");
 		try {
 			PreparedStatement printRatingsStmt = vufindConn
 					.prepareStatement(
@@ -255,7 +260,7 @@ public class MarcProcessor {
 							ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet econtentRatingsRS = econtentRatingsStmt.executeQuery();
 			while (econtentRatingsRS.next()) {
-				econtentRatings.put(econtentRatingsRS.getString("ilsId"), econtentRatingsRS.getFloat("rating"));
+				econtentRatings.put(econtentRatingsRS.getString(1), econtentRatingsRS.getFloat(2));
 			}
 			econtentRatingsRS.close();
 		} catch (SQLException e) {
@@ -301,6 +306,7 @@ public class MarcProcessor {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
 		}
+		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
 	}
 
@@ -631,6 +637,7 @@ public class MarcProcessor {
 	private void processMarcFile(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
 		try {
 			logger.info("Processing file " + marcFile.toString());
+			ReindexProcess.addNoteToCronLog("Processing file " + marcFile.toString());
 			// Open the marc record with Marc4j
 			InputStream input = new FileInputStream(marcFile);
 			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
@@ -708,14 +715,23 @@ public class MarcProcessor {
 					}
 					recordsProcessed++;
 					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
+						ReindexProcess.addNoteToCronLog("Stopping processing because maximum number of records to process was reached.");
 						logger.debug("Stopping processing because maximum number of records to process was reached.");
 						break;
 					}
+					if (recordsProcessed % 1000 == 0){
+						ReindexProcess.updateLastUpdateTime();
+					}
 				} catch (Exception e) {
+					ReindexProcess.addNoteToCronLog("Exception processing record " + recordNumber + " - " + e.toString());
+					logger.error("Exception processing record " + recordNumber, e);
+				} catch (Error e) {
+					ReindexProcess.addNoteToCronLog("Error processing record " + recordNumber + " - " + e.toString());
 					logger.error("Error processing record " + recordNumber, e);
 				}
 			}
 			logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
+			ReindexProcess.addNoteToCronLog("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 		} catch (Exception e) {
 			logger.error("Error processing file " + marcFile.toString(), e);
 		}
