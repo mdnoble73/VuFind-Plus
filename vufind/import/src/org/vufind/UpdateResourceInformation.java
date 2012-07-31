@@ -6,13 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.solrmarc.tools.Utils;
 
 public class UpdateResourceInformation implements IMarcRecordProcessor, IEContentProcessor, IRecordProcessor{
 	private Logger logger;
@@ -27,14 +23,14 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement deleteResourceStmt = null;
 	
 	//Code related to subjects of resources
-	private HashMap<String, Long> existingSubjects;
+	/*private HashMap<String, Long> existingSubjects;
 	private PreparedStatement getExistingSubjectsStmt = null;
 	private PreparedStatement insertSubjectStmt = null;
 	private PreparedStatement clearResourceSubjectsStmt = null;
-	private PreparedStatement linkResourceToSubjectStmt = null;
+	private PreparedStatement linkResourceToSubjectStmt = null;*/
 	
 	//Setup prepared statements that we will use
-	private PreparedStatement existingResourceStmt;
+	//private PreparedStatement existingResourceStmt;
 	private PreparedStatement addResourceStmt;
 	private PreparedStatement updateResourceStmt;
 	
@@ -42,20 +38,20 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	//Code related to call numbers
 	private HashMap<String, Long> locations;
 	private PreparedStatement getLocationsStmt = null;
-	private PreparedStatement clearResourceCallnumbersStmt = null;
-	private PreparedStatement addCallnumberToResourceStmt = null;
+	/*private PreparedStatement clearResourceCallnumbersStmt = null;
+	private PreparedStatement addCallnumberToResourceStmt = null;*/
 	
 	//Information about how to process call numbers for local browse
-	private String itemTag;
+	/*private String itemTag;
 	private String callNumberSubfield;
-	private String locationSubfield;
+	private String locationSubfield;*/
 	
 	//A list of existing resources so we can mark records as deleted if they no longer exist
 	//private HashMap<Long, BasicResourceInfo> existingResources = new HashMap<Long, BasicResourceInfo>();
 	
 	private ProcessorResults results;
 
-	private PreparedStatement	getDistinctRecordIdsStmt;
+	//private PreparedStatement	getDistinctRecordIdsStmt;
 	private PreparedStatement	getDuplicateResourceIdsStmt;
 	private PreparedStatement	getRelatedRecordsStmt;
 	
@@ -69,7 +65,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement	transferReadingHistoryStmt;
 	private PreparedStatement	transferUserResourceStmt;
 
-	private PreparedStatement	getEContentIlsIds;
+	//private PreparedStatement	getEContentIlsIds;
 	private PreparedStatement	getEContentResource;
 
 	private PreparedStatement	getEContentRecordIdByIlsIds;
@@ -111,7 +107,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			deleteResouceCallNumberPermanentStmt = vufindConn.prepareStatement("DELETE from resource_callnumber where resourceId = ?");
 			deleteResouceSubjectPermanentStmt = vufindConn.prepareStatement("DELETE from resource_subject where resourceId = ?");
 			
-			getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			/*getExistingSubjectsStmt = vufindConn.prepareStatement("SELECT * FROM subject", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingSubjectsRS = getExistingSubjectsStmt.executeQuery();
 			existingSubjects = new HashMap<String, Long>();
 			while (existingSubjectsRS.next()){
@@ -120,7 +116,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			existingSubjectsRS.close();
 			insertSubjectStmt = vufindConn.prepareStatement("INSERT INTO subject (subject) VALUES (?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			clearResourceSubjectsStmt = vufindConn.prepareStatement("DELETE FROM resource_subject WHERE resourceId = ?");
-			linkResourceToSubjectStmt = vufindConn.prepareStatement("INSERT INTO resource_subject (subjectId, resourceId) VALUES (?, ?)");
+			linkResourceToSubjectStmt = vufindConn.prepareStatement("INSERT INTO resource_subject (subjectId, resourceId) VALUES (?, ?)");*/
 			
 			getLocationsStmt = vufindConn.prepareStatement("SELECT locationId, code FROM location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet locationsRS = getLocationsStmt.executeQuery();
@@ -130,22 +126,22 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 			locationsRS.close();
 			
-			clearResourceCallnumbersStmt = vufindConn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
-			addCallnumberToResourceStmt = vufindConn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");
+			/*clearResourceCallnumbersStmt = vufindConn.prepareStatement("DELETE FROM resource_callnumber WHERE resourceId = ?");
+			addCallnumberToResourceStmt = vufindConn.prepareStatement("INSERT INTO resource_callnumber (resourceId, locationId, callnumber) VALUES (?, ?, ?)");*/
 			
 			//Setup prepared statements that we will use
-			existingResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated, marc_checksum, deleted from resource where record_id = ? and source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//existingResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated, marc_checksum, deleted from resource where record_id = ? and source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			existingEContentResourceStmt = vufindConn.prepareStatement("SELECT id, date_updated, marc_checksum, deleted from resource where record_id = ? and source = 'eContent'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			addResourceStmt = vufindConn.prepareStatement("INSERT INTO resource (record_id, title, source, author, title_sort, isbn, upc, format, format_category, marc_checksum, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			updateResourceStmt = vufindConn.prepareStatement("UPDATE resource SET record_id = ?, title = ?, source = ?, author = ?, title_sort = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum = ?, date_updated = ? WHERE id = ?");
 			
 			//Load field information for local call numbers
-			itemTag = configIni.get("Reindex", "itemTag");
+			/*itemTag = configIni.get("Reindex", "itemTag");
 			callNumberSubfield = configIni.get("Reindex", "callNumberSubfield");
-			locationSubfield = configIni.get("Reindex", "locationSubfield");
+			locationSubfield = configIni.get("Reindex", "locationSubfield");*/
 			
 			//Cleanup duplicate resources
-			getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//getDistinctRecordIdsStmt = vufindConn.prepareStatement("SELECT distinct record_id FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getDuplicateResourceIdsStmt = vufindConn.prepareStatement("SELECT record_id, count(id) numResources FROM resource group by record_id, source having count(id) > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getRelatedRecordsStmt = vufindConn.prepareStatement("SELECT id, deleted FROM resource where record_id = ? and source = 'VuFind'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			transferCommentsStmt = vufindConn.prepareStatement("UPDATE comments set resource_id = ? where resource_id = ?");
@@ -157,7 +153,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			
 			//Cleanup duplicated print and eContent resources
 			getEContentRecordIdByIlsIds = econtentConn.prepareStatement("SELECT id FROM econtent_record WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			getEContentIlsIds = econtentConn.prepareStatement("SELECT id, ilsId FROM econtent_record", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//getEContentIlsIds = econtentConn.prepareStatement("SELECT id, ilsId FROM econtent_record", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getEContentResource = vufindConn.prepareStatement("SELECT id from resource where record_id = ? and source = 'eContent'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			//cleanupEContentResources();
 			
@@ -317,7 +313,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	public synchronized boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		Long resourceId = -1L;
 		
-		boolean updateSubjectAndCallNumber = true;
+		//boolean updateSubjectAndCallNumber = true;
 		results.incRecordsProcessed();
 		try {
 			//Get the existing resource if any
@@ -374,7 +370,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				if (updateUnchangedResources || existingChecksum == null || existingChecksum == -1 || (existingChecksum != recordInfo.getChecksum())){
 					updateResourceInDb(recordInfo, logger, existingResourceId);
 				}else{
-					updateSubjectAndCallNumber = false;
+					//updateSubjectAndCallNumber = false;
 					results.incSkipped();
 				}
 				

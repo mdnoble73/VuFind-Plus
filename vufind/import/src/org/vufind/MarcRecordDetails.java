@@ -1056,6 +1056,7 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("checkSuppression") && parms.length == 4){
 					retval = checkSuppression(parms[0], parms[1], parms[2], parms[3]);
 				}else{
+					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
 					if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
 					returnType = method.getReturnType();
