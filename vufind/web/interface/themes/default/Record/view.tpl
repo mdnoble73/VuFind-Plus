@@ -39,7 +39,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			{if $corporateAuthor}
 				<div class="sidebarLabel">{translate text='Corporate Author'}:</div>
-				<div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a>a></div>
+				<div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a></div>
 			{/if}
 			
 			{if $contributors}
