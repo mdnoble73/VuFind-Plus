@@ -66,9 +66,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	private PreparedStatement	transferUserResourceStmt;
 
 	//private PreparedStatement	getEContentIlsIds;
-	private PreparedStatement	getEContentResource;
+	//private PreparedStatement	getEContentResource;
 
-	private PreparedStatement	getEContentRecordIdByIlsIds;
+	//private PreparedStatement	getEContentRecordIdByIlsIds;
 
 	private PreparedStatement	existingEContentResourceStmt;
 	
@@ -152,9 +152,9 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			cleanupDulicateResources();
 			
 			//Cleanup duplicated print and eContent resources
-			getEContentRecordIdByIlsIds = econtentConn.prepareStatement("SELECT id FROM econtent_record WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//getEContentRecordIdByIlsIds = econtentConn.prepareStatement("SELECT id FROM econtent_record WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			//getEContentIlsIds = econtentConn.prepareStatement("SELECT id, ilsId FROM econtent_record", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			getEContentResource = vufindConn.prepareStatement("SELECT id from resource where record_id = ? and source = 'eContent'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//getEContentResource = vufindConn.prepareStatement("SELECT id from resource where record_id = ? and source = 'eContent'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			//cleanupEContentResources();
 			
 			//Get a list of resources that have already been installed. 
@@ -328,7 +328,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					existingResourceIds.remove(recordInfo.getId());
 					//Record is eContent, but we have a print resource for it, transfer from the 
 					//Old to new and delete the resource
-					getEContentRecordIdByIlsIds.setString(1, recordInfo.getId());
+					//Ignore this for now since it is bringing indexing to a crawl
+					/*getEContentRecordIdByIlsIds.setString(1, recordInfo.getId());
 					ResultSet eContentRecordIdRS = getEContentRecordIdByIlsIds.executeQuery();
 					if (eContentRecordIdRS.next()){
 						Long eContentRecordId = eContentRecordIdRS.getLong("id");
@@ -339,7 +340,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 							transferUserInfo(existingResourceId, econtentResourceId);
 							deleteResourcePermanently(existingResourceId);
 						}
-					}
+					}*/
 				}
 				return true;
 			}
