@@ -328,7 +328,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					existingResourceIds.remove(recordInfo.getId());
 					//Record is eContent, but we have a print resource for it, transfer from the 
 					//Old to new and delete the resource
-					getEContentRecordIdByIlsIds.setString(1, recordInfo.getId());
+					//Ignore this for now since it is bringing indexing to a crawl
+					/*getEContentRecordIdByIlsIds.setString(1, recordInfo.getId());
 					ResultSet eContentRecordIdRS = getEContentRecordIdByIlsIds.executeQuery();
 					if (eContentRecordIdRS.next()){
 						Long eContentRecordId = eContentRecordIdRS.getLong("id");
@@ -339,7 +340,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 							transferUserInfo(existingResourceId, econtentResourceId);
 							deleteResourcePermanently(existingResourceId);
 						}
-					}
+					}*/
 				}
 				return true;
 			}
