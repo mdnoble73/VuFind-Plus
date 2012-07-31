@@ -1009,52 +1009,76 @@ public class MarcRecordDetails {
 				}
 				if (functionName.equals("getDate")){
 					retval = getDate();
+					returnType = String.class;
 				}else if (functionName.equals("getAllFields")){
 					retval = getAllFields();
+					returnType = String.class;
 				}else if (functionName.equals("getAllSearchableFields") && parms.length == 2){
 					retval = getAllSearchableFields(parms[0], parms[1]);
+					returnType = String.class;
 				}else if (functionName.equals("getFormat") && parms.length == 1){
 					retval = getFormat(parms[0]);
+					returnType = Set.class;
 				}else if (functionName.equals("getFormat")){
 					retval = getFormat("false");
+					returnType = Set.class;
 				}else if (functionName.equals("getAllSubfields") && parms.length == 2){
 					retval = getAllSubfields(parms[0], parms[1]);
+					returnType = Set.class;
 				}else if (functionName.equals("getSortableTitle")){
 					retval = getSortableTitle();
+					returnType = String.class;
 				}else if (functionName.equals("getFullCallNumber") && parms.length == 1){
 					retval = getFullCallNumber(parms[0]);
+					returnType = String.class;
 				}else if (functionName.equals("getCallNumberSubject") && parms.length == 1){
 					retval = getCallNumberSubject(parms[0]);
+					returnType = String.class;
 				}else if (functionName.equals("getCallNumberLabel") && parms.length == 1){
 					retval = getCallNumberLabel(parms[0]);
+					returnType = String.class;
 				}else if (functionName.equals("isIllustrated")){
 					retval = isIllustrated();
+					returnType = String.class;
 				}else if (functionName.equals("getLocationCodes") && parms.length == 2){
 					retval = getLocationCodes(parms[0], parms[1]);
+					returnType = Set.class;
 				}else if (functionName.equals("getLibrarySystemBoost") && parms.length == 4){
 					retval = getLibrarySystemBoost(parms[0], parms[1], parms[2], parms[3]);
+					returnType = String.class;
 				}else if (functionName.equals("getLocationBoost") && parms.length == 3){
 					retval = getLocationBoost(parms[0], parms[1], parms[2]);
+					returnType = String.class;
 				}else if (functionName.equals("getLiteraryForm")){
 					retval = getLiteraryForm();
+					returnType = Set.class;
 				}else if (functionName.equals("getTargetAudience")){
 					retval = getTargetAudience();
+					returnType = Set.class;
 				}else if (functionName.equals("getNumHoldings") && parms.length == 1){
 					retval = getNumHoldings(parms[0]);
+					returnType = String.class;
 				}else if (functionName.equals("getMpaaRating")){
 					retval = getMpaaRating();
+					returnType = String.class;
 				}else if (functionName.equals("getRating") && parms.length == 1){
 					retval = getRating(parms[0]);
+					returnType = String.class;
 				}else if (functionName.equals("getRatingFacet") && parms.length == 1){
 					retval = getRatingFacet(parms[0]);
+					returnType = String.class;
 				}else if (functionName.equals("getDateAdded") && parms.length == 2){
 					retval = getDateAdded(parms[0], parms[1]);
+					returnType = String.class;
 				}else if (functionName.equals("getRelativeTimeAdded") && parms.length == 2){
 					retval = getRelativeTimeAdded(parms[0], parms[1]);
+					returnType = String.class;
 				}else if (functionName.equals("getLibraryRelativeTimeAdded") && parms.length == 6){
 					retval = getLibraryRelativeTimeAdded(parms[0], parms[1], parms[2], parms[3], parms[4], parms[5]);
+					returnType = Set.class;
 				}else if (functionName.equals("checkSuppression") && parms.length == 4){
 					retval = checkSuppression(parms[0], parms[1], parms[2], parms[3]);
+					returnType = String.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
