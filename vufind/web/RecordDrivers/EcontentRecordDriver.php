@@ -112,6 +112,12 @@ class EcontentRecordDriver extends IndexRecord
 				return $citation->getAPA();
 			case 'MLA':
 				return $citation->getMLA();
+			case 'AMA':
+				return $citation->getMLA();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
 		}
 	}
 	

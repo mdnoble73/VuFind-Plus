@@ -168,12 +168,12 @@ class IndexRecord implements RecordInterface
 				return $citation->getAPA();
 			case 'AMA':
 				return $citation->getAMA();
-			case 'Chicago':
-				return $citation->getChicago();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
 			case 'MLA':
 				return $citation->getMLA();
-			case 'Turabian':
-				return $citation->getTurabian();
 		}
 	}
 
@@ -186,7 +186,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCitationFormats()
 	{
-		return array('AMA', 'APA', 'Chicago', 'MLA', 'Turabian');
+		return array('AMA', 'APA', 'ChicagoHumanities', 'ChicagoAuthDate', 'MLA');
 	}
 
 	/**

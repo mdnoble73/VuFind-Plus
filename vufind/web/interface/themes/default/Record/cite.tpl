@@ -10,7 +10,7 @@
 	{translate text="No citations are available for this record"}.
 {else}
 	<div style="text-align: left;">
-		{if $ama}
+		{if false && $ama}
 			<b>{translate text="AMA Citation"}</b>
 			<p style="width: 95%; padding-left: 25px; text-indent: -25px;">
 				{include file=$ama}
@@ -24,10 +24,17 @@
 			</p>
 		{/if}
 		
-		{if $chicago}
-			<b>{translate text="Chicago Citation"}</b>
+		{if $chicagoauthdate}
+			<b>{translate text="Chicago / Turabian - Author Date Citation"}</b>
 			<p style="width: 95%; padding-left: 25px; text-indent: -25px;">
-				{include file=$chicago}
+				{include file=$chicagoauthdate}
+			</p>
+		{/if}
+		
+		{if $chicagohumanities}
+			<b>{translate text="Chicago / Turabian - Humanities Citation"}</b>
+			<p style="width: 95%; padding-left: 25px; text-indent: -25px;">
+				{include file=$chicagohumanities}
 			</p>
 		{/if}
 
@@ -37,13 +44,7 @@
 				{include file=$mla}
 			</p>
 		{/if}
-		
-		{if $turabian}
-			<b>{translate text="Turabian Citation"}</b>
-			<p style="width: 95%; padding-left: 25px; text-indent: -25px;">
-				{include file=$turabian}
-			</p>
-		{/if}
+
 	</div>
 	<div class="note">{translate text="Citation formats are based on standards as of July 2010.  Citations contain only title, author, edition, publisher, year published."}</div>
 {/if}

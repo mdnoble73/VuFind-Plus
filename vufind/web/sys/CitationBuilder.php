@@ -130,16 +130,16 @@ class CitationBuilder
 	}
 
 	/**
-	 * Get Chicago citation.
+	 * Get Chicago Humanities citation.
 	 *
 	 * This function assigns all the necessary variables and then returns a template
-	 * name to display a Chicago citation.
+	 * name to display a Chicago Humanities citation.
 	 *
 	 * @access  public
 	 * @return  string                      Path to a Smarty template to display
 	 *                                      the citation.
 	 */
-	public function getChicago()
+	public function getChicagoHumanities()
 	{
 		global $interface;
 		$citeDetails = array(
@@ -150,20 +150,20 @@ class CitationBuilder
             'edition' => $this->getEdition()
 		);
 		$interface->assign('citeDetails', $citeDetails);
-		return 'Citation/chicago.tpl';
+		return 'Citation/chicago-humanities.tpl';
 	}
 	
 	/**
-	 * Get Chicago citation.
+	 * Get Chicago Auth Date citation.
 	 *
 	 * This function assigns all the necessary variables and then returns a template
-	 * name to display a Chicago citation.
+	 * name to display a Chicago Auth Datemanities citation.
 	 *
 	 * @access  public
 	 * @return  string                      Path to a Smarty template to display
 	 *                                      the citation.
 	 */
-	public function getTurabian()
+	public function getChicagoAuthDate()
 	{
 		global $interface;
 		$citeDetails = array(
@@ -174,7 +174,7 @@ class CitationBuilder
             'edition' => $this->getEdition()
 		);
 		$interface->assign('citeDetails', $citeDetails);
-		return 'Citation/turabian.tpl';
+		return 'Citation/chicago-authdate.tpl';
 	}
 	
 	/**
@@ -351,7 +351,7 @@ class CitationBuilder
 	{
 		// Create Title
 		$title = $this->stripPunctuation($this->details['title']);
-		if (isset($this->details['subtitle'])) {
+		if (isset($this->details['subtitle']) && strlen($this->details['subtitle']) > 0) {
 			$title .= ': ' . $this->stripPunctuation($this->details['subtitle']);
 		}
 
@@ -403,19 +403,19 @@ class CitationBuilder
 			$numAuthors = count($this->details['authors']);
 			foreach($this->details['authors'] as $author) {
 				$authorAbr = $this->abbreviateName($author);
-				$author = $this->reverseName($author);
+				$authorReversed = $this->reverseName($author);
 				if ($numAuthors == 1){
 					$authorStr = $this->stripPunctuation($author);
 				}elseif ($numAuthors < 4){
 					if ($i == 0){
 						$authorStr .= $this->stripPunctuation($author);
 					}elseif (($i+1 == count($this->details['authors'])) && ($i > 0)) {
-						$authorStr .= ' and ' . $this->stripPunctuation($author);
+						$authorStr .= ' and ' . $this->stripPunctuation($authorReversed);
 					}else{
-						$authorStr .= ', ' . $this->stripPunctuation($author);
+						$authorStr .= ', ' . $this->stripPunctuation($authorReversed);
 					}
 				}else{
-					$authorStr .= $this->stripPunctuation($author) . ' et al.';
+					$authorStr .= $this->stripPunctuation($authorReversed) . ' et al.';
 				}
 				$i++;
 			}
