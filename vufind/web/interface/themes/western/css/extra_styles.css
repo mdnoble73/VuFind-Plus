@@ -14,14 +14,13 @@ html, body{
 
 #header_logo{
 	position: relative;
-	left: 0px;
-	top: 0px;
+	left: 5px;
+	top: 5px;
 }
 #loginBlock{
 	position: absolute;
-	top: 5px;
+	top: 10px;
 	right: 20px;
-	line-height: 16px;
 }
 #searchbar, .breadcrumbs{
 	background-color: #2B627F; 
@@ -54,7 +53,7 @@ div.breadcrumbs span{
 	width: 1000px;
 	margin: 0px auto;
 	padding: 0px;
-	height: 81px;
+	height: 111px;
 }
 
 .searchheader a, .searchheader a:visited{
