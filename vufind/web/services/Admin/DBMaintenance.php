@@ -206,6 +206,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `preferSyndeticsSummary` TINYINT DEFAULT '1';",
 				),
 			),
+			'library_12' => array(
+				'title' => 'Library 12',
+				'description' => 'Add fields for disabling some Novelist functionality and disabling boosting by number of holdings',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `abbreviatedDisplayName` VARCHAR(20) DEFAULT '';",
+					"UPDATE `library` SET `abbreviatedDisplayName` = LEFT(`displayName`, 20);",
+				),
+			),
 			
 			'location_1' => array(
 				'title' => 'Location 1',
