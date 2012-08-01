@@ -272,7 +272,7 @@ class EContentItem extends DB_DataObject {
 		if ($ret){
 			//Package the file as needed
 			if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
-				$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->id, false, $this->getAvailableCopies());
+				$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, false, $this->getAvailableCopies());
 				if ($uploadResults['success']){
 					$this->acsId = $uploadResults['acsId'];
 					$fileUploaded  = true;
@@ -297,7 +297,7 @@ class EContentItem extends DB_DataObject {
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
 			require_once 'sys/AdobeContentServer.php';
 			global $configArray;
-			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->id, $this->acsId, $this->getAvailableCopies());
+			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, $this->acsId, $this->getAvailableCopies());
 			if ($uploadResults['success']){
 				$oldAcs = $this->acsId;
 				$this->acsId = $uploadResults['acsId'];
