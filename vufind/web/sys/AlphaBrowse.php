@@ -56,9 +56,10 @@ class AlphaBrowse{
 		$numRows = $numRowsRS['numRows'];
 		
 		//Cleanup our look for value 
-		$lookFor = preg_replace('/\W/', ' ', $lookFor);
-		$lookFor = preg_replace('/\s{2,}/', ' ', $lookFor);
 		$lookFor = strtolower($lookFor);
+		$lookFor = preg_replace('/\W/', ' ', $lookFor);
+		$lookFor = preg_replace("/^(a|an|the|el|la)\\s/", '', $lookFor);
+		$lookFor = preg_replace('/\s{2,}/', ' ', $lookFor);
 		return $this->loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows);
 		
 		/*$foundMatch = false;
