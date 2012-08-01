@@ -891,7 +891,7 @@ class DBMaintenance extends Admin {
 		),
 		
 		/* This routine completely changed, removing alpha_browse_setup since alpha_browse_setup_1 complete redoes the tables */
-		'alpha_browse_setup_1' => array(
+		'alpha_browse_setup_2' => array(
 			'title' => 'Setup Alphabetic Browse',
 			'description' => 'Create tables to handle alphabetic browse functionality.',
 			'dependencies' => array(),
@@ -912,10 +912,10 @@ class DBMaintenance extends Admin {
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
-					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId` )
+				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				INDEX (`scopeId`)
 				) ENGINE = MyISAM",
 		
 				"DROP TABLE IF EXISTS `author_browse`",
@@ -933,10 +933,10 @@ class DBMaintenance extends Admin {
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
-					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId` ) 
+				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				INDEX (`scopeId`)
 				) ENGINE = MyISAM",
 		
 				"DROP TABLE IF EXISTS `callnumber_browse`",
@@ -954,10 +954,10 @@ class DBMaintenance extends Admin {
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
-					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId` ) 
+				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				INDEX (`scopeId`)
 				) ENGINE = MyISAM",
 		
 				"DROP TABLE IF EXISTS `subject_browse`",
@@ -975,10 +975,10 @@ class DBMaintenance extends Admin {
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
-					`numResults` INT NOT NULL COMMENT 'The number of results found in the table',
-					`relatedRecords` VARCHAR( 500 ) NOT NULL,
+					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId` ) 
+				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				INDEX (`scopeId`) 
 				) ENGINE = MyISAM",
 			),
 		),

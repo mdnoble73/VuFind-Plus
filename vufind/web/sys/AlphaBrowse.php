@@ -55,7 +55,12 @@ class AlphaBrowse{
 		$numRowsRS = mysql_fetch_assoc($result);
 		$numRows = $numRowsRS['numRows'];
 		
-		$foundMatch = false;
+		//Cleanup our look for value 
+		$lookFor = preg_replace('/\W/', ' ', $lookFor);
+		$lookFor = preg_replace('/\s{2,}/', ' ', $lookFor);
+		return $this->loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows);
+		
+		/*$foundMatch = false;
 		$exactMatch = true;
 		while (!$foundMatch && strlen($lookFor) > 0){
 			//If we didn't find a match, try the original value as well
@@ -75,7 +80,7 @@ class AlphaBrowse{
 			
 			//We didn't get an exact match, try to find the right location in the list
 			//based on fuzzy logic.  
-			//To get the next sarch term, increment the new last character by one character.
+			//To get the next search term, increment the new last character by one character.
 			$lookFor = substr($lookFor, 0, strlen($lookFor) - 1);
 			//To make sure we don't go backwards to far in the list, increment the 
 			$lastChar = substr($lookFor, -1);
@@ -83,37 +88,30 @@ class AlphaBrowse{
 			if ($lastChar != 'z'){
 				$lookFor .= $lastChar++;
 			}
-		}
+		}*/
 		//Didn't find a match, just start at the beginning of the table
-		return $this->loadBrowseItems('', $browseType, $browseTable, $scopingFilter, 0, false, $relativePage, $resultsPerPage, $numRows);
+		//return $this->loadBrowseItems('', $browseType, $browseTable, $scopingFilter, 0, false, $relativePage, $resultsPerPage, $numRows);
 	}
 	
-	function loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $startRow, $exactMatch, $relativePage, $resultsPerPage, $numRows){
-		$selectedIndex = $startRow;
-		if (!$exactMatch) {
-			$startRow -= 2;
-		}
-		$startRow = $startRow + $relativePage * $resultsPerPage;
+	function loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows){
+		//Now that we have the id to start with, get the actual records
+		$numTotalPreviousEntriesQuery = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter ORDER BY sortValue";
+		$numTotalPreviousEntriesResult = mysql_query($numTotalPreviousEntriesQuery);
+		$numTotalPreviousEntries = mysql_fetch_assoc($numTotalPreviousEntriesResult);
+		$startRow = $numTotalPreviousEntries['numRows'] + ($relativePage * $resultsPerPage);
 		if ($startRow < 0){
 			$startRow = 0;
 		}
-		$endRow = $startRow + $resultsPerPage;
-		if ($endRow > $numRows){
-			$endRow = $numRows;
-		}
 		
-		
-		//Now that we have the id to start with, get the actual records
-		if ($relativePage >= 0){
-			$query = "SELECT * FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue >= '$lookFor' and $scopingFilter ORDER BY sortValue LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
-		}else{
-			$numTotalPreviousEntriesQuery = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter ORDER BY sortValue";
-			$numTotalPreviousEntriesResult = mysql_query($numTotalPreviousEntriesQuery);
-			$numTotalPreviousEntries = mysql_fetch_assoc($numTotalPreviousEntriesResult);
-			$numPreviousRows = $numTotalPreviousEntries['numRows'];
-			//echo("Previous Rows: $numPreviousRows<br/>");
+		$numEntriesAfterQuery = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue > '$lookFor' and $scopingFilter ORDER BY sortValue";
+		$numEntriesAfterResult = mysql_query($numEntriesAfterQuery);
+		$numEntriesAfterEntries = mysql_fetch_assoc($numEntriesAfterResult);
+		$numRowsAfter = $numEntriesAfterEntries['numRows'] - ($relativePage * $resultsPerPage) - $resultsPerPage;
 			
-			$query = "SELECT * FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter ORDER BY sortValue LIMIT " . ($numPreviousRows + ($relativePage * $resultsPerPage)) . ", $resultsPerPage";
+		if ($relativePage >= 0){
+			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.id) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue >= '$lookFor' and $scopingFilter GROUP BY browseValueId ORDER BY sortValue LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+		}else{
+			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.id) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter GROUP BY browseValueId ORDER BY sortValue LIMIT " . $startRow . ", $resultsPerPage";
 		}
 		//echo $query;
 		$result = mysql_query($query);
@@ -150,8 +148,8 @@ class AlphaBrowse{
 			'success' => true,
 			'items' => $browseResults,
 			'totalCount' => $numRows,
-			'selectedIndex' => $selectedIndex,
-			'startRow' => $startRow,
+			'showNext' => $numRowsAfter > 0,
+			'showPrev' => $startRow > 0,
 		);
 	}
 }
