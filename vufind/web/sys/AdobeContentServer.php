@@ -196,8 +196,8 @@ class AdobeContentServer
 			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
 			//Copy the file to the ftp service
 			$filenameNoPath = substr($filename, strrpos($filename, '/') + 1);
-			$baseFilename = substr($filenameNoPath, 0, strpos($filenameNoPath, '.'));
-			$extension = substr($filenameNoPath, -strpos($filenameNoPath, '.'));
+			$baseFilename = substr($filenameNoPath, 0, strrpos($filenameNoPath, '.'));
+			$extension = substr($filenameNoPath, strrpos($filenameNoPath, '.'));
 			$newFilename = AdobeContentServer::copyFileToFtp($filename, $itemId, $extension);
 			
 			//Submit to the packaging service
