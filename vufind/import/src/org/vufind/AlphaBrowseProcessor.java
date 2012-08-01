@@ -133,7 +133,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			//logger.debug("found " + authors.size() + " authors for the resource");
 			for (String sortAuthor: authors.keySet()){
 				//logger.debug("  " + curAuthor);
-				String curAuthor = titles.get(sortAuthor);
+				String curAuthor = authors.get(sortAuthor);
 				addRecordIdToBrowse("author", resourceLibraries, resourceLocations, curAuthor, sortAuthor, recordIdFull);
 			}
 			
@@ -141,7 +141,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			//logger.debug("found " + subjects.size() + " subjects for the resource");
 			for (String sortSubject: subjects.keySet()){
 				//logger.debug("  " + curSubject);
-				String curSubject = titles.get(sortSubject);
+				String curSubject = subjects.get(sortSubject);
 				addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, curSubject, sortSubject, recordIdFull);
 			}
 			
