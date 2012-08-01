@@ -326,10 +326,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, HashMap<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		try {
 			browseValue = Util.trimTo(255, browseValue);
-			/*String browseValueKey = browseValue.toLowerCase();
+			String browseValueKey = browseValue.toLowerCase();
 			if (existingValues.containsKey(browseValueKey)){
 				return existingValues.get(browseValueKey);
-			}*/
+			}
 			getExistingBrowseValueStatement.setString(1, browseValue);
 			ResultSet existingValueRS = getExistingBrowseValueStatement.executeQuery();
 			if (existingValueRS.next()){
@@ -347,7 +347,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					Long browseValueId = browseValueIdRS.getLong(1);
 					//MySQL is case insensitive when it comes to unique values so we need to make sure that our 
 					//exisiting values are all case insensitve. 
-					//existingValues.put(browseValueKey, browseValueId);
+					existingValues.put(browseValueKey, browseValueId);
 					browseValueIdRS.close();
 					return browseValueId;
 				}else{
