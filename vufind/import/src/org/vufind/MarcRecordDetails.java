@@ -1345,24 +1345,11 @@ public class MarcRecordDetails {
 		Set<String> allTitles = getAllTitles();
 		HashMap<String, String> browseTitles = new HashMap<String, String>();
 		for (String curTitles: allTitles){
-			browseTitles.put(makeValueSortable(curTitles), curTitles);
+			browseTitles.put(Util.makeValueSortable(curTitles), curTitles);
 		}
 		return browseTitles;
 	}
 
-	private Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
-	private String makeValueSortable(String curTitle) {
-		String sortTitle = curTitle.toLowerCase();
-		Matcher sortMatcher = sortTrimmingPattern.matcher(sortTitle);
-		if (sortMatcher.matches()) {
-			sortTitle = sortMatcher.group(1);
-		}
-		sortTitle = sortTitle.replaceAll("\\W", " "); //get rid of non alpha numeric characters
-		sortTitle = sortTitle.replaceAll("\\s{2,}", " "); //get rid of duplicate spaces 
-		sortTitle = sortTitle.trim();
-		return sortTitle;
-	}
-	
 	public String getDescription() {
 		return getFirstFieldVal("520a");
 	}
@@ -3012,22 +2999,22 @@ public class MarcRecordDetails {
 		Object author = getMappedFields("author").get("author");
 		if (author != null) {
 			if (author instanceof String) {
-				result.put(makeValueSortable((String) author), (String) author);
+				result.put(Util.makeValueSortable((String) author), (String) author);
 			} else {
 				Set<String> authors = (Set<String>)author;
 				for (String curAuthor : authors){
-					result.put(makeValueSortable((String) curAuthor), (String) curAuthor);
+					result.put(Util.makeValueSortable((String) curAuthor), (String) curAuthor);
 				}
 			}
 		}
 		Object author2 = getMappedFields("author2").get("author2");
 		if (author2 != null) {
 			if (author2 instanceof String) {
-				result.put(makeValueSortable((String) author2), (String) author2);
+				result.put(Util.makeValueSortable((String) author2), (String) author2);
 			} else {
 				Set<String> authors = (Set<String>)author2;
 				for (String curAuthor : authors){
-					result.put(makeValueSortable((String) curAuthor), (String) curAuthor);
+					result.put(Util.makeValueSortable((String) curAuthor), (String) curAuthor);
 				}
 			}
 		}
@@ -3213,7 +3200,7 @@ public class MarcRecordDetails {
 			if (curField.getTag().equals("690")){
 				//Only process the 690a subfield
 				if (curDataField.getSubfield('a') != null){
-					browseSubjects.put(makeValueSortable(curDataField.getSubfield('a').getData()), curDataField.getSubfield('a').getData());
+					browseSubjects.put(Util.makeValueSortable(curDataField.getSubfield('a').getData()), curDataField.getSubfield('a').getData());
 				}
 			}else{
 				//Base subject is for doing rotations with subdivisions
@@ -3236,7 +3223,7 @@ public class MarcRecordDetails {
 							fullSubject.append(" -- ");
 						}
 						fullSubject.append(subfieldData);
-						browseSubjects.put(makeValueSortable(fullSubject.toString()), fullSubject.toString());
+						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()), fullSubject.toString());
 					}else if (curSubfield.getCode() >= 'v' && curSubfield.getCode() <= 'z'){
 						subdivisions.add(subfieldData);
 						//Setup full subject
@@ -3244,14 +3231,14 @@ public class MarcRecordDetails {
 							fullSubject.append(" -- ");
 						}
 						fullSubject.append(subfieldData);
-						browseSubjects.put(makeValueSortable(fullSubject.toString()), fullSubject.toString());
+						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()), fullSubject.toString());
 					}
 				}
 				if (baseSubject.length() > 0 && subdivisions.size() > 0){
 					//Do rotation of subjects
 					for (String curSubdivision : subdivisions){
 						StringBuffer rotatedField = new StringBuffer().append(curSubdivision).append(" -- ").append(baseSubject);
-						browseSubjects.put(makeValueSortable(rotatedField.toString()), rotatedField.toString());
+						browseSubjects.put(Util.makeValueSortable(rotatedField.toString()), rotatedField.toString());
 					}
 				}
 			}

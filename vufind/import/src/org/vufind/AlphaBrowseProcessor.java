@@ -167,12 +167,13 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 
 	private void addCallNumbersToBrowse(Set<LocalCallNumber> localCallNumbers, String recordIdFull) throws SQLException {
 		//logger.debug("found " + localCallNumbers.size() + " call numbers for the resource");
-		HashSet<String> distinctCallNumbers = new HashSet<String>(); 
+		HashMap<String, String> distinctCallNumbers = new HashMap<String, String>(); 
 		for (LocalCallNumber callNumber : localCallNumbers){
 			//logger.debug("  " + callNumber.getCallNumber() + " " + callNumber.getLibraryId() + " " + callNumber.getLocationId());
-			distinctCallNumbers.add(callNumber.getCallNumber().trim());
+			distinctCallNumbers.put(Util.makeValueSortable(callNumber.getCallNumber()), callNumber.getCallNumber().trim());
 		}
-		for (String callNumber : distinctCallNumbers){
+		for (String callNumberSort : distinctCallNumbers.keySet()){
+			String callNumber = distinctCallNumbers.get(callNumberSort);
 			//Get the libraries and locations for this call number
 			HashSet<Long> resourceLibraries = new HashSet<Long>();
 			HashSet<Long> resourceLocations = new HashSet<Long>();
@@ -184,7 +185,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}
 			}
 			//logger.debug("  '" + callNumber + "'");
-			addRecordIdToBrowse("callnumber", resourceLibraries, resourceLocations, callNumber, callNumber, recordIdFull);
+			addRecordIdToBrowse("callnumber", resourceLibraries, resourceLocations, callNumber, callNumberSort, recordIdFull);
 		}
 	}
 

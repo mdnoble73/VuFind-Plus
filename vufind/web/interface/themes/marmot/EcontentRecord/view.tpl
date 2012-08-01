@@ -249,7 +249,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{* Display more information about the title*}
 				{if $eContentRecord->author}
 					<div class="recordAuthor">
-						<span class="resultLabel">by</span>
+						<span class="resultLabel">by</span>&nbsp;
 						<span class="resultValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
 					</div>
 				{/if}

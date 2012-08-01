@@ -234,7 +234,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{* Display more information about the title*}
 				{if $mainAuthor}
 					<div class="recordAuthor">
-						<span class="resultLabel">by</span>
+						<span class="resultLabel">by</span>&nbsp;
 						<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
 					</div>
 				{/if}

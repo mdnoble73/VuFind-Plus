@@ -19,6 +19,8 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -489,4 +491,16 @@ public class Util {
 		return format.trim();
 	}
 
+	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
+	public static String makeValueSortable(String curTitle) {
+		String sortTitle = curTitle.toLowerCase();
+		Matcher sortMatcher = sortTrimmingPattern.matcher(sortTitle);
+		if (sortMatcher.matches()) {
+			sortTitle = sortMatcher.group(1);
+		}
+		sortTitle = sortTitle.replaceAll("\\W", " "); //get rid of non alpha numeric characters
+		sortTitle = sortTitle.replaceAll("\\s{2,}", " "); //get rid of duplicate spaces 
+		sortTitle = sortTitle.trim();
+		return sortTitle;
+	}
 }
