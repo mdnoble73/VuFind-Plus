@@ -58,6 +58,7 @@ class AlphaBrowse{
 		//Cleanup our look for value 
 		$lookFor = preg_replace('/\W/', ' ', $lookFor);
 		$lookFor = preg_replace('/\s{2,}/', ' ', $lookFor);
+		$lookFor = strtolower($lookFor);
 		return $this->loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows);
 		
 		/*$foundMatch = false;
@@ -95,7 +96,7 @@ class AlphaBrowse{
 	
 	function loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows){
 		//Now that we have the id to start with, get the actual records
-		$numTotalPreviousEntriesQuery = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter ORDER BY sortValue";
+		$numTotalPreviousEntriesQuery = "SELECT count(DISTINCT {$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter ORDER BY sortValue";
 		$numTotalPreviousEntriesResult = mysql_query($numTotalPreviousEntriesQuery);
 		$numTotalPreviousEntries = mysql_fetch_assoc($numTotalPreviousEntriesResult);
 		$startRow = $numTotalPreviousEntries['numRows'] + ($relativePage * $resultsPerPage);
@@ -103,7 +104,7 @@ class AlphaBrowse{
 			$startRow = 0;
 		}
 		
-		$numEntriesAfterQuery = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue > '$lookFor' and $scopingFilter ORDER BY sortValue";
+		$numEntriesAfterQuery = "SELECT count(DISTINCT {$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue > '$lookFor' and $scopingFilter ORDER BY sortValue";
 		$numEntriesAfterResult = mysql_query($numEntriesAfterQuery);
 		$numEntriesAfterEntries = mysql_fetch_assoc($numEntriesAfterResult);
 		$numRowsAfter = $numEntriesAfterEntries['numRows'] - ($relativePage * $resultsPerPage) - $resultsPerPage;
