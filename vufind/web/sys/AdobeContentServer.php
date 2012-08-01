@@ -197,7 +197,7 @@ class AdobeContentServer
 			//Copy the file to the ftp service
 			$filenameNoPath = substr($filename, strrpos($filename, '/') + 1);
 			$baseFilename = substr($filenameNoPath, 0, strrpos($filenameNoPath, '.'));
-			$extension = substr($filenameNoPath, strrpos($filenameNoPath, '.'));
+			$extension = substr($filenameNoPath, strrpos($filenameNoPath, '.') + 1);
 			$newFilename = AdobeContentServer::copyFileToFtp($filename, $itemId, $extension);
 			
 			//Submit to the packaging service
