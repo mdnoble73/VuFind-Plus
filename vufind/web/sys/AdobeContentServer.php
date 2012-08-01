@@ -204,7 +204,7 @@ class AdobeContentServer
 			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
 			$distributorId = $configArray['EContent']['distributorId'];
 			$filenameEncoded = urlencode($newFilename);
-			$distributorIdEncoded = urlencode($distributorIdEncoded);
+			$distributorIdEncoded = urlencode($distributorId);
 			$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorIdEncoded}&filename={$filenameEncoded}&copies={$numAvailable}";
 			$logger->log($packagingServiceCall, PEAR_LOG_INFO);
 			$packagingResponse = file_get_contents($packagingServiceCall);
