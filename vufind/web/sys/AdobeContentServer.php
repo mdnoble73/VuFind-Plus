@@ -180,16 +180,16 @@ class AdobeContentServer
 	/**
 	 * Package a file to the ACS server and get back the ACS ID
 	 */
-	static function packageFile($filename, $itemId, $existingResourceId = '', $numAvailable){
+	static function packageFile($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		if (isset($configArray['EContent']['packageWithService']) && $configArray['EContent']['packageWithService'] == true){
-			return AdobeContentServer::packageFileWithService($filename, $itemId, $existingResourceId, $numAvailable);
+			return AdobeContentServer::packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId, $numAvailable);
 		}else{
 			return AdobeContentServer::packageFileDirect($filename, $existingResourceId, $numAvailable);
 		}
 	}
 	
-	static function packageFileWithService($filename, $itemId, $existingResourceId = '', $numAvailable){
+	static function packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		$logger = new Logger();
 		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
@@ -207,12 +207,22 @@ class AdobeContentServer
 			$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorId}&filename={$filenameEncoded}&copies={$numAvailable}";
 			$logger->log($packagingServiceCall, PEAR_LOG_INFO);
 			$packagingResponse = file_get_contents($packagingServiceCall);
+			$logger->log("Response\r\n$packagingResponse", PEAR_LOG_INFO);
 			$jsonResponse = json_decode($packagingResponse, true);
 			if ($jsonResponse['success']){
 				//Save information to packaging log so it can be processed on the backend
 				$importDetails = new EContentImportDetailsEntry();
-				$importDetails->filename = $filename;
-				
+				$importDetails->filename = $newFilename;
+				$importDetails->libraryFilename = $filename;
+				$importDetails->dateFound = time();
+				$importDetails->dateSentToPackaging = time();
+				$importDetails->econtentItemId = $itemId;
+				$importDetails->econtentRecordId = $econtentRecordId;
+				$importDetails->distributorId = $distributorId;
+				$importDetails->copies = $numAvailable;
+				$importDetails->packagingId = $jsonResponse['packagingId'];
+				$importDetails->status = 'sentToAcs';
+				$importDetails->insert();
 			}
 			
 			return $jsonResponse;
