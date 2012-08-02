@@ -111,9 +111,9 @@ class AlphaBrowse{
 		$numRowsAfter = $numEntriesAfterEntries['numRows'] - ($relativePage * $resultsPerPage) - $resultsPerPage;
 			
 		if ($relativePage >= 0){
-			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.id) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue >= '$lookFor' and $scopingFilter GROUP BY browseValueId ORDER BY sortValue LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue >= '$lookFor' and $scopingFilter GROUP BY browseValueId ORDER BY sortValue LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}else{
-			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.id) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter GROUP BY browseValueId ORDER BY sortValue LIMIT " . $startRow . ", $resultsPerPage";
+			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE {$browseTable}.sortValue < '$lookFor' and $scopingFilter GROUP BY browseValueId ORDER BY sortValue LIMIT " . $startRow . ", $resultsPerPage";
 		}
 		//echo $query;
 		$result = mysql_query($query);
