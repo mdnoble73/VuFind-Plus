@@ -48,9 +48,13 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private String callNumberSubfield;
 	private String locationSubfield;
 	
+	@SuppressWarnings("unchecked")
 	private Map<String, Long> existingBrowseValuesTitle = new LRUMap(5000);
+	@SuppressWarnings("unchecked")
 	private Map<String, Long> existingBrowseValuesAuthor = new LRUMap(10000);
+	@SuppressWarnings("unchecked")
 	private Map<String, Long> existingBrowseValuesSubject = new LRUMap(10000);
+	@SuppressWarnings("unchecked")
 	private Map<String, Long> existingBrowseValuesCallNumber = new LRUMap(10000);
 
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
@@ -330,7 +334,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		try {
 			sortValue = Util.trimTo(255, sortValue);
 			if (existingValues.containsKey(sortValue)){
-				logger.debug("Found existing browse value in memory");
+				//logger.debug("Found existing browse value in memory");
 				return existingValues.get(sortValue);
 			}
 			getExistingBrowseValueStatement.setString(1, Util.trimTo(255, browseValue));
