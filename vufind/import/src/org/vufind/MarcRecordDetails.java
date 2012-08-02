@@ -2358,22 +2358,19 @@ public class MarcRecordDetails {
 					case 'D':
 						if (formatField.getData().length() >= 4){
 							char speed = formatField.getData().toUpperCase().charAt(3);
-							if (speed == 'A' || speed == 'B' || speed == 'C' || speed == 'D' || speed == 'E'){
+							if (speed >= 'A' && speed <= 'E'){
 								result.add("Phonograph");
-								break;
 							}else if (speed == 'F'){
 								result.add("CompactDisc");
-							}else if (speed == 'K' || speed == 'L' || speed == 'M' || speed == 'O' || speed == 'P' || speed == 'R'){
+							}else if (speed >= 'K' && speed <= 'R'){
 								result.add("TapeRecording");
-								break;
 							}else{
 								result.add("SoundDisc");
-								break;
 							}
 						}else{
 							result.add("SoundDisc");
-							break;
 						}
+						break;
 					case 'S':
 						result.add("SoundCassette");
 						break;

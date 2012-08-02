@@ -205,12 +205,28 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			if (subTitle.length() > 0){
 				title += ": " + subTitle;
 			}
-			String sortTitle = title.toLowerCase().replaceAll("^(the|an|a|el|la)\\s", "");
+			String sortTitle = Util.makeValueSortable(title);
+			HashMap <String, String> browseAuthors = new HashMap<String, String>();
 			String author = resource.getString("author");
+			browseAuthors.put(Util.makeValueSortable(author), author);
+			String authorsRaw = resource.getString("author2");
+			String[] authors = authorsRaw.split("\\r\\n|\\r|\\n");
+			for (String curAuthor : authors){
+				browseAuthors.put(Util.makeValueSortable(curAuthor), curAuthor);
+			}
 			Long econtentId = resource.getLong("id");
 			String recordIdFull = "econtentRecord" + resource.getString("id");
 			String subjectsRaw = resource.getString("subject");
 			String[] subjects = subjectsRaw.split("\\r\\n|\\r|\\n");
+			HashMap <String, String> browseSubjects = new HashMap<String, String>();
+			for (String subject : subjects){
+				browseSubjects.put(Util.makeValueSortable(subject), subject);
+			}
+			String topicsRaw = resource.getString("topic");
+			String[] topics = topicsRaw.split("\\r\\n|\\r|\\n");
+			for (String topic : topics){
+				browseSubjects.put(Util.makeValueSortable(topic), topic);
+			}
 			
 			HashSet<Long> resourceLibraries = getLibrariesEContentRecord(econtentId);
 			//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
@@ -220,11 +236,13 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			addRecordIdToBrowse("title", resourceLibraries, resourceLocations, title, sortTitle, recordIdFull);
 			
 			//Setup author browse
-			addRecordIdToBrowse("author", resourceLibraries, resourceLocations, author, author, recordIdFull);
+			for (String curAuthorSortable: browseAuthors.keySet()){
+				addRecordIdToBrowse("author", resourceLibraries, resourceLocations, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
+			}
 			
 			//Setup subject browse
-			for (String curSubject: subjects){
-				addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, curSubject, curSubject, recordIdFull);
+			for (String curSubjectSortable: browseSubjects.keySet()){
+				addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
 			}
 			
 			results.incAdded();
@@ -469,8 +487,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		logger.info("Truncating " + tableName);
 		results.addNote("Truncating " + tableName);
 		results.saveResults();
-		PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE " + tableName);
-		truncateTable.executeUpdate();
+		//No need to clear out the values since they are reused. 
+		//PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE " + tableName);
+		//truncateTable.executeUpdate();
 		PreparedStatement truncateScopingTable = vufindConn.prepareStatement("TRUNCATE " + tableName + "_scoped_results");
 		truncateScopingTable.executeUpdate();
 	}

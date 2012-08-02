@@ -246,7 +246,18 @@ class SearchSources{
 			return "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&inst_code={$library->goldRushCode}&search_type={$goldRushType}&search_term=".urlencode($lookfor);
 		}else if ($searchSource == 'worldcat'){
 			$worldCatSearchType = $this->getWorldCatSearchType($type);
-			return "http://www.worldcat.org/search?q={$worldCatSearchType}%3A".urlencode($lookfor);
+			$worldCatLink = "http://www.worldcat.org/search?q={$worldCatSearchType}%3A".urlencode($lookfor);
+			if (isset($library) && strlen($library->worldCatUrl) > 0){
+				$worldCatLink = $library->worldCatUrl;
+				if (strpos($worldCatLink, '?') == false){
+					$worldCatLink .= "?";
+				}
+				$worldCatLink .= "q={$worldCatSearchType}%3A".urlencode($lookfor);
+				if (strlen($library->worldCatQt) > 0){
+					$worldCatLink .= "qt=" . $library->worldCatQt;
+				}
+			}
+			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
 			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookfor);
 		}else if ($searchSource == 'prospector'){

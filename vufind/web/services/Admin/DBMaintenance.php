@@ -208,11 +208,19 @@ class DBMaintenance extends Admin {
 			),
 			'library_12' => array(
 				'title' => 'Library 12',
-				'description' => 'Add fields for disabling some Novelist functionality and disabling boosting by number of holdings',
+				'description' => 'Add abbreviation for library name for use in some cases where the full name is not desired.',
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `abbreviatedDisplayName` VARCHAR(20) DEFAULT '';",
 					"UPDATE `library` SET `abbreviatedDisplayName` = LEFT(`displayName`, 20);",
+				),
+			),
+			'library_13' => array(
+				'title' => 'Library 13',
+				'description' => 'Updates to World Cat integration for local libraries',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` CHANGE `worldCatQt` `worldCatQt` VARCHAR(40) DEFAULT '';",
 				),
 			),
 			
