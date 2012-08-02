@@ -158,7 +158,8 @@ class IndexRecord implements RecordInterface
             'pubPlace' => count($pubPlaces) > 0 ? $pubPlaces[0] : null,
             'pubName' => count($publishers) > 0 ? $publishers[0] : null,
             'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
-            'edition' => $this->getEdition()
+            'edition' => $this->getEdition(),
+		        'format' => $this->getFormats()
 		);
 
 		// Build the citation:

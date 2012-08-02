@@ -99,10 +99,27 @@ class CitationBuilder
             'authors' => $this->getMLAAuthors(),
             'publisher' => $this->getPublisher(),
             'year' => $this->getYear(),
-            'edition' => $this->getEdition()
+            'edition' => $this->getEdition(),
+            'format' => $this->getMLAFormat()
 		);
 		$interface->assign('mlaDetails', $mla);
 		return 'Citation/mla.tpl';
+	}
+	
+	private function getMLAFormat(){
+		$formats = $this->details['format'];
+		foreach ($formats as $format){
+			if ($format == 'CD'){
+				return 'CD';
+			}elseif ($format == 'DVD' || $format == 'Blu-ray'){
+				return 'DVD';
+			}elseif ($format == 'Book' || $format == 'Large Print' || $format == 'Serial' || $format == 'Musical Score' || $format == 'Journal' || $format == 'Manuscript' || $format == 'Newspaper'){
+				return 'Print';
+			}elseif ($format == 'Internet Link' || $format == 'eBook' || $format == 'eBook' || $format == 'EPUB EBook' || $format == 'Kindle Book' || $format == 'Kindle' || $format == 'Plucker' || $format == 'Adobe PDF eBook' || $format == 'overdrive' || $format == 'Adobe PDF'){
+				return 'Web';
+			}
+		}
+		return '';
 	}
 	
 	/**
@@ -416,6 +433,7 @@ class CitationBuilder
 					}
 				}else{
 					$authorStr .= $this->stripPunctuation($authorReversed) . ' et al.';
+					break;
 				}
 				$i++;
 			}

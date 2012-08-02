@@ -206,7 +206,7 @@ class AdobeContentServer
 				//Submit to the packaging service
 				$packagingServiceUrl = $configArray['EContent']['packagingURL'];
 				$distributorId = $configArray['EContent']['distributorId'];
-				$filenameEncoded = urlencode('Drop_Off/Data/' . $newFilename);
+				$filenameEncoded = 'Received\\Data\\' . urlencode($newFilename);
 				$distributorIdEncoded = urlencode($distributorId);
 				$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorIdEncoded}&filename={$filenameEncoded}&copies={$numAvailable}";
 				$logger->log($packagingServiceCall, PEAR_LOG_INFO);

@@ -103,6 +103,7 @@ class EcontentRecordDriver extends IndexRecord
             'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
             'edition' => $this->eContentRecord->getPropertyArray('edition'),
 		        'source'  => $this->eContentRecord->source,
+		        'format'  => $this->eContentRecord->format(),
 		);
 
 		// Build the citation:
@@ -113,7 +114,7 @@ class EcontentRecordDriver extends IndexRecord
 			case 'MLA':
 				return $citation->getMLA();
 			case 'AMA':
-				return $citation->getMLA();
+				return $citation->getAMA();
 			case 'ChicagoAuthDate':
 				return $citation->getChicagoAuthDate();
 			case 'ChicagoHumanities':
