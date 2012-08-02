@@ -7,8 +7,11 @@ import java.sql.SQLException;
 //import java.util.HashMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 
@@ -45,10 +48,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private String callNumberSubfield;
 	private String locationSubfield;
 	
-	private HashMap<String, Long> existingBrowseValuesTitle = new HashMap<String, Long>();
-	private HashMap<String, Long> existingBrowseValuesAuthor = new HashMap<String, Long>();
-	private HashMap<String, Long> existingBrowseValuesSubject = new HashMap<String, Long>();
-	private HashMap<String, Long> existingBrowseValuesCallNumber = new HashMap<String, Long>();
+	private Map<String, Long> existingBrowseValuesTitle = new LRUMap(5000);
+	private Map<String, Long> existingBrowseValuesAuthor = new LRUMap(10000);
+	private Map<String, Long> existingBrowseValuesSubject = new LRUMap(10000);
+	private Map<String, Long> existingBrowseValuesCallNumber = new LRUMap(10000);
 
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -263,7 +266,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		PreparedStatement getExistingBrowseScopeValueStatement;
 		PreparedStatement insertBrowseScopeValueStatement;
 		PreparedStatement updateBrowseScopeValueStatement;
-		HashMap<String, Long> existingBrowseValues;
+		Map<String, Long> existingBrowseValues;
 		if (browseType.equals("title")){
 			insertValueStatement = insertTitleBrowseValue;
 			getExistingBrowseValueStatement = getExistingTitleBrowseValue;
@@ -301,9 +304,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		for (Long curLibrary: resourceLibraries){
 			insertBrowseScoping(browseType, browseValue, curLibrary == -1 ? 0 : 1, curLibrary, recordIdFull, getExistingBrowseScopeValueStatement, insertBrowseScopeValueStatement, updateBrowseScopeValueStatement, browseValueId);
 		}
-		for (Long curLocation: resourceLocations){
+		/*for (Long curLocation: resourceLocations){
 			insertBrowseScoping(browseType, browseValue, 2, curLocation, recordIdFull, getExistingBrowseScopeValueStatement, insertBrowseScopeValueStatement, updateBrowseScopeValueStatement, browseValueId);
-		}
+		}*/
 	}
 
 	private void insertBrowseScoping(String browseType, String browseValue, int scope, Long scopeValue, String recordIdFull, PreparedStatement getExistingBrowseScopeValueStatement,
@@ -323,17 +326,18 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		}
 	}
 
-	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, HashMap<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
+	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, Map<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		try {
-			browseValue = Util.trimTo(255, browseValue);
-			/*String browseValueKey = browseValue.toLowerCase();
-			if (existingValues.containsKey(browseValueKey)){
-				return existingValues.get(browseValueKey);
-			}*/
-			getExistingBrowseValueStatement.setString(1, browseValue);
+			sortValue = Util.trimTo(255, sortValue);
+			if (existingValues.containsKey(sortValue)){
+				logger.debug("Found existing browse value in memory");
+				return existingValues.get(sortValue);
+			}
+			getExistingBrowseValueStatement.setString(1, Util.trimTo(255, browseValue));
 			ResultSet existingValueRS = getExistingBrowseValueStatement.executeQuery();
 			if (existingValueRS.next()){
 				Long existingValue = existingValueRS.getLong("id");
+				existingValues.put(sortValue, existingValue);
 				existingValueRS.close();
 				return existingValue;
 			}else{
@@ -347,7 +351,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					Long browseValueId = browseValueIdRS.getLong(1);
 					//MySQL is case insensitive when it comes to unique values so we need to make sure that our 
 					//exisiting values are all case insensitve. 
-					//existingValues.put(browseValueKey, browseValueId);
+					existingValues.put(sortValue, browseValueId);
 					browseValueIdRS.close();
 					return browseValueId;
 				}else{
