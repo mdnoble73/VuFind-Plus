@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.log4j.Logger;
@@ -332,20 +331,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 
 	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, Map<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		try {
-			sortValue = Util.trimTo(255, sortValue);
-			if (existingValues.containsKey(sortValue)){
-				//logger.debug("Found existing browse value in memory");
-				return existingValues.get(sortValue);
-			}
-			getExistingBrowseValueStatement.setString(1, Util.trimTo(255, browseValue));
-			ResultSet existingValueRS = getExistingBrowseValueStatement.executeQuery();
-			if (existingValueRS.next()){
-				Long existingValue = existingValueRS.getLong("id");
-				existingValues.put(sortValue, existingValue);
-				existingValueRS.close();
-				return existingValue;
+			browseValue = Util.trimTo(255, browseValue);
+			Long existingBrowseValueId = getExistingBrowseValueId(browseValue, existingValues, getExistingBrowseValueStatement);
+			if (existingBrowseValueId != null){
+				return existingBrowseValueId;
 			}else{
-				existingValueRS.close();
 				//Add the value to the table
 				insertValueStatement.setString(1, browseValue);
 				insertValueStatement.setString(2, Util.trimTo(255, sortValue));
@@ -365,6 +355,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}
 			}
 		} catch (SQLException e) {
+			logger.error("Error adding browse value" + e);
 			//This is probably because the hashset is giving a false positive on uniqueness.  (Seems to happen with UTF-8 characters)
 			//Get the existing value straight from the db
 			try {
@@ -382,6 +373,20 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			results.incErrors();
 			return null;
 		}
+	}
+
+	private Long getExistingBrowseValueId(String browseValue, Map<String, Long> existingValues,
+			PreparedStatement getExistingBrowseValueStatement) throws SQLException {
+		Long existingBrowseValueId = existingValues.get(browseValue);
+		if (existingBrowseValueId == null){
+			getExistingBrowseValueStatement.setString(1, Util.trimTo(255, browseValue));
+			ResultSet existingValueRS = getExistingBrowseValueStatement.executeQuery();
+			if (existingValueRS.next()){
+				existingBrowseValueId = existingValueRS.getLong("id");
+				existingValueRS.close();
+			}
+		}
+		return existingBrowseValueId;
 	}
 
 	private HashSet<Long> getLibrariesForPrintRecord(Set<LocalCallNumber> callNumbers) throws SQLException {

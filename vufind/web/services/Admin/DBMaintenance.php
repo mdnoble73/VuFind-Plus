@@ -901,19 +901,17 @@ class DBMaintenance extends Admin {
 					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
 					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
-					`sortedRow` INT( 11 ) NOT NULL DEFAULT '-1' COMMENT 'The absolute sorted position',
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `sortValue` )
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
 				"DROP TABLE IF EXISTS `title_browse_scoped_results`",
 				"CREATE TABLE `title_browse_scoped_results`( 
-					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
 					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ), 
 				INDEX (`scopeId`)
 				) ENGINE = MYISAM",
 		
@@ -923,17 +921,16 @@ class DBMaintenance extends Admin {
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
 					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE (`sortValue`)
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
 				"DROP TABLE IF EXISTS `author_browse_scoped_results`",
 				"CREATE TABLE `author_browse_scoped_results`( 
-					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
 					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ), 
 				INDEX (`scopeId`)
 				) ENGINE = MYISAM",
 		
@@ -943,17 +940,16 @@ class DBMaintenance extends Admin {
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
 					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE (`sortValue`)
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
 				"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
 				"CREATE TABLE `callnumber_browse_scoped_results`( 
-					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
 					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ), 
 				INDEX (`scopeId`)
 				) ENGINE = MYISAM",
 		
@@ -963,17 +959,16 @@ class DBMaintenance extends Admin {
 					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
 					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
 				PRIMARY KEY ( `id` ) ,
-				UNIQUE (`sortValue`)
+				INDEX ( `sortValue` ),
+				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
 				"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
 				"CREATE TABLE `subject_browse_scoped_results`( 
-					`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
 					`scopeId` INT(11) NOT NULL,
 					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `id` ) ,
-				UNIQUE ( `browseValueId`, `scope`, `scopeId`, `record` ), 
+				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ), 
 				INDEX (`scopeId`) 
 				) ENGINE = MYISAM",
 			),
