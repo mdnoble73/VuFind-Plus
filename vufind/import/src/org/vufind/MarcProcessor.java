@@ -713,6 +713,7 @@ public class MarcProcessor {
 							insertMarcInfoStmt.executeUpdate();
 						}
 					}
+					marcInfo = null;
 					recordsProcessed++;
 					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
 						ReindexProcess.addNoteToCronLog("Stopping processing because maximum number of records to process was reached.");
