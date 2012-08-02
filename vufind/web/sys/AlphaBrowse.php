@@ -120,7 +120,7 @@ class AlphaBrowse{
 		$browseResults = array();
 		while ($browseResult = mysql_fetch_assoc($result)){
 			$searchLink = '';
-			if (strlen($browseResult['relatedRecords']) > 0 ){
+			if (strlen($browseResult['numResults']) > 0 && $browseResult['numResults'] <= 20){
 				if ($browseResult['numResults'] == 1){
 					$recordToFind = $browseResult['relatedRecords'];
 					if (substr($recordToFind, 0, 14) == 'econtentRecord'){
