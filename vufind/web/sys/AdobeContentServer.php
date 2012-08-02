@@ -199,7 +199,7 @@ class AdobeContentServer
 			$baseFilename = substr($filenameNoPath, 0, strrpos($filenameNoPath, '.'));
 			$extension = substr($filenameNoPath, strrpos($filenameNoPath, '.') + 1);
 			$newFilename = AdobeContentServer::copyFileToFtp($filename, $itemId, $extension);
-			if (!newFilename){
+			if (!$newFilename){
 				$logger->log("Could not copy file to FTP server.", PEAR_LOG_ERR);
 				return array('success' => false);
 			}else{
@@ -242,7 +242,7 @@ class AdobeContentServer
 		$logger = new Logger();
 		$destinationFilename = "{$itemId}.{$extension}";
 		$packagingFTP = $configArray['EContent']['packagingFTP'];
-		$destinationPath = $packagingFTP . '/Drop_Off/' . $destinationFilename;
+		$destinationPath = $packagingFTP . '/' . $destinationFilename;
 		$logger->log("Copying " . $pathToFile . " to " . $destinationPath);
 		$ret = copy($pathToFile, $destinationPath);
 		if ($ret){
