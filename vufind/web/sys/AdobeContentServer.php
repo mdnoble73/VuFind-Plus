@@ -199,47 +199,58 @@ class AdobeContentServer
 			$baseFilename = substr($filenameNoPath, 0, strrpos($filenameNoPath, '.'));
 			$extension = substr($filenameNoPath, strrpos($filenameNoPath, '.') + 1);
 			$newFilename = AdobeContentServer::copyFileToFtp($filename, $itemId, $extension);
-			
-			//Submit to the packaging service
-			$packagingServiceUrl = $configArray['EContent']['packagingURL'];
-			$distributorId = $configArray['EContent']['distributorId'];
-			$filenameEncoded = urlencode($newFilename);
-			$distributorIdEncoded = urlencode($distributorId);
-			$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorIdEncoded}&filename={$filenameEncoded}&copies={$numAvailable}";
-			$logger->log($packagingServiceCall, PEAR_LOG_INFO);
-			$packagingResponse = file_get_contents($packagingServiceCall);
-			$logger->log("Response\r\n$packagingResponse", PEAR_LOG_INFO);
-			$jsonResponse = json_decode($packagingResponse, true);
-			if ($jsonResponse['success']){
-				//Save information to packaging log so it can be processed on the backend
-				$importDetails = new EContentImportDetailsEntry();
-				$importDetails->filename = $newFilename;
-				$importDetails->libraryFilename = $filename;
-				$importDetails->dateFound = time();
-				$importDetails->dateSentToPackaging = time();
-				$importDetails->econtentItemId = $itemId;
-				$importDetails->econtentRecordId = $econtentRecordId;
-				$importDetails->distributorId = $distributorId;
-				$importDetails->copies = $numAvailable;
-				$importDetails->packagingId = $jsonResponse['packagingId'];
-				$importDetails->status = 'sentToAcs';
-				$importDetails->insert();
+			if (!newFilename){
+				$logger->log("Could not copy file to FTP server.", PEAR_LOG_ERR);
+				return array('success' => false);
+			}else{
+				//Submit to the packaging service
+				$packagingServiceUrl = $configArray['EContent']['packagingURL'];
+				$distributorId = $configArray['EContent']['distributorId'];
+				$filenameEncoded = urlencode($newFilename);
+				$distributorIdEncoded = urlencode($distributorId);
+				$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorIdEncoded}&filename={$filenameEncoded}&copies={$numAvailable}";
+				$logger->log($packagingServiceCall, PEAR_LOG_INFO);
+				$packagingResponse = file_get_contents($packagingServiceCall);
+				$logger->log("Response\r\n$packagingResponse", PEAR_LOG_INFO);
+				$jsonResponse = json_decode($packagingResponse, true);
+				if ($jsonResponse['success']){
+					//Save information to packaging log so it can be processed on the backend
+					$importDetails = new EContentImportDetailsEntry();
+					$importDetails->filename = $newFilename;
+					$importDetails->libraryFilename = $filename;
+					$importDetails->dateFound = time();
+					$importDetails->dateSentToPackaging = time();
+					$importDetails->econtentItemId = $itemId;
+					$importDetails->econtentRecordId = $econtentRecordId;
+					$importDetails->distributorId = $distributorId;
+					$importDetails->copies = $numAvailable;
+					$importDetails->packagingId = $jsonResponse['packagingId'];
+					$importDetails->status = 'sentToAcs';
+					$importDetails->insert();
+				}
+				
+				return $jsonResponse;
 			}
-			
-			return $jsonResponse;
 		}else{
 			$logger->log("Cannot package file because packagingURL is not set", PEAR_LOG_INFO);
 			return array('success' => false);
 		}
 	}
 	
-	static function copyFileToFtp($filename, $itemId, $extension){
+	static function copyFileToFtp($pathToFile, $itemId, $extension){
 		global $configArray;
 		$logger = new Logger();
 		$destinationFilename = "{$itemId}.{$extension}";
 		$packagingFTP = $configArray['EContent']['packagingFTP'];
-		$ret = copy($filename, $packagingFTP . '/Drop_Off/' . $destinationFilename);
-		return $destinationFilename;
+		$destinationPath = $packagingFTP . '/Drop_Off/' . $destinationFilename;
+		$logger->log("Copying " . $pathToFile . " to " . $destinationPath);
+		$ret = copy($pathToFile, $destinationPath);
+		if ($ret){
+			return $destinationFilename;
+		}else{
+			return false;
+		}
+		
 	}
 	
 	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
