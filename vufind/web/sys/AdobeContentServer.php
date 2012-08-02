@@ -238,7 +238,7 @@ class AdobeContentServer
 		$logger = new Logger();
 		$destinationFilename = "{$itemId}.{$extension}";
 		$packagingFTP = $configArray['EContent']['packagingFTP'];
-		$ret = copy($filename, $packagingFTP . '/Data/' . $destinationFilename);
+		$ret = copy($filename, $packagingFTP . '/' . $destinationFilename);
 		return $destinationFilename;
 	}
 	
