@@ -249,11 +249,12 @@ class AdobeContentServer
 		$logger->log("Copying " . $pathToFile . " to " . $destinationPath, PEAR_LOG_INFO);
 
 		// Set up a connection
-		$conn = ftp_connect($match[1] . $match[4] . $match[5]);
+		$conn = ftp_connect($packagingFTP);
 
 		// Login
 		$copied = false;
-		if (ftp_login($conn, $match[2], $match[3])){
+		if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
+			$logger->log("Logged in to server", PEAR_LOG_INFO);
 			// Change the dir
 			ftp_chdir($conn, $packagingFTPBasePath);
 			if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
