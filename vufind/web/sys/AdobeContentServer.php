@@ -119,34 +119,34 @@ class AdobeContentServer
 		if ($eContentCheckout->acsTransactionId == null || $eContentCheckout->acsDownloadLink == null){
 			$transactionId = self::getUniqueID();
 			$eContentCheckout->acsTransactionId = $transactionId;
-			
+				
 			$dateval=time();
 			$gbauthdate=gmdate('r', $dateval);
-	
+
 			$rights = "";
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
 			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
 			    "&orderid=".urlencode($transactionId).
-			    "&resid=".urlencode($eContentItem->acsId).
+			    "&resid=".urlencode($eContentItem->acsId). 
 			    $rights.
 			    "&gbauthdate=".urlencode($gbauthdate).
 			    "&dateval=".urlencode($dateval).
 			    "&gblver=4";
-			
+				
 			$linkURL = $configArray['EContent']['linkURL'];
 			if (isset($configArray['EContent']['linkURL']) && strlen($configArray['EContent']['linkURL']) > 0){
 				$sharedSecret = $configArray['EContent']['distributorSecret'];
 				$sharedSecret = base64_decode($sharedSecret);
 				$bookDownloadURL = $linkURL."?".$bookDownloadURL."&auth=".hash_hmac("sha1", $bookDownloadURL, $sharedSecret );
-		
+
 				$eContentCheckout->acsDownloadLink = $bookDownloadURL;
 				$eContentCheckout->update();
 				return $bookDownloadURL;
 			}else{
 				return null;
 			}
-			
+				
 		}else{
 			return $eContentCheckout->acsDownloadLink;
 		}
@@ -188,7 +188,7 @@ class AdobeContentServer
 			return AdobeContentServer::packageFileDirect($filename, $existingResourceId, $numAvailable);
 		}
 	}
-	
+
 	static function packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
 		$logger = new Logger();
@@ -228,7 +228,7 @@ class AdobeContentServer
 					$importDetails->status = 'sentToAcs';
 					$importDetails->insert();
 				}
-				
+
 				return $jsonResponse;
 			}
 		}else{
@@ -236,26 +236,47 @@ class AdobeContentServer
 			return array('success' => false);
 		}
 	}
-	
+
 	static function copyFileToFtp($pathToFile, $itemId, $extension){
 		global $configArray;
 		$logger = new Logger();
 		$destinationFilename = "{$itemId}.{$extension}";
-		$packagingFTP = $configArray['EContent']['packagingFTP'];
+		$packagingFTP = $configArray['EContent']['packagingFTPServer'];
+		$packagingFTPUser = $configArray['EContent']['packagingFTPUser'];
+		$packagingFTPPassword = $configArray['EContent']['packagingFTPPassword'];
+		$packagingFTPBasePath = $configArray['EContent']['packagingFTPBasePath'];
 		$destinationPath = $packagingFTP . '/' . $destinationFilename;
-		$logger->log("Copying " . $pathToFile . " to " . $destinationPath);
-		$ret = copy($pathToFile, $destinationPath);
-		if ($ret){
+		$logger->log("Copying " . $pathToFile . " to " . $destinationPath, PEAR_LOG_INFO);
+
+		// Set up a connection
+		$conn = ftp_connect($match[1] . $match[4] . $match[5]);
+
+		// Login
+		$copied = false;
+		if (ftp_login($conn, $match[2], $match[3])){
+			// Change the dir
+			ftp_chdir($conn, $packagingFTPBasePath);
+			if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
+				$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
+				$copied = true;
+			} else {
+				$logger->log("There was a problem while uploading $pathToFile to $destinationFilename", PEAR_LOG_ERR);
+			}
+			// Return the resource
+			ftp_close($conn);
+		}
+
+		if ($copied){
 			return $destinationFilename;
 		}else{
 			return false;
 		}
-		
+
 	}
-	
+
 	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
 		global $configArray;
-		
+
 		$logger = new Logger();
 		$logger->log("packaging file $filename", PEAR_LOG_INFO);
 		$packageDoc = new DOMDocument('1.0', 'UTF-8');
@@ -275,7 +296,7 @@ class AdobeContentServer
 		$packageElem->appendChild($packageDoc->createElement("expiration", date(DATE_W3C, time() + (15 * 60) ))); //Request expiration, default to 15 minutes
 		$packageElem->appendChild($packageDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
-		
+
 		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($packageDoc, $packageElem, $serverPassword);
@@ -283,7 +304,7 @@ class AdobeContentServer
 		$packagingURL = $configArray['EContent']['packagingURL'];
 		//$logger->log("Request:\r\n" . htmlentities($packageDoc->saveXML()), PEAR_LOG_INFO);
 		$response = AdobeContentServer::sendRequest($packageDoc->saveXML(),$packagingURL);
-		
+
 		$responseData = simplexml_load_string($response);
 		if (isset($responseData->error) || preg_match('/<error/', $response)){
 			$logger->log("Response:\r\n" . $response, PEAR_LOG_INFO);
@@ -346,7 +367,7 @@ class AdobeContentServer
 			return array('success' => 'true');
 		}
 	}
-	
+
 	static function removeDistributionRights($acsId, $distributorId){
 		$distributionDoc = new DOMDocument('1.0', 'UTF-8');
 		$distributionDoc->formatOutput = true;
@@ -476,7 +497,7 @@ class AdobeContentServer
 		global $configArray;
 		$distributorId = $configArray['EContent']['distributorId'];
 		AdobeContentServer::removeDistributionRights($acsId, $distributorId);
-		
+
 		$deleteResourceDoc = new DOMDocument('1.0', 'UTF-8');
 		$deleteResourceDoc->formatOutput = true;
 		//Create the message to send to the ACS server
