@@ -45,7 +45,7 @@ class AlphaBrowse{
 			$scopingFilter = "scope = 1 and scopeId=$libaryToBrowse";
 		}
 		//$query = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter";
-		$query = "SELECT 1 as browseValue FROM author_browse_scoped_results WHERE $scopingFilter GROUP BY browseValueId";
+		$query = "SELECT * FROM author_browse_metadata WHERE $scopingFilter";
 		$result = mysql_query($query);
 		if ($result == FALSE){
 			return array(
@@ -53,20 +53,20 @@ class AlphaBrowse{
 				'message' => "Sorry, unable to browse $browseType right now, please try again later."
 			);
 		}
-		$timer->logTime("Determined number of rows in the table");
-		$numRows = mysql_num_rows($result);
-		echo("NumRows = $numRows");
+		$timer->logTime("Loaded metadata");
+		$metaData = mysql_fetch_assoc($result);
+		//echo("NumRows = {$metaData['numResults']}");
 		
 		//Cleanup our look for value 
 		$lookFor = strtolower($lookFor);
 		$lookFor = preg_replace('/\W/', ' ', $lookFor);
 		$lookFor = preg_replace("/^(a|an|the|el|la)\\s/", '', $lookFor);
 		$lookFor = preg_replace('/\s{2,}/', ' ', $lookFor);
-		return $this->loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows);
+		return $this->loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $metaData);
 		
 	}
 	
-	function loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $numRows){
+	function loadBrowseItems($lookFor, $browseType, $browseTable, $scopingFilter, $relativePage, $resultsPerPage, $metaData){
 		//Now that we have the id to start with, get the actual records
 		global $timer;
 		
@@ -85,10 +85,11 @@ class AlphaBrowse{
 		if ($termRank == null){
 			$termRank = 0;
 		}
-		$timer->logTime("Loaded current position");
+		$timer->logTime("Loaded position of alpha browse search term");
 		
 		if ($relativePage >= 0){
-			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank GROUP BY id ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+			//$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank GROUP BY id ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}else{
 			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank GROUP BY id ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}
@@ -98,19 +99,21 @@ class AlphaBrowse{
 		$browseResults = array();
 		$row = 0;
 		while ($browseResult = mysql_fetch_assoc($result)){
+			$rowDetailsQuery = "SELECT record from {$browseTable}_scoped_results where browseValueId = {$browseResult['id']} and $scopingFilter";
+			$rowDetailsResult = mysql_query($rowDetailsQuery);
+			$numResults = mysql_num_rows($rowDetailsResult);
+			$browseResult['numResults'] = $numResults;
 			$searchLink = '';
-			if (strlen($browseResult['numResults']) > 0 && $browseResult['numResults'] <= 20){
-				if ($browseResult['numResults'] == 1){
-					$recordToFind = $browseResult['relatedRecords'];
-					if (substr($recordToFind, 0, 14) == 'econtentRecord'){
-						$searchLink = "/EcontentRecord/" . substr($recordToFind, 14) . "/Home";
-					}else{
-						$searchLink = "/Record/" . $recordToFind . "/Home";
+			if ($numResults > 0 && $numResults <= 20){
+				$recordsToFind = '';
+				while ($curRecord = mysql_fetch_assoc($rowDetailsResult)){
+					if (strlen($recordsToFind) > 0){
+						$recordsToFind .= " OR ";
 					}
-				}else{
-					$recordsToFind = "id:" . preg_replace("/,/", " OR id:", $browseResult['relatedRecords']);
-					$searchLink = "/Search/Results?basicType=Keyword&amp;lookfor=" . urlencode($recordsToFind);
+					$recordsToFind .= "id:" . $curRecord['record'];
 				}
+				$searchLink = "/Search/Results?basicType=Keyword&amp;lookfor=" . urlencode($recordsToFind);
+				
 			}else{
 				if ($browseResult['numResults'] > 0){
 					if ($browseType=="author"){
@@ -136,9 +139,9 @@ class AlphaBrowse{
 		return array(
 			'success' => true,
 			'items' => $browseResults,
-			'totalCount' => $numRows,
-			'showNext' => $termRank <= ($numRows - $resultsPerPage),
-			'showPrev' => $termRank > 1,
+			'totalCount' => $metaData['numResults'],
+			'showNext' => $termRank <= $metaData['maxAlphaRank'],
+			'showPrev' => $termRank > $metaData['minAlphaRank'],
 		);
 	}
 }

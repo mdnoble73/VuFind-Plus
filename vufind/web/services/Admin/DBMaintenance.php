@@ -1025,6 +1025,50 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'alpha_browse_setup_4' => array(
+			'title' => 'Alphabetic Browse Metadata',
+			'description' => 'Create metadata about alphabetic browsing improve performance of Alphabetic Browse.',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE author_browse_metadata (
+					`scope` TINYINT( 4 ) NOT NULL ,
+					`scopeId` INT( 11 ) NOT NULL ,
+					`minAlphaRank` INT NOT NULL ,
+					`maxAlphaRank` INT NOT NULL ,
+					`numResults` INT NOT NULL
+				) ENGINE = InnoDB;",
+				"INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+				
+				"CREATE TABLE callnumber_browse_metadata (
+					`scope` TINYINT( 4 ) NOT NULL ,
+					`scopeId` INT( 11 ) NOT NULL ,
+					`minAlphaRank` INT NOT NULL ,
+					`maxAlphaRank` INT NOT NULL ,
+					`numResults` INT NOT NULL
+				) ENGINE = InnoDB;",
+				"INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+		
+				"CREATE TABLE title_browse_metadata (
+					`scope` TINYINT( 4 ) NOT NULL ,
+					`scopeId` INT( 11 ) NOT NULL ,
+					`minAlphaRank` INT NOT NULL ,
+					`maxAlphaRank` INT NOT NULL ,
+					`numResults` INT NOT NULL
+				) ENGINE = InnoDB;",
+				"INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+		
+				"CREATE TABLE subject_browse_metadata (
+					`scope` TINYINT( 4 ) NOT NULL ,
+					`scopeId` INT( 11 ) NOT NULL ,
+					`minAlphaRank` INT NOT NULL ,
+					`maxAlphaRank` INT NOT NULL ,
+					`numResults` INT NOT NULL
+				) ENGINE = InnoDB;",
+				"INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+			),
+		),
+		
+		
 		
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
