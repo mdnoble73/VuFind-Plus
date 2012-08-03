@@ -49,7 +49,7 @@ class DBMaintenance extends Admin {
 					$updateOk = true;
 					foreach ($sqlStatements as $sql){
 						//Give enough time for long queries to run
-						$this->setTimeLimit(120);
+						set_time_limit(120);
 						if (method_exists($this, $sql)){
 							$this->$sql();
 						}else{
@@ -982,6 +982,49 @@ class DBMaintenance extends Admin {
 			),
 		),
 		
+		'alpha_browse_setup_3' => array(
+			'title' => 'Alphabetic Browse Performance',
+			'description' => 'Create additional indexes and columns to improve performance of Alphabetic Browse.',
+			'dependencies' => array(),
+			'sql' => array(
+				//Author browse 
+				"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `browseValueId` )", 
+				"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `scope` )",
+				"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `record` )", 
+				"ALTER TABLE `author_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+				"ALTER TABLE `author_browse` ADD INDEX ( `alphaRank` )", 
+				"set @r=0;",
+				"UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+		
+				//Call number browse
+				"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+				"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `scope` )", 
+				"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `record` )", 
+				"ALTER TABLE `callnumber_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+				"ALTER TABLE `callnumber_browse` ADD INDEX ( `alphaRank` )", 
+				"set @r=0;",
+				"UPDATE callnumber_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+		
+				//Subject Browse
+				"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `browseValueId` )", 
+				"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `scope` )", 
+				"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `record` )", 
+				"ALTER TABLE `subject_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+				"ALTER TABLE `subject_browse` ADD INDEX ( `alphaRank` )", 
+				"set @r=0;",
+				"UPDATE subject_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+		
+				//Tile Browse
+				"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `browseValueId` )", 
+				"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `scope` )", 
+				"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `record` )", 
+				"ALTER TABLE `title_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+				"ALTER TABLE `title_browse` ADD INDEX ( `alphaRank` )", 
+				"set @r=0;",
+				"UPDATE title_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+			),
+		),
+		
 		
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
@@ -1288,19 +1331,9 @@ class DBMaintenance extends Admin {
 		);
 	}
 	
-	private function setTimeLimit($time = 120)
-	{
-		set_time_limit(120);
-	}
-	private function freeMysqlResult($result)
-	{
-		mysql_free_result($result);
-	}
-	
-	
 	public function addTableListWidgetListsLinks()
 	{
-		$this->setTimeLimit(120);
+		set_time_limit(120);
 		$sql =	'CREATE TABLE IF NOT EXISTS `list_widget_lists_links`( '.
 				'`id` int(11) NOT NULL AUTO_INCREMENT, '.
 				'`listWidgetListsId` int(11) NOT NULL, '.
@@ -1316,7 +1349,7 @@ class DBMaintenance extends Admin {
 			$sqlInsert = 'INSERT INTO `list_widget_lists_links` (`id`,`listWidgetListsId`,`name`,`link`) VALUES (NULL,\''.$row['id'].'\',\'Full List Link\',\''.$row['fullListLink'].'\') ';
 			mysql_query($sqlInsert);
 		}
-		$this->freeMysqlResult($result);
+		mysql_free_result($result);
 		mysql_query('ALTER TABLE `list_widget_lists` DROP `fullListLink`');
 	}
 	

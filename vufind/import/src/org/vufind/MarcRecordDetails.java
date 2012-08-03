@@ -1892,10 +1892,10 @@ public class MarcRecordDetails {
 																																															 */
 		) {
 			char targetAudienceChar;
-			if (ohOhSixField != null && ohOhSixField.getData().length() >= 16) {
+			if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
 				targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
 				result.add(Character.toString(targetAudienceChar));
-			} else if (ohOhEightField != null && ohOhEightField.getData().length() >= 33) {
+			} else if (ohOhEightField != null && ohOhEightField.getData().length() > 33) {
 				targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
 				result.add(Character.toString(targetAudienceChar));
 			} else {
@@ -2539,13 +2539,13 @@ public class MarcRecordDetails {
 																																																 */
 			) {
 				char targetAudienceChar;
-				if (ohOhSixField != null && ohOhSixField.getData().length() >= 5) {
+				if (ohOhSixField != null && ohOhSixField.getData().length() > 5) {
 					targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(5));
 					if (targetAudienceChar != ' ') {
 						result.add(Character.toString(targetAudienceChar));
 					}
 				}
-				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() >= 22) {
+				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() > 22) {
 					targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(22));
 					if (targetAudienceChar != ' ') {
 						result.add(Character.toString(targetAudienceChar));

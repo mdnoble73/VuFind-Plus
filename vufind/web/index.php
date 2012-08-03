@@ -624,7 +624,7 @@ if (is_readable("services/$module/$action.php")) {
 		PEAR::raiseError(new PEAR_Error('Unknown Action'));
 	}
 } else {
-	PEAR::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module'"));
+	PEAR::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
 }
 $timer->logTime('Finished Index');
 $timer->writeTimings();

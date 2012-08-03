@@ -336,11 +336,15 @@ class Location extends DB_DataObject
 			require_once './Drivers/marmot_inc/ipcalc.php';
 			require_once './Drivers/marmot_inc/subnet.php';
 			
-			$subnetSql = new subnet();
-			$subnetSql->find();
-			$subnets = array();
-			while ($subnetSql->fetch()) {
-				$subnets[] = clone $subnetSql;
+			$subnets = $memcache->get('ip_addresses');
+			if ($subnets == false){
+				$subnetSql = new subnet();
+				$subnetSql->find();
+				$subnets = array();
+				while ($subnetSql->fetch()) {
+					$subnets[] = clone $subnetSql;
+				}
+				$memcache->set('ip_addresses', $subnets, 0, $configArray['Caching']['ip_addresses']);
 			}
 			$bestmatch=FindBestMatch($activeIp,$subnets);
 			//Get the locationId for the subnet.

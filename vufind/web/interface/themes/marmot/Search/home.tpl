@@ -1,3 +1,4 @@
+{strip}
 <div class="searchHome">
 	<div class="searchHomeContent">
 		<img src = "{img filename="logo_large.png"}" alt='{$librarySystemName} Logo'/>
@@ -7,3 +8,4 @@
 		</div>
 	</div>
 </div>
+{/strip}
