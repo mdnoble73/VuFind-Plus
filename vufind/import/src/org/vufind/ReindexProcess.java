@@ -237,6 +237,7 @@ public class ReindexProcess {
 		logger.info("Processing resources");
 		addNoteToCronLog("Processing resources");
 		try {
+			int resourcesProcessed = 0;
 			long batchCount = 0;
 			PreparedStatement resourceCountStmt = vufindConn.prepareStatement("SELECT count(id) FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet resourceCountRs = resourceCountStmt.executeQuery();
@@ -258,14 +259,20 @@ public class ReindexProcess {
 					}
 					allResources.close();
 					firstResourceToProcess += batchSize;
+					resourcesProcessed++;
+					if (resourcesProcessed % 1000 == 0){
+						updateLastUpdateTime();
+					}
 				}
 			}
 		} catch (Exception e) {
 			logger.error("Exception processing resources", e);
 			System.out.println("Exception processing resources " + e.toString());
+			addNoteToCronLog("Exception processing resources " + e.toString());
 		} catch (Error e) {
 			logger.error("Error processing resources", e);
 			System.out.println("Error processing resources " + e.toString());
+			addNoteToCronLog("Error processing resources " + e.toString());
 		}
 	}
 
@@ -283,16 +290,37 @@ public class ReindexProcess {
 		}
 		//Check to see if the record already exists
 		try {
+			int econtentRecordsProcessed = 0;
 			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'");
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
+			long indexTime = new Date().getTime() / 1000;
 			while (allEContent.next()){
 				for (IEContentProcessor econtentProcessor : econtentProcessors){
-					econtentProcessor.processEContentRecord(allEContent);
+					//Determine if the record is new, updated, deleted, or unchanged
+					long dateAdded = allEContent.getLong("date_added");
+					long dateUpdated = allEContent.getLong("date_updated");
+					String status = allEContent.getString("status");
+					long recordStatus = MarcProcessor.RECORD_UNCHANGED;
+					if (status.equals("deleted") || status.equals("archived")){
+						recordStatus = MarcProcessor.RECORD_DELETED;
+					}else{
+						if ((indexTime - dateAdded) < 24 * 60 * 60){
+							recordStatus = MarcProcessor.RECORD_NEW;
+						}else if ((indexTime - dateUpdated) < 24 * 60 * 60){
+							recordStatus = MarcProcessor.RECORD_CHANGED;
+						}
+					}
+					econtentProcessor.processEContentRecord(allEContent, recordStatus);
+				}
+				econtentRecordsProcessed++;
+				if (econtentRecordsProcessed % 1000 == 0){
+					updateLastUpdateTime();
 				}
 			}
 		} catch (SQLException ex) {
 			// handle any errors
 			logger.error("Unable to load econtent records from database", ex);
+			addNoteToCronLog("Unable to load econtent records from database " + ex.toString());
 		}
 	}
 

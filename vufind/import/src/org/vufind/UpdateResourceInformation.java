@@ -573,9 +573,18 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 	}
 
 	@Override
-	public boolean processEContentRecord(ResultSet allEContent) {
+	public boolean processEContentRecord(ResultSet allEContent, long recordStatus) {
 		try {
 			results.incEContentRecordsProcessed();
+			if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !updateUnchangedResources){
+				boolean updateResource = false; 
+				//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
+				if (!updateResource){
+					logger.debug("Skipping record because it hasn't changed");
+					results.incSkipped();
+					return true;
+				}
+			}
 			String econtentId = allEContent.getString("id");
 			
 			//Load title information so we have access regardless of 

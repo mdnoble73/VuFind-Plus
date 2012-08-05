@@ -19,6 +19,12 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private Connection vufindConn;
 	private ProcessorResults results;
 	
+	private PreparedStatement	isRecordInBrowseIndexStmt;
+	private PreparedStatement	clearAuthorBrowseRecordInfoStmt;
+	private PreparedStatement	clearCallNumberBrowseRecordInfoStmt;
+	private PreparedStatement	clearSubjectBrowseRecordInfoStmt;
+	private PreparedStatement	clearTitleBrowseRecordInfoStmt;
+	
 	private PreparedStatement	getExistingTitleBrowseValue;
 	private PreparedStatement	getExistingAuthorBrowseValue;
 	private PreparedStatement	getExistingSubjectBrowseValue;
@@ -55,6 +61,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private Map<String, Long> existingBrowseValuesSubject = new LRUMap(10000);
 	@SuppressWarnings("unchecked")
 	private Map<String, Long> existingBrowseValuesCallNumber = new LRUMap(10000);
+	
+	private boolean clearAlphaBrowseAtStartOfIndex = false;
+	private boolean updateAlphaBrowseForUnchangedRecords = false;
 
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -67,19 +76,35 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		callNumberSubfield = configIni.get("Reindex", "callNumberSubfield");
 		locationSubfield = configIni.get("Reindex", "locationSubfield");
 		
+		String clearAlphaBrowseAtStartOfIndexStr = configIni.get("Reindex", "clearAlphaBrowseAtStartOfIndex");
+		if (clearAlphaBrowseAtStartOfIndexStr != null){
+			clearAlphaBrowseAtStartOfIndex = Boolean.parseBoolean(clearAlphaBrowseAtStartOfIndexStr);
+		}
+		String updateAlphaBrowseForUnchangedRecordsStr = configIni.get("Reindex", "updateAlphaBrowseForUnchangedRecords");
+		if (updateAlphaBrowseForUnchangedRecordsStr != null){
+			updateAlphaBrowseForUnchangedRecords = Boolean.parseBoolean(updateAlphaBrowseForUnchangedRecordsStr);
+		}
+		
 		try {
 			//Setup prepared statements for later usage.  
 			getLibraryIdsForEContent = econtentConn.prepareStatement("SELECT distinct libraryId from econtent_item where recordId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			
+			isRecordInBrowseIndexStmt = vufindConn.prepareStatement("SELECT browseValueId from title_browse_scoped_results where record = ?");
+			
+			clearAuthorBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results where record = ?");
+			clearCallNumberBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results where record = ?");
+			clearSubjectBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM subject_browse_scoped_results where record = ?");
+			clearTitleBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE title author_browse_scoped_results where record = ?");
 			
 			getExistingTitleBrowseValue = vufindConn.prepareStatement("SELECT id from title_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getExistingAuthorBrowseValue = vufindConn.prepareStatement("SELECT id from author_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getExistingSubjectBrowseValue = vufindConn.prepareStatement("SELECT id from subject_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getExistingCallNumberBrowseValue = vufindConn.prepareStatement("SELECT id from callnumber_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			
-			insertTitleBrowseValue = vufindConn.prepareStatement("INSERT INTO title_browse (value, sortValue) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			insertAuthorBrowseValue = vufindConn.prepareStatement("INSERT INTO author_browse (value, sortValue) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			insertSubjectBrowseValue = vufindConn.prepareStatement("INSERT INTO subject_browse (value, sortValue) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			insertCallNumberBrowseValue = vufindConn.prepareStatement("INSERT INTO callnumber_browse (value, sortValue) VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertTitleBrowseValue = vufindConn.prepareStatement("INSERT INTO title_browse (value, sortValue, alphaRank) VALUES (?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertAuthorBrowseValue = vufindConn.prepareStatement("INSERT INTO author_browse (value, sortValue, alphaRank) VALUES (?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertSubjectBrowseValue = vufindConn.prepareStatement("INSERT INTO subject_browse (value, sortValue, alphaRank) VALUES (?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertCallNumberBrowseValue = vufindConn.prepareStatement("INSERT INTO callnumber_browse (value, sortValue, alphaRank) VALUES (?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			/*getExistingTitleBrowseScopeValue = vufindConn.prepareStatement("SELECT id, numResults, relatedRecords from title_browse_scoped_results WHERE browseValueId = ? AND scope = ? AND scopeId = ?");
 			getExistingAuthorBrowseScopeValue = vufindConn.prepareStatement("SELECT id, numResults, relatedRecords from author_browse_scoped_results WHERE browseValueId = ? AND scope = ? AND scopeId = ?");
@@ -96,10 +121,12 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			updateSubjectBrowseScopeValue = vufindConn.prepareStatement("UPDATE subject_browse_scoped_results SET numResults = ?, relatedRecords = ? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateCallNumberBrowseScopeValue = vufindConn.prepareStatement("UPDATE callnumber_browse_scoped_results SET numResults = ?, relatedRecords = ? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);*/
 			
-			clearBrowseIndex("title_browse");
-			clearBrowseIndex("author_browse");
-			clearBrowseIndex("subject_browse");
-			clearBrowseIndex("callnumber_browse");
+			if (clearAlphaBrowseAtStartOfIndex){
+				clearBrowseIndex("title_browse");
+				clearBrowseIndex("author_browse");
+				clearBrowseIndex("subject_browse");
+				clearBrowseIndex("callnumber_browse");
+			}
 		} catch (SQLException e) {
 			results.addNote("Error setting up prepared statements for Alpha Browse Processor");
 			results.incErrors();
@@ -114,11 +141,19 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
 			//For alpha browse processing, everything is handled in the finish method
+			results.incRecordsProcessed();
 			if (recordInfo.isEContent()){
 				results.incSkipped();
 				return true;
 			}
-			results.incRecordsProcessed();
+			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
+				//Check to see if the record has been added to alpha browse
+				if (isRecordInBrowse(recordInfo.getId())){
+					results.incSkipped();
+					return true;
+				}
+			}
+			clearBrowseInfoForRecord(recordInfo.getId());
 			HashMap<String, String> titles = recordInfo.getBrowseTitles();
 			HashMap<String, String> authors = recordInfo.getBrowseAuthors();
 			String recordIdFull = recordInfo.getId();
@@ -171,6 +206,42 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	
 	
 
+	private void clearBrowseInfoForRecord(String id) {
+		try {
+			clearAuthorBrowseRecordInfoStmt.setString(1, id);
+			clearAuthorBrowseRecordInfoStmt.executeUpdate();
+			
+			clearCallNumberBrowseRecordInfoStmt.setString(1, id);
+			clearCallNumberBrowseRecordInfoStmt.executeUpdate();
+			
+			clearSubjectBrowseRecordInfoStmt.setString(1, id);
+			clearSubjectBrowseRecordInfoStmt.executeUpdate();
+			
+			clearTitleBrowseRecordInfoStmt.setString(1, id);
+			clearTitleBrowseRecordInfoStmt.executeUpdate();
+		} catch (SQLException e) {
+			results.incErrors();
+			results.addNote("Error clearing browse info for record " + id + " " + e.toString());
+			logger.error("Error clearing browse info for record " + id, e);
+		}
+		
+	}
+
+	private boolean isRecordInBrowse(String recordId) {
+		try {
+			isRecordInBrowseIndexStmt.setString(1, recordId);
+			ResultSet isRecordInBrowseIndexRS = isRecordInBrowseIndexStmt.executeQuery();
+			if (isRecordInBrowseIndexRS.next()){
+				return true;
+			}
+		} catch (SQLException e) {
+			results.addNote("Error checking if record " + recordId + " is in browse index " + e.toString());
+			results.incErrors();
+			logger.error("Error checking if record is in browse index ", e);
+		}
+		return false;
+	}
+
 	private void addCallNumbersToBrowse(Set<LocalCallNumber> localCallNumbers, String recordIdFull) throws SQLException {
 		//logger.debug("found " + localCallNumbers.size() + " call numbers for the resource");
 		HashMap<String, String> distinctCallNumbers = new HashMap<String, String>(); 
@@ -196,10 +267,27 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	}
 
 	@Override
-	public boolean processEContentRecord(ResultSet resource) {
+	public boolean processEContentRecord(ResultSet resource, long recordStatus) {
 		try {
+			Long econtentId = resource.getLong("id");
+			String recordIdFull = "econtentRecord" + resource.getString("id");
+			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
+				//Check to see if the record has been added to alpha browse
+				if (isRecordInBrowse(recordIdFull)){
+					results.incSkipped();
+					return true;
+				}
+			}
 			//For alpha browse processing, everything is handled in the finish method
 			results.incEContentRecordsProcessed();
+			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
+				//Check to see if the record has been added to alpha browse
+				if (isRecordInBrowse(recordIdFull)){
+					results.incSkipped();
+					return true;
+				}
+			}
+			clearBrowseInfoForRecord(recordIdFull);
 			String title = resource.getString("title");
 			String subTitle = resource.getString("subTitle");
 			if (subTitle.length() > 0){
@@ -214,8 +302,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			for (String curAuthor : authors){
 				browseAuthors.put(Util.makeValueSortable(curAuthor), curAuthor);
 			}
-			Long econtentId = resource.getLong("id");
-			String recordIdFull = "econtentRecord" + resource.getString("id");
+			
 			String subjectsRaw = resource.getString("subject");
 			String[] subjects = subjectsRaw.split("\\r\\n|\\r|\\n");
 			HashMap <String, String> browseSubjects = new HashMap<String, String>();
@@ -454,33 +541,45 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 
 	@Override
 	public void finish() {
-		//TODO:  Update the order for the tabls
-		/*logger.info("Building Alphabetic Browse tables");
-		results.addNote("Building Alphabetic Browse tables");
-		results.saveResults();
 		try {
-			//Run queries to create alphabetic browse tables from resources table
-			try {
-				//Get all resources
-				saveBrowseValues("Title", titleBrowseInfo, "title_browse");
-				
-				saveBrowseValues("Author", authorBrowseInfo, "author_browse");
-				
-				saveBrowseValues("Subject", subjectBrowseInfo, "subject_browse");
-				
-				saveBrowseValues("Call Number", callNumberBrowseInfo, "callnumber_browse");
-			} catch (SQLException e) {
-				logger.error("Error creating browse tables", e);
-				results.addNote("Error creating browse tables " + e.toString());
-			}
+			//Update rankings
+			PreparedStatement initRanking =  vufindConn.prepareStatement("set @r=0;");
+			initRanking.executeUpdate();
 			
-		} catch (Error e) {
-			System.out.println("Error updating Alphabetic Browse");
-			e.printStackTrace();
-			logger.error("Error updating Alphabetic Browse", e);
-			results.addNote("Error updating Alphabetic Browse " + e.toString());
-			results.saveResults();
-		}*/
+			PreparedStatement authorRankingUpdate = vufindConn.prepareStatement("UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
+			authorRankingUpdate.executeUpdate();
+			PreparedStatement authorMetaDataClear = vufindConn.prepareStatement("TRUNCATE author_browse_metadata");
+			authorMetaDataClear.executeUpdate();
+			PreparedStatement authorMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
+			authorMetaDataUpdate.executeUpdate();
+			
+			PreparedStatement callnumberRankingUpdate = vufindConn.prepareStatement("UPDATE callnumber_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
+			callnumberRankingUpdate.executeUpdate();
+			PreparedStatement callnumberMetaDataClear = vufindConn.prepareStatement("TRUNCATE callnumber_browse_metadata");
+			callnumberMetaDataClear.executeUpdate();
+			PreparedStatement callnumberMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
+			callnumberMetaDataUpdate.executeUpdate();
+			
+			PreparedStatement subjectRankingUpdate = vufindConn.prepareStatement("UPDATE subject_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
+			subjectRankingUpdate.executeUpdate();
+			PreparedStatement subjectMetaDataClear = vufindConn.prepareStatement("TRUNCATE subject_browse_metadata");
+			subjectMetaDataClear.executeUpdate();
+			PreparedStatement subjectMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
+			subjectMetaDataUpdate.executeUpdate();
+			
+			PreparedStatement titleRankingUpdate = vufindConn.prepareStatement("UPDATE title_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
+			titleRankingUpdate.executeUpdate();
+			PreparedStatement titleMetaDataClear = vufindConn.prepareStatement("TRUNCATE title_browse_metadata");
+			titleMetaDataClear.executeUpdate();
+			PreparedStatement titleMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
+			titleMetaDataUpdate.executeUpdate();
+			
+		} catch (SQLException e) {
+			logger.error("Error finishing Alpha Browse Processing", e);
+			results.incErrors();
+			results.addNote("Error finishing Alpha Browse Processing" + e.toString());
+		}
+		
 	}
 
 	private void clearBrowseIndex(String tableName) throws SQLException{
