@@ -94,7 +94,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			clearAuthorBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results where record = ?");
 			clearCallNumberBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results where record = ?");
 			clearSubjectBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM subject_browse_scoped_results where record = ?");
-			clearTitleBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE title author_browse_scoped_results where record = ?");
+			clearTitleBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM title_browse_scoped_results where record = ?");
 			
 			getExistingTitleBrowseValue = vufindConn.prepareStatement("SELECT id from title_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			getExistingAuthorBrowseValue = vufindConn.prepareStatement("SELECT id from author_browse WHERE value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
