@@ -665,14 +665,14 @@ class sip2
 		/* sends the current message, and gets the response */
 		$result     = '';
 		$terminator = '';
-
+		$nr         = '';
 
 		$this->_debugmsg('SIP2: Sending SIP2 request...');
 		socket_write($this->socket, $message, strlen($message));
 
 		$this->_debugmsg('SIP2: Request Sent, Reading response');
 
-		while ($terminator != "\x0D") {
+		while ($terminator != "\x0D" && $nr !== FALSE) {
 			$nr = socket_recv($this->socket,$terminator,1,0);
 			$result = $result . $terminator;
 		}
