@@ -491,12 +491,12 @@ class MillenniumDriver implements DriverInterface
 
 			//Determine if the holding is available or not.
 			//First check the status
-			if (preg_match('/^' . $this->availableStatiRegex . '$/', $holding['status'])){
+			if (preg_match('/^(' . $this->availableStatiRegex . ')$/', $holding['status'])){
 				$holding['availability'] = 1;
 			}else{
 				$holding['availability'] = 0;
 			}
-			if (preg_match('/^' . $this->holdableStatiRegex . '$/', $holding['status'])){
+			if (preg_match('/^(' . $this->holdableStatiRegex . ')$/', $holding['status'])){
 				$holding['holdable'] = 1;
 			}else{
 				$holding['holdable'] = 0;
@@ -605,6 +605,7 @@ class MillenniumDriver implements DriverInterface
 		$issueSummaries = $this->getIssueSummaries($id, $millenniumInfo);
 		$timer->logTime('loaded issue summaries');
 		if (!is_null($issueSummaries)){
+			krsort($sorted_array);
 			//Group holdings under the issue issue summary that is related.
 			foreach ($sorted_array as $key => $holding){
 				//Have issue summary = false
