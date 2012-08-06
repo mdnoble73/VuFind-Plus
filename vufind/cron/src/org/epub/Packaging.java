@@ -192,12 +192,14 @@ public class Packaging implements IProcessHandler{
 	private void getResultsFromPackagingService() {
 		//Get a list of files that we need to get packaging information for
 		try {
+			logger.debug("Getting results from packaging service");
 			ResultSet filesToGetAcsPackagingInfoForRs = filesToGetAcsPackagingInfoFor.executeQuery();
 			while (filesToGetAcsPackagingInfoForRs.next()){
 				Long id = filesToGetAcsPackagingInfoForRs.getLong("id");
 				String distributorId = filesToGetAcsPackagingInfoForRs.getString("distributorId");
 				Long packagingId = filesToGetAcsPackagingInfoForRs.getLong("packagingId");
 				Long econtentItemId = filesToGetAcsPackagingInfoForRs.getLong("econtentItemId");
+				logger.debug("Checking item " + econtentItemId + " packagingId " + packagingId + " distributorId " + distributorId);
 				getPackagingResults(id, distributorId, packagingId, econtentItemId);
 			}
 		} catch (SQLException e) {
