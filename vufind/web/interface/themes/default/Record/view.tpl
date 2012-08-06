@@ -503,11 +503,11 @@ function redrawSaveStatus() {literal}{{/literal}
 			{* Define tabs for the display *}
 			<ul>
 				<li><a href="#holdingstab">{translate text="Copies"}</a></li>
-				{if $tableOfContents}
-					<li><a href="#tableofcontentstab">{translate text="Contents"}</a></li>
-				{/if}
 				{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 					<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
+				{/if}
+				{if $tableOfContents}
+					<li><a href="#tableofcontentstab">{translate text="Contents"}</a></li>
 				{/if}
 				{if $notes}
 					<li><a href="#notestab">{translate text=$notesTabName}</a></li>
