@@ -383,8 +383,13 @@ public class ReindexProcess {
 			updateCronLogLastUpdatedStmt.setLong(1, new Date().getTime() / 1000);
 			updateCronLogLastUpdatedStmt.setLong(2, reindexLogId);
 			updateCronLogLastUpdatedStmt.executeUpdate();
+			//Sleep for a little bit to make sure we don't block connectivity for other programs 
+			Thread.sleep(5);
+			Thread.yield();
 		} catch (SQLException e) {
 			logger.error("Error setting last updated time in Cron Log", e);
+		} catch (InterruptedException e) {
+			logger.error("Sleep interrupted", e);
 		}
 	}
 

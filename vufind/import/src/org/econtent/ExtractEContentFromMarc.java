@@ -42,6 +42,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private String vufindUrl;
 	
 	private PreparedStatement doesIlsIdExist;
+	private PreparedStatement numItemsForIlsIdStmt;
 	private PreparedStatement createEContentRecord;
 	private PreparedStatement updateEContentRecord;
 	private PreparedStatement deleteEContentItem;
@@ -89,6 +90,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		try {
 			//Connect to the vufind database
 			doesIlsIdExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = ?");
+			numItemsForIlsIdStmt = econtentConn.prepareStatement("SELECT count(econtent_item.id) as numItems from econtent_item Inner join econtent_record on econtent_record.id = recordId where ilsId = '?'");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
 			deleteEContentItem = econtentConn.prepareStatement("DELETE FROM econtent_item where id = ?");
@@ -147,9 +149,20 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					if (extractEContentFromUnchangedRecords){
 						logger.debug("Record is unchanged, but reindex unchanged records is on");
 					}else{
-						logger.debug("Skipping because the record is not changed");
-						results.incSkipped();
-						return false;
+						//Check to see if we have items for the record
+						numItemsForIlsIdStmt.setString(1, recordInfo.getId());
+						ResultSet numItemsForIlsIdRSet = numItemsForIlsIdStmt.executeQuery();
+						long numItems = 0;
+						if (numItemsForIlsIdRSet.next()){
+							numItems = numItemsForIlsIdRSet.getLong(1);
+						}
+						if (numItems == 0){
+							logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
+						}else{
+							logger.debug("Skipping because the record is not changed");
+							results.incSkipped();
+							return false;
+						}
 					}
 				}else{
 					logger.debug("Record has changed or is new");
