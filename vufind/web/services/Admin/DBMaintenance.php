@@ -223,6 +223,14 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` CHANGE `worldCatQt` `worldCatQt` VARCHAR(40) DEFAULT '';",
 				),
 			),
+			'library_14' => array(
+				'title' => 'Library 14',
+				'description' => 'Allow Go Deeper to be disabled by Library',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showGoDeeper` TINYINT DEFAULT '1';",
+				),
+			),
 			
 			'location_1' => array(
 				'title' => 'Location 1',

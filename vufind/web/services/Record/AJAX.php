@@ -443,12 +443,16 @@ class AJAX extends Action {
 		}
 
 		//Load go deeper options
-		require_once('Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
-		if (count($goDeeperOptions['options']) == 0){
+		if (isset($library) && $library->showGoDeeper == 0){
 			$interface->assign('showGoDeeper', false);
 		}else{
-			$interface->assign('showGoDeeper', true);
+			require_once('Drivers/marmot_inc/GoDeeperData.php');
+			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
+			if (count($goDeeperOptions['options']) == 0){
+				$interface->assign('showGoDeeper', false);
+			}else{
+				$interface->assign('showGoDeeper', true);
+			}
 		}
 
 		return $interface->fetch('Record/ajax-enrichment.tpl');
