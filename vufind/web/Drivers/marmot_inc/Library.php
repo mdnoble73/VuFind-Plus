@@ -76,6 +76,7 @@ class Library extends DB_DataObject
 	public $includeNovelistEnrichment;
 	public $applyNumberOfHoldingsBoost;
 	public $show856LinksAsTab;
+	public $showProspectorTitlesAsTab;
 	public $worldCatUrl;
 	public $worldCatQt;
 	public $preferSyndeticsSummary;

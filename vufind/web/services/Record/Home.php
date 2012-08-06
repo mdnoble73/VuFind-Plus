@@ -102,6 +102,7 @@ class Home extends Record{
 			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
 			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup);
 			$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
+			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
 		}else{
 			$interface->assign('showTextThis', 1);
 			$interface->assign('showEmailThis', 1);
@@ -125,6 +126,7 @@ class Home extends Record{
 			$interface->assign('showSeriesAsTab', 0);
 			$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 			$interface->assign('show856LinksAsTab', 1);
+			$interface->assign('showProspectorTitlesAsTab', 0);
 		}
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);

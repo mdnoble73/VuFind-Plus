@@ -69,6 +69,7 @@ class Home extends Action{
 			$interface->assign('showComments', $library->showComments);
 			$interface->assign('tabbedDetails', $library->tabbedDetails);
 			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup == 1 ? true : false);
+			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
 		}else{
 			$interface->assign('showTextThis', 1);
 			$interface->assign('showEmailThis', 1);
@@ -89,6 +90,7 @@ class Home extends Action{
 			$interface->assign('showRatings', 1);
 			$interface->assign('showComments', 1);
 			$interface->assign('tabbedDetails', 1);
+			$interface->assign('showProspectorTitlesAsTab', 0);
 		}
 		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);

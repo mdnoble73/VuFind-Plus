@@ -65,7 +65,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	</div>
 	
 	<div id="sidebar">
-		{if $enablePospectorIntegration == 1}
+		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 0}
 			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
 				{* Display in Prospector Sidebar *}
 				<div id="inProspectorPlaceholder"></div>
@@ -401,6 +401,9 @@ function redrawSaveStatus() {literal}{{/literal}
 						{if $tableOfContents}
 							<li><a href="#tableofcontentstab">{translate text="Contents"}</a></li>
 						{/if}
+						{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
+							<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
+						{/if}
 						{if $notes}
 							<li><a href="#notestab">{translate text=$notesTabName}</a></li>
 						{/if}
@@ -423,7 +426,9 @@ function redrawSaveStatus() {literal}{{/literal}
 						
 						<div id="holdingsPlaceholder"></div>
 						
+						{if  $showProspectorTitlesAsTab == 0}
 						<div id="prospectorHoldingsPlaceholder"></div>
+						{/if}
 					
 						{if $internetLinks && $show856LinksAsTab == 0}
 							<h3>{translate text="Internet"}</h3>
@@ -437,6 +442,13 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/if}
 						
 					</div>
+					
+					{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
+						<div id="prospectorTab">
+							{* Display in Prospector Sidebar *}
+							<div id="inProspectorPlaceholder"></div>
+						</div>
+					{/if}
 					
 					{if $tableOfContents}
 						<div id ="tableofcontentstab">
