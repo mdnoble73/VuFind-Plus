@@ -1081,7 +1081,7 @@ public class MarcRecordDetails {
 					returnType = String.class;
 				}else if (functionName.equals("getAwardName") && parms.length == 1){
 					retval = getAwardName(parms[0]);
-					returnType = String.class;
+					returnType = Set.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
