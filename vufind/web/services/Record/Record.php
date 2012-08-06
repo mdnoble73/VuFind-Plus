@@ -294,19 +294,30 @@ class Record extends Action
 		//Load description from Syndetics
 		$useMarcSummary = true;
 		if ($this->isbn || $this->upc){
-			require_once 'Drivers/marmot_inc/GoDeeperData.php';
-			$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
-			if (isset($summaryInfo['summary'])){
-				$interface->assign('summaryTeaser', $summaryInfo['summary']);
-				$interface->assign('summary', $summaryInfo['summary']);
-				$useMarcSummary = false;
+			if ($library && $library->preferSyndeticsSummary == 1){
+				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
+				if (isset($summaryInfo['summary'])){
+					$interface->assign('summaryTeaser', $summaryInfo['summary']);
+					$interface->assign('summary', $summaryInfo['summary']);
+					$useMarcSummary = false;
+				}
 			}
 		}
 		if ($useMarcSummary){
 			if ($summaryField = $this->marcRecord->getField('520')) {
 				$interface->assign('summary', $this->getSubfieldData($summaryField, 'a'));
 				$interface->assign('summaryTeaser', $this->getSubfieldData($summaryField, 'a'));
+			}elseif ($library && $library->preferSyndeticsSummary == 0){
+				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
+				if (isset($summaryInfo['summary'])){
+					$interface->assign('summaryTeaser', $summaryInfo['summary']);
+					$interface->assign('summary', $summaryInfo['summary']);
+					$useMarcSummary = false;
+				}
 			}
+			
 		}
 
 		if ($mpaaField = $this->marcRecord->getField('521')) {

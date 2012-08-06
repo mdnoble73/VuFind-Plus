@@ -37,7 +37,12 @@ class Description extends Record{
 	}
 
 	function loadData()    {
-		return Description::loadDescriptionFromMarc($this->marcRecord);
+		global $library;
+		$allowExternalDescription = true;
+		if (isset($library) && $library->preferSyndeticsSummary == 0){
+			$allowExternalDescription = false;
+		}
+		return Description::loadDescriptionFromMarc($this->marcRecord, $allowExternalDescription);
 
 	}
 
