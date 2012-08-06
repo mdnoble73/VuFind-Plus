@@ -248,6 +248,7 @@
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- Used for loading correct record driver -->
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
