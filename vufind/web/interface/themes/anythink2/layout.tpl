@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{$userLang}">
   <head>
+    <link rel="shortcut icon" href="{$path}/interface/themes/anythink2/images/anythink.ico" type="image/x-icon" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>{$pageTitle|truncate:64:"..."}</title>
     {if $addHeader}{$addHeader}{/if}
