@@ -138,6 +138,26 @@ class EContentItem extends DB_DataObject {
 			'storeDb' => true,
 		  'storeSolr' => false,
 		),
+		
+		'reviewStatus' => array(
+			'property' => 'reviewStatus',
+			'type' => 'enum',
+			'values' => array('Not Reviewed' => 'Not Reviewed', 'Approved' => 'Approved', 'Rejected' => 'Rejected'),
+			'label' => 'Review Status',
+			'description' => 'The status of the review of the item.',
+			'storeDb' => true,
+			'storeSolr' => false,
+			'default' => 'Not Reviewed'
+		),
+		
+		'reviewNotes' => array(
+			'property' => 'reviewNotes',
+			'type' => 'textarea',
+			'label' => 'Review Notes',
+			'description' => 'Notes relating to the reivew.',
+			'storeDb' => true,
+		  'storeSolr' => false,
+		)
 		);
 
 		foreach ($structure as $fieldName => $field){
@@ -256,6 +276,9 @@ class EContentItem extends DB_DataObject {
 	}
 
 	function insert(){
+		if ($this->reviewStatus == 0){
+			$this->reviewStatus = 'Not Reviewed';
+		}
 		//If the file should be protected with the ACS server, submit the file
 		//to the ACS server for protection.
 		require_once 'sys/AdobeContentServer.php';
@@ -294,6 +317,9 @@ class EContentItem extends DB_DataObject {
 	}
 
 	function update(){
+		if ($this->reviewStatus == 0){
+			$this->reviewStatus = 'Not Reviewed';
+		}
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
 			require_once 'sys/AdobeContentServer.php';
 			global $configArray;

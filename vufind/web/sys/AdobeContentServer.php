@@ -215,6 +215,7 @@ class AdobeContentServer
 				$jsonResponse = json_decode($packagingResponse, true);
 				if ($jsonResponse['success']){
 					//Save information to packaging log so it can be processed on the backend
+					require_once('sys/eContent/EContentImportDetailsEntry.php');
 					$importDetails = new EContentImportDetailsEntry();
 					$importDetails->filename = $newFilename;
 					$importDetails->libraryFilename = $filename;
