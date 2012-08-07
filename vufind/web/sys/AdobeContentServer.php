@@ -124,6 +124,10 @@ class AdobeContentServer
 			$gbauthdate=gmdate('r', $dateval);
 
 			$rights = "";
+			$acsId = $eContentItem->acsId;
+			if (substr($acsId, 0, strlen("urn:uri:")) === false){
+				$acsId = "urn:uri:" . $acsId;
+			}
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
 			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
