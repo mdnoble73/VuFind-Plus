@@ -125,7 +125,7 @@ class AdobeContentServer
 
 			$rights = "";
 			$acsId = $eContentItem->acsId;
-			if (substr($acsId, 0, strlen("urn:uri:")) === false){
+			if (substr($acsId, 0, strlen("urn:uri:")) == "urn:uri:"){
 				$acsId = "urn:uri:" . $acsId;
 			}
 			$bookDownloadURL =
