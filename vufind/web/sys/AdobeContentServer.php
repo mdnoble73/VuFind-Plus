@@ -132,7 +132,7 @@ class AdobeContentServer
 			    "action=enterloan". //Loan the title out
 			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
 			    "&orderid=".urlencode($transactionId).
-			    "&resid=".urlencode($eContentItem->acsId). 
+			    "&resid=".urlencode($acsId). 
 			    $rights.
 			    "&gbauthdate=".urlencode($gbauthdate).
 			    "&dateval=".urlencode($dateval).
