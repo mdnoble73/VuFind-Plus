@@ -252,9 +252,9 @@ class SearchSources{
 				if (strpos($worldCatLink, '?') == false){
 					$worldCatLink .= "?";
 				}
-				$worldCatLink .= "q={$worldCatSearchType}%3A".urlencode($lookfor);
+				$worldCatLink .= "q={$worldCatSearchType}:".urlencode($lookfor);
 				if (strlen($library->worldCatQt) > 0){
-					$worldCatLink .= "qt=" . $library->worldCatQt;
+					$worldCatLink .= "&qt=" . $library->worldCatQt;
 				}
 			}
 			return $worldCatLink;

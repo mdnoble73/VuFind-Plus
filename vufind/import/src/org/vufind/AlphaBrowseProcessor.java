@@ -274,13 +274,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		try {
 			Long econtentId = resource.getLong("id");
 			String recordIdFull = "econtentRecord" + resource.getString("id");
-			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
-				//Check to see if the record has been added to alpha browse
-				if (isRecordInBrowse(recordIdFull)){
-					results.incSkipped();
-					return true;
-				}
-			}
 			//For alpha browse processing, everything is handled in the finish method
 			results.incEContentRecordsProcessed();
 			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
