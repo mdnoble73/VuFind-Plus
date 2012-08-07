@@ -91,11 +91,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		if (updateUnchangedResourcesVal != null && updateUnchangedResourcesVal.length() > 0){
 			updateUnchangedResources = Boolean.parseBoolean(updateUnchangedResourcesVal);
 		}
+		results.addNote("Update Unchanged Resources = " + updateUnchangedResources);
 		
 		String removeTitlesNotInMarcExportVal = configIni.get("Reindex", "removeTitlesNotInMarcExport");
 		if (removeTitlesNotInMarcExportVal != null && removeTitlesNotInMarcExportVal.length() > 0){
 			removeTitlesNotInMarcExport = Boolean.parseBoolean(removeTitlesNotInMarcExportVal);
 		}
+		results.addNote("Remove Titles Not In Marc Export = " + removeTitlesNotInMarcExport);
 		
 		
 		try {

@@ -79,6 +79,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			extractEContentFromUnchangedRecords = Boolean.parseBoolean(extractEContentFromUnchangedRecordsVal);
 			logger.debug("reindexUnchangedRecords = " + extractEContentFromUnchangedRecords + " " + extractEContentFromUnchangedRecords);
 		}
+		results.addNote("extractEContentFromUnchangedRecords = " + extractEContentFromUnchangedRecords);
 		
 		String checkOverDriveAvailabilityVal = configIni.get("Reindex", "checkOverDriveAvailability");
 		if (checkOverDriveAvailabilityVal == null){
@@ -86,6 +87,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}else{
 			checkOverDriveAvailability = Boolean.parseBoolean(checkOverDriveAvailabilityVal);
 		}
+		results.addNote("checkOverDriveAvailability = " + checkOverDriveAvailability);
 		
 		try {
 			//Connect to the vufind database
@@ -111,6 +113,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			// handle any errors
 			logger.error("Error initializing econtent extraction ", ex);
 			return false;
+		}finally{
+			results.saveResults();
 		}
 		return true;
 	}

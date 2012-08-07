@@ -385,7 +385,7 @@ public class ReindexProcess {
 			updateCronLogLastUpdatedStmt.executeUpdate();
 			//Sleep for a little bit to make sure we don't block connectivity for other programs 
 			Thread.sleep(5);
-			Thread.yield();
+			//Thread.yield();
 		} catch (SQLException e) {
 			logger.error("Error setting last updated time in Cron Log", e);
 		} catch (InterruptedException e) {

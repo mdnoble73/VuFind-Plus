@@ -22,7 +22,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		
 		//Initialize the updateServer
 		try {
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/biblio2", 1024, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/biblio2", 5000, 10);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -36,6 +36,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		}else{
 			clearMarcRecordsAtStartOfIndex = Boolean.parseBoolean(clearMarcRecordsAtStartOfIndexVal);
 		}
+		results.addNote("clearMarcRecordsAtStartOfIndex = " + clearMarcRecordsAtStartOfIndex);
 		if (clearMarcRecordsAtStartOfIndex){
 			logger.info("Clearing existing marc records from index");
 			results.addNote("clearing existing marc records");
@@ -51,8 +52,10 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		}else{
 			reindexUnchangedRecords = Boolean.parseBoolean(reindexUnchangedRecordsVal);
 		}
+		results.addNote("reindexUnchangedRecords = " + reindexUnchangedRecords);
 		//Make sure that we don't skip unchanged records if we are clearing at the beginning
 		if (clearMarcRecordsAtStartOfIndex) reindexUnchangedRecords = true;
+		results.saveResults();
 		return true;
 	}
 
@@ -101,7 +104,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 					SolrInputDocument doc = recordInfo.getSolrDocument();
 					if (doc != null){
 						//Post to the Solr instance
-						updateServer.add(doc, 5000);
+						updateServer.add(doc);
+						//updateServer.add(doc, 60000);
 						results.incAdded();
 						/*URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", xmlDoc, logger);
 						if (response.isSuccess()){

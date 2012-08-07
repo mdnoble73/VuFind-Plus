@@ -80,10 +80,12 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		if (clearAlphaBrowseAtStartOfIndexStr != null){
 			clearAlphaBrowseAtStartOfIndex = Boolean.parseBoolean(clearAlphaBrowseAtStartOfIndexStr);
 		}
+		results.addNote("clearAlphaBrowseAtStartOfIndex = " + clearAlphaBrowseAtStartOfIndex);
 		String updateAlphaBrowseForUnchangedRecordsStr = configIni.get("Reindex", "updateAlphaBrowseForUnchangedRecords");
 		if (updateAlphaBrowseForUnchangedRecordsStr != null){
 			updateAlphaBrowseForUnchangedRecords = Boolean.parseBoolean(updateAlphaBrowseForUnchangedRecordsStr);
 		}
+		results.addNote("updateAlphaBrowseForUnchangedRecords = " + updateAlphaBrowseForUnchangedRecords);
 		
 		try {
 			//Setup prepared statements for later usage.  
@@ -132,8 +134,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			results.incErrors();
 			logger.error("Error setting up prepared statements for Alpha Browse Processor", e);
 			return false;
+		}finally{
+			results.saveResults();
 		}
-
 		return true;
 	}
 	
