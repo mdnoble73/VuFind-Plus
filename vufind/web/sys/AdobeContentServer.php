@@ -124,7 +124,7 @@ class AdobeContentServer
 			$gbauthdate=gmdate('r', $dateval);
 
 			$rights = "";
-			$acsId = "urn:uri:" . $eContentItem->acsId;
+			$acsId = "urn:uuid:" . $eContentItem->acsId;
 			
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
