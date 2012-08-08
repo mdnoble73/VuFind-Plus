@@ -611,7 +611,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			logger.info("Waiting for all reindex threads to finish, " + numReindexingThreadsRunning + " remain open");
 			try {
 				Thread.yield();
-				Thread.sleep(500);
+				Thread.sleep(5);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
