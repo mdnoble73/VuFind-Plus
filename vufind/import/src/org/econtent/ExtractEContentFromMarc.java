@@ -1,6 +1,7 @@
 package org.econtent;
 
 import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -343,13 +344,21 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				allLinks.add(curLinkInfo);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			results.incErrors();
+			results.addNote("Could not load existing links for eContentRecord " + eContentRecordId);
+			return;
 		}
 		logger.debug("Found " + allLinks.size() + " existing links");
 		
 		//Add the links that are currently available for the record
-		ArrayList<LibrarySpecificLink> sourceUrls = recordInfo.getSourceUrls();
+		ArrayList<LibrarySpecificLink> sourceUrls;
+		try {
+			sourceUrls = recordInfo.getSourceUrls();
+		} catch (IOException e1) {
+			results.incErrors();
+			results.addNote("Could not load source URLs for " + recordInfo.getId() + " " + e1.toString());
+			return;
+		}
 		logger.info("Found " + sourceUrls.size() + " urls for " + recordInfo.getId());
 		for (LibrarySpecificLink curLink : sourceUrls){
 			//Look for an existing link
@@ -413,10 +422,17 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 	
 	private void setupOverDriveItems(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger){
-		ArrayList<LibrarySpecificLink> sourceUrls = recordInfo.getSourceUrls();
-		logger.info("Found " + sourceUrls.size() + " urls for overdrive id " + recordInfo.getId());
+		ArrayList<LibrarySpecificLink> sourceUrls;
+		try {
+			sourceUrls = recordInfo.getSourceUrls();
+		} catch (IOException e) {
+			results.incErrors();
+			results.addNote("Could not load source URLs for overdrive record " + recordInfo.getId() + " " + e.toString());
+			return;
+		}
+		logger.debug("Found " + sourceUrls.size() + " urls for overdrive id " + recordInfo.getId());
 		//Check the items within the record to see if there are any location specific links
-		for(LibrarySpecificLink link : recordInfo.getSourceUrls()){
+		for(LibrarySpecificLink link : sourceUrls){
 			addOverdriveItem(link.getUrl(), link.getLibrarySystemId(), eContentRecordId, detectionSettings, logger);
 		}
 	}
@@ -478,8 +494,17 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 
 	private void attachGutenbergItems(MarcRecordDetails recordInfo, long eContentRecordId, Logger logger) {
+	//Add the links that are currently available for the record
+		ArrayList<LibrarySpecificLink> sourceUrls;
+		try {
+			sourceUrls = recordInfo.getSourceUrls();
+		} catch (IOException e1) {
+			results.incErrors();
+			results.addNote("Could not load source URLs for gutenberg record " + recordInfo.getId() + " " + e1.toString());
+			return;
+		}
 		//If no, load the source url
-		for (LibrarySpecificLink curLink : recordInfo.getSourceUrls()){
+		for (LibrarySpecificLink curLink : sourceUrls){
 			String sourceUrl = curLink.getUrl();
 			logger.info("Loading gutenberg items " + sourceUrl);
 			try {

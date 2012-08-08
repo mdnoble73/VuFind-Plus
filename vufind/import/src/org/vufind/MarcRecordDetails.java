@@ -1,6 +1,7 @@
 package org.vufind;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -171,17 +172,17 @@ public class MarcRecordDetails {
 		}
 	}
 
-	public ArrayList<LibrarySpecificLink> getSourceUrls() {
+	public ArrayList<LibrarySpecificLink> getSourceUrls() throws IOException{
 		loadUrls();
 		return sourceUrls;
 	}
 
-	public String getPurchaseUrl() {
+	public String getPurchaseUrl() throws IOException{
 		loadUrls();
 		return purchaseUrl;
 	}
 
-	public void loadUrls() {
+	public void loadUrls() throws IOException{
 		if (urlsLoaded) return;
 		//logger.info("Loading urls from 856 field");
 		@SuppressWarnings("unchecked")
@@ -282,7 +283,7 @@ public class MarcRecordDetails {
 		urlsLoaded = true;
 	}
 
-	private void getUrlsForItemsFromMillennium() {
+	private void getUrlsForItemsFromMillennium() throws IOException {
 		String catalogUrl = marcProcessor.getCatalogUrl();
 		
 		String scope = "93";
@@ -312,7 +313,8 @@ public class MarcRecordDetails {
 				logger.error("Could not extract items from millennium, regex was invalid " + ex.toString());
 			}
 		}else{
-			logger.error("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
+			throw new IOException("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
+			//logger.error("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
 		}
 	}
 
