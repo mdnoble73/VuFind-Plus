@@ -324,7 +324,12 @@ function GetHoldingsInfoMSC(id) {
 			var callNumber = summaryDetails.find("callnumber").text();
 			$("#callNumberValue").html(callNumber);
 			var location = summaryDetails.find("availableAt").text();
-			$("#locationValue").html(location);
+			if (location.length > 0){
+				$("#locationValue").html(location);
+			}else{
+				var location = summaryDetails.find("location").text();
+				$("#locationValue").html(location);
+			}
 			var status = summaryDetails.find("status").text();
 			if (status == "Available At"){
 				status = "Available";

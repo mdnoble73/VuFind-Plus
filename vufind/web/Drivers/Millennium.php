@@ -740,6 +740,7 @@ class MillenniumDriver implements DriverInterface
 		//or null if the item statuses are inconsistent
 		$allItemStatus = '';
 		$firstCallNumber = null;
+		$firstLocation = null;
 		foreach ($holdings as $holdingKey => $holding){
 			if (is_null($allItemStatus)){
 				//Do nothing, the status is not distinct
@@ -808,6 +809,7 @@ class MillenniumDriver implements DriverInterface
 				}else if (is_null($firstCallNumber)){
 					//echo("Skipping call number " . $holding['callnumber'] . " because it is holdable");
 					$firstCallNumber = $holding['callnumber'];
+					$firstLocation = $holding['location'];
 				}
 			}
 			if ($showItsHere && substr($holdingKey, 0, 1) == '1' && $holding['availability'] == 1){
@@ -1008,9 +1010,13 @@ class MillenniumDriver implements DriverInterface
 			$summaryInformation['unavailableStatus'] = '';
 		}
 
-		//REset cal nmber as needed 
+		//Reset call nmber as needed 
 		if (!is_null($firstCallNumber) && !isset($summaryInformation['callnumber'])){
 			$summaryInformation['callnumber'] = $firstCallNumber;
+		}
+		//Reset location as needed 
+		if (!is_null($firstLocation) && !isset($summaryInformation['location'])){
+			$summaryInformation['location'] = $firstLocation;
 		}
 		return $summaryInformation;
 	}
