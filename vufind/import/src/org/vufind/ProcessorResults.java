@@ -185,7 +185,7 @@ public class ProcessorResults {
 				updateResultsStmt.setLong(10, resultsId);
 				updateResultsStmt.executeUpdate();
 			}
-			logger.info("Saved results for process " + getProcessorName());
+			//logger.info("Saved results for process " + getProcessorName());
 		} catch (Exception e) {
 			logger.error("Unable to save results of process to database", e);
 		}

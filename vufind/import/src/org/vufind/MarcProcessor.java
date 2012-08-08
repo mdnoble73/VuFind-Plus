@@ -103,11 +103,12 @@ public class MarcProcessor {
 	private boolean												scrapeItemsForLinks;
 	private String												catalogUrl;
 
-	public static final int								RECORD_CHANGED			= 1;
-	public static final int								RECORD_UNCHANGED		= 2;
-	public static final int								RECORD_NEW					= 3;
-	public static final int								RECORD_DELETED			= 4;
-
+	public static final int								RECORD_CHANGED_PRIMARY		= 1;
+	public static final int								RECORD_UNCHANGED					= 2;
+	public static final int								RECORD_NEW								= 3;
+	public static final int								RECORD_DELETED						= 4;
+	public static final int								RECORD_CHANGED_SECONDARY	= 1;
+	
 	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 
@@ -672,16 +673,16 @@ public class MarcProcessor {
 							marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
 							if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
 								logger.debug("Record is changed - checksum");
-								recordStatus = RECORD_CHANGED;
-							}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
-								logger.debug("Record is changed - backup checksum");
-								recordStatus = RECORD_CHANGED;
+								recordStatus = RECORD_CHANGED_PRIMARY;
 							}else if (marcInfo.isEContent() != marcIndexedInfo.isEContent()){
 								logger.debug("Record is changed - econtent");
-								recordStatus = RECORD_CHANGED;
+								recordStatus = RECORD_CHANGED_PRIMARY;
+							}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
+								logger.debug("Record is changed - backup checksum");
+								recordStatus = RECORD_CHANGED_SECONDARY;
 							}else if (marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()) {
 								logger.debug("Record is changed - backup econtent");
-								recordStatus = RECORD_CHANGED;
+								recordStatus = RECORD_CHANGED_SECONDARY;
 							} else {
 								// logger.info("Record is unchanged");
 								recordStatus = RECORD_UNCHANGED;
@@ -694,25 +695,11 @@ public class MarcProcessor {
 						for (IMarcRecordProcessor processor : recordProcessors) {
 							// System.out.println("Running processor " +
 							// processor.getClass().getName());
-							logger.debug(recordNumber + " - " + processor.getClass().getName() + " - " + marcInfo.getId());
+							//logger.debug(recordNumber + " - " + processor.getClass().getName() + " - " + marcInfo.getId());
 							processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 						}
 
-						// Update the checksum in the database
-						if (recordStatus == RECORD_CHANGED) {
-							updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
-							updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
-							updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-							updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
-							updateMarcInfoStmt.setString(5, marcInfo.getId());
-							updateMarcInfoStmt.executeUpdate();
-						} else if (recordStatus == RECORD_NEW) {
-							insertMarcInfoStmt.setString(1, marcInfo.getId());
-							insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
-							insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-
-							insertMarcInfoStmt.executeUpdate();
-						}
+						updateMarcRecordChecksum(marcInfo, recordStatus, marcIndexedInfo);
 					}
 					marcInfo = null;
 					recordsProcessed++;
@@ -736,6 +723,23 @@ public class MarcProcessor {
 			ReindexProcess.addNoteToCronLog("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 		} catch (Exception e) {
 			logger.error("Error processing file " + marcFile.toString(), e);
+		}
+	}
+
+	private void updateMarcRecordChecksum(MarcRecordDetails marcInfo, int recordStatus, MarcIndexInfo marcIndexedInfo) throws SQLException {
+		// Update the checksum in the database
+		if (recordStatus == RECORD_CHANGED_PRIMARY || recordStatus == RECORD_CHANGED_SECONDARY) {
+			updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
+			updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
+			updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+			updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
+			updateMarcInfoStmt.setString(5, marcInfo.getId());
+			updateMarcInfoStmt.executeUpdate();
+		} else if (recordStatus == RECORD_NEW) {
+			insertMarcInfoStmt.setString(1, marcInfo.getId());
+			insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
+			insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+			insertMarcInfoStmt.executeUpdate();
 		}
 	}
 

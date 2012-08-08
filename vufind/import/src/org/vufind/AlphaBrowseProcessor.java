@@ -162,7 +162,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				results.incSkipped();
 				return true;
 			}
-			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
+			if (!updateAlphaBrowseForUnchangedRecords && (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
 				//Check to see if the record has been added to alpha browse
 				if (isRecordInBrowse(recordInfo.getId())){
 					results.incSkipped();

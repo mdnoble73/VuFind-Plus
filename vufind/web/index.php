@@ -197,8 +197,12 @@ $timer->logTime('Create interface');
 if (isset($configArray['Site']['theme_css'])){
 	$interface->assign('theme_css', $configArray['Site']['theme_css']);
 }
-$interface->assign('smallLogo', $configArray['Site']['smallLogo']);
-$interface->assign('largeLogo', $configArray['Site']['largeLogo']);
+if (isset($configArray['Site']['smallLogo'])){
+	$interface->assign('smallLogo', $configArray['Site']['smallLogo']);
+}
+if (isset($configArray['Site']['largeLogo'])){
+	$interface->assign('largeLogo', $configArray['Site']['largeLogo']);
+}
 //Set focus to the search box by default.
 $interface->assign('focusElementId', 'lookfor');
 
@@ -844,10 +848,6 @@ function updateConfigForScoping($configArray) {
 	//Get the subdomain for the request
 	global $servername;
 
-	//Default dynamic logos
-	$configArray['Site']['smallLogo'] = "/interface/themes/{$configArray['Site']['theme']}/images/logo_small.png";
-	$configArray['Site']['largeLogo'] = "/interface/themes/{$configArray['Site']['theme']}/images/logo_large.png";
-
 	//split the servername based on
 	$subdomain = null;
 	if(strpos($_SERVER['SERVER_NAME'], '.')){
@@ -919,10 +919,7 @@ function updateConfigForScoping($configArray) {
 
 		$location = $locationSingleton->getActiveLocation();
 		
-		//Add an extra css file for the scope if it exists.
-		if (file_exists('./interface/themes/' . $library->themeName . '/css/extra_styles.css')) {
-			$configArray['Site']['theme_css'] = $configArray['Site']['url'] . '/interface/themes/' . $library->themeName . '/css/extra_styles.css';
-		}
+		//Add an extra css file for the location if it exists.
 		if ($location != null && file_exists('./interface/themes/' . $library->themeName . '/css/'. $location->code .'_extra_styles.css')) {
 			$configArray['Site']['theme_css'] = $configArray['Site']['url'] . '/interface/themes/' . $library->themeName . '/css/'. $location->code .'_extra_styles.css';
 		}

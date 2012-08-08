@@ -307,7 +307,9 @@ public class ReindexProcess {
 						if ((indexTime - dateAdded) < 24 * 60 * 60){
 							recordStatus = MarcProcessor.RECORD_NEW;
 						}else if ((indexTime - dateUpdated) < 24 * 60 * 60){
-							recordStatus = MarcProcessor.RECORD_CHANGED;
+							recordStatus = MarcProcessor.RECORD_CHANGED_PRIMARY;
+						}else if ((indexTime - dateUpdated) < 48 * 60 * 60){
+							recordStatus = MarcProcessor.RECORD_CHANGED_SECONDARY;
 						}
 					}
 					econtentProcessor.processEContentRecord(allEContent, recordStatus);

@@ -1,9 +1,7 @@
 package org.econtent;
 
-import java.io.InputStream;
-import java.net.URL;
-
 import org.apache.log4j.Logger;
+import org.vufind.URLPostResponse;
 import org.vufind.Util;
 
 public class EContentReindexThread extends Thread{
@@ -17,13 +15,14 @@ public class EContentReindexThread extends Thread{
 	}
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
 		try {
-			URL url = new URL(econtentProcessor.getVufindUrl() + "/EcontentRecord/" + eContentRecordId + "/Reindex");
-			Object reindexResultRaw = url.getContent();
-			if (reindexResultRaw instanceof InputStream) {
-				String updateIndexResponse = Util.convertStreamToString((InputStream) reindexResultRaw);
-				logger.debug("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
+			URLPostResponse response = Util.getURL(econtentProcessor.getVufindUrl() + "/EcontentRecord/" + eContentRecordId + "/Reindex", logger);
+			if (response.isSuccess()){
+				logger.debug("Record indexed properly");
+			}else{
+				econtentProcessor.results.incErrors();
+				econtentProcessor.results.addNote("Error reindexing eContent Record " + eContentRecordId + " " +  response.getMessage());
+				econtentProcessor.results.saveResults();
 			}
 			logger.debug("Finished reindex " + econtentProcessor.getNumReindexingThreadsRunning());
 			econtentProcessor.decrementReindexingThreadsRunning();

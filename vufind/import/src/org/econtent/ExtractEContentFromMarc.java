@@ -43,7 +43,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private String vufindUrl;
 	
 	private PreparedStatement doesIlsIdExist;
-	private PreparedStatement numItemsForIlsIdStmt;
+	
+	private HashSet<String> itemlessRecords = new HashSet<String>();
 	private PreparedStatement createEContentRecord;
 	private PreparedStatement updateEContentRecord;
 	private PreparedStatement deleteEContentItem;
@@ -63,6 +64,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private int numReindexingThreadsRunning;
 	private long lastThreadStartTime; 
+	
+	private int numItemAttachmentThreadsRunning;
+	private long lastItemAttachmentThreadStartTime; 
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -93,7 +97,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		try {
 			//Connect to the vufind database
 			doesIlsIdExist = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = ?");
-			numItemsForIlsIdStmt = econtentConn.prepareStatement("SELECT count(econtent_item.id) as numItems from econtent_item Inner join econtent_record on econtent_record.id = recordId where ilsId = ?");
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ? WHERE id = ?");
 			deleteEContentItem = econtentConn.prepareStatement("DELETE FROM econtent_item where id = ?");
@@ -110,6 +113,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			addOverDriveId = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, overDriveId, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			updateOverDriveId = econtentConn.prepareStatement("UPDATE econtent_item SET overDriveId = ?, link = ?, date_updated =? WHERE id = ?");
 			
+			//Load records that do not have items
+			PreparedStatement itemlessRecordsStmt = econtentConn.prepareStatement("SELECT ilsId , count(econtent_item.id) as numItems from econtent_item RIGHT join econtent_record on econtent_record.id = recordId GROUP by ilsId HAVING numItems = 0");
+			ResultSet itemlessRecordsRS = itemlessRecordsStmt.executeQuery();
+			while (itemlessRecordsRS.next()){
+				itemlessRecords.add(itemlessRecordsRS.getString(1));
+			}
 		} catch (Exception ex) {
 			// handle any errors
 			logger.error("Error initializing econtent extraction ", ex);
@@ -126,7 +135,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			//Check the 856 tag to see if this is a source that we can handle. 
 			results.incRecordsProcessed();
 			if (!recordInfo.isEContent()){
-				logger.debug("Skipping record, it is not eContent");
+				//logger.debug("Skipping record, it is not eContent");
 				results.incSkipped();
 				return false;
 			}
@@ -150,18 +159,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
 					//Overdrive record, force processing to make sure we get updated availability
 					logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
-				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED){
+				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
 					if (extractEContentFromUnchangedRecords){
 						logger.debug("Record is unchanged, but reindex unchanged records is on");
 					}else{
 						//Check to see if we have items for the record
-						numItemsForIlsIdStmt.setString(1, recordInfo.getId());
-						ResultSet numItemsForIlsIdRSet = numItemsForIlsIdStmt.executeQuery();
-						long numItems = 0;
-						if (numItemsForIlsIdRSet.next()){
-							numItems = numItemsForIlsIdRSet.getLong(1);
-						}
-						if (numItems == 0){
+						if (itemlessRecords.contains(recordInfo.getId())){
+							itemlessRecords.remove(recordInfo.getId());
 							logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
 						}else{
 							logger.debug("Skipping because the record is not changed");
@@ -170,7 +174,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						}
 					}
 				}else{
-					logger.debug("Record has changed or is new");
+					if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY){
+						logger.debug("Record has changed");
+					}else{
+						logger.debug("Record is new");
+					}
 				}
 				
 				
@@ -200,122 +208,22 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				boolean recordAdded = false;
 				if (importRecordIntoDatabase){
 					//Add to database
-					//logger.info("Adding ils id " + ilsId + " to the database.");
-					createEContentRecord.setString(1, recordInfo.getId());
-					createEContentRecord.setString(2, "");
-					createEContentRecord.setString(3, source);
-					createEContentRecord.setString(4, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
-					createEContentRecord.setString(5, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
-					createEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
-					createEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
-					createEContentRecord.setString(8, recordInfo.getDescription());
-					createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
-					createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
-					createEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
-					createEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
-					createEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
-					createEContentRecord.setString(14, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
-					createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
-					createEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("language"));
-					createEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
-					createEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getMappedField("topic")));
-					createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getMappedField("genre")));
-					createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getMappedField("geographic")));
-					createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getMappedField("era")));
-					createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getMappedField("target_audience")));
-					String sourceUrl = "";
-					if (recordInfo.getSourceUrls().size() == 1){
-						sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
-					}
-					createEContentRecord.setString(23, sourceUrl);
-					createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
-					createEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
-					createEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
-					createEContentRecord.setString(27, accessType);
-					createEContentRecord.setLong(28, new Date().getTime() / 1000);
-					createEContentRecord.setString(29, recordInfo.toString());
-					int rowsInserted = createEContentRecord.executeUpdate();
-					if (rowsInserted != 1){
-						logger.error("Could not insert row into the database");
-						results.incErrors();
-						results.addNote("Error inserting econtent record for id " + ilsId + " number of rows updated was not 1");
-					}else{
-						ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
-						while (generatedKeys.next()){
-							eContentRecordId = generatedKeys.getLong(1);
-							recordAdded = true;
-							results.incAdded();
-						}
-					}
+					eContentRecordId = addEContentRecordToDb(recordInfo, logger, source, accessType, ilsId, eContentRecordId);
+					recordAdded = (eContentRecordId != -1);
 				}else{
 					//Update the record
-					//logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
-					updateEContentRecord.setString(1, recordInfo.getId());
-					updateEContentRecord.setString(2, "");
-					updateEContentRecord.setString(3, source);
-					updateEContentRecord.setString(4, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
-					updateEContentRecord.setString(5, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
-					updateEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
-					updateEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
-					updateEContentRecord.setString(8, recordInfo.getDescription());
-					updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
-					updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
-					updateEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
-					updateEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
-					updateEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
-					updateEContentRecord.setString(14, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
-					updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
-					updateEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("upc"));
-					updateEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
-					updateEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getMappedField("topic")));
-					updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getMappedField("genre")));
-					updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getMappedField("geographic")));
-					updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getMappedField("era")));
-					updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getMappedField("target_audience")));
-					String sourceUrl = "";
-					if (recordInfo.getSourceUrls().size() == 1){
-						sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
-					}
-					updateEContentRecord.setString(23, sourceUrl);
-					updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
-					updateEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
-					updateEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
-					updateEContentRecord.setString(27, accessType);
-					updateEContentRecord.setLong(28, new Date().getTime() / 1000);
-					updateEContentRecord.setString(29, recordInfo.toString());
-					updateEContentRecord.setLong(30, eContentRecordId);
-					int rowsInserted = updateEContentRecord.executeUpdate();
-					if (rowsInserted != 1){
-						logger.error("Could not insert row into the database");
-						results.incErrors();
-						results.addNote("Error updating econtent record for id " + ilsId + " number of rows updated was not 1");
-					}else{
-						recordAdded = true;
-						results.incUpdated();
-					}
+					recordAdded = updateEContentRecordInDb(recordInfo, logger, source, accessType, ilsId, eContentRecordId, recordAdded);
 				}
 				
 				logger.info("Finished initial insertion/update recordAdded = " + recordAdded);
 				
 				if (recordAdded){
-					if (source.equalsIgnoreCase("gutenberg")){
-						attachGutenbergItems(recordInfo, eContentRecordId, logger);
-					}else if (detectionSettings.getSource().equalsIgnoreCase("overdrive")){
-						setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
-					}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
-						//Automatically setup 856 links as external links
-						setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
-					}
-					logger.info("Record processed successfully.");
-					reindexRecord(eContentRecordId, logger);
+					addItemsToEContentRecord(recordInfo, logger, source, detectionSettings, eContentRecordId);
 				}else{
 					logger.info("Record NOT processed successfully.");
 				}
 			}
 			
-			/*updateRecordsProcessed.setLong(1, this.recordsProcessed + 1);
-			updateRecordsProcessed.setLong(2, logEntryId);
-			updateRecordsProcessed.executeUpdate();*/
 			logger.debug("Finished processing record");
 			return true;
 		} catch (Exception e) {
@@ -330,7 +238,126 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 	}
 
-	private void setupExternalLinks(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
+	private void addItemsToEContentRecord(MarcRecordDetails recordInfo, Logger logger, String source, DetectionSettings detectionSettings, long eContentRecordId) {
+		Thread addItemsThread = new EContentAddItemsThread(this, recordInfo, logger, source, detectionSettings, eContentRecordId);
+		while (numItemAttachmentThreadsRunning > 5){
+			//logger.debug("There are more than 5 item attachment threads running, waiting for some to finish, " + numReindexingThreadsRunning + " remain open");
+			try {
+				Thread.yield();
+				Thread.sleep(25);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error("The thread was interrupted");
+				break;
+			}
+		}
+		numItemAttachmentThreadsRunning++;
+		lastItemAttachmentThreadStartTime = new Date().getTime();
+		addItemsThread.start();
+	}
+
+	private boolean updateEContentRecordInDb(MarcRecordDetails recordInfo, Logger logger, String source, String accessType, String ilsId, long eContentRecordId,
+			boolean recordAdded) throws SQLException, IOException {
+		//logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
+		updateEContentRecord.setString(1, recordInfo.getId());
+		updateEContentRecord.setString(2, "");
+		updateEContentRecord.setString(3, source);
+		updateEContentRecord.setString(4, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
+		updateEContentRecord.setString(5, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
+		updateEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
+		updateEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
+		updateEContentRecord.setString(8, recordInfo.getDescription());
+		updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
+		updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
+		updateEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
+		updateEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
+		updateEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
+		updateEContentRecord.setString(14, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
+		updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
+		updateEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("upc"));
+		updateEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
+		updateEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getMappedField("topic")));
+		updateEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getMappedField("genre")));
+		updateEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getMappedField("geographic")));
+		updateEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getMappedField("era")));
+		updateEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getMappedField("target_audience")));
+		String sourceUrl = "";
+		if (recordInfo.getSourceUrls().size() == 1){
+			sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
+		}
+		updateEContentRecord.setString(23, sourceUrl);
+		updateEContentRecord.setString(24, recordInfo.getPurchaseUrl());
+		updateEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
+		updateEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
+		updateEContentRecord.setString(27, accessType);
+		updateEContentRecord.setLong(28, new Date().getTime() / 1000);
+		updateEContentRecord.setString(29, recordInfo.toString());
+		updateEContentRecord.setLong(30, eContentRecordId);
+		int rowsInserted = updateEContentRecord.executeUpdate();
+		if (rowsInserted != 1){
+			logger.error("Could not insert row into the database");
+			results.incErrors();
+			results.addNote("Error updating econtent record for id " + ilsId + " number of rows updated was not 1");
+		}else{
+			recordAdded = true;
+			results.incUpdated();
+		}
+		return recordAdded;
+	}
+
+	private long addEContentRecordToDb(MarcRecordDetails recordInfo, Logger logger, String source, String accessType, String ilsId, long eContentRecordId)
+			throws SQLException, IOException {
+		//logger.info("Adding ils id " + ilsId + " to the database.");
+		createEContentRecord.setString(1, recordInfo.getId());
+		createEContentRecord.setString(2, "");
+		createEContentRecord.setString(3, source);
+		createEContentRecord.setString(4, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
+		createEContentRecord.setString(5, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
+		createEContentRecord.setString(6, recordInfo.getFirstFieldValueInSet("author"));
+		createEContentRecord.setString(7, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
+		createEContentRecord.setString(8, recordInfo.getDescription());
+		createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
+		createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
+		createEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
+		createEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
+		createEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
+		createEContentRecord.setString(14, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
+		createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
+		createEContentRecord.setString(16, recordInfo.getFirstFieldValueInSet("language"));
+		createEContentRecord.setString(17, recordInfo.getFirstFieldValueInSet("lccn"));
+		createEContentRecord.setString(18, Util.getCRSeparatedString(recordInfo.getMappedField("topic")));
+		createEContentRecord.setString(19, Util.getCRSeparatedString(recordInfo.getMappedField("genre")));
+		createEContentRecord.setString(20, Util.getCRSeparatedString(recordInfo.getMappedField("geographic")));
+		createEContentRecord.setString(21, Util.getCRSeparatedString(recordInfo.getMappedField("era")));
+		createEContentRecord.setString(22, Util.getCRSeparatedString(recordInfo.getMappedField("target_audience")));
+		String sourceUrl = "";
+		if (recordInfo.getSourceUrls().size() == 1){
+			sourceUrl = recordInfo.getSourceUrls().get(0).getUrl();
+		}
+		createEContentRecord.setString(23, sourceUrl);
+		createEContentRecord.setString(24, recordInfo.getPurchaseUrl());
+		createEContentRecord.setString(25, recordInfo.getFirstFieldValueInSet("publishDate"));
+		createEContentRecord.setString(26, recordInfo.getFirstFieldValueInSet("ctrlnum"));
+		createEContentRecord.setString(27, accessType);
+		createEContentRecord.setLong(28, new Date().getTime() / 1000);
+		createEContentRecord.setString(29, recordInfo.toString());
+		int rowsInserted = createEContentRecord.executeUpdate();
+		if (rowsInserted != 1){
+			logger.error("Could not insert row into the database");
+			results.incErrors();
+			results.addNote("Error inserting econtent record for id " + ilsId + " number of rows updated was not 1");
+		}else{
+			ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
+			if (generatedKeys.next()){
+				eContentRecordId = generatedKeys.getLong(1);
+				results.incAdded();
+			}
+		}
+		return eContentRecordId;
+	}
+
+	protected synchronized void setupExternalLinks(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger) {
 		//Get existing links from the record
 		ArrayList<LinkInfo> allLinks = new ArrayList<LinkInfo>();
 		try {
@@ -360,6 +387,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			return;
 		}
 		logger.info("Found " + sourceUrls.size() + " urls for " + recordInfo.getId());
+		if (sourceUrls.size() == 0){
+			results.addNote("Warning, could not find any urls for " + recordInfo.getId());
+		}
 		for (LibrarySpecificLink curLink : sourceUrls){
 			//Look for an existing link
 			LinkInfo linkForSourceUrl = null;
@@ -421,7 +451,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 	}
 	
-	private void setupOverDriveItems(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger){
+	protected synchronized void setupOverDriveItems(MarcRecordDetails recordInfo, long eContentRecordId, DetectionSettings detectionSettings, Logger logger){
 		ArrayList<LibrarySpecificLink> sourceUrls;
 		try {
 			sourceUrls = recordInfo.getSourceUrls();
@@ -493,8 +523,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 	}
 
-	private void attachGutenbergItems(MarcRecordDetails recordInfo, long eContentRecordId, Logger logger) {
-	//Add the links that are currently available for the record
+	protected synchronized void attachGutenbergItems(MarcRecordDetails recordInfo, long eContentRecordId, Logger logger) {
+		//Add the links that are currently available for the record
 		ArrayList<LibrarySpecificLink> sourceUrls;
 		try {
 			sourceUrls = recordInfo.getSourceUrls();
@@ -548,7 +578,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 	}
 
-	private void reindexRecord(final long eContentRecordId, final Logger logger) {
+	protected void reindexRecord(final long eContentRecordId, final Logger logger) {
 		//reindex the new record
 		Thread reindexThread = new EContentReindexThread(this, eContentRecordId, logger);
 		while (numReindexingThreadsRunning > 50){
@@ -576,7 +606,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			return false;
 		}
 		
-		vufindUrl = configIni.get("Site", "internalUrl");
+		vufindUrl = configIni.get("Site", "url");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;
@@ -632,6 +662,20 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	@Override
 	public void finish() {
 		//Wait a maximum of 5 minutes for all threads to finish indexing.
+		while (numItemAttachmentThreadsRunning > 0 && ((new Date().getTime() - lastItemAttachmentThreadStartTime) > 5 * 60 * 1000)){
+			logger.info("Waiting for all reindex threads to finish, " + numItemAttachmentThreadsRunning + " remain open");
+			try {
+				Thread.yield();
+				Thread.sleep(5);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				logger.error("The thread was interrupted");
+				break;
+			}
+		}
+		
+		//Wait a maximum of 5 minutes for all threads to finish indexing.
 		while (numReindexingThreadsRunning > 0 && ((new Date().getTime() - lastThreadStartTime) > 5 * 60 * 1000)){
 			logger.info("Waiting for all reindex threads to finish, " + numReindexingThreadsRunning + " remain open");
 			try {
@@ -660,7 +704,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	public int getNumReindexingThreadsRunning() {
 		return numReindexingThreadsRunning;
 	}
-	public void decrementReindexingThreadsRunning() {
+	public synchronized void decrementReindexingThreadsRunning() {
 		numReindexingThreadsRunning--;
+	}
+	public synchronized void decrementItemAttachmentThreadsRunning() {
+		numItemAttachmentThreadsRunning--;
 	}
 }
