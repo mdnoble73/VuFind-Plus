@@ -57,7 +57,7 @@ public class MarcProcessor {
 
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
-
+	
 	private boolean useThreads = false;
 	private String idsToProcess = null;
 	
@@ -189,7 +189,7 @@ public class MarcProcessor {
 		logger.info("Loading existing checksums for records");
 		ReindexProcess.addNoteToCronLog("Loading existing checksums for records");
 		try {
-			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import");
+			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingRecordChecksumsRS = existingRecordChecksumsStmt.executeQuery();
 			while (existingRecordChecksumsRS.next()) {
 				MarcIndexInfo marcInfo = new MarcIndexInfo();
@@ -199,6 +199,7 @@ public class MarcProcessor {
 				marcInfo.setBackupEContent(existingRecordChecksumsRS.getBoolean("backup_eContent"));
 				marcIndexInfo.put(existingRecordChecksumsRS.getString("id"), marcInfo);
 			}
+			existingRecordChecksumsRS.close();
 		} catch (SQLException e) {
 			logger.error("Unable to load checksums for existing records", e);
 			ReindexProcess.addNoteToCronLog("Unable to load checksums for existing records " + e.toString());
@@ -210,7 +211,7 @@ public class MarcProcessor {
 		logger.info("Loading ils ids for econtent records for suppression");
 		ReindexProcess.addNoteToCronLog("Loading ils ids for econtent records for suppression");
 		try {
-			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record");
+			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingEContentRecordRS = existingEContentRecordStmt.executeQuery();
 			while (existingEContentRecordRS.next()) {
 				existingEContentIds.add(existingEContentRecordRS.getString(1));
@@ -224,7 +225,7 @@ public class MarcProcessor {
 		logger.info("Loading record detection settings");
 		ReindexProcess.addNoteToCronLog("Loading record detection settings");
 		try {
-			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings");
+			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
 			while (eContentDetectionSettingsRS.next()) {
 				DetectionSettings settings = new DetectionSettings();
@@ -270,7 +271,7 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules from library");
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
 				librarySystemFacets.put(librarySystemFacetRS.getString("facetLabel"), librarySystemFacetRS.getLong("libraryId"));
@@ -286,7 +287,7 @@ public class MarcProcessor {
 		}
 		
 		try {
-			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, facetLabel from location");
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, facetLabel from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
 			while (locationFacetRS.next()) {
 				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));

@@ -19,7 +19,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private Connection vufindConn;
 	private ProcessorResults results;
 	
-	private PreparedStatement	isRecordInBrowseIndexStmt;
+	private PreparedStatement	getExistingBrowseRecordsStmt;
 	private PreparedStatement	clearAuthorBrowseRecordInfoStmt;
 	private PreparedStatement	clearCallNumberBrowseRecordInfoStmt;
 	private PreparedStatement	clearSubjectBrowseRecordInfoStmt;
@@ -64,6 +64,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	
 	private boolean clearAlphaBrowseAtStartOfIndex = false;
 	private boolean updateAlphaBrowseForUnchangedRecords = false;
+	
+	private HashSet<String> existingBrowseRecords = new HashSet<String>();
 
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -91,7 +93,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			//Setup prepared statements for later usage.  
 			getLibraryIdsForEContent = econtentConn.prepareStatement("SELECT distinct libraryId from econtent_item where recordId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			
-			isRecordInBrowseIndexStmt = vufindConn.prepareStatement("SELECT browseValueId from title_browse_scoped_results where record = ?");
+			getExistingBrowseRecordsStmt = vufindConn.prepareStatement("SELECT distinct record from title_browse_scoped_results", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			
 			clearAuthorBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results where record = ?");
 			clearCallNumberBrowseRecordInfoStmt = vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results where record = ?");
@@ -128,6 +130,17 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				clearBrowseIndex("author_browse");
 				clearBrowseIndex("subject_browse");
 				clearBrowseIndex("callnumber_browse");
+			}else{
+				//Load the existing browse values 
+				results.addNote("Loading existing browse records");
+				results.saveResults();
+				ResultSet getExistingBrowseRecordsRS = getExistingBrowseRecordsStmt.executeQuery();
+				while(getExistingBrowseRecordsRS.next()){
+					existingBrowseRecords.add(getExistingBrowseRecordsRS.getString(1));
+				}
+				getExistingBrowseRecordsRS.close();
+				results.addNote("Finished loading existing browse records");
+				results.saveResults();
 			}
 		} catch (SQLException e) {
 			results.addNote("Error setting up prepared statements for Alpha Browse Processor");
@@ -192,7 +205,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			//Setup call number browse
 			addCallNumbersToBrowse(localCallNumbers, recordIdFull);
 			
-			results.incAdded();
+			if (recordStatus == MarcProcessor.RECORD_NEW){
+				results.incAdded();
+			}else{
+				results.incUpdated();
+			}
 			return true;
 		} catch (SQLException e) {
 			results.addNote("Error processing marc record " + e.toString());
@@ -231,18 +248,14 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	}
 
 	private boolean isRecordInBrowse(String recordId) {
-		try {
-			isRecordInBrowseIndexStmt.setString(1, recordId);
-			ResultSet isRecordInBrowseIndexRS = isRecordInBrowseIndexStmt.executeQuery();
-			if (isRecordInBrowseIndexRS.next()){
-				return true;
-			}
-		} catch (SQLException e) {
-			results.addNote("Error checking if record " + recordId + " is in browse index " + e.toString());
-			results.incErrors();
-			logger.error("Error checking if record is in browse index ", e);
+		if (existingBrowseRecords.contains(recordId)){
+			existingBrowseRecords.remove(recordId);
+			logger.debug("record " + recordId + " does exist in browse index");
+			return true;
+		}else{
+			logger.debug("record " + recordId + " does not exist in browse index");
+			return false;
 		}
-		return false;
 	}
 
 	private void addCallNumbersToBrowse(Set<LocalCallNumber> localCallNumbers, String recordIdFull) throws SQLException {
