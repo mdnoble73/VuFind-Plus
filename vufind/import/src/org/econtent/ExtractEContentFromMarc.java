@@ -527,10 +527,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		//reindex the new record
 		Thread reindexThread = new EContentReindexThread(this, eContentRecordId, logger);
 		while (numReindexingThreadsRunning > 50){
-			logger.info("There are more than 50 reindex threads running, waiting for some to finish, " + numReindexingThreadsRunning + " remain open");
+			//logger.debug("There are more than 50 reindex threads running, waiting for some to finish, " + numReindexingThreadsRunning + " remain open");
 			try {
 				Thread.yield();
-				Thread.sleep(250);
+				Thread.sleep(25);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -551,7 +551,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			return false;
 		}
 		
-		vufindUrl = configIni.get("Site", "url");
+		vufindUrl = configIni.get("Site", "internalUrl");
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;

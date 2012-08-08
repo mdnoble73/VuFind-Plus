@@ -250,10 +250,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private boolean isRecordInBrowse(String recordId) {
 		if (existingBrowseRecords.contains(recordId)){
 			existingBrowseRecords.remove(recordId);
-			logger.debug("record " + recordId + " does exist in browse index");
+			//logger.debug("record " + recordId + " does exist in browse index");
 			return true;
 		}else{
-			logger.debug("record " + recordId + " does not exist in browse index");
+			//logger.debug("record " + recordId + " does not exist in browse index");
 			return false;
 		}
 	}

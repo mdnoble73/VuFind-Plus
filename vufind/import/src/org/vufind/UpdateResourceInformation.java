@@ -82,11 +82,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			return false;
 		}
 		
-		String vufindUrl = configIni.get("Site", "url");
-		if (vufindUrl == null || vufindUrl.length() == 0) {
-			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
-		}
-		
 		String updateUnchangedResourcesVal = configIni.get("Reindex", "updateUnchangedResources");
 		if (updateUnchangedResourcesVal != null && updateUnchangedResourcesVal.length() > 0){
 			updateUnchangedResources = Boolean.parseBoolean(updateUnchangedResourcesVal);

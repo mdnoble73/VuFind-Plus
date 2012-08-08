@@ -23,11 +23,11 @@ public class EContentReindexThread extends Thread{
 			Object reindexResultRaw = url.getContent();
 			if (reindexResultRaw instanceof InputStream) {
 				String updateIndexResponse = Util.convertStreamToString((InputStream) reindexResultRaw);
-				logger.info("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
+				logger.debug("Indexing record " + eContentRecordId + " response: " + updateIndexResponse);
 			}
-			logger.info("Finished reindex " + econtentProcessor.getNumReindexingThreadsRunning());
+			logger.debug("Finished reindex " + econtentProcessor.getNumReindexingThreadsRunning());
 			econtentProcessor.decrementReindexingThreadsRunning();
-			logger.info("Remove thread " + econtentProcessor.getNumReindexingThreadsRunning());
+			logger.debug("Remove thread " + econtentProcessor.getNumReindexingThreadsRunning());
 		} catch (Exception e) {
 			econtentProcessor.decrementReindexingThreadsRunning();
 			logger.info("Unable to reindex record " + eContentRecordId, e);
