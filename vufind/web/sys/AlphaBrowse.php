@@ -45,7 +45,7 @@ class AlphaBrowse{
 			$scopingFilter = "scope = 1 and scopeId=$libaryToBrowse";
 		}
 		//$query = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter";
-		$query = "SELECT * FROM author_browse_metadata WHERE $scopingFilter";
+		$query = "SELECT * FROM {$browseTable}_metadata WHERE $scopingFilter";
 		$result = mysql_query($query);
 		if ($result == FALSE){
 			return array(
