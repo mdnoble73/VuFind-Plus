@@ -88,9 +88,10 @@ class AlphaBrowse{
 		
 		if ($relativePage >= 0){
 			//$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank GROUP BY id ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
-			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank and {$browseTable}.alphaRank < " . ($termRank + ($relativePage + 1) * $resultsPerPage * 50) . " ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}else{
-			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+			//$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank GROUP BY id ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
+			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank  and {$browseTable}.alphaRank > " . ($termRank - -$relativePage * $resultsPerPage * 50) . " ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}
 		//echo $query . "<br />";
 		$result = mysql_query($query);
