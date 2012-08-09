@@ -130,13 +130,30 @@ public class ReindexProcess {
 	
 	private static void reloadDefaultSchemas() {
 		logger.info("Reloading schemas from default");
+		try {
+			//Copy default schemas from biblio to biblio2 and econtent
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/biblio2/conf/schema.xml");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/biblio2/conf/schema.xml"))){
+				logger.info("Unable to copy schema to biblio2");
+				addNoteToCronLog("Unable to copy schema to biblio2");
+			}
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/econtent/conf/schema.xml");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/econtent/conf/schema.xml"))){
+				logger.info("Unable to copy schema to econtent");
+				addNoteToCronLog("Unable to copy schema to econtent");
+			}
+		} catch (IOException e) {
+			logger.error("error reloading copying default scehmas", e);
+			addNoteToCronLog("error reloading copying default scehmas " + e.toString());
+		}
 		//biblio
 		reloadSchema("biblio");
 		//biblio2
 		reloadSchema("biblio2");
 		//econtent
 		reloadSchema("econtent");
-		
+		//genealogy
+		reloadSchema("genealogy");
 	}
 
 	private static void reloadSchema(String schemaName) {
@@ -148,6 +165,16 @@ public class ReindexProcess {
 				logger.info("Unable to copy schema for " + schemaName);
 				addNoteToCronLog("Unable to copy schema for " + schemaName);
 				reloadIndex = false;
+			}
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"))){
+				logger.info("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
+				addNoteToCronLog("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
+			}
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
+				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

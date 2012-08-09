@@ -57,12 +57,12 @@
 #       - [onephrase, 500]
 #       - [and, 200]
 #     - B:
-#       - [and, 100]   
+#       - [and, 100]
 #       - [or, 50]  
 #     # Start an anonymous array to group; first element indicates AND grouping 
 #     #     and a weight of 50
 #     -
-#       - [AND, 50]                 
+#       - [AND, 50]
 #       - C:
 #         - [onephrase, 200]
 #       - D:

@@ -28,8 +28,7 @@ interface RecordInterface
 {
     /**
      * Constructor.  We build the object using all the data retrieved 
-     * from the (Solr) index (which also happens to include the 
-     * 'fullrecord' field containing raw metadata).  Since we have to 
+     * from the (Solr) index.  Since we have to 
      * make a search call to find out which record driver to construct, 
      * we will already have this data available, so we might as well 
      * just pass it into the constructor.

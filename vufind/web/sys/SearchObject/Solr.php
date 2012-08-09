@@ -309,7 +309,7 @@ class SearchObject_Solr extends SearchObject_Base
 		if (isset($_REQUEST['q'])) {
 			$this->query = strip_tags($_REQUEST['q']);
 		}
-		
+
 		return true;
 	} // End init()
 
@@ -878,7 +878,7 @@ class SearchObject_Solr extends SearchObject_Base
 					if ($resource->source == 'eContent'){
 						$id = 'econtentRecord' . $id;
 					}
-					
+						
 					$newSearch[0]['group'][] = array(
                         'field' => 'id',
                         'lookfor' => $id,
@@ -919,8 +919,8 @@ class SearchObject_Solr extends SearchObject_Base
 		// flexible in the future!
 		// Marmot hard-coded case and use searches.ini and facets.ini instead.
 		/*if ($this->searchType == 'author') {
-		return array('side' => array('SideFacets:Author'));
-		}*/
+		 return array('side' => array('SideFacets:Author'));
+		 }*/
 
 		// Use default case from parent class the rest of the time:
 		return parent::getRecommendationSettings();
@@ -951,7 +951,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function processSearch($returnIndexErrors = false, $recommendations = false) {
 		global $timer;
-		
+
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
 
@@ -960,7 +960,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->initRecommendations();
 		}
 		$timer->logTime("initRecommendations");
-		
+
 
 		// Tag searches need to be handled differently
 		if (count($search) == 1 && isset($search[0]['index']) && $search[0]['index'] == 'tag') {
@@ -1536,81 +1536,71 @@ class SearchObject_Solr extends SearchObject_Base
             'encoding' => 'UTF-8',
             'indent'   => '  ',
             'rootName' => 'json',
-            'mode'     => 'simplexml'
-            );
-            $serializer = new XML_Serializer($serializer_options);
+            'mode'     => 'simplexml',
+		);
+		$serializer = new XML_Serializer($serializer_options);
 
-            $baseUrl = $configArray['Site']['url'];
-            // The XML parsers have trouble with the control characters
-            //   inside the marc data, so lets get rid of the 'fullrecord'
-            //   nodes. Not sure what we'll do if these are needed for some
-            //   reason
-            for ($i = 0; $i < count($result['response']['docs']); $i++) {
-            	if (isset($result['response']['docs'][$i]['fullrecord'])) {
-            		unset($result['response']['docs'][$i]['fullrecord']);
-            	}
-            	if (isset($result['response']['docs'][$i]['marc_error'])) {
-            		unset($result['response']['docs'][$i]['marc_error']);
-            	}
-            	
-            	//Since the base URL can be different depending on the record type, add the url to the response
-							if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
-								$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
-								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
-							}else{
-								$id = $result['response']['docs'][$i]['id'];
-								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;
-							}
-            	
-            }
+		$baseUrl = $configArray['Site']['url'];
+		for ($i = 0; $i < count($result['response']['docs']); $i++) {
+			 
+			//Since the base URL can be different depending on the record type, add the url to the response
+			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
+				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
+				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
+			}else{
+				$id = $result['response']['docs'][$i]['id'];
+				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;
+			}
+			 
+		}
 
-            // Serialize our results from PHP arrays to XML
-            if ($serializer->serialize($result)) {
-            	$xmlResults = $serializer->getSerializedData();
-            }
+		// Serialize our results from PHP arrays to XML
+		if ($serializer->serialize($result)) {
+			$xmlResults = $serializer->getSerializedData();
+		}
 
-            // Prepare an XSLT processor and pass it some variables
-            $xsl = new XSLTProcessor();
-            $xsl->registerPHPFunctions('urlencode');
-            $xsl->registerPHPFunctions('translate');
+		// Prepare an XSLT processor and pass it some variables
+		$xsl = new XSLTProcessor();
+		$xsl->registerPHPFunctions('urlencode');
+		$xsl->registerPHPFunctions('translate');
 
-            // On-screen display value for our search
-            if ($this->searchType == 'newitem') {
-            	$lookfor = translate('New Items');
-            } else if ($this->searchType == 'reserves') {
-            	$lookfor = translate('Course Reserves');
-            } else {
-            	$lookfor = $this->displayQuery();
-            }
-            if (count($this->filterList) > 0) {
-            	// TODO : better display of filters
-            	$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
-            } else {
-            	$xsl->setParameter('', 'lookfor', $lookfor);
-            }
-            // The full url to recreate this search
-            $xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
-            // Stub of a url for a records screen
-            $xsl->setParameter('', 'baseUrl',    $configArray['Site']['url']."/Record/");
+		// On-screen display value for our search
+		if ($this->searchType == 'newitem') {
+			$lookfor = translate('New Items');
+		} else if ($this->searchType == 'reserves') {
+			$lookfor = translate('Course Reserves');
+		} else {
+			$lookfor = $this->displayQuery();
+		}
+		if (count($this->filterList) > 0) {
+			// TODO : better display of filters
+			$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
+		} else {
+			$xsl->setParameter('', 'lookfor', $lookfor);
+		}
+		// The full url to recreate this search
+		$xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
+		// Stub of a url for a records screen
+		$xsl->setParameter('', 'baseUrl',    $configArray['Site']['url']."/Record/");
 
-            // Load up the style sheet
-            $style = new DOMDocument;
-            $style->load('services/Search/xsl/json-rss.xsl');
-            $xsl->importStyleSheet($style);
+		// Load up the style sheet
+		$style = new DOMDocument;
+		$style->load('services/Search/xsl/json-rss.xsl');
+		$xsl->importStyleSheet($style);
 
-            // Load up the XML document
-            $xml = new DOMDocument;
-            $xml->loadXML($xmlResults);
+		// Load up the XML document
+		$xml = new DOMDocument;
+		$xml->loadXML($xmlResults);
 
-            // Process and return the xml through the style sheet
-            try{
-            	$xmlResult = $xsl->transformToXML($xml);
-            	return $xmlResult;
-            }catch (Exception $e){
-            	$logger = new Logger();
-            	$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
-            	return "";
-            }
+		// Process and return the xml through the style sheet
+		try{
+			$xmlResult = $xsl->transformToXML($xml);
+			return $xmlResult;
+		}catch (Exception $e){
+			$logger = new Logger();
+			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
+			return "";
+		}
 	}
 
 	/**
@@ -1635,11 +1625,11 @@ class SearchObject_Solr extends SearchObject_Base
 		include 'PHPExcel/Writer/Excel2007.php';
 		$objPHPExcel = new PHPExcel();
 		$objPHPExcel->getProperties()->setTitle("Search Results");
-		
+
 		$objPHPExcel->setActiveSheetIndex(0);
 		$objPHPExcel->getActiveSheet()->setTitle('Results');
 
-		//Add headers to the table 
+		//Add headers to the table
 		$sheet = $objPHPExcel->getActiveSheet();
 		$curRow = 1;
 		$curCol = 0;
@@ -1650,7 +1640,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Published');
 
 		$maxColumn = $curCol -1;
-		
+
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 			//Output the row to excel
 			$curDoc = $result['response']['docs'][$i];
@@ -1663,7 +1653,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisher']) ? implode(', ', $curDoc['publisher']) : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publishDate']) ? implode(', ', $curDoc['publishDate']) : '');
 		}
-		
+
 		for ($i = 0; $i < $maxColumn; $i++){
 			$sheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
@@ -1675,11 +1665,11 @@ class SearchObject_Solr extends SearchObject_Base
 		header("Pragma: no-cache");
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 		header('Content-Disposition: attachment;filename="Results.xlsx"');
-		
+
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
 		$objWriter->save('php://output'); //THIS DOES NOT WORK WHY?
 		$objPHPExcel->disconnectWorksheets();
-		 unset($objPHPExcel);
+		unset($objPHPExcel);
 	}
 
 	/**
@@ -1707,7 +1697,7 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		return $this->indexEngine->getRecords($ids);
 	}
-	
+
 	/**
 	 * Retrieves a document specified by the item barcode.
 	 *
@@ -1719,5 +1709,5 @@ class SearchObject_Solr extends SearchObject_Base
 	function getRecordByBarcode($barcode){
 		return $this->indexEngine->getRecords($ids);
 	}
-	
+
 }

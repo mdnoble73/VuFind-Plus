@@ -86,7 +86,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Genealogy']['url'], $configArray['Genealogy']['default_core']);
 		$timer->logTime('Created Index Engine for Genealogy');
-		
+
 		//Make sure to turn off sharding for genealogy
 		$this->indexEngine->setShards(array());
 
@@ -1023,7 +1023,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 			if (!in_array($field, $validFields) || count($data) < 1) {
 				continue;
 			}
-				
+
 			// Initialize the settings for the current field
 			$list[$field] = array();
 			// Add the on-screen label
@@ -1033,7 +1033,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 			// Should we translate values for the current facet?
 			$translate = in_array($field, $this->translatedFacets);
-				
+
 			// Loop through values:
 			foreach ($data as $facet) {
 				// Initialize the array of data about the current facet:
@@ -1065,7 +1065,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 				// Store the collected values:
 				$list[$field]['list'][$valueKey] = $currentSettings;
 			}
-				
+
 			if ($field == 'veteranOf'){
 				//Add a field for Any war
 				$currentSettings = array();
@@ -1150,70 +1150,58 @@ class SearchObject_Genealogy extends SearchObject_Base
             'encoding' => 'UTF-8',
             'indent'   => '  ',
             'rootName' => 'json',
-            'mode'     => 'simplexml'
-            );
-            $serializer = new XML_Serializer($serializer_options);
+            'mode'     => 'simplexml',
+		);
 
-            // The XML parsers have trouble with the control characters
-            //   inside the marc data, so lets get rid of the 'fullrecord'
-            //   nodes. Not sure what we'll do if these are needed for some
-            //   reason
-            for ($i = 0; $i < count($result['response']['docs']); $i++) {
-            	if (isset($result['response']['docs'][$i]['fullrecord'])) {
-            		unset($result['response']['docs'][$i]['fullrecord']);
-            	}
-            	if (isset($result['response']['docs'][$i]['marc_error'])) {
-            		unset($result['response']['docs'][$i]['marc_error']);
-            	}
-            }
+		$serializer = new XML_Serializer($serializer_options);
 
-            // Serialize our results from PHP arrays to XML
-            if ($serializer->serialize($result)) {
-            	$xmlResults = $serializer->getSerializedData();
-            }
+		// Serialize our results from PHP arrays to XML
+		if ($serializer->serialize($result)) {
+			$xmlResults = $serializer->getSerializedData();
+		}
 
-            // Prepare an XSLT processor and pass it some variables
-            $xsl = new XSLTProcessor();
-            $xsl->registerPHPFunctions('urlencode');
-            $xsl->registerPHPFunctions('translate');
+		// Prepare an XSLT processor and pass it some variables
+		$xsl = new XSLTProcessor();
+		$xsl->registerPHPFunctions('urlencode');
+		$xsl->registerPHPFunctions('translate');
 
-            // On-screen display value for our search
-            if ($this->searchType == 'newitem') {
-            	$lookfor = translate('New Items');
-            } else if ($this->searchType == 'reserves') {
-            	$lookfor = translate('Course Reserves');
-            } else {
-            	$lookfor = $this->displayQuery();
-            }
-            if (count($this->filterList) > 0) {
-            	// TODO : better display of filters
-            	$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
-            } else {
-            	$xsl->setParameter('', 'lookfor', $lookfor);
-            }
-            // The full url to recreate this search
-            $xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
-            // Stub of a url for a records screen
-            $xsl->setParameter('', 'baseUrl',   $this->serverUrl."/Record/");
+		// On-screen display value for our search
+		if ($this->searchType == 'newitem') {
+			$lookfor = translate('New Items');
+		} else if ($this->searchType == 'reserves') {
+			$lookfor = translate('Course Reserves');
+		} else {
+			$lookfor = $this->displayQuery();
+		}
+		if (count($this->filterList) > 0) {
+			// TODO : better display of filters
+			$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
+		} else {
+			$xsl->setParameter('', 'lookfor', $lookfor);
+		}
+		// The full url to recreate this search
+		$xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
+		// Stub of a url for a records screen
+		$xsl->setParameter('', 'baseUrl',   $this->serverUrl."/Record/");
 
-            // Load up the style sheet
-            $style = new DOMDocument;
-            $style->load('services/Search/xsl/json-rss.xsl');
-            $xsl->importStyleSheet($style);
+		// Load up the style sheet
+		$style = new DOMDocument;
+		$style->load('services/Search/xsl/json-rss.xsl');
+		$xsl->importStyleSheet($style);
 
-            // Load up the XML document
-            $xml = new DOMDocument;
-            $xml->loadXML($xmlResults);
+		// Load up the XML document
+		$xml = new DOMDocument;
+		$xml->loadXML($xmlResults);
 
-            // Process and return the xml through the style sheet
-            try{
-            	$xmlResult = $xsl->transformToXML($xml);
-            	return $xmlResult;
-            }catch (Exception $e){
-            	$logger = new Logger();
-            	$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
-            	return "";
-            }
+		// Process and return the xml through the style sheet
+		try{
+			$xmlResult = $xsl->transformToXML($xml);
+			return $xmlResult;
+		}catch (Exception $e){
+			$logger = new Logger();
+			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
+			return "";
+		}
 	}
 
 	/**
@@ -1281,7 +1269,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 				$sheet->setCellValueByColumnAndRow($curCol++, $curRow, $person->grave);
 			}
 		}
-		
+
 		for ($i = 0; $i < $maxColumn; $i++){
 			$sheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
