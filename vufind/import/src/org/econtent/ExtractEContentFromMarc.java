@@ -241,7 +241,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private void addItemsToEContentRecord(MarcRecordDetails recordInfo, Logger logger, String source, DetectionSettings detectionSettings, long eContentRecordId) {
 		Thread addItemsThread = new EContentAddItemsThread(this, recordInfo, logger, source, detectionSettings, eContentRecordId);
 		while (numItemAttachmentThreadsRunning > 5){
-			//logger.debug("There are more than 5 item attachment threads running, waiting for some to finish, " + numReindexingThreadsRunning + " remain open");
+			logger.debug("There are more than 5 item attachment threads running, waiting for some to finish, " + numItemAttachmentThreadsRunning + " remain open");
 			try {
 				Thread.yield();
 				Thread.sleep(25);
