@@ -920,24 +920,18 @@ function updateConfigForScoping($configArray) {
 		$location = $locationSingleton->getActiveLocation();
 		
 		//Add an extra css file for the location if it exists.
-		if ($location != null && file_exists('./interface/themes/' . $library->themeName . '/css/'. $location->code .'_extra_styles.css')) {
-			$configArray['Site']['theme_css'] = $configArray['Site']['url'] . '/interface/themes/' . $library->themeName . '/css/'. $location->code .'_extra_styles.css';
+		$themes = explode(',', $library->themeName);
+		foreach ($themes as $themeName){
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css')) {
+				$configArray['Site']['theme_css'] = $configArray['Site']['url'] . '/interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css';
+			}
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
+				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';
+			}
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png')) {
+				$configArray['Site']['largeLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png';
+			}
 		}
-		if ($location != null && file_exists('./interface/themes/' . $library->themeName . '/images/'. $location->code .'_logo_small.png')) {
-			$configArray['Site']['smallLogo'] = '/interface/themes/' . $library->themeName . '/images/'. $location->code .'_logo_small.png';
-		}elseif (file_exists('./interface/themes/' . $library->themeName . '/images/logo_small.png')) {
-			$configArray['Site']['smallLogo'] = '/interface/themes/' . $library->themeName . '/images/logo_small.png';
-		}else{
-			$configArray['Site']['smallLogo'] = "/interface/themes/{$configArray['Site']['theme']}/images/logo_small.png";
-		}
-		if ($location != null && file_exists('./interface/themes/' . $library->themeName . '/images/'. $location->code .'_logo_large.png')) {
-			$configArray['Site']['largeLogo'] = '/interface/themes/' . $library->themeName . '/images/'. $location->code .'_logo_large.png';
-		}elseif (file_exists('./interface/themes/' . $library->themeName . '/images/logo_large.png')) {
-			$configArray['Site']['largeLogo'] = '/interface/themes/' . $library->themeName . '/images/logo_large.png';
-		}else{
-			$configArray['Site']['largeLogo'] = "/interface/themes/{$configArray['Site']['theme']}/images/logo_large.png";
-		}
-
 	}
 	$timer->logTime('finished update config for scoping');
 
