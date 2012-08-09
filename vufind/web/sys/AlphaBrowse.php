@@ -45,7 +45,7 @@ class AlphaBrowse{
 			$scopingFilter = "scope = 1 and scopeId=$libaryToBrowse";
 		}
 		//$query = "SELECT count({$browseTable}.id) as numRows FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter";
-		$query = "SELECT * FROM author_browse_metadata WHERE $scopingFilter";
+		$query = "SELECT * FROM {$browseTable}_metadata WHERE $scopingFilter";
 		$result = mysql_query($query);
 		if ($result == FALSE){
 			return array(
@@ -72,16 +72,15 @@ class AlphaBrowse{
 		
 		$termRank = null;
 		$term = $lookFor;
-		while ($termRank == null && strlen($term)){
-			$termRankQuery = "SELECT MIN(alphaRank) as termRank FROM {$browseTable} WHERE {$browseTable}.sortValue LIKE '$term%'";
-			//echo($termRankQuery . "<br />");
-			$termRankResult = mysql_query($termRankQuery);
-			if ($termRankResult){
-				$termRankInfo = mysql_fetch_assoc($termRankResult);
-				$termRank = $termRankInfo['termRank'];
-			}
-			$term = substr($term, 0, strlen($term) -1);
+		$termRankQuery = "SELECT MIN(alphaRank) as termRank FROM {$browseTable} WHERE sortValue >= '$term'";
+		//echo($termRankQuery . "<br />");
+		$termRankResult = mysql_query($termRankQuery);
+		if ($termRankResult){
+			$termRankInfo = mysql_fetch_assoc($termRankResult);
+			$termRank = $termRankInfo['termRank'];
 		}
+		$term = substr($term, 0, strlen($term) -1);
+		
 		if ($termRank == null){
 			$termRank = 0;
 		}
@@ -89,9 +88,10 @@ class AlphaBrowse{
 		
 		if ($relativePage >= 0){
 			//$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank GROUP BY id ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
-			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank >= $termRank and {$browseTable}.alphaRank < " . ($termRank + ($relativePage + 1) * $resultsPerPage * 50) . " ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}else{
-			$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank GROUP BY id ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
+			//$query = "SELECT {$browseTable}.*, count({$browseTable}_scoped_results.record) as numResults, GROUP_CONCAT({$browseTable}_scoped_results.record) as relatedRecords FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank GROUP BY id ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
+			$query = "SELECT DISTINCT {$browseTable}.* FROM {$browseTable} inner join {$browseTable}_scoped_results on {$browseTable}.id = browseValueId WHERE $scopingFilter and {$browseTable}.alphaRank < $termRank  and {$browseTable}.alphaRank > " . ($termRank - -$relativePage * $resultsPerPage * 50) . " ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
 		}
 		//echo $query . "<br />";
 		$result = mysql_query($query);
