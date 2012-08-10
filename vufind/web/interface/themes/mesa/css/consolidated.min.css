@@ -474,7 +474,8 @@ a{color:#039}#outer_span{margin:auto;width:1000px;background-image:url("/interfa
 .searchHomeForm{background-color:#00317D;border-color:#012475}.invent-button,#nav>li>a{display:block;line-height:26px;color:#333;margin-left:12px;font-weight:bold}.invent-button span, #nav>li>a
 span{display:block;color:#333;margin-left:-8px;padding:0
 10px 17px 10px}.invent-button:hover,#nav>li>a:hover,#nav>li.sfHover>a,#nav>li>a:active{color:#008ab2}.invent-button:hover{}.invent-button:hover span, #nav>li>a:hover
-span{color:#008ab2 !important}#nav>li.current_page_item a
+span{color:#008ab2 !important}#content_span{width:1000px;margin:0px
+auto}#nav>li.current_page_item a
 span{color:#008ab2;background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/active.jpg') bottom center no-repeat}.sub-menu a
 span{background:none !important;color:#333 !important}.sub-menu a:hover
 span{color:#008ab2 !important}.sub-menu>li.current_page_item a
@@ -490,7 +491,7 @@ span{color:#CCC !important}#menu-item-1874{background:url('http://mesacountylibr
 span{color:#fff !important}#menu-item-1874 a:hover
 span{color:#CCC !important}#menu-item-1875{background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/espanol-bg.jpg') no-repeat}#menu-item-1875 a
 span{color:#fff !important}#menu-item-1875 a:hover
-span{color:#CCC !important}body{background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/marmot-bg.jpg') repeat-x #FFF}#loginBlock{height:35px;background-color:#e4e4e4;color:#008ab2;position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block}.searchheader{background:none;border-bottom:none;padding:0}h1#logo{float:left;margin:23px
+span{color:#CCC !important}body{background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/marmot-bg.jpg') repeat-x #FFF}#loginBlock{height:35px;background-color:#e4e4e4;color:#008ab2;position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block}.searchheader{background:none;border-bottom:none;padding:0;height:150px}h1#logo{float:left;margin:23px
 0 0 -2px;z-index:15}#searchbar{background:none}#loginOptions{float:left;padding:0
 0 0 10px}.languageLink{position:relative;top:-15px}#nav{margin:30px
 0 0 0}div.breadcrumbs{margin:11px
@@ -654,3 +655,29 @@ ul.menu{display:inline-block;margin:0
 auto;padding:0
 10px;width:940px}.searchcontent{margin:0
 auto;width:73.076em}#record-details-column{width:464px}
+/* snapfish.css */
+#nav{float:right;list-style:none outside none;padding:0;height:52px}#nav>li{float:left;margin-left:0}#nav ul
+*{margin-top:0;padding:0;list-style:none}.sf-menu
+ul{margin:0;position:absolute;top:-999em;width:208px;background-color:#fff;background-position:left bottom}.sf-menu>li>ul{margin-left:19px !important;margin-top:12px !important;border-top:4px solid #fff}.sf-menu ul
+ul{margin:-1px 0 0 -12px}.sf-menu ul
+li{width:100%}.sf-menu li:hover{visibility:inherit}.sf-menu
+li{float:left;position:relative}.sf-menu
+a{display:block;position:relative}.sf-menu li:hover ul,
+.sf-menu li.sfHover
+ul{left:0;top:2.5em;z-index:99}ul.sf-menu li:hover li ul,
+ul.sf-menu li.sfHover li
+ul{top:-999em}ul.sf-menu li li:hover ul,
+ul.sf-menu li li.sfHover
+ul{left:211px;top:0}ul.sf-menu li li:hover li ul,
+ul.sf-menu li li.sfHover li
+ul{top:-999em}ul.sf-menu li li li:hover ul,
+ul.sf-menu li li li.sfHover
+ul{left:211px;top:0}.sf-menu ul li:first-child
+a{border:transparent;padding-top:13px !important}.sf-menu ul li
+a{font-size:12px;line-height:12px;color:#878787;padding:10px
+0 11px 0 !important;margin:0
+14px !important;text-decoration:none}.sf-menu ul li a:hover{color:#008ab2 !important}.sf-menu ul li:first-child{}.sf-menu ul li:first-child>a{border-top:0 !important}.sf-menu li
+li{margin:0
+!important}.sf-menu
+ul{padding-bottom:2px !important}.sf-menu ul li:first-child:hover{color:#333}.sf-menu li:hover, .sf-menu li.sfHover,
+.sf-menu a:focus, .sf-menu a:hover, .sf-menu a:active{color:#333;outline:0}.sf-menu li.sfHover>a{color:#333;outline:0}.sf-menu ul li:hover{width:100%;background-position:0 -200px}.sf-sub-indicator{display:none !important}

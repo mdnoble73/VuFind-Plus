@@ -1,3 +1,4 @@
+{strip}
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
@@ -48,7 +49,7 @@
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
-
+{/strip}
 {* Add Google Analytics*}
 {literal}
 <script type="text/javascript">
