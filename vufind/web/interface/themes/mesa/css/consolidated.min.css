@@ -474,7 +474,8 @@ a{color:#039}#outer_span{margin:auto;width:1000px;background-image:url("/interfa
 .searchHomeForm{background-color:#00317D;border-color:#012475}.invent-button,#nav>li>a{display:block;line-height:26px;color:#333;margin-left:12px;font-weight:bold}.invent-button span, #nav>li>a
 span{display:block;color:#333;margin-left:-8px;padding:0
 10px 17px 10px}.invent-button:hover,#nav>li>a:hover,#nav>li.sfHover>a,#nav>li>a:active{color:#008ab2}.invent-button:hover{}.invent-button:hover span, #nav>li>a:hover
-span{color:#008ab2 !important}#nav>li.current_page_item a
+span{color:#008ab2 !important}#content_span{width:1000px;margin:0px
+auto}#nav>li.current_page_item a
 span{color:#008ab2;background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/active.jpg') bottom center no-repeat}.sub-menu a
 span{background:none !important;color:#333 !important}.sub-menu a:hover
 span{color:#008ab2 !important}.sub-menu>li.current_page_item a
@@ -490,7 +491,7 @@ span{color:#CCC !important}#menu-item-1874{background:url('http://mesacountylibr
 span{color:#fff !important}#menu-item-1874 a:hover
 span{color:#CCC !important}#menu-item-1875{background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/espanol-bg.jpg') no-repeat}#menu-item-1875 a
 span{color:#fff !important}#menu-item-1875 a:hover
-span{color:#CCC !important}body{background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/marmot-bg.jpg') repeat-x #FFF}#loginBlock{height:35px;background-color:#e4e4e4;color:#008ab2;position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block}.searchheader{background:none;border-bottom:none;padding:0}h1#logo{float:left;margin:23px
+span{color:#CCC !important}body{background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/marmot-bg.jpg') repeat-x #FFF}#loginBlock{height:35px;background-color:#e4e4e4;color:#008ab2;position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block}.searchheader{background:none;border-bottom:none;padding:0;height:150px}h1#logo{float:left;margin:23px
 0 0 -2px;z-index:15}#searchbar{background:none}#loginOptions{float:left;padding:0
 0 0 10px}.languageLink{position:relative;top:-15px}#nav{margin:30px
 0 0 0}div.breadcrumbs{margin:11px

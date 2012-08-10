@@ -260,12 +260,12 @@ public class MarcRecordDetails {
 			for (DataField curItem : itemFields) {
 				Subfield urlField = curItem.getSubfield(marcProcessor.getUrlSubfield().charAt(0));
 				if (urlField != null) {
-					//logger.info("Found item based url " + urlField.getData());
+					logger.info("Found item based url " + urlField.getData());
 					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
 					if (locationField != null) {
-						//logger.info("  Location is " + locationField.getData());
+						logger.info("  Location is " + locationField.getData());
 						long libraryId = getLibrarySystemIdForLocation(locationField.getData());
-						//logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
+						logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
 						sourceUrls.add(new LibrarySpecificLink(urlField.getData(), libraryId));
 					}
 				}

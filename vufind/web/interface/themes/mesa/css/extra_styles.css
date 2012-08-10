@@ -31,7 +31,10 @@
 	color:#008ab2 !important;
 }
 
-
+#content_span{
+	width: 1000px;
+	margin: 0px auto;
+}
  #nav>li.current_page_item a span {
 	color:#008ab2;
 	background: url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/nav/active.jpg') bottom center no-repeat;
@@ -131,6 +134,7 @@ body {
 	background:none;
 	border-bottom:none;
 	padding:0;
+	height: 150px;
 }
 h1#logo {
 	float: left;
