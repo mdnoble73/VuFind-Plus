@@ -8,8 +8,7 @@
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" >
 		{css filename="consolidated.min.css"}
-		<link rel="stylesheet" type="text/css" href="http://mesacountylibraries.org/wp-content/themes/mcpl/styles/superfish.css" />
-			
+		
 		<script type="text/javascript">
 			path = '{$path}';
 			url = '{$url}';
