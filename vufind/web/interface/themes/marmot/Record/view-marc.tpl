@@ -1,4 +1,3 @@
-<script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
     alert("{$title}");

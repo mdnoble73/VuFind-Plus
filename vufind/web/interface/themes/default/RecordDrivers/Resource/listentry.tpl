@@ -40,7 +40,7 @@
 			{foreach from=$listFormats item=format}
 				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
 			{/foreach}
-		{else}
+		{elseif strlen($listFormats) > 0}
 			<span class="iconlabel {$listFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$listFormats}</span>
 		{/if}
 		{if $listTags}
@@ -72,16 +72,16 @@
 						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
 						<a
 						{if is_null($listSelected)}
-							href="{$url}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
+							href="{$url}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
 						{else}
-							href="{$url}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
+							href="{$url}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
 						{/if}
 						class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
 				{/if}
 			</div>
 			<div class="statVal">
 				<span class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
+					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
 					(<span class="ui-rater-rateCount-{$resource->record_id|regex_replace:"/\./":""|escape} ui-rater-rateCount">0</span>)
 				</span>
 			</div>

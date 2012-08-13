@@ -822,19 +822,23 @@ class MillenniumDriver implements DriverInterface
 				$summaryInformation['location'] = $holding['location'];
 			}elseif ($showItsHere && !isset($summaryInformation['status']) &&
 			substr($holdingKey, 0, 1) >= 2 && (substr($holdingKey, 0, 1) <= 4) &&
-			$holding['availability'] == 1 && $summaryInformation['class'] != 'here'){
-				//The item is at one of the patron's preferred branches.
-				$summaryInformation['status'] = "It's at " . $holding['location'];
-				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-				$summaryInformation['class'] = 'nearby';
-				$summaryInformation['location'] = $holding['location'];
+			$holding['availability'] == 1 ){
+				if (!isset($summaryInformation['class']) || $summaryInformation['class'] != 'here'){
+					//The item is at one of the patron's preferred branches.
+					$summaryInformation['status'] = "It's at " . $holding['location'];
+					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					$summaryInformation['class'] = 'nearby';
+					$summaryInformation['location'] = $holding['location'];
+				}
 			}elseif (!isset($summaryInformation['status']) &&
 			((!$showItsHere && substr($holdingKey, 0, 1) <= 5) || substr($holdingKey, 0, 1) == 5 || !isset($library) ) &&
-			(isset($holding['availability']) && $holding['availability'] == 1 && ($summaryInformation['class'] != 'here' && $summaryInformation['class'] = 'nearby'))){
-				//The item is at a location either in the same system or another system.
-				$summaryInformation['status'] = "Available At";
-				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-				$summaryInformation['class'] = 'available';
+			(isset($holding['availability']) && $holding['availability'] == 1)){
+				if (!isset($summaryInformation['class']) || ($summaryInformation['class'] != 'here' && $summaryInformation['class'] = 'nearby')){
+					//The item is at a location either in the same system or another system.
+					$summaryInformation['status'] = "Available At";
+					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					$summaryInformation['class'] = 'available';
+				}
 			}elseif (!isset($summaryInformation['status']) &&
 			(substr($holdingKey, 0, 1) == 6 ) &&
 			(isset($holding['availability']) && $holding['availability'] == 1)){

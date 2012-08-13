@@ -888,7 +888,8 @@ table.datagrid tr.oddrow {
 	background-image:url(/images/silk/add.png);
 	background-repeat:no-repeat;
 	background-position: left;
-	padding:.5em .5em .5em 18px;
+	padding:0 0 0 18px;
+	margin:0.5em 0.5em 0.5em 0px;
 	margin-right:0;
 }
 .holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby{

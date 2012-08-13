@@ -1,5 +1,3 @@
-<script type="text/javascript" src="{$path}/js/lists.js" /></script>
-
 <div id="page-content" class="content">
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}
@@ -9,35 +7,37 @@
 	
 	<div id="main-content">
 		{if $allowEdit}
-			<form name="myListFormHead" action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormHead">
-			<input type="hidden" name="myListActionHead" id="myListActionHead"/>
+			<form action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormHead">
+				<div>
+					<input type="hidden" name="myListActionHead" id="myListActionHead"/>
 		{/if}
-		<h3 class="list" id='listTitle'>{$favList->title|escape:"html"}</h3>
-		{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
+					<h3 class="list" id='listTitle'>{$favList->title|escape:"html"}</h3>
+					{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
+					{if $allowEdit}
+						<div id='listEditControls' style="display:none">
+							<label for='listTitleEdit'>Title: </label><br />
+							<input type='text' id='listTitleEdit' name='newTitle' value="{$favList->title|escape:"html"}" maxlength="255" size="80"/><br />
+							<label for='listDescriptionEdit'>Description: </label><br />
+							<textarea name='newDescription' id='listDescriptionEdit' rows="3" cols="80">{$favList->description|escape:"html"}</textarea>
+						</div>
+					{/if}
+					<div class="clearer"></div>
+					<div id='listTopButtons'>
+						{if $allowEdit}
+							<button value="editList" id="FavEdit" class="listButton" onclick='return editListAction()'>Edit List</button>
+							<button value="saveList" id="FavSave" class="listButton" style="display:none" onclick='return updateListAction()'>Save Changes</button>
+							{if $favList->public == 0}
+								<button value="makePublic" id="FavPublic" class="listButton" onclick='return makeListPublicAction()'>Make Public</button>
+							{else}
+								<button value="makePrivate" id="FavPrivate" class="listButton" onclick='return makeListPrivateAction()'>Make Private</button>
+							{/if}
+							<button value="deleteList" id="FavDelete" class="listButton" onclick='return deleteListAction()'>Delete List</button>
+						{/if}
+						<button value="emailList" id="FavEmail" class="listButton" onclick='return emailListAction({$favList->id})'>Email List</button>
+						<button value="printList" id="FavPrint" class="listButton" onclick='return printListAction();'>Print List</button>
+					</div>
 		{if $allowEdit}
-			<div id='listEditControls' style="display:none">
-				<label for='listTitleEdit'>Title: </label><br />
-				<input type='text' id='listTitleEdit' name='newTitle' value="{$favList->title|escape:"html"}" maxlength="255" size="80"/><br />
-				<label for='listDescriptionEdit'>Description: </label><br />
-				<textarea name='newDescription' id='listDescriptionEdit' rows="3" cols="80">{$favList->description|escape:"html"}</textarea>
-			</div>
-		{/if}
-		<div class="clearer"></div>
-		<div id='listTopButtons'>
-			{if $allowEdit}
-				<button value="editList" id="FavEdit" class="listButton" onclick='return editListAction()'>Edit List</button>
-				<button value="saveList" id="FavSave" class="listButton" style="display:none" onclick='return updateListAction()'>Save Changes</button>
-				{if $favList->public == 0}
-					<button value="makePublic" id="FavPublic" class="listButton" onclick='return makeListPublicAction()'>Make Public</button>
-				{else}
-					<button value="makePrivate" id="FavPrivate" class="listButton" onclick='return makeListPrivateAction()'>Make Private</button>
-				{/if}
-				<button value="deleteList" id="FavDelete" class="listButton" onclick='return deleteListAction()'>Delete List</button>
-			{/if}
-			<button value="emailList" id="FavEmail" class="listButton" onclick='return emailListAction({$favList->id})'>Email List</button>
-			<button value="printList" id="FavPrint" class="listButton" onclick='return printListAction();'>Print List</button>
-		</div>
-		{if $allowEdit}
+				</div>
 			</form>
 		{/if}
 		{if $resourceList}
@@ -51,7 +51,7 @@
 				</div>
 			</div>
 			
-			<form name="myListFormItem" action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormItem">
+			<form action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormItem">
 				<div>
 					<input type="hidden" name="myListActionItem" id="myListActionItem"/>
 					<ul>

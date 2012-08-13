@@ -29,7 +29,7 @@ class MarcLoader{
 				$marc = preg_replace('/#174;/', "\xAE", $marc);
 				$marc = preg_replace('/#230;/', "\xE6", $marc);
 				$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-				
+
 				if (!($marcRecord = $marc->next())) {
 					PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
 				}else{
@@ -40,8 +40,8 @@ class MarcLoader{
 			}
 		}
 		return $marcRecord;
-	} 
-	
+	}
+
 	public static function loadMarcRecordByILSId($ilsId){
 		global $memcache;
 		global $configArray;
@@ -56,7 +56,7 @@ class MarcLoader{
 				$marc = preg_replace('/#31;/', "\x1F", $marc);
 				$marc = preg_replace('/#30;/', "\x1E", $marc);
 				$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-				
+
 				if (!($marcRecord = $marc->next())) {
 					PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
 				}else{
@@ -67,6 +67,6 @@ class MarcLoader{
 			}
 		}
 		return $marcRecord;
-	} 
-} 
+	}
+}
 ?>
