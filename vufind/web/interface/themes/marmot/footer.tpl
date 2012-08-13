@@ -27,7 +27,7 @@
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
 	<ul>
 		<li><a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
-		
+
 		{if isset($illLink)}
 				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
 		{/if}
@@ -51,7 +51,7 @@
 	_gaq.push(['_setDomainName', '.marmot.org']);
 	_gaq.push(['_trackPageview']);
 	_gaq.push(['_trackPageLoadTime']);
-	
+
 	(function() {
 		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
 		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';

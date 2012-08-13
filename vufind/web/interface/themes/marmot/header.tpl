@@ -1,3 +1,4 @@
+{strip}
 <div class="searchheader">
 	<div class="searchcontent">
 		{include file='login-block.tpl'}
@@ -7,6 +8,6 @@
 		{/if}
 
 		<div class="clearer">&nbsp;</div>
-		
 	</div>
 </div>
+{/strip}

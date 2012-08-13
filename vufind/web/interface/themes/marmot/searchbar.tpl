@@ -1,3 +1,4 @@
+{strip}
 <div class="searchform">
 	{if $searchType == 'advanced'}
 		{translate text="Your search"} : "<b>{$lookfor|escape:"html"}</b>"
@@ -27,7 +28,7 @@
 				<option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 			{/foreach}
 			</select>
-			
+
 			<input type="image" name="submit" id='searchBarFind' value="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/find.png" />
 			{if $showAdvancedSearchbox == 1}
 				<a href="{$path}/Search/Advanced" class="small">{translate text="Advanced"}</a>
@@ -36,7 +37,7 @@
 			<a href="{$url}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
 				<img src="{$url}/images/silk/help.png" alt="{translate text='Search Tips'}" />
 			</a>
-			
+
 			{* Do we have any checkbox filters? *}
 			{assign var="hasCheckboxFilters" value="0"}
 			{if isset($checkboxFilters) && count($checkboxFilters) > 0}
@@ -67,3 +68,4 @@
 		</form>
 	{/if}
 </div>
+{/strip}

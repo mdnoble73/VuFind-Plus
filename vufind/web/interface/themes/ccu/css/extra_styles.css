@@ -18,8 +18,21 @@ html, body{
 	color: #C59019;
 }
 .searchheader{
-	background-color: #08223E;
+	background-color: #013565;
 	color: white;
+	height: 107px;
+	padding: 0px;
+}
+#header_logo{
+	position: absolute;
+	left: auto;
+	top: 0px;
+}
+#loginBlock{
+	z-index: 20;
+	position: absolute;
+	right: 0px;
+	bottom: 10px;
 }
 .searchheader a, .searchheader a:visited{
 	color: white;
