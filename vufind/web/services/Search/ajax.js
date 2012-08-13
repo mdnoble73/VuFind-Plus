@@ -174,7 +174,12 @@ function doGetStatusSummaries()
 						if (availableAt){
 							locationSpan.html(availableAt);
 						}else{
-							locationSpan.html("N/A");
+							var location = items[i].location;
+							if (location){
+								locationSpan.html(location);
+							}else{
+								locationSpan.html("N/A");
+							}
 						}
 					}
 					

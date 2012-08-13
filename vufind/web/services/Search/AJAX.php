@@ -193,7 +193,7 @@ class AJAX extends Action {
 		global $interface;
 		global $timer;
 		global $library;
-		
+
 		$showOtherEditionsPopup = false;
 		if ($configArray['Content']['showOtherEditionsPopup']){
 			if ($library){
@@ -217,7 +217,7 @@ class AJAX extends Action {
 
 		$summaries = $catalog->getStatusSummaries($_GET['id']);
 		$timer->logTime("Retrieved status summaries");
-		
+
 		$result = array();
 		$result['items'] = array();
 
@@ -238,7 +238,7 @@ class AJAX extends Action {
 		echo json_encode($result);
 		$timer->logTime("Formatted results");
 	}
-	
+
 	/**
 	 * Get Item Statuses
 	 *
@@ -254,7 +254,7 @@ class AJAX extends Action {
 		global $interface;
 		global $timer;
 		global $library;
-		
+
 		$showOtherEditionsPopup = false;
 		if ($configArray['Content']['showOtherEditionsPopup']){
 			if ($library){
@@ -332,7 +332,7 @@ class AJAX extends Action {
 			$resource->source = 'VuFind';
 			$ratingData['standard'][$id] = $resource->getRatingData($user);
 		}
-		
+
 		require_once 'sys/eContent/EContentRating.php';
 		if (isset($_REQUEST['econtentId'])){
 			$econtentIds = $_REQUEST['econtentId'];
@@ -346,7 +346,7 @@ class AJAX extends Action {
 				$ratingData['eContent'][$id] = $econtentRating->getRatingData($user, false);
 			}
 		}
-		
+
 
 		echo json_encode($ratingData);
 
@@ -547,7 +547,7 @@ class AJAX extends Action {
 		require_once 'services/Search/lib/SearchSuggestions.php';
 		global $timer;
 		global $configArray;
-		global $memcache; 
+		global $memcache;
 		$searchTerm = isset($_REQUEST['searchTerm']) ? $_REQUEST['searchTerm'] : $_REQUEST['q'];
 		$searchType = isset($_REQUEST['type']) ? $_REQUEST['type'] : '';
 		$cacheKey = 'auto_suggest_list_' . urlencode($searchType) . '_' . urlencode($searchTerm);
@@ -600,33 +600,33 @@ class AJAX extends Action {
 		$cacheName = "list_widget_data_{$listName}_{$scrollerName}";
 		$listData = $memcache->get($cacheName);
 		if (!$listData || isset($_REQUEST['reload'])){
-		
+
 			require_once('services/API/ListAPI.php');
 			global $interface;
 			global $configArray;
-	
+
 			$listAPI = new ListAPI();
-	
+
 			$titles = $listAPI->getRandomSystemListTitles($listName);
 			$timer->logTime("Got titles from list api for $listName");
-	
+
 			foreach ($titles as $key => $rawData){
-					
+
 				$interface->assign('description', $rawData['description']);
 				$interface->assign('length', $rawData['length']);
 				$interface->assign('publisher', $rawData['publisher']);
 				$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
-					
+
 				$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
 				if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
 					$recordId = substr($rawData['id'], 14);
 					$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . '" id="descriptionTrigger' . $rawData['id'] . '">';
 				}else{
-					$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+					$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">';
 				}
-	    	$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-	    			"</a></div>" . 
+	    	$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+	    			"</a></div>" .
 	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
 				$descriptionInfo .
 	    			"</div>";
@@ -651,23 +651,23 @@ class AJAX extends Action {
 		}
 		return GetListTitles();
 	}
-	
+
 	function GetListTitles(){
 		global $memcache;
 		global $configArray;
-		
+
 		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
 		$scrollerName = strip_tags($_GET['scrollerName']);
-		
-		//Determine the caching parameters 
+
+		//Determine the caching parameters
 		require_once('services/API/ListAPI.php');
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForList();
-		
+
 		$listData = $memcache->get($cacheInfo['cacheName']);
 		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
 			global $interface;
-	
+
 			$titles = $listAPI->getListTitles();
 			$addStrandsTracking = false;
 			if ($titles['success'] == true){
@@ -677,21 +677,21 @@ class AJAX extends Action {
 				}
 				$titles = $titles['titles'];
 				foreach ($titles as $key => $rawData){
-				 
+
 					$interface->assign('description', $rawData['description']);
 					$interface->assign('length', $rawData['length']);
 					$interface->assign('publisher', $rawData['publisher']);
 					$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
-					 
+
 					$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
 					if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
 						$recordId = substr($rawData['id'], 14);
 						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
 					}else{
-						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">'; 
+						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
 					}
-		      $formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-		          "</a></div>" . 
+		      $formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+		          "</a></div>" .
 		          "<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
 					      $descriptionInfo .
 		          "</div>";
@@ -699,25 +699,25 @@ class AJAX extends Action {
 					$titles[$key] = $rawData;
 				}
 				$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
-				 
+
 				$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
 			}else{
 				$return = array('titles' => array(), 'currentIndex' =>0);
 				$listData = json_encode($return);
 			}
-			
+
 			$listData = json_encode($return);
 			$memcache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
-			
+
 		}
 		echo $listData;
 	}
-	
+
 	function getOtherEditions(){
 		global $interface;
 		$id = $_REQUEST['id'];
 		$isEContent = $_REQUEST['isEContent'];
-		
+
 		if ($isEContent == 'true'){
 			require_once 'sys/eContent/EContentRecord.php';
 			$econtentRecord = new EContentRecord();
@@ -738,9 +738,9 @@ class AJAX extends Action {
 				$error = "Sorry we couldn't find that record in the catalog.";
 			}
 		}
-		
+
 		if (isset($otherEditions)){
-			//Get resource for each edition 
+			//Get resource for each edition
 			$editionResources = array();
 			if (is_array($otherEditions)){
 				foreach ($otherEditions as $edition){
