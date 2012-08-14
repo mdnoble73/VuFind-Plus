@@ -123,17 +123,22 @@ class Save extends Action
 			$list = new User_list();
 			if ($_GET['list'] != '') {
 				$list->id = $_GET['list'];
+				$list->find(true);
 			} else {
 				$list->user_id = $this->user->id;
 				$list->title = "My Favorites";
 				$list->insert();
 			}
-			
+
 			$resource = new Resource();
 			$resource->record_id = $_GET['id'];
-			$resource->source = $_GET['service'];
+			if (isset($_GET['service'])){
+				$resource->source = $_GET['service'];
+			}else{
+				$resource->source = $_GET['source'];
+			}
 			if (!$resource->find(true)) {
-				$resource->insert();
+				PEAR::raiseError(new PEAR_Error('Unable find a resource for that title.'));
 			}
 
 			preg_match_all('/"[^"]*"|[^,]+/', $_GET['mytags'], $tagArray);

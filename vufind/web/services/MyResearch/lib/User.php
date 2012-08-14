@@ -75,7 +75,6 @@ class User extends DB_DataObject
 				$join->update();
 			}
 			$result = true;
-			echo("Saved notes to exiting list");
 		} else {
 			if ($notes) {
 				$join->notes = $notes;
@@ -100,12 +99,9 @@ class User extends DB_DataObject
 					$join->tag_id = $tag->id;
 					$join->insert();
 				}
-				echo("Saved tags to list");
 			}
 
 			if ($updateSolr){
-				echo("Updating solr");
-				print_r($list);
 				$list->updateDetailed(true);
 			}
 

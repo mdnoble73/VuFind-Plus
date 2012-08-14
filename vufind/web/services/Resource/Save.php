@@ -128,16 +128,21 @@ class Save extends Action
 			$list = new User_list();
 			if ($_GET['list'] != '') {
 				$list->id = $_GET['list'];
+				if (!$list->find(true)){
+					PEAR::raiseError(new PEAR_Error('Unable the selected list.'));
+					return false;
+				}
 			} else {
 				$list->user_id = $this->user->id;
 				$list->title = "My Favorites";
 				$list->insert();
 			}
-			
+
 			$resource = new Resource();
 			$resource->record_id = $_GET['id'];
 			$resource->source = $_GET['source'];
 			if (!$resource->find(true)) {
+				PEAR::raiseError(new PEAR_Error('Unable find a resource for that title.'));
 				return false;
 			}
 
