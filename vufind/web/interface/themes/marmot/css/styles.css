@@ -331,9 +331,13 @@ div.record {
 	margin: 0px 10px 0px 20px;
 }
 .navmenu dt {
-	margin: 15px 10px 10px;
+	margin: 15px 10px 0px;
 	font-weight: bold;
 	text-align: left;
+}
+.facetSeparator{
+	background-color: lightgrey;
+	margin: 5px 10px 0px;
 }
 input.yearbox {
 	width: 3em;

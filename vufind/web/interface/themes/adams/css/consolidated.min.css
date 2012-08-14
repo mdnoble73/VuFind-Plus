@@ -97,7 +97,8 @@ li{padding:.1em 0 .1em .5em;list-style-type:none;border-bottom:1px solid #e3e3e3
 dd{padding: .1em 0 .1em 10px;list-style-type:none;text-align:left;text-indent:-10px;margin:0px
 10px 0px 20px}.navmenu
 dt{margin:15px
-10px 10px;font-weight:bold;text-align:left}input.yearbox{width:3em}.yearboxlabel{font-size:11px}#yearDefaultLinks, #yearDefaultLinks
+10px 0px;font-weight:bold;text-align:left}.facetSeparator{background-color:lightgrey;margin:5px
+10px 0px}input.yearbox{width:3em}.yearboxlabel{font-size:11px}#yearDefaultLinks, #yearDefaultLinks
 a{font-size:10px}.narrow
 dd{color:#999}p.correction
 a{font-weight:bold;font-style:italic}.correction
@@ -346,9 +347,9 @@ solid black;border-radius:3px;padding:0px}.singleTitleWidget
 0px;text-align:center;width:100%}
 /* my-account.css */
 .myAccountLink{margin:0
-10px 0px 20px;padding:0.1em 0 0.1em 10px;text-align:left;text-indent:-10px}.myAccountLink
+7px 0px 14px;padding:0.1em 0 0.1em 7px;text-align:left;text-indent:-7px}.myAccountLink
 .myAccountLink{margin:0px
-0px 0px 10px}#loginFormWrapper{padding:10px
+0px 0px 7px}#loginFormWrapper{padding:10px
 30px;display:inline-block;vertical-align:top;zoom:1;*display:inline}#needACardWrapper{width:42%;padding:10px
 30px;display:inline-block;vertical-align:top;zoom:1;*display:inline}#popupbox #needACardWrapper, #popupbox
 #loginFormWrapper{width:40%}#haveCardLabel,#needCardLabel,#forgottenCardLabel,#emailPinLabel{text-align:center;font-weight:bold;color:#256292}#loginSubmitButton{text-align:center}.loginLabel{width:275px;display:inline-block;text-align:left;zoom:1;*display:inline}.loginField{display:inline-block;zoom:1;*display:inline;width:150px}.loginFormRow{padding-top:5px;text-align:center}#loginSubmitButtonRow{text-align:right}#loginButton{margin:3px
