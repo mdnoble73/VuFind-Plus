@@ -141,7 +141,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->sortOptions = $searchSettings['Sorting'];
 		} else {
 			$this->sortOptions = array('relevance' => 'sort_relevance',
-                'year' => 'sort_year', 'year asc' => 'sort_year asc', 
+                'year' => 'sort_year', 'year asc' => 'sort_year asc',
                 'callnumber' => 'sort_callnumber', 'author' => 'sort_author',
                 'title' => 'sort_title');
 		}
@@ -491,6 +491,22 @@ class SearchObject_Solr extends SearchObject_Base
 		return $recordSet;
 	}
 
+	/*
+	 * Get an array of citations for the records within the searc results
+	 */
+	public function getCitations($citationFormat){
+		global $interface;
+		$html = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			$record = RecordDriverFactory::initRecordDriver($current);
+			$html[] = $interface->fetch($record->getCitation($citationFormat));
+		}
+		return $html;
+	}
+
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
 	 * results.
@@ -816,7 +832,7 @@ class SearchObject_Solr extends SearchObject_Base
 			case "list":
 				$preserveParams = array(
 				// for newitem:
-				  'range', 'department', 
+				  'range', 'department',
 				// for reserves:
 				  'course', 'inst', 'dept',
 				// for favorites/list:
@@ -878,7 +894,7 @@ class SearchObject_Solr extends SearchObject_Base
 					if ($resource->source == 'eContent'){
 						$id = 'econtentRecord' . $id;
 					}
-						
+
 					$newSearch[0]['group'][] = array(
                         'field' => 'id',
                         'lookfor' => $id,
@@ -1542,7 +1558,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		$baseUrl = $configArray['Site']['url'];
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
-			 
+
 			//Since the base URL can be different depending on the record type, add the url to the response
 			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
 				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
@@ -1551,7 +1567,7 @@ class SearchObject_Solr extends SearchObject_Base
 				$id = $result['response']['docs'][$i]['id'];
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;
 			}
-			 
+
 		}
 
 		// Serialize our results from PHP arrays to XML

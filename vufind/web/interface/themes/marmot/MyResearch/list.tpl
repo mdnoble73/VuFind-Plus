@@ -1,3 +1,4 @@
+{strip}
 <div id="page-content" class="content">
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}
@@ -33,8 +34,9 @@
 							{/if}
 							<button value="deleteList" id="FavDelete" class="listButton" onclick='return deleteListAction()'>Delete List</button>
 						{/if}
-						<button value="emailList" id="FavEmail" class="listButton" onclick='return emailListAction({$favList->id})'>Email List</button>
+						<button value="emailList" id="FavEmail" class="listButton" onclick='return emailListAction("{$favList->id}")'>Email List</button>
 						<button value="printList" id="FavPrint" class="listButton" onclick='return printListAction();'>Print List</button>
+						<button value="citeList" id="FavCite" class="listButton" onclick='return citeListAction("{$favList->id}");'>Generate List Citations</button>
 					</div>
 		{if $allowEdit}
 				</div>
@@ -78,16 +80,15 @@
 				</div>
 			</form>
 		
-			{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
+			{if strlen($pageLinks.all) > 0}<div class="pagination">{$pageLinks.all}</div>{/if}
 		{else}
 			{translate text='You do not have any saved resources'}
 		{/if}
 	</div>
 
-	<div class="yui-u">
-		{if $tagList}
+	{if $tagList}
+		<div>
 			<h3 class="tag">{translate text='Your Tags'}</h3>
-
 			<ul>
 			{foreach from=$tags item=tag}
 				<li>{translate text='Tag'}: {$tag|escape:"html"}
@@ -103,8 +104,9 @@
 				</li>
 			{/foreach}
 			</ul>
-		{/if}
-	</div>
+		
+		</div>
+	{/if}
 </div>
 
 <script type="text/javascript">
@@ -113,4 +115,4 @@ $(document).ready(function() {literal} { {/literal}
 	doGetRatings();
 {literal} }); {/literal}
 </script>
-
+{/strip}

@@ -54,6 +54,10 @@ function emailListAction(id) {
 	ajaxLightbox(path + '/MyResearch/EmailList/' + id);
 	return false;
 }
+function citeListAction(id) {
+	ajaxLightbox(path + '/MyResearch/AJAX?method=getCitationFormatsForm&listId=' + id);
+	return false;
+}
 
 function SendMyListEmail(to, from, message, id, strings) {
 	var url = path + "/MyResearch/EmailList";

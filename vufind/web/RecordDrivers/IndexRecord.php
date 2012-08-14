@@ -55,7 +55,7 @@ class IndexRecord implements RecordInterface
 	 */
 	protected $forbiddenSnippetFields = array(
 	'author', 'author-letter', 'title', 'title_short', 'title_full',
-	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id', 
+	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
 	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
 	'spellingShingle', 'collection', 'building', 'institution', 'available_at', 'title_proper',
 	'contents_proper', 'genre_proper', 'geographic_proper'
@@ -143,8 +143,7 @@ class IndexRecord implements RecordInterface
 		if (!empty($primary)) {
 			$authors[] = $primary;
 		}
-		$authors = array_unique(array_merge($authors,
-		$this->getSecondaryAuthors()));
+		$authors = array_unique(array_merge($authors, $this->getSecondaryAuthors()));
 
 		// Collect all details for citation builder:
 		$publishers = $this->getPublishers();
@@ -689,7 +688,7 @@ class IndexRecord implements RecordInterface
 		}
 		$interface->assign('summPhysical', $this->getPhysicalDescriptions());
 		$interface->assign('summEditions', $this->getEdition());
-		
+
 		// Obtain and assign snippet information:
 		$snippet = $this->getHighlightedSnippet();
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
@@ -715,17 +714,17 @@ class IndexRecord implements RecordInterface
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
 		$format = isset($formats[0]) ? $formats[0] : '';
-		
+
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
-		
+
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
-		
+
 		return 'RecordDrivers/Index/result.tpl';
 	}
-	
+
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);

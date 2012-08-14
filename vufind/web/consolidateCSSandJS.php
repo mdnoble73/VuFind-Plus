@@ -102,11 +102,11 @@ function consolidateFiles($info, $themes, $minify){
 				$minifiedCss = $fileContents;
 			}
 			fwrite($fileGeneratedFileHnd, "$minifiedCss\r\n");
+		}else{
+			echo("Could not find file $filename");
 		}
 	}
 	fclose($fileGeneratedFileHnd);
-
-
 
 	//merge javascript files
 	$fileGeneratedFile = $info['path'] . 'js/consolidated.min.js';
@@ -127,6 +127,8 @@ function consolidateFiles($info, $themes, $minify){
 				$minifiedJs = $fileContents;
 			}
 			fwrite($fileGeneratedFileHnd, "$minifiedJs\r\n");
+		}else{
+			echo("Could not find file $filename");
 		}
 	}
 	fclose($fileGeneratedFileHnd);

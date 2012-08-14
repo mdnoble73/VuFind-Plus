@@ -57,6 +57,15 @@ class CitationBuilder
 		$this->details = $details;
 	}
 
+	public static function getCitationFormats(){
+		return array(
+			//'AMA' => 'AMA',
+			'APA' => 'APA',
+			'ChicagoHumanities' => 'Chicago/Turabian - Humanities',
+			'ChicagoAuthDate' => 'Chicago/Turabian - Author Date',
+			'MLA' => 'MLA');
+	}
+
 	/**
 	 * Get APA citation.
 	 *
@@ -105,7 +114,7 @@ class CitationBuilder
 		$interface->assign('mlaDetails', $mla);
 		return 'Citation/mla.tpl';
 	}
-	
+
 	private function getMLAFormat(){
 		$formats = $this->details['format'];
 		foreach ($formats as $format){
@@ -121,7 +130,7 @@ class CitationBuilder
 		}
 		return '';
 	}
-	
+
 	/**
 	 * Get AMA citation.
 	 *
@@ -169,7 +178,7 @@ class CitationBuilder
 		$interface->assign('citeDetails', $citeDetails);
 		return 'Citation/chicago-humanities.tpl';
 	}
-	
+
 	/**
 	 * Get Chicago Auth Date citation.
 	 *
@@ -193,7 +202,7 @@ class CitationBuilder
 		$interface->assign('citeDetails', $citeDetails);
 		return 'Citation/chicago-authdate.tpl';
 	}
-	
+
 	/**
 	 * Is the string a valid name suffix?
 	 *
@@ -405,7 +414,7 @@ class CitationBuilder
 		}
 		return (empty($authorStr) ? false : $authorStr);
 	}
-	
+
 /**
 	 * Get an array of authors for an APA citation.
 	 *
@@ -440,7 +449,7 @@ class CitationBuilder
 		}
 		return (empty($authorStr) ? false : $authorStr);
 	}
-	
+
 	/**
 	 * Get an array of authors for an APA citation.
 	 *
@@ -466,7 +475,7 @@ class CitationBuilder
 		}
 		return (empty($authorStr) ? false : $authorStr);
 	}
-	
+
 
 	/**
 	 * Get edition statement for inclusion in a citation.  Shared by APA and
