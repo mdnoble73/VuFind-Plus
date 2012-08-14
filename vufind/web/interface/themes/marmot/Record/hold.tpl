@@ -35,7 +35,7 @@
 					<br />
 					<input type="hidden" name="holdType" value="hold" />
 					<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Request This Title'}" {if (!isset($profile))}disabled="disabled"{/if} />
-					<input type="checkbox" name="autologout" id="autologout"/> <label for="autologout">Log me out after requesting the item.</label>
+					<input type="checkbox" name="autologout" id="autologout" {if $includeAutoLogoutCode == true}checked="checked"{/if}/> <label for="autologout">Log me out after requesting the item.</label>
 				</div> 
 			</div>
 		</form>
