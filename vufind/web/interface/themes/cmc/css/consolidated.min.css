@@ -473,4 +473,7 @@ $expires = 60*60*24*14;header("Cache-Control: maxage=".$expires);header('Expires
 a{color:#039}#outer_span{margin:auto;width:1000px;background-image:url("/interface/themes/marmot/images/sub_content_bg.png");background-repeat:repeat-y;padding:0
 20px 0px}
 /* extra_styles.css */
-.searchHomeForm{background-color:#0066A4;border-top:#408BBD 2px solid}.yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main{float:right;margin-right:-15em}.yui-t4 .yui-b{float:left}body.Record .yui-t4 .yui-b, body.Browse .yui-t4 .yui-b{float:right}body.Record .yui-t4 #yui-main,body.Record .yui-t5 #yui-main,body.Record .yui-t6 #yui-main{float:left;margin-right:-25em}body.Browse .yui-t4 #yui-main,body.Browse .yui-t5 #yui-main,body.Browse .yui-t6 #yui-main{float:left;margin-right:-25em}
+.searchHomeForm{background-color:#0066A4;border-top:#408BBD 2px solid}.footerCol{width:auto !important}.footerCol
+li{padding-bottom:3px}.footerCol
+ul{margin:4px
+0px}
