@@ -149,8 +149,8 @@ class MillenniumDriver implements DriverInterface
 	public function getMillenniumRecordInfo($id){
 		require_once 'Drivers/marmot_inc/MillenniumCache.php';
 		$scope = $this->getMillenniumScope();
-		$logger = new Logger();
-		$logger->log('Loaded millennium info for id ' . $id . ' scope ' . $scope, PEAR_LOG_INFO);
+		//$logger = new Logger();
+		//$logger->log('Loaded millennium info for id ' . $id . ' scope ' . $scope, PEAR_LOG_INFO);
 		$millenniumCache = new MillenniumCache();
 		//First clean out any records that are more than 5 minutes old
 		$cacheExpirationTime = time() - 5 * 60;
