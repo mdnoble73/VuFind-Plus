@@ -94,6 +94,11 @@ class Home extends Action{
 		}
 		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
+		$showCopiesLineInHoldingsSummary = true;
+		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
+			$showCopiesLineInHoldingsSummary = false;
+		}
+		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
 		$timer->logTime('Configure UI for library and location');
 
 		UserComments::loadEContentComments();
@@ -111,7 +116,7 @@ class Home extends Action{
 					$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
 				}
 			}
-		
+
 			$this->isbn = $eContentRecord->getIsbn();
 			if (is_array($this->isbn)){
 				if (count($this->isbn) > 0){
@@ -232,7 +237,7 @@ class Home extends Action{
 			$marc = preg_replace('/#31;/', "\x1F", $marc);
 			$marc = preg_replace('/#30;/', "\x1E", $marc);
 			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-	
+
 			if (!($marcRecord = $marc->next())) {
 				PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
 			}

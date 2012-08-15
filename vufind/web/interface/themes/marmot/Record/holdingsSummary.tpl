@@ -39,14 +39,16 @@
 	{else}
 		{if $showCopiesLineInHoldingsSummary}
 		<div class="holdableCopiesSummary">
-			{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if}, 
-			{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf and 
-			{$holdingsSummary.holdableCopies} {if $holdingsSummary.holdableCopies == 1}is{else}are{/if} available by request.
+			{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if},
+			{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf. 
+			{* 
+			and {$holdingsSummary.holdableCopies} {if $holdingsSummary.holdableCopies == 1}is{else}are{/if} available by request.
+			*}
 			{if $holdingsSummary.holdQueueLength > 0}
 				<br/>{$holdingsSummary.holdQueueLength} {if $holdingsSummary.holdQueueLength == 1}person is{else}people are{/if} on the wait list.
 			{/if}
 				{if $holdingsSummary.numCopiesOnOrder > 0}
-					{$holdingsSummary.numCopiesOnOrder} copies are on order.
+					{$holdingsSummary.numCopiesOnOrder} {if $holdingsSummary.numCopiesOnOrder == 1}copy is{else}copies are{/if} on order.
 			{/if}	
 		</div>
 		{/if}
