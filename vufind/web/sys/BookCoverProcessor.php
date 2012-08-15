@@ -159,7 +159,7 @@ class BookCoverProcessor{
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
-		$this->category = isset($_GET['category']) ? $_GET['category'] : null;
+		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		//First check to see if this has a custom cover due to being an e-book
 		if (preg_match('/econtentRecord\d+/', $this->id)){
 			$this->isEContent = true;
