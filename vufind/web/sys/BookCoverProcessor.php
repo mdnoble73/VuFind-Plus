@@ -202,7 +202,6 @@ class BookCoverProcessor{
 		// Send the headers
 		header("Last-Modified: $last_modified");
 		header("ETag: $etag");
-		header('Content-Length:' . filesize($filename));
 
 		if ($this->reload){
 			return true;
