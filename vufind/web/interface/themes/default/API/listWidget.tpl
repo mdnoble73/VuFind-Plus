@@ -2,6 +2,7 @@
 <html lang="{$userLang}">
 {strip}
 <head>
+	<title>{$widget->name}</title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   {css filename="consolidated.min.css"}
   
@@ -14,7 +15,7 @@
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />
   {/if}
   
-  <base href="{$url}" target="_parent"/>
+  <base href="{$url}" target="_parent" />
 </head>
 
 <body>

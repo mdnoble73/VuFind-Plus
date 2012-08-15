@@ -474,6 +474,8 @@ function processAjaxLogin(){
 					// Hide "log in" options and show "log out" options:
 					$('.loginOptions').hide();
 					$('.logoutOptions').show();
+					$('#loginOptions').hide();
+					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
 					hideLightbox();
 					if (ajaxCallback  && typeof(ajaxCallback) === "function"){

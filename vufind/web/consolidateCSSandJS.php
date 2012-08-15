@@ -62,17 +62,22 @@ if (is_dir($themeDir)){
 			}
 		}
 
+		flush();
+		ob_start();
 		foreach ($themes as $themeName => $info){
 			if ($info['hasConsolidationFile'] && in_array($themeName, $themesToUpdate)){
 				$now = time();
 				echo("Consolidating $themeName<br/>");
-				set_time_limit(120);
+				flush();
 				ob_flush();
+				set_time_limit(120);
+
 				consolidateFiles($info, $themes, $minify);
 				$end = time();
 				echo (".." . ($end - $now) . " secs<br/>");
 			}
 		}
+		ob_end_flush();
 		closedir($dirHnd);
 	}else{
 		echo("Could not open themes directory<br/>");
