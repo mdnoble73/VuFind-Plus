@@ -330,6 +330,9 @@ class Location extends DB_DataObject
 	private $ipLocation = 'unset';
 	private $ipId = 'unset';
 	function getIPLocation(){
+		if (!$this->ipLocation != 'unset'){
+			return $this->ipLocation;
+		}
 		global $timer;
 		global $memcache;
 		global $configArray;
@@ -338,8 +341,11 @@ class Location extends DB_DataObject
 		$activeIp = $this->getActiveIp();
 		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
 		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
+		if ($this->ipId == -1){
+			$this->ipLocation = null;
+		}
 
-		if (!isset($this->ipLocation) || $this->ipLocation === false || $this->ipId === false){
+		if ($this->ipLocation == false || $this->ipId == false){
 			//echo("Active IP is $activeIp");
 			require_once './Drivers/marmot_inc/ipcalc.php';
 			require_once './Drivers/marmot_inc/subnet.php';
@@ -389,6 +395,7 @@ class Location extends DB_DataObject
 	private $activeIp = null;
 	function getActiveIp(){
 		if (!is_null($this->activeIp)) return $this->activeIp;
+		global $timer;
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
 			$ip = $_GET['test_ip'];
@@ -400,6 +407,7 @@ class Location extends DB_DataObject
 			$ip = $_SERVER['REMOTE_ADDR'];
 		}
 		$this->activeIp = $ip;
+		$timer->logTime("getActiveIp");
 		return $this->activeIp;
 	}
 

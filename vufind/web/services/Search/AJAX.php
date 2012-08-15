@@ -655,6 +655,7 @@ class AJAX extends Action {
 	function GetListTitles(){
 		global $memcache;
 		global $configArray;
+		global $timer;
 
 		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
 		$scrollerName = strip_tags($_GET['scrollerName']);
@@ -669,6 +670,7 @@ class AJAX extends Action {
 			global $interface;
 
 			$titles = $listAPI->getListTitles();
+			$timer->logTime("getListTitles");
 			$addStrandsTracking = false;
 			if ($titles['success'] == true){
 				if (isset($titles['strands'])){

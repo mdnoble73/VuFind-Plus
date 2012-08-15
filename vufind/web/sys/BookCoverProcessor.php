@@ -732,6 +732,7 @@ class BookCoverProcessor{
 	}
 
 	function logTime($message){
+		return;
 		$this->timer->logTime($message);
 	}
 }
