@@ -422,7 +422,7 @@ class BookCoverProcessor{
 			// Figure out file paths -- $tempFile will be used to store the downloaded
 			// image for analysis.  $finalFile will be used for long-term storage if
 			// $cache is true or for temporary display purposes if $cache is false.
-			$tempFile = str_replace('.png', uniqid(), $this->cacheName);
+			$tempFile = str_replace('.png', uniqid(), $this->cacheFile);
 			$finalFile = $cache ? $this->cacheFile : $tempFile . '.png';
 			$this->log("Processing url $url to $finalFile");
 
