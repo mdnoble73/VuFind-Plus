@@ -65,7 +65,7 @@ $processor = new BookCoverProcessor();
 $processor->loadCover($configArray, $timer, $logger);
 if ($processor->error){
 	header('Content-type: text/plain'); //Use for debugging notices and warnings
-	$logger->log("Error processing cover " + $processor->error, PEAR_LOG_ERR);
+	$logger->log("Error processing cover " . $processor->error, PEAR_LOG_ERR);
 	echo($processor->error);
 }
 $timer->writeTimings();
