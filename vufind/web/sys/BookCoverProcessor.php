@@ -728,7 +728,7 @@ class BookCoverProcessor{
 	}
 
 	function log($message, $level){
-		return;
+		//return;
 		$this->logger->log($message, $level);
 	}
 
