@@ -330,7 +330,7 @@ class Location extends DB_DataObject
 	private $ipLocation = 'unset';
 	private $ipId = 'unset';
 	function getIPLocation(){
-		if (!$this->ipLocation != 'unset'){
+		if ($this->ipLocation != 'unset'){
 			return $this->ipLocation;
 		}
 		global $timer;
