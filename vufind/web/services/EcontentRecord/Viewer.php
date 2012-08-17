@@ -36,7 +36,7 @@ class Viewer extends Action
 	{
 		global $interface;
 		global $configArray;
-			
+
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
@@ -44,7 +44,7 @@ class Viewer extends Action
 		$interface->assign('item', $item);
 
 		$viewer = 'custom';
-		
+
 		$errorOccurred = false;
 		if ($this->user == false){
 
@@ -86,7 +86,7 @@ class Viewer extends Action
 					$errorOccurred = true;
 					$interface->assign('errorMessage', "Sorry, you do not have access to that title, please <a href='{$configArray['Site']['path']}/Record/{$id}/Hold'>place a hold</a> on the title and you will be notified when it is ready for pickup.");
 				}
-					
+
 				if (!$errorOccurred){
 					//Record that the e-pub file is being opened.
 					if (strcasecmp($eContentItem->item_type, 'epub') === 0){
@@ -142,7 +142,7 @@ class Viewer extends Action
 						}
 						$files = readdir($dirHnd);
 						closedir($dirHnd);
-						//Sort the mp3 files by name. 
+						//Sort the mp3 files by name.
 						sort($mp3Files);
 						$interface->assign('mp3Filenames', $mp3Files);
 					}else{

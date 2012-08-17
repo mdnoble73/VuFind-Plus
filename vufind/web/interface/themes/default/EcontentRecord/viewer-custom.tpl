@@ -30,9 +30,9 @@
 				
 				var tableOfContents = new Array();
 				{foreach from=$contents item=tocEntry}
-					tableOfContents['{$tocEntry->src}'] = "{$tocEntry->title}";
+					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = "{$tocEntry->title}";
   				{foreach from=$tocEntry->children item=tocEntry2}
-  					tableOfContents['{$tocEntry2->src}'] = "{$tocEntry2->title}";
+  					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = "{$tocEntry2->title}";
   				{/foreach}
 	  		{/foreach}
 				{literal}
@@ -378,10 +378,10 @@
   	<div id="tableOfContents">
   		<div id='tableOfContentsHeader'>Table of Contents </div>
   		{foreach from=$contents item=tocEntry}
-  			<div class='tocEntry' id='toc{$tocEntry->src|replace:'#':'_'}'><a href="#" onclick="return showTocEntry('{$tocEntry->src}');">{$tocEntry->title}</a>
+  			<div class='tocEntry' id='toc{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}'><a href="#" onclick="return showTocEntry('{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}');">{$tocEntry->title}</a>
   				{foreach from=$tocEntry->children item=tocEntry2}
-  					<div class='tocEntry' id='toc{$tocEntry->src|replace:'#':'_'}'>
-  						<a href="#" onclick="return showTocEntry('{$tocEntry2->src}');">{$tocEntry2->title}</a>
+  					<div class='tocEntry' id='toc{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}'>
+  						<a href="#" onclick="return showTocEntry('{if strlen($tocEntry2->src) > 0}{$tocEntry2->src|replace:'#':'_'}{else}{$tocEntry2->location|replace:'#':'_'}{/if}');">{$tocEntry2->title}</a>
   					</div>
   				{/foreach}
   			</div>
