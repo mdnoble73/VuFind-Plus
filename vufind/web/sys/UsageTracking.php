@@ -47,7 +47,7 @@ class UsageTracking extends DB_DataObject{
 			$pageURL = $_SERVER['REQUEST_URI'];
 
 			// If the Subnet (location) is unknown save as a -1
-			print_r($ipLocation);
+			//print_r($ipLocation);
 			if ($ipLocation == null) {
 				$ipLocationId = -1;
 				$locationId = -1;
