@@ -251,7 +251,6 @@ class Location extends DB_DataObject
 		$this->userHomeLocation = null;
 
 		global $user;
-		global $library;
 		if (isset($user) && $user != false){
 			$homeLocation = new Location();
 			$homeLocation->locationId = $user->homeLocationId;

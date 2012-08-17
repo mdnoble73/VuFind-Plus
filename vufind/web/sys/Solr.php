@@ -147,7 +147,7 @@ class Solr implements IndexEngine {
 			// Return the file path (note that all ini files are in the conf/ directory)
 			$this->searchSpecsFile = "../../sites/default/conf/searchspecs.yaml";
 		}
-			
+
 		$this->host = $host . '/' . $index;
 
 		global $memcache;
@@ -328,7 +328,7 @@ class Solr implements IndexEngine {
 			if (PEAR::isError($result)) {
 				PEAR::raiseError($result);
 			}
-	
+
 			if (isset($result['response']['docs'][0])){
 				$record = $result['response']['docs'][0];
 				$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
@@ -340,7 +340,7 @@ class Solr implements IndexEngine {
 		}
 		return $record;
 	}
-	
+
 	function getRecordByBarcode($barcode){
 		if ($this->debug) {
 			echo "<pre>Get Record by Barcode: $barcode</pre>\n";
@@ -375,7 +375,7 @@ class Solr implements IndexEngine {
 		$records = array();
 		$startIndex = 0;
 		$batchSize = 30;
-			
+
 		while (true){
 			$endIndex = $startIndex + $batchSize;
 			if ($endIndex >= count($ids)){
@@ -540,7 +540,7 @@ class Solr implements IndexEngine {
 				}
 			}
 		}
-			
+
 		// Join it all together
 		return implode(' ' . $joiner . ' ', $clauses);
 	}
@@ -998,7 +998,7 @@ class Solr implements IndexEngine {
 			global $librarySingleton;
 			global $locationSingleton;
 			$searchLibrary = Library::getSearchLibrary();
-			
+
 			$applyHoldingsBoost = true;
 			if (isset($searchLibrary) && !is_null($searchLibrary)){
 				$applyHoldingsBoost = $searchLibrary->applyNumberOfHoldingsBoost;
@@ -1011,11 +1011,11 @@ class Solr implements IndexEngine {
 			//$boostFactors[] = 'product(num_holdings,7)';
 			//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
 			$boostFactors[] = 'product(sum(abs(rating),-2.5),10)';
-				
+
 			if (isset($searchLibrary) && !is_null($searchLibrary)){
 				$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
 			}
-				
+
 			//Boost items owned at our location
 			require_once('Drivers/marmot_inc/Location.php');
 			$searchLocation = Location::getSearchLocation();
@@ -1040,7 +1040,7 @@ class Solr implements IndexEngine {
 				$options['q'] = "{!boost b=$boost} $baseQuery";
 				//echo ("Advanced Query " . $options['q']);
 			}
-			
+
 			$timer->logTime("apply boosting");
 
 			//*************************
@@ -1052,19 +1052,19 @@ class Solr implements IndexEngine {
 				$filter[] = 'bib_suppression:notsuppressed';
 			}
 			if ($this->scopingDisabled == false){
-	
+
 				if (isset($searchLibrary)){
 					if (strlen($searchLibrary->defaultLibraryFacet) > 0){
 						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Digital Collection\" OR institution:\"{$searchLibrary->defaultLibraryFacet} Online\")";
 					}
 				}
-	
+
 				if ($searchLocation != null){
 					if (strlen($searchLocation->defaultLocationFacet)){
 						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Digital Collection\" OR building:\"{$searchLocation->defaultLocationFacet} Online\")";
 					}
 				}
-	
+
 				global $defaultCollection;
 				if (isset($defaultCollection) && strlen($defaultCollection) > 0){
 					$filter[] = 'collection_group:"' . $defaultCollection . '"';
@@ -1072,8 +1072,8 @@ class Solr implements IndexEngine {
 			}
 			$timer->logTime("apply filters based on location");
 		}
-		
-		
+
+
 
 		// Build Facet Options
 		if ($facet && !empty($facet['field'])) {
@@ -1093,7 +1093,7 @@ class Solr implements IndexEngine {
 					}
 				}
 			}
-				
+
 			$options['facet.field'] = (isset($facet['field'])) ? $facet['field'] : null;
 			unset($facet['field']);
 			$options['facet.prefix'] = (isset($facet['prefix'])) ? $facet['prefix'] : null;
@@ -1104,6 +1104,7 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
+			$options['f.available_at.facet.missing'] = 'true';
 
 			foreach($facet as $param => $value) {
 				$options[$param] = $value;
@@ -1516,7 +1517,7 @@ class Solr implements IndexEngine {
 		if ($responseCode == 500 || $responseCode == 400) {
 			$detail = $this->client->getResponseBody();
 			$timer->logTime("Send the update request");
-			
+
 			// Attempt to extract the most useful error message from the response:
 			if (preg_match("/<title>(.*)<\/title>/msi", $detail, $matches)) {
 				$errorMsg = $matches[1];
@@ -1632,9 +1633,9 @@ class Solr implements IndexEngine {
 	 */
 	public function validateInput($input)
 	{
-		//Get rid of any spaces at the end 
+		//Get rid of any spaces at the end
 		$input = trim($input);
-		
+
 		// Normalize fancy quotes:
 		$quotes = array(
             "\xC2\xAB"     => '"', // Â« (U+00AB) in UTF-8
@@ -1708,9 +1709,9 @@ class Solr implements IndexEngine {
             '/\[([^\[\]\s]+\s+TO\s+[^\[\]\s]+)\]/',
             '/\{([^\{\}\s]+\s+TO\s+[^\{\}\s]+)\}/',
 		// STEP 2 -- destroy remaining brackets/braces
-            '/[\[\]\{\}]/', 
+            '/[\[\]\{\}]/',
 		// STEP 3 -- unescape valid brackets/braces
-            '/\^\^lbrack\^\^/', '/\^\^rbrack\^\^/', 
+            '/\^\^lbrack\^\^/', '/\^\^rbrack\^\^/',
             '/\^\^lbrace\^\^/', '/\^\^rbrace\^\^/');
 		$matches = array(
 		// STEP 1 -- escape valid brackets/braces
@@ -1720,10 +1721,10 @@ class Solr implements IndexEngine {
 		// STEP 3 -- unescape valid brackets/braces
             '[', ']', '{', '}');
 		$input = preg_replace($patterns, $matches, $input);
-		
-		//Remove any exclamation marks that Solr will handle incorrectly. 
+
+		//Remove any exclamation marks that Solr will handle incorrectly.
 		$input = str_replace('!', '', $input);
-		
+
 		return $input;
 	}
 

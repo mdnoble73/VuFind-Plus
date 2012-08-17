@@ -63,7 +63,7 @@ class SideFacets implements RecommendationInterface
 				}
 			}
 		}
-		
+
 		$this->checkboxFacets = ($checkboxSection && isset($config[$checkboxSection])) ?
 		$config[$checkboxSection] : array();
 	}
@@ -129,7 +129,7 @@ class SideFacets implements RecommendationInterface
 				$sideFacets[$timeSinceAddedFacet]['list'] = array_reverse($sideFacets[$timeSinceAddedFacet]['list']);
 			}
 		}
-		
+
 		//Check to see if there is a facet for ratings
 		if (isset($sideFacets['rating_facet'])){
 			$ratingApplied = false;
@@ -139,12 +139,60 @@ class SideFacets implements RecommendationInterface
 					$ratingLabels = array($facetValue['value']);
 				}
 			}
-			
+
 			if (!$ratingApplied){
 				$ratingLabels =array('fiveStar','fourStar','threeStar','twoStar','oneStar', 'Unrated');
 			}
 			$interface->assign('ratingLabels', $ratingLabels);
 		}
+
+		if (isset($sideFacets['available_at'])){
+			//Mangle the availability facets
+			$oldFacetValues = $sideFacets['available_at']['list'];
+
+			//print_r($sideFacets['available_at']);
+			global $locationSingleton;
+			global $user;
+			global $library;
+			$filters = $this->searchObject->getFilterList();
+			//print_r($filters);
+			$appliedAvailability = array();
+			foreach ($filters as $appliedFilters){
+				foreach ($appliedFilters as $filter){
+					if ($filter['field'] == 'available_at'){
+						$appliedAvailability[$filter['value']] = $filter['removalUrl'];
+					}
+				}
+			}
+
+			$availableAtFacets = array();
+			if ($locationSingleton->getPhysicalLocation() != null){
+				if (isset($oldFacetValues[$locationSingleton->getPhysicalLocation()->facetLabel])){
+					$availableAtFacets[$locationSingleton->getPhysicalLocation()->facetLabel] = $oldFacetValues[$locationSingleton->getPhysicalLocation()->facetLabel];
+				}
+			}
+			if ($user){
+				$homeLibrary = $locationSingleton::getUserHomeLocation();
+				if (isset($oldFacetValues[$homeLibrary->facetLabel])){
+					$availableAtFacets[$homeLibrary->facetLabel] = $oldFacetValues[$homeLibrary->facetLabel];
+					$availableAtFacets[$homeLibrary->facetLabel]['display'] = $homeLibrary->facetLabel;
+				}
+			}
+
+			$availableAtFacets['*'] = array(
+				'value' => '*',
+				'display' => "Any Marmot Library",
+				'count' => $this->searchObject->getResultTotal() - $oldFacetValues['']['count'],
+				'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
+				'isApplied' => array_key_exists('*', $appliedAvailability),
+				'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
+			);
+
+			$sideFacets['available_at']['list'] = $availableAtFacets;
+
+			//print_r($sideFacets['available_at']);
+		}
+
 		$interface->assign('sideFacetSet', $sideFacets);
 	}
 
