@@ -204,13 +204,17 @@ public class MarcRecordDetails {
 
 			if (text != null && url != null) {
 				boolean isSourceUrl = false;
-				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title).*?")) {
+				boolean isEnrichmentUrl = false;
+				if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
+					// File is an enrichment url
+					isEnrichmentUrl = true;
+				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						isSourceUrl = true;
-						
 					}
-				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
+				} else if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
 					// File is an enrichment url
+					isEnrichmentUrl = true;
 				} else if (text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
@@ -1080,6 +1084,12 @@ public class MarcRecordDetails {
 					returnType = Set.class;
 				}else if (functionName.equals("checkSuppression") && parms.length == 4){
 					retval = checkSuppression(parms[0], parms[1], parms[2], parms[3]);
+					returnType = String.class;
+				}else if (functionName.equals("getAvailableLocations") && parms.length == 4){
+					retval = getAvailableLocations(parms[0], parms[1], parms[2], parms[3]);
+					returnType = String.class;
+				}else if (functionName.equals("getAvailableLocationsMarmot")){
+					retval = getAvailableLocationsMarmot();
 					returnType = String.class;
 				}else if (functionName.equals("getAwardName") && parms.length == 1){
 					retval = getAwardName(parms[0]);
@@ -2465,12 +2475,8 @@ public class MarcRecordDetails {
 			switch (Character.toUpperCase(leaderBit)) {
 			// Monograph
 			case 'M':
-				if (formatCode == 'C') {
-					result.add("eBook");
-				} else {
-					if (result.isEmpty()) {
-						result.add("Book");
-					}
+				if (result.isEmpty()) {
+					result.add("Book");
 				}
 				break;
 			// Serial
@@ -2933,7 +2939,7 @@ public class MarcRecordDetails {
 				while (iter2.hasNext()) {
 					String curCode = iter2.next();
 					if (curCode.matches(manualSuppressionValue)) {
-						logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
+						//logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
 						suppressRecord = true;
 						break;
 					}
@@ -2994,6 +3000,51 @@ public class MarcRecordDetails {
 		}
 		return result;
 	}
+	
+	/**
+	 * Determine Available Locations for Marmot
+	 * 
+	 * @param Record
+	 *          record
+	 * @return Set format of record
+	 */
+	public Set<String> getAvailableLocationsMarmot() {
+		String itemField = "989"; 
+		String availableStatus = "-";
+		Set<String> result = new LinkedHashSet<String>();
+		@SuppressWarnings("unchecked")
+		List<VariableField> itemRecords = record.getVariableFields(itemField);
+		char statusSubFieldChar = 'g';
+		char locationSubFieldChar = 'd';
+		for (int i = 0; i < itemRecords.size(); i++) {
+			Object field = itemRecords.get(i);
+			if (field instanceof DataField) {
+				DataField dataField = (DataField) field;
+				// Get status
+				Subfield statusSubfield = dataField.getSubfield(statusSubFieldChar);
+				if (statusSubfield != null) {
+					String status = statusSubfield.getData().trim();
+					Subfield dueDateField = dataField.getSubfield('m');
+					String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
+					//logger.debug("status is " + status + ", dueDate = '" + dueDate + "'");
+					if (status.equals("online")) {
+						// If the tile is available online, force the location to be online
+						result.add("online");
+					} else if (status.matches(availableStatus)) {
+						// If the book is available (status of -)
+						// Check the due date subfield m to see if it is out
+						if (dueDate.length() == 0){
+							Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
+							result.add(locationSubfield.getData().toLowerCase());
+							//logger.debug("record is available");
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
 
 	@SuppressWarnings({ "unchecked" })
 	public HashMap<String, String> getBrowseAuthors() {
