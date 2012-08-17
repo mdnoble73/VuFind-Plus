@@ -375,6 +375,7 @@ class MillenniumDriver implements DriverInterface
 
 				}
 			} //End looping through columns
+
 			if ($addHolding){
 				$numHoldings++;
 				$curHolding['id'] = $id;

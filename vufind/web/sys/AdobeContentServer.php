@@ -77,9 +77,9 @@ class AdobeContentServer
 	function getTitleInfo($identifier){
 		//Get copies that are checked out
 		$query =  "SELECT DISTINCT `fulfillmentitem`.`resourceid`, `fulfillment`.`returned`, `fulfillmentitem`.`until`, fulfillment.loanuntil FROM fulfillmentitem INNER JOIN " .
-              "fulfillment ON fulfillmentitem.fulfillmentid = fulfillment.fulfillmentid INNER JOIN " . 
-              "resourceitem ON fulfillmentitem.resourceid = resourceitem.resourceid " . 
-              "WHERE resourceitem.identifier like '" . mysql_real_escape_string ($identifier, $this->acsConnection) . "' and `returned` = 'F' AND `until` > NOW() " . 
+              "fulfillment ON fulfillmentitem.fulfillmentid = fulfillment.fulfillmentid INNER JOIN " .
+              "resourceitem ON fulfillmentitem.resourceid = resourceitem.resourceid " .
+              "WHERE resourceitem.identifier like '" . mysql_real_escape_string ($identifier, $this->acsConnection) . "' and `returned` = 'F' AND `until` > NOW() " .
               "ORDER BY loanuntil DESC";
 		$copiesOut = array();
 		$result = mysql_query($query, $this->acsConnection);
@@ -119,23 +119,23 @@ class AdobeContentServer
 		if ($eContentCheckout->acsTransactionId == null || $eContentCheckout->acsDownloadLink == null){
 			$transactionId = self::getUniqueID();
 			$eContentCheckout->acsTransactionId = $transactionId;
-				
+
 			$dateval=time();
 			$gbauthdate=gmdate('r', $dateval);
 
 			$rights = "";
 			$acsId = "urn:uuid:" . $eContentItem->acsId;
-			
+
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
 			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
 			    "&orderid=".urlencode($transactionId).
-			    "&resid=".urlencode($acsId). 
+			    "&resid=".urlencode($acsId).
 			    $rights.
 			    "&gbauthdate=".urlencode($gbauthdate).
 			    "&dateval=".urlencode($dateval).
 			    "&gblver=4";
-				
+
 			$linkURL = $configArray['EContent']['linkURL'];
 			if (isset($configArray['EContent']['linkURL']) && strlen($configArray['EContent']['linkURL']) > 0){
 				$sharedSecret = $configArray['EContent']['distributorSecret'];
@@ -148,7 +148,7 @@ class AdobeContentServer
 			}else{
 				return null;
 			}
-				
+
 		}else{
 			return $eContentCheckout->acsDownloadLink;
 		}
@@ -259,6 +259,7 @@ class AdobeContentServer
 		if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
 			$logger->log("Logged in to server", PEAR_LOG_INFO);
 			// Change the dir
+			ftp_pasv($conn, true);
 			ftp_chdir($conn, $packagingFTPBasePath);
 			if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
 				$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
@@ -325,7 +326,7 @@ class AdobeContentServer
 			}else{
 				return array(
 					'success' => true,
-					'acsId' => $acsId, 
+					'acsId' => $acsId,
 				);
 			}
 		}

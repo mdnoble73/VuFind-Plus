@@ -63,7 +63,7 @@ class BookCoverProcessor{
 			$epubFile = new EContentRecord();
 			$epubFile->id = $this->id;
 			if ($epubFile->find(true)){
-				$this->log("Found an eContent record for $this->id", PEAR_LOG_INFO);
+				$this->log("Found an eContent record for $this->id, source is {$epubFile->source}", PEAR_LOG_INFO);
 				//Get the cover for the epub if one exists.
 				if ((strcasecmp($epubFile->source, 'OverDrive') == 0) && ($epubFile->cover == null || strlen($epubFile->cover) == 0)){
 					$this->log("Record is an OverDrive record that needs cover information fetched.", PEAR_LOG_INFO);
@@ -77,6 +77,14 @@ class BookCoverProcessor{
 						$epubFile->cover = $filename;
 						$ret = $epubFile->updateDetailed(false); //Don't update solr for performance reasons
 						$this->log("Result of saving cover url is $ret", PEAR_LOG_INFO);
+					}
+				}elseif (preg_match('/Colorado State Gov\\. Docs/si', $epubFile->source) == 1){
+					//Cover is colorado state flag
+					$this->log("Record is a gov docs file.", PEAR_LOG_INFO);
+					$themeName = $this->configArray['Site']['theme'];
+					$filename = "interface/themes/{$themeName}/images/state_flag_of_colorado.png";
+					if ($this->processImageURL($filename, true)){
+						return;
 					}
 				}
 				if ($epubFile->cover && strlen($epubFile->cover) > 0){
@@ -727,12 +735,12 @@ class BookCoverProcessor{
 	}
 
 	function log($message, $level){
-		return;
+		//return;
 		$this->logger->log($message, $level);
 	}
 
 	function logTime($message){
-		return;
+		//return;
 		$this->timer->logTime($message);
 	}
 }
