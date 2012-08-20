@@ -320,7 +320,7 @@ public class ReindexProcess {
 		try {
 			int econtentRecordsProcessed = 0;
 			String idFilter = "";
-			if (idsToProcess.length() > 0){
+			if (idsToProcess != null && idsToProcess.length() > 0){
 				idFilter = " AND id REGEXP '" + idsToProcess + "'";
 			}
 			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter);
