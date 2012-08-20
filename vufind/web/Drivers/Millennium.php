@@ -2893,6 +2893,9 @@ class MillenniumDriver implements DriverInterface
 
 	protected function _getBarcode(){
 		global $user;
+		if (strlen($user->cat_password) == 5){
+			$user->cat_password = '41000000' . $user->cat_password;
+		}
 		return $user->cat_password;
 	}
 
