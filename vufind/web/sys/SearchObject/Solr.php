@@ -1438,7 +1438,7 @@ class SearchObject_Solr extends SearchObject_Base
 						$numValidLibraries++;
 					}
 				}else if ($doBranchProcessing){
-					if ($facet[0] == $activeLocationFacet){
+					if ($activeLocationFacet != null && $facet[0] == $activeLocationFacet){
 						$valueKey = '1' . $valueKey;
 						$foundBranch = true;
 						$numValidRelatedLocations++;
