@@ -1358,9 +1358,16 @@ class SearchObject_Solr extends SearchObject_Base
 			$activeLocationFacet = $activeLocation->facetLabel;
 		}
 		$relatedLocationFacets = null;
+		$relatedHomeLocationFacets = null;
 		if (!is_null($currentLibrary)){
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
+		}else{
+			$homeLibrary = $librarySingleton->getPatronHomeLibrary();
+			if (!is_null($homeLibrary)){
+				$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
+			}
 		}
+
 
 		$allFacets = array_merge($this->indexResult['facet_counts']['facet_fields'], $this->indexResult['facet_counts']['facet_dates']);
 		foreach ($allFacets as $field => $data) {
@@ -1383,7 +1390,9 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($field == 'institution' && isset($currentLibrary) && !is_null($currentLibrary)){
 				$doInstitutionProcessing = true;
 			}
-			if (($field == 'building' || $field == 'available_at') && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+			if ($field == 'building' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+				$doBranchProcessing = true;
+			}elseif($field == 'available_at'){
 				$doBranchProcessing = true;
 			}
 			// Should we translate values for the current facet?
@@ -1433,13 +1442,16 @@ class SearchObject_Solr extends SearchObject_Base
 						$valueKey = '1' . $valueKey;
 						$foundBranch = true;
 						$numValidRelatedLocations++;
-					}else if (in_array($facet[0], $relatedLocationFacets)){
+					}else if (!is_null($relatedLocationFacets) && in_array($facet[0], $relatedLocationFacets)){
+						$valueKey = '2' . $valueKey;
+						$numValidRelatedLocations++;
+					}else if (!is_null($relatedHomeLocationFacets) && in_array($facet[0], $relatedHomeLocationFacets)){
 						$valueKey = '2' . $valueKey;
 						$numValidRelatedLocations++;
 					}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
 						$valueKey = '4' . $valueKey;
 						$numValidRelatedLocations++;
-					}elseif ($facet[0] == $currentLibrary->facetLabel . ' Online'){
+					}elseif (!is_null($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
 						$valueKey = '3' . $valueKey;
 						$numValidRelatedLocations++;
 					}
