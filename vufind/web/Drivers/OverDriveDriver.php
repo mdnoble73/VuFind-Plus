@@ -955,6 +955,9 @@ class OverDriveDriver {
 		curl_setopt($ch, CURLOPT_POST, true);
 		$barcodeProperty = isset($configArray['Catalog']['barcodeProperty']) ? $configArray['Catalog']['barcodeProperty'] : 'cat_username';
 		$barcode = $user->$barcodeProperty;
+		if (strlen($barcode) == 5){
+			$user->cat_password = '41000000' . $barcode;
+		}
 		$postParams = array(
 			'LibraryCardNumber' => $barcode,
 			'URL' => 'MyAccount.htm',
