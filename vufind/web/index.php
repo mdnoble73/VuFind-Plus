@@ -219,8 +219,10 @@ if ($locationSingleton->getActiveLocation() != null){
 }
 if ($locationSingleton->getIPLocation() != null){
 	$interface->assign('inLibrary', true);
+	$interface->assign('physicalLocation', $locationSingleton->getIPLocation()->displayName);
 }else{
 	$interface->assign('inLibrary', false);
+	$interface->assign('physicalLocation', 'Home');
 }
 
 $productionServer = $configArray['Site']['isProduction'];
@@ -490,7 +492,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	if (isset($configArray['FooterLists'])){
 		$interface->assign('footerLists', $configArray['FooterLists']);
 	}
-	
+
 	//Load basic search types for use in the interface.
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
@@ -549,7 +551,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	if ($user){
 		$lists = $user->getLists();
 		$timer->logTime('Get user lists for book cart');
-		
+
 		$userLists = array();
 		foreach($lists as $current) {
 			$userLists[] = array('id' => $current->id,
@@ -581,7 +583,7 @@ if (!is_null($ipLocation) && $ipLocation != false && $user){
 				}
 			}
 		}
-		
+
 		$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 	}
 }else{
@@ -600,7 +602,7 @@ if (!in_array($action, array("AJAX", "JSON")) && !in_array($module, array("API",
 // Process Login Followup
 if (isset($_REQUEST['followup'])) {
 	processFollowup();
-	$timer->logTime('Process followup');	
+	$timer->logTime('Process followup');
 }
 
 //If there is a hold_message, make sure it gets displayed.
@@ -738,11 +740,11 @@ function handlePEARError($error, $method = null){
 	}
 
 	//Clear any output that has been generated so far so the user just gets the error message.
-	if (!$configArray['System']['debug']){ 
+	if (!$configArray['System']['debug']){
 		@ob_clean();
 		header("Content-Type: text/html");
 	}
-	
+
 	// Display an error screen to the user:
 	global $interface;
 	if (!isset($interface) || $interface == false){
@@ -802,12 +804,12 @@ function checkAvailabilityMode() {
 	//    set we are forcing downtime.
 	if (!$configArray['System']['available']) {
 		//Unless the user is accessing from a maintainence IP address
-		
+
 		$isMaintainence = false;
 		if (isset($configArray['System']['maintainenceIps'])){
 			$activeIp = $locationSingleton->getActiveIp();
 			$maintainenceIp =  $configArray['System']['maintainenceIps'];
-			
+
 			$maintainenceIps = explode(",", $maintainenceIp);
 			foreach ($maintainenceIps as $curIp){
 				if ($curIp == $activeIp){
@@ -816,7 +818,7 @@ function checkAvailabilityMode() {
 				}
 			}
 		}
-		
+
 		if (!$isMaintainence){
 			$mode['online']   = false;
 			$mode['level']    = 'unavailable';
@@ -863,7 +865,7 @@ function updateConfigForScoping($configArray) {
 			}
 		}
 	}
-	
+
 	$timer->logTime('got subdomain');
 
 	//Load the library system information
@@ -876,8 +878,8 @@ function updateConfigForScoping($configArray) {
 		$Library = new Library();
 		$Library->whereAdd("subdomain = '$subdomain'");
 		$Library->find();
-		
-	
+
+
 		if ($Library->N == 1) {
 			$Library->fetch();
 			//Make the library infroamtion global so we can work with it later.
@@ -907,7 +909,7 @@ function updateConfigForScoping($configArray) {
 				$configArray['Extra_Config']['facets'] = 'facets/' . $library->facetFile . '.ini';
 			}
 		}
-		
+
 		//Update the searches file
 		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
 			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
@@ -915,10 +917,10 @@ function updateConfigForScoping($configArray) {
 				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
 			}
 		}
-		
+
 
 		$location = $locationSingleton->getActiveLocation();
-		
+
 		//Add an extra css file for the location if it exists.
 		$themes = explode(',', $library->themeName);
 		foreach ($themes as $themeName){

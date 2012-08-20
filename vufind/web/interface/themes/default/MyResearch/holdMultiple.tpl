@@ -47,7 +47,7 @@
 						<div class='loginFormRow'>
 							<input type="hidden" name="holdType" value="hold"/>
 							<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Request This Title'}" {if (!isset($profile))}disabled="disabled"{/if}/>
-							<input type="checkbox" name="autologout" {if $includeAutoLogoutCode == true}checked="checked"{/if}/> Log me out after requesting the item. 
+							<input type="checkbox" name="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item. 
 						</div>
 					</div>
 				</div>

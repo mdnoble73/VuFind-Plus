@@ -7,10 +7,10 @@
 				{/if}
 				{if (!isset($profile)) }
 					<label for="username">{translate text='Username'}:</label>
-					<input type="text" name="username" id="username" size="40"><br/>
+					<input type="text" name="username" id="username" size="40" /><br/>
 					
 					<label for="username">{translate text='Password'}:</label>
-					<input type="password" name="password" id="password" size="40"><br/>
+					<input type="password" name="password" id="password" size="40" /><br/>
 					<input id="loginButton" type="button" onclick="return GetPreferredBranches('{$id|escape}');" value="Login"/>
 				{/if}
 				<div id='holdOptions' {if (!isset($profile)) }style='display:none'{/if}>
@@ -28,14 +28,14 @@
 					</div>
 					{if $showHoldCancelDate == 1}
 						<div id='cancelHoldDate'><b>{translate text="Automatically cancel this hold if not filled by"}:</b>
-							<input type="text" name="canceldate" id="canceldate" size="10">
+							<input type="text" name="canceldate" id="canceldate" size="10" />
 							<br /><i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
 						</div>
 					{/if}
 					<br />
 					<input type="hidden" name="holdType" value="hold" />
 					<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Request This Title'}" {if (!isset($profile))}disabled="disabled"{/if} />
-					<input type="checkbox" name="autologout" id="autologout" {if $includeAutoLogoutCode == true}checked="checked"{/if}/> <label for="autologout">Log me out after requesting the item.</label>
+					<input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> <label for="autologout">Log me out after requesting the item.</label>
 				</div> 
 			</div>
 		</form>
