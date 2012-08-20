@@ -1436,7 +1436,7 @@ class SearchObject_Solr extends SearchObject_Base
 					}else if (in_array($facet[0], $relatedLocationFacets)){
 						$valueKey = '2' . $valueKey;
 						$numValidRelatedLocations++;
-					}elseif ($facet[0] == 'Digital Collection'){
+					}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
 						$valueKey = '4' . $valueKey;
 						$numValidRelatedLocations++;
 					}elseif ($facet[0] == $currentLibrary->facetLabel . ' Online'){

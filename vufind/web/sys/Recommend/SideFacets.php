@@ -149,8 +149,9 @@ class SideFacets implements RecommendationInterface
 		if (isset($sideFacets['available_at'])){
 			//Mangle the availability facets
 			$oldFacetValues = $sideFacets['available_at']['list'];
+			ksort($oldFacetValues);
 
-			//print_r($sideFacets['available_at']);
+			//print_r($sideFacets['available_at']['list']);
 			global $locationSingleton;
 			global $user;
 			global $library;
@@ -166,23 +167,19 @@ class SideFacets implements RecommendationInterface
 			}
 
 			$availableAtFacets = array();
-			if ($locationSingleton->getPhysicalLocation() != null){
-				if (isset($oldFacetValues[$locationSingleton->getPhysicalLocation()->facetLabel])){
-					$availableAtFacets[$locationSingleton->getPhysicalLocation()->facetLabel] = $oldFacetValues[$locationSingleton->getPhysicalLocation()->facetLabel];
-				}
-			}
-			if ($user){
-				$homeLibrary = $locationSingleton::getUserHomeLocation();
-				if (isset($oldFacetValues[$homeLibrary->facetLabel])){
-					$availableAtFacets[$homeLibrary->facetLabel] = $oldFacetValues[$homeLibrary->facetLabel];
-					$availableAtFacets[$homeLibrary->facetLabel]['display'] = $homeLibrary->facetLabel;
+			foreach ($oldFacetValues as $facetKey => $facetInfo){
+				if (strlen($facetKey) > 1){
+					$sortIndicator = substr($facetKey, 0, 1);
+					if ($sortIndicator >= '1' && $sortIndicator <= '4'){
+						$availableAtFacets[$facetKey] = $facetInfo;
+					}
 				}
 			}
 
 			$availableAtFacets['*'] = array(
 				'value' => '*',
 				'display' => "Any Marmot Library",
-				'count' => $this->searchObject->getResultTotal() - $oldFacetValues['']['count'],
+				'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
 				'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
 				'isApplied' => array_key_exists('*', $appliedAvailability),
 				'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
