@@ -1087,10 +1087,10 @@ public class MarcRecordDetails {
 					returnType = String.class;
 				}else if (functionName.equals("getAvailableLocations") && parms.length == 4){
 					retval = getAvailableLocations(parms[0], parms[1], parms[2], parms[3]);
-					returnType = String.class;
+					returnType = Set.class;
 				}else if (functionName.equals("getAvailableLocationsMarmot")){
 					retval = getAvailableLocationsMarmot();
-					returnType = String.class;
+					returnType = Set.class;
 				}else if (functionName.equals("getAwardName") && parms.length == 1){
 					retval = getAwardName(parms[0]);
 					returnType = Set.class;
@@ -3037,7 +3037,7 @@ public class MarcRecordDetails {
 						if (dueDate.length() == 0){
 							Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
 							result.add(locationSubfield.getData().toLowerCase());
-							//logger.debug("record is available");
+							//logger.debug("record is available at " + locationSubfield.getData().toLowerCase());
 						}
 					}
 				}else{

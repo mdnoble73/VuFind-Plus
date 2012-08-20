@@ -56,6 +56,7 @@ public class ReindexProcess {
 	private static boolean exportStrandsCatalog = false;
 	private static boolean exportOPDSCatalog = true;
 	private static boolean updateAlphaBrowse = true;
+	private static String idsToProcess = null;
 	
 	//Database connections and prepared statements
 	private static Connection vufindConn = null;
@@ -318,7 +319,11 @@ public class ReindexProcess {
 		//Check to see if the record already exists
 		try {
 			int econtentRecordsProcessed = 0;
-			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'");
+			String idFilter = "";
+			if (idsToProcess.length() > 0){
+				idFilter = " AND id REGEXP '" + idsToProcess + "'";
+			}
+			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter);
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			long indexTime = new Date().getTime() / 1000;
 			while (allEContent.next()){
@@ -567,6 +572,14 @@ public class ReindexProcess {
 		} catch (SQLException e) {
 			logger.error("Unable to create log entry for reindex process", e);
 			System.exit(0);
+		}
+		
+		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
+		if (idsToProcess == null || idsToProcess.length() == 0){
+			idsToProcess = null;
+			logger.debug("Did not load a set of idsToProcess");
+		}else{
+			logger.debug("idsToProcess = " + idsToProcess);
 		}
 		
 	}
