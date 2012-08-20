@@ -3016,6 +3016,7 @@ public class MarcRecordDetails {
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
 		char statusSubFieldChar = 'g';
 		char locationSubFieldChar = 'd';
+		//logger.debug("Found " + itemRecords.size() + "items");
 		for (int i = 0; i < itemRecords.size(); i++) {
 			Object field = itemRecords.get(i);
 			if (field instanceof DataField) {
@@ -3039,6 +3040,8 @@ public class MarcRecordDetails {
 							//logger.debug("record is available");
 						}
 					}
+				}else{
+					logger.warn("No status field");
 				}
 			}
 		}
