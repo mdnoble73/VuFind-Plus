@@ -3036,7 +3036,9 @@ public class MarcRecordDetails {
 						// Check the due date subfield m to see if it is out
 						if (dueDate.length() == 0){
 							Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
-							result.add(locationSubfield.getData().toLowerCase());
+							if (locationSubfield != null){
+								result.add(locationSubfield.getData().toLowerCase());
+							}
 							//logger.debug("record is available at " + locationSubfield.getData().toLowerCase());
 						}
 					}

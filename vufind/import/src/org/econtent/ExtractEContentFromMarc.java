@@ -37,7 +37,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private boolean extractEContentFromUnchangedRecords;
 	private boolean checkOverDriveAvailability;
 	private String econtentDBConnectionInfo;
-	private String overdriveUrl;
 	private ArrayList<GutenbergItemInfo> gutenbergItemInfo = null;
 	
 	private String vufindUrl;
@@ -610,12 +609,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		if (vufindUrl == null || vufindUrl.length() == 0) {
 			logger.error("Unable to get URL for VuFind in General settings.  Please add a vufindUrl key.");
 			return false;
-		}
-		
-		//Load link to overdrive if any
-		overdriveUrl = configIni.get("OverDrive", "marcIndicator");
-		if (overdriveUrl == null || overdriveUrl.length() == 0) {
-			logger.warn("Unable to get OverDrive Url in Process settings.  Please add a overdriveUrl key.");
 		}
 		
 		//Get a list of information about Gutenberg items

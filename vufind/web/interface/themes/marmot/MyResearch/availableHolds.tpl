@@ -146,6 +146,10 @@
 										{translate text=$record.format}
 									{/if}
 								</td>
+								
+								<td class="myAccountCell">
+									{$record.location}
+								</td>
 
 								{if $showPlacedColumn}
 								<td class="myAccountCell">
