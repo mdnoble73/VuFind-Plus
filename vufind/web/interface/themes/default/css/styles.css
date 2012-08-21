@@ -483,10 +483,6 @@ div.warning {
 	color: #990000;
 }
 
-#listForm {
-	display: none;
-}
-
 #lightbox {
 	cursor: pointer;
 	background-color: #000;

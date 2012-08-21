@@ -2,6 +2,9 @@
 	<div id="main-content">
 		<form name='placeHoldForm' id='placeHoldForm' action="{$url}/MyResearch/HoldMultiple" method="post">
 			<div>
+				{if $fromCart}
+					<input type="hidden" name="fromCart" value="true" />
+				{/if}
 				{if $holdDisclaimer}
 					<div id="holdDisclaimer">{$holdDisclaimer}</div>
 				{/if}

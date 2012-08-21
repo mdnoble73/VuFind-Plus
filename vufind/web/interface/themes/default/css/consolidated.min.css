@@ -96,7 +96,7 @@ a{font-size:10px}.narrow
 dd{color:#999}p.correction
 a{font-weight:bold;font-style:italic}.correction
 img{vertical-align:middle}.error{color:#C00}#tagForm{display:none}#narrowLoading{padding:50px
-0px 100px 0px;font-weight:bold;font-style:italic;text-align:center}div.warning{font-weight:bold;font-family:courier new,courier,fixed;color:#900}#listForm{display:none}#lightbox{cursor:pointer;background-color:#000;display:none;height:100%;width:100%;top:0px;left:0px;position:absolute;z-index:400;opacity: .8;filter:alpha(opacity = 80);-moz-opacity: .8}.lightboxLoadingContents{margin:20px;text-align:center}.lightboxLoadingMessage{font-size:15px}div.popupBox{background-color:#fff;display:none;border-color:#011753;border-style:solid;border-width:1px 2px 2px 1px;box-shadow:3px 3px 5px #339;position:absolute;z-index:1000;left:33%;font-size:95%;-webkit-transition-property:height;-webkit-transition-duration:0.25s;-webkit-transition-delay:0.25s}div.popupBox
+0px 100px 0px;font-weight:bold;font-style:italic;text-align:center}div.warning{font-weight:bold;font-family:courier new,courier,fixed;color:#900}#lightbox{cursor:pointer;background-color:#000;display:none;height:100%;width:100%;top:0px;left:0px;position:absolute;z-index:400;opacity: .8;filter:alpha(opacity = 80);-moz-opacity: .8}.lightboxLoadingContents{margin:20px;text-align:center}.lightboxLoadingMessage{font-size:15px}div.popupBox{background-color:#fff;display:none;border-color:#011753;border-style:solid;border-width:1px 2px 2px 1px;box-shadow:3px 3px 5px #339;position:absolute;z-index:1000;left:33%;font-size:95%;-webkit-transition-property:height;-webkit-transition-duration:0.25s;-webkit-transition-delay:0.25s}div.popupBox
 .header{cursor:move;background-color:#011753;padding:3px
 6px 3px 10px;color:white;font-size:13px;font-weight:bold;height:24px}div.popupBox .header
 a{float:right;text-decoration:none;color:white}div.popupBox
@@ -320,8 +320,7 @@ font-size: 22px;font-family:Verdana,Helvetica,arial,sans-serif;margin-bottom:5px
 .button{background-color:#001753;display:inline-block;height:18px;line-height:18px;margin-left:10px;border-radius:3px;color:white;font-size:11px;font-family:Verdana,Helvetica,arial,sans-serif;text-transform:uppercase;font-weight:bold;zoom:1;*display:inline}#bag_add_to_my_list_button{display:inline-block;zoom:1;*display:inline}#book_bag .button
 a{color:white;font-size:11px;font-family:Verdana,Helvetica,arial,sans-serif;text-transform:uppercase;font-weight:bold}#bag-links{margin-left:5px}#book_bag .longer-button{width:auto}#book_bag
 .icon{background-repeat:no-repeat;background-position:left;margin-right:1em;padding-left:20px}#book_bag .empty_bin_bag:hover{text-decoration:underline}#bag_actions{height:220px;padding-bottom:3px;overflow:auto;color:#3e3e3e;display:none}#bag_actions
-h3{color:#001753;font-weight:500;margin-top:0px;margin-bottom:20xp
-font-size: 13px}#email_to_box,#save_to_my_list_tags{padding-top:4px;display:none}#save_to_my_list_tags
+h3{color:#001753;font-weight:500;margin-top:0px;margin-bottom:20xp font-size :   13px}#email_to_box,#save_to_my_list_tags{padding-top:4px;display:none}#save_to_my_list_tags
 #listTitle{width:95%}#save_to_my_list_tags
 #listDesc{width:95%}#bag_action_in_progress{padding-top:4px;display:none}#bag_errors{border:2px
 solid #FFF;color:#FF9;font-size:14px;font-weight:700;padding:4px;display:none}#bag_errors
@@ -412,3 +411,18 @@ th{text-align:center;font-weight:bold;padding:2px;border:1px
 solid #000;background:#eee;color:#000}table.datatable
 td{text-align:center;padding:2px;border:1px
 solid #000;background:#fff}.exportButton{text-align:center}
+/* print.css */
+@media
+print{body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small}#holdingsSummary,#holdingsSummary.reserve{margin:0;background:transparent;border:0;text-align:left;width:auto}#hd,#ft,#siteNavBackground,.currentSearch,.sectionSub,.tools,.backtosearch,#tabnav,.submenu,.add,.toggle,.fav,.searchtools,.pagination{visibility:hidden;height:0;overflow:hidden}.sidebar{display:none}a{color:#000;text-decoration:none;border:none}img{border:none}.result{border-bottom:1px solid #eee;padding:0}.record{padding:0
+1.5em}.resultItemLine1{font-weight:bold}.button{display:none}.citation{padding-bottom:1em}.citation
+th{text-align:left;color:#666;padding: .3em 0 .3em 0;border-bottom:1px solid #ccc}.citation
+tr{}.citation
+td{padding: .3em 0 .3em 1em;border-bottom:1px solid #ccc}.citation tr,.citation
+td{vertical-align:top}.alignleft{float:left;padding:4px;margin:0
+0 2px 15px}#stabnav
+a.catalog{background-image:url(/images/silk/book.png);background-repeat:no-repeat;background-position:left;padding-left:20px}#stabnav
+a.articles{background-image:url(/images/articles.png);background-repeat:no-repeat;background-position:left;padding-left:20px}.available{color:#090}.checkedout{color:#c00}.searchform,.loginOptions,.logoutOptions,.selectTitle,.requestSelectedItems,.breadcrumbs{display:none}.clearer{display:block;clear:both;height:2px}.stepcarousel{position:relative;border:0px
+solid black;overflow:scroll;width:510px;height:175px}.stepcarousel
+.serieslist{position:absolute;left:0;top:0}.stepcarousel
+.item{float:left;overflow:hidden;margin:10px;width:90px}.sidegroup{display:none}.searchcontent
+.alignright{display:none}.formatCategories,.searchheader,.searchstars,.correction,.requestSelectedItems,.authorbox,.godeeper,.toolbar,.amazonlink,.listbutton,.listResultImage,.selectAllControls,.recordcoverWrapper,.titleDetails{display:none !important}#seriesplaceholder,#reviewtab,#readertab,#ratingsummary,#staffview,#listTopButtons{display:none !important}#sidebar{display:none}#main-content{width:925px !important}.resultDetails{width:615px !important}#searchResultTopTools,#formatCategories{display:none}#list-recommended{display:none}}

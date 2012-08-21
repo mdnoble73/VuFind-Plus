@@ -91,14 +91,15 @@
 					{if $hold_message}
 						<script type="text/javascript">
 						lightbox();
-						document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
+						emptyBag();
+						document.getElementById('popupbox').innerHTML = "{$hold_message|escape:'javascript'}";
 						</script>
 					{/if}
 
 					{if $renew_message}
 						<script type="text/javascript">
 						lightbox();
-						document.getElementById('popupbox').innerHTML = "{$renew_message|escape:"javascript"}";
+						document.getElementById('popupbox').innerHTML = "{$renew_message|escape:'javascript'}";
 						</script>
 					{/if}
 

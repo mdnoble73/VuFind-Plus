@@ -377,9 +377,7 @@ div.warning {
 	font-family: courier new, courier, fixed;
 	color: #990000;
 }
-#listForm {
-	display: none;
-}
+
 #lightbox {
 	cursor: pointer;
 	background-color: #000;

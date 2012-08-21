@@ -25,16 +25,17 @@ $(document).ready(function() {
 	$("#book_bag_header").click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
 	
 	// email buttons
-	$("#bag_email_button").click(function() { toggleBagActionItems(true); $('#email_to_box').show(); return false; });
-	$("#email_to_box .bag_perform_action_button").click(function() { emailBag(); });
-	$("#email_to_box .bag_hide_button").click(function() { $('#email_to_box').hide(); toggleBagActionItems();  return false;});
+	$("#bag_email_button").click(function() { changeBagAction("email_to_box"); return false; });
+	$("#bag_email_submit").click(function() { emailBag(); return false;});
+	$(".bag_hide_button").click(function() { changeBagAction("bag_items");  return false;});
+	$(".bag_clear_button").click(function() { emptyBag();  return false;});
 	
 	// Add to my list buttons
-	$("#bag_add_to_my_list_button").click( function() {  toggleBagActionItems(true); $('#save_to_my_list_tags').show(); return false; });
-	$("#save_to_my_list_tags .bag_perform_action_button").click(function() { saveToMyList(); });	
-	$("#save_to_my_list_tags .bag_hide_button").click(function() { $('#save_to_my_list_tags').hide();  toggleBagActionItems(); return false; });
-	$("#new_list").click(function(){$('#existing_list_controls').hide();$('#new_list').hide(); $('#new_list_controls').fadeIn();$('#listForm').fadeIn()});
-	$("#choose_existing_list").click(function(){$('#new_list_controls').hide(); $('#existing_list_controls').fadeIn();$('#new_list').fadeIn();})
+	$("#bag_add_to_my_list_button").click( function() {  changeBagAction("bag_choose_list"); return false; });
+	$("#bag_save_to_list_submit").click(function() { saveToMyList(); });	
+	$("#new_list").click(function(){changeBagAction("create_list"); return false;});
+	$("#choose_existing_list").click(function(){changeBagAction("bag_choose_list"); return false;});
+	$("#bag_create_list_button").click(function(){bagAddList(); return false;});
 	// export button
 	$("#bag_request_button").click(function() { requestBag(); return false; });
 	
@@ -43,26 +44,20 @@ $(document).ready(function() {
 	
 	// login button
 	$("#login_bag").click(function() { 
-		$('#bag_actions').height('175px');
-		toggleBagActionItems(true); 
-		$('#bookcart_login').show();
+		changeBagAction("bookcart_login")
 		return false; 
 	});
 	$("#bag_login_cancel").click(function() { 
-		$('#bag_actions').height('150px');
-		toggleBagActionItems(false);
+		changeBagAction("bag_items");
 		return false;
 	});
 	$("#bag_login_submit").click(function(){bagLoginUser(); return false;});
 	
 	// bag action processes 
-	$("#bag_action_in_progress .bag_hide_button").click(function() { toggleBagActionItems();  return false; });
+	$("#bag_action_in_progress .bag_hide_button").click(function() { changeBagAction("bag_items");  return false; });
 	
 	$("#bag_empty_button").click(function() { if (confirm("Remove all items in your book cart. Are you sure?")) { emptyBag(); } return false; });
 	$("#bag_empty_button_header").click(function() { if (confirm("Remove all items in your book cart. Are you sure?")) { emptyBag(); } return false; });
-	
-	//$(".logged-in-button, .email-search").show();
-	//$(".logged-out-button, .login-button").hide();
 	
 	// check if logged in and show the proper buttons 
 	if (loggedIn) {			
@@ -96,8 +91,8 @@ function bagLoginUser(){
 					//Update the book cart display to show that the user is logged in 
 					$(".logged-in-button, .email-search").show(); $(".logged-out-button, .login-button").hide();
 					//show controls to add to a list
-					toggleBagActionItems(true); 
-					$('#save_to_my_list_tags').show();  
+					changeBagAction("bag_choose_list"); 
+					
 				}else{
 					alert("That login was not recognized.  Please try again.");
 				}
@@ -128,34 +123,23 @@ function loadListsForUser(){
 }
 
 /* Toggle the Display of the Cart Actions */
-function toggleBagActionItems(show) {
-	if (show) {
-		$("#bag_items").slideUp();
-		$("#bag_actions").slideDown(); 
-		
-		$('.bag_box').hide();
-		$('#bag_links').fadeOut();
-	} else {
-		
-		$("#bag_actions").slideUp(); 
-		$("#bag_items").slideDown(); 
-		
-		$('.bag_box').hide();	
-		$('#bag_links').fadeIn();
+var currentTopPanel = "bag_items";
+function changeBagAction(idToShow) {
+	if (idToShow == currentTopPanel){
+		return;
 	}
+	$("#" + currentTopPanel).fadeOut("slow");
+	$("#bag_actions_" + currentTopPanel).fadeOut("slow");
+	$("#" + idToShow).fadeIn("slow"); 
+	$("#bag_actions_" + idToShow).fadeIn("slow"); 
+	
+	currentTopPanel = idToShow;
 	
 }
 
 function toggleBagCanvas() {
- 
-  /* $("#book_bag_canvas").animate({ 
-	  width: "600px",	 
-	}, 500 );
-	 */
-
 	/// for now just toggle, later animate
 	$('#book_bag_canvas').slideToggle('fast');
-	
 }
 
 /** Adds or removes an item from to bag, when the check box is clicked 
@@ -179,17 +163,22 @@ function toggleInBag(id, title, checkBox) {
 }
 
 /** Create a list and then save all items in the book cart to it */
-function bagAddList(form, failMsg){
-	for (var i = 0; i < form.public.length; i++) {
-		if (form.public[i].checked) {
-			var isPublic = form.public[i].value;
-		}
-	}
+function bagAddList(){
+	var isPublic = $("#bagListPublic").is(':checked') ? '1' : '0';
+	var title = $("#listTitleBag").val();
+	var desc = $("#listDesc").val();
+	
 	var url = path + "/MyResearch/AJAX";
+	if (title == ''){
+		alert("Please enter a title for the list");
+		return false;
+	}
+	
+	_bagActionInProgress("Saving List " + title);
 	var params = "method=AddList&" +
-		"title=" + encodeURIComponent(form.title.value) + "&" +
+		"title=" + encodeURIComponent(title) + "&" +
 		"public=" + isPublic + "&" +
-		"desc=" + encodeURIComponent(form.desc.value);
+		"desc=" + encodeURIComponent(desc);
 	try{
 		$.ajax({
 			url: url + "?" + params, 
@@ -197,20 +186,21 @@ function bagAddList(form, failMsg){
 			success: function(data){
 				var result = data.result;
 				if (result == "Done"){
+					_bagActionInProgress("Created new list successfully, adding selected titles to the list.");
 					//Get the new id of the list
 					var newId = data.newId;
 					//Add the new list to the list of valid lists, and select it
 					var sel = $("#bookbag_list_select");
-					sel.append('<option value="' + newId + '" selected="selected">' + form.title.value + '</option>');
+					sel.append('<option value="' + newId + '" selected="selected">' + title + '</option>');
 					//Add all items to the list
 					saveToMyList();
 				}else{
-					alert(result > 0 ? result : failMsg);
+					_bagActionInProgress(result > 0 ? result : "Unable to create the specified list.");
 				}
 			}
 		});
 	}catch (err){
-		alert("Error adding list in book cart " + err);
+		_bagActionInProgress("Error adding list in book cart " + err);
 	}
 }
 
@@ -277,6 +267,7 @@ function _saveBagAsCookie() {
 
 /** Empties the bag */
 function emptyBag() {
+	changeBagAction("bag_items");
 	$(bookBag).each(function (i, book) {
 		_removeFromBag(book);
 	});
@@ -321,9 +312,9 @@ function updateBag(){
 		
 			// update the list of bag items
 			var bagItem = "<div class=\"bag_book_title\">" +
-					"<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a></div>" +
+					"<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a>" +
 					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\"><img src='" + path + "/images/silk/delete.png' alt='Remove' title='Remove from book cart'></a>" +
-					"</div><br />";
+					"</div></div>";
 			$("#bag_items").append(bagItem);
 		}				
 		
@@ -358,15 +349,16 @@ function _displayBagErrors() {
 		//alert(bagErrors.length);
 		while( i < bagErrors.length) {
 			var error = bagErrors[i];
-			$("#bag_errors").show();
 			$("#bag_error_message").append(error + "<br/>");
 			bagErrors.splice(i, 1);
 			i++;
 		}
+		changeBagAction("bag_errors");
 	}
 }
 
 function _bagActionInProgress(message) {
+	changeBagAction("bag_action_in_progress");
 	if (message == null || message == "undefined") {
 		// hide it	
 		$("#bag_action_in_progress").hide();
@@ -384,9 +376,10 @@ function saveToMyList() {
 	$("#bag_error_message").empty();
 	
 	var mytags = $("#save_tags_field").val();
-	var listnum = $("#list_select").val();
+	var listnum = $("#bookbag_list_select").val();
+	var listname = $("#bookbag_list_select option:selected").text();
 	
-	_bagActionInProgress("Saving to My List");
+	_bagActionInProgress("Saving to " + listname);
 	
 	var url = "";
 	$(bookBag).each(function (i, book) {
@@ -394,15 +387,13 @@ function saveToMyList() {
 		url = "id[]=" + book.id + "&" + url;
 	});
 	
-	var listnum = $("#bookbag_list_select").val();
-
 	var url = path + "/AJAX/JSON?method=saveToMyList&list=" + listnum + "&mytags=" + mytags + "&notes=&" + url;
 	$.getJSON(url, function(response) {
 		// get the response, if good, return the user to the book bag
 		// so they can do other stuff like placing holds, printing, etc. 
 		if (response.result.status  == "OK") {
 			$('#save_to_my_list_tags').hide();
-			toggleBagActionItems();
+			_bagActionInProgress("Titles saved successfully");
 		} else {
 			bagErrors.push("<strong>" + book.title + "</strong>: " + response.message);	
 			_displayBagErrors();
@@ -482,13 +473,9 @@ function printBag() {
 /** Requests all items in the bag **/
 function requestBag(){
 	//redirect to the Hold Multiple page;
-	var url = path + "/MyResearch/HoldMultiple"
+	var url = path + "/MyResearch/HoldMultiple?fromCart=true"
 	$(bookBag).each(function (i, book) {
-		if (i == 0){
-			url += "?";
-		}else{
-			url += "&";
-		}
+		url += "&";
 		var shortId = book.id;
 		url += "selected[" + shortId + "]=on";
 	});
