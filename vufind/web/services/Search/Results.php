@@ -94,14 +94,14 @@ class Results extends Action {
 				exit;
 			}
 		}
-		
+
 		$rangeFilters = array('lexile_score', 'accelerated_reader_reading_level', 'accelerated_reader_point_value');
 		foreach ($rangeFilters as $filter){
 			if (isset($_REQUEST[$filter . 'from']) || isset($_REQUEST[$filter . 'to'])){
 				$queryParams = $_GET;
 				$from = preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'from']) ? $_REQUEST[$filter . 'from'] : '*';
 				$to = preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'to']) ? $_REQUEST[$filter . 'to'] : '*';
-				
+
 				if ($to != '*' && $from != '*' && $to < $from){
 					$tmpFilter = $to;
 					$to = $from;
@@ -166,7 +166,7 @@ class Results extends Action {
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
 
 		$timer->logTime('Setup Search');
-		
+
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
 		if (PEAR::isError($result)) {
@@ -234,20 +234,22 @@ class Results extends Action {
 
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		$showRatings = 1;
+		$showProspectorResultsAtEndOfSearch = true;
 		if (isset($library)){
 			$enableProspectorIntegration = ($library->enablePospectorIntegration == 1);
 			$showRatings = $library->showRatings;
+			$showProspectorResultsAtEndOfSearch = ($library->showProspectorResultsAtEndOfSearch == 1);
 		}
 		$interface->assign('showRatings', $showRatings);
 
 		$numProspectorTitlesToLoad = 0;
 		if ($searchObject->getResultTotal() < 1) {
-			
+
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','No Results Found');
-			
+
 			// No record found
 			$interface->setTemplate('list-none.tpl');
 			$interface->assign('recordCount', 0);
@@ -287,7 +289,7 @@ class Results extends Action {
 				header("Location: " . $interface->getUrl() . "/Record/{$record['id']}/Home");
 				exit();
 			}
-			
+
 		} else {
 			$timer->logTime('save search');
 
@@ -328,12 +330,12 @@ class Results extends Action {
 			$interface->assign('sitepath', $configArray['Site']['path']);
 			$interface->assign('subpage', 'Search/list-list.tpl');
 			$interface->setTemplate('list.tpl');
-			
+
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','Search Results');
-			
+
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
@@ -351,13 +353,13 @@ class Results extends Action {
 			$timer->logTime('finish hits processing');
 		}
 
-		if ($numProspectorTitlesToLoad > 0 && $enableProspectorIntegration){
+		if ($numProspectorTitlesToLoad > 0 && $enableProspectorIntegration && $showProspectorResultsAtEndOfSearch){
 			$interface->assign('prospectorNumTitlesToLoad', $numProspectorTitlesToLoad);
 			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
 		}else{
 			$interface->assign('prospectorNumTitlesToLoad', 0);
 		}
-		
+
 		//Determine whether or not materials request functionality should be enabled
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
@@ -372,7 +374,7 @@ class Results extends Action {
 
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
-		
+
 		// Done, display the page
 		$interface->display('layout.tpl');
 	} // End launch()
