@@ -45,7 +45,7 @@
 
 	<div class="resultItemLine2">
 		{if $summAuthor}
-			{translate text='by'}
+			{translate text='by'}&nbsp;
 			{if is_array($summAuthor)}
 				{foreach from=$summAuthor item=author}
 					<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -53,6 +53,7 @@
 			{else}
 				<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
 			{/if}
+			&nbsp;
 		{/if}
  
 		{if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}

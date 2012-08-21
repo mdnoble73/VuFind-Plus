@@ -62,6 +62,7 @@ class Library extends DB_DataObject
 	public $showAdvancedSearchbox;
 	public $enableBookCart;
 	public $enablePospectorIntegration;
+	public $showProspectorResultsAtEndOfSearch;
 	public $prospectorCode;
 	public $enableGenealogy;
 	public $showHoldCancelDate;
@@ -94,7 +95,7 @@ class Library extends DB_DataObject
 	function getObjectStructure(){
 		// get the structure for the library system's holidays
 		$holidaysStructure = Holiday::getObjectStructure();
-		
+
 		// we don't want to make the libraryId property editable
 		// because it is associated with this library system only
 		unset($holidaysStructure['libraryId']);
@@ -102,7 +103,7 @@ class Library extends DB_DataObject
 		$nearbyBookStoreStructure = NearbyBookStore::getObjectStructure();
 		unset($nearbyBookStoreStructure['weight']);
 		unset($nearbyBookStoreStructure['libraryId']);
-		
+
 		$structure = array(
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
@@ -150,14 +151,14 @@ class Library extends DB_DataObject
 			'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'size'=>'40', 'hideInLists' => true,),
 			'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 			'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
-			'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,), 
-			'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,), 
-			'boopsieLink'  => array('property'=>'boopsieLink', 'type'=>'url', 'label'=>'Boopsie Link', 'description'=>'A link to the Boopsie Mobile App', 'size'=>'80', 'hideInLists' => true,),  
-			'inSystemPickupsOnly'  => array('property'=>'inSystemPickupsOnly', 'type'=>'checkbox', 'label'=>'In System Pickups Only', 'description'=>'Restrict pickup locations to only locations within the library system which is active.', 'hideInLists' => true,), 
-			'validPickupSystems'  => array('property'=>'validPickupSystems', 'type'=>'text', 'label'=>'Valid Pickup Systems', 'description'=>'A list of library codes that can be used as pickup locations separated by pipes |', 'size'=>'20', 'hideInLists' => true,), 
-			'defaultPType'  => array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.'), 
+			'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),
+			'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,),
+			'boopsieLink'  => array('property'=>'boopsieLink', 'type'=>'url', 'label'=>'Boopsie Link', 'description'=>'A link to the Boopsie Mobile App', 'size'=>'80', 'hideInLists' => true,),
+			'inSystemPickupsOnly'  => array('property'=>'inSystemPickupsOnly', 'type'=>'checkbox', 'label'=>'In System Pickups Only', 'description'=>'Restrict pickup locations to only locations within the library system which is active.', 'hideInLists' => true,),
+			'validPickupSystems'  => array('property'=>'validPickupSystems', 'type'=>'text', 'label'=>'Valid Pickup Systems', 'description'=>'A list of library codes that can be used as pickup locations separated by pipes |', 'size'=>'20', 'hideInLists' => true,),
+			'defaultPType'  => array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.'),
 			'goldRushCode'  => array('property'=>'goldRushCode', 'type'=>'text', 'label'=>'Gold Rush Inst Code', 'description'=>'The INST Code to use with Gold Rush.  Leave blank to not link to Gold Rush.', 'hideInLists' => true,),
-			'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'), 
+			'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
 			'repeatInProspector'  => array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true,),
 			'prospectorCode' => array('property'=>'prospectorCode', 'type'=>'text', 'label'=>'Prospector Code', 'description'=>'The code used to identify this location within Prospector. Leave blank if items for this location are not in Prospector.', 'hideInLists' => true,),
 			'repeatInWorldCat'  => array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true,),
@@ -168,6 +169,7 @@ class Library extends DB_DataObject
 			'systemsToRepeatIn'  => array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
 			'enableBookCart'  => array('property'=>'enableBookCart', 'type'=>'checkbox', 'label'=>'Enable Book Cart', 'description'=>'Whether or not the Book Cart should be used for this library.', 'hideInLists' => true,),
 			'enablePospectorIntegration'=> array('property'=>'enablePospectorIntegration', 'type'=>'checkbox', 'label'=>'Enable Prospector Integration', 'description'=>'Whether or not Prospector Integrations should be displayed for this library.', 'hideInLists' => true,),
+			'showProspectorResultsAtEndOfSearch' => array('property'=>'showProspectorResultsAtEndOfSearch', 'type'=>'checkbox', 'label'=>'Show Prospector Results At End Of Search', 'description'=>'Whether or not Prospector Search Results should be shown at the end of search results.', 'hideInLists' => true,),
 			'enableGenealogy' => array('property'=>'enableGenealogy', 'type'=>'checkbox', 'label'=>'Enable Genealogy Functionality', 'description'=>'Whether or not patrons can search genealogy.', 'hideInLists' => true,),
 			'enableCourseReserves' => array('property'=>'enableCourseReserves', 'type'=>'checkbox', 'label'=>'Enable Repeat Search in Course Reserves', 'description'=>'Whether or not patrons can repeat searches within course reserves.', 'hideInLists' => true,),
 			'enableAlphaBrowse' => array('property'=>'enableAlphaBrowse', 'type'=>'checkbox', 'label'=>'Enable Alphabetic Browse', 'description'=>'Enable Alphabetic Browsing of titles, authors, etc.', 'hideInLists' => true,),
@@ -241,7 +243,7 @@ class Library extends DB_DataObject
 		if (isset($library)) {
 			return $library;
 		}
-		//If there is only one library, that library is active by default. 
+		//If there is only one library, that library is active by default.
 		$activeLibrary = new Library();
 		$activeLibrary->find();
 		if ($activeLibrary->N == 1){
@@ -256,7 +258,7 @@ class Library extends DB_DataObject
 			return self::getLibraryForLocation($physicalLocation->libraryId);
 		}
 		//Finally check to see if the user has logged in and if so, use that library
-		//MDN 7/9/2012 - Do not use home branch since that can lead to some very odd behavior. 
+		//MDN 7/9/2012 - Do not use home branch since that can lead to some very odd behavior.
 		/*if (isset($user) && $user != false){
 			//Load the library based on the home branch for the user
 			return self::getLibraryForLocation($user->homeLocationId);
@@ -319,7 +321,7 @@ class Library extends DB_DataObject
 			return $this->nearbyBookStores;
 		}
 	}
-	
+
 	public function __set($name, $value){
 		if ($name == "holidays") {
 			$this->holidays = $value;
@@ -327,7 +329,7 @@ class Library extends DB_DataObject
 			$this->nearbyBookStores = $value;
 		}
 	}
-	
+
 	/**
 	 * Override the update functionality to save related objects
 	 *
@@ -342,7 +344,7 @@ class Library extends DB_DataObject
 			$this->saveNearbyBookStores();
 		}
 	}
-	
+
 	/**
 	 * Override the update functionality to save the related objects
 	 *
@@ -357,7 +359,7 @@ class Library extends DB_DataObject
 			$this->saveNearbyBookStores();
 		}
 	}
-	
+
 	public function saveHolidays(){
 		if (isset ($this->holidays) && is_array($this->holidays)){
 			foreach ($this->holidays as $holiday){
@@ -375,7 +377,7 @@ class Library extends DB_DataObject
 			unset($this->holidays);
 		}
 	}
-	
+
 	public function saveNearByBookStores(){
 		if (isset ($this->nearbyBookStores) && is_array($this->nearbyBookStores)){
 			foreach ($this->nearbyBookStores as $store){
@@ -393,7 +395,7 @@ class Library extends DB_DataObject
 			unset($this->nearbyBookStores);
 		}
 	}
-	
+
 	static function getBookStores(){
 		$library = Library::getActiveLibrary();
 		if ($library) {
