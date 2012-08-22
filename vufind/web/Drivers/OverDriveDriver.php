@@ -52,6 +52,18 @@ class OverDriveDriver {
 		}
 	}
 
+	private function connectToAPI(){
+		$chnd = curl_init("https://oauth.overdrive.com/token");
+		curl_setopt($process, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8', $additionalHeaders));
+curl_setopt($process, CURLOPT_HEADER, 1);
+curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
+curl_setopt($process, CURLOPT_TIMEOUT, 30);
+curl_setopt($process, CURLOPT_POST, 1);
+curl_setopt($process, CURLOPT_POSTFIELDS, $payloadName);
+curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+
+	}
+
 	/**
 	 * Loads information about items within the user's cart in OverDrive.
 	 * No caching is done becase the cart page always changes during the checkout process.

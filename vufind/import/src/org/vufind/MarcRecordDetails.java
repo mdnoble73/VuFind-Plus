@@ -1101,6 +1101,11 @@ public class MarcRecordDetails {
 					returnType = method.getReturnType();
 					retval = method.invoke(objectThatContainsMethod, objParms);
 				}
+				if (retval != null && returnType != null){
+					if (!returnType.isAssignableFrom(retval.getClass())){
+						logger.error("Return Type is not valid for " + functionName);
+					}
+				}
 			} else {
 				method = marcProcessor.getCustomMethodMap().get(indexParm);
 				if (method == null) method = classThatContainsMethod.getMethod(indexParm);
@@ -1271,6 +1276,8 @@ public class MarcRecordDetails {
 			String field = (String) retval;
 			if (mapName != null && marcProcessor.findMap(mapName) != null) field = Utils.remap(field, marcProcessor.findMap(mapName), true);
 			addField(indexMap, indexField, null, field);
+		} else{
+			logger.error("Incorrect return type for " + indexField + " expected Map, String, or Set");
 		}
 		return false;
 	}
@@ -3016,7 +3023,6 @@ public class MarcRecordDetails {
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
 		char statusSubFieldChar = 'g';
 		char locationSubFieldChar = 'd';
-		//logger.debug("Found " + itemRecords.size() + "items");
 		for (int i = 0; i < itemRecords.size(); i++) {
 			Object field = itemRecords.get(i);
 			if (field instanceof DataField) {
@@ -3027,19 +3033,13 @@ public class MarcRecordDetails {
 					String status = statusSubfield.getData().trim();
 					Subfield dueDateField = dataField.getSubfield('m');
 					String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
-					//logger.debug("status is " + status + ", dueDate = '" + dueDate + "'");
-					if (status.equals("online")) {
-						// If the tile is available online, force the location to be online
-						result.add("online");
-					} else if (status.matches(availableStatus)) {
+					Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
+					String location = locationSubfield == null ? "" : locationSubfield.getData().toLowerCase().trim();
+					if (status.matches(availableStatus)) {
 						// If the book is available (status of -)
 						// Check the due date subfield m to see if it is out
 						if (dueDate.length() == 0){
-							Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
-							if (locationSubfield != null){
-								result.add(locationSubfield.getData().toLowerCase());
-							}
-							//logger.debug("record is available at " + locationSubfield.getData().toLowerCase());
+							result.add(location);
 						}
 					}
 				}else{

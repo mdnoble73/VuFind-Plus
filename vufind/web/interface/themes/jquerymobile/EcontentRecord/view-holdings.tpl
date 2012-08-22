@@ -24,7 +24,7 @@
 {/if}
 
 {if $sourceUrl}
-  <div>
-  	<a href="{$sourceUrl}" data-role="button" rel="external">Access original files</a>
-  </div>
+	<div>
+		<a href="{$sourceUrl}" data-role="button" rel="external">Access original files</a>
+	</div>
 {/if}

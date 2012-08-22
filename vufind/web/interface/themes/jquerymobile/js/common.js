@@ -60,3 +60,24 @@ function lessFacets(name){
 	$("#more" + name).show();
 	$(".narrowGroupHidden_" + name).hide();
 }
+
+var ajaxCallback = null;
+function ajaxLogin(callback){
+	ajaxCallback = callback;
+	ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
+}
+
+function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
+	
+	var loadMsg = $('#lightboxLoading').html();
+	$('#popupbox').html(loadMsg);
+	$("#popupbox").dialog("open")
+		
+	$.get(urlToLoad, function(data) {
+		$('#popupbox').html(data);
+		
+		if ($("#popupboxHeader").length > 0){
+			$("#popupbox").draggable({ handle: "#popupboxHeader" });
+		}
+	});
+}
