@@ -1,5 +1,5 @@
 {if count($holdings) > 0}
-	<table>
+	<table border="0" class="holdingsTable">
 	<thead>
 		<tr>
 			<th>Type</th>

@@ -1,29 +1,78 @@
+html, body{
+	background-color: #F0F0F0;
+}
 .searchHomeForm {
 	background-color: #C5112A;
 	border-color: #9D1F35;
 }
 
-/* Changes for the academic theme, make facets appear on the left */
-.yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main {
-	float: right;
-	margin-right: -15em;
+.searchHomeForm {
+	background-color: #2B627F;
+	color: white;
+	border-top: black 2px solid;
 }
 
-.yui-t4 .yui-b {
-	float: left;
+#header_logo{
+	position: relative;
+	left: 0px;
+	top: 0px;
+}
+#loginBlock{
+	text-align: right;
+	top: 5px;
+	left: 20px;
+}
+#loginBlock div{
+	display: inline-block;
+	zoom:1;
+	*display: block;
+}
+#searchbar, .breadcrumbs{
+	background-color: #2B627F; 
+	color: white;
 }
 
-/* Revert a few pages back */
-body.Record .yui-t4 .yui-b,body.Browse .yui-t4 .yui-b {
-	float: right;
+#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{
+	color: white;
+}
+#searchbar a:hover, .breadcrumbs a:hover{
+	color: #C59019;
 }
 
-body.Record .yui-t4 #yui-main,body.Record .yui-t5 #yui-main,body.Record .yui-t6 #yui-main {
-	float: left;
-	margin-right: -25em;
+div.breadcrumbs{
+	border-top: thin solid white; 
+	height: 20px;
+	line-height: 20px;
 }
 
-body.Browse .yui-t4 #yui-main,body.Browse .yui-t5 #yui-main,body.Browse .yui-t6 #yui-main {
-	float: left;
-	margin-right: -25em;
+div.breadcrumbs span{
+	background: none;
+	border-right: 2px solid white;
+	width: 2px;
+	opacity: 1;
+}
+
+.searchheader{
+	background-color: white;
+	color: #67676A;
+	width: 960px;
+	margin: 0px auto;
+	padding: 0px;
+}
+
+.searchheader a, .searchheader a:visited{
+	color: #67676A;
+}
+.searchheader a:hover{
+	color: #222;
+}
+#ft {
+	background-color: #2B627F;
+	color: #CC9933;
+}
+#ft a, #ft a:visited{
+	color: #A0A0A0;
+}
+#ft a:hover{
+	color: #CC9933;
 }

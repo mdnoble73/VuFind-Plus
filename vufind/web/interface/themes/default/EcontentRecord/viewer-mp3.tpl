@@ -238,7 +238,7 @@
 				<div class="jp-title"></div>
 				<div class="jp-no-solution" style="display: none;">
 					<span>Update Required</span>
-					To play the media you will need to either update your browser to a recent version or update your <a target="_blank" href="http://get.adobe.com/flashplayer/">Flash plugin</a>.
+					To play the media you will need to either update your browser to a recent version or update your <a rel="external" onclick="window.open (this.href, 'child'); return false" href="http://get.adobe.com/flashplayer/">Flash plugin</a>.
 				</div>
 			</div>
 		</div>

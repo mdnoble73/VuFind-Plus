@@ -138,6 +138,26 @@ class EContentItem extends DB_DataObject {
 			'storeDb' => true,
 		  'storeSolr' => false,
 		),
+		
+		'reviewStatus' => array(
+			'property' => 'reviewStatus',
+			'type' => 'enum',
+			'values' => array('Not Reviewed' => 'Not Reviewed', 'Approved' => 'Approved', 'Rejected' => 'Rejected'),
+			'label' => 'Review Status',
+			'description' => 'The status of the review of the item.',
+			'storeDb' => true,
+			'storeSolr' => false,
+			'default' => 'Not Reviewed'
+		),
+		
+		'reviewNotes' => array(
+			'property' => 'reviewNotes',
+			'type' => 'textarea',
+			'label' => 'Review Notes',
+			'description' => 'Notes relating to the reivew.',
+			'storeDb' => true,
+		  'storeSolr' => false,
+		)
 		);
 
 		foreach ($structure as $fieldName => $field){
@@ -256,6 +276,9 @@ class EContentItem extends DB_DataObject {
 	}
 
 	function insert(){
+		if ($this->reviewStatus == 0){
+			$this->reviewStatus = 'Not Reviewed';
+		}
 		//If the file should be protected with the ACS server, submit the file
 		//to the ACS server for protection.
 		require_once 'sys/AdobeContentServer.php';
@@ -266,37 +289,41 @@ class EContentItem extends DB_DataObject {
 		$this->addedBy = $user->id;
 		$this->date_updated = time();
 		
-		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
-			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, false, $this->getAvailableCopies());
-			if ($uploadResults['success']){
-				$this->acsId = $uploadResults['acsId'];
-				$fileUploaded  = true;
-			}else{
-				$fileUploaded = false;
+		//Save the item to the database
+		$ret =  parent::insert();
+		
+		if ($ret){
+			//Package the file as needed
+			if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
+				$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, false, $this->getAvailableCopies());
+				if ($uploadResults['success']){
+					$this->acsId = $uploadResults['acsId'];
+					$fileUploaded  = true;
+				}else{
+					return 0;
+				}
 			}
-		}else{
-			$fileUploaded = true;
 		}
-		if ($fileUploaded){
-			$ret =  parent::insert();
-			//Make sure to also update the record this is attached to so the full text can be generated
-			if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
-				$record = new EContentRecord();
-				$record->id = $this->recordId;
-				$record->find(true);
-				$record->update();
-			}
-			return $ret;
-		}else{
-			return 0;
+		
+		//Make sure to also update the record this is attached to so the full text can be generated
+		if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
+			$record = new EContentRecord();
+			$record->id = $this->recordId;
+			$record->find(true);
+			$record->update();
 		}
+		return $ret;
+
 	}
 
 	function update(){
+		if ($this->reviewStatus == 0){
+			$this->reviewStatus = 'Not Reviewed';
+		}
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
 			require_once 'sys/AdobeContentServer.php';
 			global $configArray;
-			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->acsId, $this->getAvailableCopies());
+			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, $this->acsId, $this->getAvailableCopies());
 			if ($uploadResults['success']){
 				$oldAcs = $this->acsId;
 				$this->acsId = $uploadResults['acsId'];
@@ -432,7 +459,7 @@ class EContentItem extends DB_DataObject {
 			$library = new Library();
 			$library->libraryId = $this->libraryId;
 			if ($library->find(true)){
-				$notes = "Available to <b>{$library->displayName} patrons</b> only.";
+				$notes = "Available to <b>{$library->abbreviatedDisplayName} patrons</b> only.";
 			}else{
 				$notes = "Could not load library information.";
 			}

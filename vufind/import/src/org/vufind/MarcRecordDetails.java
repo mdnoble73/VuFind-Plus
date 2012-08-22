@@ -1,6 +1,7 @@
 package org.vufind;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -62,7 +63,7 @@ public class MarcRecordDetails {
 	private long														checksum				= -1;
 
 	private boolean													allFieldsMapped	= false;
-
+	
 	/**
 	 * Does basic mapping of fields to determine if the record has changed or not
 	 * 
@@ -89,7 +90,6 @@ public class MarcRecordDetails {
 	 */
 	private boolean mapRecord(String source) {
 		if (allFieldsMapped) return true;
-		//logger.debug("Mapping record " + getId() + " " + source);
 		allFieldsMapped = true;
 
 		// Map all fields for the record
@@ -97,7 +97,6 @@ public class MarcRecordDetails {
 			String fieldVal[] = marcProcessor.getMarcFieldProps().get(fieldName);
 			mapField(fieldName, fieldVal);
 		}
-
 		return true;
 	}
 
@@ -173,17 +172,17 @@ public class MarcRecordDetails {
 		}
 	}
 
-	public ArrayList<LibrarySpecificLink> getSourceUrls() {
+	public ArrayList<LibrarySpecificLink> getSourceUrls() throws IOException{
 		loadUrls();
 		return sourceUrls;
 	}
 
-	public String getPurchaseUrl() {
+	public String getPurchaseUrl() throws IOException{
 		loadUrls();
 		return purchaseUrl;
 	}
 
-	public void loadUrls() {
+	public void loadUrls() throws IOException{
 		if (urlsLoaded) return;
 		//logger.info("Loading urls from 856 field");
 		@SuppressWarnings("unchecked")
@@ -205,13 +204,17 @@ public class MarcRecordDetails {
 
 			if (text != null && url != null) {
 				boolean isSourceUrl = false;
-				if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title).*?")) {
+				boolean isEnrichmentUrl = false;
+				if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
+					// File is an enrichment url
+					isEnrichmentUrl = true;
+				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						isSourceUrl = true;
-						
 					}
-				} else if (text.matches("(?i).*?(?:cover|review).*?")) {
+				} else if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
 					// File is an enrichment url
+					isEnrichmentUrl = true;
 				} else if (text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
@@ -261,12 +264,12 @@ public class MarcRecordDetails {
 			for (DataField curItem : itemFields) {
 				Subfield urlField = curItem.getSubfield(marcProcessor.getUrlSubfield().charAt(0));
 				if (urlField != null) {
-					//logger.info("Found item based url " + urlField.getData());
+					logger.info("Found item based url " + urlField.getData());
 					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
 					if (locationField != null) {
-						//logger.info("  Location is " + locationField.getData());
+						logger.info("  Location is " + locationField.getData());
 						long libraryId = getLibrarySystemIdForLocation(locationField.getData());
-						//logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
+						logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
 						sourceUrls.add(new LibrarySpecificLink(urlField.getData(), libraryId));
 					}
 				}
@@ -284,8 +287,9 @@ public class MarcRecordDetails {
 		urlsLoaded = true;
 	}
 
-	private void getUrlsForItemsFromMillennium() {
-		String catalogUrl = "https://www.millennium.marmot.org";
+	private void getUrlsForItemsFromMillennium() throws IOException {
+		String catalogUrl = marcProcessor.getCatalogUrl();
+		
 		String scope = "93";
 		String shortId = this.getId();
 		shortId = shortId.substring(1, shortId.length() - 1);
@@ -313,7 +317,8 @@ public class MarcRecordDetails {
 				logger.error("Could not extract items from millennium, regex was invalid " + ex.toString());
 			}
 		}else{
-			logger.error("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
+			throw new IOException("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
+			//logger.error("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
 		}
 	}
 
@@ -659,12 +664,14 @@ public class MarcRecordDetails {
 						}
 					}
 					if (buffer.length() > 0) resultSet.add(buffer.toString());
-				} else {
+				} else if (subfldsStr.length() == 1){
 					// get all instances of the single subfield
 					List<Subfield> subFlds = dfield.getSubfields(subfldsStr.charAt(0));
 					for (Subfield sf : subFlds) {
 						resultSet.add(sf.getData().trim());
 					}
+				} else {
+					logger.warn("No subfield provided when getting getSubfieldDataAsSet for " + fldTag);
 				}
 			} else {
 				// Control Field
@@ -1004,11 +1011,96 @@ public class MarcRecordDetails {
 				for (int i = 0; i < numparms; i++) {
 					parmClasses[i] = String.class;
 					objParms[i] = Util.cleanIniValue(parms[i].trim());
+					parms[i] = Util.cleanIniValue(parms[i].trim());
 				}
-				method = marcProcessor.getCustomMethodMap().get(functionName);
-				if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
-				returnType = method.getReturnType();
-				retval = method.invoke(objectThatContainsMethod, objParms);
+				if (functionName.equals("getDate")){
+					retval = getDate();
+					returnType = String.class;
+				}else if (functionName.equals("getAllFields")){
+					retval = getAllFields();
+					returnType = String.class;
+				}else if (functionName.equals("getAllSearchableFields") && parms.length == 2){
+					retval = getAllSearchableFields(parms[0], parms[1]);
+					returnType = String.class;
+				}else if (functionName.equals("getFormat") && parms.length == 1){
+					retval = getFormat(parms[0]);
+					returnType = Set.class;
+				}else if (functionName.equals("getFormat")){
+					retval = getFormat("false");
+					returnType = Set.class;
+				}else if (functionName.equals("getAllSubfields") && parms.length == 2){
+					retval = getAllSubfields(parms[0], parms[1]);
+					returnType = Set.class;
+				}else if (functionName.equals("getSortableTitle")){
+					retval = getSortableTitle();
+					returnType = String.class;
+				}else if (functionName.equals("getFullCallNumber") && parms.length == 1){
+					retval = getFullCallNumber(parms[0]);
+					returnType = String.class;
+				}else if (functionName.equals("getCallNumberSubject") && parms.length == 1){
+					retval = getCallNumberSubject(parms[0]);
+					returnType = String.class;
+				}else if (functionName.equals("getCallNumberLabel") && parms.length == 1){
+					retval = getCallNumberLabel(parms[0]);
+					returnType = String.class;
+				}else if (functionName.equals("isIllustrated")){
+					retval = isIllustrated();
+					returnType = String.class;
+				}else if (functionName.equals("getLocationCodes") && parms.length == 2){
+					retval = getLocationCodes(parms[0], parms[1]);
+					returnType = Set.class;
+				}else if (functionName.equals("getLibrarySystemBoost") && parms.length == 4){
+					retval = getLibrarySystemBoost(parms[0], parms[1], parms[2], parms[3]);
+					returnType = String.class;
+				}else if (functionName.equals("getLocationBoost") && parms.length == 3){
+					retval = getLocationBoost(parms[0], parms[1], parms[2]);
+					returnType = String.class;
+				}else if (functionName.equals("getLiteraryForm")){
+					retval = getLiteraryForm();
+					returnType = Set.class;
+				}else if (functionName.equals("getTargetAudience")){
+					retval = getTargetAudience();
+					returnType = Set.class;
+				}else if (functionName.equals("getNumHoldings") && parms.length == 1){
+					retval = getNumHoldings(parms[0]);
+					returnType = String.class;
+				}else if (functionName.equals("getMpaaRating")){
+					retval = getMpaaRating();
+					returnType = String.class;
+				}else if (functionName.equals("getRating") && parms.length == 1){
+					retval = getRating(parms[0]);
+					returnType = String.class;
+				}else if (functionName.equals("getRatingFacet") && parms.length == 1){
+					retval = getRatingFacet(parms[0]);
+					returnType = String.class;
+				}else if (functionName.equals("getDateAdded") && parms.length == 2){
+					retval = getDateAdded(parms[0], parms[1]);
+					returnType = String.class;
+				}else if (functionName.equals("getRelativeTimeAdded") && parms.length == 2){
+					retval = getRelativeTimeAdded(parms[0], parms[1]);
+					returnType = String.class;
+				}else if (functionName.equals("getLibraryRelativeTimeAdded") && parms.length == 6){
+					retval = getLibraryRelativeTimeAdded(parms[0], parms[1], parms[2], parms[3], parms[4], parms[5]);
+					returnType = Set.class;
+				}else if (functionName.equals("checkSuppression") && parms.length == 4){
+					retval = checkSuppression(parms[0], parms[1], parms[2], parms[3]);
+					returnType = String.class;
+				}else if (functionName.equals("getAvailableLocations") && parms.length == 4){
+					retval = getAvailableLocations(parms[0], parms[1], parms[2], parms[3]);
+					returnType = Set.class;
+				}else if (functionName.equals("getAvailableLocationsMarmot")){
+					retval = getAvailableLocationsMarmot();
+					returnType = Set.class;
+				}else if (functionName.equals("getAwardName") && parms.length == 1){
+					retval = getAwardName(parms[0]);
+					returnType = Set.class;
+				}else{
+					logger.debug("Using reflection to invoke custom method " + functionName);
+					method = marcProcessor.getCustomMethodMap().get(functionName);
+					if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
+					returnType = method.getReturnType();
+					retval = method.invoke(objectThatContainsMethod, objParms);
+				}
 			} else {
 				method = marcProcessor.getCustomMethodMap().get(indexParm);
 				if (method == null) method = classThatContainsMethod.getMethod(indexParm);
@@ -1207,6 +1299,9 @@ public class MarcRecordDetails {
 			Subfield f = iter.next();
 			char code = f.getCode();
 			if (code == 'a' || code == 'b' || code == 'k') {
+				if (titleBuilder.length() > 0){
+					titleBuilder.append(" ");
+				}
 				titleBuilder.append(f.getData());
 			}
 		}
@@ -1245,6 +1340,29 @@ public class MarcRecordDetails {
 		}
 
 		return title;
+	}
+	
+	public Set<String> getAllTitles(){
+		HashSet<String> titles = new HashSet<String>();
+		titles.add(this.getTitle());
+		Object altTitles = this.getMappedField("title_alt");
+		if (altTitles instanceof String){
+			titles.add((String)altTitles);
+		}else if (altTitles instanceof Set){
+			@SuppressWarnings("unchecked")
+			Set<String> altTitles2 = (Set<String>)altTitles;
+			titles.addAll(altTitles2);
+		}
+		return titles;
+	}
+	
+	public HashMap<String, String> getBrowseTitles(){
+		Set<String> allTitles = getAllTitles();
+		HashMap<String, String> browseTitles = new HashMap<String, String>();
+		for (String curTitles: allTitles){
+			browseTitles.put(Util.makeValueSortable(curTitles), curTitles);
+		}
+		return browseTitles;
 	}
 
 	public String getDescription() {
@@ -1789,10 +1907,10 @@ public class MarcRecordDetails {
 																																															 */
 		) {
 			char targetAudienceChar;
-			if (ohOhSixField != null && ohOhSixField.getData().length() >= 16) {
+			if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
 				targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
 				result.add(Character.toString(targetAudienceChar));
-			} else if (ohOhEightField != null && ohOhEightField.getData().length() >= 33) {
+			} else if (ohOhEightField != null && ohOhEightField.getData().length() > 33) {
 				targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
 				result.add(Character.toString(targetAudienceChar));
 			} else {
@@ -1805,8 +1923,12 @@ public class MarcRecordDetails {
 		return result;
 	}
 
+	Set<LocalCallNumber> localCallnumbers = null;
 	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield) {
-		Set<LocalCallNumber> localCallnumbers = new HashSet<LocalCallNumber>();
+		if (localCallnumbers != null){
+			return localCallnumbers;
+		}
+		localCallnumbers = new HashSet<LocalCallNumber>();
 		@SuppressWarnings("unchecked")
 		List<DataField> itemFields = record.getVariableFields(itemTag);
 		Iterator<DataField> itemFieldIterator = itemFields.iterator();
@@ -1819,7 +1941,10 @@ public class MarcRecordDetails {
 			if (callNumber != null && location != null) {
 				String callNumberData = callNumber.getData();
 				callNumberData = callNumberData.replaceAll("~", " ");
-				LocalCallNumber localCallNumber = new LocalCallNumber(location.getData(), callNumberData);
+				String locationCode = location.getData();
+				long locationId = getLocationIdForLocation(locationCode);
+				long libraryId = getLibrarySystemIdForLocation(locationCode);
+				LocalCallNumber localCallNumber = new LocalCallNumber(locationId, libraryId, callNumberData);
 				localCallnumbers.add(localCallNumber);
 			}
 		}
@@ -1827,7 +1952,7 @@ public class MarcRecordDetails {
 	}
 
 	private Set<String>	locationCodes;
-
+	private static Pattern locationExtractionPattern = null;
 	public Set<String> getLocationCodes(String locationSpecifier, String locationSpecifier2) {
 		if (locationCodes != null) {
 			return locationCodes;
@@ -1840,8 +1965,10 @@ public class MarcRecordDetails {
 		while (iter.hasNext()) {
 			String curLocationCode = iter.next();
 			try {
-				Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
-				Matcher RegexMatcher = Regex.matcher(curLocationCode);
+				if (locationExtractionPattern == null){
+					locationExtractionPattern = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
+				}
+				Matcher RegexMatcher = locationExtractionPattern.matcher(curLocationCode);
 				if (RegexMatcher.find()) {
 					curLocationCode = RegexMatcher.group(1);
 				}
@@ -1859,8 +1986,10 @@ public class MarcRecordDetails {
 				String curLocationCode = iter2.next();
 				if (curLocationCode.length() >= 2) {
 					try {
-						Pattern Regex = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
-						Matcher RegexMatcher = Regex.matcher(curLocationCode);
+						if (locationExtractionPattern == null){
+							locationExtractionPattern = Pattern.compile("^(?:\\(\\d+\\))?(.*)\\s*$");
+						}
+						Matcher RegexMatcher = locationExtractionPattern.matcher(curLocationCode);
 						if (RegexMatcher.find()) {
 							curLocationCode = RegexMatcher.group(1);
 						}
@@ -1875,6 +2004,12 @@ public class MarcRecordDetails {
 		return locationCodes;
 	}
 
+	static Pattern steamboatJuvenileCodes = Pattern.compile("^(ssbj[aejlnpuvkbrm]|ssbyl|ssc.*|sst.*)$");
+	static Pattern evldJuvenileCodes = Pattern.compile("^(evabd|evaj|evajs|evebd|evej|evejs|evgbd|evgj|evgjs|evj|evajn|evejn|evgjn)$");
+	static Pattern mcpldJuvenileCodes = Pattern.compile("^(mpbj|mpcj|mpdj|mpfj|mpgj|mpmj|mpmja|mpmjm|mpmjn|mpoj|mppj|mpcja|mpfja|mppja|mpbja|mpdja|mpoja|mpgja)$");
+	static Pattern mcvsdelemCodes = Pattern.compile("^(mvap.*|mvbw.*|mvch.*|mvcl.*|mvco.*|mvcp.*|mvcs|mvdi.*|mvdr.*|mvem.*|mvfv.*|mvgp.*|mvlm.*|mvlo.*|mvlp.*|mvmv.*|mvni.*|mvoa.*|mvpo.*|mvpp.*|mvrm.*|mvrr.*|mvsc.*|mvsh.*|mvta.*|mvtm.*|mvto.*|mvwi.*)$");
+	static Pattern pitkinJuvenileCodes = Pattern.compile("^(pcjv)$");
+	static Pattern gcJuvenileCodes = Pattern.compile("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$");
 	private void addLocationCode(String locationCode, Set<String> locationCodes) {
 		locationCode = locationCode.trim();
 		for (String existingCode : locationCodes) {
@@ -1886,18 +2021,17 @@ public class MarcRecordDetails {
 		locationCodes.add(locationCode);
 		// Deal with special case collections which are treated as a branches, but
 		// are really a collection that crosses multiple branches.
-		if (locationCode.matches("^(ssbj[aejlnpuvkbrm]|ssbyl|ssc.*|sst.*)$")) {
+		if (steamboatJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("steamjuv");
-		} else if (locationCode.matches("^(evabd|evaj|evajs|evebd|evej|evejs|evgbd|evgj|evgjs|evj|evajn|evejn|evgjn)$")) {
+		} else if (evldJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("evldjuv");
-		} else if (locationCode.matches("^(mpbj|mpcj|mpdj|mpfj|mpgj|mpmj|mpmja|mpmjm|mpmjn|mpoj|mppj|mpcja|mpfja|mppja|mpbja|mpdja|mpoja|mpgja)$")) {
+		} else if (mcpldJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("mesajuv");
-		} else if (locationCode
-				.matches("^(mvap.*|mvbw.*|mvch.*|mvcl.*|mvco.*|mvcp.*|mvcs|mvdi.*|mvdr.*|mvem.*|mvfv.*|mvgp.*|mvlm.*|mvlo.*|mvlp.*|mvmv.*|mvni.*|mvoa.*|mvpo.*|mvpp.*|mvrm.*|mvrr.*|mvsc.*|mvsh.*|mvta.*|mvtm.*|mvto.*|mvwi.*)$")) {
+		} else if (mcvsdelemCodes.matcher(locationCode).matches()) {
 			locationCodes.add("mcvsdelem");
-		} else if (locationCode.matches("^(pcjv)$")) {
+		} else if (pitkinJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("pitkinjuv");
-		} else if (locationCode.matches("^(gccju|gcgju|gcnju|gcpju|gcrju|gcsju)$")) {
+		} else if (gcJuvenileCodes.matcher(locationCode).matches()) {
 			locationCodes.add("gcjuv");
 		}
 	}
@@ -1927,6 +2061,7 @@ public class MarcRecordDetails {
 		}
 	}
 
+	static HashMap<String, Pattern> activeLocationPatterns = new HashMap<String, Pattern>();
 	public String getLocationBoost(String locationSpecifier, String locationSpecifier2, String activeLocation) {
 		Set<String> locationCodes = getLocationCodes(locationSpecifier, locationSpecifier2);
 
@@ -1937,8 +2072,11 @@ public class MarcRecordDetails {
 
 		boolean FoundMatch = false;
 		try {
-			Pattern Regex = Pattern.compile("(?:\\(\\d+\\))?(" + activeLocation + ".*?)(\\s|$)");
-			Matcher RegexMatcher = Regex.matcher(branchString);
+			if (!activeLocationPatterns.containsKey(activeLocation)){
+				activeLocationPatterns.put(activeLocation, Pattern.compile("(?:\\(\\d+\\))?(" + activeLocation + ".*?)(\\s|$)"));
+			}
+			Pattern activeLocationPattern = activeLocationPatterns.get(activeLocation);
+			Matcher RegexMatcher = activeLocationPattern.matcher(branchString);
 			FoundMatch = RegexMatcher.find();
 		} catch (PatternSyntaxException ex) {
 			// Syntax error in the regular expression
@@ -2233,7 +2371,20 @@ public class MarcRecordDetails {
 				case 'S':
 					switch (formatField.getData().toUpperCase().charAt(1)) {
 					case 'D':
-						result.add("SoundDisc");
+						if (formatField.getData().length() >= 4){
+							char speed = formatField.getData().toUpperCase().charAt(3);
+							if (speed >= 'A' && speed <= 'E'){
+								result.add("Phonograph");
+							}else if (speed == 'F'){
+								result.add("CompactDisc");
+							}else if (speed >= 'K' && speed <= 'R'){
+								result.add("TapeRecording");
+							}else{
+								result.add("SoundDisc");
+							}
+						}else{
+							result.add("SoundDisc");
+						}
 						break;
 					case 'S':
 						result.add("SoundCassette");
@@ -2324,12 +2475,8 @@ public class MarcRecordDetails {
 			switch (Character.toUpperCase(leaderBit)) {
 			// Monograph
 			case 'M':
-				if (formatCode == 'C') {
-					result.add("eBook");
-				} else {
-					if (result.isEmpty()) {
-						result.add("Book");
-					}
+				if (result.isEmpty()) {
+					result.add("Book");
 				}
 				break;
 			// Serial
@@ -2403,13 +2550,13 @@ public class MarcRecordDetails {
 																																																 */
 			) {
 				char targetAudienceChar;
-				if (ohOhSixField != null && ohOhSixField.getData().length() >= 5) {
+				if (ohOhSixField != null && ohOhSixField.getData().length() > 5) {
 					targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(5));
 					if (targetAudienceChar != ' ') {
 						result.add(Character.toString(targetAudienceChar));
 					}
 				}
-				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() >= 22) {
+				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() > 22) {
 					targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(22));
 					if (targetAudienceChar != ' ') {
 						result.add(Character.toString(targetAudienceChar));
@@ -2588,8 +2735,8 @@ public class MarcRecordDetails {
 		result.add(getTimeSinceAddedForDate(curDate));
 	}
 
-	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem,
-			String branchCodes) {
+	static HashMap<String, Pattern> libraryRelativeTimeAddedBranchPatterns = new HashMap<String, Pattern>();
+	public Set<String> getLibraryRelativeTimeAdded(String itemField, String locationSubfield, String dateSubfield, String dateFormat, String activeSystem, String branchCodes) {
 		// System.out.println("Branch Codes for " + activeSystem + " are " +
 		// branchCodes);
 		Set<String> result = new LinkedHashSet<String>();
@@ -2610,7 +2757,10 @@ public class MarcRecordDetails {
 					String branchCode = curField.getSubfield(locationChar).getData().toLowerCase().trim();
 					// System.out.println("Testing branch code (" + branchCode + ") for " +
 					// activeSystem);
-					if (branchCode.matches(branchCodes)) {
+					if (!libraryRelativeTimeAddedBranchPatterns.containsKey(branchCodes)){
+						libraryRelativeTimeAddedBranchPatterns.put(branchCodes, Pattern.compile(branchCodes));
+					}
+					if (libraryRelativeTimeAddedBranchPatterns.get(branchCodes).matcher(branchCode).matches()) {
 						// System.out.println("Testing branch code (" + branchCode + ") for "
 						// + activeSystem);
 						if (curField.getSubfield(dateChar) != null){
@@ -2789,7 +2939,7 @@ public class MarcRecordDetails {
 				while (iter2.hasNext()) {
 					String curCode = iter2.next();
 					if (curCode.matches(manualSuppressionValue)) {
-						logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
+						//logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
 						suppressRecord = true;
 						break;
 					}
@@ -2850,24 +3000,80 @@ public class MarcRecordDetails {
 		}
 		return result;
 	}
+	
+	/**
+	 * Determine Available Locations for Marmot
+	 * 
+	 * @param Record
+	 *          record
+	 * @return Set format of record
+	 */
+	public Set<String> getAvailableLocationsMarmot() {
+		String itemField = "989"; 
+		String availableStatus = "-";
+		Set<String> result = new LinkedHashSet<String>();
+		@SuppressWarnings("unchecked")
+		List<VariableField> itemRecords = record.getVariableFields(itemField);
+		char statusSubFieldChar = 'g';
+		char locationSubFieldChar = 'd';
+		//logger.debug("Found " + itemRecords.size() + "items");
+		for (int i = 0; i < itemRecords.size(); i++) {
+			Object field = itemRecords.get(i);
+			if (field instanceof DataField) {
+				DataField dataField = (DataField) field;
+				// Get status
+				Subfield statusSubfield = dataField.getSubfield(statusSubFieldChar);
+				if (statusSubfield != null) {
+					String status = statusSubfield.getData().trim();
+					Subfield dueDateField = dataField.getSubfield('m');
+					String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
+					//logger.debug("status is " + status + ", dueDate = '" + dueDate + "'");
+					if (status.equals("online")) {
+						// If the tile is available online, force the location to be online
+						result.add("online");
+					} else if (status.matches(availableStatus)) {
+						// If the book is available (status of -)
+						// Check the due date subfield m to see if it is out
+						if (dueDate.length() == 0){
+							Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
+							if (locationSubfield != null){
+								result.add(locationSubfield.getData().toLowerCase());
+							}
+							//logger.debug("record is available at " + locationSubfield.getData().toLowerCase());
+						}
+					}
+				}else{
+					logger.warn("No status field");
+				}
+			}
+		}
+		return result;
+	}
+	
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Set<String> getAuthors() {
-		Set<String> result = new HashSet<String>();
+	@SuppressWarnings({ "unchecked" })
+	public HashMap<String, String> getBrowseAuthors() {
+		HashMap<String, String> result = new HashMap<String, String>();
 		Object author = getMappedFields("author").get("author");
 		if (author != null) {
 			if (author instanceof String) {
-				result.add((String) author);
+				result.put(Util.makeValueSortable((String) author), (String) author);
 			} else {
-				result.addAll((Set) author);
+				Set<String> authors = (Set<String>)author;
+				for (String curAuthor : authors){
+					result.put(Util.makeValueSortable((String) curAuthor), (String) curAuthor);
+				}
 			}
 		}
 		Object author2 = getMappedFields("author2").get("author2");
 		if (author2 != null) {
 			if (author2 instanceof String) {
-				result.add((String) author2);
+				result.put(Util.makeValueSortable((String) author2), (String) author2);
 			} else {
-				result.addAll((Set) author2);
+				Set<String> authors = (Set<String>)author2;
+				for (String curAuthor : authors){
+					result.put(Util.makeValueSortable((String) curAuthor), (String) curAuthor);
+				}
 			}
 		}
 		return result;
@@ -2881,7 +3087,7 @@ public class MarcRecordDetails {
 	 */
 	public boolean isEContent() {
 		if (isEContent == null) {
-			logger.debug("Checking if record is eContent");
+			//logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
@@ -2905,7 +3111,7 @@ public class MarcRecordDetails {
 					}
 				}
 			}
-			logger.debug("Finished checking detection settings");
+			/*logger.debug("Finished checking detection settings");
 
 			if (!isEContent) {
 				String ilsId = this.getId();
@@ -2913,8 +3119,8 @@ public class MarcRecordDetails {
 					//logger.info("Suppressing because there is an eContent record for " + ilsId);
 					isEContent = true;
 				}
-			}
-			logger.debug("Finished checking if record is eContent");
+			}*/
+			//logger.debug("Finished checking if record is eContent");
 			return isEContent;
 		} else {
 			return isEContent;
@@ -2930,6 +3136,7 @@ public class MarcRecordDetails {
 	}
 
 	protected long getLibrarySystemIdForLocation(String locationCode) {
+		locationCode = locationCode.trim();
 		// Get the library system id for the location. To do this, we are
 		// going to do a couple
 		// Of lookups to avoid having to create an entirely new table or
@@ -2949,6 +3156,32 @@ public class MarcRecordDetails {
 			librarySystemId = -1L;
 		}
 		return librarySystemId;
+	}
+	
+	protected long getLocationIdForLocation(String locationCode) {
+		// Get the library system id for the location. To do this, we are
+		// going to do a couple
+		// Of lookups to avoid having to create an entirely new table or
+		// lookup map.
+		// Eventually, we should store location codes in the database and
+		// automatically
+		// generate translation maps which would streamline this process.
+		// 1) Get the facet name from the translation map
+		locationCode = locationCode.trim();
+		Map<String, String> locationMap = marcProcessor.findMap("location_map");
+		if (locationMap == null){
+			logger.error("Unable to load location map!");
+		}
+		String locationFacet = Utils.remap(locationCode, locationMap, true);
+		// 2) Now that we have the facet, get the id of the system
+		Long locationId = marcProcessor.getLocationIdFromFacet(locationFacet);
+		if (locationId == null) {
+			logger.debug("Did not get locationId for location " + locationCode + " " + locationFacet);
+			locationId = -1L;
+		}else{
+			//logger.debug("Found locationId " + locationId + " for location " + locationCode + " " + locationFacet);
+		}
+		return locationId;
 	}
 	
 	public String createXmlDoc() throws ParserConfigurationException, FactoryConfigurationError, TransformerException { 
@@ -3013,5 +3246,62 @@ public class MarcRecordDetails {
 			doc.addField(fieldName, value);
 		}
 		return doc;
+	}
+
+	public HashMap<String, String> getBrowseSubjects() {
+		//Get a list of subjects that are valid for browsing.
+		@SuppressWarnings("unchecked")
+		List<VariableField> subjectFields = (List<VariableField>)record.getVariableFields(new String[]{"600", "610", "611", "630", "650", "690"});
+		HashMap<String, String> browseSubjects = new HashMap<String, String>();
+		for (VariableField curField : subjectFields){
+			DataField curDataField = (DataField)curField;
+			if (curField.getTag().equals("690")){
+				//Only process the 690a subfield
+				if (curDataField.getSubfield('a') != null){
+					browseSubjects.put(Util.makeValueSortable(curDataField.getSubfield('a').getData()), curDataField.getSubfield('a').getData());
+				}
+			}else{
+				//Base subject is for doing rotations with subdivisions
+				StringBuffer baseSubject = new StringBuffer();
+				StringBuffer fullSubject = new StringBuffer();
+				ArrayList<String> subdivisions = new ArrayList<String>();
+				@SuppressWarnings("unchecked")
+				List<Subfield> subfields = curDataField.getSubfields();
+				for (Subfield curSubfield : subfields){
+					String subfieldData = curSubfield.getData().replaceAll("\\W", " ").trim();
+					subfieldData = subfieldData.replaceAll("\\s{2,}", " ");
+					if (curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 't'){
+						//Setup base subject
+						if (baseSubject.length() > 0) {
+							baseSubject.append(" -- ");
+						}
+						baseSubject.append(subfieldData);
+						//Setup full subject
+						if (fullSubject.length() > 0) {
+							fullSubject.append(" -- ");
+						}
+						fullSubject.append(subfieldData);
+						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()), fullSubject.toString());
+					}else if (curSubfield.getCode() >= 'v' && curSubfield.getCode() <= 'z'){
+						subdivisions.add(subfieldData);
+						//Setup full subject
+						if (fullSubject.length() > 0) {
+							fullSubject.append(" -- ");
+						}
+						fullSubject.append(subfieldData);
+						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()), fullSubject.toString());
+					}
+				}
+				if (baseSubject.length() > 0 && subdivisions.size() > 0){
+					//Do rotation of subjects
+					for (String curSubdivision : subdivisions){
+						StringBuffer rotatedField = new StringBuffer().append(curSubdivision).append(" -- ").append(baseSubject);
+						browseSubjects.put(Util.makeValueSortable(rotatedField.toString()), rotatedField.toString());
+					}
+				}
+			}
+		}
+		
+		return browseSubjects;
 	}
 }

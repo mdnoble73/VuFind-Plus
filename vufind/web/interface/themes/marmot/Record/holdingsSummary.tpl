@@ -21,7 +21,7 @@
 		</div>
 	{else}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
-			<a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if strlen($holdingsSummary.unavailableStatus) > 0 && $holdingsSummary.class == 'checkedOut'}({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
+			<a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if false && strlen($holdingsSummary.unavailableStatus) > 0 && $holdingsSummary.class == 'checkedOut'}({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
 		</div>
 	{/if}
 	{if $holdingsSummary.callnumber}
@@ -37,17 +37,21 @@
 	{if $holdingsSummary.isDownloadable}
 			<div><a href='{$holdingsSummary.downloadLink}'	target='_blank'>{$holdingsSummary.downloadText}</a></div>
 	{else}
+		{if $showCopiesLineInHoldingsSummary}
 		<div class="holdableCopiesSummary">
-			{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if}, 
-			{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf and 
-			{$holdingsSummary.holdableCopies} {if $holdingsSummary.holdableCopies == 1}is{else}are{/if} available by request.
+			{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if},
+			{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf. 
+			{* 
+			and {$holdingsSummary.holdableCopies} {if $holdingsSummary.holdableCopies == 1}is{else}are{/if} available by request.
+			*}
 			{if $holdingsSummary.holdQueueLength > 0}
 				<br/>{$holdingsSummary.holdQueueLength} {if $holdingsSummary.holdQueueLength == 1}person is{else}people are{/if} on the wait list.
 			{/if}
 				{if $holdingsSummary.numCopiesOnOrder > 0}
-					{$holdingsSummary.numCopiesOnOrder} copies are on order.
+					{$holdingsSummary.numCopiesOnOrder} {if $holdingsSummary.numCopiesOnOrder == 1}copy is{else}copies are{/if} on order.
 			{/if}	
 		</div>
+		{/if}
 	{/if}
 	{if $showOtherEditionsPopup}
 		<div class="otherEditions">

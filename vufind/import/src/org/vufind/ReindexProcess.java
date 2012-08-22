@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -55,10 +56,14 @@ public class ReindexProcess {
 	private static boolean exportStrandsCatalog = false;
 	private static boolean exportOPDSCatalog = true;
 	private static boolean updateAlphaBrowse = true;
+	private static String idsToProcess = null;
 	
 	//Database connections and prepared statements
 	private static Connection vufindConn = null;
 	private static Connection econtentConn = null;
+	
+	private static PreparedStatement updateCronLogLastUpdatedStmt;
+	private static PreparedStatement addNoteToCronLogStmt;
 	
 	/**
 	 * Starts the reindexing process
@@ -90,61 +95,99 @@ public class ReindexProcess {
 		}
 		
 		//Process all reords (marc records, econtent that has been added to the database, and resources)
-		ArrayList<IRecordProcessor> recordProcessors = loadRecordProcesors();
-		if (recordProcessors.size() > 0){
-			//Do processing of marc records with record processors loaded above. 
-			// includes indexing records
-			// extracting eContent from records
-			// Updating resource information
-			// Saving records to strands - may need to move to resources if we are doing partial exports
-			processMarcRecords(recordProcessors);
-			
-			//Process eContent records that have been saved to the database. 
-			processEContentRecords(recordProcessors);
-			
-			//Do processing of resources as needed (for extraction of resources).
-			processResources(recordProcessors);
-			
-			for (IRecordProcessor processor : recordProcessors){
-				processor.finish();
+		ArrayList<IRecordProcessor> recordProcessors;
+		recordProcessors = loadRecordProcesors();
+		try {
+			if (recordProcessors.size() > 0){
+				//Do processing of marc records with record processors loaded above. 
+				// includes indexing records
+				// extracting eContent from records
+				// Updating resource information
+				// Saving records to strands - may need to move to resources if we are doing partial exports
+				processMarcRecords(recordProcessors);
+				
+				//Process eContent records that have been saved to the database. 
+				processEContentRecords(recordProcessors);
+				
+				//Do processing of resources as needed (for extraction of resources).
+				processResources(recordProcessors);
+				
+				for (IRecordProcessor processor : recordProcessors){
+					processor.finish();
+				}
 			}
+		} catch (Error e) {
+			logger.error("Error processing reindex ", e);
+			addNoteToCronLog("Error processing reindex " + e.toString());
 		}
 		
 		// Send completion information
 		endTime = new Date().getTime();
 		sendCompletionMessage(recordProcessors);
 
+		addNoteToCronLog("Finished Reindex for " + serverName);
 		logger.info("Finished Reindex for " + serverName);
 	}
 	
 	private static void reloadDefaultSchemas() {
 		logger.info("Reloading schemas from default");
+		try {
+			//Copy default schemas from biblio to biblio2 and econtent
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/biblio2/conf/schema.xml");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/biblio2/conf/schema.xml"))){
+				logger.info("Unable to copy schema to biblio2");
+				addNoteToCronLog("Unable to copy schema to biblio2");
+			}
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/econtent/conf/schema.xml");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/econtent/conf/schema.xml"))){
+				logger.info("Unable to copy schema to econtent");
+				addNoteToCronLog("Unable to copy schema to econtent");
+			}
+		} catch (IOException e) {
+			logger.error("error reloading copying default scehmas", e);
+			addNoteToCronLog("error reloading copying default scehmas " + e.toString());
+		}
 		//biblio
 		reloadSchema("biblio");
 		//biblio2
 		reloadSchema("biblio2");
 		//econtent
 		reloadSchema("econtent");
-		
+		//genealogy
+		reloadSchema("genealogy");
 	}
 
 	private static void reloadSchema(String schemaName) {
 		boolean reloadIndex = true;
+		addNoteToCronLog("Reloading Schema " + schemaName);
 		try {
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/schema.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/schema.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml"))){
 				logger.info("Unable to copy schema for " + schemaName);
+				addNoteToCronLog("Unable to copy schema for " + schemaName);
 				reloadIndex = false;
+			}
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"))){
+				logger.info("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
+				addNoteToCronLog("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
+			}
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
+				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			logger.error("error reloading default schema for " + schemaName, e);
+			addNoteToCronLog("error reloading default schema for " + schemaName + " " + e.toString());
 			reloadIndex = false;
 		}
 		if (reloadIndex){
 			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=" + schemaName, logger);
 			if (!response.isSuccess()){
 				logger.error("Error reloading default schema for " + schemaName + " " + response.getMessage());
+				addNoteToCronLog("Error reloading default schema for " + schemaName + " " + response.getMessage());
 			}
 		}
 	}
@@ -153,6 +196,7 @@ public class ReindexProcess {
 		ArrayList<IRecordProcessor> supplementalProcessors = new ArrayList<IRecordProcessor>();
 		if (updateSolr){
 			MarcIndexer marcIndexer = new MarcIndexer();
+			addNoteToCronLog("Initializing MarcIndexer");
 			if (marcIndexer.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(marcIndexer);
 			}else{
@@ -161,6 +205,7 @@ public class ReindexProcess {
 			}
 		}
 		if (updateResources){
+			addNoteToCronLog("Initializing UpdateResourceInformation");
 			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
 			if (resourceUpdater.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(resourceUpdater);
@@ -170,6 +215,7 @@ public class ReindexProcess {
 			}
 		}
 		if (loadEContentFromMarc){
+			addNoteToCronLog("Initializing ExtractEContentFromMarc");
 			ExtractEContentFromMarc econtentExtractor = new ExtractEContentFromMarc();
 			if (econtentExtractor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(econtentExtractor);
@@ -179,6 +225,7 @@ public class ReindexProcess {
 			}
 		}
 		if (exportStrandsCatalog){
+			addNoteToCronLog("Initializing StrandsProcessor");
 			StrandsProcessor strandsProcessor = new StrandsProcessor();
 			if (strandsProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(strandsProcessor);
@@ -188,6 +235,7 @@ public class ReindexProcess {
 			}
 		}
 		if (updateAlphaBrowse){
+			addNoteToCronLog("Initializing AlphaBrowseProcessor");
 			AlphaBrowseProcessor alphaBrowseProcessor = new AlphaBrowseProcessor();
 			if (alphaBrowseProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
 				supplementalProcessors.add(alphaBrowseProcessor);
@@ -215,7 +263,9 @@ public class ReindexProcess {
 		}
 		
 		logger.info("Processing resources");
+		addNoteToCronLog("Processing resources");
 		try {
+			int resourcesProcessed = 0;
 			long batchCount = 0;
 			PreparedStatement resourceCountStmt = vufindConn.prepareStatement("SELECT count(id) FROM resource", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet resourceCountRs = resourceCountStmt.executeQuery();
@@ -223,7 +273,7 @@ public class ReindexProcess {
 				long numResources = resourceCountRs.getLong(1);
 				logger.info("There are " + numResources + " resources currently loaded");
 				long firstResourceToProcess = 0;
-				long batchSize = 100000;
+				long batchSize = 25000;
 				PreparedStatement allResourcesStmt = vufindConn.prepareStatement("SELECT * FROM resource LIMIT ?, ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				while (firstResourceToProcess <= numResources){
 					logger.debug("processing batch " + ++batchCount + " from " + firstResourceToProcess + " to " + (firstResourceToProcess + batchSize));
@@ -237,19 +287,26 @@ public class ReindexProcess {
 					}
 					allResources.close();
 					firstResourceToProcess += batchSize;
+					resourcesProcessed++;
+					if (resourcesProcessed % 1000 == 0){
+						updateLastUpdateTime();
+					}
 				}
 			}
 		} catch (Exception e) {
 			logger.error("Exception processing resources", e);
 			System.out.println("Exception processing resources " + e.toString());
+			addNoteToCronLog("Exception processing resources " + e.toString());
 		} catch (Error e) {
 			logger.error("Error processing resources", e);
 			System.out.println("Error processing resources " + e.toString());
+			addNoteToCronLog("Error processing resources " + e.toString());
 		}
 	}
 
 	private static void processEContentRecords(ArrayList<IRecordProcessor> supplementalProcessors) {
 		logger.info("Processing econtent records");
+		addNoteToCronLog("Processing econtent records");
 		ArrayList<IEContentProcessor> econtentProcessors = new ArrayList<IEContentProcessor>();
 		for (IRecordProcessor processor: supplementalProcessors){
 			if (processor instanceof IEContentProcessor){
@@ -261,16 +318,43 @@ public class ReindexProcess {
 		}
 		//Check to see if the record already exists
 		try {
-			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'");
+			int econtentRecordsProcessed = 0;
+			String idFilter = "";
+			if (idsToProcess != null && idsToProcess.length() > 0){
+				idFilter = " AND id REGEXP '" + idsToProcess + "'";
+			}
+			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter);
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
+			long indexTime = new Date().getTime() / 1000;
 			while (allEContent.next()){
 				for (IEContentProcessor econtentProcessor : econtentProcessors){
-					econtentProcessor.processEContentRecord(allEContent);
+					//Determine if the record is new, updated, deleted, or unchanged
+					long dateAdded = allEContent.getLong("date_added");
+					long dateUpdated = allEContent.getLong("date_updated");
+					String status = allEContent.getString("status");
+					long recordStatus = MarcProcessor.RECORD_UNCHANGED;
+					if (status.equals("deleted") || status.equals("archived")){
+						recordStatus = MarcProcessor.RECORD_DELETED;
+					}else{
+						if ((indexTime - dateAdded) < 24 * 60 * 60){
+							recordStatus = MarcProcessor.RECORD_NEW;
+						}else if ((indexTime - dateUpdated) < 24 * 60 * 60){
+							recordStatus = MarcProcessor.RECORD_CHANGED_PRIMARY;
+						}else if ((indexTime - dateUpdated) < 48 * 60 * 60){
+							recordStatus = MarcProcessor.RECORD_CHANGED_SECONDARY;
+						}
+					}
+					econtentProcessor.processEContentRecord(allEContent, recordStatus);
+				}
+				econtentRecordsProcessed++;
+				if (econtentRecordsProcessed % 1000 == 0){
+					updateLastUpdateTime();
 				}
 			}
 		} catch (SQLException ex) {
 			// handle any errors
 			logger.error("Unable to load econtent records from database", ex);
+			addNoteToCronLog("Unable to load econtent records from database " + ex.toString());
 		}
 	}
 
@@ -290,6 +374,7 @@ public class ReindexProcess {
 		
 		if (supplementalProcessors.size() > 0){
 			logger.info("Processing exported marc records");
+			addNoteToCronLog("Processing exported marc records");
 			marcProcessor.processMarcFiles(marcProcessors, logger);
 		}
 	}
@@ -297,14 +382,48 @@ public class ReindexProcess {
 	private static void runExportScript() {
 		String extractScript = configIni.get("Reindex", "extractScript");
 		if (extractScript.length() > 0) {
+			addNoteToCronLog("Running extract script " + extractScript);
+			
 			logger.info("Running export script");
 			try {
 				String reindexResult = SystemUtil.executeCommand(extractScript, logger);
 				logger.info("Result of extractScript (" + extractScript + ") was " + reindexResult);
+				addNoteToCronLog("Result of extractScript (" + extractScript + ") was " + reindexResult);
 			} catch (IOException e) {
 				logger.error("Error running extract script, stopping reindex process", e);
+				addNoteToCronLog("Error running extract script, stopping reindex process " + e.toString());
 				System.exit(1);
 			}
+		}
+	}
+
+	private static StringBuffer cronNotes = new StringBuffer();
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public static void addNoteToCronLog(String note) {
+		try {
+			Date date = new Date();
+			cronNotes.append("<br>").append(dateFormat.format(date)).append(note);
+			addNoteToCronLogStmt.setString(1, cronNotes.toString());
+			addNoteToCronLogStmt.setLong(2, new Date().getTime() / 1000);
+			addNoteToCronLogStmt.setLong(3, reindexLogId);
+			addNoteToCronLogStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Error adding note to Cron Log", e);
+		}
+	}
+	
+	public static void updateLastUpdateTime(){
+		try {
+			updateCronLogLastUpdatedStmt.setLong(1, new Date().getTime() / 1000);
+			updateCronLogLastUpdatedStmt.setLong(2, reindexLogId);
+			updateCronLogLastUpdatedStmt.executeUpdate();
+			//Sleep for a little bit to make sure we don't block connectivity for other programs 
+			Thread.sleep(5);
+			//Thread.yield();
+		} catch (SQLException e) {
+			logger.error("Error setting last updated time in Cron Log", e);
+		} catch (InterruptedException e) {
+			logger.error("Sleep interrupted", e);
 		}
 	}
 
@@ -438,16 +557,29 @@ public class ReindexProcess {
 		//Start a reindex log entry 
 		try {
 			logger.info("Creating log entry for index");
-			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO reindex_log (startTime) VALUES (?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO reindex_log (startTime, lastUpdate, notes) VALUES (?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			createLogEntryStatement.setLong(1, new Date().getTime() / 1000);
+			createLogEntryStatement.setLong(2, new Date().getTime() / 1000);
+			createLogEntryStatement.setString(3, "Initialization complete");
 			createLogEntryStatement.executeUpdate();
 			ResultSet generatedKeys = createLogEntryStatement.getGeneratedKeys();
 			if (generatedKeys.next()){
 				reindexLogId = generatedKeys.getLong(1);
 			}
+			
+			updateCronLogLastUpdatedStmt = vufindConn.prepareStatement("UPDATE reindex_log SET lastUpdate = ? WHERE id = ?");
+			addNoteToCronLogStmt = vufindConn.prepareStatement("UPDATE reindex_log SET notes = ?, lastUpdate = ? WHERE id = ?");
 		} catch (SQLException e) {
 			logger.error("Unable to create log entry for reindex process", e);
 			System.exit(0);
+		}
+		
+		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
+		if (idsToProcess == null || idsToProcess.length() == 0){
+			idsToProcess = null;
+			logger.debug("Did not load a set of idsToProcess");
+		}else{
+			logger.debug("idsToProcess = " + idsToProcess);
 		}
 		
 	}

@@ -91,7 +91,7 @@ class Holds extends MyResearch
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 		$showPosition = ($ils == 'Horizon');
 		$interface->assign('showPosition', $showPosition);
-		
+
 		// Get My Transactions
 		if ($this->catalog->status) {
 			if ($user->cat_username) {
@@ -112,7 +112,7 @@ class Holds extends MyResearch
 					$recordsPerPage = -1;
 					$page = 1;
 				}
-				
+
 				$result = $this->catalog->getMyHolds($patron, $page, $recordsPerPage, $selectedSortOption);
 				if (!PEAR::isError($result)) {
 					if (count($result) > 0 ) {
@@ -145,7 +145,7 @@ class Holds extends MyResearch
 									$interface->assign('pageLinks', $pager->getLinks());
 								}
 							}
-							
+
 							//Processing of freeze messages?
 							$timer->logTime("Got recordList of holds to display");
 						}
@@ -169,11 +169,25 @@ class Holds extends MyResearch
 				}
 			}
 		}
-		
-		//print_r($patron);
+
 		$interface->assign('patron',$patron);
-		$interface->setTemplate('holds.tpl');
-		$interface->setPageTitle('My Holds');
+
+		$hasSeparateTemplates = $interface->template_exists('MyResearch/availableHolds.tpl');
+		if ($hasSeparateTemplates){
+			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
+			if ($section == 'available'){
+				$interface->setPageTitle('Available Holds');
+				$interface->setTemplate('availableHolds.tpl');
+			}else{
+				$interface->setPageTitle('On Hold');
+				$interface->setTemplate('unavailableHolds.tpl');
+			}
+		}else{
+			$interface->setPageTitle('My Holds');
+			$interface->setTemplate('holds.tpl');
+		}
+
+		//print_r($patron);
 		$interface->display('layout.tpl');
 	}
 
@@ -224,7 +238,7 @@ class Holds extends MyResearch
 			if (isset ($row['title2'])){
 				$titleCell .= preg_replace("/(\/|:)$/", "", $row['title2']);
 			}
-				
+
 			if (isset ($row['author'])){
 				if (is_array($row['author'])){
 					$authorCell = implode(', ', $row['author']);
@@ -246,7 +260,7 @@ class Holds extends MyResearch
 				$availableTime = $row['availableTime'];
 				$availDate = getDate($availableTime);
 				$availableValue = $availDate["mon"]."/".$availDate["mday"]."/".$availDate["year"];
-					
+
 			}
 			else {
 				$availableValue = "Now";
@@ -286,8 +300,8 @@ class Holds extends MyResearch
 		$objPHPExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('H')->setAutoSize(true);
-		
-			
+
+
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Holds');
 
@@ -299,7 +313,7 @@ class Holds extends MyResearch
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
 		$objWriter->save('php://output');
 		exit;
-			
+
 	}
 
 }

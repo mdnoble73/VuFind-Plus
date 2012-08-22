@@ -78,18 +78,35 @@ class FavoriteHandler
 	public function assign()
 	{
 		global $interface;
-		
+
+		$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+		$startRecord = ($page - 1) * $recordsPerPage + 1;
+		if ($startRecord < 0){
+			$startRecord = 0;
+		}
+		$endRecord = $page * $recordsPerPage;
+		if ($endRecord > count($this->favorites)){
+			$endRecord = count($this->favorites);
+		}
+		$pageInfo = array(
+			'resultTotal' => count($this->favorites),
+			'startRecord' => $startRecord,
+			'endRecord' => $endRecord,
+			'perPage' => $recordsPerPage
+		);
+		$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
 		// Initialise from the current search globals
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$interface->assign('sortList', $searchObject->getSortList());
-		
+
 		$resourceList = array();
 		if (is_array($this->favorites)) {
 			foreach($this->favorites as $currentResource) {
 				$interface->assign('resource', $currentResource);
 				$resourceEntry = $interface->fetch('RecordDrivers/Resource/listentry.tpl');
-				$resourceList[] = $resourceEntry; 
+				$resourceList[] = $resourceEntry;
 			}
 		}
 		$interface->assign('resourceList', $resourceList);
@@ -120,15 +137,22 @@ class FavoriteHandler
 		$interface->assign('resourceList', $resourceList);*/
 
 		// Set up paging of list contents:
-		$summary = $searchObject->getResultSummary();
-		$interface->assign('recordCount', $summary['resultTotal']);
-		$interface->assign('recordStart', $summary['startRecord']);
-		$interface->assign('recordEnd',   $summary['endRecord']);
+		$interface->assign('recordCount', $pageInfo['resultTotal']);
+		$interface->assign('recordStart', $pageInfo['startRecord']);
+		$interface->assign('recordEnd',   $pageInfo['endRecord']);
 
-		$link = $searchObject->renderLinkPageTemplate();
-		$options = array('totalItems' => count($this->favorites),
-                         'perPage' => $summary['perPage'],
-                         'fileName' => $link);
+		$link = $_SERVER['REQUEST_URI'];
+		if (preg_match('/[&?]page=/', $link)){
+			$link = preg_replace("/page=\\d+/", "page=%d", $link);
+		}else if (strpos($link, "?") > 0){
+			$link .= "&page=%d";
+		}else{
+			$link .= "?page=%d";
+		}
+		$options = array('totalItems' => $pageInfo['resultTotal'],
+		                 'perPage' => $pageInfo['perPage'],
+		                 'fileName' => $link,
+		                 'append'    => false);
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
 	}
@@ -144,6 +168,22 @@ class FavoriteHandler
 			$searchObject->setQueryIDs($this->ids['vufind']);
 			$result = $searchObject->processSearch();
 			return $searchObject->getResultRecordSet();
+		}else{
+			return array();
+		}
+	}
+
+	function getCitations($citationFormat){
+		// Initialise from the current search globals
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init();
+
+		// Retrieve records from index (currently, only Solr IDs supported):
+		if (array_key_exists('vufind', $this->ids) &&
+		count($this->ids['vufind']) > 0) {
+			$searchObject->setQueryIDs($this->ids['vufind']);
+			$result = $searchObject->processSearch();
+			return $searchObject->getCitations($citationFormat);
 		}else{
 			return array();
 		}

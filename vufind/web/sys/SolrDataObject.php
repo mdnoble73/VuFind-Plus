@@ -7,7 +7,7 @@ abstract class SolrDataObject extends DB_DataObject{
 	 * Return an array describing the structure of the object fields, etc.
 	 */
 	abstract function getObjectStructure();
-	
+
 	function update(){
 		return $this->updateDetailed(true);
 	}
@@ -17,7 +17,7 @@ abstract class SolrDataObject extends DB_DataObject{
 			return true;
 		}
 		$this->updateStarted = true;
-		
+
 		$logger = new Logger();
 		$result = parent::update();
 		if (!$insertInSolr){
@@ -89,7 +89,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		require_once 'sys/Solr.php';
 		global $configArray;
 		$host = $configArray[$this->getConfigSection()]['url'];
-		
+
 		$logger = new Logger();
 		$logger->log("Deleting Record {$this->solrId()}", PEAR_LOG_INFO);
 
@@ -106,7 +106,13 @@ abstract class SolrDataObject extends DB_DataObject{
 	}
 
 	protected $_quickReindex = false;
+	private $saveStarted = false;
 	function saveToSolr($quick = false){
+		if ($this->saveStarted){
+			return true;
+		}
+		$this->saveStarted = true;
+
 		global $timer;
 		global $configArray;
 		$this->_quickReindex = $quick;
@@ -160,10 +166,12 @@ abstract class SolrDataObject extends DB_DataObject{
 					//$logger->log("Result saving to $corename index " . print_r($result, true), PEAR_LOG_INFO);
 				}
 			} else {
+				$this->saveStarted = false;
 				return new PEAR_Error("Could not save to $corename");
 			}
 			$timer->logTime("Saved to the $corename index");
 		}
+		$this->saveStarted = false;
 		return true;
 	}
 
@@ -176,7 +184,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		foreach ($cores as $corename){
 			$logger = new Logger();
 			$logger->log("Optimizing Solr Core! $corename", PEAR_LOG_INFO);
-		
+
 			$index = new Solr($host, $corename);
 			$index->optimize();
 		}

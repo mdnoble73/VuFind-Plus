@@ -13,7 +13,7 @@ For more information about our codebase please contact <a href='mailto:cj@marmot
 <div class='faqAnswer'>A. Marmot is a consortium of Colorado libraries that hosts an integrated library system, maintains a union catalog of 1.2m titles, and provides related services for a variety of public, academic, and school libraries in Colorado.</div>
 
 <div class='faqQuestion'>Q. How can I figure out where a title is located?</div>
-<div class='faqAnswer'>A. A handy guide can be located <a href="http://helpdesk.marmot.org/wiki/images/1/1a/Holdings_Summary.pdf" target="_blank">here</a>.</div>
+<div class='faqAnswer'>A. A handy guide can be located <a href="http://helpdesk.marmot.org/wiki/images/1/1a/Holdings_Summary.pdf" rel="external" onclick="window.open (this.href, 'child'); return false">here</a>.</div>
 
 <div class='faqQuestion'>Q. What should I do if I have a suggestion or find a problem with the OPAC?</div>
 <div class='faqAnswer'>A. Go to <a href='http://www.marmot.org/node/40'>www.marmot.org/node/40</a> and fill out a User Story. State who you are, what you need and why you need it.</div>

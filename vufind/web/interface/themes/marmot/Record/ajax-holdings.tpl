@@ -26,4 +26,5 @@
 	<showAvailabilityLine>{$holdingsSummary.showAvailabilityLine|escape}</showAvailabilityLine>
 	<availableAt>{$holdingsSummary.availableAt|escape}</availableAt>
 	<numAvailableOther>{$holdingsSummary.numAvailableOther|escape}</numAvailableOther>
+	<location>{$holdingsSummary.location|escape}</location>
 </SummaryDetails>

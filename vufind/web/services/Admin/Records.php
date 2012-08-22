@@ -73,11 +73,6 @@ class Records extends Admin
 			}
 
 			// Write the changes to Solr using the XML interface.
-			// TODO: Find a way to represent control characters (ASCII 29, 30, 31)
-			//       commonly found in MARC; until we can do this, we can't save
-			//       changes due to the content of the fullrecord field and the
-			//       limitations of XML.  This may need to wait until a non-XML
-			//       transport layer is available for external Solr interfacing.
 			$xml = $this->db->getSaveXML($fields);
 			$this->db->saveRecord($xml);
 			$this->db->commit();

@@ -38,7 +38,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm'))){
+		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -55,7 +55,7 @@ class AJAX extends Action {
 				$xml .= '<Error>Invalid Method</Error>';
 			}
 			$xml .= '</AJAXResponse>';
-			 
+
 			echo $xml;
 		}
 	}
@@ -141,7 +141,7 @@ class AJAX extends Action {
 			}
 			$output .= "  <AllowHoldCancellation>{$showHoldCancelDate}</AllowHoldCancellation>\n";
 			$output .= '</result>';
-			
+
 		}
 		return $output;
 	}
@@ -177,14 +177,14 @@ class AJAX extends Action {
 
 		foreach ($titles as $key => $rawData){
 			$formattedTitle = "<div id=\"scrollerTitleSuggestion{$key}\" class=\"scrollerTitle\">" .
-    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-    			"</a></div>" . 
+    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+    			"</a></div>" .
     			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
 			$rawData['formattedTitle'] = $formattedTitle;
 			$titles[$key] = $rawData;
 		}
-		 
+
 		$return = array('titles' => $titles, 'currentIndex' => 0);
 		return json_encode($return);
 		//return $interface->fetch('MyResearch/ajax-suggestionsList.tpl');
@@ -219,7 +219,7 @@ class AJAX extends Action {
 			if ($title->source == 'VuFind'){
 				$upc = $title->upc;
 				$formatCategory = $title->format_category;
-			
+
 				$titles[] = array(
 		    		'id' => $title->record_id,
 		    		'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $title->record_id . "&isn=" . $title->isbn . "&size=small&upc=" . $upc . "&category=" . $formatCategory,
@@ -247,35 +247,35 @@ class AJAX extends Action {
 
 		foreach ($titles as $key => $rawData){
 			$formattedTitle = "<div id=\"scrollerTitleList{$listId}{$key}\" class=\"scrollerTitle\">" .
-    			'<a href="' . $rawData['link'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-    			"</a></div>" . 
+    			'<a href="' . $rawData['link'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+    			"</a></div>" .
     			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
 			$rawData['formattedTitle'] = $formattedTitle;
 			$titles[$key] = $rawData;
 		}
-		 
+
 		$return = array('titles' => $titles, 'currentIndex' => 0);
 		return json_encode($return);
 	}
-	
+
 	function getOverDriveSummary(){
 		global $user;
 		if ($user){
 			require_once 'Drivers/OverDriveDriver.php';
 			$overDriveDriver = new OverDriveDriver();
 			$summary = $overDriveDriver->getOverDriveSummary($user);
-			return json_encode($summary); 
+			return json_encode($summary);
 		}else{
 			return array('error' => 'There is no user currently logged in.');
 		}
 	}
-	
+
 	function LoginForm(){
 		global $interface;
 		return $interface->fetch('MyResearch/ajax-login.tpl');
 	}
-	
+
 	function getBulkAddToListForm(){
 		global $interface;
 		// Display Page
@@ -285,12 +285,23 @@ class AJAX extends Action {
 		$interface->assign('popupContent', $pageContent);
 		echo $interface->fetch('popup-wrapper.tpl');
 	}
-	
+
 	function getPinUpdateForm(){
-		global $user; 
+		global $user;
 		global $interface;
 		$interface->assign('popupTitle', 'Modify PIN number');
 		$pageContent = $interface->fetch('MyResearch/modifyPinPopup.tpl');
+		$interface->assign('popupContent', $pageContent);
+		return $interface->fetch('popup-wrapper.tpl');
+	}
+
+	function getCitationFormatsForm(){
+		global $interface;
+		$interface->assign('popupTitle', 'Please select a citation format');
+		$interface->assign('listId', $_REQUEST['listId']);
+		$citationFormats = CitationBuilder::getCitationFormats();
+		$interface->assign('citationFormats', $citationFormats);
+		$pageContent = $interface->fetch('MyResearch/getCitationFormatPopup.tpl');
 		$interface->assign('popupContent', $pageContent);
 		return $interface->fetch('popup-wrapper.tpl');
 	}

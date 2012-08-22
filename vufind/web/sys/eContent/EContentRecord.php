@@ -85,7 +85,7 @@ class EContentRecord extends SolrDataObject {
 				break;
 			}
 		}
-		if ($formatCategory != null){
+		if ($formatCategory == null){
 			if (array_key_exists("*", $formatCategoryMap)){
 				$formatCategory = $formatCategoryMap[$format];
 				break;
@@ -133,48 +133,48 @@ class EContentRecord extends SolrDataObject {
 		global $configArray;
 		$structure = array(
 		'id' => array(
-      'property'=>'id', 
-      'type'=>'hidden', 
-      'label'=>'Id', 
+      'property'=>'id',
+      'type'=>'hidden',
+      'label'=>'Id',
       'primaryKey'=>true,
       'description'=>'The unique id of the e-pub file.',
-		  'storeDb' => true, 
-			'storeSolr' => false, 
+		  'storeDb' => true,
+			'storeSolr' => false,
 		),
 
 		array(
-			'property'=>'recordtype', 
-			'type'=>'method', 
-			'methodName'=>'recordtype', 
-			'storeDb' => false, 
-			'storeSolr' => true, 
+			'property'=>'recordtype',
+			'type'=>'method',
+			'methodName'=>'recordtype',
+			'storeDb' => false,
+			'storeSolr' => true,
 		),
 		'solrId' => array(
-    	'property'=>'id', 
-    	'type'=>'method', 
-    	'methodName'=>'solrId', 
-    	'storeDb' => false, 
-    	'storeSolr' => true, 
+    	'property'=>'id',
+    	'type'=>'method',
+    	'methodName'=>'solrId',
+    	'storeDb' => false,
+    	'storeSolr' => true,
 		),
 		'institution' => array(
-    	'property'=>'institution', 
-    	'type'=>'method', 
-    	'methodName'=>'institution', 
-    	'storeDb' => false, 
-    	'storeSolr' => true, 
+    	'property'=>'institution',
+    	'type'=>'method',
+    	'methodName'=>'institution',
+    	'storeDb' => false,
+    	'storeSolr' => true,
 		),
 		'building' => array(
-    	'property'=>'building', 
-    	'type'=>'method', 
-    	'methodName'=>'building', 
-    	'storeDb' => false, 
-    	'storeSolr' => true, 
+    	'property'=>'building',
+    	'type'=>'method',
+    	'methodName'=>'building',
+    	'storeDb' => false,
+    	'storeSolr' => true,
 		),
 		'title' => array(
 		  'property' => 'title',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>255, 
+		  'maxLength'=>255,
 		  'label' => 'Title',
 		  'description' => 'The title of the item.',
 		  'required'=> true,
@@ -185,7 +185,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'author',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'Author',
 		  'description' => 'The primary author of the item or editor if the title is a compilation of other works.',
 		  'required'=> false,
@@ -203,26 +203,26 @@ class EContentRecord extends SolrDataObject {
 		  'storeSolr' => false,
 		),
 		'accessType' => array(
-      'property'=>'accessType', 
+      'property'=>'accessType',
       'type'=>'enum',
 		  'values' => EContentRecord::getValidAccessTypes(),
-      'label'=>'Access Type', 
+      'label'=>'Access Type',
       'description'=>'The type of access control to apply to the record.',
       'storeDb' => true,
 		  'storeSolr' => false,
 		),
 		'availableCopies' => array(
-      'property'=>'availableCopies', 
+      'property'=>'availableCopies',
       'type'=>'integer',
-		  'label'=>'Available Copies', 
+		  'label'=>'Available Copies',
       'description'=>'The number of copies that have been purchased and are available to patrons.',
       'storeDb' => true,
 		  'storeSolr' => false,
 		),
 		'onOrderCopies' => array(
-      'property'=>'onOrderCopies', 
+      'property'=>'onOrderCopies',
       'type'=>'integer',
-		  'label'=>'Copies On Order', 
+		  'label'=>'Copies On Order',
       'description'=>'The number of copies that have been purchased but are not available for usage yet.',
       'storeDb' => true,
 		  'storeSolr' => false,
@@ -239,7 +239,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'cover',
 		  'type' => 'image',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'cover',
 		  'description' => 'The cover of the item.',
 		  'storagePath' => $configArray['Site']['coverPath'] . '/original',
@@ -267,7 +267,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'language',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'Language',
 		  'description' => 'The Language of the item.',
 		  'required'=> true,
@@ -393,7 +393,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'publisher',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'Publisher',
 		  'description' => 'The Publisher of the item.',
 		  'required'=> false,
@@ -404,7 +404,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'publishDate',
 		  'type' => 'integer',
 		  'size' => 4,
-		  'maxLength' => 4, 
+		  'maxLength' => 4,
 		  'label' => 'Publication Year',
 		  'description' => 'The year the title was published.',
 		  'required'=> false,
@@ -415,7 +415,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'edition',
 		  'type' => 'crSeparated',
 		  'rows'=>2,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'Edition',
 		  'description' => 'The Edition of the item.',
 		  'required'=> false,
@@ -426,7 +426,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'isbn',
 		  'type' => 'crSeparated',
 		  'rows'=>1,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'isbn',
 		  'description' => 'The isbn of the item.',
 		  'required'=> false,
@@ -437,7 +437,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'issn',
 		  'type' => 'crSeparated',
 		  'rows'=>1,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'issn',
 		  'description' => 'The issn of the item.',
 		  'required'=> false,
@@ -448,7 +448,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'upc',
 			'type' => 'crSeparated',
 			'rows'=>1,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'upc',
 		  'description' => 'The upc of the item.',
 		  'required'=> false,
@@ -459,7 +459,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'lccn',
 			'type' => 'crSeparated',
 		  'rows'=>1,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'lccn',
 		  'description' => 'The lccn of the item.',
 		  'required'=> false,
@@ -470,7 +470,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'series',
 		  'type' => 'crSeparated',
 		  'rows'=>3,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'series',
 		  'description' => 'The Series of the item.',
 		  'required'=> false,
@@ -481,7 +481,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'topic',
 		  'type' => 'crSeparated',
 		  'rows'=>3,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'Topic',
 		  'description' => 'The Topic of the item.',
 		  'required'=> false,
@@ -492,7 +492,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'genre',
 		  'type' => 'crSeparated',
 		  'rows'=>3,
-			'cols'=>80, 
+			'cols'=>80,
 		  'label' => 'Genre',
 		  'description' => 'The Genre of the item.',
 		  'required'=> false,
@@ -542,7 +542,7 @@ class EContentRecord extends SolrDataObject {
 		'target_audience' => array(
 		  'property' => 'target_audience',
 		  'type' => 'enum',
-		  'values' => array( 
+		  'values' => array(
 		    '' => 'Unknown',
 		    'Preschool (0-5)' => 'Preschool (0-5)',
 		    'Primary (6-8)' => 'Primary (6-8)',
@@ -587,20 +587,20 @@ class EContentRecord extends SolrDataObject {
 		  'storeSolr' => false,
 		),
 		'ilsId' => array(
-      'property'=>'ilsId', 
-      'type'=>'text', 
-      'label'=>'ilsId', 
+      'property'=>'ilsId',
+      'type'=>'text',
+      'label'=>'ilsId',
       'primaryKey'=>true,
       'description'=>'The Id of the record within the ILS or blank if the record does not exist in the ILS.',
 			'required' => false,
-		  'storeDb' => true, 
-			'storeSolr' => false, 
+		  'storeDb' => true,
+			'storeSolr' => false,
 		),
 		'source' => array(
 		  'property' => 'source',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'Source',
 		  'description' => 'The Source of the item.',
 		  'required'=> true,
@@ -611,7 +611,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'sourceUrl',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'Source Url',
 		  'description' => 'The Source Url of the item.',
 		  'required'=> false,
@@ -622,7 +622,7 @@ class EContentRecord extends SolrDataObject {
 		  'property' => 'purchaseUrl',
 		  'type' => 'text',
 		  'size' => 100,
-		  'maxLength'=>100, 
+		  'maxLength'=>100,
 		  'label' => 'Purchase Url',
 		  'description' => 'The Purchase Url of the item.',
 		  'required'=> false,
@@ -728,7 +728,7 @@ class EContentRecord extends SolrDataObject {
 		),
 		'time_since_added' => array(
 		  'property' => 'time_since_added',
-		  'type' => 'method', 
+		  'type' => 'method',
 		  'storeDb' => false,
 		  'storeSolr' => true,
 		),
@@ -907,8 +907,18 @@ class EContentRecord extends SolrDataObject {
 		if ($this->status == 'active'){
 			require_once('Drivers/EContentDriver.php');
 			if (strcasecmp($this->source, 'OverDrive') == 0){
-				//TODO: Check to see if i really is available
-				return array('OverDrive');
+				//TODO: Check to see if it really is available
+				$driver = new EContentDriver();
+				$holdings = $driver->getHolding($this->id, false);
+				if ($holdings > 0){
+					foreach ($holdings as $holding){
+						if ($holding->available){
+							return array('OverDrive');
+						}
+					}
+				}else{
+					return array();
+				}
 			}elseif ($this->source == 'Freegal'){
 				return array('Freegal');
 			}else{
@@ -974,7 +984,7 @@ class EContentRecord extends SolrDataObject {
 		if ($_FILES['cover']["error"] != 0 && $_FILES['cover']["error"] != 4){
 			$validationResults['errors'][] = DataObjectUtil::getFileUploadMessage($_FILES['cover']["error"], 'cover' );
 		}
-			
+
 		//Make sure there aren't errors
 		if (count($validationResults['errors']) > 0){
 			$validationResults['validatedOk'] = false;
@@ -988,8 +998,10 @@ class EContentRecord extends SolrDataObject {
 		$items = $this->getItems(false);
 		if (strcasecmp($this->source, 'OverDrive') == 0){
 			foreach ($items as $item){
-				$formatValue = translate($item->format);
-				$formats[$formatValue] = $formatValue;
+				if (isset($item->format)){
+					$formatValue = translate($item->format);
+					$formats[$formatValue] = $formatValue;
+				}
 			}
 		}else{
 			foreach ($items as $item){
@@ -1084,7 +1096,7 @@ class EContentRecord extends SolrDataObject {
 	}
 
 	private $items = null;
-	function getItems($reload = false){
+	function getItems($reload = false, $allowReindex = true){
 		if ($this->items == null || $reload){
 			$this->items = array();
 
@@ -1097,22 +1109,22 @@ class EContentRecord extends SolrDataObject {
 			}
 
 			if (strcasecmp($this->source, 'OverDrive') == 0){
-				$this->items = $this->_getOverDriveItems($reload);
+				$this->items = $this->_getOverDriveItems($reload, $allowReindex);
 			}
 		}
 		return $this->items;
 	}
 
-	private function _getOverDriveItems($reload){
+	private function _getOverDriveItems($reload, $allowReindex = true){
 		//Check to see if we have cached any items
 		require_once 'sys/eContent/OverdriveItem.php';
-		
+
 		$dataChanged = false;
 		$eContentItems = $this->items;
 		$overDriveItemsForAllItems = array();
 		foreach ($eContentItems as $curItem){
 			$overDriveItems = array();
-			
+
 			$overDriveItem = new OverdriveItem();
 
 			$overDriveItem->overDriveId = $curItem->overDriveId;
@@ -1123,18 +1135,18 @@ class EContentRecord extends SolrDataObject {
 					$cachedItems[] = clone $overDriveItem;
 				}
 			}
-			
+
 			if (count($cachedItems) == 0 || ($reload && !$this->_quickReindex)){
 				//For performance, need to store overdrive items since we fetch items
 				//to get common things like list the formats.
 				require_once 'Drivers/OverDriveDriver.php';
 				$overdriveDriver = new OverDriveDriver();
 				$currentItems = $overdriveDriver->getOverdriveHoldings($curItem->overDriveId, $curItem->link);
-					
+
 				//Check each of the cached items to see if it has changed
 				foreach ($currentItems as $currentKey => $currentItem){
 					$currentItem->libraryId = $currentItem->libraryId;
-					
+
 					$cachedItemFound = false;
 					foreach ($cachedItems as $cacheKey => $cachedItem){
 						if ($cachedItem->formatId = $currentItem->formatId){
@@ -1164,13 +1176,13 @@ class EContentRecord extends SolrDataObject {
 					$dataChanged = true;
 				}
 				//Mark that the record should be reindexed.
-				if ($dataChanged){
+				if ($dataChanged && $allowReindex){
 					$this->updateDetailed(true);
 				}
 			}else{
 				$overDriveItems = $cachedItems;
 			}
-	
+
 			$overDriveId = $curItem->overDriveId;
 			foreach ($overDriveItems as $itemKey => $item){
 				$links = array();

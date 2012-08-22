@@ -8,7 +8,7 @@
   {foreach from=$prospectorResults item=prospectorTitle}
   {if $similar.recordId != -1}
   <li class="prospectorTitle {if $prospectorTitle.isCurrent}currentRecord{/if}">
-    <a href="{$prospectorTitle.link}" target="_blank">{$prospectorTitle.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false">{$prospectorTitle.title|regex_replace:"/(\/|:)$/":""|escape}</a>
     
     <span style="font-size: 80%">
     {if $prospectorTitle.author}<br />{translate text='By'}: {$prospectorTitle.author|escape}{/if}
@@ -37,8 +37,8 @@
 {if strlen($prospectorDetails.recordId) > 0}
 <div id='prospectorAvailabilityTitle'>Other Sources</div>
 <div id='prospectorAvailability'>
-  {if $prospectorDetails.prospectorEncoreUrl}<a href="{$prospectorDetails.prospectorEncoreUrl}" target="_blank">{/if}Available in Prospector{if $prospectorTitle.link}</a>{/if}
-  <span class='prospectorRequest'><a class='holdRequest' href='#' onclick="createInnreachRequestWindow('{$prospectorDetails.requestUrl}')" target="_blank">Request from Prospector</a></span>
+  {if $prospectorDetails.prospectorEncoreUrl}<a href="{$prospectorDetails.prospectorEncoreUrl}" rel="external" onclick="window.open (this.href, 'child'); return false">{/if}Available in Prospector{if $prospectorTitle.link}</a>{/if}
+  <span class='prospectorRequest'><a class='holdRequest' href='#' onclick="createInnreachRequestWindow('{$prospectorDetails.requestUrl}')" rel="external" onclick="window.open (this.href, 'child'); return false">Request from Prospector</a></span>
 </div>
 <div id='prospectorItemCount'>
 {$prospectorDetails.owningLibraries|@count} Prospector libraries have this item 

@@ -41,6 +41,7 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 }
 
 TitleScroller.prototype.loadTitlesFrom = function(jsonUrl) {
+	jsonUrl = decodeURIComponent(jsonUrl);
 	var scroller = this;
 	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	scrollerBody.hide();

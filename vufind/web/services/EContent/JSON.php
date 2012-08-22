@@ -35,7 +35,7 @@ class JSON extends Action
 	function launch()
 	{
 		global $configArray;
-		 
+
 		$id = $_REQUEST['id'];
 		$item = $_REQUEST['item'];
 
@@ -54,7 +54,7 @@ class JSON extends Action
 				}
 			}
 		}
-			
+
 		if (file_exists($bookFile)){
 			require_once('sys/eReader/ebook.php');
 			$ebook = new ebook($bookFile);
@@ -124,7 +124,7 @@ class JSON extends Action
 				$manifestId = $ebook->getManifestItem($i, 'id');
 				$manifestHref= $ebook->getManifestItem($i, 'href');
 				$manifestType= $ebook->getManifestItem($i, 'type');
-				 
+
 				if (in_array($manifestType, array('image/jpeg', 'image/gif', 'image/tif', 'text/css'))){
 					//Javascript or image
 					$pattern = str_replace("~", "\~", preg_quote($manifestHref));
@@ -151,7 +151,7 @@ class JSON extends Action
 
 		return $componentText;
 	}
-	
+
 	function getComponentCustom($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
@@ -167,7 +167,6 @@ class JSON extends Action
 		}catch(Exeption $e){
 			return 'Unable to load content for component ' . $component;
 		}
-
 		//Get the componentType of the content we are getting.
 		for ($i = 0; $i < $ebook->getManifestSize(); $i++){
 			$manifestId = $ebook->getManifestItem($i, 'id');
@@ -190,7 +189,7 @@ class JSON extends Action
 				$manifestId = $ebook->getManifestItem($i, 'id');
 				$manifestHref= $ebook->getManifestItem($i, 'href');
 				$manifestType= $ebook->getManifestItem($i, 'type');
-				 
+
 				if (in_array($manifestType, array('image/jpeg', 'image/gif', 'image/tif', 'text/css'))){
 					//Javascript or image
 					$pattern = str_replace("~", "\~", preg_quote($manifestHref));

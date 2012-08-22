@@ -44,7 +44,7 @@
           <div>
             <a href="#" onclick="return renewSelectedTitles();" class="button">Renew Selected Items</a>
             <a href="{$path}/MyResearch/RenewAll" class="button">Renew All</a>
-            <a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcel" >Export to Excel</a>
+            <a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcelTop" >Export to Excel</a>
           </div>
           
           <div id="pager" class="pager">
@@ -247,7 +247,7 @@
 	      <div>
 		      <a href="#" onclick="return renewSelectedTitles();" class="button">Renew Selected Items</a>
 		      <a href="{$path}/MyResearch/RenewAll" class="button">Renew All</a>
-		      <a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcel" >Export to Excel</a>
+		      <a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcelBottom" >Export to Excel</a>
 		    </div>
 		  </form>
 	    

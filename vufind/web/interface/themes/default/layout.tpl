@@ -5,26 +5,22 @@
     <title>{$pageTitle|truncate:64:"..."}</title>
     {if $addHeader}{$addHeader}{/if}
     <link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" />
-    {if $consolidateCss}
-      {css filename="consolidated_css.css"}
-    {else}
-	    {css filename="jqueryui.css"}
-	    {css filename="styles.css"}
-	    {css filename="basicHtml.css"}
-	  	{css filename="top-menu.css"}
-	  	{css filename="library-footer.css"}
-	  	{css filename="title-scroller.css"}
-	  	{css filename="my-account.css"}
-	  	{css filename="holdingsSummary.css"}
-	  	{css filename="ratings.css"}
-	  	{css filename="book-bag.css"}
-	  	{css filename="jquery.tooltip.css"}
-	  	{css filename="tooltip.css"}
-	  	{css filename="record.css"}
-	  	{css filename="search-results.css"}
-	  	{css filename="suggestions.css"}
-	  	{css filename="reports.css"}
-    {/if}
+    {css filename="jqueryui.css"}
+    {css filename="styles.css"}
+    {css filename="basicHtml.css"}
+  	{css filename="top-menu.css"}
+  	{css filename="library-footer.css"}
+  	{css filename="title-scroller.css"}
+  	{css filename="my-account.css"}
+  	{css filename="holdingsSummary.css"}
+  	{css filename="ratings.css"}
+  	{css filename="book-bag.css"}
+  	{css filename="jquery.tooltip.css"}
+  	{css filename="tooltip.css"}
+  	{css filename="record.css"}
+  	{css filename="search-results.css"}
+  	{css filename="suggestions.css"}
+  	{css filename="reports.css"}
 	
     {css media="print" filename="print.css"}
     

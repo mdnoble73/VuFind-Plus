@@ -20,3 +20,11 @@
 .ui-widget-content a {
 	color: #003399;
 }
+
+#outer_span {
+	margin: auto;
+	width: 1000px;
+	background-image: url("/interface/themes/marmot/images/sub_content_bg.png");
+	background-repeat: repeat-y;
+	padding: 0 20px 0px;
+}

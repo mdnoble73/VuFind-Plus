@@ -5,7 +5,7 @@
   <ul class="similar">
     {foreach from=$worksArray item=work}
       <li>
-        <a href="http://openlibrary.org{$work.key}" title="{translate text='Get full text'}" target="_blank">
+        <a href="http://openlibrary.org{$work.key}" title="{translate text='Get full text'}" rel="external" onclick="window.open (this.href, 'child'); return false">
           <span class="olSubjectCover">
           {if $work.cover_id}
             <img src="http://covers.openlibrary.org/b/{$work.cover_id_type|escape}/{$work.cover_id|escape}-S.jpg" class="olSubjectImage" alt="{$work.title|escape}" />
@@ -21,7 +21,7 @@
     {/foreach}
   </ul>
   <p class="olSubjectMore">
-    <a href="http://openlibrary.org/subjects" title="Open Library" target="_blank">
+    <a href="http://openlibrary.org/subjects" title="Open Library" rel="external" onclick="window.open (this.href, 'child'); return false">
       {translate text='more'}...
     </a>
   </p>

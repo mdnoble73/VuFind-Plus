@@ -1,6 +1,16 @@
 html, body {
 	height: 100%;
-	background-color:#eee;
+	background-color:#CCC;
+}
+#systemMessage{
+	width: 100%;
+	background-color: yellow;
+	color: black;
+	text-align: center;
+	padding: 3px;
+}
+#outer_span{
+	position: relative;
 }
 .content {
 	/*padding:10px 0 10px 0;*/
@@ -14,8 +24,9 @@ div.yui-b.first {background-color:#fff;}
 .filters {background-color:#ddd; padding:.5em}
 .crumbs {background-color:#000;}
 #pageBody{
-	margin: 5px auto 20px;
-	width: 990px;
+	margin: 0px auto 0px;
+	width: 1000px;
+	min-height: 100%;
 }
 #page-content, #ft{
 	padding: 10px;
@@ -232,15 +243,24 @@ ul.menu li{
 }
 #ft {
 	padding:10px 25px;
-	margin:0 0 25px 0;
+	margin:0 auto 0px;
 	font-size:90%;
 }
-#ft div {
-	float:left;
+#ft div.footerCol {
 	border-right: 1px dotted #cccccc;
 	margin-right:1em;
 	padding: 0 2em 1em 0;
 	width:12em;
+	vertical-align:top;
+	display: inline-block;
+	zoom: 1;
+	*display: inline;
+}
+.footer_end{
+	float:none;
+	width: 100% !important;
+	text-align: center;
+	padding-top: 10px;
 }
 .result {
 	border-bottom: 1px solid #eee;
@@ -311,9 +331,13 @@ div.record {
 	margin: 0px 10px 0px 20px;
 }
 .navmenu dt {
-	margin: 15px 10px 10px;
+	margin: 15px 10px 0px;
 	font-weight: bold;
 	text-align: left;
+}
+.facetSeparator{
+	background-color: lightgrey;
+	margin: 5px 10px 0px;
 }
 input.yearbox {
 	width: 3em;
@@ -353,9 +377,7 @@ div.warning {
 	font-family: courier new, courier, fixed;
 	color: #990000;
 }
-#listForm {
-	display: none;
-}
+
 #lightbox {
 	cursor: pointer;
 	background-color: #000;
@@ -868,7 +890,8 @@ table.datagrid tr.oddrow {
 	background-image:url(/images/silk/add.png);
 	background-repeat:no-repeat;
 	background-position: left;
-	padding:.5em .5em .5em 18px;
+	padding:0 0 0 18px;
+	margin:0.5em 0.5em 0.5em 0px;
 	margin-right:0;
 }
 .holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby{
@@ -1293,8 +1316,11 @@ padding-left:20px;
 table.holdingsTable{
 	width: 100%;
 }
+table.holdingsTable th {
+	padding: 5px 3px 3px 3px;
+}
 table.holdingsTable td {
-padding 10px;
+	padding: 5px 3px 3px 3px;
 }
 
 #staffView, #fullViewLink, #classicViewLink {

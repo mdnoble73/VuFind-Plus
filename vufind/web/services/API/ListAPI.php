@@ -39,9 +39,9 @@ class ListAPI extends Action {
 			} else {
 				$xml .= '<Error>Invalid Method</Error>';
 			}
-			 
+
 			echo $xml;
-		  
+
 		}else{
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -167,12 +167,12 @@ class ListAPI extends Action {
 			$titleData = array();
 			$titleData = $this->getListTitles($listId);
 			$titleCount = count($titleData["titles"]);
-				
+
 			if ($titleCount > 0){
-				
+
 				$listTitle = $titleData["listTitle"];
 				$listDesc = $titleData["listDescription"];
-								
+
 				$rssfeed .= '<title>'. $listTitle .'</title>';
 				$rssfeed .= '<language>en-us</language>';
 				$rssfeed .= '<description>'. $listDesc .'</description>';
@@ -189,14 +189,14 @@ class ListAPI extends Action {
 					$description = $title["description"];
 					$length = $title["length"];
 					$publisher = $title["publisher"];
-					
+
 					if (isset($title["dateSaved"])) {
 						$pubDate = $title["dateSaved"];
 					} else {
 						$pubDate = "No Date Available";
 					}
-				
-					 
+
+
 					$rssfeed .= '<item>';
 					$rssfeed .= '<id>' . $titleId . '</id>';
 					$rssfeed .= '<image>' . htmlspecialchars($image) . '</image>';
@@ -209,7 +209,7 @@ class ListAPI extends Action {
 					}else{
 						$itemLink = htmlspecialchars($configArray['Site']['url'] . '/Record/' . $titleId);
 					}
-					
+
 					$fullDescription = "<a href='$itemLink'><img src='$image' alt='cover'/></a>$description";
 					$rssfeed .= '<description>' . htmlspecialchars($fullDescription) . '</description>';
 					$rssfeed .= '<length>' . $length . '</length>';
@@ -224,18 +224,18 @@ class ListAPI extends Action {
 					//$rssfeed .= '<pubDate>' . date("D, d M Y H:i:s O", strtotime($date)) . '</pubDate>';
 
 					$rssfeed .= '</item>';
-					 
+
 				}
 			} else {
 				$rssfeed .= '<error>No Titles Listed</error>';
 			}
-				
+
 		}
 
 		$rssfeed .= '</channel>';
 		$rssfeed .= '</rss>';
-		
-			
+
+
 		return $rssfeed;
 	}
 
@@ -374,7 +374,7 @@ class ListAPI extends Action {
 		);
 		return array('success'=>true, 'lists'=>$systemLists);
 	}
-	
+
 	/**
 	 * Returns information about the titles within a list including:
 	 * - Title, Author, Bookcover URL, description, record id
@@ -384,8 +384,7 @@ class ListAPI extends Action {
 		global $configArray;
 		global $timer;
 
-		if(!$listId)
-		{
+		if (!$listId){
 			if (!isset($_REQUEST['id'])){
 				return array('success'=>false, 'message'=>'The id of the list to load must be provided as the id parameter.');
 			}
@@ -404,7 +403,7 @@ class ListAPI extends Action {
 		if ($user){
 			$userId = $user->id;
 		}
-		
+
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
 				$listId = $listInfo[1];
@@ -549,9 +548,9 @@ class ListAPI extends Action {
 				}
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
 			}elseif ($listId == 'freeEbooks'){
-				
+
 				if(!$pagination) $pagination = new Pagination();
-				
+
 				require_once ('sys/eContent/EContentRecord.php');
 				$eContentRecord = new EContentRecord;
 				$eContentRecord->orderBy('date_added DESC');
@@ -633,7 +632,7 @@ class ListAPI extends Action {
 			}
 		}
 	}
-	
+
 
 	private function getIdsFromStrandsResults($results, $removePrefix = NULL)
 	{
@@ -653,7 +652,7 @@ class ListAPI extends Action {
 		}
 		return $ids;
 	}
-	
+
 	private function loadDataFromStrands($strandsTemplate, $user)
 	{
 		global $configArray;
@@ -664,7 +663,7 @@ class ListAPI extends Action {
 		$results = json_decode(file_get_contents($strandsUrl));
 		return $results;
 	}
-	
+
 	private function setEcontentRecordInfoForList($eContentRecord)
 	{
 		global $configArray;
@@ -681,18 +680,18 @@ class ListAPI extends Action {
 				'dateSaved' => $eContentRecord->date_added
 		);
 	}
-	
-	
+
+
 	/**
-	 * Loads caching information to determine what the list should be cached as 
-	 * and whether it is cached for all users and products (general), for a single user, 
-	 * or for a single product.  
+	 * Loads caching information to determine what the list should be cached as
+	 * and whether it is cached for all users and products (general), for a single user,
+	 * or for a single product.
 	 */
 	function getCacheInfoForList() {
 		global $interface;
 		global $configArray;
 		global $timer;
-		
+
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 			$username = $_REQUEST['username'];
 			$password = $_REQUEST['password'];
@@ -720,14 +719,14 @@ class ListAPI extends Action {
 				'cacheName' => 'list_general_list:' . $listId,
 				'cacheLength' => $configArray['Caching']['list_general']
 			);
-			
+
 		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
 			//Load the data from strands
 			$strandsTemplate = $strandsInfo[1];
 			$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
 			$userId = $user ? $user->id : '';
-			
-			//Determine how long the titles should be cached 
+
+			//Determine how long the titles should be cached
 			if (isset($configArray['StrandsCaching'][$strandsTemplate])){
 				$cacheType = $configArray['StrandsCaching'][$strandsTemplate];
 			}else{
@@ -791,7 +790,7 @@ class ListAPI extends Action {
 			);
 		}
 	}
-	
+
 	function comparePublicationDates($a, $b){
 		if ($a['pubDate'] == $b['pubDate']){
 			return 0;
@@ -826,11 +825,11 @@ class ListAPI extends Action {
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
-					
+
 					if (isset($descriptions) && isset($descriptions[$record['id']])){
 						$descriptiveInfo['description'] = $descriptions[$record['id']];
 					}
-					
+
 					$description = $descriptiveInfo['description'];
 					$numMatches = preg_match_all('/<\/p>|\\r|\\n|[.,:;]/', substr($description, 400, 50), $matches, PREG_OFFSET_CAPTURE);
 					if ($numMatches > 0){
@@ -848,17 +847,17 @@ class ListAPI extends Action {
 					$description = '';
 					$teaser = '';
 				}
-					
+
 				$titles[] = array(
             'id' => $record['id'],
             'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
             'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=large&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-			'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],						
+			'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
             'title' => $record['title'],
             'author' => isset($record['author']) ? $record['author'] : '',
 			'description' => $description,
 			'teaser' => $teaser,
-	        'length' => (isset($descriptiveInfo) && isset($descriptiveInfo['length'])) ? $descriptiveInfo['length'] : '', 
+	        'length' => (isset($descriptiveInfo) && isset($descriptiveInfo['length'])) ? $descriptiveInfo['length'] : '',
 	        'publisher' => (isset($descriptiveInfo) && isset($descriptiveInfo['publisher'])) ? $descriptiveInfo['publisher'] : '',
 			'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
 
@@ -890,7 +889,7 @@ class ListAPI extends Action {
 			}
 			$searchObj->processSearch(false, false);
 			$matchingRecords = $searchObj->getResultRecordSet();
-	
+
 			$listTitles = array();
 			foreach ($matchingRecords as $record){
 				if (isset($record['isbn'])){
@@ -901,7 +900,7 @@ class ListAPI extends Action {
 				}else{
 					$isbn = "";
 				}
-				
+
 				// Process MARC Data
 				require_once 'sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
@@ -910,7 +909,7 @@ class ListAPI extends Action {
 				}else{
 					$descriptiveInfo = array();
 				}
-	
+
 				$listTitles[] = array(
 	          'id' => $record['id'],
 	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
@@ -921,7 +920,7 @@ class ListAPI extends Action {
 	          'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
 				);
 			}
-	
+
 			$memcache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
 		return $listTitles;
@@ -942,22 +941,22 @@ class ListAPI extends Action {
 			$searchObj->setLimit(50);
 			$searchObj->processSearch(false, false);
 			$matchingRecords = $searchObj->getResultRecordSet();
-	
+
 			$listTitles = array();
 			foreach ($matchingRecords as $record){
 				$isbn = $record['isbn'][0];
 				if (strpos($isbn, ' ') > 0){
 					$isbn = substr($isbn, 0, strpos($isbn, ' '));
 				}
-	
+
 				// Process MARC Data
 				require_once 'sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
 				}
-	
-	
+
+
 				$listTitles[] = array(
 	          'id' => $record['id'],
 	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
@@ -973,10 +972,10 @@ class ListAPI extends Action {
 		}
 		return $listTitles;
 	}
-	
+
 	/**
-	 * Create a User list for the user. 
-	 * 
+	 * Create a User list for the user.
+	 *
 	 * Parameters:
 	 * <ul>
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
@@ -985,7 +984,7 @@ class ListAPI extends Action {
 	 * <li>description - A description for the list (optional).</li>
 	 * <li>public   - Set to true or 1 if the list should be public.  (optional, defaults to private).</li>
 	 * </ul>
-	 * 
+	 *
 	 * Note: You may also provide the parameters to addTitlesToList and titles will be added to the list
 	 * after the list is created.
 	 *
@@ -1010,7 +1009,7 @@ class ListAPI extends Action {
 		$password = $_REQUEST['password'];
 		if (!isset($_REQUEST['title'])){
 			return array('success'=>false, 'message'=>'You must provide the title of the list to be created.');
-		} 
+		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
@@ -1030,10 +1029,10 @@ class ListAPI extends Action {
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-	
+
 	/**
-	 * Add titles to a user list. 
-	 * 
+	 * Add titles to a user list.
+	 *
 	 * Parameters:
 	 * <ul>
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
@@ -1043,7 +1042,7 @@ class ListAPI extends Action {
 	 * <li>tags   - A comma separated string of tags to apply to the titles within the list. (optional)</li>
 	 * <li>notes  - descriptive text to apply to the titles.  Can be viewed while on the list.  (optional)</li>
 	 * </ul>
-	 * 
+	 *
 	 * Note: You may also provide the parameters to addTitlesToList and titles will be added to the list
 	 * after the list is created.
 	 *
@@ -1101,7 +1100,7 @@ class ListAPI extends Action {
 					if (!$resource->find(true)) {
 						$resource->insert();
 					}
-					
+
 					if (isset($_REQUEST['tags'])){
 						preg_match_all('/"[^"]*"|[^,]+/', $_REQUEST['tags'], $tagArray);
 						$tags = $tagArray[0];
@@ -1119,8 +1118,8 @@ class ListAPI extends Action {
 				}
 				return array('success'=>true, 'listId'=>$list->id, 'numAdded' => $numAdded);
 			}
-			
-			
+
+
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

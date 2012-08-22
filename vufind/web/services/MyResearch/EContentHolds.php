@@ -53,29 +53,42 @@ class EContentHolds extends MyResearch {
 
 				require_once 'Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
-				
+
 				if (isset($_REQUEST['multiAction']) && $_REQUEST['multiAction'] == 'suspendSelected'){
 					$ids = array();
 					foreach ($_REQUEST['unavailableHold'] as $id => $selected){
 						$ids[] = $id;
 					}
-					
+
 					$suspendDate = $_REQUEST['suspendDate'];
 					$dateToReactivate = strtotime($suspendDate);
 					$suspendResult = $driver->suspendHolds($ids, $dateToReactivate);
-					
+
 					//Redirect back to the MyEContent page
 					header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyEContent");
 				}
 				$result = $driver->getMyHolds($user);
 				$interface->assign('holds', $result['holds']);
 				$timer->logTime("Loaded econtent from catalog.");
-				
+
 			}
 		}
 
-		$interface->setTemplate('eContentHolds.tpl');
-		$interface->setPageTitle('On Hold eContent');
+		$hasSeparateTemplates = $interface->template_exists('MyResearch/eContentAvailableHolds.tpl');
+		if ($hasSeparateTemplates){
+			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
+			if ($section == 'available'){
+				$interface->setPageTitle('Available eContent');
+				$interface->setTemplate('eContentAvailableHolds.tpl');
+			}else{
+				$interface->setPageTitle('eContent On Hold');
+				$interface->setTemplate('eContentUnavailableHolds.tpl');
+			}
+		}else{
+			$interface->setTemplate('eContentHolds.tpl');
+			$interface->setPageTitle('On Hold eContent');
+		}
+
 		$interface->display('layout.tpl');
 	}
 

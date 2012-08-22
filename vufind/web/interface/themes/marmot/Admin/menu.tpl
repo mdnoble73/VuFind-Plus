@@ -60,7 +60,7 @@
 	<h4><a href="#">eContent</a></h4>
 	<div class="sidegroupContents">
 		<div id="epubMenu">
-			<div class="adminMenuLink{if $action == "ListEPub"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Search/Results?type=Keyword&shard[]=eContent&lookfor=">Search Existing eContent</a></div>
+			<div class="adminMenuLink{if $action == "ListEPub"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Search/Results?type=Keyword&amp;shard[]=eContent&amp;lookfor=">Search Existing eContent</a></div>
 			<div class="adminMenuLink{if $action == "NewEPub"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EcontentRecord/Edit">New eContent</a></div>
 			<div class="adminMenuLink{if $action == "RecordDetectionSettings"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/RecordDetectionSettings">Automatic Import Settings</a></div>
 			{if $user->hasRole('epubAdmin')}
@@ -112,7 +112,7 @@
 	{assign var="curSection" value=$curSection+1}
 	<h4><a href="#">eContent Reports</a></h4>
 	<div class="sidegroupContents">
-		<div id="epubMenu">
+		<div id="econtentReportMenu">
 			<div class="adminMenuLink{if $action == "EContentSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentSummary">Collection Summary</a></div>
 			<div class="adminMenuLink{if $action == "EContentCollection"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentCollection">Collection Details</a></div>
 			{if $user->hasRole('epubAdmin')}

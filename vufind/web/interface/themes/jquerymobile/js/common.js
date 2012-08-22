@@ -51,3 +51,12 @@ function pwdToText(fieldId){
 	elem.parentNode.replaceChild(input, elem);
 	return input;
 }
+
+function moreFacets(name){
+	$("#more" + name).hide();
+	$(".narrowGroupHidden_" + name).show();
+}
+function lessFacets(name){
+	$("#more" + name).show();
+	$(".narrowGroupHidden_" + name).hide();
+}

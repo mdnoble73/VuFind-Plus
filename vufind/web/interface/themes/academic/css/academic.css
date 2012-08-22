@@ -1,0 +1,260 @@
+/*****************Homepage*******************/
+.searchHomeForm {
+	background-color: #660033;
+	border-top: #494949 2px solid;
+}
+
+html,body {
+	background-color: #B5A899;
+}
+
+#searchbar,.searchHomeForm {
+	color: white;
+	background-color: #5D0022;
+	margin: 0px -20px;
+}
+
+#searchbar a {
+	color: white;
+}
+
+#content_span {
+	background-image: none;
+	padding: 0px 20px 5px 20px;
+	background-color: #FFFFFF;
+	margin-bottom: 10px;
+}
+
+div.breadcrumbs {
+	border-bottom: thin solid #B0B0B0;
+	margin: 0px -20px;
+}
+
+div.breadcrumbs span {
+	opacity: 1;
+}
+
+body.search.Home #content_span {
+	position: relative;
+	top: 15px;
+}
+
+.searchHome {
+	margin-top: 0px;
+}
+
+#ft_contents div {
+	float: left;
+	border-right: 1px dotted #cccccc;
+	margin-right: 1em;
+	padding: 0 2em 1em 0;
+	width: 12em;
+}
+
+#ft {
+	margin: 20px auto auto;
+	width: 960px;
+	border: solid #B0B0B0 1px;
+	-moz-border-radius: 20px 20px 20px 20px;
+	border-radius: 20px 20px 20px 20px;
+	padding: 7px 0px 7px 0px;
+	text-align: center;
+	clear: both;
+}
+
+div#ft_contents {
+	margin: auto;
+	float: none;
+	width: 61em; /* Needs to be increased when a column is added. */
+	border: none;
+}
+
+#maroon_right {
+	padding-top: 15px;
+}
+
+.left_sidebar {
+	border: thin solid #B0B0B0;
+	background-color: white;
+	float: left;
+	margin-top: 15px;
+	width: 170px;
+}
+
+#main_content_with_sidebar, #main-content {
+	width: 720px;
+	border: thin solid #B0B0B0;
+	background-color: white;
+	margin: 15px 0px 15px 0px;
+	float: right;
+	border-radius: 0px;
+	margin-top: 15px;
+}
+
+#searchResultSummary {
+	float: left;
+}
+
+.resulthead {
+	padding: 3px 3px 5px 3px;
+	border-bottom: thin solid #B0B0B0;
+}
+
+.pagination.top {
+	margin: 0px;
+	padding: .5em;
+}
+
+.resultLabel {
+	width: 110px;
+	color: graytext;
+	display: inline-block;
+	vertical-align: top;
+	font-weight: bold;
+}
+
+.resultValue {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.boldedResultValue {
+	font-weight: bold;
+}
+
+.resultInformation {
+	margin-top: 3px;
+	padding-top: 0px;
+}
+
+.listResultImage {
+	float: right;
+}
+
+.resultitem {
+	margin-left: 25px;
+}
+
+.toolbar {
+	margin-top: 6px;
+	border-bottom: thin solid #B0B0B0;
+}
+
+.titledetails {
+	clear: none;
+}
+
+#fullRecordSummaryAndImage {
+	float: right;
+	text-align: center;
+}
+
+#fullRecordTitleDetails {
+	width: 475px;
+}
+
+#fullRecordTitleDetails .resultValue {
+	max-width: 365px;
+}
+
+.recordcover {
+	margin: auto;
+}
+
+#fullcontent {
+	margin: 15px;
+}
+
+.left_sidebar h4 {
+	color: #000000;
+	font-size: 140%;
+	font-weight: normal;
+	padding-top: 10px;
+	padding-left: 7px;
+	border-bottom: 2px solid #D5D5D5;
+}
+
+ul.similar {
+	margin-left: 7px;
+}
+
+.tabcontent {
+	width: 690px;
+}
+
+#staffView,#fullViewLink,#classicViewLink {
+	padding: 0px;
+	margin: 10px;
+	float: left;
+}
+
+.amazonLink {
+	float: right;
+	margin: 10px;
+}
+
+.holdingsCallNumber {
+	font-weight: bold;
+}
+
+#ratingSummary {
+	margin: 15px auto 15px auto;
+}
+
+td {
+	background-color: white;
+}
+
+/* Adjust the width of the series box */
+.jcarousel-skin-tango .jcarousel-clip-horizontal {
+	height: auto;
+	width: 575px;
+}
+
+.jcarousel-skin-tango .jcarousel-container-horizontal {
+	padding: 20px 40px;
+	width: 625px;
+}
+
+#prospectorAvailabilityTitle {
+	font-size: 110%;
+}
+#sidebar{
+	width: 170px;
+}
+.sidegroup{
+	margin-top: 15px;
+	border: thin solid #B0B0B0;
+	width: 170px;
+}
+
+.callNumber {
+	font-weight: bold;
+}
+
+.result.alt {
+	background-color: #ECEAE8;
+}
+.full-result-content{
+	border: thin solid #B0B0B0;
+	width: 726px;
+}
+
+.searchcontent {
+	width: 1000px;
+	margin: 0px auto;
+}
+.resultIndex{
+	width: 20px;
+	display:inline-block;
+	zoom:1;
+	*display:inline;
+	font-weight: bold;
+	vertical-align:top;
+}
+.resultsList{
+	width: 665px;
+	display:inline-block;
+	zoom:1;
+	*display:inline;
+}

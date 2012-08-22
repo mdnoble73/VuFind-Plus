@@ -32,7 +32,7 @@ class UsageTracking extends DB_DataObject{
 	public static function logTrackingData($trackingType, $trackingIncrement = 1, $ipLocation = null, $ipId = null){
 		global $user;
 		global $locationSingleton;
-		
+
 		try{
 
 			if ($ipLocation == null){
@@ -41,26 +41,27 @@ class UsageTracking extends DB_DataObject{
 			if ($ipId == null){
 				$ipId = $locationSingleton->getIPid();
 			}
-			
+
 			//Usage Tracking Variables
 			$referrer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'none';
 			$pageURL = $_SERVER['REQUEST_URI'];
-	
+
 			// If the Subnet (location) is unknown save as a -1
-			if (!isset($ipLocation)) {
+			//print_r($ipLocation);
+			if ($ipLocation == null) {
 				$ipLocationId = -1;
 				$locationId = -1;
 			} else {
-				$ipLocationId = $ipLocation->locationId;	
+				$ipLocationId = $ipLocation->locationId;
 				$locationId = $ipLocationId;
 			}
-			
+
 			// Set the tracking date for today and format it
 			$trackingDate = strtotime(date('m/d/Y'));
-				
+
 			//Look up the date and the ipId in the usageTracking table and increment the pageView total by 1
 			disableErrorHandler();
-			$usageTracking = new UsageTracking();	
+			$usageTracking = new UsageTracking();
 			$usageTracking->ipId = $ipId;
 			$usageTracking->trackingDate = $trackingDate;
 			if ($usageTracking->find(true)){

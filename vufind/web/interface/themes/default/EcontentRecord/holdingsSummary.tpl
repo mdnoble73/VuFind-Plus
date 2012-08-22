@@ -1,5 +1,5 @@
-<div id = "holdingsSummary" class="holdingsSummary">
-	<div class="availability">
+<div id = "holdingsSummary" class="holdingsSummary {$holdingsSummary.class}">
+	<div class="availability holdingsSummaryStatusLine {$holdingsSummary.class}">
 		{$holdingsSummary.status}
 	</div>
 

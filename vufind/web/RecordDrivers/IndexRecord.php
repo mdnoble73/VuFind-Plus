@@ -55,7 +55,7 @@ class IndexRecord implements RecordInterface
 	 */
 	protected $forbiddenSnippetFields = array(
 	'author', 'author-letter', 'title', 'title_short', 'title_full',
-	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id', 
+	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
 	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
 	'spellingShingle', 'collection', 'building', 'institution', 'available_at', 'title_proper',
 	'contents_proper', 'genre_proper', 'geographic_proper'
@@ -88,8 +88,7 @@ class IndexRecord implements RecordInterface
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
-	 * from the (Solr) index (which also happens to include the
-	 * 'fullrecord' field containing raw metadata).  Since we have to
+	 * from the (Solr) index.  Since we have to
 	 * make a search call to find out which record driver to construct,
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
@@ -144,8 +143,7 @@ class IndexRecord implements RecordInterface
 		if (!empty($primary)) {
 			$authors[] = $primary;
 		}
-		$authors = array_unique(array_merge($authors,
-		$this->getSecondaryAuthors()));
+		$authors = array_unique(array_merge($authors, $this->getSecondaryAuthors()));
 
 		// Collect all details for citation builder:
 		$publishers = $this->getPublishers();
@@ -158,7 +156,8 @@ class IndexRecord implements RecordInterface
             'pubPlace' => count($pubPlaces) > 0 ? $pubPlaces[0] : null,
             'pubName' => count($publishers) > 0 ? $publishers[0] : null,
             'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
-            'edition' => array($this->getEdition())
+            'edition' => $this->getEdition(),
+		        'format' => $this->getFormats()
 		);
 
 		// Build the citation:
@@ -166,6 +165,12 @@ class IndexRecord implements RecordInterface
 		switch($format) {
 			case 'APA':
 				return $citation->getAPA();
+			case 'AMA':
+				return $citation->getAMA();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
 			case 'MLA':
 				return $citation->getMLA();
 		}
@@ -180,7 +185,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCitationFormats()
 	{
-		return array('APA', 'MLA');
+		return array('AMA', 'APA', 'ChicagoHumanities', 'ChicagoAuthDate', 'MLA');
 	}
 
 	/**
@@ -683,7 +688,7 @@ class IndexRecord implements RecordInterface
 		}
 		$interface->assign('summPhysical', $this->getPhysicalDescriptions());
 		$interface->assign('summEditions', $this->getEdition());
-		
+
 		// Obtain and assign snippet information:
 		$snippet = $this->getHighlightedSnippet();
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
@@ -709,17 +714,17 @@ class IndexRecord implements RecordInterface
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
 		$format = isset($formats[0]) ? $formats[0] : '';
-		
+
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
-		
+
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
-		
+
 		return 'RecordDrivers/Index/result.tpl';
 	}
-	
+
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);

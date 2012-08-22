@@ -51,6 +51,12 @@ class Holdings extends Record
 	{
 		global $interface;
 		global $configArray;
+		global $library;
+		$showCopiesLineInHoldingsSummary = true;
+		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
+			$showCopiesLineInHoldingsSummary = false;
+		}
+		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);

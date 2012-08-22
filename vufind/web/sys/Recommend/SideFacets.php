@@ -63,7 +63,7 @@ class SideFacets implements RecommendationInterface
 				}
 			}
 		}
-		
+
 		$this->checkboxFacets = ($checkboxSection && isset($config[$checkboxSection])) ?
 		$config[$checkboxSection] : array();
 	}
@@ -129,7 +129,7 @@ class SideFacets implements RecommendationInterface
 				$sideFacets[$timeSinceAddedFacet]['list'] = array_reverse($sideFacets[$timeSinceAddedFacet]['list']);
 			}
 		}
-		
+
 		//Check to see if there is a facet for ratings
 		if (isset($sideFacets['rating_facet'])){
 			$ratingApplied = false;
@@ -139,12 +139,57 @@ class SideFacets implements RecommendationInterface
 					$ratingLabels = array($facetValue['value']);
 				}
 			}
-			
+
 			if (!$ratingApplied){
 				$ratingLabels =array('fiveStar','fourStar','threeStar','twoStar','oneStar', 'Unrated');
 			}
 			$interface->assign('ratingLabels', $ratingLabels);
 		}
+
+		if (isset($sideFacets['available_at'])){
+			//Mangle the availability facets
+			$oldFacetValues = $sideFacets['available_at']['list'];
+			ksort($oldFacetValues);
+
+			//print_r($sideFacets['available_at']['list']);
+			global $locationSingleton;
+			global $user;
+			global $library;
+			$filters = $this->searchObject->getFilterList();
+			//print_r($filters);
+			$appliedAvailability = array();
+			foreach ($filters as $appliedFilters){
+				foreach ($appliedFilters as $filter){
+					if ($filter['field'] == 'available_at'){
+						$appliedAvailability[$filter['value']] = $filter['removalUrl'];
+					}
+				}
+			}
+
+			$availableAtFacets = array();
+			foreach ($oldFacetValues as $facetKey => $facetInfo){
+				if (strlen($facetKey) > 1){
+					$sortIndicator = substr($facetKey, 0, 1);
+					if ($sortIndicator >= '1' && $sortIndicator <= '4'){
+						$availableAtFacets[$facetKey] = $facetInfo;
+					}
+				}
+			}
+
+			$availableAtFacets['*'] = array(
+				'value' => '*',
+				'display' => "Any Marmot Library",
+				'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
+				'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
+				'isApplied' => array_key_exists('*', $appliedAvailability),
+				'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
+			);
+
+			$sideFacets['available_at']['list'] = $availableAtFacets;
+
+			//print_r($sideFacets['available_at']);
+		}
+
 		$interface->assign('sideFacetSet', $sideFacets);
 	}
 
