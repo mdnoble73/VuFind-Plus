@@ -215,7 +215,7 @@
         {/if}
         {if $linkToAmazon == 1 && $isbn}
         <div id="titledetails">
-            <a href="http://amazon.com/dp/{$isbn|@formatISBN}" target="_blank" class='amazonLink'> {translate text = "View on Amazon"}</a>
+            <a href="http://amazon.com/dp/{$isbn|@formatISBN}" rel="external" onclick="window.open (this.href, 'child'); return false" class='amazonLink'> {translate text = "View on Amazon"}</a>
         </div>
         {/if}
         <center>

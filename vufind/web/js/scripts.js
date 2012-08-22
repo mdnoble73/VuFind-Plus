@@ -1,3 +1,12 @@
+$(document).ready(function(){
+	if($("#searchForm") != null && $("#lookfor") != null){
+		$("#lookfor").focus();
+	}
+	if($("#loginForm") != null){
+		$("#username").focus();
+	}
+});
+
 function getLightbox(module, action, id, lookfor, message, followupModule,
 		followupAction, followupId, left, width, top, height) {
 	// Optional parameters
@@ -465,6 +474,8 @@ function processAjaxLogin(){
 					// Hide "log in" options and show "log out" options:
 					$('.loginOptions').hide();
 					$('.logoutOptions').show();
+					$('#loginOptions').hide();
+					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
 					hideLightbox();
 					if (ajaxCallback  && typeof(ajaxCallback) === "function"){

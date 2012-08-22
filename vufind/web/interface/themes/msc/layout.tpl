@@ -1,81 +1,44 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html lang="{$userLang}">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-		<meta http-equiv="X-UA-Compatible" content="IE=8" >
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=8" />
 		<title>{$pageTitle|truncate:64:"..."}</title>
-		<link rel="stylesheet" href="{$path}/interface/themes/msc/css/cmu_layout.css" type="text/css" >
-		<link rel="stylesheet" href="{$path}/interface/themes/msc/css/cmu_setup.css" type="text/css" >
-		<link rel="stylesheet" href="{$path}/interface/themes/msc/css/cmu_top_navigation_layout.css" type="text/css" >
-		{if $consolidateCss}
-			{css filename="consolidated_css.css"}
-		{else}
-			{css filename="basicHtml.css"}
-			{css filename="jqueryui.css"}
-			{css media="screen" filename="styles.css"}
-			{css media ="screen" filename="book-bag.css"}
-			{css filename="title-scroller.css"}
-			{css filename="my-account.css"}
-			{css filename="holdingsSummary.css"}
-			{css filename="ratings.css"}
-			{css filename="book-bag.css"}
-			{css filename="jquery.tooltip.css"}
-			{css filename="tooltip.css"}
-			{css filename="record.css"}
-			{css filename="search-results.css"}
-			{css filename="suggestions.css"}
-			{css filename="reports.css"}
-			{css filename="prospector.css"}
-			{css filename="marmot.css"}
-			{css filename="extra_styles.css"}
-		{/if}
+		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
+    {css filename="consolidated.min.css"}
 		{if $addHeader}{$addHeader}{/if}
-		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" >
+		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" />
 		<script type="text/javascript">
 		path = '{$path}';
 		url = '{$url}';
 		loggedIn = {if $user}true{else}false{/if}
 		</script>
 		
-		<script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
-		<script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
-		<script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
+		{js filename="consolidated.min.js"}
 		<script src="http://www.coloradomesa.edu/js/megamenu.js" type="text/javascript"></script>
-		
-		<script type="text/javascript" src="{$path}/js/scripts.js"></script>
-		<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-		
-		{if $enableBookCart}
-		<script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
-		<script type="text/javascript" src="{$path}/js/bookcart/bookcart.js"></script>
-		{/if}
 		
 		{if $includeAutoLogoutCode == true}
 		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
 		
-		<script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
-		<script type="text/javascript" src="{$path}/services/Search/ajax.js"></script>
-		<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-		
-		<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
-	
-	
-		
 		{if isset($theme_css)}
-		<link rel="stylesheet" type="text/css" href="{$theme_css}" >
+		<link rel="stylesheet" type="text/css" href="{$theme_css}" />
 		{/if}
 	</head>
 
-	<body class="{$module} {$action}" onload="{literal}if(document.searchForm != null && document.searchForm.lookfor != null){ document.searchForm.lookfor.focus();} if(document.loginForm != null){document.loginForm.username.focus();}{/literal}">
-	 {include file="bookcart.tpl"}
+	<body class="{$module} {$action}" >
+		{if $systemMessage}
+		<div id="systemMessage">{$systemMessage}</div>
+		{/if}
+		
+		{include file="bookcart.tpl"}
 	
 		<!-- Current Physical Location: {$physicalLocation} -->
 		{* LightBox *}
 		<div id="lightboxLoading" style="display: none;">{translate text="Loading"}...</div>
 		<div id="lightboxError" style="display: none;">{translate text="lightbox_error"}</div>
-		<div id="lightbox" onClick="hideLightbox(); return false;"></div>
-		<div id="popupbox" class="popupBox"><b class="btop"><b></b></b></div>
+		<div id="lightbox" onclick="hideLightbox(); return false;"></div>
+		<div id="popupbox" class="popupBox"></div>
 		{* End LightBox *}
 		
 		{include file="header.tpl"}

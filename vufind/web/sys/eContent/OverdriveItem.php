@@ -55,7 +55,7 @@ class OverdriveItem extends DB_DataObject{
 	function getUsageNotes(){
 		$notes = '';
 		if ($this->libraryId == -1){
-			$notes = "Must be checked out to read.";
+			$notes = "Must be checked out.";
 		}else{
 			$library = new Library();
 			$library->libraryId = $this->libraryId;

@@ -49,13 +49,25 @@ class OverdriveHolds extends MyResearch {
 			}
 		}
 		$interface->assign('overDriveHolds', $overDriveHolds['holds']);
-	
+
 		$interface->assign('ButtonBack',true);
 		$interface->assign('ButtonHome',true);
 		$interface->assign('MobileTitle','OverDrive Holds');
-		
-		$interface->setTemplate('overDriveHolds.tpl');
-		$interface->setPageTitle('OverDrive Holds');
+
+		$hasSeparateTemplates = $interface->template_exists('MyResearch/overDriveAvailableHolds.tpl');
+		if ($hasSeparateTemplates){
+			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
+			if ($section == 'available'){
+				$interface->setPageTitle('Available Holds from OverDrive');
+				$interface->setTemplate('overDriveAvailableHolds.tpl');
+			}else{
+				$interface->setPageTitle('On Hold in OverDrive');
+				$interface->setTemplate('overDriveUnavailableHolds.tpl');
+			}
+		}else{
+			$interface->setTemplate('overDriveHolds.tpl');
+			$interface->setPageTitle('OverDrive Holds');
+		}
 		$interface->display('layout.tpl');
 	}
 

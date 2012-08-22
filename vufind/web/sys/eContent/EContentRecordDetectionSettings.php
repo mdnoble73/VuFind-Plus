@@ -27,9 +27,9 @@ class EContentRecordDetectionSettings extends DB_DataObject {
 		
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the detection settings within the database'),
-			'fieldSpec' => array('property'=>'fieldSpec', 'type'=>'text', 'label'=>'Field Specification', 'description'=>'The marc record field to test to see if the record should be treated as eContent uses the same format as marc_local.properties.'),
-			'valueToMatch' => array('property'=>'valueToMatch', 'type'=>'text', 'label'=>'Value To Match', 'description'=>'The value to match to see if the record should be treated as eContent.  Regular expressions are allowed.'),
-			'source' => array('property'=>'source', 'type'=>'text', 'label'=>'Source', 'description'=>'The source to set for the record.'),
+			'fieldSpec' => array('property'=>'fieldSpec', 'type'=>'text', 'label'=>'Field Specification', 'description'=>'The marc record field to test to see if the record should be treated as eContent uses the same format as marc_local.properties.', 'size' => '20'),
+			'valueToMatch' => array('property'=>'valueToMatch', 'type'=>'text', 'label'=>'Value To Match', 'description'=>'The value to match to see if the record should be treated as eContent.  Regular expressions are allowed.', 'size' => '60'),
+			'source' => array('property'=>'source', 'type'=>'text', 'label'=>'Source', 'description'=>'The source to set for the record.', 'size' => '20'),
 			'accessType' => array('property'=>'accessType', 'type'=>'enum', 'label'=>'Access Type', 'values'=>$accessTypes, 'description'=>'The type to apply to any items that are generated.'),
 			'add856FieldsAsExternalLinks' => array('property'=>'add856FieldsAsExternalLinks', 'type'=>'checkbox', 'label'=>'Create Links?', 'description'=>'Whether or not automatic external links should be generated based on the 856 tag.'),
 			'item_type' => array('property'=>'item_type', 'type'=>'enum', 'label'=>'Item Type', 'values'=>$itemTypes, 'description'=>'The type to apply to any items that are generated.'),

@@ -36,26 +36,27 @@
 			{if $listDate}{translate text='Published'} {$listDate.0|escape}{/if}
 		</div>
 	
-		{if is_array($listFormats)}
-			{foreach from=$listFormats item=format}
+		{if is_array($resource->format)}
+			{foreach from=$resource->format item=format}
 				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
 			{/foreach}
-		{else}
-			<span class="iconlabel {$listFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$listFormats}</span>
+		{elseif strlen($resource->format) > 0}
+			<span class="iconlabel {$resource->format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$resource->format}</span>
 		{/if}
-		{if $listTags}
-					{translate text='Your Tags'}:
-					{foreach from=$listTags item=tag name=tagLoop}
-						<a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
-					{/foreach}
-					<br />
-				{/if}
-				{if $listNotes}
-					{translate text='Notes'}: 
-					{foreach from=$listNotes item=note}
-						{$note|escape:"html"}<br />
-					{/foreach}
-				{/if}
+		<br/>
+		{if $resource->tags}
+			{translate text='Your Tags'}:
+			{foreach from=$resource->tags item=tag name=tagLoop}
+				<a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
+			{/foreach}
+			<br />
+		{/if}
+		{if $resource->notes}
+			{translate text='Notes'}: 
+			{foreach from=$resource->notes item=note}
+				{$note|escape:"html"}<br />
+			{/foreach}
+		{/if}
 		
 		<div id = "{if $resource->source=='VuFind'}holdingsSummary{else}holdingsEContentSummary{/if}{$resource->record_id|regex_replace:"/\./":""|escape:"url"}" class="holdingsSummary">
 			<div class="statusSummary" id="statusSummary{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
@@ -72,16 +73,16 @@
 						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
 						<a
 						{if is_null($listSelected)}
-							href="{$url}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
+							href="{$url}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
 						{else}
-							href="{$url}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
+							href="{$url}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
 						{/if}
 						class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
 				{/if}
 			</div>
 			<div class="statVal">
 				<span class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
+					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
 					(<span class="ui-rater-rateCount-{$resource->record_id|regex_replace:"/\./":""|escape} ui-rater-rateCount">0</span>)
 				</span>
 			</div>

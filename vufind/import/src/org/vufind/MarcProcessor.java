@@ -57,7 +57,10 @@ public class MarcProcessor {
 
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
-
+	
+	private boolean useThreads = false;
+	private String idsToProcess = null;
+	
 	public HashMap<String, String[]> getMarcFieldProps() {
 		return marcFieldProps;
 	}
@@ -89,6 +92,7 @@ public class MarcProcessor {
 	private Map<String, Float>				printRatings				= Collections.synchronizedMap(new HashMap<String, Float>());
 	private Map<String, Float>				econtentRatings			= Collections.synchronizedMap(new HashMap<String, Float>());
 	private Map<String, Long>					librarySystemFacets	= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 
@@ -97,12 +101,14 @@ public class MarcProcessor {
 	private String												urlSubfield;
 	private String												sharedEContentLocation;
 	private boolean												scrapeItemsForLinks;
+	private String												catalogUrl;
 
-	public static final int								RECORD_CHANGED			= 1;
-	public static final int								RECORD_UNCHANGED		= 2;
-	public static final int								RECORD_NEW					= 3;
-	public static final int								RECORD_DELETED			= 4;
-
+	public static final int								RECORD_CHANGED_PRIMARY		= 1;
+	public static final int								RECORD_UNCHANGED					= 2;
+	public static final int								RECORD_NEW								= 3;
+	public static final int								RECORD_DELETED						= 4;
+	public static final int								RECORD_CHANGED_SECONDARY	= 1;
+	
 	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 
@@ -117,6 +123,22 @@ public class MarcProcessor {
 		if (marcEncoding == null || marcEncoding.length() == 0) {
 			logger.error("Marc Encoding not found in Reindex Settings.  Please specify the path as the defaultEncoding key.");
 			return false;
+		}
+		
+		//Determine whether or not we should use threads to reduce processing time
+		String useThreadsStr = configIni.get("Reindex", "useThreads");
+		if (marcEncoding == null || marcEncoding.length() == 0) {
+			useThreads = false;
+		}else{
+			useThreads = Boolean.parseBoolean(useThreadsStr);
+		}
+		
+		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
+		if (idsToProcess == null || idsToProcess.length() == 0){
+			idsToProcess = null;
+			logger.debug("Did not load a set of idsToProcess");
+		}else{
+			logger.debug("idsToProcess = " + idsToProcess);
 		}
 
 		// Setup where to look for translation maps
@@ -160,13 +182,15 @@ public class MarcProcessor {
 		if (scrapeItemsForLinksStr != null) {
 			scrapeItemsForLinks = Boolean.parseBoolean(scrapeItemsForLinksStr);
 		}
+		catalogUrl = configIni.get("Catalog", "url");
 
 		// Load the checksums of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
 		// or is deleted
 		logger.info("Loading existing checksums for records");
+		ReindexProcess.addNoteToCronLog("Loading existing checksums for records");
 		try {
-			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import");
+			PreparedStatement existingRecordChecksumsStmt = vufindConn.prepareStatement("SELECT * FROM marc_import", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingRecordChecksumsRS = existingRecordChecksumsStmt.executeQuery();
 			while (existingRecordChecksumsRS.next()) {
 				MarcIndexInfo marcInfo = new MarcIndexInfo();
@@ -176,19 +200,22 @@ public class MarcProcessor {
 				marcInfo.setBackupEContent(existingRecordChecksumsRS.getBoolean("backup_eContent"));
 				marcIndexInfo.put(existingRecordChecksumsRS.getString("id"), marcInfo);
 			}
+			existingRecordChecksumsRS.close();
 		} catch (SQLException e) {
 			logger.error("Unable to load checksums for existing records", e);
+			ReindexProcess.addNoteToCronLog("Unable to load checksums for existing records " + e.toString());
 			return false;
 		}
 
 		// Load the ILS ids of any eContent records that have been loaded so we can
 		// suppress the record in the regular content
 		logger.info("Loading ils ids for econtent records for suppression");
+		ReindexProcess.addNoteToCronLog("Loading ils ids for econtent records for suppression");
 		try {
-			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record");
+			PreparedStatement existingEContentRecordStmt = econtentConn.prepareStatement("SELECT ilsId FROM econtent_record", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet existingEContentRecordRS = existingEContentRecordStmt.executeQuery();
 			while (existingEContentRecordRS.next()) {
-				existingEContentIds.add(existingEContentRecordRS.getString("ilsId"));
+				existingEContentIds.add(existingEContentRecordRS.getString(1));
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load checksums for existing records", e);
@@ -197,8 +224,9 @@ public class MarcProcessor {
 
 		// Load detection settings to determine if a record is eContent.
 		logger.info("Loading record detection settings");
+		ReindexProcess.addNoteToCronLog("Loading record detection settings");
 		try {
-			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings");
+			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
 			while (eContentDetectionSettingsRS.next()) {
 				DetectionSettings settings = new DetectionSettings();
@@ -217,6 +245,7 @@ public class MarcProcessor {
 
 		// Load ratings for print and eContent titles
 		logger.info("Loading ratings");
+		ReindexProcess.addNoteToCronLog("Loading ratings");
 		try {
 			PreparedStatement printRatingsStmt = vufindConn
 					.prepareStatement(
@@ -233,7 +262,7 @@ public class MarcProcessor {
 							ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet econtentRatingsRS = econtentRatingsStmt.executeQuery();
 			while (econtentRatingsRS.next()) {
-				econtentRatings.put(econtentRatingsRS.getString("ilsId"), econtentRatingsRS.getFloat("rating"));
+				econtentRatings.put(econtentRatingsRS.getString(1), econtentRatingsRS.getFloat(2));
 			}
 			econtentRatingsRS.close();
 		} catch (SQLException e) {
@@ -243,7 +272,7 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules from library");
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
 				librarySystemFacets.put(librarySystemFacetRS.getString("facetLabel"), librarySystemFacetRS.getLong("libraryId"));
@@ -257,6 +286,18 @@ public class MarcProcessor {
 			logger.error("Unable to load library System Facet information", e);
 			return false;
 		}
+		
+		try {
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, facetLabel from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
+			while (locationFacetRS.next()) {
+				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
+				locationFacets.put(locationFacetRS.getString("facetLabel"), locationFacetRS.getLong("locationId"));
+			}
+		} catch (SQLException e) {
+			logger.error("Unable to load location Facet information", e);
+			return false;
+		}
 
 		// Setup additional statements
 		try {
@@ -267,6 +308,7 @@ public class MarcProcessor {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
 		}
+		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
 	}
 
@@ -562,7 +604,6 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			boolean useThreads = false;
 			if (useThreads){
 				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
 				for (final File marcFile : marcFiles) {
@@ -598,13 +639,13 @@ public class MarcProcessor {
 	private void processMarcFile(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
 		try {
 			logger.info("Processing file " + marcFile.toString());
+			ReindexProcess.addNoteToCronLog("Processing file " + marcFile.toString());
 			// Open the marc record with Marc4j
 			InputStream input = new FileInputStream(marcFile);
 			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
 			int recordNumber = 0;
 			while (reader.hasNext()) {
 				recordNumber++;
-				logger.debug("Reading record " + recordNumber);
 				try {
 					// Loop through each record
 					Record record = reader.next();
@@ -617,23 +658,31 @@ public class MarcProcessor {
 						if (id == null) {
 							System.out.println("Could not load id for marc record " + recordNumber);
 							System.out.println(marcFieldProps.get("id").toString());
-							System.exit(1);
+							continue;
+						}
+						//Check the list of ids to process if any to see if we should skip this recod
+						if (idsToProcess != null){
+							if (!id.matches(idsToProcess)){
+								continue;
+							}else{
+								logger.debug("processing record " + id + " because it is in the list of ids to process " + idsToProcess);
+							}
 						}
 						MarcIndexInfo marcIndexedInfo = null;
 						if (marcIndexInfo.containsKey(marcInfo.getId())) {
 							marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
 							if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
-								logger.debug("Record is changed - checksum");
-								recordStatus = RECORD_CHANGED;
-							}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
-								logger.debug("Record is changed - backup checksum");
-								recordStatus = RECORD_CHANGED;
+								//logger.debug("Record is changed - checksum");
+								recordStatus = RECORD_CHANGED_PRIMARY;
 							}else if (marcInfo.isEContent() != marcIndexedInfo.isEContent()){
-								logger.debug("Record is changed - econtent");
-								recordStatus = RECORD_CHANGED;
+								//logger.debug("Record is changed - econtent");
+								recordStatus = RECORD_CHANGED_PRIMARY;
+							}else if (marcInfo.getChecksum() != marcIndexedInfo.getBackupChecksum()){
+								//logger.debug("Record is changed - backup checksum");
+								recordStatus = RECORD_CHANGED_SECONDARY;
 							}else if (marcInfo.isEContent() != marcIndexedInfo.isBackupEContent()) {
-								logger.debug("Record is changed - backup econtent");
-								recordStatus = RECORD_CHANGED;
+								//logger.debug("Record is changed - backup econtent");
+								recordStatus = RECORD_CHANGED_SECONDARY;
 							} else {
 								// logger.info("Record is unchanged");
 								recordStatus = RECORD_UNCHANGED;
@@ -642,42 +691,55 @@ public class MarcProcessor {
 							logger.debug("Record is new");
 							recordStatus = RECORD_NEW;
 						}
-
+						
 						for (IMarcRecordProcessor processor : recordProcessors) {
 							// System.out.println("Running processor " +
 							// processor.getClass().getName());
-							logger.debug(recordNumber + " - " + processor.getClass().getName() + " - " + marcInfo.getId());
+							//logger.debug(recordNumber + " - " + processor.getClass().getName() + " - " + marcInfo.getId());
 							processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 						}
 
-						// Update the checksum in the database
-						if (recordStatus == RECORD_CHANGED) {
-							updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
-							updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
-							updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-							updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
-							updateMarcInfoStmt.setString(5, marcInfo.getId());
-							updateMarcInfoStmt.executeUpdate();
-						} else if (recordStatus == RECORD_NEW) {
-							insertMarcInfoStmt.setString(1, marcInfo.getId());
-							insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
-							insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-
-							insertMarcInfoStmt.executeUpdate();
-						}
+						updateMarcRecordChecksum(marcInfo, recordStatus, marcIndexedInfo);
 					}
+					marcInfo = null;
 					recordsProcessed++;
 					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
+						ReindexProcess.addNoteToCronLog("Stopping processing because maximum number of records to process was reached.");
 						logger.debug("Stopping processing because maximum number of records to process was reached.");
 						break;
 					}
+					if (recordsProcessed % 1000 == 0){
+						ReindexProcess.updateLastUpdateTime();
+					}
 				} catch (Exception e) {
+					ReindexProcess.addNoteToCronLog("Exception processing record " + recordNumber + " - " + e.toString());
+					logger.error("Exception processing record " + recordNumber, e);
+				} catch (Error e) {
+					ReindexProcess.addNoteToCronLog("Error processing record " + recordNumber + " - " + e.toString());
 					logger.error("Error processing record " + recordNumber, e);
 				}
 			}
 			logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
+			ReindexProcess.addNoteToCronLog("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 		} catch (Exception e) {
 			logger.error("Error processing file " + marcFile.toString(), e);
+		}
+	}
+
+	private void updateMarcRecordChecksum(MarcRecordDetails marcInfo, int recordStatus, MarcIndexInfo marcIndexedInfo) throws SQLException {
+		// Update the checksum in the database
+		if (recordStatus == RECORD_CHANGED_PRIMARY || recordStatus == RECORD_CHANGED_SECONDARY) {
+			updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
+			updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
+			updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+			updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
+			updateMarcInfoStmt.setString(5, marcInfo.getId());
+			updateMarcInfoStmt.executeUpdate();
+		} else if (recordStatus == RECORD_NEW) {
+			insertMarcInfoStmt.setString(1, marcInfo.getId());
+			insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
+			insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+			insertMarcInfoStmt.executeUpdate();
 		}
 	}
 
@@ -735,6 +797,9 @@ public class MarcProcessor {
 		return librarySystemFacets.get(librarySystemFacet);
 	}
 	
+	public Long getLocationIdFromFacet(String locationFacet){
+		return locationFacets.get(locationFacet);
+	}
 	public Long getLibraryIdForLink(String link){
 		String lowerLink = link.toLowerCase();
 		for (String curRule : eContentLinkRules.keySet()){
@@ -766,5 +831,9 @@ public class MarcProcessor {
 		public boolean isFinished(){
 			return finished;
 		}
+	}
+
+	public String getCatalogUrl() {
+		return catalogUrl;
 	}
 }

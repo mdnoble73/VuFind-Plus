@@ -87,10 +87,10 @@ class Results extends Home {
 				$interface->assign('error', "No Results were found");
 			}else{
 				// Only display next/previous page links when applicable:
-				if ($result['totalCount'] > $limit) {
+				if ($result['showNext']) {
 					$interface->assign('nextpage', $page + 1);
 				}
-				if ($result['startRow'] > 1) {
+				if ($result['showPrev']) {
 					$interface->assign('prevpage', $page - 1);
 				}
 	

@@ -77,6 +77,7 @@ class JSON extends Action {
 		$list = new User_list();
 		if ($_GET['list'] != '') {
 			$list->id = $listId;
+			$list->find(true);
 		} else {
 			$list->user_id = $user->id;
 			$list->title = "My Favorites";
@@ -118,7 +119,7 @@ class JSON extends Action {
 				return array('success'=>false);
 			}
 		}
-		
+
 		global $locationSingleton;
 		$patronHomeBranch = $locationSingleton->getUserHomeLocation();
 		//Check to see if materials request should be activated
@@ -348,7 +349,7 @@ class JSON extends Action {
 		// Load the appropriate module based on the "type" parameter:
 		global $configArray;
 		$ids = $_REQUEST['id'];
-		
+
 		global $configArray;
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
@@ -360,7 +361,7 @@ class JSON extends Action {
 			foreach ($matchingRecords as $record){
 				$record['url'] = $configArray['Site']['url'] . "/Record/{$record['id']}/Home";
 				$cartContents[] = $record;
-				
+
 			}
 		}
 

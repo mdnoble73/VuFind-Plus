@@ -81,7 +81,7 @@
   </div><!-- end searchheader-->
 
 
-<!--<a href="http://www.surveymonkey.com/s/brian_feedback2" target="_blank"><div id="survey">What do you think<br />of our new catalog?</div><img src="{$path}/interface/themes/wcpl/images/survey_arrow.png" id="surv_arrow" /></a>-->
+<!--<a href="http://www.surveymonkey.com/s/brian_feedback2" rel="external" onclick="window.open (this.href, 'child'); return false"><div id="survey">What do you think<br />of our new catalog?</div><img src="{$path}/interface/themes/wcpl/images/survey_arrow.png" id="surv_arrow" /></a>-->
   
 </div><!-- end header-->
 

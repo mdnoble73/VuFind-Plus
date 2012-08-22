@@ -18,6 +18,54 @@ function SendEContentSMS(id, to, provider, strings) {
 	sendAJAXSMS(url, params, strings);
 }
 
+function GetEContentEnrichmentInfo(id, isbn, upc, econtent) {
+	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+	var params = "method=GetEnrichmentInfo&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
+	var fullUrl = url + "?" + params;
+	$.ajax( {
+		url : fullUrl,
+		success : function(data) {
+			var similarAuthorData = $(data).find("SimilarAuthors").text();
+			if (similarAuthorData) {
+				if (similarAuthorData.length > 0) {
+					$("#similarAuthorPlaceholder").html(similarAuthorData);
+					$("#similarAuthorsSidegroup").show();
+
+				}
+			}
+			var similarTitleData = $(data).find("SimilarTitles").text();
+			if (similarTitleData) {
+				if (similarTitleData.length > 0) {
+					$("#similarTitlePlaceholder").html(similarTitleData);
+					$("#relatedTitles").hide();
+					$("#similarTitles").show();
+					$("#similarTitlePlaceholder").show();
+					$("#similarTitlesSidegroup").show();
+				}
+			}
+			var seriesData = $(data).find("SeriesInfo").text();
+			if (seriesData && seriesData.length > 0) {
+				
+				seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
+
+				seriesData = $.parseJSON(seriesData);
+				if (seriesData.titles.length > 0){
+					$('#list-series-tab').show();
+					$('#relatedTitleInfo').show();
+					seriesScroller.loadTitlesFromJsonData(seriesData);
+				}
+			}
+			var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
+			if (showGoDeeperData) {
+				$('#goDeeperLink').show();
+			}
+		},
+		failure : function(jqXHR, textStatus, errorThrown) {
+		  alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
+	  }
+	});
+}
+
 function GetEContentProspectorInfo(id) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetProspectorInfo";
@@ -35,6 +83,7 @@ function GetEContentProspectorInfo(id) {
 			if (prospectorCopies && prospectorCopies.length > 0) {
 				$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
 			}
+			$("#inProspectorSidegroup").show();
 		}
 	});
 }
@@ -82,6 +131,9 @@ function GetEContentHoldingsInfo(id, type, callback) {
 					$(".addToWishListLink").show();
 				}
 			}
+			var status = $(data).find("status").text();
+			$("#statusValue").html(status);
+			$("#statusValue").addClass($(data).find("class").text());
 			
 			if (typeof callback === 'function')
 			{

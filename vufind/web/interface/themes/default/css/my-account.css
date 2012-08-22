@@ -1,12 +1,12 @@
 .myAccountLink{
-	margin: 0 10px 0px 20px;
-	padding: 0.1em 0 0.1em 10px;
+	margin: 0 7px 0px 14px;
+	padding: 0.1em 0 0.1em 7px;
 	text-align: left;
-	text-indent: -10px;
+	text-indent: -7px;
 }
 
 .myAccountLink .myAccountLink{
-	margin: 0px 0px 0px 10px;
+	margin: 0px 0px 0px 7px;
 }
 
 #loginFormWrapper{

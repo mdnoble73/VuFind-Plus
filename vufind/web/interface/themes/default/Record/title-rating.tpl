@@ -2,7 +2,7 @@
   <div id="rate{$shortId|escape}{$starPostFixId}" class="rate{$shortId|escape} stat">
     <div class="statVal">
       <span class="ui-rater">
-        <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span><br/>
+        <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span><br/>
         <span class="ui-rater-rating-{$shortId|escape} ui-rater-rating">0</span>&#160;(<span class="ui-rater-rateCount-{$shortId|escape} ui-rater-rateCount">0</span>)
       </span>
     </div>
@@ -21,7 +21,7 @@
     $(
        function() {literal} { {/literal}
            addRatingId('{$recordId|escape}');
-           $('#rate{$shortId|escape}{$starPostFixId}').rater({literal}{ {/literal}module: 'Record', recordId: {$shortId},  rating:0.0, postHref: '{$path}/Record/{$recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+           $('#rate{$shortId|escape}{$starPostFixId}').rater({literal}{ {/literal}module: 'Record', recordId: '{$shortId}',  rating:'0.0', postHref: '{$path}/Record/{$recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
        {literal} } {/literal}
     );
   </script>    

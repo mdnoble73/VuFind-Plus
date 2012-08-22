@@ -1,5 +1,6 @@
+{strip}
 <SimilarAuthors>
-<![CDATA[{if $enrichment.novelist.similarAuthorCount != 0}
+<![CDATA[{if $enrichment.novelist.similarAuthorCount != 0 && $showSimilarAuthors}
   <h4 id="similarAuthorTitle" >Similar Authors</h4>
   {foreach from=$enrichment.novelist.authors item=similarAuthor}
     <div class="sidebarLabel">
@@ -27,7 +28,7 @@
         <a href ={$url}/Record/{$outer.recordId|escape:"url"}>
      {else if $outer.isbn10}
        {* Display a link to the record in amazon *}
-        <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url" target="_blank"}>
+        <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url" rel="external" onclick="window.open (this.href, 'child'); return false"}>
      {/if}
      {* Display the book jacket *}
      {if $outer.isbn}
@@ -69,3 +70,4 @@
 </ul>
 {/if}]]></SimilarTitles>
 <ShowGoDeeperData>{$showGoDeeper}</ShowGoDeeperData>
+{/strip}

@@ -483,10 +483,6 @@ div.warning {
 	color: #990000;
 }
 
-#listForm {
-	display: none;
-}
-
 #lightbox {
 	cursor: pointer;
 	background-color: #000;
@@ -1548,8 +1544,11 @@ img.centered {
 	padding-left: 20px;
 }
 
-table.holdingsTable td {padding 10px;
-	
+table.holdingsTable th {
+	padding: 5px 3px 3px 3px;
+}
+table.holdingsTable td {
+	padding: 5px 3px 3px 3px;
 }
 
 #staffView,#fullViewLink,#classicViewLink {

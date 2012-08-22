@@ -118,7 +118,6 @@ class SearchAPI extends Action {
 			$recordSet = $searchObject->getResultRecordSet();
 			//Remove fields as needed to improve the display.
 			foreach($recordSet as $recordKey => $record){
-				unset($record['fullrecord']);
 				unset($record['auth_author']);
 				unset($record['auth_authorStr']);
 				unset($record['callnumber-first-code']);

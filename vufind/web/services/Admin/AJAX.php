@@ -33,7 +33,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes'))){
+		}else if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes'))){
 			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -55,6 +55,26 @@ class AJAX extends Action {
 			 
 			echo $xml;
 		}
+	}
+	
+	function getReindexNotes()
+	{
+		global $interface;
+		$id = $_REQUEST['id'];
+		$reindexProcess = new ReindexLogEntry();
+		$reindexProcess->id = $id;
+		if ($reindexProcess->find(true)){
+			$interface->assign('popupTitle', "Reindex Notes");
+			if (strlen(trim($reindexProcess->notes)) == 0){
+				$interface->assign('popupContent', "No notes have been entered yet");
+			}else{
+				$interface->assign('popupContent', $reindexProcess->notes);
+			}
+		}else{
+			$interface->assign('popupTitle', "Error");
+			$interface->assign('popupContent', "We could not find a reindex entry with that id.  No notes available.");
+		}
+		return $interface->fetch('popup-wrapper.tpl');
 	}
 
 	function getReindexProcessNotes()

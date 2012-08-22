@@ -1,6 +1,6 @@
 <div id="banner_span"><!-- #BeginLibraryItem "/Library/cmu_banner.lbi" -->
 <div id="banner_bg">
-<div id="banner_left"><a href="http://www.coloradomesa.edu/index.html"><img width="300" height="87" alt="Colorado Mesa University" src="http://www.coloradomesa.edu/css/images/cmu_logo.png"></a></div>
+<div id="banner_left"><a href="http://www.coloradomesa.edu/index.html"><img width="300" height="87" alt="Colorado Mesa University" src="http://www.coloradomesa.edu/css/images/cmu_logo.png" /></a></div>
 <div id="banner_right">
     <div class="alignright" style="text-align:right;">
        <div id="logoutOptions"{if !$user} style="display: none;"{/if}>

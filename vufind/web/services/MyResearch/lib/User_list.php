@@ -26,15 +26,15 @@ class User_list extends SolrDataObject
 	function cores(){
 		return array('biblio', 'biblio2');
 	}
-	
+
 	function solrId(){
 		return $this->recordtype() . $this->id;
 	}
-	
+
 	function recordtype(){
 		return 'list';
 	}
-	
+
 	function title(){
 		return $this->title;
 	}
@@ -56,40 +56,40 @@ class User_list extends SolrDataObject
 	function format_boost(){
 		return 100;
 	}
-	function language_bost(){
+	function language_boost(){
 		return 500;
 	}
 	function getObjectStructure(){
 		global $configArray;
 		$structure = array(
 			'id' => array(
-				'property'=>'id', 
-				'type'=>'hidden', 
-				'label'=>'Id', 
+				'property'=>'id',
+				'type'=>'hidden',
+				'label'=>'Id',
 				'primaryKey'=>true,
 				'description'=>'The unique id of the e-pub file.',
-				'storeDb' => true, 
-				'storeSolr' => false, 
+				'storeDb' => true,
+				'storeSolr' => false,
 			),
 			'recordtype' => array(
-				'property'=>'recordtype', 
-				'type'=>'method', 
-				'methodName'=>'recordtype', 
-				'storeDb' => false, 
-				'storeSolr' => true, 
+				'property'=>'recordtype',
+				'type'=>'method',
+				'methodName'=>'recordtype',
+				'storeDb' => false,
+				'storeSolr' => true,
 			),
 			'solrId' => array(
-				'property'=>'id', 
-				'type'=>'method', 
-				'methodName'=>'solrId', 
-				'storeDb' => false, 
-				'storeSolr' => true, 
+				'property'=>'id',
+				'type'=>'method',
+				'methodName'=>'solrId',
+				'storeDb' => false,
+				'storeSolr' => true,
 			),
 			'title' => array(
 				'property' => 'title',
 				'type' => 'text',
 				'size' => 100,
-				'maxLength'=>255, 
+				'maxLength'=>255,
 				'label' => 'Title',
 				'description' => 'The title of the item.',
 				'required'=> true,
@@ -168,7 +168,7 @@ class User_list extends SolrDataObject
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
-			
+
 		);
 
 		return $structure;
@@ -211,7 +211,7 @@ class User_list extends SolrDataObject
 			for ($i=0; $i<count($tags); $i++) {
 				$sql .= " AND resource.id IN (SELECT DISTINCT resource_tags.resource_id " .
 										"FROM resource_tags, tags " .
-										"WHERE resource_tags.tag_id=tags.id AND tags.tag = '" . 
+										"WHERE resource_tags.tag_id=tags.id AND tags.tag = '" .
 				addslashes($tags[$i]) . "' AND resource_tags.user_id = '$this->user_id' " .
 										"AND resource_tags.list_id = '$this->id')";
 			}

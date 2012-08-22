@@ -206,7 +206,7 @@ class MarcRecord extends IndexRecord
 		}else{
 			$interface->assign('details', 'MARC record could not be read.');
 		}*/
-		
+
 		$interface->assign('marcRecord', $this->marcRecord);
 		return 'RecordDrivers/Marc/staff.tpl';
 	}

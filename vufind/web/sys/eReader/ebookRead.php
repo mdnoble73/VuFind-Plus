@@ -1,25 +1,25 @@
 <?php
-	/*******************************************************************************
-	* Software: Open eBook Reader                                                  *
-	* Version:  0.6 Alpha                                                          *
-	* Date:     2008-07-21                                                         *
-	* Author:   Jacob Weigand of RIT's Open Publishing Lab                         *
-	* License:  GNU General Public License (GPL)                                   *
-	*                                                                              *
-	* You may use, modify and redistribute this software as you wish.              *
-	********************************************************************************/
+/*******************************************************************************
+ * Software: Open eBook Reader                                                  *
+ * Version:  0.6 Alpha                                                          *
+ * Date:     2008-07-21                                                         *
+ * Author:   Jacob Weigand of RIT's Open Publishing Lab                         *
+ * License:  GNU General Public License (GPL)                                   *
+ *                                                                              *
+ * You may use, modify and redistribute this software as you wish.              *
+ ********************************************************************************/
 
 require_once('ebookData.php');
 class ebookRead{
-/***********
- * Private *
- ***********/
- 	/**
- 	 * Holds all the ebook data.
- 	 **/
- 	public $ebookData;
- 	public $errorOccurred = false;
- 	public $error = "";
+	/***********
+	 * Private *
+	 ***********/
+	/**
+	 * Holds all the ebook data.
+	 **/
+	public $ebookData;
+	public $errorOccurred = false;
+	public $error = "";
 
 	/**
 	 * Opens the epub and sets all the path locations for the different types files inside of it.
@@ -65,22 +65,22 @@ class ebookRead{
 		if(is_file($input)){
 			$zip = zip_open($input);
 			if ($zip) {
-			  while ($zip_entry = zip_read($zip)) {
-			  	$fileExt = substr(zip_entry_name($zip_entry), strrpos(zip_entry_name($zip_entry), '.') + 1);
-			    	if($fileExt == $ext)	{
-			    		if(!is_array($contents)){
-			    			if(!isset($contents)){
-			    				$contents = zip_entry_name($zip_entry);
-			    			}else{
-			    				$placeHolder = $contents;
-			    				$contents = array($placeHolder);
-			    				array_push($contents, zip_entry_name($zip_entry));
-			    			}
-			    		}else{
-			    			array_push($contents, zip_entry_name($zip_entry));
-			    		}
-			    	}
-			  }
+				while ($zip_entry = zip_read($zip)) {
+					$fileExt = substr(zip_entry_name($zip_entry), strrpos(zip_entry_name($zip_entry), '.') + 1);
+					if($fileExt == $ext)	{
+						if(!is_array($contents)){
+							if(!isset($contents)){
+								$contents = zip_entry_name($zip_entry);
+							}else{
+								$placeHolder = $contents;
+								$contents = array($placeHolder);
+								array_push($contents, zip_entry_name($zip_entry));
+							}
+						}else{
+							array_push($contents, zip_entry_name($zip_entry));
+						}
+					}
+				}
 				zip_close($zip);
 				return $contents;
 			}
@@ -103,7 +103,7 @@ class ebookRead{
 		//Read the opf file information
 		$contents = $this->readEpubFile($this->ebookData->epub, $this->ebookData->opfPath);
 		if(!isset($contents))
-			trigger_error("can't read the opf file", E_USER_ERROR);
+		trigger_error("can't read the opf file", E_USER_ERROR);
 
 		//Format the file for our use.
 		$ourFileName = $this->formatXML($contents);
@@ -113,23 +113,23 @@ class ebookRead{
 		//Load the metadata
 		$this->ebookData->metadata = $this->getTag($xml, 'metadata');
 		if(!isset($this->ebookData->metadata))
-			trigger_error("can't read the metadata from the opf file", E_USER_ERROR);
+		trigger_error("can't read the metadata from the opf file", E_USER_ERROR);
 
 		$this->ebookData->title = $this->getTag($this->ebookData->metadata, 'dctitle');
 		if(!isset($this->ebookData->title))
-			trigger_error("can't find the dublin core title data inside the opf file", E_USER_ERROR);
+		trigger_error("can't find the dublin core title data inside the opf file", E_USER_ERROR);
 		$this->ebookData->language = $this->getTag($this->ebookData->metadata, 'dclanguage');
 		if(!isset($this->ebookData->language))
-			trigger_error("can't find the dublin core language data inside the opf file", E_USER_ERROR);
+		trigger_error("can't find the dublin core language data inside the opf file", E_USER_ERROR);
 		$this->ebookData->identifier = $this->getTag($this->ebookData->metadata, "dcidentifier");
 		$this->ebookData->identifierId = (string)$this->optAttributeExist($this->ebookData->identifier, "id");
 		if(!isset($this->ebookData->identifier))
-			trigger_error("can't find the dublin core identifier data inside the opf file", E_USER_ERROR);
+		trigger_error("can't find the dublin core identifier data inside the opf file", E_USER_ERROR);
 
 		//Load the manifest
 		$this->ebookData->manifest = $this->getTag($xml, 'manifest');
 		if(!isset($this->ebookData->manifest))
-			trigger_error("can't find the manifest inside the opf file", E_USER_ERROR);
+		trigger_error("can't find the manifest inside the opf file", E_USER_ERROR);
 		$this->loadManifest();
 		//Finds where the content is, based on the manifest
 		$this->findContentLoc();
@@ -137,7 +137,7 @@ class ebookRead{
 		//Load the spine
 		$this->ebookData->spine = $this->getTag($xml, 'spine');
 		if(!isset($this->ebookData->spine))
-			trigger_error("can't find the spine inside the opf file", E_USER_ERROR);
+		trigger_error("can't find the spine inside the opf file", E_USER_ERROR);
 		$this->ebookData->spineData = $this->xmlFindData($this->ebookData->spine, 'itemref');
 		$this->ebookData->spineData = $this->optAttributeExist($this->ebookData->spineData, 'idref');
 	}
@@ -149,7 +149,7 @@ class ebookRead{
 		//Read the opf file information
 		$contents = $this->readEpubFile($this->ebookData->epub, $this->ebookData->opfPath);
 		if(!isset($contents))
-			trigger_error("can't read the opf file", E_USER_ERROR);
+		trigger_error("can't read the opf file", E_USER_ERROR);
 
 		//Format the file for our use.
 		$ourFileName = $this->formatXML($contents);
@@ -159,7 +159,7 @@ class ebookRead{
 		//Load the guide if it exists
 		$this->ebookData->guide = $this->getTag($xml, 'guide');
 		if(isset($this->ebookData->guide))
-			$this->loadGuide();
+		$this->loadGuide();
 
 		//Load the spine's pointer to the TOC file in the manifest, if it exists.
 		$tempSpine = $this->getTag($this->ebookData->spine, 'spine');
@@ -262,7 +262,7 @@ class ebookRead{
 					$anchor = substr($location, strpos($location, '#'));
 				}
 				$ch->location = $location;
-				//Get the src id for the location 
+				//Get the src id for the location
 				foreach ($manifest as $manifestItem){
 					if ($manifestItem->href == $file){
 						$ch->src = $manifestItem->id . $anchor;
@@ -280,7 +280,7 @@ class ebookRead{
 						$anchor = substr($location, strpos($location, '#'));
 					}
 					$subch->location = $location;
-					//Get the src id for the location 
+					//Get the src id for the location
 					foreach ($manifest as $manifestItem){
 						if ($manifestItem->href == $file){
 							$subch->src = $manifestItem->id . $anchor;
@@ -292,20 +292,20 @@ class ebookRead{
 				$finToc[] = $ch;
 			}
 			/*$navPoint = $this->getTag($xml, "navPoint");
-			$names = array();
-			$href = array();
-			foreach($navPoint as $nav){
+			 $names = array();
+			 $href = array();
+			 foreach($navPoint as $nav){
 				array_push($names, $this->getTag($nav, "text"));
 				$hrefTemp = $this->getTag($nav, "content");
 				array_push($href, $this->optAttributeExist($hrefTemp, "src"));
-			}
-			$finToc = array();
-			for($x=0; $x < count($names);$x+=1){
+				}
+				$finToc = array();
+				for($x=0; $x < count($names);$x+=1){
 				$ch = new tocItem();
 				$ch->title = (string)$names[$x];
 				$ch->src = (string)$href[$x];
 				array_push($finToc, $ch);
-			}*/
+				}*/
 			$this->ebookData->tocData = $finToc;
 		}
 	}
@@ -317,13 +317,13 @@ class ebookRead{
 	 * content relative to the opf location. Setting the content path
 	 * based on where the opf file is located.
 	 */
-	 private function findContentLoc(){
+	private function findContentLoc(){
 		if(isset($this->ebookData->opfPath)){
 			$this->ebookData->contentFolder = dirname($this->ebookData->opfPath)."/";
 		}else{
 			trigger_error("Can't set the contentFolder location because the opf path dosen't exist.", E_USER_ERROR);
 		}
-	 }
+	}
 
 	/**
 	 * Tests if a optional attribute exists and then returns it. If an array of tags is sent in then it returns
@@ -396,7 +396,7 @@ class ebookRead{
 	 **/
 	private function formatXML($xmlString){
 		/**SimpleXML cant read XML tags that have colons in them so we are going to remove them here. I dont
-	 	 * want to remove the colons from web locations. So I am just removing them from the dc tags **/
+		 * want to remove the colons from web locations. So I am just removing them from the dc tags **/
 		$xmlString = str_replace("dc:", "dc", $xmlString);
 		$xmlString = str_replace("xml:", "xml", $xmlString);
 		$xmlString = str_replace("xsi:", "xsi", $xmlString);
@@ -452,13 +452,13 @@ class ebookRead{
 			$zip = zip_open($zipFile);
 			$contents = "";
 			if ($zip) {
-			  while ($zip_entry = zip_read($zip)) {
-			  		$zipEntryName = zip_entry_name($zip_entry); 
-			    	if($zipEntryName == $fileLocation && zip_entry_open($zip, $zip_entry))	{
-			    		$contents = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
-			    		zip_entry_close($zip_entry);
-			    	}
-			  }
+				while ($zip_entry = zip_read($zip)) {
+					$zipEntryName = zip_entry_name($zip_entry);
+					if($zipEntryName == $fileLocation && zip_entry_open($zip, $zip_entry))	{
+						$contents = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));
+						zip_entry_close($zip_entry);
+					}
+				}
 				zip_close($zip);
 				if(isset($contents)){
 					return $contents;
@@ -477,9 +477,9 @@ class ebookRead{
 		}
 	}
 
-/***********
- * Public *
- ***********/
+	/***********
+	 * Public *
+	 ***********/
 
 	/**
 	 * Constructor
@@ -491,8 +491,8 @@ class ebookRead{
 		}else if(is_file($epub)){
 			$this->ebookData = new ebookData();
 			if(!file_exists($epub)){
-	      		trigger_error('File '.basename($epub).' not found', E_USER_ERROR);
-	    	}else{
+				trigger_error('File '.basename($epub).' not found', E_USER_ERROR);
+			}else{
 				$ext = substr($epub, strrpos($epub, '.') + 1);
 				if(strcasecmp($ext, "epub") == 0){
 					$this->ebookData->epub = $epub;
@@ -506,9 +506,9 @@ class ebookRead{
 		}
 	}
 
-/*********************
- * Getter Functions *
- *********************/
+	/*********************
+	 * Getter Functions *
+	 *********************/
 	/**
 	 * Gives you the title by default or the attribute specified
 	 * @param string $optional optional attributes are, XmlLang.
@@ -771,14 +771,14 @@ class ebookRead{
 	}
 
 	/**
- 	 * Gets the manifest item desired
- 	 * @param int $index The index number of the manifest item.
- 	 * @param string $item What attribute do you want from the manifest (id, href, or media-type).
- 	 * @return string the requested data if it exists else returns null.
- 	 **/
+	 * Gets the manifest item desired
+	 * @param int $index The index number of the manifest item.
+	 * @param string $item What attribute do you want from the manifest (id, href, or media-type).
+	 * @return string the requested data if it exists else returns null.
+	 **/
 	public function getManifestItem($index, $item){
 		if($item == 'media-type')
-			$item = 'type';
+		$item = 'type';
 		return $this->ebookData->manifestData[$index]->$item;
 	}
 
@@ -795,19 +795,19 @@ class ebookRead{
 		}
 		return null;
 	}
-	
+
 	public function getManifestSize(){
 		return count($this->ebookData->manifestData);
 	}
 
 	/**
- 	 * Gets the manifest item desired
- 	 * @param string $item What attribute do you want from the manifest (id, href, or media-type).
- 	 * @return string a array of strings of the requested data if it exists else returns null.
- 	 **/
+	 * Gets the manifest item desired
+	 * @param string $item What attribute do you want from the manifest (id, href, or media-type).
+	 * @return string a array of strings of the requested data if it exists else returns null.
+	 **/
 	public function getManifest($item){
 		if($item == 'media-type')
-			$item = 'type';
+		$item = 'type';
 		$array = array();
 		foreach($this->ebookData->manifestData as $man){
 			array_push($array, $man->$item);
@@ -820,54 +820,54 @@ class ebookRead{
 	 * @param int $index The index of the spine item to return.
 	 * @return string The requested data. If the data dosen't exist then return null.
 	 **/
-	 public function getSpineItem($index){
+	public function getSpineItem($index){
 		return $this->ebookData->spineData[$index];
-	 }
+	}
 
-	 /**
+	/**
 	 * Gets a desired spine item
 	 * @return string a array of strings of the requested data. If the data dosen't exist then return null.
 	 **/
-	 public function getSpine(){
+	public function getSpine(){
 		return $this->ebookData->spineData;
-	 }
-
-	 /**
-	  * Gets the table of contents
-	  * @return tocItem array of tocItems with the name of each chapeter and where they are located.
-	  */
-	  public function getTOC(){
-	  	return $this->ebookData->tocData;
-	  }
-	  
-	/**
-	  * Gets the table of contents
-	  * @return tocItem array of tocItems with the name of each chapeter and where they are located.
-	  */
-	public function getTitle(){
-	  	return $this->ebookData->title;
 	}
 
-	 /**
- 	 * Gets the guide item desired
- 	 * @param int $index The index number of the guide item.
- 	 * @param string $item What attribute do you want from the guide (title, href, or type).
- 	 * @return string a string of the requested data if it exists else returns null.
- 	 **/
+	/**
+	 * Gets the table of contents
+	 * @return tocItem array of tocItems with the name of each chapeter and where they are located.
+	 */
+	public function getTOC(){
+		return $this->ebookData->tocData;
+	}
+
+	/**
+	 * Gets the table of contents
+	 * @return tocItem array of tocItems with the name of each chapeter and where they are located.
+	 */
+	public function getTitle(){
+		return $this->ebookData->title;
+	}
+
+	/**
+	 * Gets the guide item desired
+	 * @param int $index The index number of the guide item.
+	 * @param string $item What attribute do you want from the guide (title, href, or type).
+	 * @return string a string of the requested data if it exists else returns null.
+	 **/
 	public function getGuideItem($index, $item){
 		return $this->ebookData->guideData[$index]->$item;
 	}
 
 	/**
- 	 * Gets the guide item desired
- 	 * @param string $item What attribute do you want from the guide (title, href, or type).
- 	 * @return string a string of the requested data if it exists else returns null.
- 	 **/
+	 * Gets the guide item desired
+	 * @param string $item What attribute do you want from the guide (title, href, or type).
+	 * @return string a string of the requested data if it exists else returns null.
+	 **/
 	public function getGuide($item){
 		if(isset($this->ebookData->guideData)){
 			$array = array();
 			if(!is_array($this->ebookData->guideData))
-				$this->ebookData->guideData = array($this->ebookData->guideData);
+			$this->ebookData->guideData = array($this->ebookData->guideData);
 			foreach($this->ebookData->guideData as $gud){
 				array_push($array, $gud->$item);
 			}
@@ -897,11 +897,11 @@ class ebookRead{
 	 * Gets the location of all the content inside of the epub.
 	 * @return string the file location of the content folder.
 	 */
-	 public function getContentLoc(){
-	 	return $this->ebookData->contentFolder;
-	 }
+	public function getContentLoc(){
+		return $this->ebookData->contentFolder;
+	}
 
- 	/**
+	/**
 	 * Will give you the requested file out of the epub
 	 * Note: When finding files based on the manifest's href attribute, the file locations are
 	 * relative to where the opf file is located in the file structure.
@@ -916,10 +916,10 @@ class ebookRead{
 				//Try replacing %20 with spaces
 				$location = str_replace('%20', ' ', $location);
 				if (file_exists($this->ebookData->contentFolder.$location)){
-	       return file_get_contents($this->ebookData->contentFolder.$location);
-	      }else{
-	        trigger_error("Can't open content. There is no content.", E_USER_ERROR);
-	      }
+					return file_get_contents($this->ebookData->contentFolder.$location);
+				}else{
+					trigger_error("Can't open content. There is no content.", E_USER_ERROR);
+				}
 			}
 		}else if(isset($this->ebookData->epub)){
 			return $this->readEpubFile($this->ebookData->epub, $this->ebookData->contentFolder.$location);
@@ -933,14 +933,15 @@ class ebookRead{
 	 * @param string $item The manifest item wanted to output.
 	 * @return string The contents of the requested item.
 	 */
-	 public function getContentById($item){
+	public function getContentById($item){
 		foreach($this->ebookData->manifestData as $man){
 			if($man->id == $item){
 				return $this->getContentFile($man->href);
 			}
 		}
-		return null;
-	 }
+		//Try loading the information from the location
+		return $this->getContentFile(urldecode($item));
+	}
 
 	/**
 	 * Get the eBook data object. Holds all the data from the epub.

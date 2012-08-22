@@ -40,6 +40,109 @@ class AJAX extends Action {
 			echo $xmlResponse;
 		}
 	}
+	
+function GetEnrichmentInfo(){
+		require_once 'Enrichment.php';
+		global $configArray;
+		global $library;
+		$isbn = $_REQUEST['isbn'];
+		$upc = $_REQUEST['upc'];
+		$id = $_REQUEST['id'];
+		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		global $interface;
+		$interface->assign('id', $id);
+		$interface->assign('enrichment', $enrichmentData);
+		$showSimilarTitles = false;
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['similarTitles']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
+			foreach ($enrichmentData['novelist']['similarTitles'] as $title){
+				if ($title['recordId'] != -1){
+					$showSimilarTitles = true;
+					break;
+				}
+			}
+		}
+		if (isset($library) && $library->showSimilarTitles == 0){
+			$interface->assign('showSimilarTitles', false);
+		}else{
+			$interface->assign('showSimilarTitles', $showSimilarTitles);
+		}
+		if (isset($library) && $library->showSimilarAuthors == 0){
+			$interface->assign('showSimilarAuthors', false);
+		}else{
+			$interface->assign('showSimilarAuthors', true);
+		}
+
+		//Process series data
+		$titles = array();
+		if (!isset($enrichmentData['novelist']['series']) || count($enrichmentData['novelist']['series']) == 0){
+			$interface->assign('seriesInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
+		}else{
+
+			foreach ($enrichmentData['novelist']['series'] as $record){
+				$isbn = $record['isbn'];
+				if (strpos($isbn, ' ') > 0){
+					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				}
+				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
+				if (isset($record['id'])){
+					$cover .= "&id=" . $record['id'];
+				}
+				if (isset($record['upc'])){
+					$cover .= "&upc=" . $record['upc'];
+				}
+				if (isset($record['format_category'])){
+					$cover .= "&category=" . $record['format_category'][0];
+				}
+				$titles[] = array(
+	        	  'id' => isset($record['id']) ? $record['id'] : '',
+			    		'image' => $cover, 
+			    		'title' => $record['title'],
+			    		'author' => $record['author']
+				);
+			}
+
+			foreach ($titles as $key => $rawData){
+				$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
+	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
+	    			"</a></div>" . 
+	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+				$rawData['formattedTitle'] = $formattedTitle;
+				$titles[$key] = $rawData;
+			}
+			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']['seriesDefaultIndex']);
+			$interface->assign('seriesInfo', json_encode($seriesInfo));
+		}
+
+		//Load go deeper options
+		if (isset($library) && $library->showGoDeeper == 0){
+			$interface->assign('showGoDeeper', false);
+		}else{
+			require_once('Drivers/marmot_inc/GoDeeperData.php');
+			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
+			if (count($goDeeperOptions['options']) == 0){
+				$interface->assign('showGoDeeper', false);
+			}else{
+				$interface->assign('showGoDeeper', true);
+			}
+		}
+
+		return $interface->fetch('Record/ajax-enrichment.tpl');
+	}
+
+	function GetSeriesTitles(){
+		//Get other titles within a series for display within the title scroller
+		require_once 'Enrichment.php';
+		$isbn = $_REQUEST['isbn'];
+		$upc = $_REQUEST['upc'];
+		$id = $_REQUEST['id'];
+		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		global $interface;
+		global $configArray;
+		$interface->assign('id', $id);
+		$interface->assign('enrichment', $enrichmentData);
+	}
+	
 	function GetHoldingsInfo(){
 		global $interface;
 		global $configArray;
@@ -89,7 +192,7 @@ class AJAX extends Action {
 		return $interface->fetch('Record/ajax-holdings.tpl');
 	}
 	
-function GetProspectorInfo(){
+	function GetProspectorInfo(){
 		require_once 'Drivers/marmot_inc/Prospector.php';
 		global $configArray;
 		global $interface;

@@ -33,150 +33,157 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div class="sidegroup" id="titleDetailsSidegroup">
 			<h4>{translate text="Title Details"}</h4>
 			{if $mainAuthor}
-					<div class="sidebarLabel">{translate text='Main Author'}:</div>
-					<div class="sidebarValue"><a href="{$path}/Author/Home?author={$mainAuthor|trim|escape:"url"}">{$mainAuthor|escape}</a></div>
-					{/if}
+				<div class="sidebarLabel">{translate text='Main Author'}:</div>
+				<div class="sidebarValue"><a href="{$path}/Author/Home?author={$mainAuthor|trim|escape:"url"}">{$mainAuthor|escape}</a></div>
+			{/if}
+			
+			{if $corporateAuthor}
+				<div class="sidebarLabel">{translate text='Corporate Author'}:</div>
+				<div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a></div>
+			{/if}
+			
+			{if $contributors}
+				<div class="sidebarLabel">{translate text='Contributors'}:</div>
+				{foreach from=$contributors item=contributor name=loop}
+					<div class="sidebarValue"><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></div>
+				{/foreach}
+			{/if}
+			
+			{if $published}
+				<div class="sidebarLabel">{translate text='Published'}:</div>
+				{foreach from=$published item=publish name=loop}
+					<div class="sidebarValue">{$publish|escape}</div>
+				{/foreach}
+			{/if}
+			
+			{if $streetDate}
+				<div class="sidebarLabel">{translate text='Street Date'}:</div>
+				<div class="sidebarValue">{$streetDate|escape}</div>
+			{/if}
+			
+			<div class="sidebarLabel">{translate text='Format'}:</div>
+			{if is_array($recordFormat)}
+			 {foreach from=$recordFormat item=displayFormat name=loop}
+				 <div class="sidebarValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></div>
+			 {/foreach}
+			{else}
+				<div class="sidebarValue"><span class="iconlabel {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$recordFormat}</span></div>
+			{/if}
+			
+			{if $mpaaRating}
+				<div class="sidebarLabel">{translate text='Rating'}:</div>
+				<div class="sidebarValue">{$mpaaRating|escape}</div>
+			{/if}
 					
-					{if $corporateAuthor}
-					<div class="sidebarLabel">{translate text='Corporate Author'}:</div>
-					<div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a>a></div>
-					{/if}
-					
-					{if $contributors}
-					<div class="sidebarLabel">{translate text='Contributors'}:</div>
-					{foreach from=$contributors item=contributor name=loop}
-						<div class="sidebarValue"><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></div>
-					{/foreach}
-					{/if}
-					
-					{if $published}
-					<div class="sidebarLabel">{translate text='Published'}:</div>
-					{foreach from=$published item=publish name=loop}
-						<div class="sidebarValue">{$publish|escape}</div>
-					{/foreach}
-					{/if}
-					
-					{if $streetDate}
-						<div class="sidebarLabel">{translate text='Street Date'}:</div>
-						<div class="sidebarValue">{$streetDate|escape}</div>
-					{/if}
-					
-					<div class="sidebarLabel">{translate text='Format'}:</div>
-					{if is_array($recordFormat)}
-					 {foreach from=$recordFormat item=displayFormat name=loop}
-						 <div class="sidebarValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></div>
-					 {/foreach}
-					{else}
-						<div class="sidebarValue"><span class="iconlabel {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$recordFormat}</span></div>
-					{/if}
-					
-					{if $mpaaRating}
-						<div class="sidebarLabel">{translate text='Rating'}:</div>
-						<div class="sidebarValue">{$mpaaRating|escape}</div>
-					{/if}
-					
-					{if $physicalDescriptions}
-			<div class="sidebarLabel">{translate text='Physical Desc'}:</div>
+			{if $physicalDescriptions}
+				<div class="sidebarLabel">{translate text='Physical Desc'}:</div>
 				{foreach from=$physicalDescriptions item=physicalDescription name=loop}
-						<div class="sidebarValue">{$physicalDescription|escape}</div>
-					{/foreach}
+					<div class="sidebarValue">{$physicalDescription|escape}</div>
+				{/foreach}
 			{/if}
 					
-					<div class="sidebarLabel">{translate text='Language'}:</div>
-					{foreach from=$recordLanguage item=lang}
-						<div class="sidebarValue">{$lang|escape}</div>
-					{/foreach}
-					
-					{if $editionsThis}
-					<div class="sidebarLabel">{translate text='Edition'}:</div>
-					{foreach from=$editionsThis item=edition name=loop}
-						<div class="sidebarValue">{$edition|escape}</div>
-					{/foreach}
-					{/if}
-					
-					{if $isbns}
-					<div class="sidebarLabel">{translate text='ISBN'}:</div>
-					{foreach from=$isbns item=tmpIsbn name=loop}
-						<div class="sidebarValue">{$tmpIsbn|escape}</div>
-					{/foreach}
-					{/if}
-					
-					{if $issn}
-					<div class="sidebarLabel">{translate text='ISSN'}:</div>
-						<div class="sidebarValue">{$issn}</div>
-						{if $goldRushLink}
-				<div class="sidebarValue"><a href='{$goldRushLink}' target='_blank'>Check for online articles</a></div>
+			<div class="sidebarLabel">{translate text='Language'}:</div>
+			{foreach from=$recordLanguage item=lang}
+				<div class="sidebarValue">{$lang|escape}</div>
+			{/foreach}
+			
+			{if $editionsThis}
+				<div class="sidebarLabel">{translate text='Edition'}:</div>
+				{foreach from=$editionsThis item=edition name=loop}
+					<div class="sidebarValue">{$edition|escape}</div>
+				{/foreach}
 			{/if}
-					{/if}
 					
-					{if $upc}
-					<div class="sidebarLabel">{translate text='UPC'}:</div>
-					<div class="sidebarValue">{$upc|escape}</div>
-					{/if}
+			{if $isbns}
+				<div class="sidebarLabel">{translate text='ISBN'}:</div>
+				{foreach from=$isbns item=tmpIsbn name=loop}
+					<div class="sidebarValue">{$tmpIsbn|escape}</div>
+				{/foreach}
+			{/if}
 					
-					{if $series}
-					<div class="sidebarLabel">{translate text='Series'}:</div>
-					{foreach from=$series item=seriesItem name=loop}
-						<div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></div>
-					{/foreach}
-					{/if}
+			{if $issn}
+				<div class="sidebarLabel">{translate text='ISSN'}:</div>
+				<div class="sidebarValue">{$issn}</div>
+				{if $goldRushLink}
+					<div class="sidebarValue"><a href='{$goldRushLink}' target='_blank'>Check for online articles</a></div>
+				{/if}
+			{/if}
 					
-					{if $arData}
-						<div class="sidebarLabel">{translate text='Accelerated Reader'}:</div>
-						<div class="sidebarValue">{$arData.interestLevel|escape}</div>
-						<div class="sidebarValue">Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points</div>
-					{/if}
+			{if $upc}
+				<div class="sidebarLabel">{translate text='UPC'}:</div>
+				<div class="sidebarValue">{$upc|escape}</div>
+			{/if}
+			
+			{if $series}
+				<div class="sidebarLabel">{translate text='Series'}:</div>
+				{foreach from=$series item=seriesItem name=loop}
+					<div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></div>
+				{/foreach}
+			{/if}
+			
+			{if $arData}
+				<div class="sidebarLabel">{translate text='Accelerated Reader'}:</div>
+				<div class="sidebarValue">{$arData.interestLevel|escape}</div>
+				<div class="sidebarValue">Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points</div>
+			{/if}
 					
-					{if $lexileScore}
-						<div class="sidebarLabel">{translate text='Lexile Score'}:</div>
-						<div class="sidebarValue">{$lexileScore|escape}</div>
-					{/if}
+			{if $lexileScore}
+				<div class="sidebarLabel">{translate text='Lexile Score'}:</div>
+				<div class="sidebarValue">{$lexileScore|escape}</div>
+			{/if}
 					
 		</div>
 		
 		{if $showTagging == 1}
-		<div class="sidegroup" id="tagsSidegroup">
-			<h4>{translate text="Tags"}</h4>
-			<div id="tagList">
-			{if $tagList}
-				{foreach from=$tagList item=tag name=tagLoop}
-					<div class="sidebarValue"><a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})</div>
-				{/foreach}
-			{else}
-				<div class="sidebarValue">{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</div>
-			{/if}
+			<div class="sidegroup" id="tagsSidegroup">
+				<h4>{translate text="Tags"}</h4>
+				<div id="tagList">
+					{if $tagList}
+						{foreach from=$tagList item=tag name=tagLoop}
+							<div class="sidebarValue">
+								<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
+								{if $tag->userAddedThis}
+									<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
+										<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">
+									</a>
+								{/if} 
+							</div>
+						{/foreach}
+					{else}
+						<div class="sidebarValue">{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</div>
+					{/if}
+				</div>
+				<div class="sidebarValue">
+					<a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
+						 onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
+				</div>
 			</div>
-			<div class="sidebarValue">
-				<a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" class="tool add"
-					 onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add Tag"}</a>
-			</div>
-		</div>
 		{/if}
 		
 		<div class="sidegroup" id="similarTitlesSidegroup">
-		 {* Display either similar tiles from novelist or from the catalog*}
-		 <div id="similarTitlePlaceholder"></div>
-		 {if is_array($similarRecords)}
-		 <div id="relatedTitles">
-			<h4>{translate text="Other Titles"}</h4>
-			<ul class="similar">
-				{foreach from=$similarRecords item=similar}
-				<li>
-					{if is_array($similar.format)}
-						<span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-					{else}
-						<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-					{/if}
-					<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-					</span>
-					<span style="font-size: 80%">
-					{if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
-					</span>
-				</li>
-				{/foreach}
-			</ul>
-		 </div>
-		 {/if}
+			{* Display either similar tiles from novelist or from the catalog*}
+			<div id="similarTitlePlaceholder"></div>
+			{if is_array($similarRecords)}
+				<div id="relatedTitles">
+					<h4>{translate text="Other Titles"}</h4>
+					<ul class="similar">
+						{foreach from=$similarRecords item=similar}
+						<li>
+							{if is_array($similar.format)}
+								<span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+							{else}
+								<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+							{/if}
+							<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+							</span>
+							<span style="font-size: 80%">
+							{if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
+							</span>
+						</li>
+						{/foreach}
+					</ul>
+				</div>
+			 {/if}
 		</div>
 		
 		<div class="sidegroup" id="similarAuthorsSidegroup">
@@ -184,8 +191,8 @@ function redrawSaveStatus() {literal}{{/literal}
 		</div>
 		
 		{if is_array($editions) && !$showOtherEditionsPopup}
-		<div class="sidegroup" id="otherEditionsSidegroup">
-			<h4>{translate text="Other Editions"}</h4>
+			<div class="sidegroup" id="otherEditionsSidegroup">
+				<h4>{translate text="Other Editions"}</h4>
 				{foreach from=$editions item=edition}
 					<div class="sidebarLabel">
 						<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
@@ -202,24 +209,24 @@ function redrawSaveStatus() {literal}{{/literal}
 					{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
 					</div>
 				{/foreach}
-		</div>
+			</div>
 		{/if}
 		
-		{if $enablePospectorIntegration == 1}
-		<div class="sidegroup">
-		{* Display in Prospector Sidebar *}
-		<div id="inProspectorPlaceholder"></div>
-		</div>
+		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 0}
+			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
+				{* Display in Prospector Sidebar *}
+				<div id="inProspectorPlaceholder"></div>
+			</div>
 		{/if}
 		
 		{if $linkToAmazon == 1 && $isbn}
-		<div class="titledetails">
-			<a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
-		</div>
+			<div class="titledetails">
+				<a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink'> {translate text = "View on Amazon"}</a>
+			</div>
 		{/if}
 		
 		{if $classicId}
-		<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
+			<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
 		{/if}
 	</div> {* End sidebar *}
 	
@@ -234,7 +241,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{* Display more information about the title*}
 				{if $mainAuthor}
 					<div class="recordAuthor">
-						<span class="resultLabel">by</span>
+						<span class="resultLabel">by</span>&nbsp;
 						<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
 					</div>
 				{/if}
@@ -255,34 +262,35 @@ function redrawSaveStatus() {literal}{{/literal}
 					<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
 				</div>
 				{/if}
-	 		</div>
-	 	</div>
-			<div id="image-column">
+			</div>
+		</div>
+		
+		<div id="image-column">
 			{* Display Book Cover *}
 			{if $user->disableCoverArt != 1}	
-			<div id = "recordcover">	
-			<div class="recordcoverWrapper">
-					
-					<a href="{$bookCoverUrl}">							
-						<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
-					</a>
-					<div id="goDeeperLink" class="godeeper" style="display:none">
-						<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-						<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+				<div id = "recordcover">	
+					<div class="recordcoverWrapper">
+						<a href="{$bookCoverUrl}">							
+							<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
+						</a>
+						<div id="goDeeperLink" class="godeeper" style="display:none">
+							<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+							<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+						</div>
 					</div>
-				</div>
-			</div>	
+				</div>	
 			{/if}
 			
 			{* Place hold link *}
-		<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-		</div>
-		{if $showOtherEditionsPopup}
-		<div id="otherEditionCopies">
-			<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
-		</div>
-		{/if}
+			<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+				<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+			</div>
+			
+			{if $showOtherEditionsPopup}
+				<div id="otherEditionCopies">
+					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
+				</div>
+			{/if}
 		
 			{if $goldRushLink}
 			<div class ="titledetails">
@@ -290,96 +298,92 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			{/if}
 					
-				
-			<div id="myrating" class="stat">
-			<div class="statVal">
-			<div class="ui-rater">
-				<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px"></span></span>
+			
+			{if $showRating}
+				<div id="myrating" class="stat">
+					<div class="statVal">
+						<div class="ui-rater">
+							<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
+						</div>
+					</div>
+					<script type="text/javascript">
+						$(function() {literal} { {/literal}
+								$('#myrating').rater({literal}{ {/literal} module:'Record', recordId: '{$shortId}', rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+						{literal} } {/literal});
+					</script>
 				</div>
-				</div>
-				<script type="text/javascript">
-				$(
-				 function() {literal} { {/literal}
-						 $('#myrating').rater({literal}{ {/literal} module:'Record', recordId: '{$shortId}', rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-				 {literal} } {/literal}
-			);
-				</script>
-			</div>
+			{/if}
 		</div> {* End image column *}
 		
 		<div id="record-details-column">
 			<div id="record-details-header">
 				<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
-				
 				<div id="recordTools">
-				<ul>
-					
-					{if !$tabbedDetails}
-						<li><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></li>
-					{/if}
-					{if $showTextThis == 1}
-						<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
-					{/if}
-					{if $showEmailThis == 1}
-						<li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
-					{/if}
-					{if is_array($exportFormats) && count($exportFormats) > 0}
-						<li>
-							<a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
-							<ul class="menu" id="exportMenu">
-								{foreach from=$exportFormats item=exportFormat}
-									<li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
-								{/foreach}
-							</ul>
-						</li>
-					{/if}
-					{if $showFavorites == 1}
-						<li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
-					{/if}
-					{if !empty($addThis)}
-						<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
-					{/if}
-				</ul>
+					<ul>
+						{if !$tabbedDetails}
+							<li><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></li>
+						{/if}
+						{if $showTextThis == 1}
+							<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
+						{/if}
+						{if $showEmailThis == 1}
+							<li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
+						{/if}
+						{if is_array($exportFormats) && count($exportFormats) > 0}
+							<li>
+								<a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+								<ul class="menu" id="exportMenu">
+									{foreach from=$exportFormats item=exportFormat}
+										<li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
+									{/foreach}
+								</ul>
+							</li>
+						{/if}
+						{if $showFavorites == 1}
+							<li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
+						{/if}
+						{if !empty($addThis)}
+							<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
+						{/if}
+					</ul>
+				</div>
+				<div class="clearer">&nbsp;</div>
 			</div>
-			
-					<div class="clearer">&nbsp;</div>
-		</div>
 			
 			{if $summary}
-			<div class="resultInformation">
-				<div class="resultInformationLabel">{translate text='Description'}</div>
-				<div class="recordDescription">
-					{if strlen($summary) > 300}
-						<span id="shortSummary">
-						{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
-						<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
-						</span>
-						<span id="fullSummary" style="display:none">
-						{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-						<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
-						</span>
-					{else}
-						{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-					{/if}
+				<div class="resultInformation">
+					<div class="resultInformationLabel">{translate text='Description'}</div>
+					<div class="recordDescription">
+						{if strlen($summary) > 300}
+							<span id="shortSummary">
+							{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
+							<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
+							</span>
+							<span id="fullSummary" style="display:none">
+							{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
+							<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
+							</span>
+						{else}
+							{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
+						{/if}
+					</div>
 				</div>
-			</div>
 			{/if}
-			
+		
 			{if $subjects}
-			<div class="resultInformation">
-				<div class="resultInformationLabel">{translate text='Subjects'}</div>
-				<div class="recordSubjects">
-					{foreach from=$subjects item=subject name=loop}
-						{foreach from=$subject item=subjectPart name=subloop}
-							{if !$smarty.foreach.subloop.first} -- {/if}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+				<div class="resultInformation">
+					<div class="resultInformationLabel">{translate text='Subjects'}</div>
+					<div class="recordSubjects">
+						{foreach from=$subjects item=subject name=loop}
+							{foreach from=$subject item=subjectPart name=subloop}
+								{if !$smarty.foreach.subloop.first} -- {/if}
+								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+							{/foreach}
+							<br />
 						{/foreach}
-						<br />
-					{/foreach}
+					</div>
 				</div>
-			</div>
 			{/if}
-			
 		</div>
 	 
 		{* tabs for series, similar titles, and people who viewed also viewed *}
@@ -506,36 +510,68 @@ function redrawSaveStatus() {literal}{{/literal}
 			{* Define tabs for the display *}
 			<ul>
 				<li><a href="#holdingstab">{translate text="Copies"}</a></li>
-				{if $notes}
-					<li><a href="#notestab">{translate text="Notes"}</a></li>
+				{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
+					<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 				{/if}
-				{if $showAmazonReviews || $showStandardReviews}
+				{if $tableOfContents}
+					<li><a href="#tableofcontentstab">{translate text="Contents"}</a></li>
+				{/if}
+				{if $notes}
+					<li><a href="#notestab">{translate text=$notesTabName}</a></li>
+				{/if}
+				{if $internetLinks && $show856LinksAsTab == 1}
+					<li><a href="#linkstab">{translate text="Links"}</a></li>
+				{/if}
+				{if $showAmazonReviews || $showStandardReviews || $showComments}
 					{foreach from=$editorialReviews key=key item=reviewTabInfo}
 						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
 					{/foreach}
 				{/if}
-				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{if $showComments}
+					<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
+				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
 				<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 			</ul>
 			
 			<div id = "holdingstab">
-				{if $internetLinks}
-				<h3>{translate text="Internet"}</h3>
-				{foreach from=$internetLinks item=internetLink}
-				{if $proxy}
-				<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-				{else}
-				<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
-				{/if}
-				{/foreach}
-				{/if}
 				<div id="holdingsPlaceholder"></div>
+				
+				{if $internetLinks && $show856LinksAsTab == 0}
+					<h3>{translate text="Internet"}</h3>
+					<div>
+						{foreach from=$internetLinks item=internetLink}
+							{if $proxy}
+							<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+							{else}
+							<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+							{/if}
+						{/foreach}
+					</div>
+				{/if}
+				
 				{if $enablePurchaseLinks == 1 && !$purchaseLinks}
 					<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
 				{/if}
 					
 			</div>
+			
+			{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
+				<div id="prospectorTab">
+					{* Display in Prospector Sidebar *}
+					<div id="inProspectorPlaceholder"></div>
+				</div>
+			{/if}
+			
+			{if $tableOfContents}
+				<div id ="tableofcontentstab">
+					<ul class='notesList'>
+					{foreach from=$tableOfContents item=note}
+						<li>{$note}</li>
+					{/foreach}
+					</ul>
+				</div>
+			{/if}
 			
 			{* Display the content of individual tabs *}
 			{if $notes}
@@ -548,24 +584,37 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 			{/if}
 			
-			
+			{if $internetLinks && $show856LinksAsTab ==1}
+				<div id ="linkstab">
+					{foreach from=$internetLinks item=internetLink}
+					{if $proxy}
+					<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+					{else}
+					<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+					{/if}
+					{/foreach}
+				</div>
+			{/if}
+				
 			{foreach from=$editorialReviews key=key item=reviewTabInfo}
 			<div id="{$key}">
-				{if $key == 'reviews'} 
-					<div id = "staffReviewtab" >
-					{include file="$module/view-staff-reviews.tpl"}
-					</div>
-					
-					{if $showAmazonReviews || $showStandardReviews}
-					<h4>Professional Reviews</h4>
-					<div id='reviewPlaceholder'></div>
+				{if $showAmazonReviews || $showStandardReviews || $showComments}
+					{if $key == 'reviews'} 
+						<div id = "staffReviewtab" >
+						{include file="$module/view-staff-reviews.tpl"}
+						</div>
+						
+						<h4>Professional Reviews</h4>
+						<div id='reviewPlaceholder'></div>
 					{/if}
 				{/if}
-				 
-				{foreach from=$reviewTabInfo.reviews item=review}
-					{assign var=review value=$review}
-					{include file="Resource/view-review.tpl"}
-				{/foreach}
+				
+				{if $showComments}
+					{foreach from=$reviewTabInfo.reviews item=review}
+						{assign var=review value=$review}
+						{include file="Resource/view-review.tpl"}
+					{/foreach}
+				{/if}
 			</div>
 			{/foreach}
 			

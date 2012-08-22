@@ -1,6 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<meta charset="utf-8">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="{$userLang}">
 <head>
 {literal}
 <title>An Error has Occurred</title>
@@ -142,7 +141,7 @@ window.onload = start
 <body>
 	<div id="container">
 		<div id="title">
-			
+
 			<h1>Oops, an error occurred</h1>
 			<h2>This error has been logged and we are working on a fix.</h2>
 			<h4>{$error->getMessage()}</h4>
@@ -163,6 +162,6 @@ window.onload = start
 			{/if}
 		</div>
 	</div>
-	
+
 </body>
 </html>

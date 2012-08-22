@@ -2,7 +2,7 @@
 <div id="page-content" class="content">
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 	<div class="resulthead">
-		<h3>{translate text='Login to your account'}</h3>
+		<h3>{translate text='Login to your account to view due dates and holds and to renew books.'}</h3>
 	</div>
 	<div id="loginFormWrapper">
 		<form method="post" action="{$path}/MyResearch/Home" id="loginForm">

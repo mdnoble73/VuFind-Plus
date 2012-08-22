@@ -174,7 +174,12 @@ function doGetStatusSummaries()
 						if (availableAt){
 							locationSpan.html(availableAt);
 						}else{
-							locationSpan.html("N/A");
+							var location = items[i].location;
+							if (location){
+								locationSpan.html(location);
+							}else{
+								locationSpan.html("N/A");
+							}
 						}
 					}
 					
@@ -233,6 +238,11 @@ function doGetStatusSummaries()
 						$("#accessOnline" + elemId).show();
 					}else if ($(item).find('showaddtowishlist').text() == 1){
 						$("#addToWishList" + elemId).show();
+					}
+					
+					if ($("#statusValue" + elemId).length > 0){
+						var status = $(item).find('status').text();
+						$("#statusValue" + elemId).text(status);
 					}
 				});
 			}

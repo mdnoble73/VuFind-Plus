@@ -14,65 +14,51 @@
 		</fieldType>
 		<fieldType name="text" class="solr.TextField" positionIncrementGap="100">
 			<analyzer type="index">
-				<tokenizer class="solr.WhitespaceTokenizerFactory"/>
+				<tokenizer class="solr.ICUTokenizerFactory"/>
 				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
 				<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
-				<filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
+				<filter class="solr.ICUFoldingFilterFactory"/>
+				<filter class="solr.CommonGramsFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+				<filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+				<filter class="solr.SnowballPorterFilterFactory" language="English"/>
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-				<filter class="solr.ISOLatin1AccentFilterFactory"/>
 			</analyzer>
 			<analyzer type="query">
-				<tokenizer class="solr.WhitespaceTokenizerFactory"/>
+				<tokenizer class="solr.ICUTokenizerFactory"/>
 				<filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
+				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
 				<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" enablePositionIncrements="true"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
-				<filter class="solr.SnowballPorterFilterFactory" language="English" protected="protwords.txt"/>
+				<filter class="solr.ICUFoldingFilterFactory"/>
+				<filter class="solr.CommonGramsFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+				<filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+				<filter class="solr.SnowballPorterFilterFactory" language="English"/>
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-				<filter class="solr.ISOLatin1AccentFilterFactory"/>
 			</analyzer>
 		</fieldType>
 		<!-- Text Field without Stemming, Synonyms, and stop Word removal -->
 		<fieldType name="textProper" class="solr.TextField" positionIncrementGap="100">
-			<analyzer type="index">
-				<tokenizer class="solr.WhitespaceTokenizerFactory"/>
-				<filter class="solr.ISOLatin1AccentFilterFactory"/>
-				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
-				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-			</analyzer>
-			<analyzer type="query">
-				<tokenizer class="solr.WhitespaceTokenizerFactory"/>
-				<filter class="solr.ISOLatin1AccentFilterFactory"/>
+			<analyzer>
+				<tokenizer class="solr.ICUTokenizerFactory"/>
 				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
+				<filter class="solr.ICUFoldingFilterFactory"/>
+				<filter class="solr.CommonGramsFilterFactory" words="stopwords.txt" ignoreCase="true"/>
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
 			</analyzer>
 		</fieldType>
 		<!-- Basic Text Field for use with Spell Correction -->
 		<fieldType name="textSpell" class="solr.TextField" positionIncrementGap="100">
 			<analyzer>
-				<tokenizer class="solr.WhitespaceTokenizerFactory"/>
-				<filter class="solr.ISOLatin1AccentFilterFactory"/>
+				<tokenizer class="solr.ICUTokenizerFactory"/>
 				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0"/>
+				<filter class="solr.ICUFoldingFilterFactory"/>
 				<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
 			</analyzer>
 		</fieldType>
 		<!-- More advanced spell checking field. -->
 		<fieldType name="textSpellShingle" class="solr.TextField" positionIncrementGap="100">
-			<analyzer type="index">
-				<tokenizer class="solr.StandardTokenizerFactory"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
-				<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
-				<filter class="solr.ShingleFilterFactory" maxShingleSize="2" outputUnigrams="false"/>
-				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
-			</analyzer>
-			<analyzer type="query">
-				<tokenizer class="solr.StandardTokenizerFactory"/>
-				<filter class="solr.LowerCaseFilterFactory"/>
+			<analyzer>
+				<tokenizer class="solr.ICUTokenizerFactory"/>
 				<filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
 				<filter class="solr.ShingleFilterFactory" maxShingleSize="2" outputUnigrams="false"/>
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
@@ -130,8 +116,8 @@
 	<fields>
 		<!-- Core Fields  -->
 		<field name="id" type="string" indexed="true" stored="true"/>
+		<field name="id_sort" type="integer" indexed="true" stored="false"/>
 		<field name="fullrecord" type="string" indexed="false" stored="true"/>
-		<field name="marc_error" type="string" indexed="false" stored="true" multiValued="true"/>
 		<field name="allfields" type="text" indexed="true" stored="false"/>
 		<field name="allfields_proper" type="textProper" indexed="true" stored="false"/>
 		<field name="fulltext" type="text" indexed="true" stored="false"/>
@@ -144,10 +130,10 @@
 		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
 		<!-- Institutional Fields -->
 		<field name="collection" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="institution" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="building" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="institution" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="building" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="collection_group" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="available_at" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="available_at" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<!-- Generic Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
@@ -181,7 +167,7 @@
 		<field name="edition" type="string" indexed="true" stored="true"/>
 		<field name="description" type="text" indexed="true" stored="true"/>
 		<field name="contents" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="contents_proper" type="text" indexed="true" stored="true" multiValued="true"/>
+		<field name="contents_proper" type="text" indexed="true" stored="false" multiValued="true"/>
 		<field name="url" type="string" indexed="false" stored="true" multiValued="true"/>
 		<field name="thumbnail" type="string" indexed="false" stored="true"/>
 		<!-- Catalog Specific Fields -->
@@ -219,6 +205,10 @@
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="topic_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="author_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
@@ -235,7 +225,7 @@
 		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
 		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/> 
-		<field name="barcode" type="textFacet" indexed="true" stored="true" multiValued="true"/> 
+		<field name="barcode" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="word_think_heading" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false"/>
@@ -243,6 +233,7 @@
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- Used for loading correct record driver -->
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
@@ -256,7 +247,7 @@
 		<field name="date_added" type="date" indexed="true" stored="true" multiValued="false"/>
 		<field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="rating" type="float" indexed="true" stored="true" multiValued="false"/>
+		<field name="rating" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Special fields for Lists -->
 		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false"/>
@@ -293,6 +284,10 @@
 	<copyField source="genre" dest="genre_proper"/>
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="allfields" dest="allfields_proper"/>
+	<!-- CopyFields for Alphabetic Browse -->
+	<copyField source="topic"    dest="topic_browse"/>
+	<copyField source="author"    dest="author_browse"/>
+	<copyField source="author2"    dest="author_browse"/> 
 	<!-- Default Boolean Operator -->
 	<solrQueryParser defaultOperator="AND"/>
 </schema>

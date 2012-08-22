@@ -65,7 +65,7 @@ class HoldMultiple extends Action
 			$selectedIds = $_REQUEST['selected'];
 			$eContentDriver = null;
 			$showMessage = false;
-	
+
 			$holdings = array();
 			//Check to see if all items are eContent
 			$ids = array();
@@ -77,16 +77,16 @@ class HoldMultiple extends Action
 				}
 			}
 			$interface->assign('ids', $ids);
-			
+
 			$hold_message_data = array(
 	          'successful' => 'all',
 	          'titles' => array()
 			);
-	
+
 			if (isset($_REQUEST['autologout'])){
 				$_SESSION['autologout'] = true;
 			}
-	
+
 			//Check to see if we are ready to place the hold.
 			$placeHold = false;
 			if (isset($_REQUEST['holdType']) && isset($_REQUEST['campus'])){
@@ -96,7 +96,7 @@ class HoldMultiple extends Action
 			}
 			if ($placeHold) {
 				$hold_message_data['campus'] = $_REQUEST['campus'];
-	
+
 				//This is a new login
 				if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 					$user = UserAccount::login();
@@ -112,7 +112,7 @@ class HoldMultiple extends Action
 								require_once('Drivers/EContentDriver.php');
 								$eContentDriver = new EContentDriver();
 							}
-							
+
 							$return = $eContentDriver->placeHold($recordId, $user);
 						} else {
 							$return = $this->catalog->placeHold($recordId, $user->password, '', $_REQUEST['holdType']);
@@ -139,12 +139,12 @@ class HoldMultiple extends Action
 					$referer = $_SERVER['HTTP_REFERER'];
 					$_SESSION['hold_referrer'] = $referer;
 				}
-	
+
 				//Showing place hold form.
 				if ($user){
 					$profile = $this->catalog->getMyProfile($user);
 					$interface->assign('profile', $profile);
-	
+
 					global $locationSingleton;
 					//Get the list of pickup branch locations for display in the user interface.
 					$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
@@ -157,8 +157,9 @@ class HoldMultiple extends Action
 				}
 			}
 		}
-		
+
 		if ($showMessage) {
+			$hold_message_data['fromCart'] = isset($_REQUEST['fromCart']);
 			$_SESSION['hold_message'] = $hold_message_data;
 			if (isset($_SESSION['hold_referrer'])){
 				if ($_REQUEST['type'] != 'recall' && $_REQUEST['type'] != 'cancel' && $_REQUEST['type'] != 'update'){
@@ -178,6 +179,7 @@ class HoldMultiple extends Action
 				header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
 			}
 		} else {
+			$interface->assign('fromCart', isset($_REQUEST['fromCart']));
 			$interface->setPageTitle('Request Items');
 			$interface->setTemplate('holdMultiple.tpl');
 			$interface->display('layout.tpl', 'RecordHolds');

@@ -182,46 +182,49 @@ function getGoDeeperData(dataType, id, isbn, upc) {
 
 var seriesScroller;
 
-function GetEnrichmentInfo(id, isbn, upc) {
+function GetEnrichmentInfo(id, isbn, upc, econtent) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetEnrichmentInfo&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 	var fullUrl = url + "?" + params;
 	$.ajax( {
 		url : fullUrl,
 		success : function(data) {
-			var similarAuthorData = $(data).find("SimilarAuthors").text();
-			if (similarAuthorData) {
-				if (similarAuthorData.length > 0) {
-					$("#similarAuthorPlaceholder").html(similarAuthorData);
-					$("#similarAuthorsSidegroup").show();
-
+			try{
+				var similarAuthorData = $(data).find("SimilarAuthors").text();
+				if (similarAuthorData) {
+					if (similarAuthorData.length > 0) {
+						$("#similarAuthorPlaceholder").html(similarAuthorData);
+						$("#similarAuthorsSidegroup").show();
+					}
 				}
-			}
-			var similarTitleData = $(data).find("SimilarTitles").text();
-			if (similarTitleData) {
-				if (similarTitleData.length > 0) {
-					$("#similarTitlePlaceholder").html(similarTitleData);
-					$("#relatedTitles").hide();
-					$("#similarTitles").show();
-					$("#similarTitlePlaceholder").show();
-					$("#similarTitlesSidegroup").show();
+				var similarTitleData = $(data).find("SimilarTitles").text();
+				if (similarTitleData) {
+					if (similarTitleData.length > 0) {
+						$("#similarTitlePlaceholder").html(similarTitleData);
+						$("#relatedTitles").hide();
+						$("#similarTitles").show();
+						$("#similarTitlePlaceholder").show();
+						$("#similarTitlesSidegroup").show();
+					}
 				}
-			}
-			var seriesData = $(data).find("SeriesInfo").text();
-			if (seriesData && seriesData.length > 0) {
-				
-				seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
-
-				seriesData = $.parseJSON(seriesData);
-				if (seriesData.titles.length > 0){
-					$('#list-series-tab').show();
-					$('#relatedTitleInfo').show();
-					seriesScroller.loadTitlesFromJsonData(seriesData);
+				var seriesData = $(data).find("SeriesInfo").text();
+				if (seriesData && seriesData.length > 0) {
+					
+					seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
+	
+					seriesData = $.parseJSON(seriesData);
+					if (seriesData.titles.length > 0){
+						$('#list-series-tab').show();
+						$('#relatedTitleInfo').show();
+						seriesScroller.loadTitlesFromJsonData(seriesData);
+					}
 				}
-			}
-			var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
-			if (showGoDeeperData) {
-				$('#goDeeperLink').show();
+				var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
+				if (showGoDeeperData) {
+					$('#goDeeperLink').show();
+				}
+			} catch (e) {
+				alert("error during autocomplete setup" + e);
 			}
 		},
 		failure : function(jqXHR, textStatus, errorThrown) {
@@ -247,6 +250,7 @@ function GetProspectorInfo(id) {
 			if (prospectorCopies && prospectorCopies.length > 0) {
 				$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
 			}
+			$("#inProspectorSidegroup").show();
 		}
 	});
 }
@@ -320,7 +324,12 @@ function GetHoldingsInfoMSC(id) {
 			var callNumber = summaryDetails.find("callnumber").text();
 			$("#callNumberValue").html(callNumber);
 			var location = summaryDetails.find("availableAt").text();
-			$("#locationValue").html(location);
+			if (location.length > 0){
+				$("#locationValue").html(location);
+			}else{
+				var location = summaryDetails.find("location").text();
+				$("#locationValue").html(location);
+			}
 			var status = summaryDetails.find("status").text();
 			if (status == "Available At"){
 				status = "Available";

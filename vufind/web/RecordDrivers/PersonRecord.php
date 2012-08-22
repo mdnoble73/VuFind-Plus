@@ -50,6 +50,12 @@ class PersonRecord extends IndexRecord
 		if (isset($this->fields['middleName'])){
 			$name .= ' ' . $this->fields['middleName'];
 		}
+		if (isset($person->nickName) && strlen($person->nickName) > 0){
+			$name .= ' "' . $person->nickName . '"';
+		}
+		if (isset($person->maidenName) && strlen($person->maidenName) > 0){
+			$name .= ' (' . $person->maidenName . ')';
+		}
 		$name .= ' ' . $this->fields['lastName'];
 		$interface->assign('summTitle', trim($name));
 		$interface->assign('birthDate', $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear));

@@ -7,9 +7,14 @@ class Timer{
 
 	public function Timer($startTime){
 		global $configArray;
-		if (isset($configArray['System']['timings'])) {
-			$this->timingsEnabled = $configArray['System']['timings'];
+		if ($configArray){
+			if (isset($configArray['System']['timings'])) {
+				$this->timingsEnabled = $configArray['System']['timings'];
+			}
+		}else{
+			$this->timingsEnabled = true;
 		}
+		$startTime = microtime(true);
 		$this->lastTime = $startTime;
 		$this->firstTime = $startTime;
 		$this->timingMessages = array();
@@ -17,7 +22,7 @@ class Timer{
 	public function logTime($message){
 		if ($this->timingsEnabled){
 			$curTime = microtime(true);
-			$elapsedTime = round($curTime - $this->lastTime, 2);
+			$elapsedTime = round($curTime - $this->lastTime, 4);
 			if ($elapsedTime > 0){
 				$this->timingMessages[] = "$message: $curTime ($elapsedTime sec)";
 			}
@@ -25,27 +30,31 @@ class Timer{
 		}
 	}
 
+	public function enableTimings($enable){
+		$this->timingsEnabled = $enable;
+	}
+
 	function writeTimings(){
 		if ($this->timingsEnabled){
 			$curTime = microtime(true);
-			$elapsedTime = round($curTime - $this->lastTime, 2);
+			$elapsedTime = round($curTime - $this->lastTime, 4);
 			//if ($elapsedTime > 0){
 				$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
 			//}
 			$this->lastTime = $curTime;
 			$logger = new Logger();
-			$totalElapsedTime =round(microtime(true) - $this->firstTime, 2);
+			$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
 			$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
 			$timingInfo .= implode("\r\n", $this->timingMessages);
 			$timingInfo .= "\r\nTotal Elapsed time was: $totalElapsedTime seconds.\r\n";
 			$logger->log($timingInfo, PEAR_LOG_NOTICE);
 		}
 	}
-	
+
 	function __destruct() {
 		if ($this->timingsEnabled){
 			$logger = new Logger();
-			$totalElapsedTime =round(microtime(true) - $this->firstTime, 2);
+			$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
 			$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
 			$timingInfo .= implode("\r\n", $this->timingMessages);
 			$timingInfo .= "\r\nTotal Elapsed time was: $totalElapsedTime seconds.\r\n";

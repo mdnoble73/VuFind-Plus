@@ -19,6 +19,12 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
 
 import org.apache.log4j.Logger;
 
@@ -219,7 +225,7 @@ public class Util {
 		if (stringToTrim.length() > maxCharacters) {
 			stringToTrim = stringToTrim.substring(0, maxCharacters);
 		}
-		return stringToTrim;
+		return stringToTrim.trim();
 	}
 
 	public static HashMap<String, String> readPropertiesFile(File formatMapFile) throws IOException {
@@ -250,8 +256,19 @@ public class Util {
 			logger.debug("Getting URL " + url);
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
-			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(30000);
+			if (conn instanceof HttpsURLConnection){
+				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+				sslConn.setHostnameVerifier(new HostnameVerifier() {
+					
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						//Do not verify host names
+						return true;
+					}
+				});
+			}
+			conn.setConnectTimeout(3000);
+			conn.setReadTimeout(60000);
 			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
@@ -298,7 +315,7 @@ public class Util {
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
 			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(30000);
+			conn.setReadTimeout(90000);
 			logger.debug("Posting To URL " + url);
 			logger.debug("  Opened connection");
 			conn.setDoInput(true);
@@ -474,4 +491,16 @@ public class Util {
 		return format.trim();
 	}
 
+	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
+	public static String makeValueSortable(String curTitle) {
+		String sortTitle = curTitle.toLowerCase();
+		Matcher sortMatcher = sortTrimmingPattern.matcher(sortTitle);
+		if (sortMatcher.matches()) {
+			sortTitle = sortMatcher.group(1);
+		}
+		sortTitle = sortTitle.replaceAll("\\W", " "); //get rid of non alpha numeric characters
+		sortTitle = sortTitle.replaceAll("\\s{2,}", " "); //get rid of duplicate spaces 
+		sortTitle = sortTitle.trim();
+		return sortTitle;
+	}
 }

@@ -77,9 +77,9 @@ class AdobeContentServer
 	function getTitleInfo($identifier){
 		//Get copies that are checked out
 		$query =  "SELECT DISTINCT `fulfillmentitem`.`resourceid`, `fulfillment`.`returned`, `fulfillmentitem`.`until`, fulfillment.loanuntil FROM fulfillmentitem INNER JOIN " .
-              "fulfillment ON fulfillmentitem.fulfillmentid = fulfillment.fulfillmentid INNER JOIN " . 
-              "resourceitem ON fulfillmentitem.resourceid = resourceitem.resourceid " . 
-              "WHERE resourceitem.identifier like '" . mysql_real_escape_string ($identifier, $this->acsConnection) . "' and `returned` = 'F' AND `until` > NOW() " . 
+              "fulfillment ON fulfillmentitem.fulfillmentid = fulfillment.fulfillmentid INNER JOIN " .
+              "resourceitem ON fulfillmentitem.resourceid = resourceitem.resourceid " .
+              "WHERE resourceitem.identifier like '" . mysql_real_escape_string ($identifier, $this->acsConnection) . "' and `returned` = 'F' AND `until` > NOW() " .
               "ORDER BY loanuntil DESC";
 		$copiesOut = array();
 		$result = mysql_query($query, $this->acsConnection);
@@ -108,7 +108,10 @@ class AdobeContentServer
 		global $user;
 
 		if ($user == false){
-			return '';
+			return null;
+		}
+		if (is_null($eContentItem->acsId) || strlen($eContentItem->acsId) == 0){
+			return null;
 		}
 
 		//First check to see if we have already minted a download link for this resource
@@ -116,30 +119,36 @@ class AdobeContentServer
 		if ($eContentCheckout->acsTransactionId == null || $eContentCheckout->acsDownloadLink == null){
 			$transactionId = self::getUniqueID();
 			$eContentCheckout->acsTransactionId = $transactionId;
-			
+
 			$dateval=time();
 			$gbauthdate=gmdate('r', $dateval);
-	
+
 			$rights = "";
+			$acsId = "urn:uuid:" . $eContentItem->acsId;
+
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
 			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
 			    "&orderid=".urlencode($transactionId).
-			    "&resid=".urlencode($eContentItem->acsId).
+			    "&resid=".urlencode($acsId).
 			    $rights.
 			    "&gbauthdate=".urlencode($gbauthdate).
 			    "&dateval=".urlencode($dateval).
 			    "&gblver=4";
-	
+
 			$linkURL = $configArray['EContent']['linkURL'];
-			$sharedSecret = $configArray['EContent']['distributorSecret'];
-			$sharedSecret = base64_decode($sharedSecret);
-			$bookDownloadURL = $linkURL."?".$bookDownloadURL."&auth=".hash_hmac("sha1", $bookDownloadURL, $sharedSecret );
-		
-			$eContentCheckout->acsDownloadLink = $bookDownloadURL;
-			$eContentCheckout->update();
-			
-			return $bookDownloadURL;
+			if (isset($configArray['EContent']['linkURL']) && strlen($configArray['EContent']['linkURL']) > 0){
+				$sharedSecret = $configArray['EContent']['distributorSecret'];
+				$sharedSecret = base64_decode($sharedSecret);
+				$bookDownloadURL = $linkURL."?".$bookDownloadURL."&auth=".hash_hmac("sha1", $bookDownloadURL, $sharedSecret );
+
+				$eContentCheckout->acsDownloadLink = $bookDownloadURL;
+				$eContentCheckout->update();
+				return $bookDownloadURL;
+			}else{
+				return null;
+			}
+
 		}else{
 			return $eContentCheckout->acsDownloadLink;
 		}
@@ -173,7 +182,108 @@ class AdobeContentServer
 	/**
 	 * Package a file to the ACS server and get back the ACS ID
 	 */
-	static function packageFile($filename, $existingResourceId = '', $numAvailable){
+	static function packageFile($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
+		global $configArray;
+		if (isset($configArray['EContent']['packageWithService']) && $configArray['EContent']['packageWithService'] == true){
+			return AdobeContentServer::packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId, $numAvailable);
+		}else{
+			return AdobeContentServer::packageFileDirect($filename, $existingResourceId, $numAvailable);
+		}
+	}
+
+	static function packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
+		global $configArray;
+		$logger = new Logger();
+		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
+			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
+			//Copy the file to the ftp service
+			$filenameNoPath = substr($filename, strrpos($filename, '/') + 1);
+			$baseFilename = substr($filenameNoPath, 0, strrpos($filenameNoPath, '.'));
+			$extension = substr($filenameNoPath, strrpos($filenameNoPath, '.') + 1);
+			$newFilename = AdobeContentServer::copyFileToFtp($filename, $itemId, $extension);
+			if (!$newFilename){
+				$logger->log("Could not copy file to FTP server.", PEAR_LOG_ERR);
+				return array('success' => false);
+			}else{
+				//Submit to the packaging service
+				$packagingServiceUrl = $configArray['EContent']['packagingURL'];
+				$distributorId = $configArray['EContent']['distributorId'];
+				$filenameEncoded = 'Received\\Data\\' . urlencode($newFilename);
+				$distributorIdEncoded = urlencode($distributorId);
+				$packagingServiceCall = "$packagingServiceUrl?method=RequestFileProtection&distributorId={$distributorIdEncoded}&filename={$filenameEncoded}&copies={$numAvailable}";
+				$logger->log($packagingServiceCall, PEAR_LOG_INFO);
+				$packagingResponse = file_get_contents($packagingServiceCall);
+				$logger->log("Response\r\n$packagingResponse", PEAR_LOG_INFO);
+				$jsonResponse = json_decode($packagingResponse, true);
+				if ($jsonResponse['success']){
+					//Save information to packaging log so it can be processed on the backend
+					require_once('sys/eContent/EContentImportDetailsEntry.php');
+					$importDetails = new EContentImportDetailsEntry();
+					$importDetails->filename = $newFilename;
+					$importDetails->libraryFilename = $filename;
+					$importDetails->dateFound = time();
+					$importDetails->dateSentToPackaging = time();
+					$importDetails->econtentItemId = $itemId;
+					$importDetails->econtentRecordId = $econtentRecordId;
+					$importDetails->distributorId = $distributorId;
+					$importDetails->copies = $numAvailable;
+					$importDetails->packagingId = $jsonResponse['packagingId'];
+					$importDetails->status = 'sentToAcs';
+					$importDetails->insert();
+				}
+
+				return $jsonResponse;
+			}
+		}else{
+			$logger->log("Cannot package file because packagingURL is not set", PEAR_LOG_INFO);
+			return array('success' => false);
+		}
+	}
+
+	static function copyFileToFtp($pathToFile, $itemId, $extension){
+		global $configArray;
+		$logger = new Logger();
+		$destinationFilename = "{$itemId}.{$extension}";
+		$packagingFTP = $configArray['EContent']['packagingFTPServer'];
+		$packagingFTPUser = $configArray['EContent']['packagingFTPUser'];
+		$packagingFTPPassword = $configArray['EContent']['packagingFTPPassword'];
+		$packagingFTPBasePath = $configArray['EContent']['packagingFTPBasePath'];
+		$destinationPath = $packagingFTP . '/' . $destinationFilename;
+		$logger->log("Copying " . $pathToFile . " to " . $destinationPath, PEAR_LOG_INFO);
+
+		// Set up a connection
+		$conn = ftp_connect($packagingFTP);
+
+		// Login
+		$copied = false;
+		if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
+			$logger->log("Logged in to server", PEAR_LOG_INFO);
+			// Change the dir
+			ftp_pasv($conn, true);
+			ftp_chdir($conn, $packagingFTPBasePath);
+			if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
+				$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
+				$copied = true;
+			} else {
+				$logger->log("There was a problem while uploading $pathToFile to $destinationFilename", PEAR_LOG_ERR);
+			}
+			// Return the resource
+			ftp_close($conn);
+		}
+
+		if ($copied){
+			return $destinationFilename;
+		}else{
+			return false;
+		}
+
+	}
+
+	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
+		global $configArray;
+
+		$logger = new Logger();
+		$logger->log("packaging file $filename", PEAR_LOG_INFO);
 		$packageDoc = new DOMDocument('1.0', 'UTF-8');
 		$packageDoc->formatOutput = true;
 		$packageElem = $packageDoc->appendChild($packageDoc->createElementNS("http://ns.adobe.com/adept", "package"));
@@ -191,23 +301,24 @@ class AdobeContentServer
 		$packageElem->appendChild($packageDoc->createElement("expiration", date(DATE_W3C, time() + (15 * 60) ))); //Request expiration, default to 15 minutes
 		$packageElem->appendChild($packageDoc->createElement('nonce', base64_encode(AdobeContentServer::makeNonce())));
 		//Calculate hmac
-		global $configArray;
+
 		$serverPassword = hash("sha1",$configArray['EContent']['acsPassword'], true);
 
 		AdobeContentServer::signNode($packageDoc, $packageElem, $serverPassword);
 
 		$packagingURL = $configArray['EContent']['packagingURL'];
-		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
+		//$logger->log("Request:\r\n" . htmlentities($packageDoc->saveXML()), PEAR_LOG_INFO);
 		$response = AdobeContentServer::sendRequest($packageDoc->saveXML(),$packagingURL);
 
 		$responseData = simplexml_load_string($response);
 		if (isset($responseData->error) || preg_match('/<error/', $response)){
-			echo("Response:<br/>" . htmlentities($response) . "<br/>");
+			$logger->log("Response:\r\n" . $response, PEAR_LOG_INFO);
 			return array('success' => false);
 		}else{
 			$acsId = (string)$responseData->resource;
 
 			//Setup distribution rights
+			$logger->log("Setting up distribution rights for acsid $acsId", PEAR_LOG_INFO);
 			$distributorId = $configArray['EContent']['distributorId'];
 			$distributionResult = AdobeContentServer::addDistributionRights($acsId, $distributorId, $numAvailable);
 			if ($distributionResult['success'] == false){
@@ -215,13 +326,15 @@ class AdobeContentServer
 			}else{
 				return array(
 					'success' => true,
-					'acsId' => $acsId, 
+					'acsId' => $acsId,
 				);
 			}
 		}
 	}
 
 	static function addDistributionRights($acsId, $distributorId, $numAvailable){
+		$logger = new Logger();
+		$logger->log("Setting up distribution rights for acsid $acsId for distributor $distributorId", PEAR_LOG_INFO);
 		$distributionDoc = new DOMDocument('1.0', 'UTF-8');
 		$distributionDoc->formatOutput = true;
 		$distributionElem = $distributionDoc->appendChild($distributionDoc->createElementNS("http://ns.adobe.com/adept", "request"));
@@ -249,7 +362,7 @@ class AdobeContentServer
 		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
 		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
-
+		$logger->log("'Response:\r\n $response");
 		//echo("Response:<br/>" . htmlentities($response) . "<br/>");
 		$responseData = simplexml_load_string($response);
 
@@ -259,7 +372,7 @@ class AdobeContentServer
 			return array('success' => 'true');
 		}
 	}
-	
+
 	static function removeDistributionRights($acsId, $distributorId){
 		$distributionDoc = new DOMDocument('1.0', 'UTF-8');
 		$distributionDoc->formatOutput = true;
@@ -294,7 +407,7 @@ class AdobeContentServer
 	}
 
 	static function signNode( $xmlDoc, $xmlNodeToBeSigned, $secretKey ){
-		require_once("/sys/XMLSigningSerializer.php");
+		require_once("sys/XMLSigningSerializer.php");
 		$serializer = new XMLSigningSerializer( false );
 		$signingSerialization = $serializer->serialize($xmlNodeToBeSigned);
 		$hmacData = base64_encode( hash_hmac("sha1", $signingSerialization, $secretKey, true ) );
@@ -389,7 +502,7 @@ class AdobeContentServer
 		global $configArray;
 		$distributorId = $configArray['EContent']['distributorId'];
 		AdobeContentServer::removeDistributionRights($acsId, $distributorId);
-		
+
 		$deleteResourceDoc = new DOMDocument('1.0', 'UTF-8');
 		$deleteResourceDoc->formatOutput = true;
 		//Create the message to send to the ACS server

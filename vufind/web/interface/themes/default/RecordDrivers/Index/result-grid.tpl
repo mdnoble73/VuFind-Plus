@@ -31,7 +31,7 @@
     </div>
 </div>
 
-{if $summCOinS}<span class="Z3988" title="{$summCOinS|escape}"></span>{/if}
+{if $summCOinS}<span class="Z3988" title="{$summCOinS|escape}" style="display:none">&nbsp;</span>{/if}
 
 {if $summAjaxStatus}
 <script type="text/javascript">

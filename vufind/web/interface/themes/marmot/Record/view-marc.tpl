@@ -1,4 +1,3 @@
-<script  type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
     alert("{$title}");
@@ -215,7 +214,7 @@
         {/if}
         {if $linkToAmazon == 1 && $isbn}
         <div class="titledetails">
-            <a href="http://amazon.com/dp/{$isbn|@formatISBN}" target="_blank" class='amazonLink'> {translate text = "View on Amazon"}</a>
+            <a href="http://amazon.com/dp/{$isbn|@formatISBN}" rel="external" onclick="window.open (this.href, 'child'); return false" class='amazonLink'> {translate text = "View on Amazon"}</a>
         </div>
         {/if}
         <center>
@@ -228,7 +227,7 @@
    </div>
    </div>
    <div id = "fullViewLink"><a href ="{$url}/Record/{$id|escape:"url"}">Full Record</a></div>
-   <div id = "classicViewLink"><a href ="http://www.millennium.marmot.org/record={$classicId|escape:"url"}" target="_blank">Classic View</a></div>
+   <div id = "classicViewLink"><a href ="http://www.millennium.marmot.org/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
    </div>
    </div>
      <div class="yui-b">

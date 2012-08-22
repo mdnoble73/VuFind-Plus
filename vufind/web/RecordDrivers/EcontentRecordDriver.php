@@ -103,6 +103,7 @@ class EcontentRecordDriver extends IndexRecord
             'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
             'edition' => $this->eContentRecord->getPropertyArray('edition'),
 		        'source'  => $this->eContentRecord->source,
+		        'format'  => $this->eContentRecord->format(),
 		);
 
 		// Build the citation:
@@ -112,12 +113,18 @@ class EcontentRecordDriver extends IndexRecord
 				return $citation->getAPA();
 			case 'MLA':
 				return $citation->getMLA();
+			case 'AMA':
+				return $citation->getAMA();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
 		}
 	}
 	
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&econtent=true&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;econtent=true&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		return $bookCoverUrl;
 	}
 	

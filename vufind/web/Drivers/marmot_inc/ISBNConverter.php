@@ -12,7 +12,7 @@ class ISBNConverter{
 			if ($i % 2 == 1){
 				$multiplier = 3;
 			}
-			$sumOfDigits += $multiplier * (int)(substr($isbn, $i, 1));
+			$sumOfDigits += $multiplier * (int)($isbn[$i]);
 		}
 		$modValue = $sumOfDigits % 10;
 		if ($modValue == 0){
@@ -29,7 +29,7 @@ class ISBNConverter{
 			$checksumDigit = 1;
 			$sumOfDigits = 0;
 			for ($i = 0; $i < 9; $i++){
-				$sumOfDigits += ($i + 1) * (int)(substr($isbn, $i, 1));
+				$sumOfDigits += ($i + 1) * (int)($isbn[$i]);
 			}
 			$modValue = $sumOfDigits % 11;
 			if ($modValue == 10){

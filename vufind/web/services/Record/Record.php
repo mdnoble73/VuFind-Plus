@@ -185,7 +185,7 @@ class Record extends Action
 		if ($marcFields){
 			$physicalDescriptions = array();
 			foreach ($marcFields as $marcField){
-				$description = $this->getSubfieldData($marcField, 'a');
+				$description = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c', 'e', 'f', 'g'));
 				if ($description != 'p. cm.'){
 					$description = preg_replace("/[\/|;:]$/", '', $description);
 					$description = preg_replace("/p\./", 'pages', $description);
@@ -294,19 +294,30 @@ class Record extends Action
 		//Load description from Syndetics
 		$useMarcSummary = true;
 		if ($this->isbn || $this->upc){
-			require_once 'Drivers/marmot_inc/GoDeeperData.php';
-			$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
-			if (isset($summaryInfo['summary'])){
-				$interface->assign('summaryTeaser', $summaryInfo['summary']);
-				$interface->assign('summary', $summaryInfo['summary']);
-				$useMarcSummary = false;
+			if ($library && $library->preferSyndeticsSummary == 1){
+				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
+				if (isset($summaryInfo['summary'])){
+					$interface->assign('summaryTeaser', $summaryInfo['summary']);
+					$interface->assign('summary', $summaryInfo['summary']);
+					$useMarcSummary = false;
+				}
 			}
 		}
 		if ($useMarcSummary){
 			if ($summaryField = $this->marcRecord->getField('520')) {
 				$interface->assign('summary', $this->getSubfieldData($summaryField, 'a'));
 				$interface->assign('summaryTeaser', $this->getSubfieldData($summaryField, 'a'));
+			}elseif ($library && $library->preferSyndeticsSummary == 0){
+				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
+				if (isset($summaryInfo['summary'])){
+					$interface->assign('summaryTeaser', $summaryInfo['summary']);
+					$interface->assign('summary', $summaryInfo['summary']);
+					$useMarcSummary = false;
+				}
 			}
+			
 		}
 
 		if ($mpaaField = $this->marcRecord->getField('521')) {
@@ -347,31 +358,34 @@ class Record extends Action
 		
 		$timer->logTime('Got detailed data from Marc Record');
 		
+		$tableOfContents = array();
+		$marcFields505 = $marcRecord->getFields('505');
+		if ($marcFields505){
+			$tableOfContents = $this->processTableOfContentsFields($marcFields505);
+		}
+		
 		$notes = array();
-
 		$marcFields500 = $marcRecord->getFields('500');
 		$marcFields504 = $marcRecord->getFields('504');
-		$marcFields505 = $marcRecord->getFields('505');
 		$marcFields511 = $marcRecord->getFields('511');
 		$marcFields518 = $marcRecord->getFields('518');
 		$marcFields520 = $marcRecord->getFields('520');
 		if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
-			$allFields = array_merge($marcFields500, $marcFields504, $marcFields505, $marcFields511, $marcFields518, $marcFields520);
-			foreach ($allFields as $marcField){
-				foreach ($marcField->getSubFields() as $subfield){
-					$note = $subfield->getData();
-					if ($subfield->getCode() == 't'){
-						$note = "&nbsp;&nbsp;&nbsp;" . $note;
-					}
-					$note = trim($note);
-					if (strlen($note) > 0){
-						$notes[] = $note;
-					}
-				}
-
-			}
+			$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
+			$notes = $this->processNoteFields($allFields);
 		}
-
+		
+		if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
+			$notes = array_merge($notes, $tableOfContents);
+		}else{
+			$interface->assign('tableOfContents', $tableOfContents);
+		}
+		if (isset($library)){
+			$interface->assign('notesTabName', $library->notesTabName);
+		}else{
+			$interface->assign('notesTabName', 'Notes');
+		}
+			
 		$additionalNotesFields = array(
           '310' => 'Current Publication Frequency',
           '321' => 'Former Publication Frequency',
@@ -574,6 +588,40 @@ class Record extends Action
 
 		//Load Staff Details
 		$interface->assign('staffDetails', $this->recordDriver->getStaffView());
+	}
+	
+	function processNoteFields($allFields){
+		$notes = array();
+		foreach ($allFields as $marcField){
+			foreach ($marcField->getSubFields() as $subfield){
+				$note = $subfield->getData();
+				if ($subfield->getCode() == 't'){
+					$note = "&nbsp;&nbsp;&nbsp;" . $note;
+				}
+				$note = trim($note);
+				if (strlen($note) > 0){
+					$notes[] = $note;
+				}
+			}
+		}
+		return $notes;
+	}
+	
+	function processTableOfContentsFields($allFields){
+		$notes = array();
+		foreach ($allFields as $marcField){
+			$curNote = '';
+			foreach ($marcField->getSubFields() as $subfield){
+				$note = $subfield->getData();
+				$curNote .= " " . $note;
+				$curNote = trim($curNote);
+				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
+					$notes[] = $curNote;
+					$curNote = '';
+				}
+			}
+		}
+		return $notes;
 	}
 	
 	function getNextPrevLinks(){

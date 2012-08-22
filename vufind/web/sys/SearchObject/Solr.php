@@ -80,6 +80,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		global $configArray;
 		global $timer;
+		global $library;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
 		require_once "sys/$class.php";
@@ -101,6 +102,11 @@ class SearchObject_Solr extends SearchObject_Base
 
 		// Load search preferences:
 		$searchSettings = getExtraConfigArray('searches');
+		if (isset($library)){
+			if ($library->showTagging == 0){
+				unset($searchSettings['Basic_Searches']['tag']);
+			}
+		}
 		if (isset($searchSettings['General']['default_handler'])) {
 			$this->defaultIndex = $searchSettings['General']['default_handler'];
 		}
@@ -135,7 +141,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->sortOptions = $searchSettings['Sorting'];
 		} else {
 			$this->sortOptions = array('relevance' => 'sort_relevance',
-                'year' => 'sort_year', 'year asc' => 'sort_year asc', 
+                'year' => 'sort_year', 'year asc' => 'sort_year asc',
                 'callnumber' => 'sort_callnumber', 'author' => 'sort_author',
                 'title' => 'sort_title');
 		}
@@ -303,7 +309,7 @@ class SearchObject_Solr extends SearchObject_Base
 		if (isset($_REQUEST['q'])) {
 			$this->query = strip_tags($_REQUEST['q']);
 		}
-		
+
 		return true;
 	} // End init()
 
@@ -485,6 +491,22 @@ class SearchObject_Solr extends SearchObject_Base
 		return $recordSet;
 	}
 
+	/*
+	 * Get an array of citations for the records within the searc results
+	 */
+	public function getCitations($citationFormat){
+		global $interface;
+		$html = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			$record = RecordDriverFactory::initRecordDriver($current);
+			$html[] = $interface->fetch($record->getCitation($citationFormat));
+		}
+		return $html;
+	}
+
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
 	 * results.
@@ -499,6 +521,7 @@ class SearchObject_Solr extends SearchObject_Base
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
 			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$html[] = $interface->fetch($record->getSearchResult());
 		}
@@ -809,7 +832,7 @@ class SearchObject_Solr extends SearchObject_Base
 			case "list":
 				$preserveParams = array(
 				// for newitem:
-				  'range', 'department', 
+				  'range', 'department',
 				// for reserves:
 				  'course', 'inst', 'dept',
 				// for favorites/list:
@@ -871,7 +894,7 @@ class SearchObject_Solr extends SearchObject_Base
 					if ($resource->source == 'eContent'){
 						$id = 'econtentRecord' . $id;
 					}
-					
+
 					$newSearch[0]['group'][] = array(
                         'field' => 'id',
                         'lookfor' => $id,
@@ -912,8 +935,8 @@ class SearchObject_Solr extends SearchObject_Base
 		// flexible in the future!
 		// Marmot hard-coded case and use searches.ini and facets.ini instead.
 		/*if ($this->searchType == 'author') {
-		return array('side' => array('SideFacets:Author'));
-		}*/
+		 return array('side' => array('SideFacets:Author'));
+		 }*/
 
 		// Use default case from parent class the rest of the time:
 		return parent::getRecommendationSettings();
@@ -944,7 +967,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function processSearch($returnIndexErrors = false, $recommendations = false) {
 		global $timer;
-		
+
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
 
@@ -953,7 +976,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->initRecommendations();
 		}
 		$timer->logTime("initRecommendations");
-		
+
 
 		// Tag searches need to be handled differently
 		if (count($search) == 1 && isset($search[0]['index']) && $search[0]['index'] == 'tag') {
@@ -1335,9 +1358,16 @@ class SearchObject_Solr extends SearchObject_Base
 			$activeLocationFacet = $activeLocation->facetLabel;
 		}
 		$relatedLocationFacets = null;
+		$relatedHomeLocationFacets = null;
 		if (!is_null($currentLibrary)){
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
+		}else{
+			$homeLibrary = $librarySingleton->getPatronHomeLibrary();
+			if (!is_null($homeLibrary)){
+				$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
+			}
 		}
+
 
 		$allFacets = array_merge($this->indexResult['facet_counts']['facet_fields'], $this->indexResult['facet_counts']['facet_dates']);
 		foreach ($allFacets as $field => $data) {
@@ -1360,7 +1390,9 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($field == 'institution' && isset($currentLibrary) && !is_null($currentLibrary)){
 				$doInstitutionProcessing = true;
 			}
-			if (($field == 'building' || $field == 'available_at') && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+			if ($field == 'building' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+				$doBranchProcessing = true;
+			}elseif($field == 'available_at'){
 				$doBranchProcessing = true;
 			}
 			// Should we translate values for the current facet?
@@ -1406,16 +1438,24 @@ class SearchObject_Solr extends SearchObject_Base
 						$numValidLibraries++;
 					}
 				}else if ($doBranchProcessing){
-					if ($facet[0] == $activeLocationFacet){
-						$valueKey = '1' . $valueKey;
-						$foundBranch = true;
-						$numValidRelatedLocations++;
-					}else if (in_array($facet[0], $relatedLocationFacets)){
-						$valueKey = '2' . $valueKey;
-						$numValidRelatedLocations++;
-					}elseif ($facet[0] == 'Digital Collection'){
-						$valueKey = '3' . $valueKey;
-						$numValidRelatedLocations++;
+					if (strlen($facet[0]) > 0){
+						if ($activeLocationFacet != null && $facet[0] == $activeLocationFacet){
+							$valueKey = '1' . $valueKey;
+							$foundBranch = true;
+							$numValidRelatedLocations++;
+						}else if (!is_null($relatedLocationFacets) && in_array($facet[0], $relatedLocationFacets)){
+							$valueKey = '2' . $valueKey;
+							$numValidRelatedLocations++;
+						}else if (!is_null($relatedHomeLocationFacets) && in_array($facet[0], $relatedHomeLocationFacets)){
+							$valueKey = '2' . $valueKey;
+							$numValidRelatedLocations++;
+						}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
+							$valueKey = '4' . $valueKey;
+							$numValidRelatedLocations++;
+						}elseif (!is_null($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
+							$valueKey = '3' . $valueKey;
+							$numValidRelatedLocations++;
+						}
 					}
 				}
 
@@ -1460,7 +1500,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//Sort the facet alphabetically?
 			//Sort the system and location alphabetically unless we are in the global scope
-			if (in_array($field, array('institution', 'building'))  && isset($currentLibrary) ){
+			if (in_array($field, array('institution', 'building', 'available_at'))  && isset($currentLibrary) ){
 				$list[$field]['showAlphabetically'] = true;
 			}else{
 				$list[$field]['showAlphabetically'] = false;
@@ -1526,81 +1566,71 @@ class SearchObject_Solr extends SearchObject_Base
             'encoding' => 'UTF-8',
             'indent'   => '  ',
             'rootName' => 'json',
-            'mode'     => 'simplexml'
-            );
-            $serializer = new XML_Serializer($serializer_options);
+            'mode'     => 'simplexml',
+		);
+		$serializer = new XML_Serializer($serializer_options);
 
-            $baseUrl = $configArray['Site']['url'];
-            // The XML parsers have trouble with the control characters
-            //   inside the marc data, so lets get rid of the 'fullrecord'
-            //   nodes. Not sure what we'll do if these are needed for some
-            //   reason
-            for ($i = 0; $i < count($result['response']['docs']); $i++) {
-            	if (isset($result['response']['docs'][$i]['fullrecord'])) {
-            		unset($result['response']['docs'][$i]['fullrecord']);
-            	}
-            	if (isset($result['response']['docs'][$i]['marc_error'])) {
-            		unset($result['response']['docs'][$i]['marc_error']);
-            	}
-            	
-            	//Since the base URL can be different depending on the record type, add the url to the response
-							if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
-								$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
-								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
-							}else{
-								$id = $result['response']['docs'][$i]['id'];
-								$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;
-							}
-            	
-            }
+		$baseUrl = $configArray['Site']['url'];
+		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 
-            // Serialize our results from PHP arrays to XML
-            if ($serializer->serialize($result)) {
-            	$xmlResults = $serializer->getSerializedData();
-            }
+			//Since the base URL can be different depending on the record type, add the url to the response
+			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'econtentRecord') == 0){
+				$id = str_replace('econtentRecord', '', $result['response']['docs'][$i]['id']);
+				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/EcontentRecord/' . $id;
+			}else{
+				$id = $result['response']['docs'][$i]['id'];
+				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/Record/' . $id;
+			}
 
-            // Prepare an XSLT processor and pass it some variables
-            $xsl = new XSLTProcessor();
-            $xsl->registerPHPFunctions('urlencode');
-            $xsl->registerPHPFunctions('translate');
+		}
 
-            // On-screen display value for our search
-            if ($this->searchType == 'newitem') {
-            	$lookfor = translate('New Items');
-            } else if ($this->searchType == 'reserves') {
-            	$lookfor = translate('Course Reserves');
-            } else {
-            	$lookfor = $this->displayQuery();
-            }
-            if (count($this->filterList) > 0) {
-            	// TODO : better display of filters
-            	$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
-            } else {
-            	$xsl->setParameter('', 'lookfor', $lookfor);
-            }
-            // The full url to recreate this search
-            $xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
-            // Stub of a url for a records screen
-            $xsl->setParameter('', 'baseUrl',    $configArray['Site']['url']."/Record/");
+		// Serialize our results from PHP arrays to XML
+		if ($serializer->serialize($result)) {
+			$xmlResults = $serializer->getSerializedData();
+		}
 
-            // Load up the style sheet
-            $style = new DOMDocument;
-            $style->load('services/Search/xsl/json-rss.xsl');
-            $xsl->importStyleSheet($style);
+		// Prepare an XSLT processor and pass it some variables
+		$xsl = new XSLTProcessor();
+		$xsl->registerPHPFunctions('urlencode');
+		$xsl->registerPHPFunctions('translate');
 
-            // Load up the XML document
-            $xml = new DOMDocument;
-            $xml->loadXML($xmlResults);
+		// On-screen display value for our search
+		if ($this->searchType == 'newitem') {
+			$lookfor = translate('New Items');
+		} else if ($this->searchType == 'reserves') {
+			$lookfor = translate('Course Reserves');
+		} else {
+			$lookfor = $this->displayQuery();
+		}
+		if (count($this->filterList) > 0) {
+			// TODO : better display of filters
+			$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
+		} else {
+			$xsl->setParameter('', 'lookfor', $lookfor);
+		}
+		// The full url to recreate this search
+		$xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
+		// Stub of a url for a records screen
+		$xsl->setParameter('', 'baseUrl',    $configArray['Site']['url']."/Record/");
 
-            // Process and return the xml through the style sheet
-            try{
-            	$xmlResult = $xsl->transformToXML($xml);
-            	return $xmlResult;
-            }catch (Exception $e){
-            	$logger = new Logger();
-            	$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
-            	return "";
-            }
+		// Load up the style sheet
+		$style = new DOMDocument;
+		$style->load('services/Search/xsl/json-rss.xsl');
+		$xsl->importStyleSheet($style);
+
+		// Load up the XML document
+		$xml = new DOMDocument;
+		$xml->loadXML($xmlResults);
+
+		// Process and return the xml through the style sheet
+		try{
+			$xmlResult = $xsl->transformToXML($xml);
+			return $xmlResult;
+		}catch (Exception $e){
+			$logger = new Logger();
+			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
+			return "";
+		}
 	}
 
 	/**
@@ -1625,11 +1655,11 @@ class SearchObject_Solr extends SearchObject_Base
 		include 'PHPExcel/Writer/Excel2007.php';
 		$objPHPExcel = new PHPExcel();
 		$objPHPExcel->getProperties()->setTitle("Search Results");
-		
+
 		$objPHPExcel->setActiveSheetIndex(0);
 		$objPHPExcel->getActiveSheet()->setTitle('Results');
 
-		//Add headers to the table 
+		//Add headers to the table
 		$sheet = $objPHPExcel->getActiveSheet();
 		$curRow = 1;
 		$curCol = 0;
@@ -1640,7 +1670,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Published');
 
 		$maxColumn = $curCol -1;
-		
+
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 			//Output the row to excel
 			$curDoc = $result['response']['docs'][$i];
@@ -1653,7 +1683,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publisher']) ? implode(', ', $curDoc['publisher']) : '');
 			$sheet->setCellValueByColumnAndRow($curCol++, $curRow, isset($curDoc['publishDate']) ? implode(', ', $curDoc['publishDate']) : '');
 		}
-		
+
 		for ($i = 0; $i < $maxColumn; $i++){
 			$sheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
@@ -1665,11 +1695,11 @@ class SearchObject_Solr extends SearchObject_Base
 		header("Pragma: no-cache");
 		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 		header('Content-Disposition: attachment;filename="Results.xlsx"');
-		
+
 		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
 		$objWriter->save('php://output'); //THIS DOES NOT WORK WHY?
 		$objPHPExcel->disconnectWorksheets();
-		 unset($objPHPExcel);
+		unset($objPHPExcel);
 	}
 
 	/**
@@ -1697,7 +1727,7 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		return $this->indexEngine->getRecords($ids);
 	}
-	
+
 	/**
 	 * Retrieves a document specified by the item barcode.
 	 *
@@ -1709,5 +1739,5 @@ class SearchObject_Solr extends SearchObject_Base
 	function getRecordByBarcode($barcode){
 		return $this->indexEngine->getRecords($ids);
 	}
-	
+
 }
