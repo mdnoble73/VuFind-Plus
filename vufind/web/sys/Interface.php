@@ -53,7 +53,9 @@ class UInterface extends Smarty
 			}
 			// If we're mobile, override the standard theme with the mobile one:
 			if ($_COOKIE['ui'] == 'mobile') {
-				$this->vufindTheme = $configArray['Site']['mobile_theme'];
+				//Add library specific themes after the mobile theme so we can get images
+				$this->vufindTheme = $configArray['Site']['mobile_theme'] . "," . $this->vufindTheme;
+
 				$this->isMobile = true;
 			}
 		}
@@ -61,7 +63,7 @@ class UInterface extends Smarty
 		// Check to see if multiple themes were requested; if so, build an array,
 		// otherwise, store a single string.
 		$themeArray = explode(',', $this->vufindTheme);
-		//Make sure we always fall back to the default theme so a template does not have to be overridden. 
+		//Make sure we always fall back to the default theme so a template does not have to be overridden.
 		$themeArray[] = 'default';
 		if (count($themeArray) > 1) {
 			$this->template_dir = array();
@@ -170,7 +172,7 @@ class UInterface extends Smarty
 
 		}
 	}
-	
+
 	public function getUrl(){
 		return $this->url;
 	}
@@ -185,10 +187,10 @@ class UInterface extends Smarty
 	{
 		return $this->vufindTheme;
 	}
-	
+
 	/*
 	 * Get a list of themes that are active in the interface
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getThemes(){
@@ -240,7 +242,7 @@ class UInterface extends Smarty
 		$timer->logTime("Finished fetching $resource_name");
 		return $resource;
 	}
-	
+
 	public function isMobile(){
 		return $this->isMobile;
 	}
