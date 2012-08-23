@@ -52,16 +52,46 @@ class OverDriveDriver {
 		}
 	}
 
-	private function connectToAPI(){
-		$chnd = curl_init("https://oauth.overdrive.com/token");
-		curl_setopt($process, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8', $additionalHeaders));
-curl_setopt($process, CURLOPT_HEADER, 1);
-curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
-curl_setopt($process, CURLOPT_TIMEOUT, 30);
-curl_setopt($process, CURLOPT_POST, 1);
-curl_setopt($process, CURLOPT_POSTFIELDS, $payloadName);
-curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+	public function _connectToAPI(){
+		global $memcache;
+		$tokenData = $memcache->get('overdrive_token');
+		if ($tokenData == false){
+			global $configArray;
+			$ch = curl_init("https://oauth.overdrive.com/token");
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
+			curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $configArray['OverDrive']['clientSecret']);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_POST, 1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			$return = curl_exec($ch);
+			curl_close($ch);
+			$tokenData = json_decode($return);
+			$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 250);
+		}
+		return $tokenData;
+	}
 
+	public function getLibraryAccountInformation(){
+		$tokenData = $this->_connectToAPI();
+		global $configArray;
+		$libraryId = $configArray['OverDrive']['accountId'];
+		$ch = curl_init("http://api.overdrive.com/v1/libraries/$libraryId");
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+		$return = curl_exec($ch);
+		curl_close($ch);
+		return json_decode($return);
 	}
 
 	/**
