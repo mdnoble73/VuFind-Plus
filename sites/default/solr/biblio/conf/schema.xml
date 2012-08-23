@@ -75,12 +75,6 @@
 				<filter class="solr.LengthFilterFactory" min="1" max="100" />
 			</analyzer>
 		</fieldType>
-		<!-- Define a type for normalizing building/branch information ignore number of copies and just use code -->
-		<fieldType name="building_code" class="solr.TextField" positionIncrementGap="100">
-			<analyzer>
-				<tokenizer class="solr.PatternTokenizerFactory" pattern="^(?:\(\d+\))?\s*(.*)$" group="1"/>
-			</analyzer>
-		</fieldType>
 		<!-- This is an example of using the KeywordTokenizer along
          With various TokenFilterFactories to produce a sortable field
          that does not include some properties of the source text
@@ -130,10 +124,10 @@
 		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
 		<!-- Institutional Fields -->
 		<field name="collection" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="institution" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="building" type="building_code" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="institution" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="building" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="collection_group" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="available_at" type="building_code" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
+		<field name="available_at" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<!-- Generic Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
