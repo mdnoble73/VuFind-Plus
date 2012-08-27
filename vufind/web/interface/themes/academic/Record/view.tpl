@@ -36,10 +36,10 @@ function redrawSaveStatus() {literal}{{/literal}
 				<li><a href="{$url}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
-				<li><a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+				<li><a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
 			{/if}
 			{if $showEmailThis == 1}
-				<li><a href="{$url}/Record/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('Record', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+				<li><a href="{$url}/Record/{$id|escape:"url"}/Email" class="mail" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
 			{/if}
 			{if is_array($exportFormats) && count($exportFormats) > 0}
 				<li>

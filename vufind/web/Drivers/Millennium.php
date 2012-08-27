@@ -2325,6 +2325,9 @@ class MillenniumDriver implements DriverInterface
 			$hold_result = $this->_getHoldResult($sresult);
 			$hold_result['title']  = $title;
 			$hold_result['bid'] = $bib1;
+			if ($hold_result['result']){
+				UsageTracking::logTrackingData('numHolds');
+			}
 			return $hold_result;
 		}
 	}
@@ -2658,6 +2661,7 @@ class MillenniumDriver implements DriverInterface
 			$hold_result['result'] = true;
 			$hold_result['message'] = "All items were renewed successfully.";
 		}
+		UsageTracking::logTrackingData($hold_result['Renewed']);
 
 		return $hold_result;
 	}
@@ -2732,6 +2736,10 @@ class MillenniumDriver implements DriverInterface
 		}
 		curl_close($curl_connection);
 		unlink($cookieJar);
+
+		if ($success){
+			UsageTracking::logTrackingData('numRenewals');
+		}
 
 		return array(
                     'itemId' => $itemId,

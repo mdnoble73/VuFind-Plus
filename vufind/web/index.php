@@ -612,9 +612,6 @@ if (isset($_SESSION['hold_message'])) {
 }elseif (isset($_SESSION['renew_message'])){
 	$interface->assign('renew_message', formatRenewMessage($_SESSION['renew_message']));
 	unset($_SESSION['renew_message']);
-}elseif (isset($_SESSION['renewResult'])){
-	$interface->assign('renew_message', formatRenewMessage($_SESSION['renewResult']));
-	unset($_SESSION['renewResult']);
 }
 
 // Process Solr shard settings
