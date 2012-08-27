@@ -23,10 +23,10 @@
 </div>
 <div class="footerCol"><div><strong>{translate text='Find More'}</strong></div>
 	<ul>
+		<li><a href="{$homeLink}">CMC Libraries Home Page</a></li>
 		<li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
 		<!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li>
 		<li><a href="{$path}/Search/NewItem">{translate text='New Items'}</a></li> -->
-		<li><a href="http://www.coloradomtn.edu/cms/One.aspx?portalId=2935482&pageId=3646573">{translate text='Online Articles, E-Books, and More'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
 	</ul>
 </div>
