@@ -9,7 +9,7 @@
 				{else}
 					<tr><th>{$field->getTag()}</th><th>{$field->getIndicator(1)}</th><th>{$field->getIndicator(2)}</th><td>
 					{foreach from=$field->getSubfields() item=subfield}
-					<strong>|{$subfield->getCode()}</strong>&nbsp;{$subfield->getData()|escape|replace:' ':'&nbsp;'}&nbsp;
+					<strong>|{$subfield->getCode()}</strong>&nbsp;{$subfield->getData()|escape} 
 					{/foreach}
 					</td></tr>
 				{/if}
