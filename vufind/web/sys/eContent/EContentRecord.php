@@ -607,6 +607,7 @@ class EContentRecord extends SolrDataObject {
 		  'storeDb' => true,
 		  'storeSolr' => false,
 		),
+
 		'sourceUrl' => array(
 		  'property' => 'sourceUrl',
 		  'type' => 'text',
@@ -667,10 +668,22 @@ class EContentRecord extends SolrDataObject {
 		  'storeSolr' => false,
 		),
 		'keywords' => array(
-		  'property' => 'keywords',
-		  'type' => 'method',
-		  'storeDb' => false,
-		  'storeSolr' => true,
+			'property' => 'keywords',
+			'type' => 'method',
+			'storeDb' => false,
+			'storeSolr' => true,
+		),
+		'econtent_source' => array(
+			'property' => 'econtent_source',
+			'type' => 'method',
+			'storeDb' => false,
+			'storeSolr' => true,
+		),
+		'econtent_protection_type' => array(
+			'property' => 'econtent_protection_type',
+			'type' => 'method',
+			'storeDb' => false,
+			'storeSolr' => true,
 		),
 		'format_boost' => array(
 		  'property' => 'format_boost',
@@ -737,7 +750,7 @@ class EContentRecord extends SolrDataObject {
 		return $structure;
 	}
 	static function getValidAccessTypes(){
-		return array('free' => 'No Usage Restrictions', 'acs' => 'Adobe Content Server', 'singleUse' => 'Single use per copy');
+		return array('free' => 'No Usage Restrictions', 'external' => 'Externally Restricted', 'acs' => 'Adobe Content Server', 'singleUse' => 'Single use per copy');
 	}
 	function institution(){
 		$institutions = array();
@@ -892,15 +905,6 @@ class EContentRecord extends SolrDataObject {
 		}else{
 			return "suppressed";
 		}
-		//Get the items for the record
-		/*require_once('Drivers/EContentDriver.php');
-		$driver = new EContentDriver();
-		$holdings = $driver->getHolding($this->id);
-		if (count($holdings) == 0){
-		return "suppressed";
-		}else{
-		return "notsuppressed";
-		}*/
 	}
 	function available_at(){
 		//Check to see if the item is checked out or if it has available holds
@@ -948,6 +952,12 @@ class EContentRecord extends SolrDataObject {
 		}else{
 			return 0;
 		}
+	}
+	function econtent_source(){
+		return $this->source;
+	}
+	function econtent_protection_type(){
+		return $this->accessType;
 	}
 	function language_boost(){
 		if ($this->status == 'active'){
@@ -1148,7 +1158,7 @@ class EContentRecord extends SolrDataObject {
 					$currentItem->libraryId = $currentItem->libraryId;
 
 					$cachedItemFound = false;
-					foreach ($cachedItems as $cacheKey => $cachedItem){
+					/*foreach ($cachedItems as $cacheKey => $cachedItem){
 						if ($cachedItem->formatId = $currentItem->formatId){
 							if ($cachedItem->available != $currentItem->available){
 								$dataChanged = true;
@@ -1164,10 +1174,11 @@ class EContentRecord extends SolrDataObject {
 							$cachedItemFound = true;
 							break;
 						}
-					}
+					}*/
 					if (!$cachedItemFound){
 						$overDriveItems[] = $currentItem;
 						$currentItem->insert();
+						$dataChanged = true;
 					}
 				}
 				//Delete any cached items that no longer exist
@@ -1176,8 +1187,8 @@ class EContentRecord extends SolrDataObject {
 					$dataChanged = true;
 				}
 				//Mark that the record should be reindexed.
-				if ($dataChanged && $allowReindex){
-					$this->updateDetailed(true);
+				if ($dataChanged){
+					$this->updateDetailed($allowReindex);
 				}
 			}else{
 				$overDriveItems = $cachedItems;
@@ -1369,14 +1380,18 @@ class EContentRecord extends SolrDataObject {
 		return '';
 	}
 	public function getOverDriveId(){
-		$overdriveUrl = $this->sourceUrl;
-		if ($overdriveUrl == null || strlen($overdriveUrl) < 36){
-			return null;
-		}else{
-			$overdriveUrl = preg_replace('/[&|?]Format=\d+/i', '', $overdriveUrl);
-			$overdriveUrl = preg_replace('/[{}]/i', '', $overdriveUrl);
-			return substr($overdriveUrl, -36);
+		if ($this->externalId == null || strlen($this->externalId == 0)){
+			$overdriveUrl = $this->sourceUrl;
+			if ($overdriveUrl == null || strlen($overdriveUrl) < 36){
+				return null;
+			}else{
+				if (preg_match('/([A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})/', $overdriveUrl, $matches)) {
+					$this->externalId = $matches[0];
+					$this->updateDetailed(false);
+				}
+			}
 		}
+		return $this->externalId;
 	}
 
 	//setters and getters

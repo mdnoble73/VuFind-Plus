@@ -23,9 +23,9 @@ class EContentItem extends DB_DataObject {
 	public $reviewedBy; //Id of a cataloging use who reviewed the item for consistency
 	public $reviewStatus; //0 = unreviewed, 1=approved, 2=rejected
 	public $reviewNotes;
-	
+
 	private $_record = null;
-	
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('econtent_item',$k,$v); }
 
@@ -35,7 +35,7 @@ class EContentItem extends DB_DataObject {
 
 	function getObjectStructure(){
 		global $configArray;
-		
+
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
@@ -45,12 +45,12 @@ class EContentItem extends DB_DataObject {
 		while ($library->fetch()){
 			$libraryList[$library->libraryId] = $library->displayName;
 		}
-		
+
 		$structure = array(
 		'id' => array(
-      'property'=>'id', 
-      'type'=>'hidden', 
-      'label'=>'Id', 
+      'property'=>'id',
+      'type'=>'hidden',
+      'label'=>'Id',
       'primaryKey'=>true,
       'description'=>'The unique id of the e-pub file.',
 		),
@@ -58,7 +58,7 @@ class EContentItem extends DB_DataObject {
 		  'property' => 'item_type',
 		  'type' => 'enum',
 		  'label' => 'Type',
-		  'values' => EContentItem::getValidItemTypes(), 
+		  'values' => EContentItem::getValidItemTypes(),
 		  'description' => 'The type of file being added',
 		  'required'=> true,
 		  'storeDb' => true,
@@ -68,7 +68,7 @@ class EContentItem extends DB_DataObject {
 		  'property' => 'libraryId',
 		  'type' => 'enum',
 		  'label' => 'For use by',
-		  'values' => $libraryList, 
+		  'values' => $libraryList,
 		  'description' => 'The library system that has access to the link',
 		  'required'=> true,
 		  'storeDb' => true,
@@ -76,11 +76,11 @@ class EContentItem extends DB_DataObject {
 		),
 
 		'link' => array(
-			'property'=>'link', 
-			'type'=>'text', 
-			'label'=>'External Link', 
+			'property'=>'link',
+			'type'=>'text',
+			'label'=>'External Link',
 			'size' => 100,
-			'maxLength'=>255,  
+			'maxLength'=>255,
 			'description'=>'A link to an external website or document.',
 			'required'=> false,
 		  'storeDb' => true,
@@ -88,10 +88,10 @@ class EContentItem extends DB_DataObject {
 		),
 
 		'filename' => array(
-			'property'=>'filename', 
-			'type'=>'file', 
-			'label'=>'Source File', 
-			'path'=>$configArray['EContent']['library'], 
+			'property'=>'filename',
+			'type'=>'file',
+			'label'=>'Source File',
+			'path'=>$configArray['EContent']['library'],
 			'description'=>'The source file for display or download within VuFind.',
 			'serverValidation' => 'validateEpub',
 			'required'=> false,
@@ -100,36 +100,36 @@ class EContentItem extends DB_DataObject {
 		),
 
 		'folder' => array(
-			'property'=>'folder', 
-			'type'=>'folder', 
+			'property'=>'folder',
+			'type'=>'folder',
 			'size' => 100,
-			'maxLength'=>100, 
-			'label'=>'Folder of MP3 Files (must exist already)', 
-			'path'=>$configArray['EContent']['library'], 
+			'maxLength'=>100,
+			'label'=>'Folder of MP3 Files (must exist already)',
+			'path'=>$configArray['EContent']['library'],
 			'description'=>'The directory containing the MP3 files.  Must already exist on the econtent server.',
 			'serverValidation' => 'validateEpub',
 			'required'=> false,
 		  'storeDb' => true,
 		  'storeSolr' => false,
 		),
-		
+
 		'acsId' => array(
-      'property'=>'acsId', 
-      'type'=>'hidden', 
-      'label'=>'ACS ID', 
+      'property'=>'acsId',
+      'type'=>'hidden',
+      'label'=>'ACS ID',
       'description'=>'The ID of the title within the Adobe Content Server.',
       'storeDb' => true,
 		  'storeSolr' => false,
 		),
 		'recordId' => array(
-      'property'=>'recordId', 
-      'type'=>'hidden', 
-      'label'=>'Record ID', 
+      'property'=>'recordId',
+      'type'=>'hidden',
+      'label'=>'Record ID',
       'description'=>'The ID of the record this item is attached to.',
       'storeDb' => true,
 		  'storeSolr' => false,
 		),
-    
+
 		'notes' => array(
 			'property' => 'notes',
 			'type' => 'text',
@@ -138,7 +138,7 @@ class EContentItem extends DB_DataObject {
 			'storeDb' => true,
 		  'storeSolr' => false,
 		),
-		
+
 		'reviewStatus' => array(
 			'property' => 'reviewStatus',
 			'type' => 'enum',
@@ -149,7 +149,7 @@ class EContentItem extends DB_DataObject {
 			'storeSolr' => false,
 			'default' => 'Not Reviewed'
 		),
-		
+
 		'reviewNotes' => array(
 			'property' => 'reviewNotes',
 			'type' => 'textarea',
@@ -183,7 +183,7 @@ class EContentItem extends DB_DataObject {
 		}else if ($this->getAccessType() != 'acs' && strlen($this->acsId) > 0){
 			$validationResults['errors'][] = "If an ACS ID is selected, you must select that the title has DRM.";
 		}
-			
+
 		//Make sure there aren't errors
 		if (count($validationResults['errors']) > 0){
 			$validationResults['validatedOk'] = false;
@@ -193,26 +193,26 @@ class EContentItem extends DB_DataObject {
 
 	static function getValidItemTypes(){
 		return array(
-			'epub' => 'E-Pub', 
-			'kindle' => 'Kindle', 
-			'mp3' => 'MP3 Audio', 
-			'pdf' => 'PDF', 
-			'plucker' => 'Plucker', 
+			'epub' => 'E-Pub',
+			'kindle' => 'Kindle',
+			'mp3' => 'MP3 Audio',
+			'pdf' => 'PDF',
+			'plucker' => 'Plucker',
 			'externalMP3' => 'External MP3',
 			'interactiveBook' => 'Interactive Book',
 			'externalLink' => 'External Link',
 		);
-	} 
-	
+	}
+
 	static function getExternalItemTypes(){
 		return array(
-			'' => 'N/A', 
+			'' => 'N/A',
 			'externalMP3' => 'External MP3',
 			'interactiveBook' => 'Interactive Book',
 			'externalLink' => 'External Link',
 			'overdrive' => 'OverDrive',
 		);
-	} 
+	}
 	function isExternalItem(){
 		return array_key_exists($this->item_type, EContentItem::getExternalItemTypes());
 	}
@@ -226,7 +226,7 @@ class EContentItem extends DB_DataObject {
 		if ($_FILES['cover']["error"] != 0 && $_FILES['cover']["error"] != 4){
 			$validationResults['errors'][] = DataObjectUtil::getFileUploadMessage($_FILES['cover']["error"], 'cover' );
 		}
-			
+
 		//Make sure there aren't errors
 		if (count($validationResults['errors']) > 0){
 			$validationResults['validatedOk'] = false;
@@ -288,10 +288,10 @@ class EContentItem extends DB_DataObject {
 		$this->date_added = time();
 		$this->addedBy = $user->id;
 		$this->date_updated = time();
-		
+
 		//Save the item to the database
 		$ret =  parent::insert();
-		
+
 		if ($ret){
 			//Package the file as needed
 			if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
@@ -304,7 +304,7 @@ class EContentItem extends DB_DataObject {
 				}
 			}
 		}
-		
+
 		//Make sure to also update the record this is attached to so the full text can be generated
 		if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
 			$record = new EContentRecord();
@@ -344,7 +344,7 @@ class EContentItem extends DB_DataObject {
 		}
 		return $ret;
 	}
-	
+
 	function getFullText(){
 		global $configArray;
 		//Check to see if the text has already been extracted
@@ -366,7 +366,7 @@ class EContentItem extends DB_DataObject {
 						$manifestId = $ebook->getManifestItem($i, 'id');
 						$manifestHref= $ebook->getManifestItem($i, 'href');
 						$manifestType= $ebook->getManifestItem($i, 'type');
-			
+
 						if (!in_array($manifestType, array('image/jpeg', 'image/gif', 'image/tif', 'text/css'))){
 							try{
 								$componentText = $ebook->getContentById($manifestId);
@@ -396,7 +396,7 @@ class EContentItem extends DB_DataObject {
 			}
 		}
 	}
-	
+
 	function getRecord(){
 		if ($this->_record == null){
 			require_once('sys/eContent/EContentRecord.php');
@@ -408,17 +408,17 @@ class EContentItem extends DB_DataObject {
 		}
 		return $this->_record;
 	}
-	
+
 	function getAccessType(){
 		$record = $this->getRecord();
 		return $record->accessType;
 	}
-	
+
 	function getAvailableCopies(){
 		$record = $this->getRecord();
 		return $record->availableCopies;
 	}
-	
+
 	function getSize(){
 		global $configArray;
 		if ($this->filename && strlen($this->filename) > 0){
@@ -448,12 +448,14 @@ class EContentItem extends DB_DataObject {
 	function getUsageNotes(){
 		$notes = '';
 		if ($this->libraryId == -1){
-			if ($this->isExternalItem()){
+			if ($this->getAccessType() == 'external'){
 				$notes = "Available from external provider.";
 			}elseif ($this->getAccessType() == 'free'){
 				$notes = "Must be checked out to read.";
 			}elseif ($this->getAccessType() == 'acs' || $this->getAccessType() == 'singleUse'){
-				$notes = "Must be checked out to read."; 
+				$notes = "Must be checked out to read.";
+			}elseif ($this->isExternalItem()){
+				$notes = "Available from external provider.";
 			}
 		}else{
 			$library = new Library();
@@ -466,5 +468,5 @@ class EContentItem extends DB_DataObject {
 		}
 		return $notes;
 	}
-	
+
 }

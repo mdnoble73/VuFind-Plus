@@ -40,7 +40,7 @@ class AJAX extends Action {
 			echo $xmlResponse;
 		}
 	}
-	
+
 function GetEnrichmentInfo(){
 		require_once 'Enrichment.php';
 		global $configArray;
@@ -95,7 +95,7 @@ function GetEnrichmentInfo(){
 				}
 				$titles[] = array(
 	        	  'id' => isset($record['id']) ? $record['id'] : '',
-			    		'image' => $cover, 
+			    		'image' => $cover,
 			    		'title' => $record['title'],
 			    		'author' => $record['author']
 				);
@@ -103,9 +103,9 @@ function GetEnrichmentInfo(){
 
 			foreach ($titles as $key => $rawData){
 				$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-	    			"</a></div>" . 
+	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+	    			"</a></div>" .
 	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
 				$rawData['formattedTitle'] = $formattedTitle;
 				$titles[$key] = $rawData;
@@ -142,7 +142,7 @@ function GetEnrichmentInfo(){
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
 	}
-	
+
 	function GetHoldingsInfo(){
 		global $interface;
 		global $configArray;
@@ -157,7 +157,7 @@ function GetEnrichmentInfo(){
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
-		
+
 		$holdings = $driver->getHolding($id);
 		$showEContentNotes = false;
 		$showSize = false;
@@ -165,19 +165,9 @@ function GetEnrichmentInfo(){
 			if (strlen($holding->notes) > 0){
 				$showEContentNotes = true;
 			}
-			if ($holding instanceof OverdriveItem){
-			if (is_numeric($holding->size)){
-					$showSize = true;
-				}
-			}else{
-				if ($holding->getSize() != 'Unknown'){
-					$showSize = true;
-				}
-			}
 		}
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
-		$interface->assign('showSize', $showSize);
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
@@ -191,7 +181,7 @@ function GetEnrichmentInfo(){
 		$interface->assign('holdingsSummary', $result);
 		return $interface->fetch('Record/ajax-holdings.tpl');
 	}
-	
+
 	function GetProspectorInfo(){
 		require_once 'Drivers/marmot_inc/Prospector.php';
 		global $configArray;
@@ -386,7 +376,7 @@ function GetEnrichmentInfo(){
 		global $interface;
 		require_once 'sys/eContent/EContentRecord.php';
 		$eContentRecord = new EContentRecord();
-		
+
 		$id = $_REQUEST['id'];
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
@@ -399,7 +389,7 @@ function GetEnrichmentInfo(){
 		$output .= "	<publisher><![CDATA[" . $eContentRecord->publisher . "]]></publisher>\n";
 
 		$output .= "</result>\n";
-			
+
 		return $output;
 	}
 	function AddItem(){
@@ -462,7 +452,7 @@ function GetEnrichmentInfo(){
 		}
 		return json_encode($return);
 	}
-	
+
 	function PlaceOverDriveHold(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
@@ -476,7 +466,7 @@ function GetEnrichmentInfo(){
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to place a hold.'));
 		}
 	}
-	
+
 	function CheckoutOverDriveItem(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
@@ -493,7 +483,7 @@ function GetEnrichmentInfo(){
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to checkout an item.'));
 		}
 	}
-	
+
 	/**
 	 * Return a form where the user can select the loan period when checking out a title
 	 */
@@ -508,14 +498,14 @@ function GetEnrichmentInfo(){
 		$overDriveDriver = new OverDriveDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
-		
+
 		//Var for the IDCLREADER TEMPLATE
 		$interface->assign('ButtonHome',true);
 		$interface->assign('MobileTitle','{translate text="Loan Period"}');
-		
+
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
-	
+
 	function AddOverDriveRecordToWishList(){
 		global $user;
 		if (isset($_REQUEST['recordId'])){
@@ -538,7 +528,7 @@ function GetEnrichmentInfo(){
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to add an item to your wish list.'));
 		}
 	}
-	
+
 	function RemoveOverDriveRecordFromWishList(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
@@ -551,7 +541,7 @@ function GetEnrichmentInfo(){
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to add an item to your wish list.'));
 		}
 	}
-	
+
 	function CancelOverDriveHold(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
@@ -565,7 +555,7 @@ function GetEnrichmentInfo(){
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to cancel holds.'));
 		}
 	}
-	
+
 	function getPurchaseOptions(){
 		global $interface;
 		if (isset($_REQUEST['id'])){
@@ -579,11 +569,11 @@ function GetEnrichmentInfo(){
 					$purchaseLinks[]  = array(
 						'link' => $eContentRecord->purchaseUrl,
 						'linkText' => 'Buy from ' . $eContentRecord->publisher,
-						'storeName' => $eContentRecord->publisher, 
+						'storeName' => $eContentRecord->publisher,
 						'field856Index' => 1,
 					);
 				}
-				
+
 				if (count($purchaseLinks) > 0){
 					$interface->assign('purchaseLinks', $purchaseLinks);
 				}else{
@@ -591,7 +581,7 @@ function GetEnrichmentInfo(){
 					$author = $eContentRecord->author;
 					require_once 'services/Record/Purchase.php';
 					$purchaseLinks = Purchase::getStoresForTitle($title, $author);
-					
+
 					if (count($purchaseLinks) > 0){
 						$interface->assign('purchaseLinks', $purchaseLinks);
 					}else{
@@ -606,7 +596,7 @@ function GetEnrichmentInfo(){
 			$errors = array("You must provide the id of the title to be purchased. ");
 			$interface->assign('errors', $errors);
 		}
-		
+
 		echo $interface->fetch('EcontentRecord/ajax-purchase-options.tpl');
 	}
 }

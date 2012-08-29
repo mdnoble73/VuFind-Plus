@@ -3,15 +3,15 @@
 	<div class="eContentHolding">
 		{if get_class($eContentItem) == 'OverdriveItem'}
 			<div class="eContentHoldingHeader">
-				<span class="eContentHoldingFormat">{translate text=$eContentItem->format}</span> from {$eContentItem->source}
+				<span class="eContentHoldingFormat">{$eContentItem->format}</span> from {$eContentItem->source}
 				<div class="eContentHoldingUsage">
 					{$eContentItem->getUsageNotes()}
 				</div>
 			</div>
 			<div class="eContentHoldingNotes">
 					{if $showEContentNotes}{$eContentItem->notes}{/if}
-					{if $showSize}
-					Size: {$eContentItem->size}<br/>
+					{if strcasecmp($eContentItem->size, 'unknown') != 0}
+					Size: {$eContentItem->size|file_size}<br/>
 					{/if}
 			</div>
 			<div class="eContentHoldingActions">
@@ -28,7 +28,7 @@
 				</div>
 			</div>
 			<div class="eContentHoldingNotes">
-					{if $showSize}
+					{if strcasecmp($eContentItem->size, 'unknown') != 0}
 					Size: {$eContentItem->getSize()|file_size}<br/>
 					{/if}
 			</div>

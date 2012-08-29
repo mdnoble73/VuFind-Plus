@@ -75,12 +75,6 @@
 				<filter class="solr.LengthFilterFactory" min="1" max="100" />
 			</analyzer>
 		</fieldType>
-		<!-- Define a type for normalizing building/branch information ignore number of copies and just use code -->
-		<fieldType name="building_code" class="solr.TextField" positionIncrementGap="100">
-			<analyzer>
-				<tokenizer class="solr.PatternTokenizerFactory" pattern="^(?:\(\d+\))?\s*(.*)$" group="1"/>
-			</analyzer>
-		</fieldType>
 		<!-- This is an example of using the KeywordTokenizer along
          With various TokenFilterFactories to produce a sortable field
          that does not include some properties of the source text
@@ -233,6 +227,8 @@
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- Used for loading correct record driver -->
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>

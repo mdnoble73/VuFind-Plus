@@ -239,6 +239,16 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showProspectorResultsAtEndOfSearch` TINYINT DEFAULT '1';",
 				),
 			),
+			'library_16' => array(
+				'title' => 'Library 16',
+				'description' => 'Add overdriveAdvantage Information to library so we can determine who advantage title should belong to. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `overdriveAdvantageName` VARCHAR(128) DEFAULT '';",
+					"ALTER TABLE `library` ADD `overdriveAdvantageProductsKey` VARCHAR(20) DEFAULT '';",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',

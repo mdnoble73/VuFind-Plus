@@ -38,21 +38,19 @@ class OverDriveDriver {
 		global $memcache;
 		global $configArray;
 
-		$sourceUrl = $record->sourceUrl;
-		$overDriveId = substr($sourceUrl, -36);
-		$overdrivePage = $memcache->get("overdrive_record_" . $overDriveId);
-		if (!$overdrivePage){
-			$overdrivePage = file_get_contents($sourceUrl);
-			$memcache->set("overdrive_record_" . $overDriveId, $overdrivePage, 0, $configArray['Caching']['overdrive_record']);
+		$overDriveId = $record->getOverDriveId();
+		echo("OverDrive ID is $overDriveId");
+		//Get metadata for the record
+		$metadata= $this->getProductMetadata($overDriveId);
+		if (isset($metadata->images) && isset($metadata->images->cover)){
+			return $metadata->images->cover->href;
+		}else{
+			return "";
 		}
-		if (preg_match('/<td width="135">.*?<img class="blackborder".*?src="(.*?)".*?<\/td>/s', $overdrivePage, $imageMatches)) {
-			return $imageMatches[1];
-		} else {
-			return null;
-		}
+
 	}
 
-	public function _connectToAPI(){
+	private function _connectToAPI(){
 		global $memcache;
 		$tokenData = $memcache->get('overdrive_token');
 		if ($tokenData == false){
@@ -72,16 +70,14 @@ class OverDriveDriver {
 			$return = curl_exec($ch);
 			curl_close($ch);
 			$tokenData = json_decode($return);
-			$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 250);
+			$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
 		}
 		return $tokenData;
 	}
 
-	public function getLibraryAccountInformation(){
+	private function _callUrl($url){
 		$tokenData = $this->_connectToAPI();
-		global $configArray;
-		$libraryId = $configArray['OverDrive']['accountId'];
-		$ch = curl_init("http://api.overdrive.com/v1/libraries/$libraryId");
+		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
 		curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
@@ -92,6 +88,46 @@ class OverDriveDriver {
 		$return = curl_exec($ch);
 		curl_close($ch);
 		return json_decode($return);
+	}
+
+	public function getLibraryAccountInformation(){
+		global $configArray;
+		$libraryId = $configArray['OverDrive']['accountId'];
+		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId");
+	}
+
+	public function getAdvantageAccountInformation(){
+		global $configArray;
+		$libraryId = $configArray['OverDrive']['accountId'];
+		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
+	}
+
+	public function getProductsInAccount($productsUrl = null, $start = 0, $limit = 25){
+		global $configArray;
+		if ($productsUrl == null){
+			$libraryId = $configArray['OverDrive']['accountId'];
+			$productsUrl = "http://api.overdrive.com/v1/collections/$libraryId/products";
+		}
+		$productsUrl .= "?offeset=$start&limit=$limit";
+		return $this->_callUrl($productsUrl);
+	}
+
+	public function getProductMetadata($overDriveId, $productsKey = null){
+		global $configArray;
+		if ($productsKey == null){
+			$productsKey = $configArray['OverDrive']['productsKey'];
+		}
+		$metadataUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
+		return $this->_callUrl($metadataUrl);
+	}
+
+	public function getProductAvailability($overDriveId, $productsKey = null){
+		global $configArray;
+		if ($productsKey == null){
+			$productsKey = $configArray['OverDrive']['productsKey'];
+		}
+		$availabilityUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
+		return $this->_callUrl($availabilityUrl);
 	}
 
 	/**
@@ -1058,113 +1094,61 @@ class OverDriveDriver {
 			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
 			if ($items == false){
 				$items = array();
-				//Check to see if the file has been cached
-				$overdrivePage = $memcache->get('overdrive_record_' . $overDriveId);
-				$logger = new Logger();
-				if ($overdrivePage == false || strlen($overdrivePage) == 0){
-					$overdrivePage = file_get_contents($overdriveUrl);
-					if (!$memcache->set('overdrive_record_' . $overDriveId, $overdrivePage, MEMCACHE_COMPRESSED, $configArray['Caching']['overdrive_record'])){
-						echo("Error saving page to memcache $overDriveId");
+				//Get base availability for the title
+				$availability = $this->getProductAvailability($overDriveId);
+				$availableCopies = $availability->copiesAvailable;
+				$holdQueueLength = $availability->numberOfHolds;
+				$totalCopies = $availability->copiesOwned;
+
+				//Get base metadata for the title
+				$metadata = $this->getProductMetadata($overDriveId);
+				//print_r($metadata);
+				foreach ($metadata->formats as $format){
+					$overdriveItem = new OverdriveItem();
+					$overdriveItem->overDriveId = $overDriveId;
+					$overdriveItem->format = $format->name;
+					if (strcasecmp($overdriveItem->format, "Adobe EPUB eBook") == 0){
+						$overdriveItem->formatId = 410;
+					}elseif (strcasecmp($overdriveItem->format, "Kindle Book") == 0){
+						$overdriveItem->formatId = 420;
+					}elseif (strcasecmp($overdriveItem->format, "Microsoft eBook") == 0){
+						$overdriveItem->formatId = 1;
+					}elseif (strcasecmp($overdriveItem->format, "OverDrive WMA Audiobook") == 0){
+						$overdriveItem->formatId = 25;
+					}elseif (strcasecmp($overdriveItem->format, "OverDrive MP3 Audiobook") == 0){
+						$overdriveItem->formatId = 425;
+					}elseif (strcasecmp($overdriveItem->format, "OverDrive Music") == 0){
+						$overdriveItem->formatId = 30;
+					}elseif (strcasecmp($overdriveItem->format, "OverDrive Video") == 0){
+						$overdriveItem->formatId = 35;
+					}elseif (strcasecmp($overdriveItem->format, "Adobe PDF eBook") == 0){
+						$overdriveItem->formatId = 50;
+					}elseif (strcasecmp($overdriveItem->format, "Palm") == 0){
+						$overdriveItem->formatId = 150;
+					}elseif (strcasecmp($overdriveItem->format, "Mobipocket eBook") == 0){
+						$overdriveItem->formatId = 90;
+					}elseif (strcasecmp($overdriveItem->format, "Disney Online Book") == 0){
+						$overdriveItem->formatId = 302;
+					}elseif (strcasecmp($overdriveItem->format, "Open PDF eBook") == 0){
+						$overdriveItem->formatId = 450;
+					}elseif (strcasecmp($overdriveItem->format, "Open EPUB eBook") == 0){
+						$overdriveItem->formatId = 810;
 					}
-					$timer->logTime('Loaded record from overdrive');
-				}
-				//echo($overdrivePage);
-				//Extract the Format Information section
-				$isAdvantage = false;
-				if (preg_match('/<img border="0" alt="Sign in to check availability" src="system\/signInBtn_active.png" class="png">/s', $overdrivePage)){
-					$isAdvantage = true;
-				}
-				if (preg_match('/Available copies:.*?<noscript>.*?(\d+).*?<\/noscript>/si', $overdrivePage, $extraction)){
-					$availableCopies = $extraction[1];
-				}
-				//echo("Available copies $availableCopies");
-				if (preg_match('/(\d+) patron\(s\) on waiting list/s', $overdrivePage, $extraction)){
-					$holdQueueLength = $extraction[1];
-				}
-				//echo("Hold queue length $holdQueueLength");
-				if (preg_match('/Library copies:.*?<noscript>.*?(\d+).*?<\/noscript>/s', $overdrivePage, $extraction)){
-					$totalCopies = $extraction[1];
-				}
-				//echo("Total copies $totalCopies");
-				if (preg_match('/<h[13]>Format Information<\/h[13]>(.*?)<h[13]>/si', $overdrivePage, $extraction)){
-					$formatSection = $extraction[1];
-					//Strip out information we don't care about
-					$formatSection = strip_tags($formatSection, '<b><table><tr><td><a><br>');
-					//Extract the actual formats from the remaining text.
-					if ($isAdvantage){
-						if (preg_match_all('/(?:<a name="checkout" class="skip">Format Information for Check Out options<\/a>)<b>(.*?)<\/b>.*?File size:.*?<td.*?>(.*?)<\/td>/si', $formatSection, $itemInfoAll)) {
-							for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
-								$overdriveItem = new OverdriveItem();
-								$overdriveItem->overDriveId = $overDriveId;
-								$overdriveItem->format = $itemInfoAll[1][$matchi];
-								if (strcasecmp($overdriveItem->format, "Adobe EPUB eBook") == 0){
-									$overdriveItem->formatId = 410;
-								}elseif (strcasecmp($overdriveItem->format, "Kindle Book") == 0){
-									$overdriveItem->formatId = 420;
-								}elseif (strcasecmp($overdriveItem->format, "Microsoft eBook") == 0){
-									$overdriveItem->formatId = 1;
-								}elseif (strcasecmp($overdriveItem->format, "OverDrive WMA Audiobook") == 0){
-									$overdriveItem->formatId = 25;
-								}elseif (strcasecmp($overdriveItem->format, "OverDrive MP3 Audiobook") == 0){
-									$overdriveItem->formatId = 425;
-								}elseif (strcasecmp($overdriveItem->format, "OverDrive Music") == 0){
-									$overdriveItem->formatId = 30;
-								}elseif (strcasecmp($overdriveItem->format, "OverDrive Video") == 0){
-									$overdriveItem->formatId = 35;
-								}elseif (strcasecmp($overdriveItem->format, "Adobe PDF eBook") == 0){
-									$overdriveItem->formatId = 50;
-								}elseif (strcasecmp($overdriveItem->format, "Palm") == 0){
-									$overdriveItem->formatId = 150;
-								}elseif (strcasecmp($overdriveItem->format, "Mobipocket eBook") == 0){
-									$overdriveItem->formatId = 90;
-								}
-								//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
-								if (preg_match('/unknown/i', $itemInfoAll[2][$matchi])){
-									$overdriveItem->size = 'unknown';
-								}else{
-									$overdriveItem->size = $itemInfoAll[2][$matchi];
-								}
-								//For now treat all advantage titles as available until we can use the API to check better.
-								$overdriveItem->available = ($availableCopies > 0);
-								$overdriveItem->lastLoaded = time();
-
-								$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
-								$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
-								$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
-
-								$items[] = $overdriveItem;
-							}
-						}
+					if ($format->fileSize > 0){
+						$overdriveItem->size = $format->fileSize;
 					}else{
-						if (preg_match_all('/<a name="checkout" class="skip">Format Information for Check Out options<\/a><b>(.*?)<\/b>.*?DisplayPlaysOnIcons\\("(.*?)", "(.*?)".*?\\).*?File size:.*?<td.*?>(.*?)<\/td>/si', $overdrivePage, $itemInfoAll)) {
-							for ($matchi = 0; $matchi < count($itemInfoAll[0]); $matchi++) {
-								$overdriveItem = new OverdriveItem();
-								$overdriveItem->overDriveId = $overDriveId;
-								$overdriveItem->format = $itemInfoAll[1][$matchi];
-								$overdriveItem->formatId = $itemInfoAll[3][$matchi];
-								//$overdriveItem->usageLink = $itemInfoAll[2][$matchi];
-								if (preg_match('/unknown/i', $itemInfoAll[4][$matchi])){
-									$overdriveItem->size = 'unknown';
-								}else{
-									$overdriveItem->size = $itemInfoAll[4][$matchi];
-								}
-								$overdriveItem->available = (strcasecmp($itemInfoAll[3][$matchi], 'add to cart') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to book bag') == 0 || strcasecmp($itemInfoAll[3][$matchi], 'add to digital cart') == 0);
-								if ($availableCopies > 0){
-									$overdriveItem->available = true;
-								}
-								$overdriveItem->lastLoaded = time();
-
-								$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
-								$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
-								$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
-
-								$items[] = $overdriveItem;
-							}
-						}
+						$overdriveItem->size = 'unknown';
 					}
+					//For now treat all advantage titles as available until we can use the API to check better.
+					$overdriveItem->available = ($availableCopies > 0);
+					$overdriveItem->lastLoaded = time();
 
-					$timer->logTime('Parsed items from overdrive record');
+					$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
+					$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
+					$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
+					$items[] = $overdriveItem;
 				}
+
 				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
 			}
 			return $items;
