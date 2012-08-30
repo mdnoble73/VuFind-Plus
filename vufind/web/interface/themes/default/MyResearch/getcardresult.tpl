@@ -9,7 +9,7 @@
 			<p>
 			To receive your permanent card, you will need to bring a picture ID to the library. 
 			</p>
-			<form method="post" action="{$url}/MyResearch/Home" id="loginForm">
+			<form method="post" action="{$path}/MyResearch/Home" id="loginForm">
 				<div id='loginFormFields'>
 					<div id='haveCardLabel' class='loginFormRow'>Login now</div>
 					<div id ='loginUsernameRow' class='loginFormRow'>

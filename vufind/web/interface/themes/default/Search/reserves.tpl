@@ -8,7 +8,7 @@
   <div class="page">
   <table class="citation">
     <tr>
-      <th align="right"><form method="GET" action="{$url}/Search/Reserves" name="searchForm" class="search">{translate text='By Course'}: </th>
+      <th align="right"><form method="GET" action="{$path}/Search/Reserves" name="searchForm" class="search">{translate text='By Course'}: </th>
       <td>
         <select name="course">
           <option></option>
@@ -20,7 +20,7 @@
       </td>
     </tr>
     <tr>
-      <th align="right"><form method="GET" action="{$url}/Search/Reserves" name="searchForm" class="search">{translate text='By Instructor'}: </th>
+      <th align="right"><form method="GET" action="{$path}/Search/Reserves" name="searchForm" class="search">{translate text='By Instructor'}: </th>
       <td>
         <select name="inst">
           <option></option>
@@ -32,7 +32,7 @@
       </td>
     </tr>
     <tr>
-      <th align="right"><form method="GET" action="{$url}/Search/Reserves" name="searchForm" class="search">{translate text='By Department'}: </th>
+      <th align="right"><form method="GET" action="{$path}/Search/Reserves" name="searchForm" class="search">{translate text='By Department'}: </th>
       <td>
         <select name="dept">
           <option></option>

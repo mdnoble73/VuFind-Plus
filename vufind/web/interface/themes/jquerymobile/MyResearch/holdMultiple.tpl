@@ -2,7 +2,7 @@
 <div data-role="page">
 	{include file="header.tpl"}
   <div data-role="content" >
-	  <form name='placeHoldForm' id='placeHoldForm' action="{$url}/MyResearch/HoldMultiple" method="post">
+	  <form name='placeHoldForm' id='placeHoldForm' action="{$path}/MyResearch/HoldMultiple" method="post">
 	    {if $holdDisclaimer}
 	      <div id="holdDisclaimer">{$holdDisclaimer}</div>
 	    {/if}

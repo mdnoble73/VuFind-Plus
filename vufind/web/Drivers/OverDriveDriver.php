@@ -75,7 +75,7 @@ class OverDriveDriver {
 		return $tokenData;
 	}
 
-	private function _callUrl($url){
+	public function _callUrl($url){
 		$tokenData = $this->_connectToAPI();
 		$ch = curl_init($url);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);

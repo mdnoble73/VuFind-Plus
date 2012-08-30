@@ -1,7 +1,7 @@
 <style type="text/css">
 {literal}
 #searchbar{
-	background-image: url({/literal}{$url}{literal}/interface/themes/{$theme}/images/searchbar-gradient.png);
+	background-image: url({/literal}{$path}{literal}/interface/themes/{$theme}/images/searchbar-gradient.png);
 	background-repeat: repeat-x;
 	width: 438px;
 	position: relative;
@@ -35,9 +35,9 @@
         <option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
       {/foreach}
       </select>
-      <img src='{$url}/interface/themes/{$theme}/images/searchbar-search-label.png' alt='Search' width="55px" height="34px" />
+      <img src='{$path}/interface/themes/{$theme}/images/searchbar-search-label.png' alt='Search' width="55px" height="34px" />
       <input id="lookfor" type="text" name="lookfor" size="20"  />
-      <input id="searchbarGo" type="image" width="32px" height="34px" name="submit" value="Go" src='{$url}/interface/themes/{$theme}/images/searchbar-go.png' alt='{translate text="Go"}' />
+      <input id="searchbarGo" type="image" width="32px" height="34px" name="submit" value="Go" src='{$path}/interface/themes/{$theme}/images/searchbar-go.png' alt='{translate text="Go"}' />
       </div>
    </form>
 </div>

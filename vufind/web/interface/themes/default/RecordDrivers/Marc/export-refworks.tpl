@@ -85,7 +85,7 @@ ED {$field|getvalue:'a'}
 {/foreach}
 {/if}
 
-UL {$url}/Record/{$id|escape:"url"}
+UL {$path}/Record/{$id|escape:"url"}
 
 {assign var=marcField value=$marc->getField('520')}
 {if $marcField}

@@ -2,7 +2,7 @@
 <div data-role="page" id="Record-view">
   {include file="header.tpl"}
   <div class="record" data-role="content" data-record-id="{$id}">
-	  <form name="placeHoldForm" id='placeHoldForm' action="{$url}/Record/{$id|escape:"url"}/Hold" method="post">
+	  <form name="placeHoldForm" id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post">
 	    {if $holdDisclaimer}
 	      <div id="holdDisclaimer">{$holdDisclaimer}</div>
 	    {/if}

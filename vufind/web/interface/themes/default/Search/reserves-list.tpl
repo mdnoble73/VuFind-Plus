@@ -45,8 +45,8 @@
         {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
         <div class="searchtools">
           <strong>{translate text='Search Tools'}:</strong>
-          <a href="{$url}/Search/{$action}?lookfor={$lookfor|escape}&amp;type={$type}&amp;view=rss" class="feed">{translate text='Get RSS Feed'}</a>
-          <a href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
+          <a href="{$path}/Search/{$action}?lookfor={$lookfor|escape}&amp;type={$type}&amp;view=rss" class="feed">{translate text='Get RSS Feed'}</a>
+          <a href="{$path}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
         </div>
       {/if}
       <b class="bbot"><b></b></b>

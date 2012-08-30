@@ -4,7 +4,7 @@
 	</div>
 	<div data-role="content">
 		{if $hold_message_data.showItemForm}
-		<form action='{$url}/MyResearch/HoldItems' method="POST">
+		<form action='{$path}/MyResearch/HoldItems' method="POST">
 		<input type='hidden' name='campus' value='{$hold_message_data.campus}'/>
 		{/if}
 		{if $hold_message_data.error}

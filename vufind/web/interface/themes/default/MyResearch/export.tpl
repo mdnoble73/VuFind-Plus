@@ -4,7 +4,7 @@
 
   <div id="popupMessages"></div>
   <div id="popupDetails"> 
-    <form action="{$url}/MyResearch/Export" method="POST" onSubmit='exportIDS(this.elements[&quot;ids[]&quot;], this.elements[&quot;format&quot;].value,
+    <form action="{$path}/MyResearch/Export" method="POST" onSubmit='exportIDS(this.elements[&quot;ids[]&quot;], this.elements[&quot;format&quot;].value,
       {* Pass translated strings to Javascript -- ugly but necessary: *}
       {literal}{{/literal}exporting: &quot;{translate text='export_exporting'}&quot;, 
        success: &quot;{translate text='export_success'}&quot;,

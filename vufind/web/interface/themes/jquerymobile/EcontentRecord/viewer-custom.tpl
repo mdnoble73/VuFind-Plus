@@ -336,8 +336,8 @@
 			</div>
 	  	
 	  	<div id="ereaderlogo" class="searchheader">
-	  		<a href="{if $homeLink}{$homeLink}{else}{$url}{/if}"><img src="{$path}/interface/themes/dcl/images/logo_ereader.png" alt="Douglas County Libraries" /></a>
-	  		<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$url}">Return To Catalog</a></div>
+	  		<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{$path}/interface/themes/dcl/images/logo_ereader.png" alt="Douglas County Libraries" /></a>
+	  		<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$path}">Return To Catalog</a></div>
 	    </div>
     </div>
     
@@ -362,7 +362,7 @@
   			<form id="loginForm" action="{$path}/MyResearch/Home" method="post">
   				<div id="loginFormContents">
             <input type="hidden" name="id" value="{$id}"/>
-            <input type="hidden" name="returnUrl" value="{$url}{$fullPath}"/>
+            <input type="hidden" name="returnUrl" value="{$path}{$fullPath}"/>
   					<div id="loginTitleEPub">Please Login to read this book.</div>
   					<div class="loginLabelEPub">Barcode from your library card</div>
   					<input class="loginFormInput" type="text" name="username" value="{$username|escape}" size="15"/>

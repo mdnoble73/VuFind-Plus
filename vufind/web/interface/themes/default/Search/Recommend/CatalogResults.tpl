@@ -10,7 +10,7 @@
       {else}
         <span class="{$record.format|lower|regex_replace:"/[^a-z0-9]/":""}">
       {/if}
-      <a href="{$url}/Record/{$record.id|escape:"url"}">{$record.title|escape}</a>
+      <a href="{$path}/Record/{$record.id|escape:"url"}">{$record.title|escape}</a>
       </span>
       <span style="font-size: .8em">
       {if $record.author}

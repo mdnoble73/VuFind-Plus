@@ -1,7 +1,7 @@
 <div align="left">
   {if $message}<div class="error">{$message|translate}</div>{/if}
 
-  <form action="{$url}/Summon/Email?id={$id|escape:"url"}" method="post" id="popupForm" name="popupForm"
+  <form action="{$path}/Summon/Email?id={$id|escape:"url"}" method="post" id="popupForm" name="popupForm"
         onSubmit='SendEmail(&quot;{$id|escape}&quot;, this.elements[&quot;to&quot;].value,
         this.elements[&quot;from&quot;].value, this.elements[&quot;message&quot;].value,
         {* Pass translated strings to Javascript -- ugly but necessary: *}

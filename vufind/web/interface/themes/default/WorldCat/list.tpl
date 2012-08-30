@@ -52,9 +52,9 @@
       {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
       <div class="searchtools">
         <strong>{translate text='Search Tools'}:</strong>
-        {* TODO: Implement RSS <a href="{$url}/WorldCat/{$action}?lookfor={$lookfor|escape:"url"}&type={$type}&view=rss" class="feed">{translate text='Get RSS Feed'}</a> *}
-        <a href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
-        {if $savedSearch}<a href="{$url}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$url}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
+        {* TODO: Implement RSS <a href="{$path}/WorldCat/{$action}?lookfor={$lookfor|escape:"url"}&type={$type}&view=rss" class="feed">{translate text='Get RSS Feed'}</a> *}
+        <a href="{$path}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
+        {if $savedSearch}<a href="{$path}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$path}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
       </div>
       <b class="bbot"><b></b></b>
     </div>

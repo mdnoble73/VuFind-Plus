@@ -7,7 +7,7 @@
       {if $message}<div class="error">{$message|translate}</div>{/if}
       <div class="result">
       <table class="citation">
-        <form method="post" action="{$url}/MyResearch/Account" name="loginForm">
+        <form method="post" action="{$path}/MyResearch/Account" name="loginForm">
         <tr>
           <td>{translate text="First Name"}: </td>
           <td><input type="text" name="firstname" value="{$formVars.firstname|escape}" size="30"></td>

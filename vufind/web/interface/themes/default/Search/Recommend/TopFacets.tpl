@@ -8,9 +8,9 @@
 	                {* Do not show Other facet in top facets*}
 		                {if $thisFacet.value != 'Other'}
 				        {if $thisFacet.isApplied}
-				        <span class='categoryValue categoryValue{translate text=$thisFacet.value|escape}'><img class='categoryIcon' src='{$url}/interface/themes/default/images/{$thisFacet.imageName|escape}.png' alt='{$thisFacet.value|escape}'/> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></span>
+				        <span class='categoryValue categoryValue{translate text=$thisFacet.value|escape}'><img class='categoryIcon' src='{$path}/interface/themes/default/images/{$thisFacet.imageName|escape}.png' alt='{$thisFacet.value|escape}'/> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></span>
 				        {else}
-				        <a href="{$thisFacet.url|escape}"><span class='categoryValue categoryValue{$thisFacet.value|escape}' ><img class='categoryIcon' src='{$url}/interface/themes/default/images/{$thisFacet.imageName|escape}.png' alt='{$thisFacet.value|escape}'/>({$thisFacet.count})</span></a>
+				        <a href="{$thisFacet.url|escape}"><span class='categoryValue categoryValue{$thisFacet.value|escape}' ><img class='categoryIcon' src='{$path}/interface/themes/default/images/{$thisFacet.imageName|escape}.png' alt='{$thisFacet.value|escape}'/>({$thisFacet.count})</span></a>
 				        {/if}
 			        {/if}
 		        {/foreach}

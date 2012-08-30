@@ -29,7 +29,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
-				<li><a href="{$url}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
+				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
 				<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></li>
@@ -55,7 +55,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			<li id="HoldingsLink"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
 			{if isset($nextId)}
-				<li><a href="{$url}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
+				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
 			{/if}
 		</ul>
 	</div>
@@ -195,7 +195,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			<div id='fullRecordTitleDetails'>
 				{* Display Title *}
-				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape} 
+				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|regex_replace:"/(\/|:)$/":""|escape}{/if}
 				{if $user && $user->hasRole('epubAdmin')}
 				{if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
 				<span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>
@@ -212,7 +212,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $eContentRecord->author}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Main Author'}:</span>
-					<span class="resultValue"><a href="{$url}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
+					<span class="resultValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
 				</div>
 				{/if}
 		

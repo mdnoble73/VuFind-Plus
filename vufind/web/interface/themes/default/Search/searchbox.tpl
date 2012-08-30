@@ -2,7 +2,7 @@
   {if $searchType == 'advanced'}
     <a href="{$path}/Search/Advanced?edit={$searchId}" class="small">{translate text="Edit this Advanced Search"}</a> |
     <a href="{$path}/Search/Advanced" class="small">{translate text="Start a new Advanced Search"}</a> |
-    <a href="{$url}" class="small">{translate text="Start a new Basic Search"}</a>
+    <a href="{$path}" class="small">{translate text="Start a new Basic Search"}</a>
     <br />{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
   {else}
     <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
@@ -50,7 +50,7 @@
 	         {/foreach}
 	      {/if}
 	      {* Link to Search Tips Help *}
-	      <a href="{$url}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
+	      <a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
 	        Help <img id='searchHelpIcon' src="{$path}/interface/themes/default/images/help.png" alt="{translate text='Search Tips'}" />
 	      </a>
       </div>

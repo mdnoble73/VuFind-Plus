@@ -15,7 +15,7 @@
         {/if}
         <div class="resultitem">
           <div class="resultItemLine1">
-          <a href="{$url}/WorldCat/Record?id={$record.id|escape}" class="title">{if !$record.title}{translate text='Title not available'}{else}{$record.title|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+          <a href="{$path}/WorldCat/Record?id={$record.id|escape}" class="title">{if !$record.title}{translate text='Title not available'}{else}{$record.title|truncate:180:"..."|highlight:$lookfor}{/if}</a>
           {if $record.title2}
           <br />
           {$record.title2|truncate:180:"..."|highlight:$lookfor}
@@ -27,10 +27,10 @@
           {translate text='by'}
           {if is_array($record.author)}
             {foreach from=$record.author item=author}
-              <a href="{$url}/WorldCat/Search?lookfor={$author|escape:"url"}&amp;type=srw.au">{$author|highlight:$lookfor}</a>
+              <a href="{$path}/WorldCat/Search?lookfor={$author|escape:"url"}&amp;type=srw.au">{$author|highlight:$lookfor}</a>
             {/foreach}
           {else}
-            <a href="{$url}/WorldCat/Search?lookfor={$record.author|escape:"url"}&amp;type=srw.au">{$record.author|highlight:$lookfor}</a>
+            <a href="{$path}/WorldCat/Search?lookfor={$record.author|escape:"url"}&amp;type=srw.au">{$record.author|highlight:$lookfor}</a>
           {/if}
           {/if}
     
@@ -76,7 +76,7 @@
       {* TODO: make save record work
       <div class="yui-u">
         <div id="saveLink{$record.id}">
-          <a href="{$url}/WorldCat/Save?id={$record.id}" onclick="getLightbox('WorldCat', 'Save', '{$record.id}', null); return false;" class="fav tool">{translate text='Add to favorites'}</a>
+          <a href="{$path}/WorldCat/Save?id={$record.id}" onclick="getLightbox('WorldCat', 'Save', '{$record.id}', null); return false;" class="fav tool">{translate text='Add to favorites'}</a>
           <ul id="lists{$record.id}"></ul>
           <script type="text/javascript">
             getSaveStatuses('{$record.id}');

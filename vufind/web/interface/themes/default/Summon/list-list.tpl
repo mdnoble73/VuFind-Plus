@@ -17,7 +17,7 @@
         
         <div class="resultitem">
           <div id="resultItemLine1">
-            <a href="{$url}/Summon/Record?id={$record.ID.0|escape:"url"}"
+            <a href="{$path}/Summon/Record?id={$record.ID.0|escape:"url"}"
             class="title">{if !$record.Title.0}{translate text='Title not available'}{else}{$record.Title.0|truncate:180:"..."|highlight:$lookfor}{/if}</a>
           </div>
 
@@ -25,7 +25,7 @@
             {if $record.Author}
             {translate text='by'}
             {foreach from=$record.Author item=author name="loop"}
-              <a href="{$url}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|highlight:$lookfor}</a>{if !$smarty.foreach.loop.last},{/if} 
+              <a href="{$path}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|highlight:$lookfor}</a>{if !$smarty.foreach.loop.last},{/if} 
             {/foreach}
             <br />
             {/if}
@@ -59,7 +59,7 @@
       {* TODO: make "save record" feature work:
       <div class="yui-u">
         <div id="saveLink{$record.id.0}">
-          <a href="{$url}/Record/Save?id={$record.id.0}"
+          <a href="{$path}/Record/Save?id={$record.id.0}"
              onclick="getLightbox('Record', 'Save', 'Summon', '{$record.id.0}', null); return false;" class="fav tool">{translate text='Add to favorites'}</a>
           <ul id="lists{$record.id.0}"></ul>
           <script type="text/javascript">

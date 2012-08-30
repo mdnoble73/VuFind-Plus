@@ -4,7 +4,7 @@
 
   <div id="popupMessages"></div>
   <div id="popupDetails"> 
-    <form action="{$url}/MyResearch/Email" method="post" onSubmit='SendIDEmail(this.elements[&quot;to&quot;].value, 
+    <form action="{$path}/MyResearch/Email" method="post" onSubmit='SendIDEmail(this.elements[&quot;to&quot;].value, 
       this.elements[&quot;from&quot;].value, this.elements[&quot;ids[]&quot;], this.elements[&quot;message&quot;].value,
       {* Pass translated strings to Javascript -- ugly but necessary: *}
       {literal}{{/literal}sending: &quot;{translate text='email_sending'}&quot;, 

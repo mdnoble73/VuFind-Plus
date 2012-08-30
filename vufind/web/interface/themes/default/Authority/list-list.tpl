@@ -9,7 +9,7 @@
       <div class="yui-u first">
         <div class="resultitem">
           <div class="resultItemLine1">
-            <a href="{$url}/Authority/Record?id={$record.id|escape:"url"}" class="title">{if $record.heading}{$record.heading|escape}{else}{translate text='Heading unavailable.'}{/if}</a>
+            <a href="{$path}/Authority/Record?id={$record.id|escape:"url"}" class="title">{if $record.heading}{$record.heading|escape}{else}{translate text='Heading unavailable.'}{/if}</a>
           </div>
 
           <div class="resultItemLine2">

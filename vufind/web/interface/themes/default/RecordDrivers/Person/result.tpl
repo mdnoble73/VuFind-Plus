@@ -9,7 +9,7 @@
   </div>
   <div class="yui-ge">
     
-    <a href="{$url}/Person/{$summShortId}">
+    <a href="{$path}/Person/{$summShortId}">
     {if $summPicture}
     <img src="{$path}/files/thumbnail/{$summPicture}" class="alignleft listResultImage" alt="{translate text='Picture'}"/><br />
     {else}
@@ -20,7 +20,7 @@
    
     <div class="resultitem">
       <div class="resultItemLine1">
-	      <a href="{$url}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	      <a href="{$path}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	      {if $summTitleStatement}
           <div class="searchResultSectionInfo">
           {$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}

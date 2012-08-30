@@ -26,7 +26,7 @@
 						{foreach from=$dataList item=dataItem key=id}
 						<tr class='{cycle values="odd,even"} {$dataItem->class}'>
 						{if $dataItem->class != 'objectDeleted'}
-							<td class='edit'><a href='{$url}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
+							<td class='edit'><a href='{$path}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
 							{/if}
 							{foreach from=$structure item=property}
 								{assign var=propName value=$property.property}
@@ -79,7 +79,7 @@
 								{/if}
 							{/foreach}
 							{if $dataItem->class != 'objectDeleted'}
-							<td class='edit'><a href='{$url}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
+							<td class='edit'><a href='{$path}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
 							{/if}
 						</tr>
 						{/foreach}

@@ -17,7 +17,7 @@
 	        {* Display Book Cover *}
 	        <div id = "clearcover"> 
 		        <div class="alignleft"> 
-		          <a href="{$url}/Person/{$summShortId}">
+		          <a href="{$path}/Person/{$summShortId}">
 		          {if $record.picture}
 					    <a target='_blank' href='{$path}/files/original/{$record.picture|escape}'><img src="{$path}/files/medium/{$record.picture|escape}" class="alignleft listResultImage" alt="{translate text='Picture'}"/></a><br />
 					    {else}

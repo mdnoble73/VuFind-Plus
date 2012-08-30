@@ -16,5 +16,5 @@
         {if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}"/>{/if}
         {if $comment}<input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>{/if}
       </form>
-      {if $authMethod == 'DB'}<a rel="external" data-role="button" href="{$url}/MyResearch/Account">{translate text='Create New Account'}</a>{/if}
+      {if $authMethod == 'DB'}<a rel="external" data-role="button" href="{$path}/MyResearch/Account">{translate text='Create New Account'}</a>{/if}
     {/if}

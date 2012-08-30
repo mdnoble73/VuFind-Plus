@@ -2,4 +2,4 @@
 {$title}
 {$author}
 {$status}
-{$url}/EcontentRecord/{$recordID|escape:"url"}
+{$path}/EcontentRecord/{$recordID|escape:"url"}

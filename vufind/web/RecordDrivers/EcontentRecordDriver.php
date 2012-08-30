@@ -121,13 +121,13 @@ class EcontentRecordDriver extends IndexRecord
 				return $citation->getChicagoHumanities();
 		}
 	}
-	
+
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;econtent=true&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		return $bookCoverUrl;
 	}
-	
+
 	public function getListEntry($user, $listId = null, $allowEdit = true)
 	{
 		global $interface;
@@ -165,7 +165,7 @@ class EcontentRecordDriver extends IndexRecord
 
 		return 'RecordDrivers/Econtent/listentry.tpl';
 	}
-	
+
 /**
 	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display extended metadata (more details beyond
@@ -201,10 +201,24 @@ class EcontentRecordDriver extends IndexRecord
 
 		return 'RecordDrivers/Index/extended.tpl';
 	}
-	
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getTitle()
+	{
+		$title = $this->eContentRecord->title;
+		if ($this->eContentRecord->subTitle != null && strlen($this->eContentRecord->subTitle) > 0){
+			$title .= ': ' . $this->eContentRecord->subTitle;
+		}
+		return $title;
+	}
+
 	protected function getShortTitle()
 	{
 		return isset($this->fields['title_short']) ? $this->fields['title_short'] : $this->eContentRecord->title;
 	}
-	
+
 }

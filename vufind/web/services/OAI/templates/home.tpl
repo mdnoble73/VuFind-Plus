@@ -5,7 +5,7 @@
       <p>
         This OAI server is OAI 2.0 compliant.
         It currently does not use Resumption Tokens.<br />
-        The OAI Server URL is: {$url}/OAI/Server
+        The OAI Server URL is: {$path}/OAI/Server
       </p>
 
       <h2>Available Functionality:</h2>

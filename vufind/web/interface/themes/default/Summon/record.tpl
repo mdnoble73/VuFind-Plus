@@ -6,18 +6,18 @@
       <b class="btop"><b></b></b>
         <div class="toolbar">
           <ul>
-            {* TODO: citations <li><a href="{$url}/Summon/Record/{$id}/Cite" class="cite" onclick="getLightbox('Summon', 'Cite', '{$id}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li> *}
-            <li><a href="{$url}/Summon/SMS?id={$id|escape:"url"}" class="sms" onclick="getLightbox('Summon', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
-            <li><a href="{$url}/Summon/Email?id={$id|escape:"url"}" class="mail" onclick="getLightbox('Summon', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
-            {* TODO: export <li><a href="{$url}/Summon/Record/{$id}/Export?style=endnote" class="export" onclick="showMenu('exportMenu'); return false;">{translate text="Import Record"}</a>
+            {* TODO: citations <li><a href="{$path}/Summon/Record/{$id}/Cite" class="cite" onclick="getLightbox('Summon', 'Cite', '{$id}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li> *}
+            <li><a href="{$path}/Summon/SMS?id={$id|escape:"url"}" class="sms" onclick="getLightbox('Summon', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+            <li><a href="{$path}/Summon/Email?id={$id|escape:"url"}" class="mail" onclick="getLightbox('Summon', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+            {* TODO: export <li><a href="{$path}/Summon/Record/{$id}/Export?style=endnote" class="export" onclick="showMenu('exportMenu'); return false;">{translate text="Import Record"}</a>
               <ul class="menu" id="exportMenu">
-                <li><a href="{$url}/Summon/Record/{$id}/Export?style=refworks">{translate text="Import to"} RefWorks</a></li>
-                <li><a href="{$url}/Summon/Record/{$id}/Export?style=endnote">{translate text="Import to"} EndNote</a></li>
+                <li><a href="{$path}/Summon/Record/{$id}/Export?style=refworks">{translate text="Import to"} RefWorks</a></li>
+                <li><a href="{$path}/Summon/Record/{$id}/Export?style=endnote">{translate text="Import to"} EndNote</a></li>
               </ul>
             </li>
             *}
             {* TODO: save
-            <li id="saveLink"><a href="{$url}/Record/{$id}/Save" class="fav" 
+            <li id="saveLink"><a href="{$path}/Record/{$id}/Save" class="fav" 
                                  onclick="getLightbox('Record', 'Save', '{$id}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
             <script type="text/javascript">
               getSaveStatus('{$id}', 'saveLink');
@@ -70,7 +70,7 @@
               <th>{translate text='Author'}(s): </th>
               <td>
                 {foreach from=$record.Author item="author" name="loop"}
-                <a href="{$url}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|escape}</a>{if !$smarty.foreach.loop.last},{/if} 
+                <a href="{$path}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|escape}</a>{if !$smarty.foreach.loop.last},{/if} 
                 {/foreach}
               </td>
             </tr>
@@ -115,7 +115,7 @@
               <th>{translate text='Related Author'}: </th>
               <td>
                 {foreach from=$record.RelatedAuthor item="author"}
-                <a href="{$url}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|escape}</a>
+                <a href="{$path}/Summon/Search?type=Author&amp;lookfor={$author|escape:"url"}">{$author|escape}</a>
                 {/foreach}
               </td>
             </tr>
@@ -172,13 +172,13 @@
               <th>{translate text='Tags'}: </th>
               <td>
                 <span style="float:right;">
-                  <a href="{$url}/Record/{$id}/AddTag" class="tool add"
+                  <a href="{$path}/Record/{$id}/AddTag" class="tool add"
                      onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
                 </span>
                 <div id="tagList">
                   {if $tagList}
                     {foreach from=$tagList item=tag name=tagLoop}
-                  <a href="{$url}/Search/Home?tag={$tag->tag}">{$tag->tag}</a> ({$tag->cnt}){if !$smarty.foreach.tagLoop.last}, {/if}
+                  <a href="{$path}/Search/Home?tag={$tag->tag}">{$tag->tag}</a> ({$tag->cnt}){if !$smarty.foreach.tagLoop.last}, {/if}
                     {/foreach}
                   {else}
                     {translate text='No Tags'}, {translate text='Be the first to tag this record'}!

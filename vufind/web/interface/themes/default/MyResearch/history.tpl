@@ -20,14 +20,14 @@
                   <img src="{$coverUrl}/bookcover.php?id={$resource.id}&amp;isn={$resource.isbn|@formatISBN}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" class="alignleft">
 
                   <div class="resultitem">
-                    <a href="{$url}/Record/{$resource.id|escape:"url"}" class="title">{$resource.title|escape}</a><br />
+                    <a href="{$path}/Record/{$resource.id|escape:"url"}" class="title">{$resource.title|escape}</a><br />
                     {if $resource.author}
-                    {translate text='by'}: <a href="{$url}/Author/Home?author={$resource.author|escape:"url"}">{$resource.author|escape}</a><br />
+                    {translate text='by'}: <a href="{$path}/Author/Home?author={$resource.author|escape:"url"}">{$resource.author|escape}</a><br />
                     {/if}
                     {if $resource.tags}
                     {translate text='Your Tags'}:
                     {foreach from=$resource.tags item=tag name=tagLoop}
-                      <a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape}</a>{if !$smarty.foreach.tagLoop.last},{/if}
+                      <a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape}</a>{if !$smarty.foreach.tagLoop.last},{/if}
                     {/foreach}
                     <br />
                     {/if}

@@ -6,18 +6,18 @@
       <b class="btop"><b></b></b>
         <div class="toolbar">
         <ul>
-            {* TODO: WorldCat citations <li><a href="{$url}/WorldCat/{$id}/Cite" class="cite" onclick="getLightbox('Record', 'Cite', '{$id}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li> *}
-            <li><a href="{$url}/WorldCat/SMS?id={$id|escape:"url"}" class="sms" onclick="getLightbox('WorldCat', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
-            <li><a href="{$url}/WorldCat/Email?id={$id|escape:"url"}" class="mail" onclick="getLightbox('WorldCat', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
-            {* TODO: WorldCat Export <li><a href="{$url}/WorldCat/{$id}/Export?style=endnote" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Import Record"}</a>
+            {* TODO: WorldCat citations <li><a href="{$path}/WorldCat/{$id}/Cite" class="cite" onclick="getLightbox('Record', 'Cite', '{$id}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li> *}
+            <li><a href="{$path}/WorldCat/SMS?id={$id|escape:"url"}" class="sms" onclick="getLightbox('WorldCat', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+            <li><a href="{$path}/WorldCat/Email?id={$id|escape:"url"}" class="mail" onclick="getLightbox('WorldCat', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+            {* TODO: WorldCat Export <li><a href="{$path}/WorldCat/{$id}/Export?style=endnote" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Import Record"}</a>
               <ul class="menu" id="exportMenu">
-                <li><a href="{$url}/WorldCat/{$id}/Export?style=refworks">{translate text="Import to"} RefWorks</a></li>
-                <li><a href="{$url}/WorldCat/{$id}/Export?style=endnote">{translate text="Import to"} EndNote</a></li>
+                <li><a href="{$path}/WorldCat/{$id}/Export?style=refworks">{translate text="Import to"} RefWorks</a></li>
+                <li><a href="{$path}/WorldCat/{$id}/Export?style=endnote">{translate text="Import to"} EndNote</a></li>
               </ul>
             </li>
             *}
             {* TODO: WorldCat Save
-            <li id="saveLink"><a href="{$url}/WorldCat/{$id}/Save" class="fav" onclick="getLightbox('Record', 'Save', '{$id}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
+            <li id="saveLink"><a href="{$path}/WorldCat/{$id}/Save" class="fav" onclick="getLightbox('Record', 'Save', '{$id}', null, '{translate text="Add to favorites"}'); return false;">{translate text="Add to favorites"}</a></li>
             <script type="text/javascript">
               getSaveStatus('{$id}', 'saveLink');
             </script>
@@ -48,7 +48,7 @@
           {* End Title *}
 
           {assign var=marcField value=$marc->getField('520')}
-          {if $marcField|getvalue:'a'}<p>{$marcField|getvalue:'a'|truncate:300:"..."|escape}  <a href='{$url}/WorldCat/Description?id={$id|escape:"url"}'>{translate text='Full description'}</a></p>{/if}
+          {if $marcField|getvalue:'a'}<p>{$marcField|getvalue:'a'|truncate:300:"..."|escape}  <a href='{$path}/WorldCat/Description?id={$id|escape:"url"}'>{translate text='Full description'}</a></p>{/if}
 
 
           {* Display Main Details *}
@@ -57,7 +57,7 @@
             {if $marcField}
             <tr valign="top">
               <th>{translate text='Main Author'}: </th>
-              <td><a href="{$url}/WorldCat/Search?lookfor={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'b'}+{$marcField|getvalue:'b'|escape:"url"}{/if}{if $marcField|getvalue:'c'}+{$marcField|getvalue:'c'|escape:"url"}{/if}{if $marcField|getvalue:'d'}+{$marcField|getvalue:'d'|escape:"url"}{/if}&amp;type=srw.au">{$marcField|getvalue:'a'|escape}{if $marcField|getvalue:'b'} {$marcField|getvalue:'b'|escape}{/if}{if $marcField|getvalue:'c'} {$marcField|getvalue:'c'|escape}{/if}{if $marcField|getvalue:'d'} {$marcField|getvalue:'d'|escape}{/if}</a></td>
+              <td><a href="{$path}/WorldCat/Search?lookfor={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'b'}+{$marcField|getvalue:'b'|escape:"url"}{/if}{if $marcField|getvalue:'c'}+{$marcField|getvalue:'c'|escape:"url"}{/if}{if $marcField|getvalue:'d'}+{$marcField|getvalue:'d'|escape:"url"}{/if}&amp;type=srw.au">{$marcField|getvalue:'a'|escape}{if $marcField|getvalue:'b'} {$marcField|getvalue:'b'|escape}{/if}{if $marcField|getvalue:'c'} {$marcField|getvalue:'c'|escape}{/if}{if $marcField|getvalue:'d'} {$marcField|getvalue:'d'|escape}{/if}</a></td>
             </tr>
             {/if}
 
@@ -75,7 +75,7 @@
               <th>{translate text='Contributors'}: </th>
               <td>
                 {foreach from=$marcField item=field name=loop}
-                  <a href="{$url}/WorldCat/Search?lookfor={$field|getvalue:'a'|escape:"url"}{if $field|getvalue:'b'}+{$field|getvalue:'b'|escape:"url"}{/if}{if $field|getvalue:'c'}+{$field|getvalue:'c'|escape:"url"}{/if}{if $field|getvalue:'d'}+{$field|getvalue:'d'|escape:"url"}{/if}&amp;type=srw.au">{$field|getvalue:'a'|escape}{if $field|getvalue:'b'} {$field|getvalue:'b'|escape}{/if}{if $field|getvalue:'c'} {$field|getvalue:'c'|escape}{/if}{if $field|getvalue:'d'} {$field|getvalue:'d'|escape}{/if}</a>{if !$smarty.foreach.loop.last}, {/if}
+                  <a href="{$path}/WorldCat/Search?lookfor={$field|getvalue:'a'|escape:"url"}{if $field|getvalue:'b'}+{$field|getvalue:'b'|escape:"url"}{/if}{if $field|getvalue:'c'}+{$field|getvalue:'c'|escape:"url"}{/if}{if $field|getvalue:'d'}+{$field|getvalue:'d'|escape:"url"}{/if}&amp;type=srw.au">{$field|getvalue:'a'|escape}{if $field|getvalue:'b'} {$field|getvalue:'b'|escape}{/if}{if $field|getvalue:'c'} {$field|getvalue:'c'|escape}{/if}{if $field|getvalue:'d'} {$field|getvalue:'d'|escape}{/if}</a>{if !$smarty.foreach.loop.last}, {/if}
                 {/foreach}
               </td>
             </tr>
@@ -130,19 +130,19 @@
               <td>
                 {if $marcField440}
                   {foreach from=$marcField440 item=field name=loop}
-                    <a href="{$url}/WorldCat/Search?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=srw.se">{$field|getvalue:'a'|escape:"html"}</a><br />
+                    <a href="{$path}/WorldCat/Search?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=srw.se">{$field|getvalue:'a'|escape:"html"}</a><br />
                   {/foreach}
                 {/if}
                 {if $visible490}
                   {foreach from=$marcField490 item=field name=loop}
                     {if $field->getIndicator(1) == 0}
-                      <a href="{$url}/WorldCat/Search?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=srw.se">{$field|getvalue:'a'|escape:"html"}</a><br />
+                      <a href="{$path}/WorldCat/Search?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=srw.se">{$field|getvalue:'a'|escape:"html"}</a><br />
                     {/if}
                   {/foreach}
                 {/if}
                 {if $marcField830}
                   {foreach from=$marcField830 item=field name=loop}
-                    <a href="{$url}/WorldCat/Search?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=srw.se">{$field|getvalue:'a'|escape:"html"}</a><br />
+                    <a href="{$path}/WorldCat/Search?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=srw.se">{$field|getvalue:'a'|escape:"html"}</a><br />
                   {/foreach}
                 {/if}
               </td>
@@ -162,7 +162,7 @@
                       {if !$smarty.foreach.subloop.first} &gt; {/if}
                       {assign var=subfield value=$subfield->getData()}
                       {assign var=subject value="$subject $subfield"}
-                      <a href="{$url}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
+                      <a href="{$path}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
                     {/foreach}
                     <br />
                   {/foreach}
@@ -176,7 +176,7 @@
                       {if !$smarty.foreach.subloop.first} &gt; {/if}
                       {assign var=subfield value=$subfield->getData()}
                       {assign var=subject value="$subject $subfield"}
-                      <a href="{$url}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
+                      <a href="{$path}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
                     {/foreach}
                     <br />
                   {/foreach}
@@ -190,7 +190,7 @@
                       {if !$smarty.foreach.subloop.first} &gt; {/if}
                       {assign var=subfield value=$subfield->getData()}
                       {assign var=subject value="$subject $subfield"}
-                      <a href="{$url}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
+                      <a href="{$path}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
                     {/foreach}
                     <br />
                   {/foreach}
@@ -204,7 +204,7 @@
                       {if !$smarty.foreach.subloop.first} &gt; {/if}
                       {assign var=subfield value=$subfield->getData()}
                       {assign var=subject value="$subject $subfield"}
-                      <a href="{$url}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
+                      <a href="{$path}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
                     {/foreach}
                     <br />
                   {/foreach}
@@ -218,7 +218,7 @@
                       {if !$smarty.foreach.subloop.first} &gt; {/if}
                       {assign var=subfield value=$subfield->getData()}
                       {assign var=subject value="$subject $subfield"}
-                      <a href="{$url}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
+                      <a href="{$path}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
                     {/foreach}
                     <br />
                   {/foreach}
@@ -232,7 +232,7 @@
                       {if !$smarty.foreach.subloop.first} &gt; {/if}
                       {assign var=subfield value=$subfield->getData()}
                       {assign var=subject value="$subject $subfield"}
-                      <a href="{$url}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
+                      <a href="{$path}/WorldCat/Search?lookfor={$subject|escape:"url"}&amp;type=srw.su">{$subfield|escape}</a>
                     {/foreach}
                     <br />
                   {/foreach}
@@ -258,13 +258,13 @@
               <th>{translate text='Tags'}: </th>
               <td>
                 <span style="float:right;">
-                  <a href="{$url}/Record/{$id}/AddTag" class="tool add"
+                  <a href="{$path}/Record/{$id}/AddTag" class="tool add"
                      onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
                 </span>
                 <div id="tagList">
                   {if $tagList}
                     {foreach from=$tagList item=tag name=tagLoop}
-                  <a href="{$url}/Search/Results?tag={$tag->tag}">{$tag->tag}</a> ({$tag->cnt}){if !$smarty.foreach.tagLoop.last}, {/if}
+                  <a href="{$path}/Search/Results?tag={$tag->tag}">{$tag->tag}</a> ({$tag->cnt}){if !$smarty.foreach.tagLoop.last}, {/if}
                     {/foreach}
                   {else}
                     No Tags, Be the first to tag this record!
@@ -282,26 +282,26 @@
       <div id="tabnav">
             <ul>
               <li{if $tab == 'Holdings'} class="active"{/if}>
-                <a href="{$url}/WorldCat/Holdings?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Holdings'}</a>
+                <a href="{$path}/WorldCat/Holdings?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Holdings'}</a>
               </li>
               {if $marc->getField('520')}
               <li{if $tab == 'Description'} class="active"{/if}>
-                <a href="{$url}/WorldCat/Description?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Description'}</a>
+                <a href="{$path}/WorldCat/Description?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Description'}</a>
               </li>
               {/if}
               {if $marc->getFields('505')}
               <li{if $tab == 'TOC'} class="active"{/if}>
-                <a href="{$url}/WorldCat/TOC?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Table of Contents'}</a>
+                <a href="{$path}/WorldCat/TOC?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Table of Contents'}</a>
               </li>
               {/if}
               {if $hasReviews}
               <li{if $tab == 'Reviews'} class="active"{/if}>
-                <a href="{$url}/WorldCat/Reviews?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Reviews'}</a>
+                <a href="{$path}/WorldCat/Reviews?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Reviews'}</a>
               </li>
               {/if}
               {if $hasExcerpt}
               <li{if $tab == 'Excerpt'} class="active"{/if}>
-                <a href="{$url}/WorldCat/Excerpt?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Excerpt'}</a>
+                <a href="{$path}/WorldCat/Excerpt?id={$id|escape:"url"}#tabnav" class="first"><span></span>{translate text='Excerpt'}</a>
               </li>
               {/if}
             </ul><div style="clear:both;"></div>
@@ -345,7 +345,7 @@
       <ul class="similar">
         {foreach from=$similarRecords item=similar}
         <li>
-          <a href="{$url}/WorldCat/Record?id={$similar.id|escape:"url"}">{$similar.title|escape}</a>
+          <a href="{$path}/WorldCat/Record?id={$similar.id|escape:"url"}">{$similar.title|escape}</a>
           <span style="font-size: 80%">
           {if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
           {if $similar.publishDate}{translate text='Published'}: ({$similar.publishDate|escape}){/if}
@@ -364,7 +364,7 @@
       <ul class="similar">
         {foreach from=$editions item=edition}
         <li>
-          <a href="{$url}/WorldCat/Record?id={$edition.id|escape:"url"}">{$edition.title|escape}</a>
+          <a href="{$path}/WorldCat/Record?id={$edition.id|escape:"url"}">{$edition.title|escape}</a>
           {$edition.edition|escape}
           {if $edition.publishDate}({$edition.publishDate|escape}){/if}
         </li>

@@ -38,7 +38,7 @@
 
             <div class="yui-ge">
               <div class="yui-u first">
-                <a href="{$url}/Author/Home?author={$record.0|escape:"url"}">{$record.0|escape:"html"}</a>
+                <a href="{$path}/Author/Home?author={$record.0|escape:"url"}">{$record.0|escape:"html"}</a>
               </div>
               <div class="yui-u">
                 {$record.1}

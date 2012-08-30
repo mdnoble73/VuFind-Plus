@@ -11,7 +11,7 @@
               </dl>
               <dl class="narrowGroupHidden" id="narrowGroupHidden_WCTerms{$type}">
             {/if}
-            <dd>&bull; <a href="{$url}/Search/Results?lookfor=%22{$subj|escape:"url"}%22&type=Subject">{$subj|escape}</a></dd>
+            <dd>&bull; <a href="{$path}/Search/Results?lookfor=%22{$subj|escape:"url"}%22&type=Subject">{$subj|escape}</a></dd>
           {/foreach}
           {if $smarty.foreach.narrowLoop.total > 3}<dd><a href="#" onclick="lessFacets('WCTerms{$type}'); return false;">{translate text='less'} ...</a></dd>{/if}
         </dl>

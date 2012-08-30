@@ -5,7 +5,7 @@
 				No copies found
 			{else}
 				{* x of y copy(ies) is/are at location(s) and z other locations *}
-				<a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>
+				<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>
 				{if (strlen($holdingsSummary.availableAt) > 0)}
 						Available now{if $holdingsSummary.inLibraryUseOnly} for in library use{/if} at <br /><span class='availableAtList'>{$holdingsSummary.availableAt}{if ($holdingsSummary.numAvailableOther) > 0},<br />and {$holdingsSummary.numAvailableOther} other location{if ($holdingsSummary.numAvailableOther) > 1}s{/if}.{/if}</span>
 				{else}
@@ -17,21 +17,21 @@
 		</div>
 	{elseif ($holdingsSummary.status) == 'Marmot'}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
-			<a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text='Available now at'} {$holdingsSummary.numAvailableOther+$holdingsSummary.availableAt} Marmot {if $holdingsSummary.numAvailableOther == 1}Library{else}Libraries{/if}</a>
+			<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text='Available now at'} {$holdingsSummary.numAvailableOther+$holdingsSummary.availableAt} Marmot {if $holdingsSummary.numAvailableOther == 1}Library{else}Libraries{/if}</a>
 		</div>
 	{else}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
-			<a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if false && strlen($holdingsSummary.unavailableStatus) > 0 && $holdingsSummary.class == 'checkedOut'}({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
+			<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if false && strlen($holdingsSummary.unavailableStatus) > 0 && $holdingsSummary.class == 'checkedOut'}({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
 		</div>
 	{/if}
 	{if $holdingsSummary.callnumber}
 			<div class='callNumber'>
-					<a href='{$url}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{$holdingsSummary.callnumber}</a>
+					<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{$holdingsSummary.callnumber}</a>
 			</div>
 	{/if}
 	{if false && $holdingsSummary.showPlaceHold}
 			<div class='requestThisLink'>
-				<a href="{$url}/Record/{$holdingsSummary.recordId|escape:"url"}/Hold" class="holdRequest button" style="display:inline-block;">{translate text="Request This Title"}</a><br />
+				<a href="{$path}/Record/{$holdingsSummary.recordId|escape:"url"}/Hold" class="holdRequest button" style="display:inline-block;">{translate text="Request This Title"}</a><br />
 			</div>
 	{/if}
 	{if $holdingsSummary.isDownloadable}

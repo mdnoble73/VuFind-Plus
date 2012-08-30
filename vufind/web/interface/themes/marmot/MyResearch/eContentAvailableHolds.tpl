@@ -26,7 +26,7 @@
 					var recommendedScroller;
 
 					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-					recommendedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
+					recommendedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
 				</script>
 			{/if}
 

@@ -1,5 +1,5 @@
-<script type="text/javascript" src="{$url}/services/MyResearch/ajax.js"></script>
-<script type="text/javascript" src="{$url}/js/overdrive.js"></script>
+<script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
+<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
 	alert("{$title}");

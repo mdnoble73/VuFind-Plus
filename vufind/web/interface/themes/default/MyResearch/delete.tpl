@@ -9,7 +9,7 @@
     {else}
       <h2>{translate text="List"}: {$list->title|escape}</h2>
     {/if}
-    <form action="{$url}/MyResearch/Delete" method="POST" onSubmit='deleteFavorites(this.elements[&quot;ids[]&quot;],this.elements[&quot;listID&quot;].value,
+    <form action="{$path}/MyResearch/Delete" method="POST" onSubmit='deleteFavorites(this.elements[&quot;ids[]&quot;],this.elements[&quot;listID&quot;].value,
       {* Pass translated strings to Javascript -- ugly but necessary: *}
       {literal}{{/literal}deleting: &quot;{translate text='fav_delete_deleting'}&quot;,
        success: &quot;{translate text='fav_delete_success'}&quot;,

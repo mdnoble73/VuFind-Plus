@@ -25,7 +25,7 @@
     <li class="seriesItem">
      {if $outer.recordId != -1}
         {* Display a link to the record in our catalog *}
-        <a href ={$url}/Record/{$outer.recordId|escape:"url"}>
+        <a href ={$path}/Record/{$outer.recordId|escape:"url"}>
      {else if $outer.isbn10}
        {* Display a link to the record in amazon *}
         <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url" rel="external" onclick="window.open (this.href, 'child'); return false"}>
@@ -58,7 +58,7 @@
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}
   <li>
-    <a href="{$url}/Record/{$similar.recordId|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href="{$path}/Record/{$similar.recordId|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
     
     <span style="font-size: 80%">
     {if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}

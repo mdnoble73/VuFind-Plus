@@ -14,7 +14,7 @@
   <div id="popupMessages"></div>
   <div id="popupDetails">
 
-    <form action="{$url}/MyResearch/Confirm" method="post">
+    <form action="{$path}/MyResearch/Confirm" method="post">
 
     {if $listID}
     <input type="hidden" name="listID" value="{$listID|escape}" />

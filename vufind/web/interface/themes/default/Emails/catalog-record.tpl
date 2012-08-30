@@ -2,7 +2,7 @@
 {translate text="This email was sent from"}: {$from}
 ------------------------------------------------------------
 
-{$emailDetails}  {translate text="email_link"}: {$url}/Record/{$recordID|escape:"url"}
+{$emailDetails}  {translate text="email_link"}: {$path}/Record/{$recordID|escape:"url"}
 ------------------------------------------------------------
 
 {if !empty($message)}

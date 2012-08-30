@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$url}/services/MyResearch/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
 
 <div id="page-content" class="content">
   <div id="sidebar">
@@ -28,7 +28,7 @@
       var recommendedScroller;
       $(document).ready(function (){
       	recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-        recommendedScroller.loadTitlesFrom('{/literal}{$url}{literal}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
+        recommendedScroller.loadTitlesFrom('{/literal}{$path}{literal}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
       });
       {/literal}
       </script>
@@ -44,7 +44,7 @@
       var recentlyViewedScroller;
       $(document).ready(function (){
       	recentlyViewedScroller = new TitleScroller('titleScrollerRecentlyViewed', 'RecentlyViewed', 'recentlyViewed');
-      	recentlyViewedScroller.loadTitlesFrom('{/literal}{$url}{literal}/Search/AJAX?method=GetListTitles&id=strands:HOME-4&scrollerName=RecentlyViewed', false);
+      	recentlyViewedScroller.loadTitlesFrom('{/literal}{$path}{literal}/Search/AJAX?method=GetListTitles&id=strands:HOME-4&scrollerName=RecentlyViewed', false);
       });
       {/literal}
       </script>
@@ -58,8 +58,8 @@
                 
 		    <div id="list{$list->id}" class="titleScrollerWrapper">
 				<div id="list{$list->id}Header" class="titleScrollerHeader">
-					<span class="listTitle resultInformationLabel"><a href="{$url}/MyResearch/MyList/{$list->id}">{$list->title|escape:"html"}</a></span>
-					<a href='{$url}/MyResearch/MyList/{$list->id}'><span class='seriesLink'>View and Edit List</span></a>
+					<span class="listTitle resultInformationLabel"><a href="{$path}/MyResearch/MyList/{$list->id}">{$list->title|escape:"html"}</a></span>
+					<a href='{$path}/MyResearch/MyList/{$list->id}'><span class='seriesLink'>View and Edit List</span></a>
 				</div>
 				<div id="titleScrollerList{$list->id}" class="titleScrollerBody">
 					<div class="leftScrollerButton enabled" onclick="list{$list->id}Scroller.scrollToLeft();"></div>
@@ -99,7 +99,7 @@
         
         <ul class="bulleted">
           {foreach from=$tagList item=tag}
-          <li><a href='{$url}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;type=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
+          <li><a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;type=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
 	          <a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from all titles?");'>
 	          <img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png" />
 	          </a>

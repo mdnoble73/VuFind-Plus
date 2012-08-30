@@ -6,16 +6,16 @@
 		<title>{$pageTitle|truncate:64:"..."}</title>
 		{if $addHeader}{$addHeader}{/if}
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
-		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$url}/Search/OpenSearch?method=describe" />
+		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 		<script type="text/javascript">
 		path = '{$path}';
 		url = '{$url}';
 		loggedIn = {if $user}true{else}false{/if};
 		</script>
-		
+
 		{css filename="consolidated.min.css"}
 		{js filename="consolidated.min.js"}
-		
+
 		{if $includeAutoLogoutCode == true}
 		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
@@ -31,7 +31,7 @@
 		</script>
 		{/if}
 	 {include file="bookcart.tpl"}
-	
+
 		<!-- Current Physical Location: {$physicalLocation} -->
 		{* LightBox *}
 		<div id="lightboxLoading" style="display: none;">{translate text="Loading"}...</div>
@@ -39,13 +39,13 @@
 		<div id="lightbox" onclick="hideLightbox(); return false;"></div>
 		<div id="popupbox" class="popupBox"></div>
 		{* End LightBox *}
-		
+
 		{if $systemMessage}
 		<div id="systemMessage">{$systemMessage}</div>
 		{/if}
-		
+
 		{include file="header.tpl"}
-		
+
 		<div id="outer_span">
 			<div id="content_span">
 				{if $showTopSearchBox}
@@ -55,7 +55,7 @@
 					{/if}
 					</div>
 				{/if}
-				
+
 				{if $showBreadcrumbs}
 				<div class="breadcrumbs">
 					<div class="breadcrumbinner">
@@ -64,33 +64,33 @@
 					</div>
 				</div>
 				{/if}
-				
+
 				{if $useSolr || $useWorldcat || $useSummon}
 				<div id="toptab">
 					<ul>
 						{if $useSolr}
-						<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$url}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
+						<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$path}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
 						{/if}
 						{if $useWorldcat}
-						<li{if $module == "WorldCat"} class="active"{/if}><a href="{$url}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
+						<li{if $module == "WorldCat"} class="active"{/if}><a href="{$path}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
 						{/if}
 						{if $useSummon}
-						<li{if $module == "Summon"} class="active"{/if}><a href="{$url}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
+						<li{if $module == "Summon"} class="active"{/if}><a href="{$path}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
 						{/if}
 					</ul>
 				</div>
 				<div style="clear: left;"></div>
 				{/if}
-	
+
 				{include file="$module/$pageTemplate"}
-				
+
 				{if $hold_message}
 					<script type="text/javascript">
 					lightbox();
 					document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
 					</script>
 				{/if}
-				
+
 				{if $renew_message}
 					<script type="text/javascript">
 					lightbox();
@@ -98,14 +98,14 @@
 					</script>
 				{/if}
 			</div> {* End content span *}
-			
+
 				<div id="ft">
 				<div id="ft_contents">
 					{include file="footer.tpl"}
 				</div>
 				<div class='clearer' ></div>
 			</div> {* End ft *}
-		
+
 		</div> {* End outer_span *}
 	</body>
 </html>{/strip}

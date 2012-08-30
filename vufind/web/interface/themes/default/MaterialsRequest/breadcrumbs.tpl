@@ -1,5 +1,5 @@
 {if $user}
-<a href="{$url}/MyResearch/Home">{translate text='Your Account'}</a> <span>&gt;</span>
+<a href="{$path}/MyResearch/Home">{translate text='Your Account'}</a> <span>&gt;</span>
 {/if}
 {if $shortPageTitle}
 <em>{$shortPageTitle}</em>
