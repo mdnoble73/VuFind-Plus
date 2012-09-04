@@ -87,17 +87,15 @@ class EContentDriver implements DriverInterface{
 			return EContentDriver::$holdings[$id];
 		}
 		global $user;
+		global $configArray;
+
 		$libaryScopeId = $this->getLibraryScopingId();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
-
-		if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-			require_once 'Drivers/OverDriveDriver.php';
-			$items = $eContentRecord->getItems(true, $allowReindex);
-		}else{
-			//Check to see if the record is checked out or on hold
+		if ($eContentRecord->accessType != 'external'){
+			//Check to see if the record is checked out or on hold within VuFind
 			$checkedOut = false;
 			$onHold = false;
 			$holdPosition = 0;
@@ -151,6 +149,48 @@ class EContentDriver implements DriverInterface{
 				$item->links = $links;
 				$items[] = $item;
 			}
+		}else{
+			$items = $eContentRecord->getItems();
+			//We have econtent stored on an external server. Check to see if it is available there (if possible)
+			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
+				//Add links as needed
+				$availability = $eContentRecord->getAvailability();
+				$addCheckoutLink = false;
+				$addPlaceHoldLink = false;
+				foreach($availability as $availableFrom){
+					if ($availableFrom->libraryId == -1){
+						if ($availableFrom->availableCopies > 0){
+							$addCheckoutLink = true;
+						}else{
+							$addPlaceHoldLink = true;
+						}
+					}else{
+						//TODO: Display availability for each library who owns copies
+						echo("Availble from {$availableFrom->libraryId}");
+					}
+				}
+				foreach ($items as $key => $item){
+					$item->links = array();
+					if ($addCheckoutLink){
+						$item->links[] = array(
+								'onclick' => "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'text' => 'Check Out',
+								'overDriveId' => $eContentRecord->externalId,
+								'formatId' => $item->externalFormatNumeric,
+								'action' => 'CheckOut'
+						);
+					}else if ($addPlaceHoldLink){
+						$item->links[] = array(
+								'onclick' => "return placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'text' => 'Place Hold',
+								'overDriveId' => $eContentRecord->externalId,
+								'formatId' => $item->externalFormatNumeric,
+								'action' => 'Hold'
+						);
+					}
+					$items[$key] = $item;
+				}
+			}
 		}
 
 		EContentDriver::$holdings[$id] = $items;
@@ -184,44 +224,42 @@ class EContentDriver implements DriverInterface{
 		$addedToWishList = false;
 		$holdPosition = 0;
 
-				//Load status summary
+		$availability = $eContentRecord->getAvailability();
+		$availableCopies = 0;
+		$totalCopies = 0;
+		$onOrderCopies = 0;
+		$checkedOut = 0;
+		$onHold = 0;
+		$wishListSize = 0;
+		$numHolds = 0;
+		foreach ($availability as $curAvailability){
+			$availableCopies += $curAvailability->availableCopies;
+			$totalCopies += $curAvailability->copiesOwned;
+			$onOrderCopies += $curAvailability->onOrderCopies;
+			$numHolds += $curAvailability->numberOfHolds;
+		}
+		$available = ($availableCopies > 0);
+
+		//Check to see if the title is checked out by the current user
+
+		//Load status summary
 		$statusSummary = array();
 		$statusSummary['recordId'] = $id;
-		$statusSummary['totalCopies'] = $eContentRecord->availableCopies;
-		$statusSummary['onOrderCopies'] = $eContentRecord->onOrderCopies;
+		$statusSummary['totalCopies'] = $totalCopies;
+		$statusSummary['onOrderCopies'] = $onOrderCopies;
 		$statusSummary['accessType'] = $eContentRecord->accessType;
-		foreach ($holdings as $item){
-			$checkedOut = $item->checkedOut;
-			$onHold = $item->onHold;
-			$holdPosition = $item->holdPosition;
-		}
 
-		$overdriveTitle = false;
-		if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-			$overdriveTitle = true;
-			//Check to see if any items are available
-			$available = false;
-			foreach ($holdings as $holding){
-				if ($holding->available){
-					$available = true;
-					break;
-				}
-			}
-			if (isset($holding)){
-				$statusSummary['totalCopies'] = $holding->totalCopies;
-				$statusSummary['availableCopies'] = $holding->availableCopies;
-				$statusSummary['numHolds'] = $holding->numHolds;
-				$statusSummary['holdQueueLength'] = $holding->numHolds;
-			}
-
-			if ($available){
-				$statusSummary['status'] = 'Available from OverDrive';
+		if ($eContentRecord->accessType == 'external' ){
+			$statusSummary['availableCopies'] = $availableCopies;
+			if ($availableCopies > 0){
+				$statusSummary['status'] = "Available from {$eContentRecord->source}";
+				$statusSummary['available'] = true;
 				$statusSummary['class'] = 'available';
-			}else{
-				$statusSummary['status'] = 'Checked out in OverDrive';
+			}else if( strcasecmp($eContentRecord->source, 'OverDrive') == 0){
+				$statusSummary['status'] = 'Checked Out';
+				$statusSummary['available'] = false;
 				$statusSummary['class'] = 'checkedOut';
 			}
-			$wishListSize = 0;
 		}else{
 			//Check to see if it is checked out
 			$checkouts = new EContentCheckout();
@@ -310,11 +348,14 @@ class EContentDriver implements DriverInterface{
 				}
 			}
 		}
-		if ($overdriveTitle){
+		if ($eContentRecord->accessType == 'external'){
 			$statusSummary['showPlaceHold'] = false;
 			$statusSummary['showCheckout'] = false;
 			$statusSummary['showAddToWishlist'] = false;
 			$statusSummary['showAccessOnline'] = true;
+			if (strcasecmp($eContentRecord->source, 'OverDrive') ==0 ){
+				$statusSummary['holdQueueLength'] = $this->getWaitList($id);
+			}
 		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;
 			$statusSummary['showCheckout'] = false;
@@ -325,9 +366,9 @@ class EContentDriver implements DriverInterface{
 			$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && ($statusSummary['availableCopies'] > 0);
 			$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList);
 			$statusSummary['showAccessOnline'] = ($checkedOut && count($holdings) > 0);
+			$statusSummary['holdQueueLength'] = $this->getWaitList($id);
 		}
 
-		$statusSummary['holdQueueLength'] = $this->getWaitList($id);
 		$statusSummary['onHold'] = $onHold;
 		$statusSummary['checkedOut'] = $checkedOut;
 		$statusSummary['holdPosition'] = $holdPosition;

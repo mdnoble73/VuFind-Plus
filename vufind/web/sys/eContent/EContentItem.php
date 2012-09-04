@@ -15,7 +15,6 @@ class EContentItem extends DB_DataObject {
 	public $acsId;          //varchar(128)
 	public $recordId;       //The id of the record to attach the item to
 	public $item_type;           //pdf, epub, etc
-	public $overDriveId;
 	public $libraryId;
 	public $notes; //Notes to the user for display (i.e. version with images, version without images).
 	public $addedBy;
@@ -23,6 +22,15 @@ class EContentItem extends DB_DataObject {
 	public $reviewedBy; //Id of a cataloging use who reviewed the item for consistency
 	public $reviewStatus; //0 = unreviewed, 1=approved, 2=rejected
 	public $reviewNotes;
+	public $size;
+	public $externalFormat;
+	public $externalFormatId;
+	public $externalFormatNumeric;
+	public $identifier;
+	public $sampleName_1;
+	public $sampleUrl_1;
+	public $sampleName_2;
+	public $sampleUrl_2;
 
 	private $_record = null;
 
@@ -156,8 +164,62 @@ class EContentItem extends DB_DataObject {
 			'label' => 'Review Notes',
 			'description' => 'Notes relating to the reivew.',
 			'storeDb' => true,
-		  'storeSolr' => false,
-		)
+			'storeSolr' => false,
+		),
+
+		'size' => array(
+			'property' => 'size',
+			'type' => 'label',
+			'label' => 'Size',
+			'description' => 'The size of the item in bytes or 0 if not known.',
+			'storeDb' => false,
+			'storeSolr' => false,
+		),
+
+		'externalFormat' => array(
+			'property' => 'externalFormat',
+			'type' => 'label',
+			'label' => 'External Format',
+			'description' => 'The textual format for external items for use with OverDrive.',
+			'storeDb' => false,
+			'storeSolr' => false,
+		),
+
+		'externalFormatId' => array(
+			'property' => 'externalFormatId',
+			'type' => 'hidden',
+			'label' => 'External Format Id',
+			'description' => 'The internal format for external items for use with OverDrive.',
+			'storeDb' => false,
+			'storeSolr' => false,
+		),
+
+		'externalFormatNumeric' => array(
+			'property' => 'externalFormatNumeric',
+			'type' => 'hidden',
+			'label' => 'External Format Id',
+			'description' => 'The numeric format for external items for use with OverDrive.',
+			'storeDb' => false,
+			'storeSolr' => false,
+		),
+
+		'identifier' => array(
+			'property' => 'identifier',
+			'type' => 'label',
+			'label' => 'Identifier (ISBN/ASIN)',
+			'description' => 'The Identifier (ISBN/ASIN) for the item if we can split from record.',
+			'storeDb' => false,
+			'storeSolr' => false,
+		),
+
+		'sample' => array(
+			'property' => 'sample',
+			'type' => 'label',
+			'label' => 'Sample',
+			'description' => 'A url to get a sample of the title.',
+			'storeDb' => false,
+			'storeSolr' => false,
+		),
 		);
 
 		foreach ($structure as $fieldName => $field){
@@ -201,6 +263,15 @@ class EContentItem extends DB_DataObject {
 			'externalMP3' => 'External MP3',
 			'interactiveBook' => 'Interactive Book',
 			'externalLink' => 'External Link',
+			'overdrive' => 'OverDrive',
+			'external_web' => 'External Web Site',
+			'external_ebook' => 'External eBook',
+			'external_eaudio' => 'External eAudio',
+			'external_emusic' => 'External eMusic',
+			'external_evideo' => 'External eVideo',
+			'text' => 'Text',
+			'gifs' => 'GIFs',
+			'itunes' => 'iTunes Audio'
 		);
 	}
 
@@ -211,6 +282,11 @@ class EContentItem extends DB_DataObject {
 			'interactiveBook' => 'Interactive Book',
 			'externalLink' => 'External Link',
 			'overdrive' => 'OverDrive',
+			'external_web' => 'External Web Site',
+			'external_ebook' => 'External eBook',
+			'external_eaudio' => 'External eAudio',
+			'external_emusic' => 'External eMusic',
+			'external_evideo' => 'External eVideo',
 		);
 	}
 	function isExternalItem(){
@@ -409,6 +485,10 @@ class EContentItem extends DB_DataObject {
 		return $this->_record;
 	}
 
+	function getSource(){
+		$record = $this->getRecord();
+		return $record->source;
+	}
 	function getAccessType(){
 		$record = $this->getRecord();
 		return $record->accessType;

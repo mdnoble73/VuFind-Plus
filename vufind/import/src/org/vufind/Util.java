@@ -268,7 +268,7 @@ public class Util {
 				});
 			}
 			conn.setConnectTimeout(3000);
-			conn.setReadTimeout(60000);
+			conn.setReadTimeout(90000);
 			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {

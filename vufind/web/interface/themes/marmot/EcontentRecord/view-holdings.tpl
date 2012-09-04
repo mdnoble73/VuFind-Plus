@@ -1,48 +1,33 @@
 {if count($holdings) > 0}
 	{foreach from=$holdings item=eContentItem key=index}
 	<div class="eContentHolding">
-		{if get_class($eContentItem) == 'OverdriveItem'}
-			<div class="eContentHoldingHeader">
-				<span class="eContentHoldingFormat">{$eContentItem->format}</span> from {$eContentItem->source}
-				<div class="eContentHoldingUsage">
-					{$eContentItem->getUsageNotes()}
-				</div>
+		<div class="eContentHoldingHeader">
+			<span class="eContentHoldingFormat">{if $eContentItem->externalFormat}{$eContentItem->externalFormat}{else}{translate text=$eContentItem->item_type}{/if}</span>{if $showEContentNotes} {$eContentItem->notes}{/if} from {$eContentItem->getSource()}
+			<div class="eContentHoldingUsage">
+				{$eContentItem->getUsageNotes()}
 			</div>
-			<div class="eContentHoldingNotes">
-					{if $showEContentNotes}{$eContentItem->notes}{/if}
-					{if strcasecmp($eContentItem->size, 'unknown') != 0}
-					Size: {$eContentItem->size|file_size}<br/>
-					{/if}
-			</div>
-			<div class="eContentHoldingActions">
+		</div>
+		<div class="eContentHoldingNotes">
+				{if $eContentItem->size != 0 && strcasecmp($eContentItem->size, 'unknown') != 0}
+				Size: {$eContentItem->getSize()|file_size}<br/>
+				{/if}
+		</div>
+		<div class="eContentHoldingActions">
+			{if $eContentItem->sampleUrl_1}
+				<a href="{$eContentItem->sampleUrl_1}" class="button">{translate text="Sample"}: {$eContentItem->sampleName_1}</a>
+			{/if}
+			{if $eContentItem->sampleUrl_2}
+				<a href="{$eContentItem->sampleUrl_2}" class="button">{translate text="Sample"}: {$eContentItem->sampleName_2}</a>
+			{/if}
 			{* Options for the user to view online or download *}
 			{foreach from=$eContentItem->links item=link}
 				<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="button">{$link.text}</a>
 			{/foreach}
-			</div>
-		{else}
-			<div class="eContentHoldingHeader">
-				<span class="eContentHoldingFormat">{translate text=$eContentItem->item_type}</span>{if $showEContentNotes} {$eContentItem->notes}{/if} from {$eContentItem->source}
-				<div class="eContentHoldingUsage">
-					{$eContentItem->getUsageNotes()}
-				</div>
-			</div>
-			<div class="eContentHoldingNotes">
-					{if strcasecmp($eContentItem->size, 'unknown') != 0}
-					Size: {$eContentItem->getSize()|file_size}<br/>
-					{/if}
-			</div>
-			<div class="eContentHoldingActions">
-				{* Options for the user to view online or download *}
-				{foreach from=$eContentItem->links item=link}
-					<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="button">{$link.text}</a>
-				{/foreach}
-				{if $user && $user->hasRole('epubAdmin')}
-					<a href="#" onclick="return editItem('{$id}', '{$eContentItem->id}')" class="button">Edit</a>
-					<a href="#" onclick="return deleteItem('{$id}', '{$eContentItem->id}')" class="button">Delete</a>
-				{/if}
-			</div>
-		{/if}
+			{if $user && $user->hasRole('epubAdmin') && ($record->accessType != 'external' && strlen($record->ilsId) > 0)}
+				<a href="#" onclick="return editItem('{$id}', '{$eContentItem->id}')" class="button">Edit</a>
+				<a href="#" onclick="return deleteItem('{$id}', '{$eContentItem->id}')" class="button">Delete</a>
+			{/if}
+		</div>
 	</div>
 	{/foreach}
 {else}

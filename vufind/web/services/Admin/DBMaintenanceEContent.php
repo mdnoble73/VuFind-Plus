@@ -65,7 +65,9 @@ class DBMaintenanceEContent extends Admin {
 									break;
 								}
 							}else{
-								$update['status'] = 'Update succeeded';
+								if (!isset($update['status'])){
+									$update['status'] = 'Update succeeded';
+								}
 							}
 
 						}
@@ -529,7 +531,40 @@ class DBMaintenanceEContent extends Admin {
 					"`add856FieldsAsExternalLinks` TINYINT NOT NULL DEFAULT 0, ".
 					"INDEX(source) ".
 				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
+			),
 		),
+
+		'econtent_availability' => array(
+			'title' => 'EContent Availability Update',
+			'description' => 'Update eContent titles to separate availability from items',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"CREATE TABLE econtent_availability(
+					id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					recordId INT NOT NULL,
+					copiesOwned INT NOT NULL DEFAULT 1,
+					availableCopies INT NOT NULL DEFAULT 1,
+					numberOfHolds INT NOT NULL DEFAULT 0,
+					libraryId INT NOT NULL
+				)",
+				"ALTER TABLE econtent_record ADD COLUMN itemLevelOwnership TINYINT NOT NULL default 0 COMMENT 'If Item level ownership is set on, ownership will be determined at the item level with one copy owned per item.  Library who owns the title is set based on libraryId in items table.  Otherwise ownership is determined based on content_availability table'",
+				"UPDATE econtent_record SET accessType = 'external' WHERE accessType = 'free' and source != 'Gutenberg'",
+				"UPDATE econtent_record SET itemLevelOwnership = 1 WHERE (accessType = 'external') and source != 'OverDrive' and source != 'Gutenberg' ORDER BY `econtent_record`.`externalId`  DESC",
+				"ALTER TABLE econtent_item CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive', 'external_web', 'external_ebook', 'external_eaudio', 'external_emusic', 'external_evideo', 'text', 'gifs', 'itunes' ) NOT NULL",
+				"ALTER TABLE econtent_item ADD COLUMN size INT NOT NULL default 0",
+				"ALTER TABLE econtent_item ADD COLUMN externalFormat VARCHAR(50) NULL",
+				"ALTER TABLE econtent_item ADD COLUMN externalFormatId VARCHAR(25) NULL",
+				"ALTER TABLE econtent_item ADD COLUMN externalFormatNumeric INT NULL",
+				"ALTER TABLE econtent_item ADD COLUMN identifier VARCHAR(50) NULL COMMENT 'The ISBN, ASIN, or UPC for the item' ",
+				"ALTER TABLE econtent_item ADD COLUMN sampleName_1 VARCHAR(512) NULL",
+				"ALTER TABLE econtent_item ADD COLUMN sampleUrl_1 VARCHAR(512) NULL",
+				"ALTER TABLE econtent_item ADD COLUMN sampleName_2 VARCHAR(512) NULL",
+				"ALTER TABLE econtent_item ADD COLUMN sampleUrl_2 VARCHAR(512) NULL",
+				"ALTER TABLE econtent_item DROP COLUMN overDriveId",
+				"DROP TABLE overdrive_item",
+				"DELETE FROM `econtent_item` where item_type = 'overdrive' and externalFormat IS NULL"
+			),
 		),
 
 		'remove_gale_pdfs'  => array(

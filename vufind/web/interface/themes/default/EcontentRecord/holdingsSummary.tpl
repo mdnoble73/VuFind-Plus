@@ -8,9 +8,7 @@
 			No copies available yet.
 			<br/>{$holdingsSummary.wishListSize} {if $holdingsSummary.wishListSize == 1}person has{else}people have{/if} added the record to their wish list.
 		{else}
-			{if strcasecmp($holdingsSummary.source, 'OverDrive') == 0}
-				Available for use from OverDrive.
-			{elseif $holdingsSummary.source == 'Freegal'}
+			{if $holdingsSummary.source == 'Freegal'}
 				Downloadable from Freegal.
 			{elseif $holdingsSummary.accessType == 'free'}
 				Available for multiple simultaneous usage. 
@@ -35,5 +33,4 @@
 		</div>
 		{/if}
 	</div>
-     
  </div>

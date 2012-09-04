@@ -90,10 +90,12 @@ public class MarcProcessor {
 
 	private Set<String>								existingEContentIds	= Collections.synchronizedSet(new HashSet<String>());
 	private Map<String, Float>				printRatings				= Collections.synchronizedMap(new HashMap<String, Float>());
-	private Map<String, Float>				econtentRatings			= Collections.synchronizedMap(new HashMap<String, Float>());
+	private Map<Long, Float>					econtentRatings			= Collections.synchronizedMap(new HashMap<Long, Float>());
 	private Map<String, Long>					librarySystemFacets	= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Map<Long, String>					libraryIdToSystemFacets	= Collections.synchronizedMap(new HashMap<Long, String>());
 	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
+	private boolean useEContentDetectionSettings = true;
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 
 	private String												itemTag;
@@ -221,26 +223,33 @@ public class MarcProcessor {
 			logger.error("Unable to load checksums for existing records", e);
 			return false;
 		}
+		
+		String useEContentDetectionSettingsStr = configIni.get("Reindex", "useEContentDetectionSettings");
+		if (useEContentDetectionSettingsStr != null){
+			useEContentDetectionSettings = Boolean.parseBoolean(useEContentDetectionSettingsStr);
+		}
 
 		// Load detection settings to determine if a record is eContent.
-		logger.info("Loading record detection settings");
-		ReindexProcess.addNoteToCronLog("Loading record detection settings");
-		try {
-			PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
-			while (eContentDetectionSettingsRS.next()) {
-				DetectionSettings settings = new DetectionSettings();
-				settings.setFieldSpec(eContentDetectionSettingsRS.getString("fieldSpec"));
-				settings.setValueToMatch(eContentDetectionSettingsRS.getString("valueToMatch"));
-				settings.setSource(eContentDetectionSettingsRS.getString("source"));
-				settings.setAccessType(eContentDetectionSettingsRS.getString("accessType"));
-				settings.setItem_type(eContentDetectionSettingsRS.getString("item_type"));
-				settings.setAdd856FieldsAsExternalLinks(eContentDetectionSettingsRS.getBoolean("add856FieldsAsExternalLinks"));
-				detectionSettings.add(settings);
+		if (useEContentDetectionSettings){
+			logger.info("Loading record detection settings");
+			ReindexProcess.addNoteToCronLog("Loading record detection settings");
+			try {
+				PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
+				while (eContentDetectionSettingsRS.next()) {
+					DetectionSettings settings = new DetectionSettings();
+					settings.setFieldSpec(eContentDetectionSettingsRS.getString("fieldSpec"));
+					settings.setValueToMatch(eContentDetectionSettingsRS.getString("valueToMatch"));
+					settings.setSource(eContentDetectionSettingsRS.getString("source"));
+					settings.setAccessType(eContentDetectionSettingsRS.getString("accessType"));
+					settings.setItem_type(eContentDetectionSettingsRS.getString("item_type"));
+					settings.setAdd856FieldsAsExternalLinks(eContentDetectionSettingsRS.getBoolean("add856FieldsAsExternalLinks"));
+					detectionSettings.add(settings);
+				}
+			} catch (SQLException e) {
+				logger.error("Unable to load detection settings for eContent.", e);
+				return false;
 			}
-		} catch (SQLException e) {
-			logger.error("Unable to load detection settings for eContent.", e);
-			return false;
 		}
 
 		// Load ratings for print and eContent titles
@@ -258,11 +267,11 @@ public class MarcProcessor {
 			printRatingsRS.close();
 			PreparedStatement econtentRatingsStmt = econtentConn
 					.prepareStatement(
-							"SELECT ilsId, avg(rating) as rating from econtent_record inner join econtent_rating on econtent_rating.recordId = econtent_record.id WHERE ilsId <> '' GROUP BY ilsId",
+							"SELECT econtent_record.id, avg(rating) as rating from econtent_record inner join econtent_rating on econtent_rating.recordId = econtent_record.id WHERE ilsId <> '' GROUP BY ilsId",
 							ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet econtentRatingsRS = econtentRatingsStmt.executeQuery();
 			while (econtentRatingsRS.next()) {
-				econtentRatings.put(econtentRatingsRS.getString(1), econtentRatingsRS.getFloat(2));
+				econtentRatings.put(econtentRatingsRS.getLong(1), econtentRatingsRS.getFloat(2));
 			}
 			econtentRatingsRS.close();
 		} catch (SQLException e) {
@@ -281,6 +290,7 @@ public class MarcProcessor {
 					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
 					eContentLinkRules.put(eContentLinkRulesStr, librarySystemFacetRS.getLong("libraryId"));
 				}
+				libraryIdToSystemFacets.put(librarySystemFacetRS.getLong("libraryId"), librarySystemFacetRS.getString("facetLabel"));
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load library System Facet information", e);
@@ -320,7 +330,7 @@ public class MarcProcessor {
 		return printRatings;
 	}
 
-	public Map<String, Float> getEcontentRatings() {
+	public Map<Long, Float> getEcontentRatings() {
 		return econtentRatings;
 	}
 
@@ -527,7 +537,7 @@ public class MarcProcessor {
 	 *          - any prefix on individual Map keys (entries in the value in
 	 *          transMapMap)
 	 */
-	private void loadTranslationMapValues(String transMapName, String mapName, String mapKeyPrefix) {
+	public void loadTranslationMapValues(String transMapName, String mapName, String mapKeyPrefix) {
 		Properties props = null;
 		props = Utils.loadProperties(propertyFilePaths, transMapName);
 		logger.debug("Loading Custom Map: " + transMapName);
@@ -719,6 +729,7 @@ public class MarcProcessor {
 					logger.error("Error processing record " + recordNumber, e);
 				}
 			}
+			input.close();
 			logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 			ReindexProcess.addNoteToCronLog("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 		} catch (Exception e) {
@@ -796,7 +807,9 @@ public class MarcProcessor {
 	public Long getLibrarySystemIdFromFacet(String librarySystemFacet) {
 		return librarySystemFacets.get(librarySystemFacet);
 	}
-	
+	public String getLibrarySystemFacetForId(Long libraryId){
+		return libraryIdToSystemFacets.get(libraryId);
+	}
 	public Long getLocationIdFromFacet(String locationFacet){
 		return locationFacets.get(locationFacet);
 	}

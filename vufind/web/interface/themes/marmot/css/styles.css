@@ -1428,13 +1428,28 @@ background-image:url(/interface/themes/marmot/images/update.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }
+.categoryValueEBook{
+	background-image:url(/interface/themes/marmot/images/ebook.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
 .categoryValueAudio{
 	background-image:url(/interface/themes/marmot/images/audio.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }
+.categoryValueEAudio{
+	background-image:url(/interface/themes/marmot/images/eaudio.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
 .categoryValueVideo{
 	background-image:url(/interface/themes/marmot/images/video.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
+.categoryValueEVideo{
+	background-image:url(/interface/themes/marmot/images/evideo.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }

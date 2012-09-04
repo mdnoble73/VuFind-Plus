@@ -64,7 +64,9 @@ class DBMaintenance extends Admin {
 									break;
 								}
 							}else{
-								$update['status'] = 'Update succeeded';
+								if (!isset($update['status'])){
+									$update['status'] = 'Update succeeded';
+								}
 							}
 
 						}

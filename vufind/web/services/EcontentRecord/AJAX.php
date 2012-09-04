@@ -166,6 +166,7 @@ function GetEnrichmentInfo(){
 				$showEContentNotes = true;
 			}
 		}
+		$interface->assign('record', $eContentRecord);
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){

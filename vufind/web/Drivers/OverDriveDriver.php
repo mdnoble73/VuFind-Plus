@@ -117,7 +117,9 @@ class OverDriveDriver {
 		if ($productsKey == null){
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
+		$overDriveId= strtoupper($overDriveId);
 		$metadataUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
+		echo($metadataUrl);
 		return $this->_callUrl($metadataUrl);
 	}
 

@@ -24,9 +24,9 @@ public class EContentReindexThread extends Thread{
 				econtentProcessor.results.addNote("Error reindexing eContent Record " + eContentRecordId + " " +  response.getMessage());
 				econtentProcessor.results.saveResults();
 			}
-			logger.debug("Finished reindex " + econtentProcessor.getNumReindexingThreadsRunning());
+			//logger.debug("Finished reindex " + econtentProcessor.getNumReindexingThreadsRunning());
 			econtentProcessor.decrementReindexingThreadsRunning();
-			logger.debug("Remove thread " + econtentProcessor.getNumReindexingThreadsRunning());
+			//logger.debug("Remove thread " + econtentProcessor.getNumReindexingThreadsRunning());
 		} catch (Exception e) {
 			econtentProcessor.decrementReindexingThreadsRunning();
 			logger.info("Unable to reindex record " + eContentRecordId, e);

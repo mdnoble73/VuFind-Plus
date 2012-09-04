@@ -1432,7 +1432,11 @@ class SearchObject_Solr extends SearchObject_Base
 						$valueKey = '1' . $valueKey;
 						$numValidLibraries++;
 						$foundInstitution = true;
-					}elseif ($facet[0] == 'Digital Collection'){
+					}elseif ($facet[0] == $currentLibrary->facetLabel . ' Online'){
+						$valueKey = '1' . $valueKey;
+						$foundInstitution = true;
+						$numValidLibraries++;
+					}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'Marmot Digital Library'){
 						$valueKey = '2' . $valueKey;
 						$foundInstitution = true;
 						$numValidLibraries++;
@@ -1443,13 +1447,19 @@ class SearchObject_Solr extends SearchObject_Base
 							$valueKey = '1' . $valueKey;
 							$foundBranch = true;
 							$numValidRelatedLocations++;
+						}elseif (isset($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
+							$valueKey = '1' . $valueKey;
+							$numValidRelatedLocations++;
+						}else if (!is_null($relatedLocationFacets) && in_array($facet[0], $relatedLocationFacets)){
+							$valueKey = '2' . $valueKey;
+							$numValidRelatedLocations++;
 						}else if (!is_null($relatedLocationFacets) && in_array($facet[0], $relatedLocationFacets)){
 							$valueKey = '2' . $valueKey;
 							$numValidRelatedLocations++;
 						}else if (!is_null($relatedHomeLocationFacets) && in_array($facet[0], $relatedHomeLocationFacets)){
 							$valueKey = '2' . $valueKey;
 							$numValidRelatedLocations++;
-						}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
+						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
 							$valueKey = '4' . $valueKey;
 							$numValidRelatedLocations++;
 						}elseif (!is_null($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
