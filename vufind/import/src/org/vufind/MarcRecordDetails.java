@@ -3446,7 +3446,7 @@ public class MarcRecordDetails {
 			}
 			//TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L){
-				itemAvailability.add("Marmot Digital Collection");
+				itemAvailability.add("Digital Collection");
 				addSharedAvailability(source, itemAvailability);
 			}else{
 				itemAvailability.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
@@ -3461,7 +3461,7 @@ public class MarcRecordDetails {
 			long libraryId = availabilityInfo.getLong("libraryId");
 			if (availableCopies > 0){
 				if (libraryId == -1L){
-					availableAt.add("Marmot Digital Collection");
+					availableAt.add("Digital Collection");
 					addSharedAvailability(source, itemAvailability);
 				}else{
 					availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
