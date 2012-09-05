@@ -222,10 +222,10 @@ public class MarcRecordDetails {
 			if (text != null && url != null) {
 				boolean isSourceUrl = false;
 				//boolean isEnrichmentUrl = false;
-				if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
+				if (text.matches("(?i).*?(?:cover|review).*?")) {
 					// File is an enrichment url
 					//isEnrichmentUrl = true;
-				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version).*?")) {
+				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version|summary).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						isSourceUrl = true;
 					}
@@ -3446,7 +3446,7 @@ public class MarcRecordDetails {
 			}
 			//TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L){
-				itemAvailability.add("Digital Collection");
+				itemAvailability.add("Shared Digital Collection");
 				addSharedAvailability(source, itemAvailability);
 			}else{
 				itemAvailability.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
@@ -3461,7 +3461,7 @@ public class MarcRecordDetails {
 			long libraryId = availabilityInfo.getLong("libraryId");
 			if (availableCopies > 0){
 				if (libraryId == -1L){
-					availableAt.add("Digital Collection");
+					availableAt.add("Shared Digital Collection");
 					addSharedAvailability(source, itemAvailability);
 				}else{
 					availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
@@ -3525,12 +3525,12 @@ public class MarcRecordDetails {
 
 	private void addSharedAvailability(String source, Set<String> itemAvailability) {
 		if (source.equalsIgnoreCase("overdrive")){
-			itemAvailability.add("Telluride Online");
-			itemAvailability.add("Pitkin County Library Online");
-			itemAvailability.add("EVLD Eagle Valley Library Online");
-			itemAvailability.add("Steamboat Springs Community Libraries Online");
-			itemAvailability.add("Grand County Library Dist Online");
+			itemAvailability.add("Eagle Valley Library District Online");
 			itemAvailability.add("Garfield County Library Online");
+			itemAvailability.add("Grand County Library Dist Online");
+			itemAvailability.add("Pitkin County Library Online");
+			itemAvailability.add("Steamboat Springs Community Libraries Online");
+			itemAvailability.add("Wilkinson Public Library Online");
 		}
 	}
 }
