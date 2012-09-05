@@ -263,6 +263,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_2' => array(
+				'title' => 'Location 2',
+				'description' => 'Add the ability to customize footers per location',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `location` ADD `footerTemplate` VARCHAR(40) NOT NULL DEFAULT 'default';",
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',

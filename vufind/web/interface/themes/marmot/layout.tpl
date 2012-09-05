@@ -104,9 +104,8 @@
 					{/if}
 
 					<div id="ft">
-							{include file="footer.tpl"}
+						{include file=$footerTemplate}
 					</div> {* End ft *}
-
 					<div class="clearer">&nbsp;</div>
 				</div>
 			</div> {* End outer_span *}

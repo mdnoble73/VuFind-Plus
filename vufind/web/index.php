@@ -206,6 +206,13 @@ if (isset($configArray['Site']['largeLogo'])){
 //Set focus to the search box by default.
 $interface->assign('focusElementId', 'lookfor');
 
+//Set footer information
+$location = $locationSingleton->getActiveLocation();
+$interface->assign('footerTemplate', 'footer.tpl');
+if (isset($location) && $location->footerTemplate != 'default'){
+	$interface->assign('footerTemplate', $location->footerTemplate);
+}
+
 //Set System Message
 //$interface->assign('systemMessage', "The catalog will be undergoing maintenance on Sunday July 29th from 8am - noon.  The system may be unavailable during this period.");
 
