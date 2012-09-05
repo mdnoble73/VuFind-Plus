@@ -22,4 +22,15 @@ class EContentAvailability extends DB_DataObject {
 	function keys() {
 		return array('id');
 	}
+
+	function getLibraryName(){
+		if ($this->libraryId == -1){
+			return 'Digital Collection';
+		}else{
+			$library = new Library();
+			$library->libraryId = $this->libraryId;
+			$library->find(true);
+			return $library->displayName;
+		}
+	}
 }

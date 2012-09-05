@@ -1152,9 +1152,9 @@ class EContentRecord extends SolrDataObject {
 						$library = new Library();
 						$library->libraryId = $tmpAvailability->libraryId;
 						$library->find(true);
-						$productKey = $library->overdriveAdvantageProductsKe;
+						$productKey = $library->overdriveAdvantageProductsKey;
 					}
-					$realtimeAvailability = $driver->getProductAvailability($this->externalId);
+					$realtimeAvailability = $driver->getProductAvailability($this->externalId, $productKey);
 					$tmpAvailability->copiesOwned = $realtimeAvailability->copiesOwned;
 					$tmpAvailability->availableCopies = $realtimeAvailability->copiesAvailable;
 					$tmpAvailability->numberOfHolds = $realtimeAvailability->numberOfHolds;

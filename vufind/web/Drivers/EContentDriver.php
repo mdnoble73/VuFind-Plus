@@ -158,6 +158,11 @@ class EContentDriver implements DriverInterface{
 				$addCheckoutLink = false;
 				$addPlaceHoldLink = false;
 				foreach($availability as $availableFrom){
+					if ($availableFrom->availableCopies > 0){
+						$addCheckoutLink = true;
+					}else{
+						$addPlaceHoldLink = true;
+					}
 					if ($availableFrom->libraryId == -1){
 						if ($availableFrom->availableCopies > 0){
 							$addCheckoutLink = true;
@@ -166,7 +171,7 @@ class EContentDriver implements DriverInterface{
 						}
 					}else{
 						//TODO: Display availability for each library who owns copies
-						echo("Availble from {$availableFrom->libraryId}");
+						//echo("Availble from {$availableFrom->libraryId}");
 					}
 				}
 				foreach ($items as $key => $item){

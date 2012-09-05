@@ -3490,7 +3490,7 @@ public class MarcRecordDetails {
 			if (compatibleDeviceMap.containsKey(format)){
 				String compatibleDevicesForFormat = compatibleDeviceMap.get(format);
 				if (compatibleDevicesForFormat != null){
-					String[] compatibleDevicesArray = compatibleDevicesForFormat.split(",\\s");
+					String[] compatibleDevicesArray = compatibleDevicesForFormat.split(",\\s?");
 					for (String curDevice : compatibleDevicesArray){
 						compatibleDevices.add(curDevice);
 					}
