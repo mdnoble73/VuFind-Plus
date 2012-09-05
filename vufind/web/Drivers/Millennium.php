@@ -1328,6 +1328,8 @@ class MillenniumDriver implements DriverInterface
 			//with their student id.
 			if (strlen($barcode)== 5){
 				$barcode = "41000000" . $barcode;
+			}else if(strlen($barcode)== 6){
+				$barcode = "4100000" . $barcode;
 			}
 
 			// Load Record Page.  This page has a dump of all patron information

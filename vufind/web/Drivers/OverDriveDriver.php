@@ -957,6 +957,8 @@ class OverDriveDriver {
 		$barcode = $user->$barcodeProperty;
 		if (strlen($barcode) == 5){
 			$user->cat_password = '41000000' . $barcode;
+		}else if (strlen($barcode) == 6){
+			$user->cat_password = '4100000' . $barcode;
 		}
 		$postParams = array(
 			'LibraryCardNumber' => $barcode,
