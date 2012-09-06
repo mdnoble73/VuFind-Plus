@@ -125,23 +125,23 @@
 							</div>
 							<div class="jbmoduleBody">
 								<ul class="footer_menu">
-									<li class="item-430"><a href="/documents">Documents</a>
+									<li class="item-430"><a href="{$homeLink}/documents">Documents</a>
 									</li>
-									<li class="item-145"><a href="/library-services/meetingrooms">Meeting Rooms</a>
+									<li class="item-145"><a href="{$homeLink}/library-services/meetingrooms">Meeting Rooms</a>
 									</li>
-									<li class="item-172"><a href="/community/fol">Friends of the Library</a>
+									<li class="item-172"><a href="{$homeLink}/community/fol">Friends of the Library</a>
 									</li>
-									<li class="item-150"><a href="/employment">Employment</a>
+									<li class="item-150"><a href="{$homeLink}/employment">Employment</a>
 									</li>
-									<li class="item-151"><a href="/bod">Board of Directors</a>
+									<li class="item-151"><a href="{$homeLink}/bod">Board of Directors</a>
 									</li>
-									<li class="item-146"><a href="/my-wpl/findsecondtry/books">Browse Catalog</a>
+									<li class="item-146"><a href="{$homeLink}/my-wpl/findsecondtry/books">Browse Catalog</a>
 									</li>
-									<li class="item-147"><a href="/events/wpltv">WPLTV</a>
+									<li class="item-147"><a href="{$homeLink}/events/wpltv">WPLTV</a>
 									</li>
-									<li class="item-148"><a href="/community/library-corner">Library Corner</a>
+									<li class="item-148"><a href="{$homeLink}/community/library-corner">Library Corner</a>
 									</li>
-									<li class="item-203"><a href="/contact7">Contact</a>
+									<li class="item-203"><a href="{$homeLink}/contact7">Contact</a>
 									</li>
 								</ul>
 							</div>
