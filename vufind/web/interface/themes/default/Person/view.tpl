@@ -59,7 +59,7 @@
 						</div>
 						{foreach from=$marriages item=marriage}
 							<div class="marriageTitle">
-								 {$marriage.spouseName}{if $marriage.formattedMarriageDate} {$marriage.formattedMarriageDate}{/if}
+								 {$marriage.spouseName}{if $marriage.formattedMarriageDate} - {$marriage.formattedMarriageDate}{/if}
 								 {if $userIsAdmin}
 										<a href='{$path}/Admin/Marriages?objectAction=edit&amp;id={$marriage.marriageId}' title='Edit this Marriage'><img src='{$path}/images/silk/group_edit.png' alt='Edit this Marriage'></a>
 										<a href='{$path}/Admin/Marriages?objectAction=delete&amp;id={$marriage.marriageId}' title='Delete this Marriage' onclick='return confirm("Removing this marriage will permanently remove it from the system.	Are you sure?")'><img src='{$path}/images/silk/group_delete.png' alt='Delete this Marriage'></a>

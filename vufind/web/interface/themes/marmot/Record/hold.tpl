@@ -28,7 +28,7 @@
 					</div>
 					{if $showHoldCancelDate == 1}
 						<div id='cancelHoldDate'><b>{translate text="Automatically cancel this hold if not filled by"}:</b>
-							<input type="text" name="canceldate" id="canceldate" size="10" />
+							<input type="text" name="canceldate" id="canceldate" size="10" {if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if}/>
 							<br /><i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
 						</div>
 					{/if}

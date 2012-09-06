@@ -327,7 +327,7 @@ solid #FFF;color:#FF9;font-size:14px;font-weight:700;padding:4px;display:none}#b
 0px 2px 0px}#new_list_controls{text-align:left}#bag_login{text-align:left}#bag_login_submit{text-align:center}#book_bag input,#book_bag
 select{color:#392529 !important}
 /* title-scroller.css */
-@CHARSET "ISO-8859-1";#catalogHome{padding:50px}#homePageLists{width:650px;display:inline-block;zoom:1;*display:inline}#homeLoginForm{display:inline-block;margin-left:20px;vertical-align:top;width:200px;zoom:1;*display:inline}#loginTitleHome{font-weight:bold;font-size:14px;color:#256292;padding-bottom:5px}#loginButtonHome{display:block;margin:8px
+@CHARSET "ISO-8859-1";#catalogHome{padding:50px}#homePageLists{width:100%;display:inline-block;zoom:1;*display:inline}#homeLoginForm{display:inline-block;margin-left:20px;vertical-align:top;width:200px;zoom:1;*display:inline}#loginTitleHome{font-weight:bold;font-size:14px;color:#256292;padding-bottom:5px}#loginButtonHome{display:block;margin:8px
 5px}.loginLabelHome{padding-top:5px}.loginFormInput{width:180px}#catalogHome
 .sidegroup{width:200px;display:inline-block;margin-left:20px;vertical-align:top;zoom:1;*display:inline}#catalogHome .sidegroup
 h4{background-color:#011753}.titleScrollerHeader{background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left;padding:2px;color:#00125E;font-size:12px;font-weight:bold;height:15px}.titleScrollerHeader

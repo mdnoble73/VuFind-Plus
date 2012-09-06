@@ -251,6 +251,16 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `overdriveAdvantageProductsKey` VARCHAR(20) DEFAULT '';",
 				),
 			),
+			'library_17' => array(
+				'title' => 'Library 17',
+				'description' => 'Add defaultNotNeededAfterDays and homePageWidgetId. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `defaultNotNeededAfterDays` INT DEFAULT '0';",
+					"ALTER TABLE `library` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',
