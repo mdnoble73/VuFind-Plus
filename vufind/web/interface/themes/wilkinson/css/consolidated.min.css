@@ -539,7 +539,8 @@ li{float:left;list-style-type:none;position:relative}#nav ul li li:last-child
 a{border-bottom:0}#nav ul li li:first-child
 a{border-top:0}
 /* extra_styles.css */
-.searchHome{margin-top:0px}.searchHomeForm{background-color:#404040;border-color:#242424}#searchbar{background-color:#404040;color:white}#searchbar
+.searchHome{margin-top:0px;padding:30px
+0px 125px}.searchHomeForm{background-color:#404040;border-color:#242424}#searchbar{background-color:#404040;color:white}#searchbar
 a{color:white}.searchheader{padding:0px}#headerwrap{background-color:#404040;padding:0;position:relative;z-index:1}#headerwrap
 .row{padding:5px
 10px}.row{margin:0
