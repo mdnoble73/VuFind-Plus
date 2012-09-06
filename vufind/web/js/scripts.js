@@ -5,6 +5,24 @@ $(document).ready(function(){
 	if($("#loginForm") != null){
 		$("#username").focus();
 	}
+	
+	var url = location.hash;
+	if (url.length > 0) {
+		url = url.substr(1);
+	} else {
+		url = location.href;
+	}
+	var match = url.match(/([&?]?ui=[^&]+)/);
+	if (match) {
+		var replace = ((match[1].indexOf('?') != -1) ? '?' : '&') + 'ui=mobile';
+		url = url.replace(match[1], replace);
+	} else {
+		url += ((url.indexOf('?') == -1) ? '?' : '&') + 'ui=mobile';
+	}
+	url = url.replace('&ui-state=dialog', '');
+	$('a.mobile-view').each(function() {
+		$(this).attr('href', url);
+	});
 });
 
 function getLightbox(module, action, id, lookfor, message, followupModule,

@@ -250,7 +250,7 @@ ul.menu li{
 	border-right: 1px dotted #cccccc;
 	margin-right:1em;
 	padding: 0 2em 1em 0;
-	width:12em;
+	width:auto;
 	vertical-align:top;
 	display: inline-block;
 	zoom: 1;
@@ -261,6 +261,9 @@ ul.menu li{
 	width: 100% !important;
 	text-align: center;
 	padding-top: 10px;
+}
+#ft #copyright{
+	text-align: center;
 }
 .result {
 	border-bottom: 1px solid #eee;

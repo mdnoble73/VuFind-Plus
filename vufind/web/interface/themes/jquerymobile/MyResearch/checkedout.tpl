@@ -1,4 +1,4 @@
-{strip}
+
 <div data-role="page" id="MyResearch-checkedout">
 	{include file="header.tpl"}
 	<div data-role="content">
@@ -11,7 +11,7 @@
 				<ul class="results checkedout-list" data-role="listview">
 				{foreach from=$transList item=resource name="recordLoop"}
 					<li>
-						{if !empty($resource.id)}<a rel="external" href="{$path}/Record/{$resource.id|escape}">{/if}
+						<a rel="external" href="{if !empty($resource.id)}{$path}/Record/{$resource.id|escape}#{else}{/if}">
 						<div class="result">
 						{* If $resource.id is set, we have the full Solr record loaded and should display a link... *}
 						{if !empty($resource.id)}
@@ -49,11 +49,12 @@
 							</p>
 						{/if}
 						</div>
-						{if !empty($resource.id)}</a>{/if}
-						<a href="{$path}/MyResearch/Renew?barcode={$resource.barcode}&amp;itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" data-icon="refresh">Renew Item</a>
+						<a href="{$path}/MyResearch/Renew?barcode={$resource.barcode}&amp;itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" data-icon="forward" title="Renew Item" data-inline="true">Renew Item</a>
+						</a>
 					</li>
 				{/foreach}
 				</ul>
+				<a href="{$path}/MyResearch/RenewAll" data-role="button" rel="external" data-icon="forward">Renew All</a>
 			{else}
 				<p>{translate text='You do not have any items checked out'}.</p>
 			{/if}
@@ -63,4 +64,3 @@
 	</div>
 	{include file="footer.tpl"}
 </div>
-{/strip}
