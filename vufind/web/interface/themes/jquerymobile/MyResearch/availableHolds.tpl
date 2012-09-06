@@ -18,7 +18,7 @@
 						<ul class="results holds" data-role="listview">
 						{foreach from=$recordData item=resource name="recordLoop"}
 							<li>
-								{if !empty($resource.id)}<a rel="external" href="{$path}/Record/{$resource.id|escape}">{/if}
+								<a rel="external" href="{if !empty($resource.id)}{$path}/Record/{$resource.id|escape}{else}#{/if}">
 								<div class="result">
 									{* If $resource.id is set, we have the full Solr record loaded and should display a link... *}
 									{if !empty($resource.title)}
@@ -42,10 +42,11 @@
 									{/if} 
 									<p><strong>{translate text='Status'}:</strong> {$resource.status} {if $resource.frozen}<span class='frozenHold' title='This hold will not be filled until you thaw the hold.'>(Frozen)</span>{/if}</p>
 									<p><strong>{translate text='Pickup Location'}:</strong> {$resource.currentPickupName}</p>
+									{if $resource.expiredate}
 									<p><strong>{translate text='Expires'}:</strong> {$resource.expiredate|escape}</p>
-									
+									{/if}
 								</div>
-								{if !empty($resource.id)}</a>{/if}
+								</a>
 								<a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" data-role="button" rel="external" data-icon="delete">Cancel Hold</a>
 							</li>
 						{/foreach}
