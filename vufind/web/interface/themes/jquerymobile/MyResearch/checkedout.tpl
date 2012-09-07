@@ -50,7 +50,7 @@
 						{/if}
 						</div>
 						</a>
-						<a href="{$path}/MyResearch/Renew?barcode={$resource.barcode}&amp;itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" >Renew Item</a>
+						<a href="{$path}/MyResearch/Renew?barcode={$resource.barcode}&amp;itemId={$resource.itemid}&itemIndex={$resource.itemindex}" rel="external" >Renew Item</a>
 					</li>
 				{/foreach}
 				</ul>
