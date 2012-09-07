@@ -3440,7 +3440,7 @@ public class MarcRecordDetails {
 			long libraryId = itemInfo.getLong("libraryId");
 			numItems++;
 			if (externalFormat != null && externalFormat.length() > 0){
-				formats.add(externalFormat);
+				formats.add(externalFormat.replaceAll("\\s", "_"));
 			}else{
 				formats.add(item_type);
 			}
@@ -3484,22 +3484,7 @@ public class MarcRecordDetails {
 			addField(mappedFields, "format_boost", "format_boost_map", firstFormat);
 		}
 		//Load device compatibility
-		HashSet<String> compatibleDevices = new HashSet<String>();
-		Map<String, String> compatibleDeviceMap = marcProcessor.findMap("device_compatibility_map");
-		for (String format : formats){
-			if (compatibleDeviceMap.containsKey(format)){
-				String compatibleDevicesForFormat = compatibleDeviceMap.get(format);
-				if (compatibleDevicesForFormat != null){
-					String[] compatibleDevicesArray = compatibleDevicesForFormat.split(",\\s?");
-					for (String curDevice : compatibleDevicesArray){
-						compatibleDevices.add(curDevice);
-					}
-				}
-			}else{
-				logger.warn("No compatible device found for format " + format);
-			}
-		}
-		addFields(mappedFields, "econtent_device", null, compatibleDevices);
+		addFields(mappedFields, "econtent_device", "device_compatibility_map", formats);
 		addField(mappedFields, "econtent_source", source);
 		addField(mappedFields, "econtent_protection_type", "econtent_protection_type_map", accessType);
 		addField(mappedFields, "num_holdings", Integer.toString(numHoldings));

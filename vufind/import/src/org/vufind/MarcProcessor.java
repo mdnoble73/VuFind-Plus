@@ -519,9 +519,12 @@ public class MarcProcessor {
 	public Map<String, String> findMap(String mapName) {
 		if (mapName.startsWith("pattern_map:")) mapName = mapName.substring("pattern_map:".length());
 
-		if (translationMaps.containsKey(mapName)) return (translationMaps.get(mapName));
-
-		return null;
+		if (translationMaps.containsKey(mapName)) {
+			return (translationMaps.get(mapName));
+		}else{
+			loadTranslationMapValues(mapName + ".properties", mapName, "");
+			return (translationMaps.get(mapName));
+		}
 	}
 
 	/**
@@ -540,7 +543,7 @@ public class MarcProcessor {
 	public void loadTranslationMapValues(String transMapName, String mapName, String mapKeyPrefix) {
 		Properties props = null;
 		props = Utils.loadProperties(propertyFilePaths, transMapName);
-		logger.debug("Loading Custom Map: " + transMapName);
+		logger.debug("Loading Custom Map: " + transMapName + " found " + props.size() + " properties");
 		loadTranslationMapValues(props, mapName, mapKeyPrefix);
 	}
 
@@ -568,9 +571,9 @@ public class MarcProcessor {
 				if (value.equals("null")) value = null;
 
 				Map<String, String> valueMap;
-				if (translationMaps.containsKey(mapName))
+				if (translationMaps.containsKey(mapName)){
 					valueMap = translationMaps.get(mapName);
-				else {
+				} else {
 					valueMap = new LinkedHashMap<String, String>();
 					translationMaps.put(mapName, valueMap);
 				}
