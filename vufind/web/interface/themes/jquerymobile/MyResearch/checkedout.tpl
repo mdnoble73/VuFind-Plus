@@ -8,7 +8,7 @@
 				{$renew_message}
 			{/if}
 			{if $transList}
-				<ul class="results checkedout-list" data-role="listview">
+				<ul class="results checkedout-list" data-role="listview" data-split-icon="forward">
 				{foreach from=$transList item=resource name="recordLoop"}
 					<li>
 						<a rel="external" href="{if !empty($resource.id)}{$path}/Record/{$resource.id|escape}#{else}{/if}">
@@ -49,8 +49,8 @@
 							</p>
 						{/if}
 						</div>
-						<a href="{$path}/MyResearch/Renew?barcode={$resource.barcode}&amp;itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" data-icon="forward" title="Renew Item" data-inline="true">Renew Item</a>
 						</a>
+						<a href="{$path}/MyResearch/Renew?barcode={$resource.barcode}&amp;itemId={$resource.itemid}&itemIndex={$resource.itemindex}" data-role="button" rel="external" >Renew Item</a>
 					</li>
 				{/foreach}
 				</ul>

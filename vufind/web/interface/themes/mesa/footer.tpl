@@ -56,7 +56,10 @@
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br class="clearer" />
+<div class="clearer" />
+<div id="copyright">
+	<a href="#" class='mobile-view'>{translate text="Go to Mobile View"}</a>
+</div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if} {* Add Google Analytics*} {literal}
