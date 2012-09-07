@@ -26,6 +26,7 @@ import javax.net.ssl.SSLSession;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.econtent.GutenbergItemInfo;
 import org.ini4j.Ini;
@@ -119,7 +120,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		//Initialize the updateServer
 		try {
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/econtent2", 5000, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/econtent2", 500, 10);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1268,27 +1269,37 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 		}
 		
+		
+		
 		//Make sure that the index is good and swap indexes
 		results.addNote("calling final commit on index");
-		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/econtent2/update/", "<commit />", logger);
-		if (!response.isSuccess()){
-			results.addNote("Error committing changes " + response.getMessage());
-		}
-		results.addNote("optimizing index");
-		response = Util.postToURL("http://localhost:" + solrPort + "/solr/econtent2/update/", "<optimize />", logger);
-		if (!response.isSuccess()){
-			results.addNote("Error optimizing index " + response.getMessage());
-		}
-		if (checkMarcImport()){
-			results.addNote("index passed checks, swapping cores so new index is active.");
-			response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
-			if (!response.isSuccess()){
-				results.addNote("Error swapping cores " + response.getMessage());
+		
+		try {
+			UpdateResponse response = updateServer.commit();
+			if (response.getStatus() != 200){
+				results.addNote("Error committing changes " + response.toString());
+				results.incErrors();
 			}else{
-				results.addNote("Result of swapping cores " + response.getMessage());
+				results.addNote("optimizing index");
+				response = updateServer.optimize();
+				if (response.getStatus() != 200){
+					results.addNote("Error optimizing index " + response.toString());
+				}
+				if (checkMarcImport()){
+					results.addNote("index passed checks, swapping cores so new index is active.");
+					URLPostResponse postResponse = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
+					if (!postResponse.isSuccess()){
+						results.addNote("Error swapping cores " + postResponse.getMessage());
+					}else{
+						results.addNote("Result of swapping cores " + postResponse.getMessage());
+					}
+				}else{
+					results.addNote("index did not pass check, not swapping");
+				}
 			}
-		}else{
-			results.addNote("index did not pass check, not swapping");
+		} catch (Exception e) {
+			results.addNote("Error finalizing index " + e.toString());
+			results.incErrors();
 		}
 		results.saveResults();
 		
