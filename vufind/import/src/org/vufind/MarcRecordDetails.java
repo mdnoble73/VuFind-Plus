@@ -3416,11 +3416,7 @@ public class MarcRecordDetails {
 		return 0;
 	}
 
-	private static boolean deviceMapLoaded = false;
 	public SolrInputDocument getEContentSolrDocument(long econtentRecordId, ResultSet eContentInfo, ResultSet itemInfo, ResultSet availabilityInfo) throws SQLException {
-		if (!deviceMapLoaded){
-			marcProcessor.loadTranslationMapValues("device_compatibility_map.properties", "device_compatibility_map", "");
-		}
 		SolrInputDocument doc = new SolrInputDocument();
 		
 		//Process availability and items
