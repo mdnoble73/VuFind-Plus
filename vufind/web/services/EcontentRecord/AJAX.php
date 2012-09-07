@@ -167,7 +167,7 @@ function GetEnrichmentInfo(){
 			}
 		}
 		$interface->assign('record', $eContentRecord);
-		$interface->assign('availability', $eContentRecord->getAvailability());
+		$interface->assign('availability', $driver->getScopedAvailability($eContentRecord));
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('showEContentNotes', $showEContentNotes);
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){

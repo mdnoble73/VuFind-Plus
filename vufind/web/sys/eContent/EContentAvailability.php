@@ -25,7 +25,7 @@ class EContentAvailability extends DB_DataObject {
 
 	function getLibraryName(){
 		if ($this->libraryId == -1){
-			return 'Digital Collection';
+			return 'Shared Digital Collection';
 		}else{
 			$library = new Library();
 			$library->libraryId = $this->libraryId;

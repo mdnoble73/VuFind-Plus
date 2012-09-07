@@ -158,11 +158,6 @@ class EContentDriver implements DriverInterface{
 				$addCheckoutLink = false;
 				$addPlaceHoldLink = false;
 				foreach($availability as $availableFrom){
-					if ($availableFrom->availableCopies > 0){
-						$addCheckoutLink = true;
-					}else{
-						$addPlaceHoldLink = true;
-					}
 					if ($availableFrom->libraryId == -1){
 						if ($availableFrom->availableCopies > 0){
 							$addCheckoutLink = true;
@@ -170,8 +165,14 @@ class EContentDriver implements DriverInterface{
 							$addPlaceHoldLink = true;
 						}
 					}else{
-						//TODO: Display availability for each library who owns copies
-						//echo("Availble from {$availableFrom->libraryId}");
+						//Non shared item, check to see if we are in the correct scope to show it
+						if ($libaryScopeId == -1 || $availableFrom->libraryId == $libaryScopeId){
+							if ($availableFrom->availableCopies > 0){
+								$addCheckoutLink = true;
+							}else{
+								$addPlaceHoldLink = true;
+							}
+						}
 					}
 				}
 				foreach ($items as $key => $item){
@@ -216,6 +217,20 @@ class EContentDriver implements DriverInterface{
 		}
 	}
 
+	public function getScopedAvailability($eContentRecord){
+		$availability = $eContentRecord->getAvailability();
+		$scopingId = $this->getLibraryScopingId();
+		if ($scopingId == -1){
+			return $availability;
+		}
+		foreach ($availability as $key => $availabilityItem){
+			if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
+				unset($availability[$key]);
+			}
+		}
+		return $availability;
+	}
+
 	public function getStatusSummary($id, $holdings){
 		global $user;
 		//Get the eContent Record
@@ -229,7 +244,7 @@ class EContentDriver implements DriverInterface{
 		$addedToWishList = false;
 		$holdPosition = 0;
 
-		$availability = $eContentRecord->getAvailability();
+		$availability = $this->getScopedAvailability($eContentRecord);
 		$availableCopies = 0;
 		$totalCopies = 0;
 		$onOrderCopies = 0;

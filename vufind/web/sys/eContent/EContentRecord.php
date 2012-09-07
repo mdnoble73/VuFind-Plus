@@ -1015,18 +1015,13 @@ class EContentRecord extends SolrDataObject {
 		$formats = array();
 		//Load itmes for the record
 		$items = $this->getItems(false);
-		if (strcasecmp($this->source, 'OverDrive') == 0){
-			foreach ($items as $item){
-				if (isset($item->format)){
-					$formatValue = translate($item->format);
-					$formats[$formatValue] = $formatValue;
-				}
-			}
-		}else{
-			foreach ($items as $item){
+		foreach ($items as $item){
+			if (isset($item->externalFormat)){
+				$formatValue = $item->externalFormat;
+			}else{
 				$formatValue = translate($item->item_type);
-				$formats[$formatValue] = $formatValue;
 			}
+			$formats[$formatValue] = $formatValue;
 		}
 		return $formats;
 	}
