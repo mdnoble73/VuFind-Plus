@@ -43,7 +43,7 @@ class CheckedOut extends MyResearch{
 					$interface->assign('profile', $patronResult);
 				}
 				$timer->logTime("Got patron profile to get checked out items.");
-				
+
 				$libraryHoursMessage = Location::getLibraryHoursMessage($patronResult['homeLocationId']);
 				$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 
@@ -116,16 +116,17 @@ class CheckedOut extends MyResearch{
 
 					}
 					$interface->assign('transList', $result['transactions']);
+					unset($_SESSION['renewResult']);
 				}
 			}
 		}
-		
-		//Determine which columns to show 
+
+		//Determine which columns to show
 		$ils = $configArray['Catalog']['ils'];
 		$showOut = ($ils == 'Horizon');
 		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium');
 		$showWaitList = ($ils == 'Horizon');
-		
+
 		$interface->assign('showOut', $showOut);
 		$interface->assign('showRenewed', $showRenewed);
 		$interface->assign('showWaitList', $showWaitList);
