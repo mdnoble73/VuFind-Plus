@@ -2732,6 +2732,9 @@ class MillenniumDriver implements DriverInterface
 		}else if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $sresult, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item, ' . strtolower($matches[1]) . '.';
+		}else if (preg_match('/Your record is in use/si', $sresult, $matches)) {
+			$success = false;
+			$message = 'Unable to renew this item, your record is in use by the system.';
 		}else{
 			$success = true;
 			$message = 'Your item was successfully renewed';
