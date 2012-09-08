@@ -285,6 +285,8 @@ $interface->assign('showFines', $configArray['Catalog']['showFines']);
 // Check system availability
 $mode = checkAvailabilityMode();
 if ($mode['online'] === false) {
+	$activeIp = $_SERVER['REMOTE_ADDR'];
+	$interface->assign('activeIp', $activeIp);
 	// Why are we offline?
 	switch ($mode['level']) {
 		// Forced Downtime
@@ -813,7 +815,7 @@ function checkAvailabilityMode() {
 
 		$isMaintainence = false;
 		if (isset($configArray['System']['maintainenceIps'])){
-			$activeIp = $locationSingleton->getActiveIp();
+			$activeIp = $_SERVER['REMOTE_ADDR'];
 			$maintainenceIp =  $configArray['System']['maintainenceIps'];
 
 			$maintainenceIps = explode(",", $maintainenceIp);
@@ -823,6 +825,7 @@ function checkAvailabilityMode() {
 					break;
 				}
 			}
+
 		}
 
 		if (!$isMaintainence){
