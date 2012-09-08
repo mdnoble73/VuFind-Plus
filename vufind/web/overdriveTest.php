@@ -50,6 +50,8 @@ echo($firstProduct->links->metadata->href);
 $metadata = $driver->getProductMetadata("3D0464D8-6E3E-400D-B665-A0049D67B82E", "L1BMAEAAA2k");
 print_r($metadata);
 
+
+
 echo("<h3>Availability - MDL</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
 $availability = $driver->getProductAvailability("1e8326f9-d42f-4cf1-afec-c2af4f4807d9", "L1BMAEAAA2k");
