@@ -1276,15 +1276,15 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		try {
 			UpdateResponse response = updateServer.commit();
-			if (response.getStatus() != 200){
+			//if (response.getStatus() != 200){
 				results.addNote("Error committing changes " + response.toString());
 				results.incErrors();
-			}else{
+			//}else{
 				results.addNote("optimizing index");
 				response = updateServer.optimize();
-				if (response.getStatus() != 200){
+				//if (response.getStatus() != 200){
 					results.addNote("Error optimizing index " + response.toString());
-				}
+				//}
 				if (checkMarcImport()){
 					results.addNote("index passed checks, swapping cores so new index is active.");
 					URLPostResponse postResponse = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
@@ -1296,7 +1296,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				}else{
 					results.addNote("index did not pass check, not swapping");
 				}
-			}
+			//}
 		} catch (Exception e) {
 			results.addNote("Error finalizing index " + e.toString());
 			results.incErrors();
