@@ -261,6 +261,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
 				),
 			),
+			'library_18' => array(
+				'title' => 'Library 18',
+				'description' => 'Add showCheckInGrid to determine how periodicals display. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showCheckInGrid` INT DEFAULT '1';",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',

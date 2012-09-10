@@ -158,15 +158,15 @@ class DataObjectUtil
 		$logger = new Logger();
 
 		foreach ($structure as $property){
-			$this->processProperty($property);
+			DataObjectUtil::processProperty($object, $property);
 		}
 	}
 
-	static function processProperty($property){
+	static function processProperty($object, $property){
 		$propertyName = $property['property'];
 		if ($property['type'] == 'section'){
 			foreach ($property['properties'] as $subProperty){
-				$this->processProperty($subProperty);
+				DataObjectUtil::processProperty($object, $subProperty);
 			}
 		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url'))){
 			$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
