@@ -43,10 +43,10 @@
 											 <script type='text/javascript'>
 											 <!--
 											 var prefix = 'ma' + 'il' + 'to';
-											 var path = 'hr' + 'ef' + '=';
+											 var mail_path = 'hr' + 'ef' + '=';
 											 var addy22065 = 'askus' + '@';
 											 addy22065 = addy22065 + 'telluridelibrary' + '.' + 'org';
-											 document.write('<a ' + path + '\'' + prefix + ':' + addy22065 + '\'>');
+											 document.write('<a ' + mail_path + '\'' + prefix + ':' + addy22065 + '\'>');
 											 document.write(addy22065);
 											 document.write('<\/a>');
 											 //-->\n </script><script type='text/javascript'>
@@ -59,14 +59,13 @@
 											 document.write('</');
 											 document.write('span>');
 											 //-->
-											 </script>"><span
-																								style="color: #acacac;"> <script type="text/javascript">
+											 </script>"><span style="color: #acacac;"> <script type="text/javascript">
 											 <!--
 											 var prefix = '&#109;a' + 'i&#108;' + '&#116;o';
-											 var path = 'hr' + 'ef' + '=';
+											 var mail_path = 'hr' + 'ef' + '=';
 											 var addy96585 = '&#97;sk&#117;s' + '&#64;';
 											 addy96585 = addy96585 + 't&#101;ll&#117;r&#105;d&#101;l&#105;br&#97;ry' + '&#46;' + '&#111;rg';
-											 document.write('<a ' + path + '\'' + prefix + ':' + addy96585 + '\'>');
+											 document.write('<a ' + mail_path + '\'' + prefix + ':' + addy96585 + '\'>');
 											 document.write(addy96585);
 											 document.write('<\/a>');
 											 //-->\n </script>
