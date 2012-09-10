@@ -691,8 +691,8 @@ class MillenniumDriver implements DriverInterface
                             'location' => $issueSummary['location'],
                             'libraryDisplayName' => $issueSummary['location'],
                             'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
-                            'status' => 'Lib Use Only',
-                            'statusfull' => 'In Library Use Only',
+                            'status' => 'Available',
+                            'statusfull' => 'Available',
 						);
 					}
 				}
