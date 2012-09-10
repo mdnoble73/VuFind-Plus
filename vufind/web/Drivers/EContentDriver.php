@@ -196,6 +196,18 @@ class EContentDriver implements DriverInterface{
 					}
 					$items[$key] = $item;
 				}
+			}else{
+				foreach ($items as $key => $item){
+					$item->links = $this->_getFreeExternalLinks($eContentRecord, $item);
+					$items[$key] = $item;
+				}
+			}
+			if ($libaryScopeId != -1){
+				foreach ($items as $key => $item){
+					if ($item->libaryId != -1 && $item->libraryId != $libaryScopeId ){
+						unset($items[$key]);
+					}
+				}
 			}
 		}
 
@@ -1088,7 +1100,7 @@ class EContentDriver implements DriverInterface{
 		}else{
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Click&nbsp;for&nbsp;Access',
+							'text' => 'Access&nbsp;' . translate($eContentItem->item_type),
 			);
 		}
 		return $links;
