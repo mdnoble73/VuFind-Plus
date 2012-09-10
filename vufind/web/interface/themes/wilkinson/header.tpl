@@ -1,13 +1,3 @@
-{strip}
-{*
-	<div class="searchcontent">
-		{include file='login-block.tpl'} {if $showTopSearchBox} <a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{if $smallLogo}{$smallLogo}{else}{img filename=" logo_small.png"}{/if}" alt="Catalog Home" title="Return to Catalog Home"
-			class="alignleft" /> </a> {/if}
-
-		<div class="clearer">&nbsp;</div>
-	</div>
-*}
-{/strip}
 <div class="searchheader">
 	<div id="headerwrap">
 		<div class="container center">
@@ -15,7 +5,7 @@
 				<div class="inner">
 					<div class="grid_six zenleft" id="logo">
 						<div id="logoinner">
-							<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"> <img alt="Wilkinson Public Library Logo" src="{img filename="header_image.png"}" original="/images/logo.png"> </a>
+							<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"> <img alt="Wilkinson Public Library Logo" src="{img filename="header_image.png"}" /> </a>
 						</div>
 					</div>
 					<div class="grid_four zenlast" id="header4">
@@ -23,9 +13,21 @@
 							<div class="jbmoduleBody">
 								<ul class="header_menu">
 									<li class="item-248 current active"><a href="{$homeLink}">Home</a></li>
-									<li class="item-109"><a href="/MyResearch/Home">Login</a></li>
+									<li class="item-109" id="loginOptions" {if $user} style="display: none;"{/if}><a href="/MyResearch/Home">Login</a></li>
 									<li class="item-110"><a href="{$homeLink}/contact-us">Contact Us</a></li>
 									<li class="item-204"><a href="{$homeLink}/aboutus">About Us</a></li>
+								</ul>
+								<div class="clearer"></div>
+								<ul class="header_menu" id="logoutOptions" {if !$user} style="display: none;"{/if}>
+									<li><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></li>
+									<li><a href="{$path}/MyResearch/Home">{translate text="Your Account"}</a></li>
+									<li><a href="{$path}/MyResearch/Home" id="myAccountNameLink">Logged in as {$user->firstname|capitalize} {$user->lastname|capitalize}</a></li>
+								</ul>
+								<div class="clearer"></div>
+								<ul class="header_menu">
+									{foreach from=$allLangs key=langCode item=langName}
+									<li><a class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
+									{/foreach}
 								</ul>
 							</div>
 						</div>

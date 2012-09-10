@@ -59,6 +59,7 @@
     margin: 0;
 }
 #header4 ul li {
+	
     float: right;
     margin: 0 0 0 20px;
 }
@@ -66,7 +67,13 @@
 #header4 ul li a, #header4 ul li span {
     color: #FFFFFF;
     font-size: 16px;
+    line-height: 2;
+}
+#header4 ul:first-child li a, #header4 ul:first-child li span{
     line-height: 4;
+}
+#header4{
+	width:50%;
 }
 body{
 	color: #666666

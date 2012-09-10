@@ -14,11 +14,11 @@
 							<div class="jbmoduleBody">
 								<div class="custom">
 									<p>
-										<img width="114" height="114" alt="wpl" original="{img filename="wpl.png"}" style="display: inline;" src="{img filename="wpl.png"}">
+										<img width="114" height="114" alt="wpl" style="display: inline;" src="{img filename="wpl.png"}" />
 									</p>
 									<blockquote>
 										<p>
-											<span style="color: #acacac;">Wilkinson Public Library<br>
+											<span style="color: #acacac;">Wilkinson Public Library<br/>
 											</span>
 										</p>
 									</blockquote>
@@ -27,14 +27,14 @@
 											<span style="color: #acacac;"><strong>Call:</strong> 970-728-4519</span>
 										</p>
 										<p>
-											<span style="color: #acacac;"><strong>Visit us:<br>
+											<span style="color: #acacac;"><strong>Visit us:<br/>
 											</strong>100 W. PacificTelluride, Colorado 81435</span>
 										</p>
 									</div>
 									<div class="grid_six zenlast">
 										<p>
-											<span style="color: #acacac;"><strong>Mailing Address:<br>
-											</strong>PO Box 2189</span><br>
+											<span style="color: #acacac;"><strong>Mailing Address:<br/>
+											</strong>PO Box 2189</span><br/>
 											<span style="color: #acacac;">Telluride, Colorado 81435</span>
 										</p>
 										<p>
@@ -86,8 +86,8 @@
 											</span>
 										</p>
 										<p>
-											<br>
-											<br>
+											<br />
+											<br />
 										</p>
 									</div>
 								</div>
@@ -104,12 +104,12 @@
 							<div class="jbmoduleBody">
 								<div class="custom">
 									<p>
-										<span style="color: #acacac;">Monday: 10:00am &ndash; 8:00pm</span><br>
-										<span style="color: #acacac;">Tuesday:&nbsp;10:00am &ndash; 8:00pm</span><br>
-										<span style="color: #acacac;">Wednesday:&nbsp;10:00am &ndash; 8:00pm</span><br>
-										<span style="color: #acacac;">Thursday:&nbsp;10:00am &ndash; 8:00pm</span><br>
-										<span style="color: #acacac;">Friday:&nbsp;10:00am &ndash; 6:00pm</span><br>
-										<span style="color: #acacac;">Saturday:&nbsp;10:00am &ndash; 6:00pm</span><br>
+										<span style="color: #acacac;">Monday: 10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Tuesday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Wednesday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Thursday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Friday:&nbsp;10:00am &ndash; 6:00pm</span><br/>
+										<span style="color: #acacac;">Saturday:&nbsp;10:00am &ndash; 6:00pm</span><br/>
 										<span style="color: #acacac;">Sunday: 12:00pm &ndash; 5:00pm</span>
 									</p>
 								</div>
