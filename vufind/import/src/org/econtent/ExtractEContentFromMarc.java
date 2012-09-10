@@ -1300,6 +1300,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		} catch (Exception e) {
 			results.addNote("Error finalizing index " + e.toString());
 			results.incErrors();
+			logger.error("Error finalizing index ", e);
 		}
 		results.saveResults();
 		
