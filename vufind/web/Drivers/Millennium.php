@@ -691,10 +691,10 @@ class MillenniumDriver implements DriverInterface
                             'location' => $issueSummary['location'],
                             'libraryDisplayName' => $issueSummary['location'],
                             'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
-                            'status' => 'Available',
-                            'statusfull' => 'Available',
-						                'class' => 'available',
 						);
+						$summaryInformation['status'] = 'Available';
+						$summaryInformation['statusfull'] = 'Available';
+						$summaryInformation['class'] = 'available';
 					}
 				}
 			}
