@@ -49,9 +49,9 @@
 									<ul class="nav_menu sf-js-enabled sf-shadow">
 										<li class="item-138 deeper parent"><a href="/MyResearch/Home" class="sf-with-ul"><span class="sf-sub-indicator"></span>My Account</a>
 										<ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
-												<li class="item-163" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/MyResearch/Home" style="float: none; width: auto;">Login to Account</a>
+												<li class="item-163" style="white-space: normal; float: left; width: 100%;"><a href="/MyResearch/Home" style="float: none; width: auto;">Login to Account</a>
 												</li>
-												<li class="item-140" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/Search/Home" style="float: none; width: auto;">Browse Catalog</a>
+												<li class="item-140" style="white-space: normal; float: left; width: 100%;"><a href="/Search/Home" style="float: none; width: auto;">Browse Catalog</a>
 												</li>
 												<li class="item-283" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/my-account/downloads" style="float: none; width: auto;">Downloads</a>
 												</li>
