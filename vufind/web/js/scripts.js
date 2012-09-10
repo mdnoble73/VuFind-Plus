@@ -23,6 +23,26 @@ $(document).ready(function(){
 	$('a.mobile-view').each(function() {
 		$(this).attr('href', url);
 	});
+	
+	// Implement collapsible fieldsets.
+	var collapsibles = $('fieldset.fieldset-collapsible');
+	if (collapsibles.length > 0) {
+		collapsibles.each(function() {
+			var collapsible = $(this);
+			var legend = collapsible.find('legend:first');
+			legend.addClass('fieldset-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+				var collapsible = event.data.collapsible;
+				if (collapsible.hasClass('fieldset-collapsed')) {
+					collapsible.removeClass('fieldset-collapsed');
+				}
+				else {
+					collapsible.addClass('fieldset-collapsed');
+				}
+			});
+			// Init.
+			collapsible.addClass('fieldset-collapsed');
+		});
+	}
 });
 
 function getLightbox(module, action, id, lookfor, message, followupModule,
