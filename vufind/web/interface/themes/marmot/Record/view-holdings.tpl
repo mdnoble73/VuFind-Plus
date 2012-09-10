@@ -81,7 +81,7 @@
 						 {literal} }); {/literal}
 					</script>
 					{/if}
-					{if $issueSummary.checkInGridId}
+					{if $showCheckInGrid && $issueSummary.checkInGridId}
 					<span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='showCheckinGrid'>Show Check-in Grid</span>
 					<script	type="text/javascript">
 						$('#showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}

@@ -53,10 +53,15 @@ class Holdings extends Record
 		global $configArray;
 		global $library;
 		$showCopiesLineInHoldingsSummary = true;
+		$showCheckInGrid = true;
 		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
 			$showCopiesLineInHoldingsSummary = false;
 		}
 		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
+		if ($library && $library->showCheckInGrid == 0){
+			$showCheckInGrid = false;
+		}
+		$interface->assign('showCheckInGrid', $showCheckInGrid);
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
