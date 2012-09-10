@@ -196,6 +196,8 @@ class EContentDriver implements DriverInterface{
 					}
 					$items[$key] = $item;
 				}
+			}else{
+				$item->links[] = $this->_getFreeExternalLinks($eContentRecord, $item);
 			}
 		}
 
@@ -1081,6 +1083,11 @@ class EContentDriver implements DriverInterface{
 				);
 			}
 		}elseif (strcasecmp($eContentItem->item_type, 'interactiveBook') == 0){
+			$links[] = array(
+							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
+							'text' => 'Access&nbsp;eBook',
+			);
+		}elseif (strcasecmp($eContentItem->item_type, 'external_ebook') == 0){
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
 							'text' => 'Access&nbsp;eBook',
