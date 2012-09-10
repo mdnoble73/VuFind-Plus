@@ -202,6 +202,13 @@ class EContentDriver implements DriverInterface{
 					$items[$key] = $item;
 				}
 			}
+			if ($libaryScopeId != -1){
+				foreach ($items as $key => $item){
+					if ($item->libaryId != -1 || libraryId != $libaryScopeId ){
+						unset($items[$key]);
+					}
+				}
+			}
 		}
 
 		EContentDriver::$holdings[$id] = $items;
