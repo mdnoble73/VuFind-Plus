@@ -197,7 +197,10 @@ class EContentDriver implements DriverInterface{
 					$items[$key] = $item;
 				}
 			}else{
-				$item->links[] = $this->_getFreeExternalLinks($eContentRecord, $item);
+				foreach ($items as $key => $item){
+					$item->links[] = $this->_getFreeExternalLinks($eContentRecord, $item);
+					$items[$key] = $item;
+				}
 			}
 		}
 
