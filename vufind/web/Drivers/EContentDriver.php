@@ -1090,15 +1090,10 @@ class EContentDriver implements DriverInterface{
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
 							'text' => 'Access&nbsp;eBook',
 			);
-		}elseif (strcasecmp($eContentItem->item_type, 'external_ebook') == 0){
-			$links[] = array(
-							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Access&nbsp;eBook',
-			);
 		}else{
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Click&nbsp;for&nbsp;Access',
+							'text' => 'Access&nbsp;' . translate($eContentItem->item_type),
 			);
 		}
 		return $links;
