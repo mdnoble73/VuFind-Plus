@@ -202,7 +202,7 @@ class EContentDriver implements DriverInterface{
 					$items[$key] = $item;
 				}
 			}
-			if ($libaryScopeId != -1){
+			if ($eContentRecord->itemLevelOwnership && $libaryScopeId != -1){
 				foreach ($items as $key => $item){
 					if (!($item->libaryId == -1 || $item->libraryId == $libaryScopeId)){
 						unset($items[$key]);
