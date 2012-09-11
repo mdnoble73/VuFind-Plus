@@ -155,14 +155,13 @@ class DataObjectUtil
 	}
 
 	static function updateFromUI($object, $structure){
-		$logger = new Logger();
-
 		foreach ($structure as $property){
 			DataObjectUtil::processProperty($object, $property);
 		}
 	}
 
 	static function processProperty($object, $property){
+		$logger = new Logger();
 		$propertyName = $property['property'];
 		if ($property['type'] == 'section'){
 			foreach ($property['properties'] as $subProperty){
