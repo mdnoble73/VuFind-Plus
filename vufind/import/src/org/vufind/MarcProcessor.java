@@ -29,6 +29,7 @@ import org.marc4j.MarcReader;
 import org.marc4j.marc.Record;
 import org.solrmarc.tools.Utils;
 
+import au.com.bytecode.opencsv.CSVReader;
 import bsh.EvalError;
 import bsh.Interpreter;
 
@@ -97,7 +98,8 @@ public class MarcProcessor {
 	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
 	private boolean useEContentDetectionSettings = true;
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
-
+	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
+	
 	private String												itemTag;
 	private String												locationSubfield;
 	private String												urlSubfield;
@@ -308,6 +310,12 @@ public class MarcProcessor {
 			logger.error("Unable to load location Facet information", e);
 			return false;
 		}
+		
+		//Load lexile data
+		String lexileExportPath = configIni.get("Reindex", "lexileExportPath");
+		if (lexileExportPath != null && lexileExportPath.length() > 0){
+			loadLexileInfo(lexileExportPath);
+		}
 
 		// Setup additional statements
 		try {
@@ -320,6 +328,38 @@ public class MarcProcessor {
 		}
 		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
+	}
+
+	private void loadLexileInfo(String lexileExportPath) {
+		File lexileExportFile = new File(lexileExportPath);
+		if (lexileExportFile.exists()){
+			try {
+				CSVReader reader = new CSVReader(new FileReader(lexileExportFile), '\t');
+				String [] nextLine;
+				//Skip the first line
+				reader.readNext();
+				while ((nextLine = reader.readNext()) != null) {
+					LexileData lexileData = new LexileData();
+					lexileData.setIsbn(nextLine[3]);
+					lexileData.setLexileCode(nextLine[4]);
+					if (nextLine[5] != null && nextLine[5].length() > 0){
+						lexileData.setLexileScore(nextLine[5]);
+					}else{
+						lexileData.setLexileScore(null);
+					}
+					lexileData.setSeries(nextLine[9]);
+					lexileData.setAwards(nextLine[10]);
+					lexileInfo.put(lexileData.getIsbn(), lexileData);
+				}
+				ReindexProcess.addNoteToCronLog("Finished loading lexile information.  Found " + lexileInfo.size() + " titles in lexile export.");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				ReindexProcess.addNoteToCronLog("Error loading information from lexile export " + e.toString());
+				logger.error("Error loading information from lexile export ", e);
+			}
+		}else{
+			ReindexProcess.addNoteToCronLog("Could not find lexile information for path " + lexileExportPath);
+		}
 	}
 
 	public Set<String> getExistingEContentIds() {
@@ -851,5 +891,9 @@ public class MarcProcessor {
 
 	public String getCatalogUrl() {
 		return catalogUrl;
+	}
+
+	public LexileData getLexileDataForIsbn(String isbn) {
+		return lexileInfo.get(isbn);
 	}
 }

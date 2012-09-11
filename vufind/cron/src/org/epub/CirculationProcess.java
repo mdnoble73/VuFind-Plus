@@ -18,6 +18,9 @@ import org.ini4j.Profile.Section;
 import org.vufind.CronLogEntry;
 import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
+import org.vufind.Util;
+
+import sun.misc.Cleaner;
 
 
 public class CirculationProcess implements IProcessHandler{
@@ -28,6 +31,8 @@ public class CirculationProcess implements IProcessHandler{
 	private Connection econtentConn = null;
 	private String mailHost;
 	private String mailFrom;
+	private String noticeLibraryName;
+	private String siteUrl;
 	
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -41,6 +46,8 @@ public class CirculationProcess implements IProcessHandler{
 		
 		mailHost = configIni.get("Mail", "host");
 		mailFrom = configIni.get("Site", "email");
+		noticeLibraryName = Util.cleanIniValue(configIni.get("EContent", "noticeLibraryName"));
+		siteUrl = Util.cleanIniValue(configIni.get("Site", "url"));
 		
 		//Activate suspended holds that have hit their activation date.
 		activateSuspendedHolds();
@@ -171,7 +178,7 @@ public class CirculationProcess implements IProcessHandler{
 				getUserEmailStmt.setLong(1, userId);
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
-					String emailSubject = "Douglas County Libraries Notice";
+					String emailSubject = noticeLibraryName + " Notice";
 					StringBuffer emailBody = new StringBuffer();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
@@ -197,8 +204,8 @@ public class CirculationProcess implements IProcessHandler{
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append("Douglas County Libraries\r\n");
-						emailBody.append("http://www.douglascountylibraries.org/\r\n");
+						emailBody.append(noticeLibraryName + "\r\n");
+						emailBody.append(siteUrl + "\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -242,7 +249,7 @@ public class CirculationProcess implements IProcessHandler{
 				getUserEmailStmt.setLong(1, userId);
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
-					String emailSubject = "Douglas County Libraries - Hold Abandoned Notice";
+					String emailSubject = noticeLibraryName + " - Hold Abandoned Notice";
 					StringBuffer emailBody = new StringBuffer();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
@@ -268,8 +275,8 @@ public class CirculationProcess implements IProcessHandler{
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append("Douglas County Libraries\r\n");
-						emailBody.append("http://www.douglascountylibraries.org/\r\n");
+						emailBody.append(noticeLibraryName + "\r\n");
+						emailBody.append(siteUrl + "\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -320,7 +327,7 @@ public class CirculationProcess implements IProcessHandler{
 				getUserEmailStmt.setLong(1, userId);
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
-					String emailSubject = "Douglas County Libraries - Hold Reminder Notice";
+					String emailSubject = noticeLibraryName + " - Hold Reminder Notice";
 					StringBuffer emailBody = new StringBuffer();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
@@ -350,8 +357,8 @@ public class CirculationProcess implements IProcessHandler{
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append("Douglas County Libraries\r\n");
-						emailBody.append("http://www.douglascountylibraries.org/\r\n");
+						emailBody.append(noticeLibraryName + "\r\n");
+						emailBody.append(siteUrl + "\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -399,7 +406,7 @@ public class CirculationProcess implements IProcessHandler{
 				getUserEmailStmt.setLong(1, userId);
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
-					String emailSubject = "Douglas County Libraries - Hold Notice";
+					String emailSubject = noticeLibraryName + " - Hold Notice";
 					StringBuffer emailBody = new StringBuffer();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
@@ -429,8 +436,8 @@ public class CirculationProcess implements IProcessHandler{
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append("Douglas County Libraries\r\n");
-						emailBody.append("http://www.douglascountylibraries.org/\r\n");
+						emailBody.append(noticeLibraryName + "\r\n");
+						emailBody.append(siteUrl + "\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						

@@ -223,6 +223,7 @@
 		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="word_think_heading" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false"/>
+		<field name="lexile_code" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_interest_level" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false"/>

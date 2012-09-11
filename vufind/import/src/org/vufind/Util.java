@@ -503,4 +503,28 @@ public class Util {
 		sortTitle = sortTitle.trim();
 		return sortTitle;
 	}
+	
+	public static String convertISBN10to13(String isbn10){
+		if (isbn10.length() != 10){
+			return null;
+		}
+		String isbn = "978" + isbn10.substring(0, 9);
+		//Calculate the 13 digit checksum
+		int sumOfDigits = 0;
+		for (int i = 0; i < 12; i++){
+			int multiplier = 1;
+			if (i % 2 == 1){
+				multiplier = 3;
+			}
+			sumOfDigits += multiplier * (int)(isbn.charAt(i));
+		}
+		int modValue = sumOfDigits % 10;
+		int checksumDigit;
+		if (modValue == 0){
+			checksumDigit = 0;
+		}else{
+			checksumDigit = 10 - modValue;
+		}
+		return  isbn + Integer.toString(checksumDigit);
+	}
 }

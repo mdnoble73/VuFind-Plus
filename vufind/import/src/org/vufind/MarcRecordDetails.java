@@ -1079,6 +1079,12 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getAwardName") && parms.length == 1){
 					retval = getAwardName(parms[0]);
 					returnType = Set.class;
+				}else if (functionName.equals("getLexileScore") ){
+					retval = getLexileScore();
+					returnType = String.class;
+				}else if (functionName.equals("getLexileCode") ){
+					retval = getLexileCode();
+					returnType = String.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
@@ -1425,6 +1431,28 @@ public class MarcRecordDetails {
 			return bestIsbn;
 		}
 	}
+	
+	public HashSet<String> getIsbn13s() {
+		// return the first 13 digit isbn or 10 digit if there are no 13
+		HashSet<String> isbns13s = new HashSet<String>();
+		Set<String> isbns = getFieldList("020a");
+		if (isbns != null && isbns.size() > 0) {
+			Iterator<String> isbnIterator = isbns.iterator();
+			while (isbnIterator.hasNext()) {
+				String curIsbn = isbnIterator.next();
+				if (curIsbn.indexOf(" ") > 0) {
+					curIsbn = curIsbn.substring(0, curIsbn.indexOf(" "));
+				}
+				if (curIsbn.length() == 13) {
+					isbns13s.add(curIsbn);
+				} else {
+					isbns13s.add(Util.convertISBN10to13(curIsbn));
+				}
+			}
+			//logger.debug("Found " + isbns13s.size() + " ISBN 13s");
+		}
+		return isbns13s;
+	}
 
 	private HashMap<String, Object> getMappedFields(String source) {
 		mapRecord(source);
@@ -1736,7 +1764,21 @@ public class MarcRecordDetails {
 	}
 	
 	public Set<String> getAwardName(String fieldSpec) {
-		Set<String> result = new LinkedHashSet<String>();
+		Set<String> result = new HashSet<String>();
+		loadLexileData();
+		if (lexileData != null){
+			String lexileAwards = lexileData.getAwards();
+			if (lexileAwards != null && lexileAwards.length() > 0){
+				//Get rid of any text within parenthesis (date nominated or awarded)
+				lexileAwards = lexileAwards.replaceAll("\\(.*?\\)", "");
+				String[] lexileAwardArray = lexileAwards.split("\\s*,\\s*");
+				for (String curAward : lexileAwardArray){
+					result.add(curAward.trim());
+					//logger.debug("Award " + curAward);
+				}
+				
+			}
+		}
 		// Loop through the specified MARC fields:
 		Set<String> fields = getFieldList(fieldSpec);
 		Iterator<String> fieldsIter = fields.iterator();
@@ -1758,42 +1800,44 @@ public class MarcRecordDetails {
 		return result;
 	}
 	
-	public String getLexileScore(){
-		String result = null;
-		//Get a list of all tags that may contain the lexile score.  
-		@SuppressWarnings("unchecked")
-		List<VariableField> input = record.getVariableFields("521");
-		Iterator<VariableField> iter = input.iterator();
-
-		DataField field;
-		while (iter.hasNext()) {
-			field = (DataField) iter.next();
-	    
-			if (field.getSubfield('b') == null){
-				continue;
-			}else{
-				String type = field.getSubfield('b').getData();
-				if (type.matches("(?i).*?lexile.*?")){
-					String lexileRawData = field.getSubfield('a').getData();
-					try {
-						Pattern Regex = Pattern.compile("(\\d+)",
-							Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-						Matcher RegexMatcher = Regex.matcher(lexileRawData);
-						if (RegexMatcher.find()) {
-							String lexileData = RegexMatcher.group(1);
-							
-							result = lexileData;
-							//System.out.println("Lexile Score " + result);
-							return result;
-						} 
-					} catch (PatternSyntaxException ex) {
-						// Syntax error in the regular expression
-					}
+	private boolean lexileDataLoaded = false;
+	private LexileData lexileData = null;
+	
+	private void loadLexileData(){
+		if (!lexileDataLoaded){
+			HashSet<String> isbns = this.getIsbn13s();
+			//logger.debug("Checking " + isbns.size() + " isbns for lexile data");
+			for (String isbn : isbns){
+				LexileData data = marcProcessor.getLexileDataForIsbn(isbn);
+				if (data != null){
+					logger.debug("Found lexile information for isbn " + isbn);
+					lexileData = data;
+					break;
+				}else{
+					//logger.debug("No lexile data for isbn " + isbn);
 				}
 			}
+			lexileDataLoaded = true;
 		}
-
-		return result;
+	}
+	
+	public String getLexileCode(){
+		loadLexileData();
+		if (lexileData != null){
+			//logger.debug("Lexile code = " + lexileData.getLexileCode());
+			return lexileData.getLexileCode();
+		}else{
+			return null;
+		}
+	}
+	public String getLexileScore(){
+		loadLexileData();
+		if (lexileData != null){
+			//logger.debug("Lexile score = " + lexileData.getLexileScore());
+			return lexileData.getLexileScore();
+		}else{
+			return null;
+		}
 	}
 	
 	public String getAcceleratedReaderReadingLevel(){
