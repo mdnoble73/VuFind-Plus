@@ -26,6 +26,8 @@ public class CirculationProcess implements IProcessHandler{
 	private CronProcessLogEntry processLog;
 	private Connection vufindConn = null;
 	private Connection econtentConn = null;
+	private String mailHost;
+	private String mailFrom;
 	
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -36,6 +38,9 @@ public class CirculationProcess implements IProcessHandler{
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "eContent circulation");
 		processLog.saveToDatabase(vufindConn, logger);
 		logger.info("Running circulation process for eContent");
+		
+		mailHost = configIni.get("Mail", "host");
+		mailFrom = configIni.get("Site", "email");
 		
 		//Activate suspended holds that have hit their activation date.
 		activateSuspendedHolds();
@@ -460,14 +465,11 @@ public class CirculationProcess implements IProcessHandler{
 		logger.info("Email Subject: " + emailSubject);
 		logger.info("Email Body: " + emailBody);
 		
-		String host = "dirsync2.dcl.lan";
-		String from = "notices@dclibraries.microsoftonline.com";
-		
 		// Get system properties
 		Properties props = System.getProperties();
 
 		// Setup mail server
-		props.put("mail.smtp.host", host);
+		props.put("mail.smtp.host", mailHost);
 
 		// Get session
 		Session session = Session.getDefaultInstance(props, null);
@@ -475,7 +477,7 @@ public class CirculationProcess implements IProcessHandler{
 		try {
 			// Define message
 			MimeMessage message = new MimeMessage(session);
-			message.setFrom(new InternetAddress(from));
+			message.setFrom(new InternetAddress(mailFrom));
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
 			message.setSubject(emailSubject);
 			message.setText(emailBody);
