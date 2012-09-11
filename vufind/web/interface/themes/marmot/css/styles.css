@@ -1436,6 +1436,11 @@ background-image:url(/interface/themes/marmot/images/update.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }
+.categoryValueeMusic{
+	background-image:url(/interface/themes/marmot/images/emusic.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
 .categoryValueAudio{
 	background-image:url(/interface/themes/marmot/images/audio.png);
 	background-repeat:no-repeat;
@@ -2099,4 +2104,7 @@ ul.hold_items li{
 .advancedSearchFacetFormatCategory{
 	display: inline-block;
 	margin: 5px;
+}
+#lexile-range{
+	margin: 5px 3px 8px;
 }

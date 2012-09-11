@@ -621,14 +621,20 @@ class MillenniumDriver implements DriverInterface
 				}
 
 				if ($haveIssueSummary){
-					$issueSummaries[$issueSummaryKey]['holdings'][$key] = $holding;
+					$issueSummaries[$issueSummaryKey]['holdings'][strtolower($key)] = $holding;
 				}else{
 					//Need to automatically add a summary so we don't lose data
 					$issueSummaries[$holding['location']] = array(
                         'location' => $holding['location'],
                         'type' => 'issue',
-                        'holdings' => array($key => $holding),
+                        'holdings' => array(strtolower($key) => $holding),
 					);
+				}
+			}
+			foreach ($issueSummaries as $key => $issueSummary){
+				if (isset($issueSummary['holdings']) && is_array($issueSummary['holdings'])){
+					krsort($issueSummary['holdings']);
+					$issueSummaries[$key] = $issueSummary;
 				}
 			}
 			ksort($issueSummaries);
