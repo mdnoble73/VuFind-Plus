@@ -90,12 +90,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	public ProcessorResults results;
 	
-	private int numReindexingThreadsRunning;
-	private long lastThreadStartTime; 
-	
-	private int numItemAttachmentThreadsRunning;
-	private long lastItemAttachmentThreadStartTime; 
-	
 	//Overdrive API information 
 	private String clientSecret;
 	private String clientKey;
@@ -1185,7 +1179,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 
 	protected boolean loadConfig(Ini configIni, Logger logger) {
-		
 		econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
 			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
@@ -1238,38 +1231,19 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		return true;
 		
 	}
+	
+	private void addOverDriveTitlesWithoutMarcToIndex(){
+		results.addNote("Adding OverDrive titles without marc records to index");
+		
+	}
 
 	@Override
 	public void finish() {
-		//Wait a maximum of 5 minutes for all threads to finish indexing.
-		while (numItemAttachmentThreadsRunning > 0 && ((new Date().getTime() - lastItemAttachmentThreadStartTime) > 5 * 60 * 1000)){
-			logger.info("Waiting for all reindex threads to finish, " + numItemAttachmentThreadsRunning + " remain open");
-			try {
-				Thread.yield();
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				logger.error("The thread was interrupted");
-				break;
-			}
+		if (overDriveTitles.size() > 0){
+			results.addNote(overDriveTitles.size() + " overdrive titles were found using the OverDrive API but did not have an associated MARC record.");
+			results.saveResults();
+			addOverDriveTitlesWithoutMarcToIndex();
 		}
-		
-		//Wait a maximum of 5 minutes for all threads to finish indexing.
-		while (numReindexingThreadsRunning > 0 && ((new Date().getTime() - lastThreadStartTime) > 5 * 60 * 1000)){
-			logger.info("Waiting for all reindex threads to finish, " + numReindexingThreadsRunning + " remain open");
-			try {
-				Thread.yield();
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				logger.error("The thread was interrupted");
-				break;
-			}
-		}
-		
-		
 		
 		//Make sure that the index is good and swap indexes
 		results.addNote("calling final commit on index");
@@ -1306,11 +1280,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		results.addNote("Finished eContent extraction");
 		results.saveResults();
-		
-		if (overDriveTitles.size() > 0){
-			results.addNote(overDriveTitles.size() + " overdrive titles were found using the OverDrive API but did not have an associated MARC record.");
-			results.saveResults();
-		}
 	}
 	
 	private boolean checkMarcImport() {
@@ -1331,13 +1300,4 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		return vufindUrl;
 	}
 
-	public int getNumReindexingThreadsRunning() {
-		return numReindexingThreadsRunning;
-	}
-	public synchronized void decrementReindexingThreadsRunning() {
-		numReindexingThreadsRunning--;
-	}
-	public synchronized void decrementItemAttachmentThreadsRunning() {
-		numItemAttachmentThreadsRunning--;
-	}
 }
