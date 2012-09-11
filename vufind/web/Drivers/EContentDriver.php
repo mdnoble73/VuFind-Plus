@@ -96,8 +96,8 @@ class EContentDriver implements DriverInterface{
 		$eContentRecord->find(true);
 		if ($eContentRecord->accessType != 'external'){
 			//Check to see if the record is checked out or on hold within VuFind
-			$checkedOut = false;
-			$onHold = false;
+			$checkedOutToUser = false;
+			$onHoldForUser = false;
 			$holdPosition = 0;
 			if ($user){
 				$eContentCheckout = new EContentCheckout();
@@ -108,7 +108,7 @@ class EContentDriver implements DriverInterface{
 				if ($eContentCheckout->N > 0){
 					//The item is checked out to the current user
 					$eContentCheckout->fetch();
-					$checkedOut = true;
+					$checkedOutToUser = true;
 				}else{
 					$eContentHold = new EContentHold();
 					$eContentHold->userId = $user->id;
@@ -116,7 +116,7 @@ class EContentDriver implements DriverInterface{
 					$eContentHold->recordId = $id;
 					$eContentHold->find();
 					if ($eContentHold->N > 0){
-						$onHold = true;
+						$onHoldForUser = true;
 						$eContentHold->fetch();
 						$holdPosition = $this->_getHoldPosition($eContentHold);
 					}
@@ -135,16 +135,16 @@ class EContentDriver implements DriverInterface{
 				$item->source = $eContentRecord->source;
 				//Generate links for the items
 				$links = array();
-				if ($checkedOut){
+				if ($checkedOutToUser){
 					$links = $this->_getCheckedOutEContentLinks($eContentRecord, $item, $eContentCheckout);
 				}else if ($eContentRecord->accessType == 'free' && $item->isExternalItem()){
 					$links = $this->_getFreeExternalLinks($eContentRecord, $item);
-				}else if ($onHold){
+				}else if ($onHoldForUser){
 					$links = $this->getOnHoldEContentLinks($eContentHold);
 				}
 
-				$item->checkedOut = $checkedOut;
-				$item->onHold = $onHold;
+				$item->checkedOut = $checkedOutToUser;
+				$item->onHold = $onHoldForUser;
 				$item->holdPosition = $holdPosition;
 				$item->links = $links;
 				$items[] = $item;
@@ -264,11 +264,16 @@ class EContentDriver implements DriverInterface{
 		$onHold = 0;
 		$wishListSize = 0;
 		$numHolds = 0;
-		foreach ($availability as $curAvailability){
-			$availableCopies += $curAvailability->availableCopies;
-			$totalCopies += $curAvailability->copiesOwned;
-			$onOrderCopies += $curAvailability->onOrderCopies;
-			$numHolds += $curAvailability->numberOfHolds;
+		if (count($availability) > 0){
+			foreach ($availability as $curAvailability){
+				$availableCopies += $curAvailability->availableCopies;
+				$totalCopies += $curAvailability->copiesOwned;
+				$onOrderCopies += $curAvailability->onOrderCopies;
+				$numHolds += $curAvailability->numberOfHolds;
+			}
+		}elseif ($eContentRecord->itemLevelOwnership == 0) {
+			$totalCopies = $eContentRecord->availableCopies;
+			$onOrderCopies = $eContentRecord->onOrderCopies;
 		}
 		$available = ($availableCopies > 0);
 
