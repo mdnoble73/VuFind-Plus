@@ -255,8 +255,10 @@ class ReportPageViewsLocation extends Report{
 		$i=0;
 		while ($r=mysql_fetch_array($resPageViews)) {
 
-			if (!isset($r['Location']) || $r['Location'] == '') {
+			if ($r['ipId'] == '-1') {
 				$tmpLocation = 'Home Users';
+			}elseif ($r['ipId'] == '-2') {
+				$tmpLocation = 'Search Bots';
 			} else {
 				$tmpLocation = $r['Location'];
 			}
