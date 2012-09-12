@@ -48,9 +48,11 @@ class UsageTracking extends DB_DataObject{
 
 			// If the Subnet (location) is unknown save as a -1
 			//print_r($ipLocation);
-			if (BotChecker::isRequestFromBot()){
+			$requestFromBot = BotChecker::isRequestFromBot();
+			if ($requestFromBot){
 				$ipLocationId = -2;
 				$locationId = -2;
+				$ipId = -2;
 			}else if ($ipLocation == null) {
 				$ipLocationId = -1;
 				$locationId = -1;
