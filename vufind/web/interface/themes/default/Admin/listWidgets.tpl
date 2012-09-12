@@ -11,11 +11,11 @@
     <div id="widgets"></div>
     {* Select a widget to edit *}
     <div id="availableWidgets"> 
-    <table> 
-    <thead><tr><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
+    <table class="citation"> 
+    <thead><tr><th>Id</th><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
     <tbody>
     	{foreach from=$availableWidgets key=id item=widget}
-    		<tr><td>{$widget->name}</td><td>{$widget->description}</td><td>
+    		<tr><td>{$widget->id}</td><td>{$widget->name}</td><td>{$widget->description}</td><td>
     		<a class="button" href="{$path}/Admin/ListWidgets?objectAction=view&id={$widget->id}"/>View</a> 
     		<a class="button" href="{$path}/Admin/ListWidgets?objectAction=edit&id={$widget->id}"/>Edit</a>
     		<a class="button" href="{$path}/API/SearchAPI?method=getListWidget&id={$widget->id}"/>Preview</a>
