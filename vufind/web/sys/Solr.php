@@ -1047,8 +1047,6 @@ class Solr implements IndexEngine {
 			//Marmot overrides for filtering based on library system and location
 			//Only show visible records
 			if (isset($configArray['Index']['ignoreBibSuppression']) && $configArray['Index']['ignoreBibSuppression'] == true){
-				$filter = array();
-			}else{
 				$filter[] = 'bib_suppression:notsuppressed';
 			}
 			if ($this->scopingDisabled == false){
