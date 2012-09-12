@@ -897,7 +897,7 @@ table.datagrid tr.oddrow {
 	margin:0.5em 0.5em 0.5em 0px;
 	margin-right:0;
 }
-.holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby{
+.holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby, .holdingsSummaryStatusLine.here{
 	color:#009900;
 }
 .holdingsSummaryStatusLine.unavailable {
@@ -909,7 +909,7 @@ table.datagrid tr.oddrow {
 .unavailable span{
 	padding-left:10px;
 }
-.holdingsSummaryStatusLine.checkedout,.holdingsSummaryStatusLine.reserve{
+.holdingsSummaryStatusLine.checkedOut,.holdingsSummaryStatusLine.checkedout,.holdingsSummaryStatusLine.reserve{
 	color:#cc0000;
 }
 .checkedout>span{

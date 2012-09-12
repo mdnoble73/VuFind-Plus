@@ -883,6 +883,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		//Status is not set, check to see if the item is downloadable
+		/*
 		if (!isset($summaryInformation['status'])){
 			//Check to see if there is a download link in the 856 field
 			//Make sure that the search engine has been setup.  It may not be if the
@@ -957,7 +958,7 @@ class MillenniumDriver implements DriverInterface
 					$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
 				}
 			}
-		}
+		}*/
 
 		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
 			//Replace all spaces in the name of a location with no break spaces

@@ -19,6 +19,10 @@
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
 			<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text='Available now at'} {$holdingsSummary.numAvailableOther+$holdingsSummary.availableAt} Marmot {if $holdingsSummary.numAvailableOther == 1}Library{else}Libraries{/if}</a>
 		</div>
+	{elseif ($holdingsSummary.class) == 'here'}
+		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
+			<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if $holdingsSummary.location}<br/>{$holdingsSummary.location}{/if}</a>
+		</div>
 	{else}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
 			<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{translate text=$holdingsSummary.status} {if false && strlen($holdingsSummary.unavailableStatus) > 0 && $holdingsSummary.class == 'checkedOut'}({translate text=$holdingsSummary.unavailableStatus}){/if}</a>
