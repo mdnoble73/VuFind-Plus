@@ -34,6 +34,7 @@ class Location extends DB_DataObject
 	public $defaultPType;
 	public $ptypesToAllowRenewals;
 	public $footerTemplate;
+	public $homePageWidgetId;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Location',$k,$v); }
@@ -85,6 +86,7 @@ class Location extends DB_DataObject
 		array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true),
 		array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true),
 		array('property'=>'facetFile', 'type'=>'text', 'label'=>'Facet File', 'description'=>'The name of the facet file which should be used while searching', 'hideInLists' => true),
+		array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true,),
 		array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
 		array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true),
 		array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true),

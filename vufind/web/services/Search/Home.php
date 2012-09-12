@@ -49,7 +49,15 @@ class Home extends Action {
 		//Get the lists to show on the home page
 		require_once 'sys/ListWidget.php';
 		$widgetId = 1;
-		if (isset($library) && $library->homePageWidgetId > 0){
+		$activeLocation = $locationSingleton->getActiveLocation();
+		if ($activeLocation != null && $activeLocation->homePageWidgetId > 0){
+			$widgetId = $activeLocation->homePageWidgetId;
+			$widget = new ListWidget();
+			$widget->id = $widgetId;
+			if ($widget->find(true)){
+				$interface->assign('widget', $widget);
+			}
+		}else if (isset($library) && $library->homePageWidgetId > 0){
 			$widgetId = $library->homePageWidgetId;
 			$widget = new ListWidget();
 			$widget->id = $widgetId;

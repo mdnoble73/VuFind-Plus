@@ -291,6 +291,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_3' => array(
+				'title' => 'Location 3',
+				'description' => 'Add the ability to set home page widget by location',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `location` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',
