@@ -1081,11 +1081,11 @@ class EContentRecord extends SolrDataObject {
 		$categoryMap = $memcache->get('econtent_category_map');
 		if ($categoryMap == false){
 			$categoryMap = array();
-			if (file_exists("../../sites/$servername/conf/econtent_category_map.ini")){
+			if (file_exists("../../sites/$servername/translation_maps/format_category_map.properties")){
 				// Return the file path (note that all ini files are in the conf/ directory)
-				$categoryMapFile = "../../sites/$servername/conf/econtent_category_map.ini";
+				$categoryMapFile = "../../sites/$servername/translation_maps/format_category_map.properties";
 			}else{
-				$categoryMapFile = "../../sites/default/conf/econtent_category_map.ini";
+				$categoryMapFile = "../../sites/default/translation_maps/format_category_map.properties";
 			}
 			$formatInformation = parse_ini_file($categoryMapFile);
 			foreach ($formatInformation as $format => $category){
