@@ -127,21 +127,21 @@ class EContentUsage extends Admin
 			// 1st record is easy, work out the start of this page
 			$startRecord = (($currentPage - 1) * $itemsPerPage) + 1;
 		}
-		
+
 		$startDateSqlFormatted = date('Y-m-d', strtotime($selectedDateStart));
 		$endDateSqlFormatted = date('Y-m-d', strtotime($selectedDateEnd));
 
 		//Create the base query
 		$baseQuery = "SELECT econtent_record.id, " .
 				"econtent_record.title, ".
-				"econtent_record.source, " . 
+				"econtent_record.source, " .
 				"COUNT(DISTINCT userId) as numUsers, " .
 				"COUNT(DISTINCT IF (action = 'Checked Out', userid, NULL)) as checkedOut, " .
-				"COUNT(DISTINCT IF (action = 'Checked In', userid, NULL)) as checkedIn, " . 
+				"COUNT(DISTINCT IF (action = 'Checked In', userid, NULL)) as checkedIn, " .
 				"COUNT(DISTINCT IF (action = 'Read Online', userid, NULL)) as readOnline, " .
 				"COUNT(DISTINCT IF (action = 'Place Hold', userid, NULL)) as placeHold, " .
 				"COUNT(DISTINCT IF (action = 'Download', userid, NULL)) as download, ".
-				"COUNT(DISTINCT IF (action = 'Read Online' OR action = 'Read Online', userid, NULL)) as numViews " .
+				"COUNT(DISTINCT IF (action = 'Read Online' OR action = 'Download', userid, NULL)) as numViews " .
 				"FROM `econtent_history` ".
 				"INNER join econtent_record on econtent_record.id = econtent_history.recordId ";
 		$baseQuery .= "WHERE (DATE_FORMAT(econtent_history.openDate, '%Y-%m-%d')) BETWEEN '". $startDateSqlFormatted . "' AND '". $endDateSqlFormatted . "' ";
@@ -166,15 +166,15 @@ class EContentUsage extends Admin
 			}
 			$baseQuery .= "AND econtent_record.accessType IN (". $accessTypes . ") ";
 		}
-		
+
 		$baseQuery .= "GROUP BY econtent_record.id ".
 				"ORDER BY title, econtent_record.id ASC ";
-		
-		
-	
+
+
+
 		$countQuery = "SELECT COUNT(id) as totalResults FROM (" . $baseQuery . ") baseQuery ";
 		$usageQuery = "SELECT * FROM (" . $baseQuery . ") baseQuery ";
-		
+
 		//Add max / min filters as needed since they depend on the base query
 		if (($minFilter != "")&&($maxFilter != "")) {
 			$countQuery .= "WHERE numViews >= ". $minFilter . " AND numViews <= ". $maxFilter . " ";
@@ -204,10 +204,10 @@ class EContentUsage extends Admin
 			$resourceInfo['download'] = $epubHistory->download;
 			$resourceInfo['numViews'] = $epubHistory->numViews;
 			$resourceInfo['numUsers'] = $epubHistory->numUsers;
-			
+
 			$usageSummary['data'][] = $resourceInfo;
 		}
-		
+
 		//Load total number of results
 		$epubHistory->query($countQuery);
 		if ($epubHistory->fetch()){
@@ -218,11 +218,11 @@ class EContentUsage extends Admin
 
 		//////////Paging Array
 		$summary = array(
-      	'page' => $currentPage,  
-				'perPage' => $itemsPerPage, 
+      	'page' => $currentPage,
+				'perPage' => $itemsPerPage,
 				'resultTotal' => $totalResultCount,
 				'startRecord' => $startRecord,
-        'endRecord'=> $startRecord + count($usageSummary['data']) - 1, 
+        'endRecord'=> $startRecord + count($usageSummary['data']) - 1,
 		);
 
 		$interface->assign('recordCount', $summary['resultTotal']);
@@ -293,8 +293,8 @@ class EContentUsage extends Admin
 		do {
 		   $sheet->getColumnDimension($columnID)->setAutoSize(true);
 		   $columnID++;
-		} while ($columnID != $lastColumn); 
-		
+		} while ($columnID != $lastColumn);
+
 		// Redirect output to a client’s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="eUsageSummaryReport.xls"');
@@ -325,7 +325,7 @@ class EContentUsage extends Admin
 			);
 			$resultsSourceFilter[$i++] = $tmp;
 		}
-			
+
 		return $resultsSourceFilter;
 	}
 
@@ -335,7 +335,7 @@ class EContentUsage extends Admin
 			'free' => 'Free Usage',
 			'singleUse' => 'Single Usage',
 			'acs' => 'Adobe Content Server Protected',
-			
+
 		);
 		return $resultsAccessTypeFilter;
 	}
@@ -345,10 +345,10 @@ class EContentUsage extends Admin
 		//loop through the
 		$itemsPerPageList = array();
 		$itemsPerPageList["10"] = array(
-					      'amount'  => 10,          
+					      'amount'  => 10,
 					      'selected' => isset($_REQUEST['itemsPerPage']) && $_REQUEST['itemsPerPage'] == 10 );
 		$itemsPerPageList["50"] = array(
-					      'amount'  => 50,          
+					      'amount'  => 50,
 					      'selected' => (!isset($_REQUEST['itemsPerPage']) || $_REQUEST['itemsPerPage'] == 50) );
 		$itemsPerPageList["100"] = array(
 					      'amount'  => 100,
