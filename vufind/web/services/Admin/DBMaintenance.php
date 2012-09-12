@@ -1419,6 +1419,15 @@ class DBMaintenance extends Admin {
 				") ENGINE = InnoDB"
 			),
 		),
+
+		'session_update_1' => array(
+			'title' => 'Session Update 1',
+			'description' => 'Add a field for whether or not the session was started with remember me on.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE session ADD COLUMN `remember_me` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not the session was started with remember me on.'",
+			),
+		),
 		);
 	}
 
