@@ -103,7 +103,8 @@ class ReportPageViewsLocation extends Report{
 				$selectedLocationsFilter[$i++] = $r['ipId'];
 			}
 			$selectedLocationsFilter[] = -1;
-			$selectedLocationsFilter[] = -2;
+			//Do not include search bots by default
+			//$selectedLocationsFilter[] = -2;
 		}
 		$interface->assign('selectedLocationsFilter', $selectedLocationsFilter);
 
