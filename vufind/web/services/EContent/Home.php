@@ -34,7 +34,7 @@ class Home extends Action
 	function launch()
 	{
 		global $configArray;
-		 
+
 		$logger = new Logger();
 		$post_body = file_get_contents('php://input');
 		if (isset($_POST['body'])){
@@ -50,7 +50,7 @@ class Home extends Action
 		$transactionId = (string)$notificationData->body->transaction;
 		//Get the user acsId
 		$userAcsId = (string)$notificationData->body->user;
-			
+
 		if ($isFulfilled){
 			if ($isReturned){
 				$logger->log("Transaction $transactionId was returned, returning it in the catalog.", PEAR_LOG_INFO);
@@ -63,7 +63,7 @@ class Home extends Action
 		}
 		//Add a log entry for debugging.
 		$logger->log("Preparing to insert log entry for transaction", PEAR_LOG_INFO);
-		
+
 		require_once('sys/eContent/AcsLog.php');
 		$acsLog = new AcsLog();
 		$acsLog->acsTransactionId = $transactionId;
@@ -72,7 +72,7 @@ class Home extends Action
 		$acsLog->userAcsId = $userAcsId;
 		$ret = $acsLog->insert();
 		$logger->log("Inserted log entry result: $ret", PEAR_LOG_INFO);
-		
+
 		//Update the database as appropriate
 		//Get the chckd out item for the transaction Id
 		require_once('sys/eContent/EContentCheckout.php');
@@ -95,6 +95,14 @@ class Home extends Action
 					$checkout->userAcsId = $userAcsId;
 					$checkout->update();
 				}
+				//Mark that the record is downloaded
+				require_once('sys/eContent/EContentRecord.php');
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->id = $checkout->recordId;
+				$eContentRecord->find(true);
+				require_once 'Drivers/EContentDriver.php';
+				$driver = new EContentDriver();
+				$driver->recordEContentAction($checkout->recordId, 'Download', $eContentRecord->accessType);
 			}
 		}
 	}
