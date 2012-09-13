@@ -50,6 +50,9 @@ function redrawSaveStatus() {literal}{{/literal}
 			{if $showFavorites == 1}
 				<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></li>
 			{/if}
+			{if $enableBookCart == 1}
+				<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$eContentRecord->title|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+			{/if}
 			{if !empty($addThis)}
 				<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 			{/if}
@@ -244,9 +247,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Format'}:</span>
 					{if is_array($eContentRecord->format())}
-					 {foreach from=$eContentRecord->format() item=displayFormat name=loop}
-						 <span class="resultValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></span>
-					 {/foreach}
+						{foreach from=$eContentRecord->format() item=displayFormat name=loop}
+							<span class="resultValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></span>
+						{/foreach}
 					{else}
 						<span class="resultValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></span>
 					{/if}

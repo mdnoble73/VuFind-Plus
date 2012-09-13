@@ -839,6 +839,13 @@ table.datagrid tr.oddrow {
 	padding:.5em .5em .5em 20px;
 	margin-right:1em;
 }
+.cart{
+	background-image:url(/images/silk/cart.png);
+	background-repeat:no-repeat;
+	background-position: left; 
+	padding:.5em 0 .5em 18px;
+	margin-right:.7em;
+}
 .edit {
 	background-image:url(/images/silk/edit.png);
 	background-repeat:no-repeat;

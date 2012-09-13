@@ -342,6 +342,9 @@ function redrawSaveStatus() {literal}{{/literal}
 						{if $showFavorites == 1}
 							<li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
 						{/if}
+						{if $enableBookCart == 1}
+							<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$recordTitleSubtitle|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+						{/if}
 						{if !empty($addThis)}
 							<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 						{/if}
