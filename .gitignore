@@ -18,6 +18,7 @@ vufind/web/images/covers/medium/*
 vufind/web/images/covers/small/*
 vufind/web/images/covers/large/*
 vufind/web/files/original/*
+vufind/web/*.csv
 
 # Compiled source #
 ###################

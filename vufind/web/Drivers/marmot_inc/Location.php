@@ -551,16 +551,26 @@ class Location extends DB_DataObject
 				//Library is closed now
 				$nextDay = time() + (24 * 60 * 60);
 				$nextDayHours = Location::getLibraryHours($locationId,  $nextDay);
-				while (isset($nextDayHours['closed']) && $nextDayHours['closed'] == true){
+				$daysChecked = 0;
+				while (isset($nextDayHours['closed']) && $nextDayHours['closed'] == true && $daysChecked < 7){
 					$nextDay += (24 * 60 * 60);
 					$nextDayHours = Location::getLibraryHours($locationId,  $nextDay);
+					$daysChecked++;
 				}
 
 				$nextDayOfWeek = strftime ('%a', $nextDay);
-				if (isset($closureReason)){
-					$libraryHoursMessage = "The library is closed today for $closureReason. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+				if (isset($nextDayHours['closed']) && $nextDayHours['closed'] == true){
+					if (isset($closureReason)){
+						$libraryHoursMessage = "The library is closed today for $closureReason.";
+					}else{
+						$libraryHoursMessage = "The library is closed today.";
+					}
 				}else{
-					$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+					if (isset($closureReason)){
+						$libraryHoursMessage = "The library is closed today for $closureReason. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+					}else{
+						$libraryHoursMessage = "The library is closed today. It will reopen on $nextDayOfWeek from {$nextDayHours['openFormatted']} to {$nextDayHours['closeFormatted']}";
+					}
 				}
 			}else{
 				//Library is open
