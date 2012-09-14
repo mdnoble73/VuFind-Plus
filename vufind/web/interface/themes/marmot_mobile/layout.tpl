@@ -20,7 +20,6 @@
 		{js filename="jquery-1.7.1.min.js"}
 		<script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
 		<script type="text/javascript" src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
-		{js filename="scripts.js"}
 		{js filename="common.js"}
 		{js filename="jquery_cookie.js"}
 		{js filename="cart_cookie.js"}
@@ -54,5 +53,12 @@
 				{/if}
 			</div>
 		</div>
+		
+		{* LightBox *}
+		<div id="lightboxLoading" class="lightboxLoading" style="display: none;">{translate text="Loading"}...</div>
+		<div id="lightboxError" style="display: none;">{translate text="lightbox_error"}</div>
+		<div id="lightbox" onclick="hideLightbox(); return false;"></div>
+		<div id="popupbox" class="popupBox"></div>
+		{* End LightBox *}
 	</body>
 </html>

@@ -68,16 +68,57 @@ function ajaxLogin(callback){
 }
 
 function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
-	
-	var loadMsg = $('#lightboxLoading').html();
-	$('#popupbox').html(loadMsg);
-	$("#popupbox").dialog("open")
-		
-	$.get(urlToLoad, function(data) {
-		$('#popupbox').html(data);
-		
-		if ($("#popupboxHeader").length > 0){
-			$("#popupbox").draggable({ handle: "#popupboxHeader" });
-		}
+	$.mobile.changePage( urlToLoad, {
+		type: "get",
+		role  : "dialog",
+		showLoadMsg: true
 	});
+}
+
+function hideLightbox(){
+	$('.ui-dialog').dialog('close');
+}
+
+function processAjaxLogin(){
+	var username = $("#username").val();
+	var password = $("#password").val();
+	if (!username || !password){
+		alert("Please enter both the username and password");
+		return false;
+	}
+	var url = path + "/AJAX/JSON?method=loginUser"
+	$.ajax({url: url,
+			data: {username: username, password: password},
+			success: function(response){
+				if (response.result.success == true){
+					loggedIn = true;
+					// Hide "log in" options and show "log out" options:
+					$('.loginOptions').hide();
+					$('.logoutOptions').show();
+					$('#loginOptions').hide();
+					$('#logoutOptions').show();
+					$('#myAccountNameLink').html(response.result.name);
+					hideLightbox();
+					if (ajaxCallback  && typeof(ajaxCallback) === "function"){
+						ajaxCallback();
+					}
+				}else{
+					alert("That login information was not recognized.  Please try again.");
+				}
+			},
+			error: function(){
+				alert("There was an error processing your login, please try again.");
+			},
+			dataType: 'json',
+			type: 'post' 
+	});
+	
+	return false;
+}
+
+function showProcessingIndicator(message){
+	if (message != undefined){
+		$.mobile.loadingMessage = message;
+	}
+	$.mobile.showPageLoadingMsg();
 }
