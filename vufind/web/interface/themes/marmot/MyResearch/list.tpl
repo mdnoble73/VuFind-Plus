@@ -48,8 +48,7 @@
 				<div >
 				{if $recordCount}
 					{translate text="Showing"}
-					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-					{translate text='of'} <b>{$recordCount}</b>
+					<b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
 				{/if}
 				</div>
 			</div>
@@ -105,7 +104,6 @@
 				</li>
 			{/foreach}
 			</ul>
-		
 		</div>
 	{/if}
 </div>
