@@ -51,7 +51,11 @@ class User_list extends SolrDataObject
 		return 'List';
 	}
 	function bib_suppression(){
-		return "notsuppressed";
+		if ($this->public == 1){
+			return "notsuppressed";
+		}else{
+			return "suppressed";
+		}
 	}
 	function format_boost(){
 		return 100;
@@ -186,6 +190,13 @@ class User_list extends SolrDataObject
 	}
 	function num_holdings(){
 		return count($this->getResources());
+	}
+	function update(){
+		if ($this->public == 0){
+			parent::updateDetailed(false);
+		}else{
+			parent::updateDetailed(true);
+		}
 	}
 	function updateDetailed($insertInSolr = true){
 		if ($this->public == 0){
