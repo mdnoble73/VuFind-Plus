@@ -589,6 +589,7 @@ body.Search--Results--0 #sidebar-wrapper {
  */
 .rss, .email,
 .icon-book,
+.icon-audiobook,
 .icon-graphicnovel,
 .icon-dvd,
 .icon-musiccd,
@@ -629,6 +630,10 @@ body.Search--Results--0 #sidebar-wrapper {
 
 .icon-musiccd {
   background-image: url(/images/silk/cd.png);
+}
+
+.icon-audiobook {
+  background-image: url(../images/icon-audiobook.png);
 }
 
 .icon-delete {
