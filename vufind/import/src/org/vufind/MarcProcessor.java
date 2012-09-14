@@ -896,4 +896,27 @@ public class MarcProcessor {
 	public LexileData getLexileDataForIsbn(String isbn) {
 		return lexileInfo.get(isbn);
 	}
+
+	public Set<String> getGetRatingFacet(Float rating) {
+		Set<String> ratingFacet = new HashSet<String>();
+		if (rating >= 4.75) {
+			ratingFacet.add("fiveStar");
+		}
+		if (rating >= 4) {
+			ratingFacet.add("fourStar");
+		}
+		if (rating >= 3) {
+			ratingFacet.add("threeStar");
+		}
+		if (rating >= 2) {
+			ratingFacet.add("twoStar");
+		}
+		if (rating >= 0.0001) {
+			ratingFacet.add("oneStar");
+		}
+		if (ratingFacet.size() == 0){
+			ratingFacet.add("Unrated");
+		}
+		return ratingFacet;
+	}
 }

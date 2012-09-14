@@ -81,6 +81,7 @@ class EContentRecord extends SolrDataObject {
 		$formatCategory = null;
 		$formatCategoryMap = $this->getFormatCategoryMap();
 		foreach ($formats as $format){
+			$format = str_replace(' ', '_', $format);
 			if (array_key_exists($format, $formatCategoryMap)){
 				$formatCategory = $formatCategoryMap[$format];
 				break;
@@ -786,14 +787,14 @@ class EContentRecord extends SolrDataObject {
 		foreach ($items as $item){
 			$libraryId = $item->libraryId;
 			if ($libraryId == -1){
-				$institutions[] = "Digital Collection";
+				$institutions["Digital Collection"] = "Digital Collection";
 			}else{
 				$library = new Library();
 				$library->libraryId = $libraryId;
 				if ($library->find(true)){
-					$institutions[] = $library->facetLabel . ' Online';
+					$institutions[$library->facetLabel . ' Online'] = $library->facetLabel . ' Online';
 				}else{
-					$institutions[] = "Unknown";
+					$institutions["Unknown"] = "Unknown";
 				}
 			}
 		}
@@ -919,27 +920,14 @@ class EContentRecord extends SolrDataObject {
 		//Check to see if the item is checked out or if it has available holds
 		if ($this->status == 'active'){
 			require_once('Drivers/EContentDriver.php');
-			if (strcasecmp($this->source, 'OverDrive') == 0){
-				//TODO: Check to see if it really is available
-				$driver = new EContentDriver();
-				$holdings = $driver->getHolding($this->id, false);
-				if ($holdings > 0){
-					foreach ($holdings as $holding){
-						if ($holding->available){
-							return array('OverDrive');
-						}
-					}
-				}else{
-					return array();
-				}
-			}elseif ($this->source == 'Freegal'){
+			if ($this->source == 'Freegal'){
 				return array('Freegal');
 			}else{
 				$driver = new EContentDriver();
 				$holdings = $driver->getHolding($this->id);
 				$statusSummary = $driver->getStatusSummary($this->id, $holdings);
 				if ($statusSummary['availableCopies'] > 0){
-					return array('Online');
+					return $this->building();
 				}else{
 					return array();
 				}
@@ -1091,6 +1079,7 @@ class EContentRecord extends SolrDataObject {
 			foreach ($formatInformation as $format => $category){
 				$categoryMap[$format] = $category;
 			}
+
 			$memcache->set('econtent_category_map', $categoryMap, 0, $configArray['Caching']['econtent_category_map']);
 		}
 		return $categoryMap;

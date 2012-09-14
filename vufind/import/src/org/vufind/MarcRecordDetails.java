@@ -1700,26 +1700,7 @@ public class MarcRecordDetails {
 			getRating(recordIdSpec);
 		}
 
-		Set<String> ratingFacet = new HashSet<String>();
-		if (rating >= 4.75) {
-			ratingFacet.add("fiveStar");
-		}
-		if (rating >= 4) {
-			ratingFacet.add("fourStar");
-		}
-		if (rating >= 3) {
-			ratingFacet.add("threeStar");
-		}
-		if (rating >= 2) {
-			ratingFacet.add("twoStar");
-		}
-		if (rating >= 0.0001) {
-			ratingFacet.add("oneStar");
-		}
-		if (ratingFacet.size() == 0){
-			ratingFacet.add("Unrated");
-		}
-		return ratingFacet;
+		return marcProcessor.getGetRatingFacet(rating);
 	}
 	
 	public String getEContentRating(Long eContentRecordId) {
@@ -1740,27 +1721,7 @@ public class MarcRecordDetails {
 		if (rating == null) {
 			getEContentRating(eContentRecordId);
 		}
-
-		Set<String> ratingFacet = new HashSet<String>();
-		if (rating >= 4.75) {
-			ratingFacet.add("fiveStar");
-		}
-		if (rating >= 4) {
-			ratingFacet.add("fourStar");
-		}
-		if (rating >= 3) {
-			ratingFacet.add("threeStar");
-		}
-		if (rating >= 2) {
-			ratingFacet.add("twoStar");
-		}
-		if (rating >= 0.0001) {
-			ratingFacet.add("oneStar");
-		}
-		if (ratingFacet.size() == 0){
-			ratingFacet.add("Unrated");
-		}
-		return ratingFacet;
+		return marcProcessor.getGetRatingFacet(rating);
 	}
 	
 	public Set<String> getAwardName(String fieldSpec) {
@@ -1810,7 +1771,7 @@ public class MarcRecordDetails {
 			for (String isbn : isbns){
 				LexileData data = marcProcessor.getLexileDataForIsbn(isbn);
 				if (data != null){
-					logger.debug("Found lexile information for isbn " + isbn);
+					//logger.debug("Found lexile information for isbn " + isbn);
 					lexileData = data;
 					break;
 				}else{

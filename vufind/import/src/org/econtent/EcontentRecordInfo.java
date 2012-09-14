@@ -2,6 +2,7 @@ package org.econtent;
 
 public class EcontentRecordInfo {
 	private String ilsId;
+	private String externalId;
 	private long recordId;
 	private String status;
 	private int numItems;
@@ -28,5 +29,11 @@ public class EcontentRecordInfo {
 	}
 	public void setNumItems(int numItems) {
 		this.numItems = numItems;
+	}
+	public String getExternalId() {
+		return externalId;
+	}
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
 	}
 }
