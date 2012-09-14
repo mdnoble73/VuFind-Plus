@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$url}/services/MyResearch/ajax.js" />
+<script type="text/javascript" src="{$url}/services/MyResearch/ajax.js"></script>
 <div id="sidebar-wrapper"><div id="sidebar">
 	{include file="MyResearch/menu.tpl"}
 	{include file="Admin/menu.tpl"}
