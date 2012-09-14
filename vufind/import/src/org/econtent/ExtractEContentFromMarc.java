@@ -1315,7 +1315,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Reindex the record
 				SolrInputDocument doc = createSolrDocForOverDriveRecord(recordInfo, econtentRecordId);
 				updateServer.add(doc);
-				Util.getURL(vufindUrl + "/EcontentRecord/" + econtentRecordId + "/Reindex", logger);
 				
 			} catch (Exception e) {
 				logger.error("Error processing eContent record " + overDriveId , e);
