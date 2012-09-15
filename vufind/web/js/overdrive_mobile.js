@@ -17,11 +17,19 @@ function checkoutOverDriveItemStep2(overdriveId, formatId){
 	$.ajax({
 		url: url,
 		success: function(data){
-			alert(data.message);
+			hideLightbox();
 			if (data.result){
+				alert(data.message);
 				$.mobile.changePage( path + "/MyResearch/OverdriveCheckedOut");
 			}else{
-				hideLightbox();
+				if (data.noCopies == true){
+					ret = confirm(data.message)
+					if (ret == true){
+						placeOverDriveHold(overdriveId, formatId);
+					}
+				}else{
+					alert(data.message);
+				}
 			}
 		},
 		dataType: 'json',

@@ -777,7 +777,8 @@ class OverDriveDriver {
 
 		if (preg_match('/We\'re sorry, but there are currently no copies of the selected title available for check out./', $addCartConfirmation)){
 			$addToCartResult['result'] = false;
-			$addToCartResult['message'] = 'There are no copies available for checkout.  You can place a hold on the item instead.';
+			$addToCartResult['noCopies'] = true;
+			$addToCartResult['message'] = 'There are no copies available for checkout, would you like to place a hold on the item instead?';
 		}elseif (preg_match('/Titles added to your (?:cart|Book Bag|Digital Cart) will remain there for (\d+) minutes/i', $addCartConfirmation, $confirmationMatches)){
 			$addToCartResult['result'] = true;
 			$timePeriod = isset($confirmationMatches[1]) ? $confirmationMatches[1] : 30;
@@ -1058,7 +1059,7 @@ class OverDriveDriver {
 		$accountPageInfo = curl_getinfo($ch);
 
 		$matchAccount = preg_match('/(?:<td class="(?:pghead|collhead)">|<h1>)(?:\sto\s)?My (?:OverDrive\s|Digital\sMedia\s|Digital\s)?Account(?:<\/td>|<\/h1>)/is', $myAccountMenuContent);
-		$matchCart = preg_match('/One or more titles from a previous session have been added to your (cart|Book Cart|Digital Cart)/i', $myAccountMenuContent);
+		$matchCart = preg_match('/One or more titles from a previous session have been added to your (cart|Book Cart|Book Bag|Digital Cart)/i', $myAccountMenuContent);
 		if (($matchAccount > 0) || ($matchCart > 0)){
 
 			$overDriveInfo = array(
