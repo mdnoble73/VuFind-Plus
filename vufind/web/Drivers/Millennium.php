@@ -2908,6 +2908,8 @@ class MillenniumDriver implements DriverInterface
 		global $user;
 		if (strlen($user->cat_password) == 5){
 			$user->cat_password = '41000000' . $user->cat_password;
+		}else if (strlen($user->cat_password) == 6){
+			$user->cat_password = '4100000' . $user->cat_password;
 		}
 		return $user->cat_password;
 	}
