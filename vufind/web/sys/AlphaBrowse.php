@@ -117,7 +117,7 @@ class AlphaBrowse{
 			}else{
 				if ($browseResult['numResults'] > 0){
 					if ($browseType=="author"){
-						$searchLink = "/Author/Home?author=" . urlencode($browseResult['value'] . "&amp;sort=title");
+						$searchLink = "/Author/Home?sort=title&amp;author=" . urlencode($browseResult['value']);
 					}else if ($browseType=="callnumber"){
 						$searchLink = "/Search/Results?basicType=AllFields&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
 					}else{
