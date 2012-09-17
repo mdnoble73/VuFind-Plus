@@ -77,7 +77,7 @@
 							{if $facetList}
 								{foreach from=$facetList item="list" key="label"}
 								<tr>
-									<th width="{$columnWidth}%" align="right">{translate text=$label}: </th>
+									<th align="right">{translate text=$label}: </th>
 									<td>
 										<select name="filter[]">
 											{foreach from=$list item="value" key="display"}
