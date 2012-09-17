@@ -33,33 +33,36 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
-				<li><a href="{$url}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
+				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
-				<li><a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+				<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
 			{/if}
 			{if $showEmailThis == 1}
-				<li><a href="{$url}/Record/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('Record', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+				<li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
 			{/if}
 			{if is_array($exportFormats) && count($exportFormats) > 0}
 				<li>
-					<a href="{$url}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+					<a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
 					<ul class="menu" id="exportMenu">
 					{foreach from=$exportFormats item=exportFormat}
-						<li><a {if $exportFormat=="RefWorks"}target="{$exportFormat}Main" {/if}href="{$url}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
+						<li><a {if $exportFormat=="RefWorks"}target="{$exportFormat}Main" {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
 					{/foreach}
 					</ul>
 				</li>
 			{/if}
 			{if $showFavorites == 1}
-				<li id="saveLink"><a href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
+				<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
+			{/if}
+			{if $enableBookCart == 1}
+				<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$recordTitleSubtitle|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
 			{/if}
 			{if !empty($addThis)}
 				<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 			{/if}
 			<li id="HoldingsLink"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
 			{if isset($nextId)}
-				<li><a href="{$url}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
+				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
 			{/if}
 		</ul>
 	</div>
@@ -83,7 +86,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{else}
 							<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
 						{/if}
-						<a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
 						</span>
 						{$edition.edition|escape}
 						{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
@@ -113,7 +116,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{else}
 							<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
 						{/if}
-						<a href="{$url}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
 						</span>
 						<span style="font-size: 80%">
 						{if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
@@ -154,7 +157,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if}
 				<div class='requestThisLink' style='display:none'>
-					<a href="{$url}/Record/{$id|escape:"url"}/Hold" class="holdRequest  button" style="display:inline-block;font-size:11pt;margin-top:15px;">{translate text="Request This"}</a><br />
+					<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="holdRequest  button" style="display:inline-block;font-size:11pt;margin-top:15px;">{translate text="Request This"}</a><br />
 				</div>
 				
 				{if $showRatings == 1}
@@ -170,7 +173,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							<script type="text/javascript">
 							$(
 								function() {literal} { {/literal}
-										$('#rate{$noDot}').rater({literal}{ {/literal} rating:'{$ratingData.average}', postHref: '{$url}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
+										$('#rate{$noDot}').rater({literal}{ {/literal} rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
 								{literal} } {/literal}
 							);
 							</script>
@@ -178,7 +181,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{*
 						<span class="smallText">Average Patron Rating</span><br />
 						{$ratingData.count} ratings<br />
-						<img src="{$url}/{$ratingData.summaryGraph}" alt='Ratings Summary'> 
+						<img src="{$path}/{$ratingData.summaryGraph}" alt='Ratings Summary'> 
 						*}
 						<br />
 						<br />
@@ -193,7 +196,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $mainAuthor}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Main Author'}:</span>
-					<span class="resultValue"><a href="{$url}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$mainAuthor|escape}</a></span>
+					<span class="resultValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$mainAuthor|escape}</a></span>
 				</div>
 				{/if}
 				
@@ -208,7 +211,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $marcField}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Uniform Title:'}</span>
-						<span class="resultValue"><a href="{$url}/Union/Search?searchSource=local&basicType=Title&lookfor={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'m'}+{$marcField|getvalue:'m'|escape:"url"}{/if}{if $marcField|getvalue:'n'}+{$marcField|getvalue:'n'|escape:"url"}{/if}{if $marcField|getvalue:'o'}+{$marcField|getvalue:'o'|escape:"url"}{/if}">{$marcField|getvalue:'a'}{if $marcField|getvalue:'m'} {$marcField|getvalue:'m'}{/if}{if $marcField|getvalue:'n'} {$marcField|getvalue:'n'}{/if}{if $marcField|getvalue:'o'} {$marcField|getvalue:'o'}{/if}</a></span>
+						<span class="resultValue"><a href="{$path}/Union/Search?searchSource=local&basicType=Title&lookfor={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'m'}+{$marcField|getvalue:'m'|escape:"url"}{/if}{if $marcField|getvalue:'n'}+{$marcField|getvalue:'n'|escape:"url"}{/if}{if $marcField|getvalue:'o'}+{$marcField|getvalue:'o'|escape:"url"}{/if}">{$marcField|getvalue:'a'}{if $marcField|getvalue:'m'} {$marcField|getvalue:'m'}{/if}{if $marcField|getvalue:'n'} {$marcField|getvalue:'n'}{/if}{if $marcField|getvalue:'o'} {$marcField|getvalue:'o'}{/if}</a></span>
 					</div>
 				{/if}
 				{if $contributors}
@@ -216,7 +219,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultLabel">{translate text='Contributors'}:</span>
 					<span class="resultValue">
 						{foreach from=$contributors item=contributor name=loop}
-							<a href="{$url}/Author/Home?author={$contributor|escape:"url"}">{$contributor|escape}</a>{if !$smarty.foreach.loop.last}, <br/>{/if}
+							<a href="{$path}/Author/Home?author={$contributor|escape:"url"}">{$contributor|escape}</a>{if !$smarty.foreach.loop.last}, <br/>{/if}
 						{/foreach}
 					</span>
 				</div>
@@ -319,7 +322,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultLabel">{translate text='Series'}:</span>
 					<span class="resultValue">
 						{foreach from=$series item=seriesItem name=loop}
-							<a href="{$url}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a>{if !$smarty.foreach.loop.last}, <br/>{/if}
+							<a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a>{if !$smarty.foreach.loop.last}, <br/>{/if}
 						{/foreach}
 					</span>
 				</div>
@@ -332,7 +335,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{foreach from=$subjects item=subject name=loop}
 							{foreach from=$subject item=subjectPart name=subloop}
 								{if !$smarty.foreach.subloop.first} &gt; {/if}
-								<a href="{$url}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;type=Subject">{$subjectPart.title|escape}</a>
+								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;type=Subject">{$subjectPart.title|escape}</a>
 							{/foreach}
 							<br />
 						{/foreach}
@@ -367,13 +370,13 @@ function redrawSaveStatus() {literal}{{/literal}
 								<th>{translate text='Tags'}: </th>
 								<td>
 									<span style="float:right;">
-										<a href="{$url}/Record/{$id|escape:"url"}/AddTag" class="tool add"
+										<a href="{$path}/Record/{$id|escape:"url"}/AddTag" class="tool add"
 												onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
 									</span>
 									<div id="tagList">
 										{if $tagList}
 											{foreach from=$tagList item=tag name=tagLoop}
-												<a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
+												<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
 												{if $tag->userAddedThis}
 												<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
 													<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">

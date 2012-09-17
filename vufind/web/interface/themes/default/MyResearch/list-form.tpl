@@ -4,7 +4,7 @@
 </div>
 <div id="popupboxContent" class="content">
 	{if $listError}<p class="error">{$listError|translate}</p>{/if}
-	<form method="post" action="{$url}/MyResearch/ListEdit" name="listForm"
+	<form method="post" action="{$path}/MyResearch/ListEdit" name="listForm"
 	      onSubmit='addList(this, &quot;{translate text='add_list_fail'}&quot;); return false;'>
 	  {translate text="List"}:<br />
 	  <input type="text" id="listTitle" name="title" value="{$list->title|escape:"html"}" size="50"><br />

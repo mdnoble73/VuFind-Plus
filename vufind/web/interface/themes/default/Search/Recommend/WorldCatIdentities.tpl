@@ -8,7 +8,7 @@
           </dl>
           <dl class="narrowGroupHidden" id="narrowGroupHidden_WCIdents">
         {/if}
-        <dd>&bull; <a href="{$url}/Search/Results?lookfor=%22{$author|escape:"url"}%22&type=Author">{$author|escape}</a>
+        <dd>&bull; <a href="{$path}/Search/Results?lookfor=%22{$author|escape:"url"}%22&type=Author">{$author|escape}</a>
         {if count($subjects) > 0}
           <dl class="narrow_begin" style="margin-left: 12px;">
           <dh>{translate text='Related Subjects'}:</dh>
@@ -18,7 +18,7 @@
               </dl>
               <dl class="narrowGroupHidden" id="narrowGroupHidden_WCIdents{$smarty.foreach.narrowLoop.iteration}" style="margin-left: 12px;">
             {/if}
-            <dd>&bull; <a href="{$url}/Search/Results?lookfor=%22{$subj|escape:"url"}%22&type=Subject">{$subj|escape}</a></dd>
+            <dd>&bull; <a href="{$path}/Search/Results?lookfor=%22{$subj|escape:"url"}%22&type=Subject">{$subj|escape}</a></dd>
           {/foreach}
           {if $smarty.foreach.subjLoop.total > 2}<dd><a href="#" onclick="lessFacets('WCIdents{$smarty.foreach.narrowLoop.iteration}'); return false;">{translate text='less'} ...</a></dd>{/if}
           </dl>

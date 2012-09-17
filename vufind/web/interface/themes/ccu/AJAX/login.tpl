@@ -1,6 +1,6 @@
 AJAX Login
 {if $message}<div class="error">{$message|translate}</div>{/if}
-<form method="post" action="{$url}/MyResearch/Home" name="loginForm"
+<form method="post" action="{$path}/MyResearch/Home" name="loginForm"
       onSubmit="Login(this, '{$followupModule}', '{$followupAction}', '{$recordId}', null, '{$title|escape}'); {$followUp} return false;">
 <input type="hidden" name="salt" value="">
 <table class="citation">
@@ -30,5 +30,5 @@ AJAX Login
 </form>
 
 {if $authMethod == 'DB'}
-<a href="{$url}/MyResearch/Account">{translate text='Create New Account'}</a>
+<a href="{$path}/MyResearch/Account">{translate text='Create New Account'}</a>
 {/if}

@@ -1,8 +1,8 @@
-<div class="header">
+<div id="popupboxHeader" class="header">
 	{translate text="Loan Period"}
 	<a href="#" onclick='hideLightbox();return false;' class="closeIcon">Close <img src="{$path}/images/silk/cancel.png" alt="close" /></a>
 </div>
-<div class="content">
+<div id="popupboxContent" class="content">
 	<form method="post" action=""> 
 		<div>
 			<input type="hidden" name="overdriveId" value="{$overDriveId}"/>

@@ -241,7 +241,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			<div id="recordTitleAuthorGroup">
 				{* Display Title *}
-				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape} 
+				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|regex_replace:"/(\/|:)$/":""|escape}{/if}
 				{if $user && $user->hasRole('epubAdmin')}
 				{if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
 				<span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>
@@ -284,7 +284,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
 					</a>
 					<div id="goDeeperLink" class="godeeper" style="display:none">
-						<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
 						<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
 					</div>
 				</div>
@@ -372,6 +372,9 @@ function redrawSaveStatus() {literal}{{/literal}
 						{if $showFavorites == 1}
 							<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></li>
 						{/if}
+						{if $enableBookCart == 1}
+							<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$eContentRecord->title|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+						{/if}
 						{if !empty($addThis)}
 							<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 						{/if}
@@ -446,7 +449,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/if}
 					
 					similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
+					similarTitleScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
 		
 					{literal}
 					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
@@ -456,7 +459,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							if (alsoViewedScroller == null){
 								{/literal}
 								alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
-								alsoViewedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
+								alsoViewedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
 							{literal}
 							}else{
 								alsoViewedScroller.activateCurrentTitle();
@@ -500,7 +503,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/if}
 					
 					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleVuFindScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
+					similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
 		
 					{literal}
 					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {

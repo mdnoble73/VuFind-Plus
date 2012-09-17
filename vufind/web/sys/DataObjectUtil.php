@@ -71,7 +71,7 @@ class DataObjectUtil
 					}else{
 						$logger->log("Could not find existing object in database", PEAR_LOG_ERR);
 					}
-					
+
 					//Reload from UI
 					DataObjectUtil::updateFromUI($object, $structure);
 					$primaryKeySet = true;
@@ -85,9 +85,9 @@ class DataObjectUtil
 		if ($validationResults['validatedOk']){
 			//Check to see if we need to insert or update the object.
 			//We can tell which to do based on whether or not the primary key is set
-			
+
 			if ($primaryKeySet){
-				
+
 				$result = $object->update();
 				$validationResults['saveOk'] = ($result == 1);
 			}else{
@@ -155,218 +155,224 @@ class DataObjectUtil
 	}
 
 	static function updateFromUI($object, $structure){
-		$logger = new Logger();
-
 		foreach ($structure as $property){
-			$propertyName = $property['property'];
-			if (in_array($property['type'], array('text', 'enum', 'hidden', 'url'))){
-				$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
+			DataObjectUtil::processProperty($object, $property);
+		}
+	}
 
-			}else if (in_array( $property['type'], array('textarea', 'html', 'folder', 'crSeparated'))){
-				if (strlen(trim($_REQUEST[$propertyName])) == 0){
-					$object->$propertyName = null;
+	static function processProperty($object, $property){
+		$logger = new Logger();
+		$propertyName = $property['property'];
+		if ($property['type'] == 'section'){
+			foreach ($property['properties'] as $subProperty){
+				DataObjectUtil::processProperty($object, $subProperty);
+			}
+		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url'))){
+			$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
+
+		}else if (in_array( $property['type'], array('textarea', 'html', 'folder', 'crSeparated'))){
+			if (strlen(trim($_REQUEST[$propertyName])) == 0){
+				$object->$propertyName = null;
+			}else{
+				$object->$propertyName = trim($_REQUEST[$propertyName]);
+			}
+			//Strip tags from the input to avoid problems
+			if ($property['type'] == 'textarea' || $property['type'] == 'crSeparated'){
+				$object->$propertyName = strip_tags($object->$propertyName);
+			}else{
+				$allowableTags = isset($property['allowableTags']) ? $property['allowableTags'] : '<p><a><b><em><ul><ol><em><li><strong><i><br>';
+				$object->$propertyName = strip_tags($object->$propertyName, $allowableTags);
+			}
+		}else if ($property['type'] == 'integer'){
+			if (preg_match('/\\d+/', $_REQUEST[$propertyName])){
+				$object->$propertyName =  $_REQUEST[$propertyName];
+			}else{
+				$object->$propertyName =  0;
+			}
+		}else if ($property['type'] == 'currency'){
+			if (preg_match('/\\$?\\d*\\.?\\d*/', $_REQUEST[$propertyName])){
+				if (substr($_REQUEST[$propertyName], 0, 1) == '$'){
+					$object->$propertyName =  substr($_REQUEST[$propertyName], 1);
 				}else{
-					$object->$propertyName = trim($_REQUEST[$propertyName]);
-				}
-				//Strip tags from the input to avoid problems
-				if ($property['type'] == 'textarea' || $property['type'] == 'crSeparated'){
-					$object->$propertyName = strip_tags($object->$propertyName);
-				}else{
-					$allowableTags = isset($property['allowableTags']) ? $property['allowableTags'] : '<p><a><b><em><ul><ol><em><li><strong><i><br>';
-					$object->$propertyName = strip_tags($object->$propertyName, $allowableTags);
-				}
-			}else if ($property['type'] == 'integer'){
-				if (preg_match('/\\d+/', $_REQUEST[$propertyName])){
 					$object->$propertyName =  $_REQUEST[$propertyName];
-				}else{
-					$object->$propertyName =  0;
 				}
-			}else if ($property['type'] == 'currency'){
-				if (preg_match('/\\$?\\d*\\.?\\d*/', $_REQUEST[$propertyName])){
-					if (substr($_REQUEST[$propertyName], 0, 1) == '$'){
-						$object->$propertyName =  substr($_REQUEST[$propertyName], 1);
-					}else{
-						$object->$propertyName =  $_REQUEST[$propertyName];
-					}
-				}else{
-					$object->$propertyName =  0;
-				}
-
-			}else if ($property['type'] == 'checkbox'){
-				$object->$propertyName = isset($_REQUEST[$propertyName]) && $_REQUEST[$propertyName] == 'on' ? 1 : 0;
-
-			}else if ($property['type'] == 'multiSelect'){
-				$object->$propertyName = $_REQUEST[$propertyName];
-
-			}else if ($property['type'] == 'date'){
-				if (strlen($_REQUEST[$propertyName]) == 0 || $_REQUEST[$propertyName] == '0000-00-00'){
-					$object->$propertyName = null;
-				}else{
-					$dateParts = date_parse($_REQUEST[$propertyName]);
-					$time = $dateParts['year'] . '-' . $dateParts['month'] . '-' . $dateParts['day'];
-					$object->$propertyName = $time;
-				}
-
-			}else if ($property['type'] == 'partialDate'){
-				$dayField = $property['propNameDay'];
-				$object->$dayField = $_REQUEST[$dayField];
-				$monthField = $property['propNameMonth'];
-				$object->$monthField = $_REQUEST[$monthField];
-				$yearField = $property['propNameYear'];
-				$object->$yearField = $_REQUEST[$yearField];
-
-			}else if ($property['type'] == 'image'){
-				//Make sure that the type is correct (jpg, png, or gif)
-				if (isset($_REQUEST["remove{$propertyName}"])){
-					$object->$propertyName = '';
-
-				}else if (isset($_FILES[$propertyName])){
-					if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] == 4){
-						$logger->log("No file was uploaded for $propertyName", PEAR_LOG_DEBUG);
-						//No image supplied, use the existing value
-					}else if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] > 0){
-						//return an error to the browser
-						$logger->log("Error in file upload for $propertyName", PEAR_LOG_ERR);
-					}else if (in_array($_FILES[$propertyName]["type"], array('image/gif', 'image/jpeg', 'image/png'))){
-						$logger->log("Processing uploaded file for $propertyName", PEAR_LOG_DEBUG);
-						//Copy the full image to the files directory
-						//Filename is the name of the object + the original filename
-						global $configArray;
-						if (isset($property['storagePath'])){
-							$destFileName = $_FILES[$propertyName]["name"];
-							$destFolder = $property['storagePath'];
-							$destFullPath = $destFolder . '/' . $destFileName;
-							$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
-							$logger->log("Copied file to $destFullPath", PEAR_LOG_DEBUG);
-						}else{
-							$logger->log("Creating thumbnails for $propertyName", PEAR_LOG_DEBUG);
-							$destFileName = $propertyName . $_FILES[$propertyName]["name"];
-							$destFolder = $configArray['Site']['local'] . '/files/original';
-							$pathToThumbs = $configArray['Site']['local'] . '/files/thumbnail';
-							$pathToMedium = $configArray['Site']['local'] . '/files/medium';
-							$destFullPath = $destFolder . '/' . $destFileName;
-							$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
-	
-							if ($copyResult && isset($property['thumbWidth'])){
-									
-								//Create a thumbnail if needed
-								$img = imagecreatefromstring(file_get_contents($destFullPath));
-								$width = imagesx( $img );
-								$height = imagesy( $img );
-								$thumbWidth = $property['thumbWidth'];
-								$new_width = $thumbWidth;
-								$new_height = floor( $height * ( $thumbWidth / $width ) );
-	
-								// create a new temporary image
-								$tmp_img = imagecreatetruecolor( $new_width, $new_height );
-	
-								// copy and resize old image into new image
-								imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
-	
-								// save thumbnail into a file
-								imagejpeg( $tmp_img, "{$pathToThumbs}/{$destFileName}" );
-							}
-							if ($copyResult && isset($property['mediumWidth'])){
-								//Create a thumbnail if needed
-								$img = imagecreatefromstring(file_get_contents($destFullPath));
-								$width = imagesx( $img );
-								$height = imagesy( $img );
-								$thumbWidth = $property['mediumWidth'];
-								$new_width = $thumbWidth;
-								$new_height = floor( $height * ( $thumbWidth / $width ) );
-	
-								// create a new temporary image
-								$tmp_img = imagecreatetruecolor( $new_width, $new_height );
-	
-								// copy and resize old image into new image
-								imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
-	
-								// save thumbnail into a file
-								imagejpeg( $tmp_img, "{$pathToMedium}/{$destFileName}" );
-							}
-						}
-						//store the actual filename
-						$object->$propertyName = $destFileName;
-						$logger->log("Set $propertyName to $destFileName", PEAR_LOG_DEBUG);
-					}
-				}
-
-			}else if ($property['type'] == 'file'){
-				//Make sure that the type is correct (jpg, png, or gif)
-				if (isset($_REQUEST["remove{$propertyName}"])){
-					$object->$propertyName = '';
-				}elseif (isset($_REQUEST["{$propertyName}_existing"]) && $_FILES[$propertyName]['error'] == 4){
-					$object->$propertyName = $_REQUEST["{$propertyName}_existing"];
-				}else if (isset($_FILES[$propertyName])){
-					if ($_FILES[$propertyName]["error"] > 0){
-						//return an error to the browser
-					}else if (true){ //TODO: validate the file type
-						//Copy the full image to the correct location
-						//Filename is the name of the object + the original filename
-						global $configArray;
-						$destFileName = $_FILES[$propertyName]["name"];
-						$destFolder = $property['path'];
-						$destFullPath = $destFolder . '/' . $destFileName;
-						$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
-						if ($copyResult){
-							$logger->log("Copied file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_INFO);
-						}else{
-							$logger->log("Could not copy file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_ERR);
-						}
-						//store the actual filename
-						$object->$propertyName = $destFileName;
-					}
-				}
-			}else if ($property['type'] == 'password'){
-				if (strlen($_REQUEST[$propertyName]) > 0 && ($_REQUEST[$propertyName] == $_REQUEST[$propertyName . 'Repeat'])){
-					$object->$propertyName = md5($_REQUEST[$propertyName]);
-				}
-			}else if ($property['type'] == 'oneToMany'){
-				//Check for deleted associations
-				$deletions = isset($_REQUEST[$propertyName . 'Deleted']) ? $_REQUEST[$propertyName . 'Deleted'] : array();
-				//Check for changes to the sort order
-				if ($property['sortable'] == true && isset($_REQUEST[$propertyName . 'Weight'])){
-					$weights = $_REQUEST[$propertyName . 'Weight'];
-				}
-				if (isset($_REQUEST[$propertyName.'Id'])){
-					$idsToSave = $_REQUEST[$propertyName.'Id'];
-					$existingValues = $object->$propertyName;
-					$subObjectType = $property['subObjectType'];
-					$subStructure = $property['structure'];
-					foreach ($idsToSave as $id){
-						//Create the subObject
-						if ($id < 0){
-							$subObject = new $subObjectType();
-						}else{
-							$subObject = $existingValues[$id];
-						}
-						
-						$deleted = isset($deletions[$id]) ? $deletions[$id] : false;
-						if ($deleted == 'true'){
-							$subObject->deleteOnSave = true;
-						}else{
-							//Update properties of each associated object
-							foreach ($subStructure as $subProperty){
-								$requestKey = $propertyName . '_' . $subProperty['property'];
-								if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
-									$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
-								}elseif (in_array($subProperty['type'], array('checkbox') )){
-									$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
-								}
-							}
-						}
-						if ($property['sortable'] == true){
-							$subObject->weight = $weights[$id];
-						}
-						
-						//Update the values array
-						$values[$id] = $subObject;
-					}
-				}
-				
-				$object->$propertyName = $values;
+			}else{
+				$object->$propertyName =  0;
 			}
 
+		}else if ($property['type'] == 'checkbox'){
+			$object->$propertyName = isset($_REQUEST[$propertyName]) && $_REQUEST[$propertyName] == 'on' ? 1 : 0;
+
+		}else if ($property['type'] == 'multiSelect'){
+			$object->$propertyName = $_REQUEST[$propertyName];
+
+		}else if ($property['type'] == 'date'){
+			if (strlen($_REQUEST[$propertyName]) == 0 || $_REQUEST[$propertyName] == '0000-00-00'){
+				$object->$propertyName = null;
+			}else{
+				$dateParts = date_parse($_REQUEST[$propertyName]);
+				$time = $dateParts['year'] . '-' . $dateParts['month'] . '-' . $dateParts['day'];
+				$object->$propertyName = $time;
+			}
+
+		}else if ($property['type'] == 'partialDate'){
+			$dayField = $property['propNameDay'];
+			$object->$dayField = $_REQUEST[$dayField];
+			$monthField = $property['propNameMonth'];
+			$object->$monthField = $_REQUEST[$monthField];
+			$yearField = $property['propNameYear'];
+			$object->$yearField = $_REQUEST[$yearField];
+
+		}else if ($property['type'] == 'image'){
+			//Make sure that the type is correct (jpg, png, or gif)
+			if (isset($_REQUEST["remove{$propertyName}"])){
+				$object->$propertyName = '';
+
+			}else if (isset($_FILES[$propertyName])){
+				if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] == 4){
+					$logger->log("No file was uploaded for $propertyName", PEAR_LOG_DEBUG);
+					//No image supplied, use the existing value
+				}else if (isset($_FILES[$propertyName]["error"]) && $_FILES[$propertyName]["error"] > 0){
+					//return an error to the browser
+					$logger->log("Error in file upload for $propertyName", PEAR_LOG_ERR);
+				}else if (in_array($_FILES[$propertyName]["type"], array('image/gif', 'image/jpeg', 'image/png'))){
+					$logger->log("Processing uploaded file for $propertyName", PEAR_LOG_DEBUG);
+					//Copy the full image to the files directory
+					//Filename is the name of the object + the original filename
+					global $configArray;
+					if (isset($property['storagePath'])){
+						$destFileName = $_FILES[$propertyName]["name"];
+						$destFolder = $property['storagePath'];
+						$destFullPath = $destFolder . '/' . $destFileName;
+						$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
+						$logger->log("Copied file to $destFullPath", PEAR_LOG_DEBUG);
+					}else{
+						$logger->log("Creating thumbnails for $propertyName", PEAR_LOG_DEBUG);
+						$destFileName = $propertyName . $_FILES[$propertyName]["name"];
+						$destFolder = $configArray['Site']['local'] . '/files/original';
+						$pathToThumbs = $configArray['Site']['local'] . '/files/thumbnail';
+						$pathToMedium = $configArray['Site']['local'] . '/files/medium';
+						$destFullPath = $destFolder . '/' . $destFileName;
+						$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
+
+						if ($copyResult && isset($property['thumbWidth'])){
+
+							//Create a thumbnail if needed
+							$img = imagecreatefromstring(file_get_contents($destFullPath));
+							$width = imagesx( $img );
+							$height = imagesy( $img );
+							$thumbWidth = $property['thumbWidth'];
+							$new_width = $thumbWidth;
+							$new_height = floor( $height * ( $thumbWidth / $width ) );
+
+							// create a new temporary image
+							$tmp_img = imagecreatetruecolor( $new_width, $new_height );
+
+							// copy and resize old image into new image
+							imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+
+							// save thumbnail into a file
+							imagejpeg( $tmp_img, "{$pathToThumbs}/{$destFileName}" );
+						}
+						if ($copyResult && isset($property['mediumWidth'])){
+							//Create a thumbnail if needed
+							$img = imagecreatefromstring(file_get_contents($destFullPath));
+							$width = imagesx( $img );
+							$height = imagesy( $img );
+							$thumbWidth = $property['mediumWidth'];
+							$new_width = $thumbWidth;
+							$new_height = floor( $height * ( $thumbWidth / $width ) );
+
+							// create a new temporary image
+							$tmp_img = imagecreatetruecolor( $new_width, $new_height );
+
+							// copy and resize old image into new image
+							imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+
+							// save thumbnail into a file
+							imagejpeg( $tmp_img, "{$pathToMedium}/{$destFileName}" );
+						}
+					}
+					//store the actual filename
+					$object->$propertyName = $destFileName;
+					$logger->log("Set $propertyName to $destFileName", PEAR_LOG_DEBUG);
+				}
+			}
+
+		}else if ($property['type'] == 'file'){
+			//Make sure that the type is correct (jpg, png, or gif)
+			if (isset($_REQUEST["remove{$propertyName}"])){
+				$object->$propertyName = '';
+			}elseif (isset($_REQUEST["{$propertyName}_existing"]) && $_FILES[$propertyName]['error'] == 4){
+				$object->$propertyName = $_REQUEST["{$propertyName}_existing"];
+			}else if (isset($_FILES[$propertyName])){
+				if ($_FILES[$propertyName]["error"] > 0){
+					//return an error to the browser
+				}else if (true){ //TODO: validate the file type
+					//Copy the full image to the correct location
+					//Filename is the name of the object + the original filename
+					global $configArray;
+					$destFileName = $_FILES[$propertyName]["name"];
+					$destFolder = $property['path'];
+					$destFullPath = $destFolder . '/' . $destFileName;
+					$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
+					if ($copyResult){
+						$logger->log("Copied file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_INFO);
+					}else{
+						$logger->log("Could not copy file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_ERR);
+					}
+					//store the actual filename
+					$object->$propertyName = $destFileName;
+				}
+			}
+		}else if ($property['type'] == 'password'){
+			if (strlen($_REQUEST[$propertyName]) > 0 && ($_REQUEST[$propertyName] == $_REQUEST[$propertyName . 'Repeat'])){
+				$object->$propertyName = md5($_REQUEST[$propertyName]);
+			}
+		}else if ($property['type'] == 'oneToMany'){
+			//Check for deleted associations
+			$deletions = isset($_REQUEST[$propertyName . 'Deleted']) ? $_REQUEST[$propertyName . 'Deleted'] : array();
+			//Check for changes to the sort order
+			if ($property['sortable'] == true && isset($_REQUEST[$propertyName . 'Weight'])){
+				$weights = $_REQUEST[$propertyName . 'Weight'];
+			}
+			if (isset($_REQUEST[$propertyName.'Id'])){
+				$idsToSave = $_REQUEST[$propertyName.'Id'];
+				$existingValues = $object->$propertyName;
+				$subObjectType = $property['subObjectType'];
+				$subStructure = $property['structure'];
+				foreach ($idsToSave as $id){
+					//Create the subObject
+					if ($id < 0){
+						$subObject = new $subObjectType();
+					}else{
+						$subObject = $existingValues[$id];
+					}
+
+					$deleted = isset($deletions[$id]) ? $deletions[$id] : false;
+					if ($deleted == 'true'){
+						$subObject->deleteOnSave = true;
+					}else{
+						//Update properties of each associated object
+						foreach ($subStructure as $subProperty){
+							$requestKey = $propertyName . '_' . $subProperty['property'];
+							if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
+								$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
+							}elseif (in_array($subProperty['type'], array('checkbox') )){
+								$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+							}
+						}
+					}
+					if ($property['sortable'] == true){
+						$subObject->weight = $weights[$id];
+					}
+
+					//Update the values array
+					$values[$id] = $subObject;
+				}
+			}
+
+			$object->$propertyName = $values;
 		}
 	}
 

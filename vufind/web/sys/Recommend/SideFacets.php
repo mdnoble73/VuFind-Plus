@@ -178,10 +178,10 @@ class SideFacets implements RecommendationInterface
 			}
 
 			$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
-			print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
+			//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
 			if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
 				$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
-				print_r ("anyLocationLabel = $anyLocationLabel");
+				//print_r ("anyLocationLabel = $anyLocationLabel");
 				$availableAtFacets['*'] = array(
 					'value' => '*',
 					'display' => $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel,

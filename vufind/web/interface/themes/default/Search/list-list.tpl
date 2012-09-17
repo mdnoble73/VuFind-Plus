@@ -8,7 +8,7 @@ $(document).ready(function() {literal} { {/literal}
 {literal} }); {/literal}
 </script>
 
-<form id="addForm" action="{$url}/MyResearch/HoldMultiple">
+<form id="addForm" action="{$path}/MyResearch/HoldMultiple">
 	<div id="addFormContents">
 		<div class='selectAllControls'>
 		  {* Make sure to trigger the proper events when selecting and deselecting *}

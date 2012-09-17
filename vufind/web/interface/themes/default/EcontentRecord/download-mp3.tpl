@@ -37,8 +37,8 @@
 			</div>
 	  	
 	  	<div id="ereaderlogo" class="searchheader">
-	  		<a href="{if $homeLink}{$homeLink}{else}{$url}{/if}"><img src="{$path}/interface/themes/{$theme}/images/logo_ereader.png" alt="{$libraryName}" /></a>
-	  		<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$url}">Return To Catalog</a></div>
+	  		<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{$path}/interface/themes/{$theme}/images/logo_ereader.png" alt="{$libraryName}" /></a>
+	  		<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$path}">Return To Catalog</a></div>
 	    </div>
     </div>
     
@@ -53,7 +53,7 @@
   			<form id="loginForm" action="{$path}/MyResearch/Home" method="post">
   				<div id="loginFormContents">
             <input type="hidden" name="id" value="{$id}"/>
-            <input type="hidden" name="returnUrl" value="{$url}{$fullPath}"/>
+            <input type="hidden" name="returnUrl" value="{$path}{$fullPath}"/>
   					<div id="loginTitleEPub">Please Login to download this audio book.</div>
   					<div class="loginLabelEPub">Barcode from your library card</div>
   					<input class="loginFormInput" type="text" name="username" value="{$username|escape}" size="15"/>
@@ -70,7 +70,7 @@
   		<div id='downloadableFilesHeader'>Available Files</div>
   		<div id='downloadableFileNotes'>Please select a file to download.</div>
   		{foreach from=$mp3Filenames key=index item=mp3File}
-  			<div class='downloadableFile' id='downloadableFile{$index}'><div class="downloadableSegementName"><a href="{$url}/EContent/{$id}/GetMedia?item={$item}&segment={$index}&download=true">{$mp3File.name}</a></div><div class="downloadableSegmentSize">({$mp3File.size|file_size})</div></div>
+  			<div class='downloadableFile' id='downloadableFile{$index}'><div class="downloadableSegementName"><a href="{$path}/EContent/{$id}/GetMedia?item={$item}&segment={$index}&download=true">{$mp3File.name}</a></div><div class="downloadableSegmentSize">({$mp3File.size|file_size})</div></div>
   		{/foreach}
   	</div>
     

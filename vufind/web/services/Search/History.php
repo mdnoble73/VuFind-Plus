@@ -58,35 +58,35 @@ class History extends Action {
 				$searchObject->activateAllFacets();
 
 				$newItem = array(
-                    'time'        => date("g:ia, jS M y", $searchObject->getStartTime()),
-                    'url'         => $searchObject->renderSearchUrl(),
-                    'searchId'    => $searchObject->getSearchId(),
-                    'description' => $searchObject->displayQuery(),
-                    'filters'     => $searchObject->getFilterList(),
-                    'hits'        => number_format($searchObject->getResultTotal()),
-                    'speed'       => round($searchObject->getQuerySpeed(), 2)."s",
-				// Size is purely for debugging. Not currently displayed in the template.
-				// It's the size of the serialized, minified search in the database.
-                    'size'        => round($size/1024, 3)."kb"
-                    );
+					'time'        => date("g:ia, jS M y", $searchObject->getStartTime()),
+					'url'         => $searchObject->renderSearchUrl(),
+					'searchId'    => $searchObject->getSearchId(),
+					'description' => $searchObject->displayQuery(),
+					'filters'     => $searchObject->getFilterList(),
+					'hits'        => number_format($searchObject->getResultTotal()),
+					'speed'       => round($searchObject->getQuerySpeed(), 2)."s",
+					// Size is purely for debugging. Not currently displayed in the template.
+					// It's the size of the serialized, minified search in the database.
+					'size'        => round($size/1024, 3)."kb"
+				);
 
-                    // Saved searches
-                    if ($search->saved == 1) {
-                    	$saved[] = $newItem;
+				// Saved searches
+				if ($search->saved == 1) {
+					$saved[] = $newItem;
 
-                    	// All the others
-                    } else {
-                    	// If this was a purge request we don't need this
-                    	if (isset($_REQUEST['purge']) && $_REQUEST['purge'] == 'true') {
-                    		$search->delete();
+					// All the others
+				} else {
+					// If this was a purge request we don't need this
+					if (isset($_REQUEST['purge']) && $_REQUEST['purge'] == 'true') {
+						$search->delete();
 
-                    		// We don't want to remember the last search after a purge:
-                    		unset($_SESSION['lastSearchURL']);
-                    		// Otherwise add to the list
-                    	} else {
-                    		$links[] = $newItem;
-                    	}
-                    }
+						// We don't want to remember the last search after a purge:
+						unset($_SESSION['lastSearchURL']);
+						// Otherwise add to the list
+					} else {
+						$links[] = $newItem;
+					}
+				}
 			}
 
 			// One final check, after a purge make sure we still have a history

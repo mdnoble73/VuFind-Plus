@@ -621,14 +621,20 @@ class MillenniumDriver implements DriverInterface
 				}
 
 				if ($haveIssueSummary){
-					$issueSummaries[$issueSummaryKey]['holdings'][$key] = $holding;
+					$issueSummaries[$issueSummaryKey]['holdings'][strtolower($key)] = $holding;
 				}else{
 					//Need to automatically add a summary so we don't lose data
 					$issueSummaries[$holding['location']] = array(
                         'location' => $holding['location'],
                         'type' => 'issue',
-                        'holdings' => array($key => $holding),
+                        'holdings' => array(strtolower($key) => $holding),
 					);
+				}
+			}
+			foreach ($issueSummaries as $key => $issueSummary){
+				if (isset($issueSummary['holdings']) && is_array($issueSummary['holdings'])){
+					krsort($issueSummary['holdings']);
+					$issueSummaries[$key] = $issueSummary;
 				}
 			}
 			ksort($issueSummaries);
@@ -691,9 +697,10 @@ class MillenniumDriver implements DriverInterface
                             'location' => $issueSummary['location'],
                             'libraryDisplayName' => $issueSummary['location'],
                             'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
-                            'status' => 'Lib Use Only',
-                            'statusfull' => 'In Library Use Only',
 						);
+						$summaryInformation['status'] = 'Available';
+						$summaryInformation['statusfull'] = 'Available';
+						$summaryInformation['class'] = 'available';
 					}
 				}
 			}
@@ -876,6 +883,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		//Status is not set, check to see if the item is downloadable
+		/*
 		if (!isset($summaryInformation['status'])){
 			//Check to see if there is a download link in the 856 field
 			//Make sure that the search engine has been setup.  It may not be if the
@@ -950,7 +958,7 @@ class MillenniumDriver implements DriverInterface
 					$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
 				}
 			}
-		}
+		}*/
 
 		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
 			//Replace all spaces in the name of a location with no break spaces
@@ -1328,6 +1336,8 @@ class MillenniumDriver implements DriverInterface
 			//with their student id.
 			if (strlen($barcode)== 5){
 				$barcode = "41000000" . $barcode;
+			}elseif (strlen($barcode)== 6){
+				$barcode = "4100000" . $barcode;
 			}
 
 			// Load Record Page.  This page has a dump of all patron information
@@ -2325,6 +2335,9 @@ class MillenniumDriver implements DriverInterface
 			$hold_result = $this->_getHoldResult($sresult);
 			$hold_result['title']  = $title;
 			$hold_result['bid'] = $bib1;
+			if ($hold_result['result']){
+				UsageTracking::logTrackingData('numHolds');
+			}
 			return $hold_result;
 		}
 	}
@@ -2658,6 +2671,7 @@ class MillenniumDriver implements DriverInterface
 			$hold_result['result'] = true;
 			$hold_result['message'] = "All items were renewed successfully.";
 		}
+		UsageTracking::logTrackingData($hold_result['Renewed']);
 
 		return $hold_result;
 	}
@@ -2726,12 +2740,19 @@ class MillenniumDriver implements DriverInterface
 		}else if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $sresult, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item, ' . strtolower($matches[1]) . '.';
+		}else if (preg_match('/Your record is in use/si', $sresult, $matches)) {
+			$success = false;
+			$message = 'Unable to renew this item, your record is in use by the system.';
 		}else{
 			$success = true;
 			$message = 'Your item was successfully renewed';
 		}
 		curl_close($curl_connection);
 		unlink($cookieJar);
+
+		if ($success){
+			UsageTracking::logTrackingData('numRenewals');
+		}
 
 		return array(
                     'itemId' => $itemId,

@@ -51,7 +51,11 @@ class User_list extends SolrDataObject
 		return 'List';
 	}
 	function bib_suppression(){
-		return "notsuppressed";
+		if ($this->public == 1){
+			return "notsuppressed";
+		}else{
+			return "suppressed";
+		}
 	}
 	function format_boost(){
 		return 100;
@@ -187,6 +191,13 @@ class User_list extends SolrDataObject
 	function num_holdings(){
 		return count($this->getResources());
 	}
+	function update(){
+		if ($this->public == 0){
+			parent::updateDetailed(false);
+		}else{
+			parent::updateDetailed(true);
+		}
+	}
 	function updateDetailed($insertInSolr = true){
 		if ($this->public == 0){
 			parent::updateDetailed(false);
@@ -205,7 +216,8 @@ class User_list extends SolrDataObject
 		$sql = "SELECT DISTINCT resource.*, user_resource.saved, user_resource.notes FROM resource, user_resource " .
 								"WHERE resource.id = user_resource.resource_id " .
 								"AND user_resource.user_id = '$this->user_id' " .
-								"AND user_resource.list_id = '$this->id'";
+								"AND user_resource.list_id = '$this->id' " .
+								"AND resource.deleted = 0";
 
 		if ($tags) {
 			for ($i=0; $i<count($tags); $i++) {

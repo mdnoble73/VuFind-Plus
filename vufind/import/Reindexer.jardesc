@@ -12,11 +12,16 @@
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.vufind"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{OverDriveAvailabilityInfo.java"/>
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.solrmarc.tools"/>
-        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.strands"/>
-        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent"/>
-        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.solrmarc.marcoverride"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{LinkInfo.java"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{OverDriveRecordInfo.java"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{EcontentRecordInfo.java"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{OverDriveItem.java"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{GutenbergItemInfo.java"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{DetectionSettings.java"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{ExtractEContentFromMarc.java"/>
         <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.json"/>
-        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.solrmarc.marc"/>
+        <javaElement handleIdentifier="=VuFind+ Import/src&lt;org.econtent{LibrarySpecificLink.java"/>
     </selectedElements>
 </jardesc>

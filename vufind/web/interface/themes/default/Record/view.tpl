@@ -342,6 +342,9 @@ function redrawSaveStatus() {literal}{{/literal}
 						{if $showFavorites == 1}
 							<li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
 						{/if}
+						{if $enableBookCart == 1}
+							<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$recordTitleSubtitle|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+						{/if}
 						{if !empty($addThis)}
 							<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 						{/if}
@@ -428,7 +431,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/if}
 					
 					similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
+					similarTitleScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
 		
 					{literal}
 					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
@@ -438,7 +441,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							if (alsoViewedScroller == null){
 								{/literal}
 								alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
-								alsoViewedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
+								alsoViewedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
 							{literal}
 							}else{
 								alsoViewedScroller.activateCurrentTitle();
@@ -482,7 +485,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/if}
 					
 					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleVuFindScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
+					similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
 		
 					{literal}
 					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {

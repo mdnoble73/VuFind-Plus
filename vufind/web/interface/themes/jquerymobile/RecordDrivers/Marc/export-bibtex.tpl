@@ -88,5 +88,5 @@ note = {$bracket}{$marcField|getvalue:'a'}},
 {if $marcField}
 url = {$marcField|getvalue:'u'},
 {/if}
-crossref = {$url}/Record/{$id|escape:"url"}
+crossref = {$path}/Record/{$id|escape:"url"}
 }

@@ -8,7 +8,7 @@
 	
 	<div id="main-content">
 		{if $allowEdit}
-			<form action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormHead">
+			<form action="{$path}/MyResearch/MyList/{$favList->id}" id="myListFormHead">
 				<div>
 					<input type="hidden" name="myListActionHead" id="myListActionHead"/>
 		{/if}
@@ -48,13 +48,12 @@
 				<div >
 				{if $recordCount}
 					{translate text="Showing"}
-					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-					{translate text='of'} <b>{$recordCount}</b>
+					<b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
 				{/if}
 				</div>
 			</div>
 			
-			<form action="{$url}/MyResearch/MyList/{$favList->id}" id="myListFormItem">
+			<form action="{$path}/MyResearch/MyList/{$favList->id}" id="myListFormItem">
 				<div>
 					<input type="hidden" name="myListActionItem" id="myListActionItem"/>
 					<ul>
@@ -93,7 +92,7 @@
 			<ul>
 			{foreach from=$tags item=tag}
 				<li>{translate text='Tag'}: {$tag|escape:"html"}
-				<a href="{$url}/MyResearch/MyList/{$favList->id}&amp;{foreach from=$tags item=mytag}{if $tag != $mytag}tag[]={$mytag|escape:"url"}&amp;{/if}{/foreach}">X</a>
+				<a href="{$path}/MyResearch/MyList/{$favList->id}&amp;{foreach from=$tags item=mytag}{if $tag != $mytag}tag[]={$mytag|escape:"url"}&amp;{/if}{/foreach}">X</a>
 				</li>
 			{/foreach}
 			</ul>
@@ -101,11 +100,10 @@
 			<ul>
 			{foreach from=$tagList item=tag}
 				<li>
-					<a href="{$url}/MyResearch/MyList/{$favList->id}&amp;tag[]={$tag->tag|escape:"url"}{foreach from=$tags item=mytag}&amp;tag[]={$mytag|escape:"url"}{/foreach}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
+					<a href="{$path}/MyResearch/MyList/{$favList->id}&amp;tag[]={$tag->tag|escape:"url"}{foreach from=$tags item=mytag}&amp;tag[]={$mytag|escape:"url"}{/foreach}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
 				</li>
 			{/foreach}
 			</ul>
-		
 		</div>
 	{/if}
 </div>

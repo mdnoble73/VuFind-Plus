@@ -1,4 +1,4 @@
-<form id="addForm" action="{$url}/MyResearch/HoldMultiple">
+<form id="addForm" action="{$path}/MyResearch/HoldMultiple">
 <div class='selectAllControls'>
   {* Make sure to trigger the proper events when selecting and deselecting *}
   <a href="#" onclick="$('.titleSelect').not(':checked').attr('checked', true).trigger('click').attr('checked', true);return false;">Select All</a> /

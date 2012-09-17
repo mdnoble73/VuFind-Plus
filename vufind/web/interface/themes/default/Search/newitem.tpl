@@ -3,7 +3,7 @@
     <div class="yui-b first">
       <b class="btop"><b></b></b>
     	
-        <form method="GET" action="{$url}/Search/NewItem" name="searchForm" class="search">
+        <form method="GET" action="{$path}/Search/NewItem" name="searchForm" class="search">
           <div class="resulthead"><h3>{translate text='Find New Items'}</h3></div>
           <div class="page">
 
@@ -40,7 +40,7 @@
         </form>
         <br />
         <hr>
-        {* not currently supported: <p><a href="{$url}/Search/NewItem/RSS" class="feed">{translate text='New Item Feed'}</a></p> *}
+        {* not currently supported: <p><a href="{$path}/Search/NewItem/RSS" class="feed">{translate text='New Item Feed'}</a></p> *}
 
       </div>
       

@@ -1,0 +1,213 @@
+/**
+ * @package		Joomla Bamboo Zen Grid Framework
+ * @Type        Core CSS
+ * @version		v2.0
+ * @author		Joomlabamboo http://www.joomlabamboo.com
+ * @copyright 	Copyright (C) 2007 - 2010 Joomla Bamboo
+ * @license		http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
+ */
+
+.navRow .row{
+overflow: visible;
+}
+#nav ul,.moduletable-superfish ul, 
+#nav ul *,.moduletable-superfish ul *,
+#nav ul.nav_menu,.moduletable-superfish ul.nav_menu  {
+	margin:			0; 
+	padding:		0;
+	list-style:		none;
+}
+
+
+#nav ul,
+.moduletable-superfish ul {
+	line-height:	1.0;
+	display:inline;
+}
+#nav ul ul,.moduletable-superfish ul ul {
+	position:		absolute;
+	top:			-999em;
+	width:			10em; /* left offset of submenus need to match (see below) */
+}
+#nav ul ul li,.moduletable-superfish ul ul li {
+	width:			100%;
+}
+
+#nav ul li:hover,.moduletable-superfish ul li:hover {
+	visibility:		inherit; /* fixes IE7 'sticky bug' */
+}
+
+#nav ul li,.moduletable-superfish ul li {
+	float:			left;
+	margin-right: 0 !important;
+}
+#nav ul a, .moduletable-superfish ul a,
+#nav span.separator, .moduletable-superfish span.separator,
+#nav span.mainlevel span
+ { 
+	display:		block;
+	padding: 		.75em 1em;
+	text-decoration:none;
+}
+#nav ul ul,.moduletable-superfish ul li:hover ul{
+	left:			10px;
+	top:			24px; /* match top ul list item height */
+	z-index:		99;
+}
+
+#nav ul.nav_menu>li>ul{   visibility:hidden;} 
+
+
+#nav ul li li span.mainlevel span,#nav ul li li span.separator{ 
+display: block;padding: 8px 0 8px 20px
+}
+
+#nav.centered ul li li span.mainlevel span {
+padding: 0;text-indent: 0;
+}
+
+
+#nav ul li.sfHover ul ul,
+.moduletable-superfish ul.li.sfHover ul ul
+{top: -9px} 
+
+
+#nav ul ul li:hover li ul,.moduletable-superfish ul ul li:hover li ul,
+#nav ul ul li.sfHover li ul,.moduletable-superfish ul ul li.sfHover li ul {
+	top:			-999em;
+
+}
+
+#nav ul ul li li:hover ul,.moduletable-superfish  ul ul li li:hover ul,
+#nav ul ul li li.sfHover ul,.moduletable-superfish ul ul li li.sfHover ul {
+	left:			10em; /* match ul width */
+	top:			0;
+}
+
+#nav ul li li:hover li ul,.moduletable-superfish  ul ul li li:hover li ul,
+#nav ul li li.sfHover li ul,.moduletable-superfish  ul ul li li.sfHover li ul {
+	top:			-999em;
+	margin-top: -20px;
+}
+
+#nav ul li li li:hover ul,.moduletable-superfish  ul li li li:hover ul,
+#nav ul li li li.sfHover ul,.modueltable-superfish  ul li li li.sfHover ul {
+	left:			10em; /* match ul width */
+	top:			0;
+}
+
+
+/* Reset on sub level span sepaartor images */
+#nav li span.separator,.moduletable-superfish  li span.separator,
+#nav li.parent li span.separator,.moduletable-superfish li.parent li span.separator,
+#nav li.parent li.parent li span.separator,.moduletable-superfish  li.parent li.parent li span.separator
+ {background: none;}
+
+
+
+/* Parent separators */
+#nav li.parent span.separator,.moduletable-superfish  li.parent span.separator 
+ {cursor: pointer;padding-right: 20px;}
+
+
+/*** arrows **/
+#nav ul a.sf-with-ul,.moduletable-superfish  ul a.sf-with-ul {
+	min-width:		1px; /* trigger IE7 hasLayout so spans position accurately */
+}
+
+/*------------------------------------*\
+	Navigation Defaults
+\*------------------------------------*/
+
+
+/*
+Provides alignment for the nav.
+*/
+#nav.navleft ul{
+float: left;margin: 0;
+}
+
+/*
+Basic margin on #nav.navleft elements
+*/
+#nav.navleft a,#nav.navleft span.mainlevel span {
+padding: 0;margin-right: 20px;
+}
+
+/*
+Styling on parent elements
+*/
+#nav ul a.sf-with-ul,.moduletable-superfish  ul a.sf-with-ul {
+
+}
+
+/*
+Apply same styling to spans as the links
+*/
+#nav.navleft span.mainlevel span,
+#nav.navright span.mainlevel span{
+display: block;
+}
+
+
+/*
+Floats nav to the right
+*/
+#nav.right ul {
+float: right;
+}
+
+#nav.right a,#nav.right span.mainlevel span {
+margin-leftt: 20px;
+}
+
+
+/*
+Centered Nav
+*/
+#nav.centered{
+	text-align:center;margin-top: -8px;text-align:center;
+}
+
+#nav.centered ul {
+display:inline-block;
+list-style:none; 
+}
+
+* html #nav.centered ul { /* Target IE6 */
+display:inline;
+}
+*+html #nav.centered ul { /* Target IE7 */
+display:inline;
+}
+
+#nav.centered li{
+	display:inline;
+	padding:8px 0 0 10px;
+}
+
+#nav.centered li a {
+float: left;
+}
+
+
+#nav.centered li li,#nav.centered li li a{
+text-align: left;display: block;padding: 0px 4px 0px 0
+}
+
+#nav.centered span.centered { 
+float: left;
+}
+
+
+/*
+Basic resets on Nav and superfish list
+*/
+#nav li,.moduletable-superfish li {
+float: left;list-style-type: none;position: relative;
+}
+
+
+#nav ul li li:last-child a {border-bottom: 0;}
+#nav ul li li:first-child a {border-top: 0;}
+

@@ -3,7 +3,7 @@
 ------------------------------------------------------------
 
   {$title}
-  {translate text="email_link"}: {$url}/Summon/Record?id={$recordID|escape:"url"}
+  {translate text="email_link"}: {$path}/Summon/Record?id={$recordID|escape:"url"}
 ------------------------------------------------------------
 
 {if !empty($message)}

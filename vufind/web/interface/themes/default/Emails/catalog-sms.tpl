@@ -7,4 +7,4 @@
 {translate text="Download Link"}: {$downloadLink}
 {/if}
 {$title}
-{$url}/Record/{$recordID|escape:"url"}
+{$path}/Record/{$recordID|escape:"url"}

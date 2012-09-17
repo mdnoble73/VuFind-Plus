@@ -1,5 +1,5 @@
 <div id="bd">
-  <form method="GET" action="{$url}/WorldCat/Search" id="advSearchForm" name="searchForm" class="search">
+  <form method="GET" action="{$path}/WorldCat/Search" id="advSearchForm" name="searchForm" class="search">
   <div id="yui-main" class="content">
 
     <div class="yui-b first contentbox">
@@ -58,8 +58,8 @@
     <div class="sidegroup">
       <h4>{translate text="Search Tips"}</h4>
 
-      <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=advsearch', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Advanced Search"}</a><br />
-      {* not applicable to WorldCat: <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Search Operators"}</a> *}
+      <a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=advsearch', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Advanced Search"}</a><br />
+      {* not applicable to WorldCat: <a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Search Operators"}</a> *}
     </div>
   </div>
 

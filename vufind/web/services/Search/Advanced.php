@@ -45,7 +45,7 @@ class Advanced extends Action {
 		// Process the facets for appropriate display on the Advanced Search screen:
 		$facets = $this->processFacets($facetList, $savedSearch);
 		//check to see if we have a facet for format category since we want to show those
-		//as icons 
+		//as icons
 		if (array_key_exists('format_category', $facetList)){
 			$label = $facetList['format_category']['label'];
 			foreach ($facets[$label] as $key => $optionInfo){
@@ -55,7 +55,7 @@ class Advanced extends Action {
 			$interface->assign('formatCategoryLimit', $facets[$label]);
 			unset($facets[$label]);
 		}
-		
+
 		$interface->assign('facetList', $facets);
 
 		// Integer for % width of each column (be careful to avoid divide by zero!)
@@ -71,6 +71,9 @@ class Advanced extends Action {
 		}
 		if (stristr($specialFacets, 'publishDate')) {
 			$interface->assign('showPublicationDate', true);
+		}
+		if (stristr($specialFacets, 'lexile_score')) {
+			$interface->assign('showLexileScore', true);
 		}
 
 		// Send search type settings to the template

@@ -23,7 +23,7 @@
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class BotChecker{
-	
+
 	static $isBot = null;
 	/**
 	 *
@@ -32,14 +32,14 @@ class BotChecker{
 	public static function isRequestFromBot(){
 		if (BotChecker::$isBot == null){
 			global $servername;
-			if (file_exists('sites/' . $servername . '/conf/bots.ini')){
-				$fhnd = fopen('sites/' . $servername . '/conf/bots.ini');
-			}elseif (file_exists('sites/default/conf/bots.ini')){
-				$fhnd = fopen('sites/default/conf/bots.ini');
+			if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
+				$fhnd = fopen('../../sites/' . $servername . '/conf/bots.ini', 'r');
+			}elseif (file_exists('../../sites/default/conf/bots.ini')){
+				$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
 			}else{
 				return false;
 			}
-			
+
 			$isBot = false;
 			$userAgent = $_SERVER['HTTP_USER_AGENT'];
 			while (($curAgent = fgets($fhnd, 4096)) !== false) {
@@ -52,7 +52,7 @@ class BotChecker{
 				}
 			}
 			fclose($fhnd);
-			
+
 			BotChecker::$isBot = $isBot;
 		}
 		return BotChecker::$isBot;

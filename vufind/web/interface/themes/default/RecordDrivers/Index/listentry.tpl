@@ -5,7 +5,7 @@
         
 <div class="imageColumn"> 
    {if $user->disableCoverArt != 1}
-    <a href="{$url}/Record/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$listId|escape:"url"}">
+    <a href="{$path}/Record/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$listId|escape:"url"}">
     <img src="{$path}/bookcover.php?id={$listId}&amp;isn={$listISBN|@formatISBN}&amp;size=small&amp;upc={$listUPC}&amp;category={$listFormatCategory.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
     <div id='descriptionPlaceholder{$listId|escape}' style='display:none'></div>
@@ -13,13 +13,13 @@
     
     {* Place hold link *}
     <div class='requestThisLink' id="placeHold{$listId|escape:"url"}" style="display:none">
-      <a href="{$url}/Record/{$listId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+      <a href="{$path}/Record/{$listId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
     </div>
 </div>
 
 <div class="resultDetails">
   <div class="resultItemLine1">
-	<a href="{$url}/Record/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$listTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$listTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	<a href="{$path}/Record/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$listTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$listTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $listTitleStatement}
     <div class="searchResultSectionInfo">
       {$listTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -32,10 +32,10 @@
       {translate text='by'}
       {if is_array($listAuthor)}
         {foreach from=$listAuthor item=author}
-          <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+          <a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
         {/foreach}
       {else}
-        <a href="{$url}/Author/Home?author={$listAuthor|escape:"url"}">{$listAuthor|highlight:$lookfor}</a>
+        <a href="{$path}/Author/Home?author={$listAuthor|escape:"url"}">{$listAuthor|highlight:$lookfor}</a>
       {/if}
     {/if}
  
@@ -60,13 +60,13 @@
   <div class="rate{$listId|escape} stat">
     <div id="saveLink{$listId|escape}">
       {if $listEditAllowed}
-          <a href="{$url}/MyResearch/Edit?id={$listId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="edit tool">{translate text='Edit'}</a>
+          <a href="{$path}/MyResearch/Edit?id={$listId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="edit tool">{translate text='Edit'}</a>
           {* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
           <a
           {if is_null($listSelected)}
-            href="{$url}/MyResearch/Home?delete={$listId|escape:"url"}"
+            href="{$path}/MyResearch/Home?delete={$listId|escape:"url"}"
           {else}
-            href="{$url}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$listId|escape:"url"}"
+            href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$listId|escape:"url"}"
           {/if}
           class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
       {/if}
@@ -84,7 +84,7 @@
     <script type="text/javascript">
       $(
          function() {literal} { {/literal}
-             $('.rate{$listId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: {$listId},  rating:0.0, postHref: '{$url}/Record/{$listId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+             $('.rate{$listId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: {$listId},  rating:0.0, postHref: '{$path}/Record/{$listId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
          {literal} } {/literal}
       );
     </script>

@@ -20,14 +20,14 @@
     <h4>{translate text="Search Tips"}</h4>
     <div class="sidegroupContents">
     <div class="sideLinksAdv">
-    <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=advsearch', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Advanced Search"}</a><br/>
-    <a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Search Operators"}</a>
+    <a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=advsearch', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Advanced Search"}</a><br/>
+    <a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text="Help with Search Operators"}</a>
   </div>
   </div>
   </div>
 </div></div>
 <div id="main-content" class="advSearchContent">
-  <form method="get" action="{$url}/Search/Results" id="advSearchForm" class="search">
+  <form method="get" action="{$path}/Search/Results" id="advSearchForm" class="search">
     <h1>{translate text='Advanced Search'}</h1>
     <p>{translate text="Can't find what you're looking for? Use the fields below to narrow your search."}</p>
     {if $editErr}

@@ -328,9 +328,11 @@ class AJAX extends Action {
 		$ratingData['eContent'] = array();
 		foreach ($ids as $id){
 			$resource = new Resource();
-			$resource->record_id = $id;
 			$resource->source = 'VuFind';
-			$ratingData['standard'][$id] = $resource->getRatingData($user);
+			$resource->record_id = $id;
+			$resource->find(true);
+			$shortId = str_replace('.b', 'b',  $id);
+			$ratingData['standard'][$shortId] = $resource->getRatingData($user);
 		}
 
 		require_once 'sys/eContent/EContentRating.php';

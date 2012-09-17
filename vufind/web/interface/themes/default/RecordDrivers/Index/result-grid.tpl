@@ -1,6 +1,6 @@
 <div id="record{$summId|escape}" class="gridRecordBox" onmouseover="$(this).addClass('gridMouseOver');" onmouseout="$(this).removeClass('gridMouseOver');">
     <span class="gridImageBox" >
-    <a href="{$url}/Record/{$summId|escape:"url"}">
+    <a href="{$path}/Record/{$summId|escape:"url"}">
     {if $summThumbLarge}
     <img src="{$summThumbLarge|escape}" class="gridImage" alt="{translate text='Cover Image'}" />
     {elseif $summThumb}
@@ -11,7 +11,7 @@
     </a>
     </span>
     <div class="gridTitleBox" >
-      <a class="gridTitle" href="{$url}/Record/{$summId|escape:"url"}" >
+      <a class="gridTitle" href="{$path}/Record/{$summId|escape:"url"}" >
         {if !$summTitle}{translate text='Title not available'}{elseif !empty($summHighlightedTitle)}{$summHighlightedTitle|addEllipsis:$summTitle|highlight}{else}{$summTitle|truncate:80:"..."|escape}{/if}
       </a>
       {if $summOpenUrl || !empty($summURLs)}

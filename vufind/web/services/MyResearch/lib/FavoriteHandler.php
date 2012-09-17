@@ -163,8 +163,7 @@ class FavoriteHandler
 		$searchObject->init();
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (array_key_exists('vufind', $this->ids) &&
-		count($this->ids['vufind']) > 0) {
+		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
 			$searchObject->setQueryIDs($this->ids['vufind']);
 			$result = $searchObject->processSearch();
 			return $searchObject->getResultRecordSet();
@@ -179,8 +178,7 @@ class FavoriteHandler
 		$searchObject->init();
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (array_key_exists('vufind', $this->ids) &&
-		count($this->ids['vufind']) > 0) {
+		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
 			$searchObject->setQueryIDs($this->ids['vufind']);
 			$result = $searchObject->processSearch();
 			return $searchObject->getCitations($citationFormat);

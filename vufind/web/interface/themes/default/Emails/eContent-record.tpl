@@ -2,7 +2,7 @@
 {translate text="This email was sent from"}: {$from}
 ------------------------------------------------------------
 
-{$emailDetails}  {translate text="email_link"}: {$url}/EcontentRecord/{$id|escape:"url"}
+{$emailDetails}  {translate text="email_link"}: {$path}/EcontentRecord/{$id|escape:"url"}
 ------------------------------------------------------------
 
 {if !empty($message)}

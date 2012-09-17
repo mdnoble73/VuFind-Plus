@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$url}/services/MyResearch/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
 <script type="text/javascript" src="{$path}/js/holds.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
@@ -27,7 +27,7 @@
 					var recommendedScroller;
 	
 					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-					recommendedScroller.loadTitlesFrom('{$url}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
+					recommendedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
 				</script>
 			{/if}
           
@@ -102,7 +102,7 @@
 				    	{if $user->disableCoverArt != 1}
 				    	<div class="imageColumn"> 
 						    {if $record.id}
-						    <a href="{$url}/Record/{$record.id|escape:"url"}" id="descriptionTrigger{$record.id|escape:"url"}">
+						    <a href="{$path}/Record/{$record.id|escape:"url"}" id="descriptionTrigger{$record.id|escape:"url"}">
 						    <img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 						    </a>
 						    {/if}
@@ -113,7 +113,7 @@
 				      <div class="myAccountTitleDetails">
 						  <div class="resultItemLine1">
 						  {if $record.id}
-							<a href="{$url}/Record/{$record.id|escape:"url"}" class="title">
+							<a href="{$path}/Record/{$record.id|escape:"url"}" class="title">
 							{/if}
 							{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}
 							{if $record.id}
@@ -131,10 +131,10 @@
 						      {translate text='by'}
 						      {if is_array($record.author)}
 						        {foreach from=$summAuthor item=author}
-						          <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+						          <a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
 						        {/foreach}
 						      {else}
-						        <a href="{$url}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
+						        <a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
 						      {/if}
 						    {/if}
 						 
@@ -207,7 +207,7 @@
 							  </div>
 						      <div id="saveLink{$record.shortId|escape}">
 						        {if $showFavorites == 1} 
-						        <a href="{$url}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+						        <a href="{$path}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 						        {/if}
 						        {if $user}
 						        	<div id="lists{$record.shortId|escape}"></div>

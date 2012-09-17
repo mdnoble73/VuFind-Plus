@@ -4,7 +4,7 @@
 	</div>
 	{if $user->disableCoverArt != 1}			
 	<div class="imageColumn">
-		<a href="{$url}/MyResearch/MyList/{$summShortId}">
+		<a href="{$path}/MyResearch/MyList/{$summShortId}">
 		<img src="{img filename="lists.png"}" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
 		</a>
 	</div>
@@ -12,7 +12,7 @@
 	
 	<div class="resultDetails"> 
 		<div class="resultItemLine1">
-			<a href="{$url}/MyResearch/MyList/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+			<a href="{$path}/MyResearch/MyList/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 			{if $summTitleStatement}
 				<div class="searchResultSectionInfo">
 					{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}

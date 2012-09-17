@@ -268,7 +268,7 @@ public class Util {
 				});
 			}
 			conn.setConnectTimeout(3000);
-			conn.setReadTimeout(60000);
+			conn.setReadTimeout(300000);
 			logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
@@ -315,7 +315,7 @@ public class Util {
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
 			conn.setConnectTimeout(1000);
-			conn.setReadTimeout(90000);
+			conn.setReadTimeout(300000);
 			logger.debug("Posting To URL " + url);
 			logger.debug("  Opened connection");
 			conn.setDoInput(true);
@@ -502,5 +502,29 @@ public class Util {
 		sortTitle = sortTitle.replaceAll("\\s{2,}", " "); //get rid of duplicate spaces 
 		sortTitle = sortTitle.trim();
 		return sortTitle;
+	}
+	
+	public static String convertISBN10to13(String isbn10){
+		if (isbn10.length() != 10){
+			return null;
+		}
+		String isbn = "978" + isbn10.substring(0, 9);
+		//Calculate the 13 digit checksum
+		int sumOfDigits = 0;
+		for (int i = 0; i < 12; i++){
+			int multiplier = 1;
+			if (i % 2 == 1){
+				multiplier = 3;
+			}
+			sumOfDigits += multiplier * (int)(isbn.charAt(i));
+		}
+		int modValue = sumOfDigits % 10;
+		int checksumDigit;
+		if (modValue == 0){
+			checksumDigit = 0;
+		}else{
+			checksumDigit = 10 - modValue;
+		}
+		return  isbn + Integer.toString(checksumDigit);
 	}
 }

@@ -20,7 +20,7 @@
 </h1>
 {* End Title *}
 
-{if $coreSummary}<p>{$coreSummary|truncate:300:"..."|escape} <a href='{$url}/Record/{$id|escape:"url"}/Description#tabs'>Full description</a></p>{/if}
+{if $coreSummary}<p>{$coreSummary|truncate:300:"..."|escape} <a href='{$path}/Record/{$id|escape:"url"}/Description#tabs'>Full description</a></p>{/if}
 
 {* Display Main Details *}
 <table cellpadding="2" cellspacing="0" border="0" class="citation" summary="{translate text='Bibliographic Details'}">
@@ -29,7 +29,7 @@
     <th>{translate text='New Title'}: </th>
     <td>
       {foreach from=$coreNextTitles item=field name=loop}
-        <a href="{$url}/Search/Results?lookfor=%22{$field|escape:"url"}%22&amp;type=Title">{$field|escape}</a><br />
+        <a href="{$path}/Search/Results?lookfor=%22{$field|escape:"url"}%22&amp;type=Title">{$field|escape}</a><br />
       {/foreach}
     </td>
   </tr>
@@ -40,7 +40,7 @@
     <th>{translate text='Previous Title'}: </th>
     <td>
       {foreach from=$corePrevTitles item=field name=loop}
-        <a href="{$url}/Search/Results?lookfor=%22{$field|escape:"url"}%22&amp;type=Title">{$field|escape}</a><br />
+        <a href="{$path}/Search/Results?lookfor=%22{$field|escape:"url"}%22&amp;type=Title">{$field|escape}</a><br />
       {/foreach}
     </td>
   </tr>
@@ -49,14 +49,14 @@
   {if !empty($coreMainAuthor)}
   <tr valign="top">
     <th>{translate text='Main Author'}: </th>
-    <td><a href="{$url}/Author/Home?author={$coreMainAuthor|escape:"url"}">{$coreMainAuthor|escape}</a></td>
+    <td><a href="{$path}/Author/Home?author={$coreMainAuthor|escape:"url"}">{$coreMainAuthor|escape}</a></td>
   </tr>
   {/if}
 
   {if !empty($coreCorporateAuthor)}
   <tr valign="top">
     <th>{translate text='Corporate Author'}: </th>
-    <td><a href="{$url}/Author/Home?author={$coreCorporateAuthor|escape:"url"}">{$coreCorporateAuthor|escape}</a></td>
+    <td><a href="{$path}/Author/Home?author={$coreCorporateAuthor|escape:"url"}">{$coreCorporateAuthor|escape}</a></td>
   </tr>
   {/if}
 
@@ -65,7 +65,7 @@
     <th>{translate text='Other Authors'}: </th>
     <td>
       {foreach from=$coreContributors item=field name=loop}
-        <a href="{$url}/Author/Home?author={$field|escape:"url"}">{$field|escape}</a>{if !$smarty.foreach.loop.last}, {/if}
+        <a href="{$path}/Author/Home?author={$field|escape:"url"}">{$field|escape}</a>{if !$smarty.foreach.loop.last}, {/if}
       {/foreach}
     </td>
   </tr>
@@ -120,14 +120,14 @@
            name.  We should account for both cases to maximize compatibility. *}
         {if is_array($field)}
           {if !empty($field.name)}
-            <a href="{$url}/Search/Results?lookfor=%22{$field.name|escape:"url"}%22&amp;type=Series">{$field.name|escape}</a>
+            <a href="{$path}/Search/Results?lookfor=%22{$field.name|escape:"url"}%22&amp;type=Series">{$field.name|escape}</a>
             {if !empty($field.number)}
               {$field.number|escape}
             {/if}
             <br />
           {/if}
         {else}
-          <a href="{$url}/Search/Results?lookfor=%22{$field|escape:"url"}%22&amp;type=Series">{$field|escape}</a><br />
+          <a href="{$path}/Search/Results?lookfor=%22{$field|escape:"url"}%22&amp;type=Series">{$field|escape}</a><br />
         {/if}
       {/foreach}
     </td>
@@ -143,7 +143,7 @@
         {foreach from=$field item=subfield name=subloop}
           {if !$smarty.foreach.subloop.first} &gt; {/if}
           {assign var=subject value="$subject $subfield"}
-          <a href="{$url}/Search/Results?lookfor=%22{$subject|escape:"url"}%22&amp;type=Subject">{$subfield|escape}</a>
+          <a href="{$path}/Search/Results?lookfor=%22{$subject|escape:"url"}%22&amp;type=Subject">{$subfield|escape}</a>
         {/foreach}
         <br />
       {/foreach}
@@ -169,13 +169,13 @@
     <th>{translate text='Tags'}: </th>
     <td>
       <span style="float:right;">
-        <a href="{$url}/Record/{$id|escape:"url"}/AddTag" class="tool add"
+        <a href="{$path}/Record/{$id|escape:"url"}/AddTag" class="tool add"
            onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
       </span>
       <div id="tagList">
         {if $tagList}
           {foreach from=$tagList item=tag name=tagLoop}
-        <a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}){if !$smarty.foreach.tagLoop.last}, {/if}
+        <a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}){if !$smarty.foreach.tagLoop.last}, {/if}
           {/foreach}
         {else}
           {translate text='No Tags'}, {translate text='Be the first to tag this record'}!

@@ -159,7 +159,24 @@ function toggleInBag(id, title, checkBox) {
 	_saveBagAsCookie();
 	
 	updateBag();	
+}
 
+/**
+ * Add a title to the book bag
+ * 
+ * @param id
+ * @param title
+ */
+function addToBag(id, title) {
+	book = new Object();
+	book.id = id;
+	book.title = title; 
+	
+	_addToBag(book);
+	
+	_saveBagAsCookie();
+	
+	updateBag();	
 }
 
 /** Create a list and then save all items in the book cart to it */

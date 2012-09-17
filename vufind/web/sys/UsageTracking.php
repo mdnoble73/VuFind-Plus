@@ -18,6 +18,7 @@
  *
  */
 require_once 'DB/DataObject.php';
+require_once('sys/BotChecker.php');
 
 class UsageTracking extends DB_DataObject{
 	public $__table = 'usage_tracking';
@@ -34,7 +35,6 @@ class UsageTracking extends DB_DataObject{
 		global $locationSingleton;
 
 		try{
-
 			if ($ipLocation == null){
 				$ipLocation = $locationSingleton->getIPLocation();
 			}
@@ -48,7 +48,12 @@ class UsageTracking extends DB_DataObject{
 
 			// If the Subnet (location) is unknown save as a -1
 			//print_r($ipLocation);
-			if ($ipLocation == null) {
+			$requestFromBot = BotChecker::isRequestFromBot();
+			if ($requestFromBot){
+				$ipLocationId = -2;
+				$locationId = -2;
+				$ipId = -2;
+			}else if ($ipLocation == null) {
 				$ipLocationId = -1;
 				$locationId = -1;
 			} else {

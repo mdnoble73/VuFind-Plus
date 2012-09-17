@@ -99,12 +99,14 @@ function GetEContentHoldingsInfo(id, type, callback) {
 			if (holdingsData) {
 				if (holdingsData.length > 0) {
 					$("#holdingsPlaceholder").html(holdingsData);
+					$("#holdingsPlaceholder").trigger("create");
 				}
 			}
 			var holdingsSummary = $(data).find("HoldingsSummary").text();
 			if (holdingsSummary) {
 				if (holdingsSummary.length > 0) {
 					$("#holdingsSummaryPlaceholder").html(holdingsSummary);
+					$("#holdingsSummaryPlaceholder").trigger("create");
 				}
 			}
 			var showPlaceHold = $(data).find("ShowPlaceHold").text();

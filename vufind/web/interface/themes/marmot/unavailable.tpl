@@ -180,7 +180,7 @@ window.onload = start
 			<h3> ___ </h3>
 			<h3 id="message"></h3>
 		</div>
-
+		<!-- server ip {$activeIp} -->
 	</div>
 </body>
 </html>

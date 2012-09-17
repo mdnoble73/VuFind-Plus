@@ -16,7 +16,7 @@ class SearchSources{
 
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
-		if ($location != null){
+		if ($location != null && $location->useScope && strlen($location->defaultLocationFacet) > 0){
 			$repeatSearchSetting = $location->repeatSearchOption;
 			$repeatInWorldCat = $location->repeatInWorldCat == 1;
 			$repeatInProspector = $location->repeatInProspector == 1;
@@ -42,7 +42,7 @@ class SearchSources{
 		$marmotAdded = false;
 
 		//Local search
-		if (isset($location) && $location != null){
+		if (isset($location) && $location != null && $location->useScope && strlen($location->defaultLocationFacet) > 0){
 			$searchOptions['local'] = array(
               'name' => $location->displayName,
               'description' => "The {$location->displayName} catalog.",

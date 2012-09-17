@@ -5,7 +5,7 @@
 				
 	<div class="imageColumn"> 
 		 {if $user->disableCoverArt != 1}
-		 <a href="{$url}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" id="descriptionTrigger{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
+		 <a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" id="descriptionTrigger{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
 			<img src="{$path}/bookcover.php?id={$resource->record_id}&amp;isn={$resource->isbn|@formatISBN}&amp;size=small&amp;upc={$resource->upc}&amp;category={$resource->format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 			<div id='descriptionPlaceholder{$resource->record_id|regex_replace:"/\./":""|escape}' style='display:none'></div>
@@ -13,13 +13,13 @@
 			
 			{* Place hold link *}
 			<div class='requestThisLink' id="placeHold{$resource->record_id|escape:"url"}" style="display:none">
-				<a href="{$url}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold"><img src="{img filename="place_hold.png"}" alt="Place Hold"/></a>
+				<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold"><img src="{img filename="place_hold.png"}" alt="Place Hold"/></a>
 			</div>
 	</div>
 
 	<div class="resultDetails">
 		<div class="resultItemLine1">
-		<a href="{$url}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+		<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 		{if $listTitleStatement}
 			<div class="searchResultSectionInfo">
 				{$listTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -30,7 +30,7 @@
 		<div class="resultItemLine2">
 			{if $resource->author}
 				{translate text='by'}
-				<a href="{$url}/Author/Home?author={$resource->author|escape:"url"}">{$resource->author|highlight:$lookfor}</a>
+				<a href="{$path}/Author/Home?author={$resource->author|escape:"url"}">{$resource->author|highlight:$lookfor}</a>
 			{/if}
 	 
 			{if $listDate}{translate text='Published'} {$listDate.0|escape}{/if}
@@ -46,7 +46,7 @@
 		{if $listTags}
 					{translate text='Your Tags'}:
 					{foreach from=$listTags item=tag name=tagLoop}
-						<a href="{$url}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
+						<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
 					{/foreach}
 					<br />
 				{/if}
@@ -68,13 +68,13 @@
 		<div class="rate{$resource->record_id|regex_replace:"/\./":""|escape} stat">
 			<div id="saveLink{$resource->record_id|regex_replace:"/\./":""|escape}">
 				{if $allowEdit}
-						<a href="{$url}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}" class="edit tool">{translate text='Edit'}</a>
+						<a href="{$path}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}" class="edit tool">{translate text='Edit'}</a>
 						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
 						<a
 						{if is_null($listSelected)}
-							href="{$url}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
+							href="{$path}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
 						{else}
-							href="{$url}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
+							href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
 						{/if}
 						class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
 				{/if}
@@ -93,7 +93,7 @@
 		<script type="text/javascript">
 			$(
 				 function() {literal} { {/literal}
-						 $('.rate{$resource->record_id|regex_replace:"/\./":""|escape}').rater({literal}{ {/literal}module: '{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}', recordId: '{$resource->record_id}',	rating:0.0, postHref: '{$url}/Record/{$resource->record_id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+						 $('.rate{$resource->record_id|regex_replace:"/\./":""|escape}').rater({literal}{ {/literal}module: '{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}', recordId: '{$resource->record_id}',	rating:0.0, postHref: '{$path}/Record/{$resource->record_id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 				 {literal} } {/literal}
 			);
 		</script>

@@ -25,7 +25,7 @@
 	      <div class="searchcontent">
 	        
 	        {if $showTopSearchBox}
-	          <a href="{if $homeLink}{$homeLink}{else}{$url}{/if}"><img src="{$path}{$smallLogo}" alt="VuFind" class="alignleft" /></a>
+	          <a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{$path}{$smallLogo}" alt="VuFind" class="alignleft" /></a>
               {include file="Search/searchbox.tpl"}
 	        {/if}
 	

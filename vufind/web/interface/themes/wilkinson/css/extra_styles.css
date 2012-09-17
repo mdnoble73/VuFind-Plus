@@ -1,4 +1,617 @@
+.searchHome{
+	margin-top: 0px;
+	padding: 30px 0px 125px;
+}
 .searchHomeForm {
-	background-color: #8F191C;
-	border-color: #F9F8D1;
+	background-color: #404040;
+	border-color: #242424;
+}
+
+#searchbar {
+	background-color: #404040;
+	color: white;
+}
+#searchbar a{
+	color: white;
+}
+
+.searchheader{
+	padding: 0px;
+}
+
+#headerwrap {
+	background-color: #404040;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+}
+
+
+#headerwrap .row {
+    padding: 5px 10px;
+}
+.row {
+    margin: 0 auto;
+    overflow: hidden;
+    width: 94%;
+}
+
+#logo {
+    margin: 0 auto;
+}
+
+.grid_four, .grid_3, .moduletable.noresize .grid_four, .moduletable.noresize .grid_4 {
+    width: 30.75%;
+}
+.grid_one, .grid_two, .grid_three, .grid_four, .grid_five, .grid_six, .grid_seven, .grid_eight, .grid_nine, .grid_ten, .grid_eleven, .grid_3, .grid_4, .grid_2, .grid_1 {
+    float: left;
+    margin-right: 3.8%;
+    min-height: 1px;
+    position: relative;
+}
+.zenlast, #midCol.twoL, #midCol.threeLC, .jblast {
+    float: right;
+    margin: 0;
+}
+
+#header4 ul {
+    list-style: none outside none;
+    margin: 0;
+}
+#header4 ul li {
+	
+    float: right;
+    margin: 0 0 0 20px;
+}
+
+#header4 ul li a, #header4 ul li span {
+    color: #FFFFFF;
+    font-size: 16px;
+    line-height: 2;
+}
+#header4 ul:first-child li a, #header4 ul:first-child li span{
+    line-height: 4;
+}
+#header4{
+	width:50%;
+}
+body{
+	color: #666666
+}
+
+body, span.Alice {
+    font-family: Alice;
+    font-size: 100%;
+}
+
+h1, h2, h3, h4, h5, h6, .blockquote, .componentheading, .contentheading {
+  font-family: sans-serif;
+}
+
+#nav, .moduletable-superfish, .moduletable-menu, #togglemenu {
+    font-family: sans-serif;
+}
+
+#bottom blockquote {
+    font-family: georgia;
+    font-size: 2em;
+    font-style: italic;
+    margin: 1em 0;
+}
+
+
+
+/* Nav row - for the menu position. See below for superfish styling
+-----------------------------------------------------------------------------*/
+
+#navwrap
+{
+	background: none repeat scroll 0 0 #FFFFFF;
+  height:80px;
+  position:relative;
+  z-index:10;
+  width: 100%;
+  -webkit-box-shadow:0 0 0 4px rgba(0, 0, 0, .1);
+  -moz-box-shadow:0 0 0 4px rgba(0, 0, 0, .1);
+  box-shadow:10 0 0 0px rgba(0, 0, 0, .1)
+}
+
+
+
+#navwrap .inner
+{
+  float:left;
+  width:100%;
+  padding:15px 0 0
+}
+
+#navwrap .row
+{
+  overflow:visible
+}
+
+#navwrap .container
+{
+  padding:0
+}
+
+#nav ul li
+{
+  font-size:1.3em;
+  margin:4px 2% 0 0 !important
+}
+
+#nav ul li a
+{
+  line-height:2;
+  color:#444;
+  margin-top:0px;
+  padding:0 10px !important
+}
+
+#nav ul li li
+{
+  font-size:0.8em;
+  white-space:nowrap
+}
+
+#nav ul li li a
+{
+  line-height:2;
+  margin:0 7px;
+  padding:0 5px
+}
+
+#nav ul li li li
+{
+  font-size:1em
+}
+
+#nav.centered li li
+{
+  text-indent:10px;
+  padding:8px 0
+}
+
+#nav ul li.sfHover ul,.moduletable-superfish ul li.sfHover ul li a,#navwrap #navWrapper #nav ul li .current a:hover
+{
+  background-color:transparent
+}
+
+#navwrap #navWrapper #nav ul li .current li a,#navwrap #nav ul li .active li a
+{
+  color:#CCC
+}
+
+#navwrap #navWrapper #nav ul li .current li a:hover,#navwrap #nav ul li .active li a:hover
+{
+  color:#FFF
+}
+
+#nav ul ul,.moduletable-superfish ul li:hover ul
+{
+  left:0;
+  top:50px
+}
+
+#nav ul ul,.moduletable-superfish
+{
+  border-top:0;
+  border-radius:0 0 5px 5px;
+  padding:7px 0
+}
+
+#nav ul ul ul
+{
+  border-radius:5px
+}
+
+#nav ul li.sfHover ul ul,.moduletable-superfish ul.li.sfHover ul ul
+{
+  top:-6px
+}
+
+#nav ul li.sfHover li.sfHover
+{
+  padding-bottom:0
+}
+
+/* Nav link and span color
+---------------------------------------------------
+ Nav Active and hover color
+---------------------------------------------------*/
+#nav ul li.active a,#nav ul li.sfHover a,#nav ul li.active span.separator,#nav ul li.active li.active span.mainlevel span,#nav ul li.active li.active a,#nav ul li.active li.active span.separator,#nav ul li.active li.active li.active a,#nav ul li.active li.active li.active li.active a,#nav ul li.active li.active li.active span.separator,.moduletable-superfish ul li.active a,.moduletable-superfish ul li.active span.separator,.moduletable-superfish ul li.active li.active a,.moduletable-superfish ul li.active li.active span.separator,.moduletable-superfish ul li.active li.active li.active a,.moduletable-superfish ul li.active li.active li.active span.separator,#nav ul li a:hover,#nav ul li.active a:hover,#nav ul li span.mainlevel span:hover,#nav ul li.active li.active li a:hover,.moduletable-superfish a:hover,.moduletable-superfish ul li a:hover,.moduletable-superfish ul li.active li.active li a:hover,#nav ul li.sfHover a:hover,#navwrap #navWrapper #nav ul li .current a:hover,#navwrap #navWrapper #nav ul li.active ul li.active ul li#current > a
+{
+  color:#FFF
+}
+
+/* Image for Parent Items
+---------------------------------------------------*/
+#nav a.sf-with-ul,#nav a.sf-with-ul:hover,#nav ul.sf-js-enabled li span span,#nav li.parent li.parent span.separator,#nav ul span.separator,#navwrap #nav ul li a.sf-with-ul,.moduletable-superfish ul span.separator,.moduletable-superfish a.sf-with-ul,.moduletable-superfish a.sf-with-ul:hover,.moduletable-superfish li.parent span.separator,.moduletable-superfish li.parent li.parent span.separator
+{
+  background-image:url(../images/navParent.png);
+  background-attachment:scroll;
+  background-position:8px 12px;
+  background-repeat:no-repeat;
+  text-indent: 10px;
+}
+
+#nav span.mainlevel span,#nav span.separator {
+padding: 8px 10px;
+}
+
+#nav li.active span.mainlevel span,#nav li.active span.separator {
+color: #fff
+}
+
+#navWrapper #nav ul li.active > a,#navWrapper #nav ul li a.sf-with-ul:hover
+{
+  background-position:8px -7px
+}
+
+/* Image for Sub Parent Items
+---------------------------------------------------*/
+#nav ul ul a.sf-with-ul,#nav ul ul a.sf-with-ul:hover,#nav ul li li a.mainlevel.sf-with-ul,#nav ul.sf-js-enabled li li span.mainlevel span,#nav ul li li span.mainlevel span,#nav ul li ul li span.separator,#navwrap #nav ul li ul li a.sf-with-ul,.moduletable-superfish ul ul a.sf-with-ul,.moduletable-superfish ul ul a.sf-with-ul:hover,.moduletable-superfish ul ul li.parent span.separator,.moduletable-superfish ul li ul li.parent span.separator,.moduletable-superfish ul li li span.mainlevel span
+{
+  background:transparent url(../images/active.png) no-repeat scroll 96% 50%;
+  padding-left:10px;
+  text-indent:0
+}
+
+#nav ul li.sfHover a,#nav ul li:hover a,#nav ul li.active a,#nav ul li.active a.sf-with-ul,#nav ul li a.sf-with-ul:hover,ul.jbtabs li a,#nav span.mainlevel span:hover,#nav li.active span.mainlevel span,#nav li.active > span.separator,#nav li span.separator:hover 
+{
+  border-radius:4px;
+  -webkit-box-shadow:inset 0 2px 10px 1px rgba(0, 0, 0, .2);
+  -moz-box-shadow:inset 0 2px 10px 1px rgba(0, 0, 0, .2);
+  box-shadow:inset 0 2px 10px 1px rgba(0, 0, 0, .2);
+  background-position:8px -8px
+}
+
+#nav ul li.sfHover li a,#nav ul li:hover li a,#nav ul li.active li a,#nav ul li.active li a.sf-with-ul,#nav ul li li a.sf-with-ul:hover
+{
+  border-radius:0;
+  -webkit-box-shadow:none;
+  -moz-box-shadow:none;
+  box-shadow:none
+}
+
+#nav ul li.sfHover li a
+{
+  color:#CCC;
+  padding:0 10px
+}
+
+/* Colours for sub level item backgrounds
+---------------------------------------------------*/
+#nav ul ul,.moduletable-superfish ul ul
+{
+  background:#333 !important
+}
+
+#nav ul ul ul,.moduletable-superfish ul ul ul
+{
+  margin-left:55px;
+  margin-top:20px
+}
+
+#nav ul ul a,#nav ul li.sfHover li a,#nav ul ul span.mainlevel span
+{
+  background-color:transparent
+}
+
+#nav ul ul li
+{
+  border-bottom:1px solid #1f1f1f;
+  border-top:1px solid #444;
+  margin:0 !important;
+  padding:4px 0 !important
+}
+
+#nav ul ul li:first-child
+{
+  border-top:0
+}
+
+#nav ul ul li:last-child
+{
+  border-bottom:0
+}
+
+
+/**
+ * @package		Joomla Bamboo Zen Grid Framework
+ * @Type        Core CSS
+ * @version		v2.0
+ * @author		Joomlabamboo http://www.joomlabamboo.com
+ * @copyright 	Copyright (C) 2007 - 2010 Joomla Bamboo
+ * @license		http://www.gnu.org/licenses/gpl-2.0.html GNU/GPLv2 only
+ */
+ 
+/* Grid Layout - Can remove in zgf v2
+-----------------------------------------------------------------------------*/
+.container {
+width: 100%;
+}
+
+body.center .container {margin: 0 auto;}
+body.left .container {float: left;}
+body.right .container {float: right;}
+
+.row {
+width: 94%;
+margin: 0 auto;
+overflow: hidden;
+}
+
+.container.left .row,.container.right .row {
+margin: 0;
+}
+
+.grid_one,.grid_two,.grid_three,.grid_four,.grid_five,.grid_six,.grid_seven,.grid_eight,.grid_nine,.grid_ten,.grid_eleven,.grid_3,.grid_4,.grid_2,.grid_1
+{
+margin-right: 3.8%;
+*margin-right: 3.7%; /* Targeting IE7 only*/
+float: left;
+position: relative;
+min-height: 1px
+}
+
+.grid_one,.moduletable.noresize .grid_one
+{
+width: 4.85%
+}
+
+.grid_two,.moduletable.noresize .grid_two
+{
+width: 13.45%
+}
+
+.grid_three,.grid_4,.moduletable.noresize .grid_three,.moduletable.noresize .grid_4
+{
+width: 22.05% 
+}
+
+.grid_four,.grid_3,.moduletable.noresize .grid_four,.moduletable.noresize .grid_4
+{
+width: 30.75%
+}
+
+.grid_five,.moduletable.noresize .grid_five
+{
+width: 39.45%
+}
+
+.grid_six,.grid_2,.moduletable.noresize .grid_six,.moduletable.noresize .grid_2
+{
+width: 48%
+}
+
+.grid_seven,.moduletable.noresize .grid_seven
+{
+width: 56.75%
+}
+
+.grid_eight,.moduletable.noresize .grid_eight
+{
+width: 65.4%
+}
+
+.grid_nine,.moduletable.noresize .grid_nine
+{
+width: 74.05%
+}
+
+.grid_ten,.moduletable.noresize .grid_ten
+{
+width: 82.7%
+}
+
+.grid_eleven,.moduletable.noresize .grid_eleven
+{
+width: 91.35%
+}
+
+.grid_twelve,grid_,.grid_1,.moduletable.noresize .grid_twelve,.moduletable.noresize .grid_1
+{
+width: 100%;
+float: left
+}
+
+
+
+.zenlast,#midCol.twoL,#midCol.threeLC,.jblast  {
+float: right;margin: 0;
+} 
+
+#mobilemenu {display: none;}
+
+
+.onecols_push {left: 8.85%;}
+.twocols_push {left: 17.25%;}
+.threecols_push {left: 25.85%;}
+.fourcols_push {left: 60.55%;}
+.fivecols_push {left: 43.25%}
+.sixcols_push {left: 51.80%;}
+.sevencols_push {left: 60.55%;}
+.eightcols_push {left: 69.20%;}
+.ninecols_push {left: 77.85%;}
+.tencols_push {left: 86.5%;}
+.elevencols_push {left: 94.85%}
+
+.onecols_pull{left: -8.85%;}
+.twocols_pull{left: -17.25%;}
+.threecols_pull{left: -25.85%;}
+.fourcols_pull{left: -34.55%;}
+.fivecols_pull{left: -43.25%;}
+.sixcols_pull {left: -51%;}
+.sevencols_pull{left: -60.55%;}
+.eightcols_pull{left: -69.20%;}
+.ninecols_pull{left: -77.85%;}
+.tencols_pull{left: -86.25%;}
+.elevencols_pull{left: -94.85%;}
+
+/* Colours for background hover states
+---------------------------------------------------*/
+#nav ul a:focus,#nav ul a:hover,.moduletable-superfish ul li:hover,.moduletable-superfish ul li.sfHover,.modueltable-superfish ul a:focus,.moduletable-superfish ul a:hover,.moduletable-superfish ul a:active,.modueltable-superfish ul li li.active
+{
+  outline:0;
+  color:#ccc
+}
+
+/*------------------------------------------------------------------
+Template:  JB Lifestyle
+Version:  Joomla 1.5
+Zen Grid:   v2.0
+Copyright:  Joomlabamboo
+Created:  January 2012
+---------------------------------------------------*/
+
+
+#banner ul.slidenav,#nav span.mainlevel span:hover,#nav li.active > span.mainlevel span,#nav li > span.separator:hover,#nav li.active > span.separator   { 
+    background-color: #75a6c2;color: #75a6c2;
+}
+
+#banner ul.slidenav:hover,.zenmore a:hover,#nav li.active > a:hover,#nav li.active > span.separator:hover {
+    background-color: #75a6c2;
+}
+
+/* First Background Hovers
+---------------------------------------------------*/
+#nav ul li.sfHover a,
+#nav ul li:hover a,
+#nav ul li.active a {
+  background: #b06206;
+}
+
+/* Bottom Row - Bottom1 to bottom4 modules
+-----------------------------------------------------------------------------*/
+#bottomrow,#footerwrap,#footer .jbmoduleBody 
+{
+
+  background:#2f2f2f url(../images/bg.png)
+}
+
+#bottomrow {
+  border-top:8px solid #242424;
+}
+
+
+#bottom4 button,#bottom4 input[type="reset"],#bottom4 input[type="button"],#bottom4 input[type="submit"]
+{
+  border-left:0 none;
+  width:20px
+}
+
+#bottom ul
+{
+  list-style:none;
+  margin:0;
+  padding:0
+}
+
+#bottom ul *
+{
+  font-size:14px;
+  color:#acacac
+}
+
+#bottom .jbmoduleBody
+{
+  padding:0 8px
+}
+
+#bottom h3,#bottom h2
+{
+  background:#282828;
+  border-radius:3px;
+  border-bottom:1px solid #343434;
+  padding:8px 10px
+}
+
+#bottom h2 {
+margin-left: -4px;font-size: 1.3em;
+}
+
+#bottom
+{
+  padding-top:20px
+}
+
+#bottom ul li
+{
+  border-top:1px solid #424242;
+  border-bottom:1px solid #1f1f1f;
+  padding:4px 0
+}
+
+#bottom ul li:last-child
+{
+  border-bottom:0
+}
+
+#bottom ul li:first-child
+{
+  border-top:0
+}
+
+#bottom h2,#bottom h4,#bottom h5,#bottom h6 {
+color: #fff;
+}
+#headerwrap h3,#bottomrow h3,#footerwrap h3
+{
+  color:#fff
+}
+
+/* Footer Row - Footer Position
+-----------------------------------------------------------------------------*/
+
+#footerwrap .container
+{
+  padding:0 0 30px
+}
+
+#footer
+{
+  padding-top:20px
+}
+
+#footerLeft
+{
+  float:left
+}
+
+#footerRight
+{
+  width:100%;
+  text-align:center
+}
+
+#footerouter 
+{
+  border-bottom:1px solid #424242;
+  height:8px;
+  overflow:visible;
+  position:relative;
+  margin:0 0 80px
+}
+
+#footerinner
+{
+  border-bottom:1px solid #1f1f1f;
+  height:7px;float: ;
+  text-align:center;
+  margin:0
+}
+
+
+#footer .jbmoduleBody 
+{
+  font-size:14px;
+  line-height:1;
+  color:#5d5d5d;margin: 0 auto;width: 400px;
+  padding:0 20px
+}
+
+#footer .moduletable div {
+  text-align: center;margin:-8px auto;float: none;
 }

@@ -6,7 +6,7 @@
         <div class="page">
           {if $message}<div class="error">{$message|translate}</div>{/if}  
           {if $authMethod != 'Shibboleth'}
-          <form method="post" action="{$url}/MyResearch/Home" name="loginForm">
+          <form method="post" action="{$path}/MyResearch/Home" name="loginForm">
             <table class="citation" width="100%">
               <tr>
                 <td style="width:80px">{translate text='Username'}: </td>
@@ -35,7 +35,7 @@
            </table>
          </form>
          <script type="text/javascript">document.loginForm.username.focus();</script>
-        {if $authMethod == 'DB'}<a href="{$url}/MyResearch/Account">{translate text='Create New Account'}</a>{/if}
+        {if $authMethod == 'DB'}<a href="{$path}/MyResearch/Account">{translate text='Create New Account'}</a>{/if}
         {/if}
       </div>
       <b class="bbot"><b></b></b>

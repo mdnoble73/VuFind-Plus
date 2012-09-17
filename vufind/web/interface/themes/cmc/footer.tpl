@@ -23,16 +23,16 @@
 </div>
 <div class="footerCol"><div><strong>{translate text='Find More'}</strong></div>
 	<ul>
+		<li><a href="{$homeLink}">CMC Libraries Home Page</a></li>
 		<li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
 		<!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li>
 		<li><a href="{$path}/Search/NewItem">{translate text='New Items'}</a></li> -->
-		<li><a href="http://www.coloradomtn.edu/cms/One.aspx?portalId=2935482&pageId=3646573">{translate text='Online Articles, E-Books, and More'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><div><strong>{translate text='Need Help?'}</strong></div>
 	<ul>
-		<li><a href="{$url}/Help/Home?topic=search" onclick="window.open('{$url}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
+		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
 		<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
 		{if isset($illLink)}
 				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
@@ -40,7 +40,7 @@
 		{if isset($suggestAPurchaseLink)}
 				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
-		<li><a href="{$url}/Help/Home?topic=faq" onclick="window.open('{$url}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
+		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>

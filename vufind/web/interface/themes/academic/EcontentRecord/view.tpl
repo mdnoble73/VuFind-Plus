@@ -29,7 +29,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
-				<li><a href="{$url}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
+				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
 				<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></li>
@@ -50,12 +50,15 @@ function redrawSaveStatus() {literal}{{/literal}
 			{if $showFavorites == 1}
 				<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></li>
 			{/if}
+			{if $enableBookCart == 1}
+				<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$eContentRecord->title|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+			{/if}
 			{if !empty($addThis)}
 				<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 			{/if}
 			<li id="HoldingsLink"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
 			{if isset($nextId)}
-				<li><a href="{$url}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
+				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
 			{/if}
 		</ul>
 	</div>
@@ -149,7 +152,7 @@ function redrawSaveStatus() {literal}{{/literal}
 								<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
 							</a>
 							<div id="goDeeperLink" class="godeeper" style="display:none">
-								<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+								<a href="{$path}/EcontentRecord/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
 								<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
 							</div>
 						</div>
@@ -195,7 +198,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			<div id='fullRecordTitleDetails'>
 				{* Display Title *}
-				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape} 
+				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|regex_replace:"/(\/|:)$/":""|escape}{/if}
 				{if $user && $user->hasRole('epubAdmin')}
 				{if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
 				<span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>
@@ -212,7 +215,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $eContentRecord->author}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Main Author'}:</span>
-					<span class="resultValue"><a href="{$url}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
+					<span class="resultValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
 				</div>
 				{/if}
 		
@@ -244,9 +247,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Format'}:</span>
 					{if is_array($eContentRecord->format())}
-					 {foreach from=$eContentRecord->format() item=displayFormat name=loop}
-						 <span class="resultValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></span>
-					 {/foreach}
+						{foreach from=$eContentRecord->format() item=displayFormat name=loop}
+							<span class="resultValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></span>
+						{/foreach}
 					{else}
 						<span class="resultValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></span>
 					{/if}

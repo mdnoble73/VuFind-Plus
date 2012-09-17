@@ -74,18 +74,21 @@ class ReportPageViewsLocation extends Report{
 		$i=0;
 		while ($r=mysql_fetch_array($resLocationsFilter)) {
 			$tmp = array(
-		    'ipId' => $r['ipId'], 
-				'location' => $r['location'] 
+		    'ipId' => $r['ipId'],
+				'location' => $r['location']
 			);
 			$resultsLocationsFilter[$i++] = $tmp;
 		}
-		$tmp = array(
-		    'ipId' => '-1', 
-				'location' => 'Home Users' 
-			);
-		$resultsLocationsFilter[] = $tmp;
+		$resultsLocationsFilter[] = array(
+			'ipId' => '-1',
+			'location' => 'Home Users'
+		);
+		$resultsLocationsFilter[]  = array(
+			'ipId' => '-2',
+			'location' => 'Search Bots'
+		);
 		$interface->assign('resultsLocationsFilter', $resultsLocationsFilter);
-		
+
 		//////////Grab the Selected Locations Filter Value
 		$selectedLocationsFilter = array();
 		if (isset($_REQUEST['locationsFilter'])){
@@ -100,26 +103,31 @@ class ReportPageViewsLocation extends Report{
 				$selectedLocationsFilter[$i++] = $r['ipId'];
 			}
 			$selectedLocationsFilter[] = -1;
+			//Do not include search bots by default
+			//$selectedLocationsFilter[] = -2;
 		}
 		$interface->assign('selectedLocationsFilter', $selectedLocationsFilter);
-		
+
 		$baseQueryPageViews = "SELECT ut.ipId as ipId, ".
-				"(SELECT location FROM ip_lookup WHERE id = ut.ipId LIMIT 1) AS Location, ". 
+				"(SELECT location FROM ip_lookup WHERE id = ut.ipId LIMIT 1) AS Location, ".
 				"sum(ut.numPageViews) AS PageViews, sum(ut.numHolds) Holds, ".
 				"sum(ut.numRenewals) AS Renewals  ".
 				"FROM usage_tracking ut ".
-				"WHERE ut.trackingDate BETWEEN '". $selectedDateStartTime . "' AND '". $selectedDateEndTime . "' "; 
+				"WHERE ut.trackingDate BETWEEN '". $selectedDateStartTime . "' AND '". $selectedDateEndTime . "' ";
 		if (count($selectedLocationsFilter) > 0) {
 			$ipIds = join(",",$selectedLocationsFilter);
 			$baseQueryPageViews .= "AND (ut.ipId IN (". $ipIds . ") ";
 		}
 		if (in_array("-1", $selectedLocationsFilter)) {
-		    $baseQueryPageViews .= "OR (ut.ipId = -1) ";
+		$baseQueryPageViews .= "OR (ut.ipId = -1) ";
+		}
+		if (in_array("-2", $selectedLocationsFilter)) {
+			$baseQueryPageViews .= "OR (ut.ipId = -2) ";
 		}
 		$baseQueryPageViews .= ") ";
 		//Add If then for the Unknown filter
-		$baseQueryPageViews .= "GROUP BY ipId ";		
-		
+		$baseQueryPageViews .= "GROUP BY ipId ";
+
 		//////////Get a count of the page view data
 		$queryPageViewsCount = "SELECT COUNT(*) AS RowCount from ( ". $baseQueryPageViews . ") As ResultCount";
 
@@ -171,16 +179,16 @@ class ReportPageViewsLocation extends Report{
 				// Otherwise use the last record on this page
 				$endRecord = $currentPage * $itemsPerPage;
 			}
-			 
+
 		}
-			
+
 		//////////Get the Page View Data with paging and sorting
 		if (isset($_GET['reportSort'])) {
 			$sortValue = $_GET['reportSort'];
 		}else{
 			$sortValue = 'PageViewsASC';
 		}
-			
+
 
 
 		//////////Create a sort array
@@ -235,7 +243,7 @@ class ReportPageViewsLocation extends Report{
 		else {
 			$baseQueryPageViews .= "ORDER BY PageViews DESC ";
 		}
-			
+
 		//append on a limit to return a result
 		if (!isset($_REQUEST['exportToExcel'])) {
 			$baseQueryPageViews .= "LIMIT ".($startRecord -1).", ".$itemsPerPage ." ";
@@ -247,15 +255,17 @@ class ReportPageViewsLocation extends Report{
 		$resultsPageViews = array();
 		$i=0;
 		while ($r=mysql_fetch_array($resPageViews)) {
-			
-			if (!isset($r['Location']) || $r['Location'] == '') {
+
+			if ($r['ipId'] == '-1') {
 				$tmpLocation = 'Home Users';
+			}elseif ($r['ipId'] == '-2') {
+				$tmpLocation = 'Search Bots';
 			} else {
 				$tmpLocation = $r['Location'];
 			}
-			
+
 			$tmp = array(
-      	'ipId' => $r['ipId'],  
+      	'ipId' => $r['ipId'],
 				'Location' => $tmpLocation,
 				'PageViews' => $r['PageViews'],
 				'Holds' => $r['Holds'],
@@ -267,11 +277,11 @@ class ReportPageViewsLocation extends Report{
 
 		//////////Paging Array
 		$summary = array(
-      	'page' => $currentPage,  
-				'perPage' => $itemsPerPage, 
+      	'page' => $currentPage,
+				'perPage' => $itemsPerPage,
 				'resultTotal' => $totalResultCount,
 				'startRecord' => $startRecord,
-        'endRecord'=> $endRecord 
+        'endRecord'=> $endRecord
 		);
 
 		$interface->assign('recordCount', $summary['resultTotal']);
@@ -296,10 +306,10 @@ class ReportPageViewsLocation extends Report{
 												'perPage'    => $summary['perPage']);
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
-			
+
 		///////////////////END PAGING
-			
-			
+
+
 		//////////Sorting
 		$sortUrl = $_SERVER["REQUEST_URI"];
 		if (isset($sortValue)) {
@@ -320,7 +330,7 @@ class ReportPageViewsLocation extends Report{
 		$interface->assign('sortUrl', $sortUrl);
 		$interface->assign('sortValue', $sortValue);
 		$interface->assign('sortList', $sortList);
-		
+
 		//////////CHART
 		//Create the chart and load data into the results.
 		$queryDailyPageViews = "SELECT (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%Y-%m-%d')) AS TrackingDate, ".
@@ -328,7 +338,7 @@ class ReportPageViewsLocation extends Report{
 				"SUM(numRenewals) AS Renewals ".
 				"FROM usage_tracking ".
 				"WHERE (DATE_FORMAT(DATE(FROM_UNIXTIME(trackingDate)), '%Y-%m-%d')) ".
-				"BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' "; 
+				"BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' ";
 		if (count($selectedLocationsFilter) > 0) {
 			$ipIds = join(",",$selectedLocationsFilter);
 			$queryDailyPageViews .= "AND ipId IN (". $ipIds . ") ";
@@ -340,7 +350,7 @@ class ReportPageViewsLocation extends Report{
 		$check_date = $selectedDateStart;
 		$datesInReport = array();
 		$pageViewsByLocationByDay = array();
-		
+
 		while ($check_date != $selectedDateEnd) {
 			$check_date = date ("Y-m-d", strtotime ("+1 day", strtotime($check_date)));
 			$datesInReport[] = $check_date;
@@ -349,7 +359,7 @@ class ReportPageViewsLocation extends Report{
 			$pageViewsByLocationByDay['Holds'][$check_date] = 0;
 			$pageViewsByLocationByDay['Renewals'][$check_date] = 0;
 		}
-		
+
 		//Chart section
 		$reportData = new pData();
 		while ($r=mysql_fetch_array($dailyPageViews)) {
@@ -365,7 +375,7 @@ class ReportPageViewsLocation extends Report{
 		$reportData->setAxisName(0,"Page Views");
 		$reportData->addPoints($datesInReport, "Dates");
 		$reportData->setAbscissa("Dates");
-		
+
 		/* Create the pChart object */
 		$myPicture = new pImage(700,290,$reportData);
 
@@ -393,7 +403,7 @@ class ReportPageViewsLocation extends Report{
 		$myPicture->render($chartPath);
 		$interface->assign('chartPath', $chartHref);
 		sleep(5);
-				
+
 		//////////EXPORT To EXCEL
 		if (isset($_REQUEST['exportToExcel'])) {
 
@@ -422,7 +432,7 @@ class ReportPageViewsLocation extends Report{
 			$a=4;
 			//Loop Through The Report Data
 			foreach ($resultsPageViews as $resultsPageViews) {
-					
+
 				$objPHPExcel->setActiveSheetIndex(0)
 				->setCellValue('A'.$a, $resultsPageViews['Location'])
 				->setCellValue('B'.$a, $resultsPageViews['PageViews'])
@@ -434,8 +444,8 @@ class ReportPageViewsLocation extends Report{
 			}
 			$objPHPExcel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
 			$objPHPExcel->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
-				
-				
+
+
 			// Rename sheet
 			$objPHPExcel->getActiveSheet()->setTitle('Simple');
 
@@ -503,10 +513,10 @@ class ReportPageViewsLocation extends Report{
 		//loop through the
 		$itemsPerPageList = array();
 		$itemsPerPageList["20"] = array(
-					      'amount'  => 20,          
+					      'amount'  => 20,
 					      'selected' => false );
 		$itemsPerPageList["50"] = array(
-					      'amount'  => 50,          
+					      'amount'  => 50,
 					      'selected' => false );
 		$itemsPerPageList["100"] = array(
 					      'amount'  => 100,

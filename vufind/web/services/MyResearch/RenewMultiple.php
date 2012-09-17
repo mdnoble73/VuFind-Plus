@@ -43,10 +43,18 @@ class RenewMultiple extends Action
 		if (method_exists($this->catalog->driver, 'renewItem')) {
 			$selectedItems = $_GET['selected'];
 			$renewMessages = array();
+			$_SESSION['renew_message']['Unrenewed'] = 0;
+			$_SESSION['renew_message']['Renewed'] = 0;
 			foreach ($selectedItems as $itemInfo => $selectedState){
 				list($itemId, $itemIndex) = explode('|', $itemInfo);
 				$renewResult = $this->catalog->driver->renewItem($user->password, $itemId, $itemIndex);
-				$_SESSION['renewResult'][$renewResult['itemId']] = $renewResult;
+				$_SESSION['renew_message'][$renewResult['itemId']] = $renewResult;
+				$_SESSION['renew_message']['Total']++;
+				if ($renewResult['result']){
+					$_SESSION['renew_message']['Renewed']++;
+				}else{
+					$_SESSION['renew_message']['Unrenewed']++;
+				}
 			}
 		} else {
 			PEAR::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));

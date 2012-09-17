@@ -64,7 +64,9 @@ class DBMaintenance extends Admin {
 									break;
 								}
 							}else{
-								$update['status'] = 'Update succeeded';
+								if (!isset($update['status'])){
+									$update['status'] = 'Update succeeded';
+								}
 							}
 
 						}
@@ -239,6 +241,35 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showProspectorResultsAtEndOfSearch` TINYINT DEFAULT '1';",
 				),
 			),
+			'library_16' => array(
+				'title' => 'Library 16',
+				'description' => 'Add overdriveAdvantage Information to library so we can determine who advantage title should belong to. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `overdriveAdvantageName` VARCHAR(128) DEFAULT '';",
+					"ALTER TABLE `library` ADD `overdriveAdvantageProductsKey` VARCHAR(20) DEFAULT '';",
+				),
+			),
+			'library_17' => array(
+				'title' => 'Library 17',
+				'description' => 'Add defaultNotNeededAfterDays and homePageWidgetId. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `defaultNotNeededAfterDays` INT DEFAULT '0';",
+					"ALTER TABLE `library` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
+				),
+			),
+			'library_18' => array(
+				'title' => 'Library 18',
+				'description' => 'Add showCheckInGrid to determine how periodicals display. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showCheckInGrid` INT DEFAULT '1';",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',
@@ -248,6 +279,24 @@ class DBMaintenance extends Admin {
 				'sql' => array(
 					"ALTER TABLE `location` ADD `defaultPType` INT(11) NOT NULL DEFAULT '-1';",
 					"ALTER TABLE `location` ADD `ptypesToAllowRenewals` VARCHAR(128) NOT NULL DEFAULT '*';"
+				),
+			),
+
+			'location_2' => array(
+				'title' => 'Location 2',
+				'description' => 'Add the ability to customize footers per location',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `location` ADD `footerTemplate` VARCHAR(40) NOT NULL DEFAULT 'default';",
+				),
+			),
+
+			'location_3' => array(
+				'title' => 'Location 3',
+				'description' => 'Add the ability to set home page widget by location',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `location` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
 				),
 			),
 
@@ -1386,6 +1435,15 @@ class DBMaintenance extends Admin {
 					"KEY ( `libraryId`, `storeId` ), " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
+			),
+		),
+
+		'session_update_1' => array(
+			'title' => 'Session Update 1',
+			'description' => 'Add a field for whether or not the session was started with remember me on.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE session ADD COLUMN `remember_me` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not the session was started with remember me on.'",
 			),
 		),
 		);

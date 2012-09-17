@@ -143,6 +143,11 @@ public class ReindexProcess {
 				logger.info("Unable to copy schema to econtent");
 				addNoteToCronLog("Unable to copy schema to econtent");
 			}
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/econtent2/conf/schema.xml");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/econtent2/conf/schema.xml"))){
+				logger.info("Unable to copy schema to econtent");
+				addNoteToCronLog("Unable to copy schema to econtent");
+			}
 		} catch (IOException e) {
 			logger.error("error reloading copying default scehmas", e);
 			addNoteToCronLog("error reloading copying default scehmas " + e.toString());
@@ -153,6 +158,8 @@ public class ReindexProcess {
 		reloadSchema("biblio2");
 		//econtent
 		reloadSchema("econtent");
+		//econtent2
+		reloadSchema("econtent2");
 		//genealogy
 		reloadSchema("genealogy");
 	}

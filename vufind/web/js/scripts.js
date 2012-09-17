@@ -5,6 +5,44 @@ $(document).ready(function(){
 	if($("#loginForm") != null){
 		$("#username").focus();
 	}
+	
+	var url = location.hash;
+	if (url.length > 0) {
+		url = url.substr(1);
+	} else {
+		url = location.href;
+	}
+	var match = url.match(/([&?]?ui=[^&]+)/);
+	if (match) {
+		var replace = ((match[1].indexOf('?') != -1) ? '?' : '&') + 'ui=mobile';
+		url = url.replace(match[1], replace);
+	} else {
+		url += ((url.indexOf('?') == -1) ? '?' : '&') + 'ui=mobile';
+	}
+	url = url.replace('&ui-state=dialog', '');
+	$('a.mobile-view').each(function() {
+		$(this).attr('href', url);
+	});
+	
+	// Implement collapsible fieldsets.
+	var collapsibles = $('fieldset.fieldset-collapsible');
+	if (collapsibles.length > 0) {
+		collapsibles.each(function() {
+			var collapsible = $(this);
+			var legend = collapsible.find('legend:first');
+			legend.addClass('fieldset-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+				var collapsible = event.data.collapsible;
+				if (collapsible.hasClass('fieldset-collapsed')) {
+					collapsible.removeClass('fieldset-collapsed');
+				}
+				else {
+					collapsible.addClass('fieldset-collapsed');
+				}
+			});
+			// Init.
+			collapsible.addClass('fieldset-collapsed');
+		});
+	}
 });
 
 function getLightbox(module, action, id, lookfor, message, followupModule,

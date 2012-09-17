@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$url}/services/MyResearch/ajax.js"></script>
+<script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
 	alert("{$title}");
@@ -52,7 +52,7 @@
 									</div>
 									<div id="saveLink{$record.recordId|escape}">
 										{if $showFavorites == 1} 
-											<a href="{$url}/Record/{$record.recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+											<a href="{$path}/Record/{$record.recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
 										{/if}
 										{if $user}
 											<div id="lists{$record.recordId|escape}"></div>
@@ -64,7 +64,7 @@
 								</div>
 								<script type="text/javascript">
 									$(function() {literal} { {/literal}
-										$('.rate{$record.recordId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: {$record.recordId},  rating:0.0, postHref: '{$url}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
+										$('.rate{$record.recordId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: {$record.recordId},  rating:0.0, postHref: '{$path}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 										{literal} } {/literal}
 									);
 								</script>

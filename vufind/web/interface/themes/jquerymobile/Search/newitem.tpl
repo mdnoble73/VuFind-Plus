@@ -2,7 +2,7 @@
   {include file="header.tpl"}
   <div data-role="content">
     <h3>{translate text='Find New Items'}</h3>
-    <form method="get" action="{$url}/Search/NewItem" data-ajax="false">
+    <form method="get" action="{$path}/Search/NewItem" data-ajax="false">
       <div data-role="fieldcontain">
         <fieldset data-role="controlgroup">
           <legend>{translate text='Range'}:</legend>

@@ -249,8 +249,8 @@ ul.menu li{
 #ft div.footerCol {
 	border-right: 1px dotted #cccccc;
 	margin-right:1em;
-	padding: 0 2em 1em 0;
-	width:12em;
+	padding: 0 1.5em 1em 0;
+	width:auto;
 	vertical-align:top;
 	display: inline-block;
 	zoom: 1;
@@ -261,6 +261,9 @@ ul.menu li{
 	width: 100% !important;
 	text-align: center;
 	padding-top: 10px;
+}
+#ft #copyright{
+	text-align: center;
 }
 .result {
 	border-bottom: 1px solid #eee;
@@ -836,6 +839,13 @@ table.datagrid tr.oddrow {
 	padding:.5em .5em .5em 20px;
 	margin-right:1em;
 }
+.cart{
+	background-image:url(/images/silk/cart.png);
+	background-repeat:no-repeat;
+	background-position: left; 
+	padding:.5em 0 .5em 18px;
+	margin-right:.7em;
+}
 .edit {
 	background-image:url(/images/silk/edit.png);
 	background-repeat:no-repeat;
@@ -894,7 +904,7 @@ table.datagrid tr.oddrow {
 	margin:0.5em 0.5em 0.5em 0px;
 	margin-right:0;
 }
-.holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby{
+.holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby, .holdingsSummaryStatusLine.here{
 	color:#009900;
 }
 .holdingsSummaryStatusLine.unavailable {
@@ -906,7 +916,7 @@ table.datagrid tr.oddrow {
 .unavailable span{
 	padding-left:10px;
 }
-.holdingsSummaryStatusLine.checkedout,.holdingsSummaryStatusLine.reserve{
+.holdingsSummaryStatusLine.checkedOut,.holdingsSummaryStatusLine.checkedout,.holdingsSummaryStatusLine.reserve{
 	color:#cc0000;
 }
 .checkedout>span{
@@ -1428,13 +1438,33 @@ background-image:url(/interface/themes/marmot/images/update.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }
+.categoryValueeBook{
+	background-image:url(/interface/themes/marmot/images/ebook.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
+.categoryValueeMusic{
+	background-image:url(/interface/themes/marmot/images/emusic.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
 .categoryValueAudio{
 	background-image:url(/interface/themes/marmot/images/audio.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }
+.categoryValueeAudio{
+	background-image:url(/interface/themes/marmot/images/eaudio.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
 .categoryValueVideo{
 	background-image:url(/interface/themes/marmot/images/video.png);
+	background-repeat:no-repeat;
+	background-position: center top;
+}
+.categoryValueeVideo{
+	background-image:url(/interface/themes/marmot/images/evideo.png);
 	background-repeat:no-repeat;
 	background-position: center top;
 }
@@ -2010,6 +2040,32 @@ ul.hold_items li{
 .expanded:before{
 	content: "▼ ";
 }
+
+.fieldset-collapsed {
+  height: 0;
+  overflow: hidden;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.fieldset-collapsed div,
+.fieldset-collapsed fieldset {
+  display: none;
+}
+
+.fieldset-collapsible-label {
+  color: #256292;
+  padding-left: 20px;
+  background-image: url(/interface/themes/marmot/images/arrows.gif);
+  background-repeat: no-repeat;
+  background-position: 4px -15px;
+  cursor: pointer;
+}
+.fieldset-collapsed .fieldset-collapsible-label {
+  background-position: 4px 4px;
+}
+
 .requiredIndicator{
 	color:red;
 }
@@ -2055,4 +2111,7 @@ ul.hold_items li{
 .advancedSearchFacetFormatCategory{
 	display: inline-block;
 	margin: 5px;
+}
+#lexile-range{
+	margin: 5px 3px 8px;
 }

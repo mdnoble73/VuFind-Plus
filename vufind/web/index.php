@@ -206,6 +206,13 @@ if (isset($configArray['Site']['largeLogo'])){
 //Set focus to the search box by default.
 $interface->assign('focusElementId', 'lookfor');
 
+//Set footer information
+$location = $locationSingleton->getActiveLocation();
+$interface->assign('footerTemplate', 'footer.tpl');
+if (isset($location) && $location->footerTemplate != 'default'){
+	$interface->assign('footerTemplate', $location->footerTemplate);
+}
+
 //Set System Message
 //$interface->assign('systemMessage', "The catalog will be undergoing maintenance on Sunday July 29th from 8am - noon.  The system may be unavailable during this period.");
 
@@ -278,6 +285,8 @@ $interface->assign('showFines', $configArray['Catalog']['showFines']);
 // Check system availability
 $mode = checkAvailabilityMode();
 if ($mode['online'] === false) {
+	$activeIp = $_SERVER['REMOTE_ADDR'];
+	$interface->assign('activeIp', $activeIp);
 	// Why are we offline?
 	switch ($mode['level']) {
 		// Forced Downtime
@@ -611,7 +620,6 @@ if (isset($_SESSION['hold_message'])) {
 	unset($_SESSION['hold_message']);
 }elseif (isset($_SESSION['renew_message'])){
 	$interface->assign('renew_message', formatRenewMessage($_SESSION['renew_message']));
-	unset($_SESSION['renew_message']);
 }
 
 // Process Solr shard settings
@@ -807,7 +815,7 @@ function checkAvailabilityMode() {
 
 		$isMaintainence = false;
 		if (isset($configArray['System']['maintainenceIps'])){
-			$activeIp = $locationSingleton->getActiveIp();
+			$activeIp = $_SERVER['REMOTE_ADDR'];
 			$maintainenceIp =  $configArray['System']['maintainenceIps'];
 
 			$maintainenceIps = explode(",", $maintainenceIp);
@@ -817,6 +825,7 @@ function checkAvailabilityMode() {
 					break;
 				}
 			}
+
 		}
 
 		if (!$isMaintainence){
@@ -965,5 +974,8 @@ function formatRenewMessage($renew_message_data){
 	global $interface;
 	$interface->assign('renew_message_data', $renew_message_data);
 	$renew_message = $interface->fetch('Record/renew-results.tpl');
+	$logger = new Logger();
+	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
+
 	return $renew_message;
 }

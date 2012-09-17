@@ -11,7 +11,7 @@
 {else}
 ------------------------------------------------------------
 {foreach from=$titles item=title}
-{$title.title} {$title.author} ({$url}/Record/{$title.id}/Home)
+{$title.title} {$title.author} ({$path}/Record/{$title.id}/Home)
 {/foreach}
 {/if}
 

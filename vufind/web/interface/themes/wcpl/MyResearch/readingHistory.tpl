@@ -78,18 +78,18 @@
 						<td class="myAccountCell">
 				    	<div class="imageColumn"> 
 						    <div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
-						    <a href="{$url}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+						    <a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
 						    <img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 						    </a>
 						    {* Place hold link *}
 						    <div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
-						      <a href="{$url}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
+						      <a href="{$path}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
 						    </div>
 						</div>
 				    
 				      <div class="myAccountTitleDetails">
 						  <div class="resultItemLine1">
-							<a href="{$url}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+							<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 							{if $record.title2}
 						    <div class="searchResultSectionInfo">
 						      {$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -102,10 +102,10 @@
 						      {translate text='by'}
 						      {if is_array($record.author)}
 						        {foreach from=$summAuthor item=author}
-						          <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+						          <a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
 						        {/foreach}
 						      {else}
-						        <a href="{$url}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
+						        <a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
 						      {/if}
 						    {/if}
 						

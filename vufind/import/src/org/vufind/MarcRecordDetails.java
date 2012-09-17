@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -184,7 +186,18 @@ public class MarcRecordDetails {
 
 	public void loadUrls() throws IOException{
 		if (urlsLoaded) return;
-		//logger.info("Loading urls from 856 field");
+		HashSet<Integer> allITypes = new HashSet<Integer>();
+		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)) {
+			@SuppressWarnings("unchecked")
+			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
+			for (DataField curItem : itemFields) {
+				Subfield iTypeField = curItem.getSubfield('j');
+				if (iTypeField != null){
+					allITypes.add(Integer.parseInt(iTypeField.getData()));
+				}
+			}
+		}
+		
 		@SuppressWarnings("unchecked")
 		List<VariableField> eightFiftySixFields = record.getVariableFields("856");
 		for (VariableField eightFiftySixField : eightFiftySixFields) {
@@ -201,20 +214,21 @@ public class MarcRecordDetails {
 			} else if (eightFiftySixDataField.getSubfield('3') != null) {
 				text = eightFiftySixDataField.getSubfield('3').getData();
 			}
+			String notesField = "";
+			if (eightFiftySixDataField.getSubfield('3') != null) {
+				notesField = eightFiftySixDataField.getSubfield('3').getData();
+			}
 
 			if (text != null && url != null) {
 				boolean isSourceUrl = false;
-				boolean isEnrichmentUrl = false;
-				if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
+				//boolean isEnrichmentUrl = false;
+				if (text.matches("(?i).*?(?:cover|review).*?")) {
 					// File is an enrichment url
-					isEnrichmentUrl = true;
-				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version).*?")) {
+					//isEnrichmentUrl = true;
+				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version|summary).*?")) {
 					if (!url.matches("(?i).*?vufind.*?")) {
 						isSourceUrl = true;
 					}
-				} else if (text.matches("(?i).*?(?:cover|review|summary).*?")) {
-					// File is an enrichment url
-					isEnrichmentUrl = true;
 				} else if (text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
@@ -242,7 +256,9 @@ public class MarcRecordDetails {
 								//Get the libraryId based on the location
 								libraryId = getLibrarySystemIdForLocation(location);
 								if (libraryId != -1L){
-									sourceUrls.add(new LibrarySpecificLink(url, libraryId));
+									for (Integer iType : allITypes){
+										sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
+									}
 									addedUrl = true;
 								}
 							}
@@ -250,7 +266,9 @@ public class MarcRecordDetails {
 					}
 					if (!addedUrl){
 						//This only happens if there are no items and the 
-						sourceUrls.add(new LibrarySpecificLink(url, libraryId));
+						for (Integer iType : allITypes){
+							sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
+						}
 					}
 				}
 			}
@@ -270,56 +288,17 @@ public class MarcRecordDetails {
 						logger.info("  Location is " + locationField.getData());
 						long libraryId = getLibrarySystemIdForLocation(locationField.getData());
 						logger.info("Adding local url " + urlField.getData() + " library system: " + libraryId);
-						sourceUrls.add(new LibrarySpecificLink(urlField.getData(), libraryId));
+						Subfield notesField = curItem.getSubfield('3');
+						String notesText = notesField == null ? "" : notesField.getData();
+						Subfield iTypeField = curItem.getSubfield('j');
+						int iType = iTypeField == null ? -1 : Integer.parseInt(iTypeField.getData());
+						sourceUrls.add(new LibrarySpecificLink(urlField.getData(), libraryId, iType, notesText));
 					}
 				}
 			}
 		}
 		
-		//logger.info("Num source urls found: " + sourceUrls.size());
-		//logger.info("Scrape for links = " + marcProcessor.isScrapeItemsForLinks());
-		if (sourceUrls.size() == 0 && marcProcessor.isScrapeItemsForLinks()) {
-			//logger.info("Loading records from millennium");
-			// Check the record in the ILS
-			getUrlsForItemsFromMillennium();
-		}
-
 		urlsLoaded = true;
-	}
-
-	private void getUrlsForItemsFromMillennium() throws IOException {
-		String catalogUrl = marcProcessor.getCatalogUrl();
-		
-		String scope = "93";
-		String shortId = this.getId();
-		shortId = shortId.substring(1, shortId.length() - 1);
-		String itemUrl = catalogUrl + "/search~S" + scope + "/." + shortId + "/." + shortId + "/1,1,1,B/holdings~" + shortId;
-		//logger.debug("itemUrl = " + itemUrl);
-		URLPostResponse response = Util.getURL(itemUrl, logger);
-		if (response.isSuccess()){
-			//Extract the items from the page
-			try {
-				Pattern Regex = Pattern.compile("<td align=\"center\" colspan=\"3\">\\s*<a href=\"(.*?)\">(.*?)\\s*</td>", Pattern.CANON_EQ);
-				Matcher RegexMatcher = Regex.matcher(response.getMessage());
-				while (RegexMatcher.find()) {
-					String url = RegexMatcher.group(1);
-					String linkText = RegexMatcher.group(2);
-					long libraryId = marcProcessor.getLibraryIdForLink(url);
-					if (libraryId == -1){
-						//Also check link text for the record
-						libraryId = marcProcessor.getLibraryIdForLink(linkText);
-					}
-					//logger.info("Adding local url " + url + " library system: " + libraryId + " linkText: " + linkText);
-					sourceUrls.add(new LibrarySpecificLink(url, libraryId));
-				} 
-			} catch (PatternSyntaxException ex) {
-				// Syntax error in the regular expression
-				logger.error("Could not extract items from millennium, regex was invalid " + ex.toString());
-			}
-		}else{
-			throw new IOException("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
-			//logger.error("Could not extract items from millennium, " + response.getResponseCode() + " - " + response.getMessage());
-		}
 	}
 
 	public long getChecksum() {
@@ -345,7 +324,13 @@ public class MarcRecordDetails {
 	 *          - the (untranslated) field value to add to the solr doc field
 	 */
 	protected void addField(Map<String, Object> indexMap, String ixFldName, String mapName, String fieldVal) {
-		if (mapName != null && marcProcessor.findMap(mapName) != null) fieldVal = Utils.remap(fieldVal, marcProcessor.findMap(mapName), true);
+		if (mapName != null){
+			if (marcProcessor.findMap(mapName) != null){
+				fieldVal = Utils.remap(fieldVal, marcProcessor.findMap(mapName), true);
+			}else{
+				logger.warn("did not find map " + mapName);
+			}
+		}
 
 		if (fieldVal != null && fieldVal.length() > 0) indexMap.put(ixFldName, fieldVal);
 	}
@@ -1072,7 +1057,7 @@ public class MarcRecordDetails {
 					returnType = String.class;
 				}else if (functionName.equals("getRatingFacet") && parms.length == 1){
 					retval = getRatingFacet(parms[0]);
-					returnType = String.class;
+					returnType = Set.class;
 				}else if (functionName.equals("getDateAdded") && parms.length == 2){
 					retval = getDateAdded(parms[0], parms[1]);
 					returnType = String.class;
@@ -1094,12 +1079,23 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getAwardName") && parms.length == 1){
 					retval = getAwardName(parms[0]);
 					returnType = Set.class;
+				}else if (functionName.equals("getLexileScore") ){
+					retval = getLexileScore();
+					returnType = String.class;
+				}else if (functionName.equals("getLexileCode") ){
+					retval = getLexileCode();
+					returnType = String.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
 					if (method == null) method = classThatContainsMethod.getMethod(functionName, parmClasses);
 					returnType = method.getReturnType();
 					retval = method.invoke(objectThatContainsMethod, objParms);
+				}
+				if (retval != null && returnType != null){
+					if (!returnType.isAssignableFrom(retval.getClass())){
+						logger.error("Return Type is not valid for " + functionName);
+					}
 				}
 			} else {
 				method = marcProcessor.getCustomMethodMap().get(indexParm);
@@ -1271,6 +1267,8 @@ public class MarcRecordDetails {
 			String field = (String) retval;
 			if (mapName != null && marcProcessor.findMap(mapName) != null) field = Utils.remap(field, marcProcessor.findMap(mapName), true);
 			addField(indexMap, indexField, null, field);
+		} else{
+			logger.error("Incorrect return type for " + indexField + " expected Map, String, or Set");
 		}
 		return false;
 	}
@@ -1432,6 +1430,28 @@ public class MarcRecordDetails {
 			}
 			return bestIsbn;
 		}
+	}
+	
+	public HashSet<String> getIsbn13s() {
+		// return the first 13 digit isbn or 10 digit if there are no 13
+		HashSet<String> isbns13s = new HashSet<String>();
+		Set<String> isbns = getFieldList("020a");
+		if (isbns != null && isbns.size() > 0) {
+			Iterator<String> isbnIterator = isbns.iterator();
+			while (isbnIterator.hasNext()) {
+				String curIsbn = isbnIterator.next();
+				if (curIsbn.indexOf(" ") > 0) {
+					curIsbn = curIsbn.substring(0, curIsbn.indexOf(" "));
+				}
+				if (curIsbn.length() == 13) {
+					isbns13s.add(curIsbn);
+				} else {
+					isbns13s.add(Util.convertISBN10to13(curIsbn));
+				}
+			}
+			//logger.debug("Found " + isbns13s.size() + " ISBN 13s");
+		}
+		return isbns13s;
 	}
 
 	private HashMap<String, Object> getMappedFields(String source) {
@@ -1675,28 +1695,51 @@ public class MarcRecordDetails {
 		return Float.toString(rating);
 	}
 
-	public String getRatingFacet(String recordIdSpec) {
+	public Set<String> getRatingFacet(String recordIdSpec) {
 		if (rating == null) {
 			getRating(recordIdSpec);
 		}
 
-		if (rating > 4.5) {
-			return "fiveStar";
-		} else if (rating > 3.5) {
-			return "fourStar";
-		} else if (rating > 2.5) {
-			return "threeStar";
-		} else if (rating > 1.5) {
-			return "twoStar";
-		} else if (rating > 0.0001) {
-			return "oneStar";
-		} else {
-			return "Unrated";
+		return marcProcessor.getGetRatingFacet(rating);
+	}
+	
+	public String getEContentRating(Long eContentRecordId) {
+		if (rating == null) {
+			// logger.info("Getting rating for " + recordId);
+			// Check to see if the record has an eContent Record
+			rating = marcProcessor.getEcontentRatings().get(eContentRecordId);
+			if (rating == null) {
+				rating = -2.5f;
+			}
+
+			// logger.info("Rating = " + rating.toString());
 		}
+		return Float.toString(rating);
+	}
+
+	public Set<String> getEContentRatingFacet(Long eContentRecordId) {
+		if (rating == null) {
+			getEContentRating(eContentRecordId);
+		}
+		return marcProcessor.getGetRatingFacet(rating);
 	}
 	
 	public Set<String> getAwardName(String fieldSpec) {
-		Set<String> result = new LinkedHashSet<String>();
+		Set<String> result = new HashSet<String>();
+		loadLexileData();
+		if (lexileData != null){
+			String lexileAwards = lexileData.getAwards();
+			if (lexileAwards != null && lexileAwards.length() > 0){
+				//Get rid of any text within parenthesis (date nominated or awarded)
+				lexileAwards = lexileAwards.replaceAll("\\(.*?\\)", "");
+				String[] lexileAwardArray = lexileAwards.split("\\s*,\\s*");
+				for (String curAward : lexileAwardArray){
+					result.add(curAward.trim());
+					//logger.debug("Award " + curAward);
+				}
+				
+			}
+		}
 		// Loop through the specified MARC fields:
 		Set<String> fields = getFieldList(fieldSpec);
 		Iterator<String> fieldsIter = fields.iterator();
@@ -1718,42 +1761,44 @@ public class MarcRecordDetails {
 		return result;
 	}
 	
-	public String getLexileScore(){
-		String result = null;
-		//Get a list of all tags that may contain the lexile score.  
-		@SuppressWarnings("unchecked")
-		List<VariableField> input = record.getVariableFields("521");
-		Iterator<VariableField> iter = input.iterator();
-
-		DataField field;
-		while (iter.hasNext()) {
-			field = (DataField) iter.next();
-	    
-			if (field.getSubfield('b') == null){
-				continue;
-			}else{
-				String type = field.getSubfield('b').getData();
-				if (type.matches("(?i).*?lexile.*?")){
-					String lexileRawData = field.getSubfield('a').getData();
-					try {
-						Pattern Regex = Pattern.compile("(\\d+)",
-							Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-						Matcher RegexMatcher = Regex.matcher(lexileRawData);
-						if (RegexMatcher.find()) {
-							String lexileData = RegexMatcher.group(1);
-							
-							result = lexileData;
-							//System.out.println("Lexile Score " + result);
-							return result;
-						} 
-					} catch (PatternSyntaxException ex) {
-						// Syntax error in the regular expression
-					}
+	private boolean lexileDataLoaded = false;
+	private LexileData lexileData = null;
+	
+	private void loadLexileData(){
+		if (!lexileDataLoaded){
+			HashSet<String> isbns = this.getIsbn13s();
+			//logger.debug("Checking " + isbns.size() + " isbns for lexile data");
+			for (String isbn : isbns){
+				LexileData data = marcProcessor.getLexileDataForIsbn(isbn);
+				if (data != null){
+					//logger.debug("Found lexile information for isbn " + isbn);
+					lexileData = data;
+					break;
+				}else{
+					//logger.debug("No lexile data for isbn " + isbn);
 				}
 			}
+			lexileDataLoaded = true;
 		}
-
-		return result;
+	}
+	
+	public String getLexileCode(){
+		loadLexileData();
+		if (lexileData != null){
+			//logger.debug("Lexile code = " + lexileData.getLexileCode());
+			return lexileData.getLexileCode();
+		}else{
+			return null;
+		}
+	}
+	public String getLexileScore(){
+		loadLexileData();
+		if (lexileData != null){
+			//logger.debug("Lexile score = " + lexileData.getLexileScore());
+			return lexileData.getLexileScore();
+		}else{
+			return null;
+		}
 	}
 	
 	public String getAcceleratedReaderReadingLevel(){
@@ -2948,13 +2993,13 @@ public class MarcRecordDetails {
 		}
 
 		// Check to see if the record is already loaded into the eContent core
-		if (!suppressRecord) {
+		/*if (!suppressRecord) {
 			String ilsId = this.getId();
 			if (marcProcessor.getExistingEContentIds().contains(ilsId)) {
 				logger.debug("Suppressing because there is an eContent record for " + ilsId);
 				suppressRecord = true;
 			}
-		}
+		}*/
 
 		if (suppressRecord) {
 			// return that the record is suppressed
@@ -3012,11 +3057,13 @@ public class MarcRecordDetails {
 		String itemField = "989"; 
 		String availableStatus = "-";
 		Set<String> result = new LinkedHashSet<String>();
+		if (isEContent()){
+			return result;
+		}
 		@SuppressWarnings("unchecked")
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
 		char statusSubFieldChar = 'g';
 		char locationSubFieldChar = 'd';
-		//logger.debug("Found " + itemRecords.size() + "items");
 		for (int i = 0; i < itemRecords.size(); i++) {
 			Object field = itemRecords.get(i);
 			if (field instanceof DataField) {
@@ -3027,23 +3074,17 @@ public class MarcRecordDetails {
 					String status = statusSubfield.getData().trim();
 					Subfield dueDateField = dataField.getSubfield('m');
 					String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
-					//logger.debug("status is " + status + ", dueDate = '" + dueDate + "'");
-					if (status.equals("online")) {
-						// If the tile is available online, force the location to be online
-						result.add("online");
-					} else if (status.matches(availableStatus)) {
+					Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
+					String location = locationSubfield == null ? "" : locationSubfield.getData().toLowerCase().trim();
+					if (status.matches(availableStatus)) {
 						// If the book is available (status of -)
 						// Check the due date subfield m to see if it is out
 						if (dueDate.length() == 0){
-							Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
-							if (locationSubfield != null){
-								result.add(locationSubfield.getData().toLowerCase());
-							}
-							//logger.debug("record is available at " + locationSubfield.getData().toLowerCase());
+							result.add(location);
 						}
 					}
-				}else{
-					logger.warn("No status field");
+				//}else{
+					//logger.warn("No status field for " + this.getId() + " indicator " + statusSubFieldChar  );
 				}
 			}
 		}
@@ -3089,6 +3130,39 @@ public class MarcRecordDetails {
 		if (isEContent == null) {
 			//logger.debug("Checking if record is eContent");
 			isEContent = false;
+			// Check the 037 field first
+			DataField oh37 = (DataField)record.getVariableField("037");
+			if (oh37 != null){
+				Subfield subFieldB = oh37.getSubfield('b');
+				Subfield subFieldC = oh37.getSubfield('c');
+				if (subFieldB != null && subFieldC != null){
+					String subfieldBVal = subFieldB.getData();
+					String subfieldCVal = subFieldC.getData();
+					DetectionSettings tempDetectionSettings = new DetectionSettings();
+					tempDetectionSettings.setSource(subfieldBVal);
+					if (subfieldCVal.equalsIgnoreCase("External")){
+						tempDetectionSettings.setAccessType("external");
+						tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
+						tempDetectionSettings.setItem_type("externalLink");
+						isEContent = true;
+					}else if (subfieldCVal.equalsIgnoreCase("DRM")){
+						tempDetectionSettings.setAccessType("acs");
+						isEContent = true;
+					}else if (subfieldCVal.equalsIgnoreCase("Public Domain")){
+						tempDetectionSettings.setAccessType("free");
+						tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
+						isEContent = true;
+					}else if (subfieldCVal.equalsIgnoreCase("Single Use")){
+						tempDetectionSettings.setAccessType("singleUse");
+						isEContent = true;
+					}
+					if (isEContent){
+						eContentDetectionSettings.put(subfieldBVal, tempDetectionSettings);
+						return isEContent;
+					}
+				}
+			}
+			
 			// Treat the record as eContent if the records is:
 			// 1) It is already in the eContent database
 			// 2) It matches criteria in EContentRecordDetectionSettings
@@ -3104,23 +3178,32 @@ public class MarcRecordDetails {
 					if (isMatch) break;
 				}
 				if (isMatch) {
-					isEContent = isMatch;
 					DetectionSettings detectionSettingsForSource = eContentDetectionSettings.get(curSettings.getSource());
 					if (detectionSettingsForSource == null){
+						detectionSettingsForSource = curSettings;
+					}
+					
+					if (detectionSettingsForSource.getAccessType().equalsIgnoreCase("external")){
+						//if the record is eContent and the protection type is external, make sure we get at least one url
+						try {
+							ArrayList<LibrarySpecificLink> urls = this.getSourceUrls();
+							if (urls.size() == 0){
+								logger.debug("Marking record as not eContent because we did not find any source urls for the external content");
+								isEContent = false;
+								isMatch = false;
+							}
+						} catch (IOException e) {
+							logger.error("Error getting source urls, not procesing as eContent");
+							isEContent = false;
+							isMatch = false;
+						}
+					}
+					isEContent = isMatch;
+					if (isMatch){
 						eContentDetectionSettings.put(curSettings.getSource(), curSettings);
 					}
 				}
 			}
-			/*logger.debug("Finished checking detection settings");
-
-			if (!isEContent) {
-				String ilsId = this.getId();
-				if (marcProcessor.getExistingEContentIds().contains(ilsId)) {
-					//logger.info("Suppressing because there is an eContent record for " + ilsId);
-					isEContent = true;
-				}
-			}*/
-			//logger.debug("Finished checking if record is eContent");
 			return isEContent;
 		} else {
 			return isEContent;
@@ -3176,7 +3259,7 @@ public class MarcRecordDetails {
 		// 2) Now that we have the facet, get the id of the system
 		Long locationId = marcProcessor.getLocationIdFromFacet(locationFacet);
 		if (locationId == null) {
-			logger.debug("Did not get locationId for location " + locationCode + " " + locationFacet);
+			//logger.debug("Did not get locationId for location " + locationCode + " " + locationFacet);
 			locationId = -1L;
 		}else{
 			//logger.debug("Found locationId " + locationId + " for location " + locationCode + " " + locationFacet);
@@ -3303,5 +3386,137 @@ public class MarcRecordDetails {
 		}
 		
 		return browseSubjects;
+	}
+
+	Pattern overdriveIdPattern = Pattern.compile("[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}", Pattern.CANON_EQ);
+	public String getExternalId() {
+		if (isEContent()){
+			//Get the overdrive id
+			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
+			if (curDetectionSetting.getSource().equalsIgnoreCase("OverDrive")){
+				try {
+					ArrayList<LibrarySpecificLink> sourceUrls =  getSourceUrls();
+					for(LibrarySpecificLink link : sourceUrls){
+						Matcher RegexMatcher = overdriveIdPattern.matcher(link.getUrl());
+						if (RegexMatcher.find()) {
+							String overDriveId = RegexMatcher.group();
+							return overDriveId.toLowerCase();
+						}
+					}
+				} catch (IOException e) {
+					logger.error("Error loading source urls while retrieving external id");
+				}
+			}
+		}
+		return null;
+	}
+
+	public int hasItemLevelOwnership() {
+		if (isEContent()){
+			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
+			if (!curDetectionSetting.getSource().equalsIgnoreCase("OverDrive") && curDetectionSetting.getAccessType().equals("external")){
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	public SolrInputDocument getEContentSolrDocument(long econtentRecordId, ResultSet eContentInfo, ResultSet itemInfo, ResultSet availabilityInfo) throws SQLException {
+		SolrInputDocument doc = new SolrInputDocument();
+		
+		//Process availability and items
+		eContentInfo.next();
+		String accessType = eContentInfo.getString("accessType");
+		String source = eContentInfo.getString("source");
+		int availableCopiesRecord = eContentInfo.getInt("availableCopies");
+		int itemLevelOwnership = eContentInfo.getInt("itemLevelOwnership");
+		
+		Set<String> formats = new HashSet<String>();
+		int numItems = 0;
+		Set<String> availableAt = new HashSet<String>();
+		Set<String> itemAvailability = new HashSet<String>();
+		while (itemInfo.next()){
+			String item_type = itemInfo.getString("item_type");
+			String externalFormat = itemInfo.getString("externalFormat");
+			long libraryId = itemInfo.getLong("libraryId");
+			numItems++;
+			if (externalFormat != null && externalFormat.length() > 0){
+				formats.add(externalFormat.replaceAll("\\s", "_"));
+			}else{
+				formats.add(item_type);
+			}
+			//TODO: determine if acs and single use titles are actually available
+			if (libraryId == -1L){
+				itemAvailability.add("Shared Digital Collection");
+				addSharedAvailability(source, itemAvailability);
+			}else{
+				itemAvailability.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+			}
+		}
+		int numHoldings = 0;
+		boolean hasAvailabilityInfo = false;
+		while (availabilityInfo.next()){
+			hasAvailabilityInfo = true;
+			int copiesOwned = availabilityInfo.getInt("copiesOwned");
+			int availableCopies = availabilityInfo.getInt("availableCopies");
+			long libraryId = availabilityInfo.getLong("libraryId");
+			if (availableCopies > 0){
+				if (libraryId == -1L){
+					availableAt.add("Shared Digital Collection");
+					addSharedAvailability(source, itemAvailability);
+				}else{
+					availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+				}
+			}
+			numHoldings += copiesOwned;
+		}
+		if (!hasAvailabilityInfo){
+			if (itemLevelOwnership == 1){
+				numHoldings = numItems;
+			}else{
+				numHoldings = availableCopiesRecord;
+			}
+			availableAt = itemAvailability;
+		}
+		addFields(mappedFields, "format", "format_map", formats);
+		if (formats.size() > 0){
+			String firstFormat = formats.iterator().next();
+			addField(mappedFields, "format_category", "format_category_map", firstFormat);
+			addField(mappedFields, "format_boost", "format_boost_map", firstFormat);
+		}
+		//Load device compatibility
+		addFields(mappedFields, "econtent_device", "device_compatibility_map", formats);
+		addField(mappedFields, "econtent_source", source);
+		addField(mappedFields, "econtent_protection_type", "econtent_protection_type_map", accessType);
+		addField(mappedFields, "num_holdings", Integer.toString(numHoldings));
+		//TODO: Index eContent Text? econtentText
+		logger.debug("The record is available at " + availableAt.size() + " libraries");
+		addFields(mappedFields, "available_at", null, availableAt);
+		
+		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
+		addFields(mappedFields, "rating_facet", null, getEContentRatingFacet(econtentRecordId));
+		
+		addField(mappedFields, "recordtype", "econtentRecord");
+		addField(mappedFields, "id", "econtentRecord" + econtentRecordId);
+		
+		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		for (String fieldName : allFields.keySet()){
+			Object value = allFields.get(fieldName);
+			doc.addField(fieldName, value);
+		}
+		
+		//logger.debug(doc.toString());
+		return doc;
+	}
+
+	private void addSharedAvailability(String source, Set<String> itemAvailability) {
+		if (source.equalsIgnoreCase("overdrive")){
+			itemAvailability.add("Eagle Valley Library District Online");
+			itemAvailability.add("Garfield County Library Online");
+			itemAvailability.add("Grand County Library Dist Online");
+			itemAvailability.add("Pitkin County Library Online");
+			itemAvailability.add("Steamboat Springs Community Libraries Online");
+			itemAvailability.add("Wilkinson Public Library Online");
+		}
 	}
 }

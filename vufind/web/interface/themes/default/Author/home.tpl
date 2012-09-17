@@ -8,7 +8,7 @@
 	      <ul class="similar">
 	        {foreach from=$enrichment.novelist.authors item=similar}
 	        <li>
-	          <a href={$url}/Author/Home?author={$similar|escape:"url"}>{$similar}</a>
+	          <a href={$path}/Author/Home?author={$similar|escape:"url"}>{$similar}</a>
 	          </span>
 	        </li>
 	        
@@ -74,7 +74,7 @@
       <div class="searchtools">
         <strong>{translate text='Search Tools'}:</strong>
         <a href="{$rssLink|escape}" class="feed">{translate text='Get RSS Feed'}</a>
-        <a href="{$url}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
+        <a href="{$path}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
       </div>
     </div>
 </div>

@@ -44,7 +44,7 @@
 			<div id='create_list' class="bag_box" style="display:none">
 				{* Controls for creating a new list*}
 				{if $listError}<p class="error">{$listError|translate}</p>{/if}
-				<form method="post" action="{$url}/MyResearch/ListEdit" id="listForm" onsubmit='bagAddList(); return false;'>
+				<form method="post" action="{$path}/MyResearch/ListEdit" id="listForm" onsubmit='bagAddList(); return false;'>
 					<div>
 					{translate text="List"}:<br />
 					<input type="text" id="listTitleBag" name="title" value="{$list->title|escape:"html"}" size="50"/><br />

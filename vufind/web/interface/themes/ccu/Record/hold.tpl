@@ -1,6 +1,6 @@
 <div id="page-content" class="content">
 	<div id="main-content">
-		<form name='placeHoldForm' action="{$url}/Record/{$id|escape:"url"}/Hold" method="post">
+		<form name='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post">
 			<div>
 				{if $holdDisclaimer}
 					<div id="holdDisclaimer">{$holdDisclaimer}</div>

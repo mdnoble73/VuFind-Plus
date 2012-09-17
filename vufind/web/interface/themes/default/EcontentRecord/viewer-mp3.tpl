@@ -98,7 +98,7 @@
           $("#jquery_jplayer_1").jPlayer("clearMedia");
           
           $("#jquery_jplayer_1").jPlayer("setMedia", {
-        		mp3: "{/literal}{$url}/EContent/{$id}/GetMedia?item={$item}&segment=" + segmentIndex{literal}
+        		mp3: "{/literal}{$path}/EContent/{$id}/GetMedia?item={$item}&segment=" + segmentIndex{literal}
       		});
       		if (headPosition == "undefined"){
           	$("#jquery_jplayer_1").jPlayer("play");
@@ -144,7 +144,7 @@
         		},
         		solution: "html, flash", 
         		supplied: "mp3",
-        		swfPath: "{/literal}{$url}{literal}/js/jplayer/Jplayer.swf",
+        		swfPath: "{/literal}{$path}{literal}/js/jplayer/Jplayer.swf",
         		wmode: "window"
         		});
         	
@@ -172,8 +172,8 @@
 			</div>
 	  	
 	  	<div id="ereaderlogo" class="searchheader">
-	  		<a href="{if $homeLink}{$homeLink}{else}{$url}{/if}"><img src="{$path}/interface/themes/{$theme}/images/logo_ereader.png" alt="{$libraryName}" /></a>
-	  		<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$url}">Return To Catalog</a></div>
+	  		<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{$path}/interface/themes/{$theme}/images/logo_ereader.png" alt="{$libraryName}" /></a>
+	  		<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$path}">Return To Catalog</a></div>
 	    </div>
     </div>
     
@@ -188,7 +188,7 @@
   			<form id="loginForm" action="{$path}/MyResearch/Home" method="post">
   				<div id="loginFormContents">
             <input type="hidden" name="id" value="{$id}"/>
-            <input type="hidden" name="returnUrl" value="{$url}{$fullPath}"/>
+            <input type="hidden" name="returnUrl" value="{$path}{$fullPath}"/>
   					<div id="loginTitleEPub">Please Login to listen to this book.</div>
   					<div class="loginLabelEPub">Barcode from your library card</div>
   					<input class="loginFormInput" type="text" name="username" value="{$username|escape}" size="15"/>

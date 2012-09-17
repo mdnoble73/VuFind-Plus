@@ -15,11 +15,13 @@ public class ReindexLists implements IProcessHandler {
 	private boolean reindexBiblio;
 	private boolean reindexBiblio2;
 	private String baseSolrUrl;
+	private Connection vufindConn;
 	
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Reindex Lists");
 		processLog.saveToDatabase(vufindConn, logger);
+		this.vufindConn = vufindConn;
 		try {
 			this.logger = logger;
 			vufindUrl = configIni.get("Site", "url");
@@ -76,6 +78,7 @@ public class ReindexLists implements IProcessHandler {
 		}else{
 			processLog.incUpdated();
 		}
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	private void clearLists(String coreName) {
@@ -84,6 +87,7 @@ public class ReindexLists implements IProcessHandler {
 			processLog.addNote("Error clearing existing marc records " + response.getMessage());
 			processLog.incErrors();
 		}
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 }

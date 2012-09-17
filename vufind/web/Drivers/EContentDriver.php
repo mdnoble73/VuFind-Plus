@@ -87,19 +87,17 @@ class EContentDriver implements DriverInterface{
 			return EContentDriver::$holdings[$id];
 		}
 		global $user;
+		global $configArray;
+
 		$libaryScopeId = $this->getLibraryScopingId();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
-
-		if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-			require_once 'Drivers/OverDriveDriver.php';
-			$items = $eContentRecord->getItems(true, $allowReindex);
-		}else{
-			//Check to see if the record is checked out or on hold
-			$checkedOut = false;
-			$onHold = false;
+		if ($eContentRecord->accessType != 'external'){
+			//Check to see if the record is checked out or on hold within VuFind
+			$checkedOutToUser = false;
+			$onHoldForUser = false;
 			$holdPosition = 0;
 			if ($user){
 				$eContentCheckout = new EContentCheckout();
@@ -110,7 +108,7 @@ class EContentDriver implements DriverInterface{
 				if ($eContentCheckout->N > 0){
 					//The item is checked out to the current user
 					$eContentCheckout->fetch();
-					$checkedOut = true;
+					$checkedOutToUser = true;
 				}else{
 					$eContentHold = new EContentHold();
 					$eContentHold->userId = $user->id;
@@ -118,7 +116,7 @@ class EContentDriver implements DriverInterface{
 					$eContentHold->recordId = $id;
 					$eContentHold->find();
 					if ($eContentHold->N > 0){
-						$onHold = true;
+						$onHoldForUser = true;
 						$eContentHold->fetch();
 						$holdPosition = $this->_getHoldPosition($eContentHold);
 					}
@@ -137,19 +135,79 @@ class EContentDriver implements DriverInterface{
 				$item->source = $eContentRecord->source;
 				//Generate links for the items
 				$links = array();
-				if ($checkedOut){
+				if ($checkedOutToUser){
 					$links = $this->_getCheckedOutEContentLinks($eContentRecord, $item, $eContentCheckout);
 				}else if ($eContentRecord->accessType == 'free' && $item->isExternalItem()){
 					$links = $this->_getFreeExternalLinks($eContentRecord, $item);
-				}else if ($onHold){
+				}else if ($onHoldForUser){
 					$links = $this->getOnHoldEContentLinks($eContentHold);
 				}
 
-				$item->checkedOut = $checkedOut;
-				$item->onHold = $onHold;
+				$item->checkedOut = $checkedOutToUser;
+				$item->onHold = $onHoldForUser;
 				$item->holdPosition = $holdPosition;
 				$item->links = $links;
 				$items[] = $item;
+			}
+		}else{
+			$items = $eContentRecord->getItems();
+			//We have econtent stored on an external server. Check to see if it is available there (if possible)
+			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
+				//Add links as needed
+				$availability = $eContentRecord->getAvailability();
+				$addCheckoutLink = false;
+				$addPlaceHoldLink = false;
+				foreach($availability as $availableFrom){
+					if ($availableFrom->libraryId == -1){
+						if ($availableFrom->availableCopies > 0){
+							$addCheckoutLink = true;
+						}else{
+							$addPlaceHoldLink = true;
+						}
+					}else{
+						//Non shared item, check to see if we are in the correct scope to show it
+						if ($libaryScopeId == -1 || $availableFrom->libraryId == $libaryScopeId){
+							if ($availableFrom->availableCopies > 0){
+								$addCheckoutLink = true;
+							}else{
+								$addPlaceHoldLink = true;
+							}
+						}
+					}
+				}
+				foreach ($items as $key => $item){
+					$item->links = array();
+					if ($addCheckoutLink){
+						$item->links[] = array(
+								'onclick' => "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'text' => 'Check Out',
+								'overDriveId' => $eContentRecord->externalId,
+								'formatId' => $item->externalFormatNumeric,
+								'action' => 'CheckOut'
+						);
+					}else if ($addPlaceHoldLink){
+						$item->links[] = array(
+								'onclick' => "return placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'text' => 'Place Hold',
+								'overDriveId' => $eContentRecord->externalId,
+								'formatId' => $item->externalFormatNumeric,
+								'action' => 'Hold'
+						);
+					}
+					$items[$key] = $item;
+				}
+			}else{
+				foreach ($items as $key => $item){
+					$item->links = $this->_getFreeExternalLinks($eContentRecord, $item);
+					$items[$key] = $item;
+				}
+			}
+			if ($libaryScopeId != -1){
+				foreach ($items as $key => $item){
+					if ($item->libraryId != -1 && $item->libraryId != $libaryScopeId ){
+						unset($items[$key]);
+					}
+				}
 			}
 		}
 
@@ -171,6 +229,20 @@ class EContentDriver implements DriverInterface{
 		}
 	}
 
+	public function getScopedAvailability($eContentRecord){
+		$availability = $eContentRecord->getAvailability();
+		$scopingId = $this->getLibraryScopingId();
+		if ($scopingId == -1){
+			return $availability;
+		}
+		foreach ($availability as $key => $availabilityItem){
+			if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
+				unset($availability[$key]);
+			}
+		}
+		return $availability;
+	}
+
 	public function getStatusSummary($id, $holdings){
 		global $user;
 		//Get the eContent Record
@@ -184,44 +256,47 @@ class EContentDriver implements DriverInterface{
 		$addedToWishList = false;
 		$holdPosition = 0;
 
-				//Load status summary
+		$availability = $this->getScopedAvailability($eContentRecord);
+		$availableCopies = 0;
+		$totalCopies = 0;
+		$onOrderCopies = 0;
+		$checkedOut = 0;
+		$onHold = 0;
+		$wishListSize = 0;
+		$numHolds = 0;
+		if (count($availability) > 0){
+			foreach ($availability as $curAvailability){
+				$availableCopies += $curAvailability->availableCopies;
+				$totalCopies += $curAvailability->copiesOwned;
+				$onOrderCopies += $curAvailability->onOrderCopies;
+				$numHolds += $curAvailability->numberOfHolds;
+			}
+		}elseif ($eContentRecord->itemLevelOwnership == 0) {
+			$totalCopies = $eContentRecord->availableCopies;
+			$onOrderCopies = $eContentRecord->onOrderCopies;
+		}
+		$available = ($availableCopies > 0);
+
+		//Check to see if the title is checked out by the current user
+
+		//Load status summary
 		$statusSummary = array();
 		$statusSummary['recordId'] = $id;
-		$statusSummary['totalCopies'] = $eContentRecord->availableCopies;
-		$statusSummary['onOrderCopies'] = $eContentRecord->onOrderCopies;
+		$statusSummary['totalCopies'] = $totalCopies;
+		$statusSummary['onOrderCopies'] = $onOrderCopies;
 		$statusSummary['accessType'] = $eContentRecord->accessType;
-		foreach ($holdings as $item){
-			$checkedOut = $item->checkedOut;
-			$onHold = $item->onHold;
-			$holdPosition = $item->holdPosition;
-		}
 
-		$overdriveTitle = false;
-		if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-			$overdriveTitle = true;
-			//Check to see if any items are available
-			$available = false;
-			foreach ($holdings as $holding){
-				if ($holding->available){
-					$available = true;
-					break;
-				}
-			}
-			if (isset($holding)){
-				$statusSummary['totalCopies'] = $holding->totalCopies;
-				$statusSummary['availableCopies'] = $holding->availableCopies;
-				$statusSummary['numHolds'] = $holding->numHolds;
-				$statusSummary['holdQueueLength'] = $holding->numHolds;
-			}
-
-			if ($available){
-				$statusSummary['status'] = 'Available from OverDrive';
+		if ($eContentRecord->accessType == 'external' ){
+			$statusSummary['availableCopies'] = $availableCopies;
+			if ($availableCopies > 0){
+				$statusSummary['status'] = "Available from {$eContentRecord->source}";
+				$statusSummary['available'] = true;
 				$statusSummary['class'] = 'available';
-			}else{
-				$statusSummary['status'] = 'Checked out in OverDrive';
+			}else if( strcasecmp($eContentRecord->source, 'OverDrive') == 0){
+				$statusSummary['status'] = 'Checked Out';
+				$statusSummary['available'] = false;
 				$statusSummary['class'] = 'checkedOut';
 			}
-			$wishListSize = 0;
 		}else{
 			//Check to see if it is checked out
 			$checkouts = new EContentCheckout();
@@ -310,11 +385,14 @@ class EContentDriver implements DriverInterface{
 				}
 			}
 		}
-		if ($overdriveTitle){
+		if ($eContentRecord->accessType == 'external'){
 			$statusSummary['showPlaceHold'] = false;
 			$statusSummary['showCheckout'] = false;
 			$statusSummary['showAddToWishlist'] = false;
 			$statusSummary['showAccessOnline'] = true;
+			if (strcasecmp($eContentRecord->source, 'OverDrive') ==0 ){
+				$statusSummary['holdQueueLength'] = $this->getWaitList($id);
+			}
 		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;
 			$statusSummary['showCheckout'] = false;
@@ -325,9 +403,9 @@ class EContentDriver implements DriverInterface{
 			$statusSummary['showCheckout'] = (!$checkedOut && !$onHold) && ($statusSummary['availableCopies'] > 0);
 			$statusSummary['showAddToWishlist'] = (count($holdings) == 0 && !$addedToWishList);
 			$statusSummary['showAccessOnline'] = ($checkedOut && count($holdings) > 0);
+			$statusSummary['holdQueueLength'] = $this->getWaitList($id);
 		}
 
-		$statusSummary['holdQueueLength'] = $this->getWaitList($id);
 		$statusSummary['onHold'] = $onHold;
 		$statusSummary['checkedOut'] = $checkedOut;
 		$statusSummary['holdPosition'] = $holdPosition;
@@ -1027,7 +1105,7 @@ class EContentDriver implements DriverInterface{
 		}else{
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
-							'text' => 'Click&nbsp;for&nbsp;Access',
+							'text' => 'Access&nbsp;' . translate($eContentItem->item_type),
 			);
 		}
 		return $links;

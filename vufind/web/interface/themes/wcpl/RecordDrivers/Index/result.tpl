@@ -5,7 +5,7 @@
         
 <div class="imageColumn"> 
     <div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
-    <a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
+    <a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
     <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
 
@@ -13,7 +13,7 @@
 
 <div class="resultDetails">
   <div class="resultItemLine1">
-	<a href="{$url}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $summTitleStatement}
     <div class="searchResultSectionInfo">
       {$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -26,10 +26,10 @@
       {translate text='by'}
       {if is_array($summAuthor)}
         {foreach from=$summAuthor item=author}
-          <a href="{$url}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+          <a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
         {/foreach}
       {else}
-        <a href="{$url}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+        <a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
       {/if}
     {/if}
  
@@ -54,7 +54,7 @@
 <div id ="searchStars{$summId|escape}" class="resultActions">
     {* Place hold link *}
     <div class='requestThisLink' id="placeHold{$summId|escape:"url"}" style="display:none">
-      <a href="{$url}/Record/{$summId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
+      <a href="{$path}/Record/{$summId|escape:"url"}/Hold"><img src="{img filename=place_hold.png}" alt="Place Hold"/></a>
     </div>
     {* Access eBook*}
     <div class='eBookLink' id="eBookLink{$summId|escape:"url"}" style="display:none">
@@ -66,7 +66,7 @@
     <div class="ratings">
     
       <div id="saveLink{$summId|escape}">
-        <a href="{$url}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;" class="saveToListLink">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
+        <a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;" class="saveToListLink">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
         {if $user}
         	<div id="lists{$summId|escape}"></div>
 					<script type="text/javascript">

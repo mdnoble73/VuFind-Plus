@@ -9,17 +9,17 @@
       <b class="btop"><b></b></b>
         <div class="toolbar">
         <ul>
-            <li><a href="{$url}/Record/{$id|escape:"url"}/Cite" class="cite" onclick="getLightbox('Record', 'Cite', '{$id|escape}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li>
-            <li><a href="{$url}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
-            <li><a href="{$url}/Record/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('Record', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
-            <li><a href="{$url}/Record/{$id|escape:"url"}/Export?style=endnote" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Import Record"}</a><br />
+            <li><a href="{$path}/Record/{$id|escape:"url"}/Cite" class="cite" onclick="getLightbox('Record', 'Cite', '{$id|escape}', null, '{translate text="Cite this"}'); return false;">{translate text="Cite this"}</a></li>
+            <li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" onclick="getLightbox('Record', 'SMS', '{$id|escape}', null, '{translate text="Text this"}'); return false;">{translate text="Text this"}</a></li>
+            <li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" onclick="getLightbox('Record', 'Email', '{$id|escape}', null, '{translate text="Email this"}'); return false;">{translate text="Email this"}</a></li>
+            <li><a href="{$path}/Record/{$id|escape:"url"}/Export?style=endnote" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Import Record"}</a><br />
               <ul class="menu" id="exportMenu">
-                <li><a href="{$url}/Record/{$id|escape:"url"}/Export?style=refworks">{translate text="Import to"} RefWorks</a></li>
-                <li><a href="{$url}/Record/{$id|escape:"url"}/Export?style=endnote">{translate text="Import to"} EndNote</a></li>
-                {* not implemented yet: <li><a href="{$url}/Record/{$id|escape:"url"}/Export?style=zotero">{translate text="Import to"} Zotero</a></li> *}
+                <li><a href="{$path}/Record/{$id|escape:"url"}/Export?style=refworks">{translate text="Import to"} RefWorks</a></li>
+                <li><a href="{$path}/Record/{$id|escape:"url"}/Export?style=endnote">{translate text="Import to"} EndNote</a></li>
+                {* not implemented yet: <li><a href="{$path}/Record/{$id|escape:"url"}/Export?style=zotero">{translate text="Import to"} Zotero</a></li> *}
               </ul>
             </li>
-            <li id="saveLink"><a href="{$url}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
+            <li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
           	<li id="Holdings"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
           </ul>
         </div>
@@ -44,12 +44,12 @@
                 <a href="{$path}/bookcover.php?isn={$isbn|@formatISBN}&amp;size=large&amp;category={$record.format_category.0|escape:"url"}">              
                     <img alt="{translate text='Book Cover'}" class="recordcover" src="{$path}/bookcover.php?isn={$isbn|@formatISBN}&amp;size=medium&amp;category={$record.format_category.0|escape:"url"}">
                 </a><br />
-	   <a href="{$url}/Record/{$id|escape:"url"}/Hold" class="hold">{translate text="Request This Title"}</a><br />
+	   <a href="{$path}/Record/{$id|escape:"url"}/Hold" class="hold">{translate text="Request This Title"}</a><br />
             </div>
             {else}
             {* <img src="{$path}/bookcover.php&amp;category={$record.format_category.0|escape:"url"}" alt="{translate text='No Cover Image'}"> *}
      	     <div class="alignleft">
-	     <a href="{$url}/Record/{$id|escape:"url"}/Hold" class="hold">{translate text="Request This Title"}</a><br />
+	     <a href="{$path}/Record/{$id|escape:"url"}/Hold" class="hold">{translate text="Request This Title"}</a><br />
 	     </div>
 	    {/if}
          
@@ -65,7 +65,7 @@
             {if $marcField}
       
               {translate text='Main Author'}: <br />
-              <a href="{$url}/Author/Home?author={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'b'} {$marcField|getvalue:'b'|escape:"url"}{/if}{if $marcField|getvalue:'c'} {$marcField|getvalue:'c'|escape:"url"}{/if}{if $marcField|getvalue:'d'} {$marcField|getvalue:'d'|escape:"url"}{/if}">{$marcField|getvalue:'a'|escape}{if $marcField|getvalue:'b'} {$marcField|getvalue:'b'|escape}{/if}{if $marcField|getvalue:'c'} {$marcField|getvalue:'c'|escape}{/if}{if $marcField|getvalue:'d'} {$marcField|getvalue:'d'|escape}{/if}</a>
+              <a href="{$path}/Author/Home?author={$marcField|getvalue:'a'|escape:"url"}{if $marcField|getvalue:'b'} {$marcField|getvalue:'b'|escape:"url"}{/if}{if $marcField|getvalue:'c'} {$marcField|getvalue:'c'|escape:"url"}{/if}{if $marcField|getvalue:'d'} {$marcField|getvalue:'d'|escape:"url"}{/if}">{$marcField|getvalue:'a'|escape}{if $marcField|getvalue:'b'} {$marcField|getvalue:'b'|escape}{/if}{if $marcField|getvalue:'c'} {$marcField|getvalue:'c'|escape}{/if}{if $marcField|getvalue:'d'} {$marcField|getvalue:'d'|escape}{/if}</a>
             
             {/if}
         </div>  
@@ -84,7 +84,7 @@
               {translate text='Contributors'}: 
               
                 {foreach from=$marcField item=field name=loop}
-                  <br /><a href="{$url}/Author/Home?author={$field|getvalue:'a'|escape:"url"}{if $field|getvalue:'b'} {$field|getvalue:'b'|escape:"url"}{/if}{if $field|getvalue:'c'} {$field|getvalue:'c'|escape:"url"}{/if}{if $field|getvalue:'d'} {$field|getvalue:'d'|escape:"url"}{/if}">{$field|getvalue:'a'|escape} {$field|getvalue:'b'|escape} {$field|getvalue:'c'|escape} {$field|getvalue:'d'|escape}</a>{if !$smarty.foreach.loop.last}, {/if}
+                  <br /><a href="{$path}/Author/Home?author={$field|getvalue:'a'|escape:"url"}{if $field|getvalue:'b'} {$field|getvalue:'b'|escape:"url"}{/if}{if $field|getvalue:'c'} {$field|getvalue:'c'|escape:"url"}{/if}{if $field|getvalue:'d'} {$field|getvalue:'d'|escape:"url"}{/if}">{$field|getvalue:'a'|escape} {$field|getvalue:'b'|escape} {$field|getvalue:'c'|escape} {$field|getvalue:'d'|escape}</a>{if !$smarty.foreach.loop.last}, {/if}
                 {/foreach}
              
             {/if}
@@ -160,19 +160,19 @@
               <td>
                 {if $marcField440}
                   {foreach from=$marcField440 item=field name=loop}
-                    <a href="{$url}/Search/Results?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=Series">{$field|getvalue:'a'|escape:"html"}</a><br />
+                    <a href="{$path}/Search/Results?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=Series">{$field|getvalue:'a'|escape:"html"}</a><br />
                   {/foreach}
                 {/if}
                 {if $visible490}
                   {foreach from=$marcField490 item=field name=loop}
                     {if $field->getIndicator(1) == 0}
-                      <a href="{$url}/Search/Results?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=Series">{$field|getvalue:'a'|escape:"html"}</a><br />
+                      <a href="{$path}/Search/Results?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=Series">{$field|getvalue:'a'|escape:"html"}</a><br />
                     {/if}
                   {/foreach}
                 {/if}
                 {if $marcField830}
                   {foreach from=$marcField830 item=field name=loop}
-                    <a href="{$url}/Search/Results?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=Series">{$field|getvalue:'a'|escape:"html"}</a><br />
+                    <a href="{$path}/Search/Results?lookfor=%22{$field|getvalue:'a'|escape:"url"}%22&amp;type=Series">{$field|getvalue:'a'|escape:"html"}</a><br />
                   {/foreach}
                 {/if}
               </td>
@@ -226,7 +226,7 @@
 {$details}
    </div>
    </div>
-   <div id = "fullViewLink"><a href ="{$url}/Record/{$id|escape:"url"}">Full Record</a></div>
+   <div id = "fullViewLink"><a href ="{$path}/Record/{$id|escape:"url"}">Full Record</a></div>
    <div id = "classicViewLink"><a href ="http://www.millennium.marmot.org/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
    </div>
    </div>
@@ -247,7 +247,7 @@
           {else}
             <span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
           {/if}
-          <a href="{$url}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+          <a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
           </span>
           <span style="font-size: 80%">
           {if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
@@ -275,7 +275,7 @@
           {else}
             <span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
           {/if}
-          <a href="{$url}/Record/{$edition.id|escape:"url"}">{$edition.title|escape}</a>
+          <a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|escape}</a>
           </span>
           {$edition.edition|escape}
           {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
