@@ -6,6 +6,7 @@
  <tr>
  <th>Location</th>
  <th>Collection</th>
+ <th>Shelved Under</th>
  <th>Status</th>
  <th>Due</th>
  </tr>
@@ -27,9 +28,19 @@
     {$holding.location|escape}
     {if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
     </strong></span></td>
-
-    {* Collection *}
-    <td style = "padding-bottom:5px;">{$holding.collection|escape}</td>
+    
+  	{* Collection *}
+  	<td style = "padding-bottom:5px;">{$holding.collection|escape}</td>
+    
+    {* Call# *}
+  	<td style = "padding-bottom:5px;">
+  	{$holding.callnumber|escape}
+  	{if $holding.link}
+  	  {foreach from=$holding.link item=link}
+  	    <a href='{$link.link}' target='_blank'>{$link.linkText}</a><br />
+  	  {/foreach}
+  	{/if}
+  	</td>
 
     {* Status *}
     <td style = "padding-bottom:5px;">

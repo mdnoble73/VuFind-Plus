@@ -96,6 +96,7 @@ class SideFacets implements RecommendationInterface
 	 */
 	public function process() {
 		global $interface;
+		global $configArray;
 		$interface->assign('checkboxFilters', $this->searchObject->getCheckboxFacets());
 		$interface->assign('filterList', $this->searchObject->getFilterList(true));
 		//Process the side facet set to handle the Added In Last facet which we only want to be
@@ -176,14 +177,20 @@ class SideFacets implements RecommendationInterface
 				}
 			}
 
-			$availableAtFacets['*'] = array(
-				'value' => '*',
-				'display' => "Any Marmot Library",
-				'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
-				'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
-				'isApplied' => array_key_exists('*', $appliedAvailability),
-				'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
-			);
+			$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
+			//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
+			if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
+				$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
+				//print_r ("anyLocationLabel = $anyLocationLabel");
+				$availableAtFacets['*'] = array(
+					'value' => '*',
+					'display' => $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel,
+					'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
+					'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
+					'isApplied' => array_key_exists('*', $appliedAvailability),
+					'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
+				);
+			}
 
 			$sideFacets['available_at']['list'] = $availableAtFacets;
 

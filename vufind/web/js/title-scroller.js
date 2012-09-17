@@ -1,11 +1,9 @@
 /**
  * Create a title scroller object for display
  * 
- * @param scrollerId -
- *          the id of the scroller which will hold the titles
+ * @param scrollerId - the id of the scroller which will hold the titles
  * @param scrollerShortName
- * @param container -
- *          a container to display if any titles are found
+ * @param container - a container to display if any titles are found
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
@@ -51,7 +49,7 @@ TitleScroller.prototype.loadTitlesFrom = function(jsonUrl) {
 	$.getJSON(jsonUrl, function(data) {
 		scroller.loadTitlesFromJsonData(data);
 	}).error(function(){
-		scrollerBody.html("Unable to load titles.  Please try again later.");
+		scrollerBody.html("Unable to load titles. Please try again later.");
 		scrollerBody.show();
 		$(".scrollerLoadingContainer").hide();
 	});
@@ -62,7 +60,7 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
 		if (data.titles.length == 0){
-			scrollerBody.html("No titles were found for this list.  Please try again later.");
+			scrollerBody.html("No titles were found for this list. Please try again later.");
 			scrollerBody.show();
 		}else{
 			scroller.scrollerTitles = new Array();
@@ -86,7 +84,7 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 	} catch (err) {
 		//alert("error loading titles from data " + err.description);
 		if (scrollerBody != null){
-			scrollerBody.html("error loading titles from data " + err.description + ".  Please try again later.");
+			scrollerBody.html("error loading titles from data " + err.description + ". Please try again later.");
 			scrollerBody.show();
 			$(".scrollerLoadingContainer").hide();
 		}else{
@@ -119,25 +117,39 @@ TitleScroller.prototype.updateScroller = function() {
 		
 	} catch (err) {
 		//alert("error in updateScroller " + err.description);
-		scrollerBody.html("error loading titles from data " + err + ".  Please try again later.");
+		scrollerBody.html("error loading titles from data " + err + ". Please try again later.");
 		scrollerBody.show();
 		$(".scrollerLoadingContainer").hide();
 	}
 
 };
+
 TitleScroller.prototype.finishLoadingScroller = function() {
 	$(".scrollerLoadingContainer").hide();
-	var scrollerBody = $('#' + this.scrollerId
-			+ " .scrollerBodyContainer .scrollerBody");
+	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	scrollerBody.show();
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 	var curScroller = this;
-	if (this.autoScroll){
-		if (this.scrollInterval == 0){
-			this.scrollInterval = setInterval(function() {
-					curScroller.scrollToRight()
-				}, 5000);
-		}
+
+	// Whether we are hovering over an individual title or not.
+	$('.scrollerTitle').bind('mouseover', {scroller: curScroller}, function() {
+		curScroller.hovered = true;
+		//console.log('over');
+	}).bind('mouseout', {scroller: curScroller}, function() {
+		curScroller.hovered = false;
+		//console.log('out');
+	});
+
+	// Set initial state.
+	curScroller.hovered = false;
+
+	if (this.autoScroll && this.scrollInterval == 0){
+		this.scrollInterval = setInterval(function() {
+			// Only proceed if not hovering.
+			if (!curScroller.hovered) {
+				curScroller.scrollToRight();
+			}
+		}, 5000);
 	}
 	if (this.enableDescription) {
 		for ( var i in this.scrollerTitles) {
@@ -145,7 +157,6 @@ TitleScroller.prototype.finishLoadingScroller = function() {
 					this.scrollerTitles[i]['id']);
 		}
 	}
-	
 };
 
 TitleScroller.prototype.scrollToRight = function() {

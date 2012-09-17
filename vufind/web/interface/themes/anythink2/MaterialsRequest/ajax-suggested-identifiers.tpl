@@ -16,9 +16,10 @@
           <input type="button" value="Use This" onclick="setIsbnAndOclcNumberAnythink('{$suggestion.title|escape}', '{$suggestion.author|escape}', '{$suggestion.isbn}', '{$suggestion.oclcNumber}')" />
         </div>
         <div class="desc-identifier">
-          <h3><a href="{$suggestion.link}">{$suggestion.title}</a></h3>
+          <h3>{$suggestion.title}</h3>
           <h4>{$suggestion.author|truncate:60}</h4>
-          <div id="worldCatDescription{$rownum}">
+          <div><a target="_blank" href="{$suggestion.link}">WorldCat link &raquo;</a></div>
+          <div class="form-item" id="worldCatDescription{$rownum}">
             <div class="short">
             {$suggestion.description|truncate:150|escape}
             <a href="#" onclick="{literal}${/literal}('.short', '#worldCatDescription{$rownum}').hide();{literal}${/literal}('.full', '#worldCatDescription{$rownum}').slideDown().show();return false;">More</a>
@@ -28,11 +29,20 @@
             <a href="#" onclick="{literal}${/literal}('.full', '#worldCatDescription{$rownum}').hide();{literal}${/literal}('.short', '#worldCatDescription{$rownum}').show();return false;">Less</a>
             </div>
           </div>
-          <div class="worldCatCitaion">
-            {$suggestion.citation}
-          </div>
-          <div class="fine-print">{translate text="ISBN"}&nbsp;{$suggestion.isbn}</div>
-          <div class="fine-print">{translate text="OCLC"}&nbsp;{$suggestion.oclcNumber}</div>
+          <table class="worldcat-details">
+            <tr class="fine-print">
+              <td><strong>{translate text="Citation"}</strong></td>
+              <td>{$suggestion.citation}</td>
+            </tr>
+            <tr class="fine-print">
+              <td><strong>{translate text="ISBN"}</strong></td>
+              <td>{$suggestion.isbn}</td>
+            </tr>
+            <tr class="fine-print">
+              <td><strong>{translate text="OCLC"}</strong></td>
+              <td>{$suggestion.oclcNumber}</td>
+            </tr>
+          </table>
         </div>
       </div>
       {/foreach}

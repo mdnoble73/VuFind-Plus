@@ -76,7 +76,7 @@
 			<div class="searchtools">
 				<strong>{translate text='Search Tools'}:</strong>
 				<a href="{$rssLink|escape}" class="feed">{translate text='Get RSS Feed'}</a>
-				<a href="{$path}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
+				<a href="{$path}/Search/Email" class="mail" onclick="ajaxLightbox('/Search/Email?lightbox'); return false;">{translate text='Email this Search'}</a>
 				{if $savedSearch}<a href="{$path}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$path}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
 			</div>
 		</div>

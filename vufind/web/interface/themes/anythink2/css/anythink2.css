@@ -28,14 +28,12 @@
 }
 
 .advancedSearchFacetDetails{
-  display: inline-block;
   margin: 5px;
 }
 .advancedSearchFacetHeader{
   font-weight: bold;
 }
 .advancedSearchFacetFormatCategory{
-  display: inline-block;
   margin: 5px;
 }
 
@@ -259,8 +257,9 @@ body {
   top: 40px;
 }
 
+#search-type-wrapper,
 #search-input-wrapper {
-  display: inline-block;
+  float: left;
 }
 
 #search-input-wrapper label {
@@ -284,13 +283,11 @@ body {
 }
 
 #type {
-  display: inline-block;
   margin-top: 2px;
 }
 
 #type-label {
   color: #666;
-  display: inline-block;
   font-size: 1.5em;
   font-weight: bold;
   margin-top: 3px;
@@ -592,6 +589,7 @@ body.Search--Results--0 #sidebar-wrapper {
  */
 .rss, .email,
 .icon-book,
+.icon-audiobook,
 .icon-graphicnovel,
 .icon-dvd,
 .icon-musiccd,
@@ -632,6 +630,10 @@ body.Search--Results--0 #sidebar-wrapper {
 
 .icon-musiccd {
   background-image: url(/images/silk/cd.png);
+}
+
+.icon-audiobook {
+  background-image: url(../images/icon-audiobook.png);
 }
 
 .icon-delete {
@@ -878,7 +880,7 @@ div.record {
   border-bottom-left-radius: 4px;
   float: right;
   position: relative;
-  z-index: 11;
+  z-index: 1;
   margin-right: 20px;
 }
 
@@ -941,7 +943,7 @@ body.Search--Home #fixed-wrapper {
 
 #book_bag #bag_open_button {
   background-color: transparent;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   border: none;
@@ -981,7 +983,7 @@ body.Search--Home #fixed-wrapper {
   background-color: transparent;
   border-top-left-radius: 0;
   padding: 0;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   cursor: pointer;
   height: auto;
 }
@@ -1183,6 +1185,8 @@ table.adminTable tfoot tr th {
 
 ul.inline {
   list-style: none;
+  list-style-type: none;
+  list-style-image: none;
   padding: 0;
   margin-bottom: 0;
 }
@@ -1196,7 +1200,11 @@ ul.right {
 }
 
 ul.inline li {
-  display: inline-block;
+  float: left;
+  list-style: none;
+  list-style-type: none;
+  list-style-image: none;
+  margin-right: .75em;
 }
 
 ul.right li {
@@ -1350,9 +1358,10 @@ div.popupBox {
 }
 
 .scrollerBodyContainer {
-  position: relative;
-  overflow: hidden;
+  height: 170px;
   margin: 0;
+  overflow: hidden;
+  position: relative;
 }
 
 .leftScrollerButton {
@@ -1366,8 +1375,8 @@ div.popupBox {
   background-position: -36px 0;
   position: absolute;
   z-index: 10;
-  bottom: 20px;
   left: 20px;
+  top: 170px;
 }
 
 .rightScrollerButton {
@@ -1381,7 +1390,7 @@ div.popupBox {
   background-position: 0 0;
   z-index: 10;
   right: 20px;
-  bottom: 20px;
+  top: 170px;
 }
 
 .rightScrollerButton:hover,
@@ -1389,23 +1398,23 @@ div.popupBox {
   opacity: .8;
 }
 
-
 .titleScrollerSelectedTitle {
-  width: 100%;
-  text-align: center;
   font-weight: normal;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: 2em; /* 24 */
   line-height: 1.125em; /* 27 */
   margin-top: 0;
   margin-bottom: .375em; /* 9 */
+  padding: 0 70px;
+  text-align: center;
+  width: auto;
 }
 
 .titleScrollerSelectedAuthor {
   width: 100%;
   text-align: center;
   font-weight: bold;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   margin-bottom: 10px;
 }
 
@@ -1438,7 +1447,7 @@ div.popupBox {
   margin-bottom: 0;
   text-align: inherit;
   background: inherit;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   padding: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -1481,14 +1490,14 @@ div.popupBox {
 .titleScrollerHeader {
   background: transparent;
   padding: 10px;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: inherit;
   font-weight: normal;
   height: auto;
 }
 
 .resultInformationLabel {
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: inherit;
   font-weight: bold;
   padding-bottom: 0;
@@ -1516,7 +1525,7 @@ div.popupBox .content {
 div.popupBox .header {
   cursor: move;
   background-color: #EEE;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-size: 1.167em;
   font-weight: bold;
   height: auto;
@@ -1545,7 +1554,7 @@ div.popupBox .header a {
   top: 10px;
   right: 10px;
   text-decoration: none;
-  color: inherit
+  color: inherit;
 }
 
 #results-actions form {
@@ -1586,7 +1595,7 @@ div.popupBox .header a {
 .holdSectionTitle {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  color: inherit;
+  color: #3E3E3E; /* inherit */
   font-weight: bold;
   margin-top: 0;
   padding: 10px;
@@ -1716,4 +1725,27 @@ div.popupBox ul li a {
 
 #survey-close:hover .text {
   display: inline-block;
+}
+
+.worldcat-details td {
+  padding-right: 1em;
+}
+
+.worldcat-details p {
+  margin: 0;
+  padding: 0;
+}
+
+.ui-autocomplete {
+  z-index: 10;
+}
+
+.ui-autocomplete li {
+  list-style: none;
+  list-style-type: none;
+  list-style-image: none;
+}
+
+input.yearbox {
+  width: auto;
 }

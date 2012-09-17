@@ -2,73 +2,128 @@ var bookBag = new Array();
 var bagErrors = new Array();
 var BAG_COOKIE = "book_BAG_COOKIE_vufind";
 
+// Pre-handler styling.
+$('html').addClass('pre-ready');
+
 $(document).ready(function() {
   // if bag not used on current page, then don't do anything
-  if ($("#book_bag #bag_items").length == 0) {
-    return;
+  if ($("#book_bag #bag_items").length > 0) {
+
+    // if we are printing, ignore update bag
+    var url = window.location.href;
+    if(url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
+      window.print();
+      $("link[media='print']").attr("media", "all");
+    } else {
+      // run the first check to see if we have anything in the bag
+      updateBag(true);
+
+      // Attach all of the actions to appropriate links
+      $("#bag_summary_holder").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
+      $("#book_bag_header").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
+
+      // email buttons
+      $("#bag_email_button").click(function() {
+        toggleBagActionItems(true);
+        $('#email_to_box').show();
+        return false;
+      });
+      $("#email_to_box .bag_perform_action_button").click(function() {
+        emailBag();
+      });
+      $("#email_to_box .bag_hide_button").click(function() {
+        $('#email_to_box').hide();
+        toggleBagActionItems();
+        return false;
+      });
+
+      // Add to my list buttons
+      $("#bag_add_to_my_list_button").click( function() {
+        toggleBagActionItems(true);
+        $('#save_to_my_list_tags').show();
+        return false;
+      });
+
+      $("#save_to_my_list_tags .bag_perform_action_button").click(function() {
+        saveToMyList();
+      });
+
+      $("#save_to_my_list_tags .bag_hide_button").click(function() {
+        $('#save_to_my_list_tags').hide();
+        toggleBagActionItems();
+        return false;
+      });
+
+      $("#new_list").click(function(){
+        $('#existing_list_controls').hide();$('#new_list').hide();
+        $('#new_list_controls').fadeIn();$('#listForm').fadeIn()
+      });
+
+      $("#choose_existing_list").click(function(){
+        $('#new_list_controls').hide();
+        $('#existing_list_controls').fadeIn();
+        $('#new_list').fadeIn();
+      });
+
+      // export button
+      $("#bag_request_button").click(function() {
+        requestBag();
+        return false;
+      });
+
+      // print button
+      $("#bag_print_button").click(function() {
+        printBag();
+        return false;
+      });
+
+      // login button
+      $("#login_bag").click(function() {
+        $('#bag_actions').height('175px');
+        toggleBagActionItems(true);
+        $('#bookcart_login').show();
+        return false;
+      });
+
+      $("#bag_login_cancel").click(function() {
+        $('#bag_actions').height('150px');
+        toggleBagActionItems(false);
+        return false;
+      });
+
+      $("#bag_login_submit").click(function(){
+        bagLoginUser();
+        return false;
+      });
+
+      // bag action processes
+      $("#bag_action_in_progress .bag_hide_button").click(function() {
+        toggleBagActionItems();
+        return false;
+      });
+
+      $("#bag_empty_button").click(function() {
+        if (confirm("Remove all items in your book cart. Are you sure?")) { emptyBag(); }
+        return false;
+      });
+
+      $("#bag_empty_button_header").click(function() {
+        if (confirm("Remove all items in your book cart. Are you sure?")) { emptyBag(); }
+        return false;
+      });
+
+      //$(".logged-in-button, .email-search").show();
+      //$(".logged-out-button, .login-button").hide();
+
+      // check if logged in and show the proper buttons
+      if (loggedIn) {
+        $(".logged-in-button, .email-search").show(); $(".logged-out-button, .login-button").hide();
+      } else {
+        $(".logged-in-button, .email-search").hide(); $(".logged-out-button, .login-button").show();
+      }
+    }
   }
-
-  // if we are printing, ignore update bag
-  var url = window.location.href;
-  if(url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
-    window.print();
-    $("link[media='print']").attr("media", "all");
-    return;
-  }
-  // run the first check to see if we have anything in the bag
-  updateBag(true);
-
-  // Attach all of the actions to appropriate links
-  $("#bag_summary_holder").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
-  $("#book_bag_header").css({cursor: 'pointer'}).click(function() {  toggleBagCanvas(); /* display or hide bag canvas */});
-
-  // email buttons
-  $("#bag_email_button").click(function() { toggleBagActionItems(true); $('#email_to_box').show(); return false; });
-  $("#email_to_box .bag_perform_action_button").click(function() { emailBag(); });
-  $("#email_to_box .bag_hide_button").click(function() { $('#email_to_box').hide(); toggleBagActionItems();  return false;});
-
-  // Add to my list buttons
-  $("#bag_add_to_my_list_button").click( function() {  toggleBagActionItems(true); $('#save_to_my_list_tags').show(); return false; });
-  $("#save_to_my_list_tags .bag_perform_action_button").click(function() { saveToMyList(); });
-  $("#save_to_my_list_tags .bag_hide_button").click(function() { $('#save_to_my_list_tags').hide();  toggleBagActionItems(); return false; });
-  $("#new_list").click(function(){$('#existing_list_controls').hide();$('#new_list').hide(); $('#new_list_controls').fadeIn();$('#listForm').fadeIn()});
-  $("#choose_existing_list").click(function(){$('#new_list_controls').hide(); $('#existing_list_controls').fadeIn();$('#new_list').fadeIn();})
-  // export button
-  $("#bag_request_button").click(function() { requestBag(); return false; });
-
-  // print button
-  $("#bag_print_button").click(function() { printBag(); return false; });
-
-  // login button
-  $("#login_bag").click(function() {
-    $('#bag_actions').height('175px');
-    toggleBagActionItems(true);
-    $('#bookcart_login').show();
-    return false;
-  });
-  $("#bag_login_cancel").click(function() {
-    $('#bag_actions').height('150px');
-    toggleBagActionItems(false);
-    return false;
-  });
-  $("#bag_login_submit").click(function(){bagLoginUser(); return false;});
-
-  // bag action processes
-  $("#bag_action_in_progress .bag_hide_button").click(function() { toggleBagActionItems();  return false; });
-
-  $("#bag_empty_button").click(function() { if (confirm("Remove all items in your book cart. Are you sure?")) { emptyBag(); } return false; });
-  $("#bag_empty_button_header").click(function() { if (confirm("Remove all items in your book cart. Are you sure?")) { emptyBag(); } return false; });
-
-  //$(".logged-in-button, .email-search").show();
-  //$(".logged-out-button, .login-button").hide();
-
-  // check if logged in and show the proper buttons
-  if (loggedIn) {
-    $(".logged-in-button, .email-search").show(); $(".logged-out-button, .login-button").hide();
-  } else {
-    $(".logged-in-button, .email-search").hide(); $(".logged-out-button, .login-button").show();
-  }
-
+  $('html').removeClass('pre-ready');
 });
 
 function bagLoginUser(){

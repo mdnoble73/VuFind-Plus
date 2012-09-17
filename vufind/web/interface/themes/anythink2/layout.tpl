@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{$userLang}">
   <head>
+    <link rel="shortcut icon" href="{$path}/interface/themes/anythink2/images/anythink.ico" type="image/x-icon" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>{$pageTitle|truncate:64:"..."}</title>
     {if $addHeader}{$addHeader}{/if}
@@ -83,10 +84,8 @@
       })(jQuery);
       {/literal}
     </script>
-    <script src="{$path}/interface/themes/anythink2/js/anythink-survey.js" type="text/javascript"></script>
   </head>
   <body class="{$module} {$action} {$module}--{$action} {$module}--{$action}--{$recordCount}">
-    <div style="text-align: center; background-color: #B31E3B; color: #FFF; padding: .5em 0; font-size: 1.2em;">It's Anythink's new catalog! Tell us what you think. We're still testing and tweaking, so pardon us if you find a bug.</div>
     <div id="container"><div id="inner">
       <!-- Current Physical Location: {$physicalLocation} -->
       {* LightBox *}

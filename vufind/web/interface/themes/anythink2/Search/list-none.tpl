@@ -28,7 +28,7 @@
   {/if}
   <h1>{translate text='nohit_heading'}</h1>
 
-  <p class="error">{translate text="Doh! Your search"} <strong>{$lookfor|escape:"html"}</strong> {translate text="did not match any of our items."}</p>
+  <p class="error">{translate text="Your search"} <strong>{$lookfor|escape:"html"}</strong> {translate text="did not match any of our items."}</p>
 
   <p>{translate text="Try these search tips:"}</p>
   <ul>
