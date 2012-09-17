@@ -159,7 +159,7 @@
         <div id="central" class="clearfix{if $module == 'Search' && $action == 'Home'} with-column-outer{/if}">
           {if $module == 'Search' && $action == 'Home'}
           <div id="column-outer-wrapper"><div id="column-outer">
-            <iframe width="200" height="700" style="border: 0;" src="http://www.anythinklibraries.org/vufind/sidebar"></iframe>
+            <iframe width="200" height="700" style="border: 0;" border="0" frameborder="0" src="http://www.anythinklibraries.org/vufind/sidebar"></iframe>
           </div></div>
           {/if}
           <div id="column-central">
