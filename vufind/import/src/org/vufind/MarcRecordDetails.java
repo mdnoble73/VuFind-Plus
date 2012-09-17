@@ -3393,7 +3393,7 @@ public class MarcRecordDetails {
 		if (isEContent()){
 			//Get the overdrive id
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
-			if (curDetectionSetting.getSource().equalsIgnoreCase("OverDrive")){
+			if (curDetectionSetting.getSource().matches("(?i)^overdrive.*")){
 				try {
 					ArrayList<LibrarySpecificLink> sourceUrls =  getSourceUrls();
 					for(LibrarySpecificLink link : sourceUrls){
@@ -3414,7 +3414,7 @@ public class MarcRecordDetails {
 	public int hasItemLevelOwnership() {
 		if (isEContent()){
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
-			if (!curDetectionSetting.getSource().equalsIgnoreCase("OverDrive") && curDetectionSetting.getAccessType().equals("external")){
+			if (!curDetectionSetting.getSource().matches("(?i)^overdrive.*") && curDetectionSetting.getAccessType().equals("external")){
 				return 1;
 			}
 		}
@@ -3497,9 +3497,9 @@ public class MarcRecordDetails {
 		addFields(mappedFields, "rating_facet", null, getEContentRatingFacet(econtentRecordId));
 		
 		addField(mappedFields, "recordtype", "econtentRecord");
-		addField(mappedFields, "id", "econtentRecord" + econtentRecordId);
 		
 		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		allFields.put("id", "econtentRecord" + econtentRecordId);
 		for (String fieldName : allFields.keySet()){
 			Object value = allFields.get(fieldName);
 			doc.addField(fieldName, value);
@@ -3510,7 +3510,7 @@ public class MarcRecordDetails {
 	}
 
 	private void addSharedAvailability(String source, Set<String> itemAvailability) {
-		if (source.equalsIgnoreCase("overdrive")){
+		if (source.matches("(?i)^overdrive.*")){
 			itemAvailability.add("Eagle Valley Library District Online");
 			itemAvailability.add("Garfield County Library Online");
 			itemAvailability.add("Grand County Library Dist Online");
