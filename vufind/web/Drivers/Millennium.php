@@ -1720,6 +1720,7 @@ class MillenniumDriver implements DriverInterface
 					if ($resource->find(true)){
 						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
 						$historyEntry['recordId'] = $resource->record_id;
+						$historyEntry['shortId'] = str_replace('.b', 'b', $resource->record_id);
 					}else{
 						//echo("Warning did not find resource for {$historyEntry['shortId']}");
 					}

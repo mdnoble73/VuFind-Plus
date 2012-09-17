@@ -29,6 +29,13 @@ class ReadingHistory extends MyResearch
 		global $interface;
 		global $user;
 
+		global $library;
+		if (isset($library)){
+			$interface->assign('showRatings', $library->showRatings);
+		}else{
+			$interface->assign('showRatings', 1);
+		}
+
 		// Get My Transactions
 		if ($this->catalog->status) {
 			if ($user->cat_username) {
@@ -40,7 +47,7 @@ class ReadingHistory extends MyResearch
 				if (!PEAR::isError($patronResult)) {
 					$interface->assign('profile', $patronResult);
 				}
-				
+
 				//Check to see if there is an action to perform.
 				if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
 					//Perform the requested action
@@ -78,9 +85,9 @@ class ReadingHistory extends MyResearch
 					$recordsPerPage = -1;
 					$page = 1;
 				}
-				
+
 				$result = $this->catalog->getReadingHistory($patron, $page, $recordsPerPage, $selectedSortOption);
-				
+
 				$link = $_SERVER['REQUEST_URI'];
 				if (preg_match('/[&?]page=/', $link)){
 					$link = preg_replace("/page=\\d+/", "page=%d", $link);
@@ -139,7 +146,7 @@ class ReadingHistory extends MyResearch
 		$a=4;
 		//Loop Through The Report Data
 		foreach ($readingHistory as $row) {
-			
+
 			$objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('A'.$a, $row['title'])
 			->setCellValue('B'.$a, $row['author'])
