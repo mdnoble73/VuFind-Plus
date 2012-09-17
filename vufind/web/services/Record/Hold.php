@@ -162,7 +162,7 @@ class Hold extends Action {
 		$interface->assign('id', $_GET['id']);
 		if ($showMessage && isset($return)) {
 			$hold_message_data = array(
-				'successful' => $return['result'] ? 'all' : 'none',
+				'successful' => $return['result'] == true ? 'all' : 'none',
 				'error' => isset($return['error']) ? $return['error'] : '',
 				'titles' => array(
 					$return,

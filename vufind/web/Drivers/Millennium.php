@@ -525,11 +525,11 @@ class MillenniumDriver implements DriverInterface
 			}
 			//Get the library display name for the holding location
 			/*foreach ($locationLabels as $holdingLabel => $displayName){
-			if (strpos($holding['location'], $holdingLabel) !== false){
-			$holding['libraryDisplayName'] = $displayName;
-			break;
-			}
-			}*/
+			 if (strpos($holding['location'], $holdingLabel) !== false){
+			 $holding['libraryDisplayName'] = $displayName;
+			 break;
+			 }
+			 }*/
 			if (!isset($holding['libraryDisplayName'])){
 				$holding['libraryDisplayName'] = $holding['location'];
 			}
@@ -884,7 +884,7 @@ class MillenniumDriver implements DriverInterface
 
 		//Status is not set, check to see if the item is downloadable
 		/*
-		if (!isset($summaryInformation['status'])){
+		 if (!isset($summaryInformation['status'])){
 			//Check to see if there is a download link in the 856 field
 			//Make sure that the search engine has been setup.  It may not be if the
 			//this is an AJAX request where the search engine is not needed otherwise.
@@ -894,71 +894,71 @@ class MillenniumDriver implements DriverInterface
 			$url = $configArray['Index']['url'];
 			$this->db = new $class($url);
 			if ($configArray['System']['debugSolr']) {
-				$this->db->debug = true;
+			$this->db->debug = true;
 			}
 
 			// Retrieve Full Marc Record
 			$recordURL = null;
 			if (!($record = $this->db->getRecord($id))) {
-				//Must not be a MARC record. Ignore it for now.
+			//Must not be a MARC record. Ignore it for now.
 			}else{
-				// Process MARC Data
-				require_once 'sys/MarcLoader.php';
-				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-				if ($marcRecord) {
-					//Check the 856 tag to see if there is a URL
-					if ($linkField = $marcRecord->getField('856')) {
-						if ($linkURLField = $linkField->getSubfield('u')) {
-							$linkURL = $linkURLField->getData();
-						}
-						if ($linkTextField = $linkField->getSubfield('y')) {
-							$linkText = $linkTextField->getData();
-						}else if ($linkTextField = $linkField->getSubfield('z')) {
-							$linkText = $linkTextField->getData();
-						}else if ($linkTextField = $linkField->getSubfield('3')) {
-							$linkText = $linkTextField->getData();
-						}
-					}
-				} else {
-					//Can't process the marc record, ignore it.
-				}
+			// Process MARC Data
+			require_once 'sys/MarcLoader.php';
+			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+			if ($marcRecord) {
+			//Check the 856 tag to see if there is a URL
+			if ($linkField = $marcRecord->getField('856')) {
+			if ($linkURLField = $linkField->getSubfield('u')) {
+			$linkURL = $linkURLField->getData();
+			}
+			if ($linkTextField = $linkField->getSubfield('y')) {
+			$linkText = $linkTextField->getData();
+			}else if ($linkTextField = $linkField->getSubfield('z')) {
+			$linkText = $linkTextField->getData();
+			}else if ($linkTextField = $linkField->getSubfield('3')) {
+			$linkText = $linkTextField->getData();
+			}
+			}
+			} else {
+			//Can't process the marc record, ignore it.
+			}
 			}
 
 			//If there is a link, add that status information.
 			if (isset($linkURL) && !preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/', $linkURL)){
-				$linkTestText = $linkURL;
-				if (isset($linkText)){
-					$linkTestText .= ' ' . $linkText;
-				}
-				$isDownload = preg_match('/SpringerLink|NetLibrary|digital media|Online version\.|ebrary|gutenberg/i', $linkTestText);
-				if ($linkTestText == 'digital media') $linkText = 'OverDrive';
-				if (preg_match('/netlibrary/i', $linkURL)){
-					$isDownload = true;
-					$linkText = 'NetLibrary';
-				}elseif(preg_match('/ebscohost/i', $linkURL)){
-					$isDownload = true;
-					$linkText = 'Ebsco';
-				}elseif(preg_match('/overdrive/i', $linkURL)){
-					$isDownload = true;
-					$linkText = 'OverDrive';
-				}elseif(preg_match('/ebrary/i', $linkURL)){
-					$isDownload = true;
-					$linkText = 'ebrary';
-				}elseif(preg_match('/gutenberg/i', $linkURL)){
-					$isDownload = true;
-					$linkText = 'Gutenberg Project';
-				}elseif(preg_match('/.*\.[pdf]/', $linkURL)){
-					$isDownload = true;
-				}
-				if ($isDownload){
-					$summaryInformation['status'] = "Available for Download";
-					$summaryInformation['class'] = 'here';
-					$summaryInformation['isDownloadable'] = true;
-					$summaryInformation['downloadLink'] = $linkURL;
-					$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
-				}
+			$linkTestText = $linkURL;
+			if (isset($linkText)){
+			$linkTestText .= ' ' . $linkText;
 			}
-		}*/
+			$isDownload = preg_match('/SpringerLink|NetLibrary|digital media|Online version\.|ebrary|gutenberg/i', $linkTestText);
+			if ($linkTestText == 'digital media') $linkText = 'OverDrive';
+			if (preg_match('/netlibrary/i', $linkURL)){
+			$isDownload = true;
+			$linkText = 'NetLibrary';
+			}elseif(preg_match('/ebscohost/i', $linkURL)){
+			$isDownload = true;
+			$linkText = 'Ebsco';
+			}elseif(preg_match('/overdrive/i', $linkURL)){
+			$isDownload = true;
+			$linkText = 'OverDrive';
+			}elseif(preg_match('/ebrary/i', $linkURL)){
+			$isDownload = true;
+			$linkText = 'ebrary';
+			}elseif(preg_match('/gutenberg/i', $linkURL)){
+			$isDownload = true;
+			$linkText = 'Gutenberg Project';
+			}elseif(preg_match('/.*\.[pdf]/', $linkURL)){
+			$isDownload = true;
+			}
+			if ($isDownload){
+			$summaryInformation['status'] = "Available for Download";
+			$summaryInformation['class'] = 'here';
+			$summaryInformation['isDownloadable'] = true;
+			$summaryInformation['downloadLink'] = $linkURL;
+			$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
+			}
+			}
+			}*/
 
 		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
 			//Replace all spaces in the name of a location with no break spaces
@@ -2159,7 +2159,8 @@ class MillenniumDriver implements DriverInterface
 	 * @access  public
 	 */
 	public function placeHold($recordId, $patronId, $comment, $type){
-		return $this->placeItemHold($recordId, null, $patronId, $comment, $type);
+		$result = $this->placeItemHold($recordId, null, $patronId, $comment, $type);
+		return $result;
 	}
 
 	/**
@@ -2335,7 +2336,7 @@ class MillenniumDriver implements DriverInterface
 			$hold_result = $this->_getHoldResult($sresult);
 			$hold_result['title']  = $title;
 			$hold_result['bid'] = $bib1;
-			if ($hold_result['result']){
+			if ($hold_result['result'] == true){
 				UsageTracking::logTrackingData('numHolds');
 			}
 			return $hold_result;
@@ -2362,7 +2363,8 @@ class MillenniumDriver implements DriverInterface
 				$book = $cleanResponse;
 				$reason = '';
 			}
-			if (preg_match('/success/', $cleanResponse)){
+
+			if (preg_match('/success/', $cleanResponse) && preg_match('/request denied/', $cleanResponse) == 0){
 				//Hold was successful
 				$hold_result['result'] = true;
 				if (!isset($reason) || strlen($reason) == 0){
