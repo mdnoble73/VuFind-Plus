@@ -276,7 +276,8 @@ public class MarcRecordDetails {
 		
 		//Get urls from item records
 		//logger.info("Loading records from item records");
-		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)) {
+		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null) &&
+				(marcProcessor.getItemTag().length() > 0) && (marcProcessor.getUrlSubfield().length() > 0) && (marcProcessor.getLocationSubfield().length() > 0)) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 			for (DataField curItem : itemFields) {
