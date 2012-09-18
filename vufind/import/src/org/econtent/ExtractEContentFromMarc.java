@@ -118,6 +118,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private HashMap<String, String> processedOverDriveRecords = new HashMap<String, String>();
 	private HashMap<String, ArrayList<String>> duplicateOverDriveRecordsInMillennium = new HashMap<String, ArrayList<String>>();
 	private HashMap<String, MarcRecordDetails> millenniumRecordsNotInOverDrive = new HashMap<String, MarcRecordDetails>();
+	private HashSet<String> recordsWithoutOverDriveId = new HashSet<String>(); 
 	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -1059,8 +1060,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				}
 			}
 		}else{
-			results.incErrors();
-			results.addNote("Did not find overdrive id for record " + recordInfo.getId() + " " + eContentRecordId);
+			//results.incErrors();
+			recordsWithoutOverDriveId.add(recordInfo.getId());
+			//results.addNote("Did not find overdrive id for record " + recordInfo.getId() + " " + eContentRecordId);
 			return false;
 		}
 	}
@@ -1424,6 +1426,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		doc.addField("edition", recordInfo.getEdition());
 		doc.addField("description", recordInfo.getDescription());
 		doc.addField("series", recordInfo.getSeries());
+		//Deal with always available titles by reducing hold count
+		if (numHoldings > 1000){
+			numHoldings = 5;
+		}
 		doc.addField("num_holdings", Integer.toString(numHoldings));
 		
 		if (lexileData != null){
@@ -1632,6 +1638,23 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			results.incErrors();
 			logger.error("Error saving overDriveRecordsWithoutMarcsFile ", e);
 		}
+		
+		//Write a report of marc records that are tagged as overdrive records but do not have an overdrive id in the url
+		try {
+			File marcsWithoutOverDriveIdFile = new File(localWebDir + "/MarcsWithoutOverDriveId.csv");
+			CSVWriter writer = new CSVWriter(new FileWriter(marcsWithoutOverDriveIdFile));
+			writer.writeNext(new String[]{"Bib Record"});
+			for (String bibId : recordsWithoutOverDriveId){
+				writer.writeNext(new String[]{bibId});
+			}
+			writer.close();
+			results.addNote("Report of MARC records that do not have an OverDrive ID <a href='" + vufindUrl + "/MarcsWithoutOverDriveId.csv'>MarcsWithoutOverDriveId.csv</a>");
+		} catch (IOException e) {
+			results.addNote("Error saving marcsWithoutOverDriveIdFile " + e.toString());
+			results.incErrors();
+			logger.error("Error saving marcsWithoutOverDriveIdFile ", e);
+		}
+		
 		
 		results.addNote("Finished eContent extraction");
 		results.saveResults();
