@@ -319,6 +319,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				browseSubjects.put(Util.makeValueSortable(subject), subject);
 			}
 			String topicsRaw = resource.getString("topic");
+			if (topicsRaw == null) topicsRaw = "";
 			String[] topics = topicsRaw.split("\\r\\n|\\r|\\n");
 			for (String topic : topics){
 				browseSubjects.put(Util.makeValueSortable(topic), topic);
