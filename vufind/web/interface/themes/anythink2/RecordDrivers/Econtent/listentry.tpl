@@ -1,4 +1,4 @@
-<div id="econtentRecord{$listId|escape}" class="resultsList">
+<div id="econtentRecord{$listId|escape}" class="resultsList clearfix">
   <div class="imageColumn">
      {if $user->disableCoverArt != 1}
       <a href="{$url}/EcontentRecord/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$listId|escape:"url"}">

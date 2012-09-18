@@ -265,21 +265,17 @@ body {
 }
 
 #header #search {
-  position: absolute;
-  right: 0;
-  top: 40px;
-}
-
-#header #search #search-inner {
   float: right;
+  margin-top: 40px;
+  text-align: right;
 }
 
-#search-type-wrapper,
-#search-input-wrapper {
-  float: left;
+/* IE7 Doesn't play nice. */
+*+html #header #search {
+  width: 520px;
 }
 
-#search-input-wrapper label {
+#search label {
   font-weight: bold;
 }
 
@@ -287,17 +283,21 @@ body {
   margin-bottom: 0;
 }
 
-#basicType {
-  font-size: 1.333em;
-  margin-top: 4px;
+#searchPreFilter {
+  font-size: 1.3em;
+  line-height: 1.5em;
+  margin-top: 2px;
   margin-right: 10px;
 }
 
-#searchPreFilter {
-  font-size: 1.333em;
-  margin-top: 4px;
-  margin-right: 10px;
+#type-label,
+#searchPreFilter,
+#search-input,
+#lookfor,
+#lookfor-submit {
+  float: left;
 }
+
 
 #type {
   margin-top: 2px;
@@ -307,11 +307,11 @@ body {
   color: #666;
   font-size: 1.5em;
   font-weight: bold;
-  margin-top: 3px;
   line-height: 1.444em;
   min-width: 0;
   vertical-align: top;
   margin-right: .5em;
+  margin-top: 3px;
 }
 
 #lookfor {
@@ -348,10 +348,10 @@ body {
 }
 
 #shards {
-  margin-top: 10px;
   padding-right: 0;
   text-align: inherit;
   width: 100%;
+  text-align: right;
 }
 
 #shards ul {
@@ -1746,7 +1746,7 @@ div.popupBox ul li a {
 }
 
 .ui-autocomplete {
-  z-index: 10;
+  z-index: 11 !important;
 }
 
 .ui-autocomplete li {
