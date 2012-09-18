@@ -282,17 +282,19 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				loadProductsFromUrl(libraryName, mainProductUrl, false);
 				logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
 				//Get a list of advantage collections
-				JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
-				JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
-				for (int i = 0; i < advantageAccounts.length(); i++){
-					JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
-					String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
-					JSONObject advantageSelfInfo = callOverDriveURL(advantageSelfUrl);
-					String advantageName = curAdvantageAccount.getString("name");
-					String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
-					loadProductsFromUrl(advantageName, productUrl, true);
+				if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
+					JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
+					JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
+					for (int i = 0; i < advantageAccounts.length(); i++){
+						JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
+						String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
+						JSONObject advantageSelfInfo = callOverDriveURL(advantageSelfUrl);
+						String advantageName = curAdvantageAccount.getString("name");
+						String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
+						loadProductsFromUrl(advantageName, productUrl, true);
+					}
+					logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 				}
-				logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 			} catch (JSONException e) {
 				results.addNote("error loading information from OverDrive API " + e.toString());
 				results.incErrors();
