@@ -319,6 +319,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				browseSubjects.put(Util.makeValueSortable(subject), subject);
 			}
 			String topicsRaw = resource.getString("topic");
+			if (topicsRaw == null) topicsRaw = "";
 			String[] topics = topicsRaw.split("\\r\\n|\\r|\\n");
 			for (String topic : topics){
 				browseSubjects.put(Util.makeValueSortable(topic), topic);
@@ -555,6 +556,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			PreparedStatement initRanking =  vufindConn.prepareStatement("set @r=0;");
 			initRanking.executeUpdate();
 			
+			results.addNote("Updating browse tables for authors");
+			results.saveResults();
 			PreparedStatement authorRankingUpdate = vufindConn.prepareStatement("UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
 			authorRankingUpdate.executeUpdate();
 			PreparedStatement authorMetaDataClear = vufindConn.prepareStatement("TRUNCATE author_browse_metadata");
@@ -562,6 +565,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			PreparedStatement authorMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
 			authorMetaDataUpdate.executeUpdate();
 			
+			results.addNote("Updating browse tables for call numbers");
+			results.saveResults();
 			PreparedStatement callnumberRankingUpdate = vufindConn.prepareStatement("UPDATE callnumber_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
 			callnumberRankingUpdate.executeUpdate();
 			PreparedStatement callnumberMetaDataClear = vufindConn.prepareStatement("TRUNCATE callnumber_browse_metadata");
@@ -569,6 +574,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			PreparedStatement callnumberMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
 			callnumberMetaDataUpdate.executeUpdate();
 			
+			results.addNote("Updating browse tables for subjects");
+			results.saveResults();
 			PreparedStatement subjectRankingUpdate = vufindConn.prepareStatement("UPDATE subject_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
 			subjectRankingUpdate.executeUpdate();
 			PreparedStatement subjectMetaDataClear = vufindConn.prepareStatement("TRUNCATE subject_browse_metadata");
@@ -576,12 +583,16 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			PreparedStatement subjectMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
 			subjectMetaDataUpdate.executeUpdate();
 			
+			results.addNote("Updating browse tables for titles");
+			results.saveResults();
 			PreparedStatement titleRankingUpdate = vufindConn.prepareStatement("UPDATE title_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
 			titleRankingUpdate.executeUpdate();
 			PreparedStatement titleMetaDataClear = vufindConn.prepareStatement("TRUNCATE title_browse_metadata");
 			titleMetaDataClear.executeUpdate();
 			PreparedStatement titleMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)");
 			titleMetaDataUpdate.executeUpdate();
+			results.addNote("Finished updating browse tables");
+			results.saveResults();
 			
 		} catch (SQLException e) {
 			logger.error("Error finishing Alpha Browse Processing", e);

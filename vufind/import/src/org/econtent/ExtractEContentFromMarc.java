@@ -671,7 +671,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Generally should only have one source, but in theory there could be multiple sources for a single record
 				String accessType = detectionSettings.getAccessType();
 				//Make sure that overdrive titles are updated if we need to check availability
-				if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
+				if (source.matches("(?i)^overdrive.*") && checkOverDriveAvailability){
 					//Overdrive record, force processing to make sure we get updated availability
 					logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
 				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
@@ -780,7 +780,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		boolean itemsAdded = true;
 		if (source.equalsIgnoreCase("gutenberg")){
 			attachGutenbergItems(recordInfo, eContentRecordId, logger);
-		}else if (detectionSettings.getSource().equalsIgnoreCase("overdrive")){
+		}else if (detectionSettings.getSource().matches("(?i)^overdrive.*")){
 			itemsAdded = setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
 		}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
 			//Automatically setup 856 links as external links
