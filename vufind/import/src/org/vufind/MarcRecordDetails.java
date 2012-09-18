@@ -3501,10 +3501,13 @@ public class MarcRecordDetails {
 		addField(mappedFields, "recordtype", "econtentRecord");
 		
 		HashMap <String, Object> allFields = getFields("getSolrDocument");
-		allFields.put("id", "econtentRecord" + econtentRecordId);
 		for (String fieldName : allFields.keySet()){
 			Object value = allFields.get(fieldName);
-			doc.addField(fieldName, value);
+			if (fieldName.equals("id")){
+				doc.addField(fieldName, "econtentRecord" + econtentRecordId);
+			}else{
+				doc.addField(fieldName, value);
+			}
 		}
 		
 		//logger.debug(doc.toString());

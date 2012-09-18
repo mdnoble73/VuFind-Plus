@@ -722,6 +722,7 @@ public class MarcProcessor {
 							}
 						}
 						MarcIndexInfo marcIndexedInfo = null;
+						String marcRecordId = marcInfo.getId();
 						if (marcIndexInfo.containsKey(marcInfo.getId())) {
 							marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
 							if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
@@ -752,7 +753,7 @@ public class MarcProcessor {
 							processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 						}
 
-						updateMarcRecordChecksum(marcInfo, recordStatus, marcIndexedInfo);
+						updateMarcRecordChecksum(marcRecordId, marcInfo, recordStatus, marcIndexedInfo);
 					}
 					marcInfo = null;
 					recordsProcessed++;
@@ -780,20 +781,24 @@ public class MarcProcessor {
 		}
 	}
 
-	private void updateMarcRecordChecksum(MarcRecordDetails marcInfo, int recordStatus, MarcIndexInfo marcIndexedInfo) throws SQLException {
-		// Update the checksum in the database
-		if (recordStatus == RECORD_CHANGED_PRIMARY || recordStatus == RECORD_CHANGED_SECONDARY) {
-			updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
-			updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
-			updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-			updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
-			updateMarcInfoStmt.setString(5, marcInfo.getId());
-			updateMarcInfoStmt.executeUpdate();
-		} else if (recordStatus == RECORD_NEW) {
-			insertMarcInfoStmt.setString(1, marcInfo.getId());
-			insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
-			insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-			insertMarcInfoStmt.executeUpdate();
+	private void updateMarcRecordChecksum(String recordId, MarcRecordDetails marcInfo, int recordStatus, MarcIndexInfo marcIndexedInfo) throws SQLException {
+		try {
+			// Update the checksum in the database
+			if (recordStatus == RECORD_CHANGED_PRIMARY || recordStatus == RECORD_CHANGED_SECONDARY) {
+				updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
+				updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
+				updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+				updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
+				updateMarcInfoStmt.setString(5, recordId);
+				updateMarcInfoStmt.executeUpdate();
+			} else if (recordStatus == RECORD_NEW) {
+				insertMarcInfoStmt.setString(1, recordId);
+				insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
+				insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+				insertMarcInfoStmt.executeUpdate();
+			}
+		} catch (Exception e) {
+			ReindexProcess.addNoteToCronLog("Error updating marc checksum for " + recordId + " marcInfo id is " + marcInfo.getId());
 		}
 	}
 

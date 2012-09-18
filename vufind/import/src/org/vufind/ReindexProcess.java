@@ -410,12 +410,12 @@ public class ReindexProcess {
 		try {
 			Date date = new Date();
 			cronNotes.append("<br>").append(dateFormat.format(date)).append(note);
-			addNoteToCronLogStmt.setString(1, cronNotes.toString());
+			addNoteToCronLogStmt.setString(1, Util.trimTo(65535, cronNotes.toString()));
 			addNoteToCronLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToCronLogStmt.setLong(3, reindexLogId);
 			addNoteToCronLogStmt.executeUpdate();
 		} catch (SQLException e) {
-			logger.error("Error adding note to Cron Log", e);
+			logger.error("Error adding note to Reindex Log", e);
 		}
 	}
 	
