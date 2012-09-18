@@ -14,7 +14,7 @@ class GoDeeperData{
 		if (!isset($isbn) && !isset($upc)){
 			return $validEnrichmentTypes;
 		}
-		
+
 		$goDeeperOptions = $memcache->get("go_deeper_options_{$isbn}_{$upc}");
 		if (!$goDeeperOptions){
 
@@ -24,7 +24,7 @@ class GoDeeperData{
 				$clientKey = $configArray['Syndetics']['key'];
 				$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/INDEX.XML&client=$clientKey&type=xw10&upc=$upc";
 				//echo($requestUrl . "\r\n");
-	
+
 				try{
 					//Get the XML from the service
 					$ctx = stream_context_create(array(
@@ -35,14 +35,14 @@ class GoDeeperData{
 					$response =file_get_contents($requestUrl, 0, $ctx);
 					$timer->logTime("Got options from syndetics");
 					//echo($response);
-	
+
 					//Parse the XML
 					if (preg_match('/<!DOCTYPE\\sHTML.*/', $response)) {
 						//The ISBN was not found in syndetics (we got an error message)
 					} else {
 						//Got a valid response
 						$data = new SimpleXMLElement($response);
-	
+
 						$validEnrichmentTypes = array();
 						if (isset($data)){
 							if ($configArray['Syndetics']['showSummary'] && isset($data->SUMMARY)){
@@ -88,7 +88,7 @@ class GoDeeperData{
 				}
 			}
 			$timer->logTime("Finished processing syndetics");
-	
+
 			//Check To see if a Google Preview is available
 			if (isset($isbn) && strlen($isbn) > 0){
 				$id = self::getGoogleBookId($isbn);
@@ -97,7 +97,7 @@ class GoDeeperData{
 				}
 			}
 			$timer->logTime("Got google book id");
-	
+
 			$goDeeperOptions = array('options' => $validEnrichmentTypes);
 			if (count($validEnrichmentTypes) > 0){
 				$goDeeperOptions['defaultOption'] = $defaultOption;
@@ -111,28 +111,28 @@ class GoDeeperData{
 		global $configArray;
 		global $memcache;
 		$summaryData = $memcache->get("syndetics_summary_{$isbn}_{$upc}");
-			
+
 		if (!$summaryData){
 			try{
 				$clientKey = $configArray['Syndetics']['key'];
 				//Load the index page from syndetics
 				$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/SUMMARY.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
 						  'http' => array(
 						  'timeout' => 2
 				)
 				));
-	
+
 				$response = @file_get_contents($requestUrl, 0, $ctx);
 				if (preg_match('/Error in Query Selection/', $response)){
 					return array();
 				}
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$summaryData = array();
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
@@ -149,17 +149,17 @@ class GoDeeperData{
 		}
 		return $summaryData;
 	}
-	
+
 	function getTableOfContents($isbn, $upc){
 		global $configArray;
 		global $memcache;
 		$tocData = $memcache->get("syndetics_toc_{$isbn}_{$upc}");
-			
+
 		if (!$tocData){
 			$clientKey = $configArray['Syndetics']['key'];
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/TOC.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -168,10 +168,10 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$tocData = array();
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld970)){
@@ -184,7 +184,7 @@ class GoDeeperData{
 						}
 					}
 				}
-				
+
 			}catch (Exception $e) {
 				$logger = new Logger();
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
@@ -199,11 +199,11 @@ class GoDeeperData{
 		global $configArray;
 		global $memcache;
 		$fictionData = $memcache->get("syndetics_fiction_profile_{$isbn}_{$upc}");
-			
+
 		if (!$fictionData){
 			$clientKey = $configArray['Syndetics']['key'];
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/FICTION.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -212,10 +212,10 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$fictionData = array();
 				if (isset($data)){
 					//Load characters
@@ -229,7 +229,7 @@ class GoDeeperData{
 	                            'occupation' => (string)$field->g,
 							);
 						}
-	
+
 					}
 					//Load subjects
 					if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld950)){
@@ -281,7 +281,7 @@ class GoDeeperData{
 	                            'year' => (string)$field->y,
 							);
 						}
-	
+
 					}
 				}
 			}catch (Exception $e) {
@@ -297,13 +297,13 @@ class GoDeeperData{
 		global $configArray;
 		global $memcache;
 		$summaryData = $memcache->get("syndetics_author_notes_{$isbn}_{$upc}");
-			
+
 		if (!$summaryData){
 			$clientKey = $configArray['Syndetics']['key'];
-	
+
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/ANOTES.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -312,17 +312,17 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$summaryData = array();
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld980->a)){
 						$summaryData['summary'] = (string)$data->VarFlds->VarDFlds->SSIFlds->Fld980->a;
 					}
 				}
-	
+
 				return $summaryData;
 			}catch (Exception $e) {
 				$logger = new Logger();
@@ -337,13 +337,13 @@ class GoDeeperData{
 		global $configArray;
 		global $memcache;
 		$excerptData = $memcache->get("syndetics_excerpt_{$isbn}_{$upc}");
-			
+
 		if (!$excerptData){
 			$clientKey = $configArray['Syndetics']['key'];
-	
+
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/DBCHAPTER.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -352,17 +352,17 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$excerptData = array();
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->Notes->Fld520)){
 						$excerptData['excerpt'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520;
 					}
 				}
-	
+
 				$memcache->set("syndetics_excerpt_{$isbn}_{$upc}", $excerptData, 0, $configArray['Caching']['syndetics_excerpt']);
 			}catch (Exception $e) {
 				$logger = new Logger();
@@ -372,17 +372,17 @@ class GoDeeperData{
 		}
 		return $excerptData;
 	}
-	
+
 	function getVideoClip($isbn, $upc){
 		global $configArray;
 		global $memcache;
 		$summaryData = $memcache->get("syndetics_video_clip_{$isbn}_{$upc}");
-			
+
 		if (!$summaryData){
 			$clientKey = $configArray['Syndetics']['key'];
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/VIDEOCLIP.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -391,10 +391,10 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$summaryData = array();
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->VideoLink)){
@@ -404,7 +404,7 @@ class GoDeeperData{
 						$summaryData['source'] = (string)$data->VarFlds->VarDFlds->SSIFlds->Fld997;
 					}
 				}
-	
+
 			}catch (Exception $e) {
 				$logger = new Logger();
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
@@ -412,21 +412,21 @@ class GoDeeperData{
 			}
 			$memcache->set("syndetics_video_clip_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_video_clip']);
 		}
-		
+
 		return $summaryData;
 	}
-	
+
 	function getAVSummary($isbn, $upc){
 		global $configArray;
 		global $memcache;
 		$avSummaryData = $memcache->get("syndetics_av_summary_{$isbn}_{$upc}");
-			
+
 		if (!$avSummaryData){
 			$clientKey = $configArray['Syndetics']['key'];
-	
+
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/AVSUMMARY.XML&client=$clientKey&type=xw10&upc=$upc";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -435,10 +435,10 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
-	
+
 				$avSummaryData = array();
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
@@ -453,7 +453,7 @@ class GoDeeperData{
 						}
 					}
 				}
-	
+
 				$memcache->set("syndetics_av_summary_{$isbn}_{$upc}", $avSummaryData, 0, $configArray['Caching']['syndetics_av_summary']);
 			}catch (Exception $e) {
 				$logger = new Logger();
@@ -470,7 +470,7 @@ class GoDeeperData{
 		$googleBookId = $memcache->get("google_book_id_{$isbn}");
 		if (!$googleBookId){
 			$requestUrl = "http://www.google.com/search?q=isbn:$isbn&btnG=Search+Books";
-	
+
 			try{
 				//Get the XML from the service
 				$ctx = stream_context_create(array(
@@ -503,8 +503,12 @@ class GoDeeperData{
 		return array('link' => "http://books.google.com/books?id=$googleBookId&printsec=frontcover");
 	}
 
-	function getHtmlData($dataType, $isbn, $upc){
+	function getHtmlData($dataType, $recordType, $isbn, $upc){
 		global $interface;
+		$interface->assign('recordType', $recordType);
+		$interface->assign('id', $_REQUEST['id']);
+		$interface->assign('isbn', $isbn);
+		$interface->assign('upc', $upc);
 		if ($dataType == 'summary'){
 			$data = GoDeeperData::getSummary($isbn, $upc);
 			$interface->assign('summaryData', $data);

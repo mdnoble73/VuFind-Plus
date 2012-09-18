@@ -168,8 +168,13 @@ function GetPreferredBranches() {
 	return false;
 }
 
-function getGoDeeperData(dataType, id, isbn, upc) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+function getGoDeeperData(dataType, recordType, id, isbn, upc) {
+	if (recordType == 'eContentRecord'){
+		var url = path + "/EContentRecord/" + encodeURIComponent(id) + "/AJAX";
+	}else{
+		var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+	}
+
 	var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType) + "&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 	var fullUrl = url + "?" + params;
 	$.ajax( {
