@@ -883,6 +883,11 @@ class OverDriveDriver {
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['checkoutUrl']);
 			$checkoutPage = curl_exec($overDriveInfo['ch']);
 			$checkoutPageInfo = curl_getinfo($overDriveInfo['ch']);
+			if (preg_match('/exceeded your checkout limit/si', $checkoutPage)){
+				$processCartResult['result'] = false;
+				$processCartResult['message'] = "We're sorry, you have exceeded your checkout limit. Until one or more digital titles are removed from your account (i.e., a checkout expires so that you can check out another title, or you remove a title from your cart if you are not already at your checkout limit), you will be unable to check out additional titles.";
+				return $processCartResult;
+			}
 
 			//Set the lending period and confirm the checkout
 			$secureBaseUrl = preg_replace('/Checkout.htm.*/', '', $checkoutPageInfo['url']);
@@ -925,6 +930,9 @@ class OverDriveDriver {
 				$memcache->delete('overdrive_holds_' . $user->id);
 				$memcache->delete('overdrive_wishlist_' . $user->id);
 				$memcache->delete('overdrive_summary_' . $user->id);
+			}else if (preg_match('/exceeded your checkout limit/si', $processCartConfirmation) ){
+				$processCartResult['result'] = false;
+				$processCartResult['message'] = "We're sorry, you have exceeded your checkout limit. Until one or more digital titles are removed from your account (i.e., a checkout expires so that you can check out another title, or you remove a title from your cart if you are not already at your checkout limit), you will be unable to check out additional titles.";
 			}else{
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = 'There was an error processing your cart.';
