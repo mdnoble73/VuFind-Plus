@@ -3230,7 +3230,8 @@ public class MarcRecordDetails {
 		// 1) Get the facet name from the translation map
 		Map<String, String> systemMap = marcProcessor.findMap("system_map");
 		if (systemMap == null){
-			logger.error("Unable to load system map!");
+			logger.debug("Unable to load system map!");
+			return -1L;
 		}
 		String librarySystemFacet = Utils.remap(locationCode, systemMap, true);
 		// 2) Now that we have the facet, get the id of the system
