@@ -184,9 +184,22 @@ a.active {
 .clearfix:after {
   content: ".";
   display: block;
-  height: 0;
   clear: both;
   visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+ 
+.clearfix {
+  display: inline-block;
+}
+ 
+html[xmlns] .clearfix {
+  display: block;
+}
+ 
+* html .clearfix {
+  height: 1%;
 }
 
 body {
@@ -255,6 +268,10 @@ body {
   position: absolute;
   right: 0;
   top: 40px;
+}
+
+#header #search #search-inner {
+  float: right;
 }
 
 #search-type-wrapper,
@@ -331,11 +348,14 @@ body {
 }
 
 #shards {
-  float: left;
   margin-top: 10px;
   padding-right: 0;
   text-align: inherit;
   width: 100%;
+}
+
+#shards ul {
+  float: right;
 }
 
 #shards label {
@@ -389,7 +409,7 @@ body.Search--Home #logo {
 #breadcrumb {
   margin-bottom: 10px;
   position: relative;
-  z-index: 10; /* This prevents issues with the cart. */
+  z-index: 20; /* This prevents issues with the cart. */
 }
 
 #main {
@@ -851,6 +871,7 @@ div.result {
 
 div.record {
   padding: 0;
+  width: 100%;
 }
 
 .holdingsSummary {
@@ -880,7 +901,7 @@ div.record {
   border-bottom-left-radius: 4px;
   float: right;
   position: relative;
-  z-index: 1;
+  z-index: 10;
   margin-right: 20px;
 }
 
@@ -930,11 +951,11 @@ div.record {
   position: absolute;
   top: 0;
   width: 100%;
+  z-index: 11;
 }
 
 #fixed-wrapper.cling {
   position: fixed;
-  z-index: 11;
 }
 
 body.Search--Home #fixed-wrapper {
@@ -1191,24 +1212,12 @@ ul.inline {
   margin-bottom: 0;
 }
 
-ul.left {
-  float: left;
-}
-
-ul.right {
-  float: right;
-}
-
 ul.inline li {
   float: left;
   list-style: none;
   list-style-type: none;
   list-style-image: none;
-  margin-right: .75em;
-}
-
-ul.right li {
-  margin: 0 0 0 .75em;
+  margin: 0 .75em;
 }
 
 .groupSearchHolder span.clearer {

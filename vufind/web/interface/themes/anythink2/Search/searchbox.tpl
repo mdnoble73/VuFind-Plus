@@ -22,7 +22,7 @@
       <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
       </div>
       <div id="shards">
-        <ul class="inline right"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>
+        <ul class="inline"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>
         {if isset($shards)}
           {foreach from=$shards key=shard item=isSelected}
             <input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard-{$shard|replace:' ':''|escape}" /> <label for="shard-{$shard|replace:' ':''|escape}">{$shard|translate}</label>
@@ -32,7 +32,7 @@
         <div>
           <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> <label for="retainFiltersCheckbox">{translate text="basic_search_keep_filters"}</label>
           <div style="display: none;">
-            <ul class="inline left">
+            <ul class="inline">
             {foreach from=$filterList item=data key=field}
               {foreach from=$data item=value}
                 <li><input type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' /> {$field}: {$value.value|escape}</li>

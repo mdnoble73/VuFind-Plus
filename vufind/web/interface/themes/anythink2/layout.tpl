@@ -107,7 +107,7 @@
           *}
           <a id="logo" href="{if $homeLink}{$homeLink}{else}{$url}{/if}">{translate text="Anythink Libraries"}</a>
           <div id="header-utility-top">
-            <ul class="inline right">
+            <ul class="inline">
             {if !empty($allLangs) && count($allLangs) > 1}
                {foreach from=$allLangs key=langCode item=langName}
                  <li><a class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath|escape}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
@@ -129,7 +129,7 @@
             {/if}
           {/if}
           <div id="header-utility-bottom">
-            <ul class="inline right">
+            <ul class="inline">
               {if !$user}
                 <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyAccount/GetCard">{translate text="Get a Card"}</a></li>
