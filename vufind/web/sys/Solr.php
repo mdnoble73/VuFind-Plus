@@ -1609,8 +1609,8 @@ class Solr implements IndexEngine {
 					$i = $i+1;
 				}
 			} else {
-				//If we are tokenizing, remove any punctuationd
-				$tmpWord = preg_replace('/[^\w.\']/', '', $words[$i]);
+				//If we are tokenizing, remove any punctuation
+				$tmpWord = preg_replace('/[^\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
 					$newWords[] = $tmpWord;
 				}

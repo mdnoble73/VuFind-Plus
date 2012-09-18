@@ -276,7 +276,8 @@ public class MarcRecordDetails {
 		
 		//Get urls from item records
 		//logger.info("Loading records from item records");
-		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null)) {
+		if ((marcProcessor.getItemTag() != null) && (marcProcessor.getUrlSubfield() != null) && (marcProcessor.getLocationSubfield() != null) &&
+				(marcProcessor.getItemTag().length() > 0) && (marcProcessor.getUrlSubfield().length() > 0) && (marcProcessor.getLocationSubfield().length() > 0)) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 			for (DataField curItem : itemFields) {
@@ -3230,7 +3231,8 @@ public class MarcRecordDetails {
 		// 1) Get the facet name from the translation map
 		Map<String, String> systemMap = marcProcessor.findMap("system_map");
 		if (systemMap == null){
-			logger.error("Unable to load system map!");
+			logger.debug("Unable to load system map!");
+			return -1L;
 		}
 		String librarySystemFacet = Utils.remap(locationCode, systemMap, true);
 		// 2) Now that we have the facet, get the id of the system
@@ -3393,7 +3395,7 @@ public class MarcRecordDetails {
 		if (isEContent()){
 			//Get the overdrive id
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
-			if (curDetectionSetting.getSource().equalsIgnoreCase("OverDrive")){
+			if (curDetectionSetting.getSource().matches("(?i)^overdrive.*")){
 				try {
 					ArrayList<LibrarySpecificLink> sourceUrls =  getSourceUrls();
 					for(LibrarySpecificLink link : sourceUrls){
@@ -3414,7 +3416,7 @@ public class MarcRecordDetails {
 	public int hasItemLevelOwnership() {
 		if (isEContent()){
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
-			if (!curDetectionSetting.getSource().equalsIgnoreCase("OverDrive") && curDetectionSetting.getAccessType().equals("external")){
+			if (!curDetectionSetting.getSource().matches("(?i)^overdrive.*") && curDetectionSetting.getAccessType().equals("external")){
 				return 1;
 			}
 		}
@@ -3497,9 +3499,9 @@ public class MarcRecordDetails {
 		addFields(mappedFields, "rating_facet", null, getEContentRatingFacet(econtentRecordId));
 		
 		addField(mappedFields, "recordtype", "econtentRecord");
-		addField(mappedFields, "id", "econtentRecord" + econtentRecordId);
 		
 		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		allFields.put("id", "econtentRecord" + econtentRecordId);
 		for (String fieldName : allFields.keySet()){
 			Object value = allFields.get(fieldName);
 			doc.addField(fieldName, value);
@@ -3510,7 +3512,7 @@ public class MarcRecordDetails {
 	}
 
 	private void addSharedAvailability(String source, Set<String> itemAvailability) {
-		if (source.equalsIgnoreCase("overdrive")){
+		if (source.matches("(?i)^overdrive.*")){
 			itemAvailability.add("Eagle Valley Library District Online");
 			itemAvailability.add("Garfield County Library Online");
 			itemAvailability.add("Grand County Library Dist Online");

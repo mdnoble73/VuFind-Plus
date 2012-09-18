@@ -282,17 +282,19 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				loadProductsFromUrl(libraryName, mainProductUrl, false);
 				logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
 				//Get a list of advantage collections
-				JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
-				JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
-				for (int i = 0; i < advantageAccounts.length(); i++){
-					JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
-					String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
-					JSONObject advantageSelfInfo = callOverDriveURL(advantageSelfUrl);
-					String advantageName = curAdvantageAccount.getString("name");
-					String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
-					loadProductsFromUrl(advantageName, productUrl, true);
+				if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
+					JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
+					JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
+					for (int i = 0; i < advantageAccounts.length(); i++){
+						JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
+						String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
+						JSONObject advantageSelfInfo = callOverDriveURL(advantageSelfUrl);
+						String advantageName = curAdvantageAccount.getString("name");
+						String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
+						loadProductsFromUrl(advantageName, productUrl, true);
+					}
+					logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 				}
-				logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 			} catch (JSONException e) {
 				results.addNote("error loading information from OverDrive API " + e.toString());
 				results.incErrors();
@@ -671,7 +673,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Generally should only have one source, but in theory there could be multiple sources for a single record
 				String accessType = detectionSettings.getAccessType();
 				//Make sure that overdrive titles are updated if we need to check availability
-				if (source.equalsIgnoreCase("overdrive") && checkOverDriveAvailability){
+				if (source.matches("(?i)^overdrive.*") && checkOverDriveAvailability){
 					//Overdrive record, force processing to make sure we get updated availability
 					logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
 				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
@@ -780,7 +782,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		boolean itemsAdded = true;
 		if (source.equalsIgnoreCase("gutenberg")){
 			attachGutenbergItems(recordInfo, eContentRecordId, logger);
-		}else if (detectionSettings.getSource().equalsIgnoreCase("overdrive")){
+		}else if (detectionSettings.getSource().matches("(?i)^overdrive.*")){
 			itemsAdded = setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
 		}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
 			//Automatically setup 856 links as external links

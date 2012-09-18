@@ -69,7 +69,7 @@
 									</span>
 									
 									<div class='sortOptions'>
-										Hide Covers <input type="checkbox" onclick="$('.imageColumn').toggle();"/>
+										Hide Covers <input type="checkbox" onclick="$('.imageCell').toggle();"/>
 									</div>
 								</div>
 							
@@ -77,9 +77,15 @@
 									<thead>
 										<tr>
 											<th><input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
+											{if $user->disableCoverArt != 1}
+												<th class="imageCell">{translate text='Cover'}</th>
+											{/if}
 											<th>{translate text='Title'}</th>
 											<th>{translate text='Format'}</th>
 											<th>{translate text='Out'}</th>
+											{if $showRatings == 1}
+												<th>{translate text='Rating'}</th>
+											{/if}
 										</tr>
 									</thead>
 									<tbody>
@@ -93,16 +99,17 @@
 										<td class="titleSelectCheckedOut myAccountCell">
 											<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}" />
 											</td>
+											{if $user->disableCoverArt != 1}
+												<td class="myAccountCell imageCell">
+													<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+														<img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+													</a>
+													
+													<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
+												</td>
+											{/if}
 											<td class="myAccountCell">
-												{if $user->disableCoverArt != 1}
-													<div class="imageColumn"> 
-														<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-															<img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
-														</a>
-														
-														<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
-													</div>
-												{/if}
+												
 												{* Place hold link *}
 												<div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
 													<a href="{$path}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
@@ -147,6 +154,14 @@
 											<td class="myAccountCell">			
 												 {$record.checkout|escape}{if $record.lastCheckout} to {$record.lastCheckout|escape}{/if}
 											</td> 
+											
+											{if $showRatings == 1}
+												<td class="myAccountCell">
+													{if $record.recordId != -1}
+														{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$record.recordId shortId=$record.shortId}
+													{/if}
+												</td>
+											{/if} 
 
 											{if $record.recordId != -1}
 												<script type="text/javascript">
