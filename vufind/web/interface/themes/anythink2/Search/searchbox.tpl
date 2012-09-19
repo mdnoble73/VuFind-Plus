@@ -7,16 +7,18 @@
 {else}
   <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
     <input type="hidden" name="basicType" value="Keyword"/>
-    <label id="type-label" for="searchPreFilter">{translate text='Search'}</label>
-    <select name="filter[]" id="searchPreFilter">
-      <option value=""{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>
-      <option value="format_category:Books"{if $curFormatCategory == 'Books'} selected="selected"{/if}>Books</option>
-      <option value="format_category:DVD"{if $curFormatCategory == 'DVD'} selected="selected"{/if}>Movies</option>
-      <option value="format_category:Music"{if $curFormatCategory == 'Music'} selected="selected"{/if}>Music</option>
-    </select>
-    <div id="search-input">
-    <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
-    <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
+    <div class="clearfix">
+      <label id="type-label" for="searchPreFilter">{translate text='Search'}</label>
+      <select name="filter[]" id="searchPreFilter">
+        <option value=""{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>
+        <option value="format_category:Books"{if $curFormatCategory == 'Books'} selected="selected"{/if}>Books</option>
+        <option value="format_category:DVD"{if $curFormatCategory == 'DVD'} selected="selected"{/if}>Movies</option>
+        <option value="format_category:Music"{if $curFormatCategory == 'Music'} selected="selected"{/if}>Music</option>
+      </select>
+      <div id="search-input">
+        <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
+        <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
+      </div>
     </div>
     <div id="shards">
       <ul class="inline"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>

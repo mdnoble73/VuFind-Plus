@@ -348,6 +348,7 @@ body {
 }
 
 #shards {
+  margin-top: .5em;
   padding-right: 0;
   text-align: inherit;
   width: 100%;
