@@ -243,6 +243,13 @@ class Results extends Action {
 		$interface->assign('showRatings', $showRatings);
 
 		$numProspectorTitlesToLoad = 0;
+
+		// Save the ID of this search to the session so we can return to it easily:
+		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
+
+		// Save the URL of this search to the session so we can return to it easily:
+		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
+
 		if ($searchObject->getResultTotal() < 1) {
 
 			//Var for the IDCLREADER TEMPLATE
@@ -368,12 +375,6 @@ class Results extends Action {
 			$searchStat = new SearchStat();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
-
-		// Save the ID of this search to the session so we can return to it easily:
-		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
-
-		// Save the URL of this search to the session so we can return to it easily:
-		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		// Done, display the page
 		$interface->display('layout.tpl');
