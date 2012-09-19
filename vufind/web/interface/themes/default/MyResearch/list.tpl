@@ -61,8 +61,8 @@
 		{*
 		<button value="moveMarked" id="FavMoveMarked" class="listButton" onclick='return moveMarkedAction()'>Move Marked</button>
 		*}
-		<button value="deleteMarked" id="FavDeleteMarked" class="listButton" onclick='return deletedMarkedAction()'>Delete Marked</button>
-		<button value="deleteAll" id="FavDeleteAll" class="listButton" onclick='return deleteAllAction()'>Delete All</button>
+		<button value="deleteMarked" id="FavDeleteMarked" class="listButton" onclick='return deletedListItemsMarkedAction()'>Delete Marked</button>
+		<button value="deleteAll" id="FavDeleteAll" class="listButton" onclick='return deleteListItemsAllAction()'>Delete All</button>
 		{*
 		<div id='listToMoveToPanel' style='display:none'>
 		<button value="moveMarked" id="FavMoveMarked" class="listButton" onclick='return moveMarkedGo()'>Move Marked</button>

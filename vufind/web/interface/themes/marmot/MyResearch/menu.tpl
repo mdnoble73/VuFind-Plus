@@ -5,9 +5,12 @@
 	<div id="profileMessages">
 		{if $profile.finesval > 0}
 				<div class ="alignright">
-				<span title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</span>
+				
 				{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
+				<span style="color:red; font-weight:bold;">Your account has {$profile.fines} in fines.</span>
 				<a href='{$ecommerceLink}' ><br/>Click to Pay Fines Online</a>
+				{else}
+					<span title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</span>
 				{/if}
 				</div>
 		{/if}
