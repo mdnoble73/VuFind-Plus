@@ -336,7 +336,7 @@
 			</div>
 			
 			<div id="ereaderlogo" class="searchheader">
-				<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{img $processCartResult="logo_ereader.png"}" alt="{$libraryName}" /></a>
+				<a href="{if $homeLink}{$homeLink}{else}{$path}{/if}"><img src="{img file="logo_ereader.png"}" alt="{$libraryName}" /></a>
 				<div id="returnToCatalogLink"><a title="Return to Catalog" href="{$url}">Return To Catalog</a></div>
 			</div>
 		</div>
