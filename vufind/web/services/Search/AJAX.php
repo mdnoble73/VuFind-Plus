@@ -751,7 +751,7 @@ class AJAX extends Action {
 					$editionResource = new Resource();
 					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
 						$editionResource->source = 'eContent';
-						$editionResource->record_id = $matches[1];
+						$editionResource->record_id = trim($matches[1]);
 					}else{
 						$editionResource->record_id = $edition['id'];
 						$editionResource->source = 'VuFind';
@@ -759,7 +759,8 @@ class AJAX extends Action {
 					if ($editionResource->find(true)){
 						$editionResources[] = clone $editionResource;
 					}else{
-						echo("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}");
+						$logger= new Logger();
+						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
 					}
 				}
 			}
