@@ -30,7 +30,6 @@ import javax.net.ssl.SSLSession;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.econtent.GutenbergItemInfo;
 import org.ini4j.Ini;
@@ -819,7 +818,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
 		updateEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
 		updateEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
-		updateEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
+		updateEContentRecord.setString(12, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("publisher")));
 		updateEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
 		updateEContentRecord.setString(14, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
 		updateEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
@@ -870,7 +869,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecord.setString(9, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
 		createEContentRecord.setString(10, Util.getCRSeparatedString(recordInfo.getMappedField("topic_facet")));
 		createEContentRecord.setString(11, recordInfo.getFirstFieldValueInSet("language"));
-		createEContentRecord.setString(12, recordInfo.getFirstFieldValueInSet("publisher"));
+		createEContentRecord.setString(12, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("publisher")));
 		createEContentRecord.setString(13, recordInfo.getFirstFieldValueInSet("edition"));
 		createEContentRecord.setString(14, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
 		createEContentRecord.setString(15, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
@@ -1492,7 +1491,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecordForOverDrive.setString(6, recordInfo.getDescription());
 		updateEContentRecordForOverDrive.setString(7, Util.getCRSeparatedString(recordInfo.getSubjects()));
 		updateEContentRecordForOverDrive.setString(8, recordInfo.getLanguages().size() >= 1 ? recordInfo.getLanguages().iterator().next() : "");
-		updateEContentRecordForOverDrive.setString(9, recordInfo.getPublisher());
+		updateEContentRecordForOverDrive.setString(9, Util.trimTo(255, recordInfo.getPublisher()));
 		updateEContentRecordForOverDrive.setString(10, recordInfo.getEdition());
 		StringBuffer identifiers = new StringBuffer();
 		for (OverDriveItem curItem : recordInfo.getItems().values()){
@@ -1530,7 +1529,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecordForOverDrive.setString(6, recordInfo.getDescription());
 		createEContentRecordForOverDrive.setString(7, Util.getCRSeparatedString(recordInfo.getSubjects()));
 		createEContentRecordForOverDrive.setString(8, recordInfo.getLanguages().size() >= 1 ? recordInfo.getLanguages().iterator().next() : "");
-		createEContentRecordForOverDrive.setString(9, recordInfo.getPublisher());
+		createEContentRecordForOverDrive.setString(9, Util.trimTo(255, recordInfo.getPublisher()));
 		createEContentRecordForOverDrive.setString(10, recordInfo.getEdition());
 		StringBuffer identifiers = new StringBuffer();
 		for (OverDriveItem curItem : recordInfo.getItems().values()){
@@ -1570,28 +1569,30 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		results.addNote("calling final commit on index");
 		
 		try {
-			UpdateResponse response = updateServer.commit();
-			//if (response.getStatus() != 200){
-				results.addNote("Error committing changes " + response.toString());
+			results.addNote("calling final commit on index");
+			URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/econtent2/", "<commit />", logger);
+			if (!response.isSuccess()){
 				results.incErrors();
-			//}else{
-				/*results.addNote("optimizing index");
-				URLPostResponse optimizeResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/econtent2/update/", "<optimize />", logger);
-				if (!optimizeResponse.isSuccess()){
-					results.addNote("Error optimizing index " + optimizeResponse.getMessage());
-				}*/
-				if (checkMarcImport()){
-					results.addNote("index passed checks, swapping cores so new index is active.");
-					URLPostResponse postResponse = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
-					if (!postResponse.isSuccess()){
-						results.addNote("Error swapping cores " + postResponse.getMessage());
-					}else{
-						results.addNote("Result of swapping cores " + postResponse.getMessage());
-					}
+				results.addNote("Error committing changes " + response.getMessage());
+			}
+			/*results.addNote("optimizing index");
+			URLPostResponse optimizeResponse = Util.postToURL("http://localhost:" + solrPort + "/solr/econtent2/update/", "<optimize />", logger);
+			if (!optimizeResponse.isSuccess()){
+				results.addNote("Error optimizing index " + optimizeResponse.getMessage());
+			}*/
+			if (checkMarcImport()){
+				results.addNote("index passed checks, swapping cores so new index is active.");
+				URLPostResponse postResponse = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
+				if (!postResponse.isSuccess()){
+					results.addNote("Error swapping cores " + postResponse.getMessage());
 				}else{
-					results.addNote("index did not pass check, not swapping");
+					results.addNote("Result of swapping cores " + postResponse.getMessage());
 				}
-			//}
+			}else{
+				results.incErrors();
+				results.addNote("index did not pass check, not swapping");
+			}
+			
 		} catch (Exception e) {
 			results.addNote("Error finalizing index " + e.toString());
 			results.incErrors();
