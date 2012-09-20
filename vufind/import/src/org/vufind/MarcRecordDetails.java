@@ -3437,6 +3437,7 @@ public class MarcRecordDetails {
 		int numItems = 0;
 		Set<String> availableAt = new HashSet<String>();
 		Set<String> itemAvailability = new HashSet<String>();
+		Set<String> buildings = new HashSet<String>();
 		while (itemInfo.next()){
 			String item_type = itemInfo.getString("item_type");
 			String externalFormat = itemInfo.getString("externalFormat");
@@ -3449,10 +3450,14 @@ public class MarcRecordDetails {
 			}
 			//TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L){
-				itemAvailability.add("Shared Digital Collection");
-				addSharedAvailability(source, itemAvailability);
+				itemAvailability.add("Digital Collection");
+				itemAvailability = addSharedAvailability(source, itemAvailability);
+				logger.debug("Available at " + itemAvailability.size() + " locations");
+				buildings.add("Digital Collection");
+				buildings = addSharedAvailability(source, buildings);
 			}else{
 				itemAvailability.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+				buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 			}
 		}
 		int numHoldings = 0;
@@ -3464,21 +3469,36 @@ public class MarcRecordDetails {
 			long libraryId = availabilityInfo.getLong("libraryId");
 			if (availableCopies > 0){
 				if (libraryId == -1L){
-					availableAt.add("Shared Digital Collection");
-					addSharedAvailability(source, itemAvailability);
+					availableAt.add("Digital Collection");
+					addSharedAvailability(source, availableAt);
+					buildings.add("Digital Collection");
+					buildings = addSharedAvailability(source, buildings);
 				}else{
 					availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+				}
+			}else{
+				if (libraryId == -1L){
+					buildings.add("Digital Collection");
+					buildings = addSharedAvailability(source, buildings);
+				}else{
+					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				}
 			}
 			numHoldings += copiesOwned;
 		}
 		if (!hasAvailabilityInfo){
+			logger.debug("Title does not have availability information, using item availability");
 			if (itemLevelOwnership == 1){
 				numHoldings = numItems;
 			}else{
 				numHoldings = availableCopiesRecord;
 			}
 			availableAt = itemAvailability;
+		}
+		if (buildings.size() > 0){
+			addFields(mappedFields, "institution", null, buildings);
+			addFields(mappedFields, "building", null, buildings);
 		}
 		addFields(mappedFields, "format", "format_map", formats);
 		if (formats.size() > 0){
@@ -3514,14 +3534,14 @@ public class MarcRecordDetails {
 		return doc;
 	}
 
-	private void addSharedAvailability(String source, Set<String> itemAvailability) {
+	private Set<String> addSharedAvailability(String source, Set<String> itemAvailability) {
+		logger.debug("Determining if shared availability should be added");
 		if (source.matches("(?i)^overdrive.*")){
-			itemAvailability.add("Eagle Valley Library District Online");
-			itemAvailability.add("Garfield County Library Online");
-			itemAvailability.add("Grand County Library Dist Online");
-			itemAvailability.add("Pitkin County Library Online");
-			itemAvailability.add("Steamboat Springs Community Libraries Online");
-			itemAvailability.add("Wilkinson Public Library Online");
+			logger.debug("Adding shared availability");
+			for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
+				itemAvailability.add(libraryFacet + " Online");
+			}
 		}
+		return itemAvailability;
 	}
 }

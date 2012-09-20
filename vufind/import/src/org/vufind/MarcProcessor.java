@@ -96,6 +96,7 @@ public class MarcProcessor {
 	private Map<Long, String>					libraryIdToSystemFacets	= Collections.synchronizedMap(new HashMap<Long, String>());
 	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
+	private ArrayList<String>					advantageLibraryFacets = new ArrayList<String>();
 	private boolean useEContentDetectionSettings = true;
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
@@ -283,16 +284,21 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
-				librarySystemFacets.put(librarySystemFacetRS.getString("facetLabel"), librarySystemFacetRS.getLong("libraryId"));
+				String facetLabel = librarySystemFacetRS.getString("facetLabel");
+				librarySystemFacets.put(facetLabel, librarySystemFacetRS.getLong("libraryId"));
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
 				if (eContentLinkRulesStr != null && eContentLinkRulesStr.length() > 0) {
 					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
 					eContentLinkRules.put(eContentLinkRulesStr, librarySystemFacetRS.getLong("libraryId"));
 				}
-				libraryIdToSystemFacets.put(librarySystemFacetRS.getLong("libraryId"), librarySystemFacetRS.getString("facetLabel"));
+				libraryIdToSystemFacets.put(librarySystemFacetRS.getLong("libraryId"), facetLabel);
+				String overdriveAdvantageProductsKey = librarySystemFacetRS.getString("overdriveAdvantageProductsKey");
+				if (overdriveAdvantageProductsKey != null && overdriveAdvantageProductsKey.length() > 0){
+					advantageLibraryFacets.add(facetLabel);
+				}
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load library System Facet information", e);
@@ -923,5 +929,9 @@ public class MarcProcessor {
 			ratingFacet.add("Unrated");
 		}
 		return ratingFacet;
+	}
+
+	public ArrayList<String> getAdvantageLibraryFacets() {
+		return advantageLibraryFacets;
 	}
 }

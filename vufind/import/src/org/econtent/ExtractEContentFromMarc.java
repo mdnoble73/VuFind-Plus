@@ -319,22 +319,32 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		long batchSize = 300;
 		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
 		for (int i = 0; i < numProducts; i += batchSize){
-			logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
-			String batchUrl = mainProductUrl + "?offset=" + i + "&limit=" + batchSize;
-			JSONObject productBatchInfo = callOverDriveURL(batchUrl);
-			JSONArray products = productBatchInfo.getJSONArray("products");
-			for(int j = 0; j <products.length(); j++ ){
-				JSONObject curProduct = products.getJSONObject(j);
-				OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
-				if (libraryId == -1){
-					curRecord.setShared(true);
-				}
-				if (overDriveTitles.containsKey(curRecord.getId())){
-					OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId());
-					oldRecord.getCollections().add(libraryId);
+			int tries = 0;
+			boolean productsLoaded = false;
+			while (tries < 3 && productsLoaded == false){
+				logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
+				String batchUrl = mainProductUrl + "?offset=" + i + "&limit=" + batchSize;
+				JSONObject productBatchInfo = callOverDriveURL(batchUrl);
+				if (productBatchInfo == null){
+					tries++;
+					continue;
 				}else{
-					//logger.debug("Loading record " + curRecord.getId());
-					overDriveTitles.put(curRecord.getId(), curRecord);
+					productsLoaded = true;
+				}
+				JSONArray products = productBatchInfo.getJSONArray("products");
+				for(int j = 0; j <products.length(); j++ ){
+					JSONObject curProduct = products.getJSONObject(j);
+					OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
+					if (libraryId == -1){
+						curRecord.setShared(true);
+					}
+					if (overDriveTitles.containsKey(curRecord.getId())){
+						OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId());
+						oldRecord.getCollections().add(libraryId);
+					}else{
+						//logger.debug("Loading record " + curRecord.getId());
+						overDriveTitles.put(curRecord.getId(), curRecord);
+					}
 				}
 			}
 		}
@@ -1341,9 +1351,17 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			if (systemId == -1){
 				doc.addField("institution", "Digital Collection");
 				doc.addField("building", "Digital Collection");
+				for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
+					doc.addField("institution", libraryFacet + " Online");
+					doc.addField("building", libraryFacet + " Online");
+				}
 				if (curAvailability.isAvailable()){
 					doc.addField("available_at", "Digital Collection");
+					for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
+						doc.addField("available_at", libraryFacet + " Online");
+					}
 				}
+				
 			}else{
 				String libraryName = marcProcessor.getLibrarySystemFacetForId(systemId);
 				doc.addField("institution", libraryName + " Online");
