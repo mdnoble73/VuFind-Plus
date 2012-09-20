@@ -759,7 +759,7 @@ class AJAX extends Action {
 					if ($editionResource->find(true)){
 						$editionResources[] = clone $editionResource;
 					}else{
-						echo("Could not find resource {$edition['id']}");
+						echo("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}");
 					}
 				}
 			}
