@@ -3488,7 +3488,7 @@ public class MarcRecordDetails {
 			numHoldings += copiesOwned;
 		}
 		if (!hasAvailabilityInfo){
-			logger.debug("Title does not have availability information, using item availability");
+			//logger.debug("Title does not have availability information, using item availability");
 			if (itemLevelOwnership == 1){
 				numHoldings = numItems;
 			}else{
@@ -3512,7 +3512,7 @@ public class MarcRecordDetails {
 		addField(mappedFields, "econtent_protection_type", "econtent_protection_type_map", accessType);
 		addField(mappedFields, "num_holdings", Integer.toString(numHoldings));
 		//TODO: Index eContent Text? econtentText
-		logger.debug("The record is available at " + availableAt.size() + " libraries");
+		//logger.debug("The record is available at " + availableAt.size() + " libraries");
 		addFields(mappedFields, "available_at", null, availableAt);
 		
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
@@ -3535,9 +3535,9 @@ public class MarcRecordDetails {
 	}
 
 	private Set<String> addSharedAvailability(String source, Set<String> itemAvailability) {
-		logger.debug("Determining if shared availability should be added");
+		//logger.debug("Determining if shared availability should be added");
 		if (source.matches("(?i)^overdrive.*")){
-			logger.debug("Adding shared availability");
+			//logger.debug("Adding shared availability");
 			for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
 				itemAvailability.add(libraryFacet + " Online");
 			}
