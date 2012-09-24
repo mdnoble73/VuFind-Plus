@@ -18,7 +18,7 @@
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
-		<li><a href="http://east.mesa.k12.co.us/library/login/index.cfm" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Online Resources'}</a></li>
+		<li><a href="http://east.mesa.k12.co.us/library/login/index.cfm" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Databases and eBooks'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
