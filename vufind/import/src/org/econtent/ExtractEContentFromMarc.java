@@ -1570,7 +1570,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		try {
 			results.addNote("calling final commit on index");
-			URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/econtent2/", "<commit />", logger);
+			URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/econtent2/update/", "<commit />", logger);
 			if (!response.isSuccess()){
 				results.incErrors();
 				results.addNote("Error committing changes " + response.getMessage());
