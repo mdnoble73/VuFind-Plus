@@ -90,6 +90,7 @@ class Library extends DB_DataObject
 	public $homePageWidgetId;
 	public $showCheckInGrid;
 	public $boostByLibrary;
+	public $recordsToBlackList;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -160,6 +161,7 @@ class Library extends DB_DataObject
 				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link next to the search box.  It will still appear in the footer.', 'hideInLists' => true,),
 				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true,),
 				'repeatInAmazon'  => array('property'=>'repeatInAmazon', 'type'=>'checkbox', 'label'=>'Repeat In Amazon', 'description'=>'Turn on to allow repeat search in Amazon functionality.', 'hideInLists' => true),
+				'recordsToBlackList' => array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
 			)),
 			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
 				'showAmazonReviews'  => array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true,),

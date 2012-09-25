@@ -270,6 +270,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showCheckInGrid` INT DEFAULT '1';",
 				),
 			),
+			'library_19' => array(
+				'title' => 'Library 19',
+				'description' => 'Add the ability to specify a list of records to blacklist. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `recordsToBlackList` MEDIUMTEXT;",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',
