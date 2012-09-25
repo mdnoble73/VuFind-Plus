@@ -1049,6 +1049,28 @@ class Solr implements IndexEngine {
 			if (isset($configArray['Index']['ignoreBibSuppression']) && $configArray['Index']['ignoreBibSuppression'] == true){
 				$filter[] = 'bib_suppression:notsuppressed';
 			}
+			$blacklistRecords = null;
+			if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
+				$blacklistRecords = $searchLocation->recordsToBlackList;
+			}else if (isset($searchLibrary) && strlen($searchLibrary->recordsToBlackList) > 0){
+				$blacklistRecords = $searchLibrary->recordsToBlackList;
+			}
+			if (!is_null($blacklistRecords)){
+				$recordsToBlacklist = preg_split('/\s|\r\n|\r|\n/s', $blacklistRecords);
+				$blacklist = "NOT (";
+				$numRecords = 0;
+				foreach ($recordsToBlacklist as $curRecord){
+					if (strlen($curRecord) > 0){
+						$numRecords++;
+						if ($numRecords > 1){
+							$blacklist .= " OR ";
+						}
+						$blacklist .= "id:" . $curRecord;
+					}
+				}
+				$blacklist .= ")";
+				$filter[] = $blacklist;
+			}
 			if ($this->scopingDisabled == false){
 
 				if (isset($searchLibrary)){

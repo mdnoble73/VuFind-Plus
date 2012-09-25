@@ -309,6 +309,16 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_4' => array(
+				'title' => 'Location 4',
+				'description' => 'Add the ability to specify a list of records to blacklist. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `location` ADD `recordsToBlackList` MEDIUMTEXT;",
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',
