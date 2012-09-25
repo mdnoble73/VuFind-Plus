@@ -57,7 +57,7 @@
             <input type="submit" value="Go" id="goButton" />
             <br/>
             {if $title == 'publishDate'}
-            <ul class='inline left small'>
+            <ul class='inline small'>
               <li><a class="prefill" data-year="2005" href='#'>Since 2005</a></li>
               <li><a class="prefill" data-year="2000" href='#'>Since 2000</a></li>
               <li><a class="prefill" data-year="1995" href='#'>Since 1995</a></li>

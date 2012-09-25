@@ -8,7 +8,7 @@
         <p>If you can't find what you're looking for in our catalog, let us do the work for you. We'll try requesting it from another library or consider purchasing it for Anythink's collection. </p>
         <p>Please login below to get started.</p>
         {else}
-        <p>Can't find what you're looking for in our catalog? Fill out the form below with as much information as possible so we can find the exact title you need. For example, if you're looking for a specific season of a TV show, please include that info. We may buy the item for Anythink's collection or borrow it from another library; it could take up to two to six weeks to receive. {/if}</p>
+        <p>Can't find what you're looking for in our catalog? Fill out the form below with as much information as possible so we can find the exact title you need. For example, if you're looking for a specific season of a TV show, please include that info. We may buy the item for Anythink's collection or borrow it from another library; it could take up to two to eight weeks to receive. {/if}</p>
       </div>
       <form id="materialsRequestForm" action="{$path}/MaterialsRequest/Submit" method="post">
         {include file="MaterialsRequest/request-form-fields.tpl"}
