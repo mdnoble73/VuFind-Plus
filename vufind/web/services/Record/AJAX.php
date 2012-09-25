@@ -119,7 +119,7 @@ class AJAX extends Action {
 									$purchaseLinks[] = array(
 	                    'link' => $link,
 	                    'linkText' => 'Buy from Smashwords',
-	                  	'storeName' => 'Smashwords', 
+	                  	'storeName' => 'Smashwords',
 											'image' => '/images/smashwords.png',
 											'field856Index' => $field856Index,
 									);
@@ -127,7 +127,7 @@ class AJAX extends Action {
 									$purchaseLinks[] = array(
 	                    'link' => $link,
 	                    'linkText' => $linkText,
-	                  	'storeName' => 'Smashwords', 
+	                  	'storeName' => 'Smashwords',
 											'image' => '',
 											'field856Index' => $field856Index,
 									);
@@ -137,8 +137,8 @@ class AJAX extends Action {
 						}
 					}
 				} //End checking for purchase information in the marc record
-				
-				
+
+
 				if (count($purchaseLinks) > 0){
 					$interface->assign('purchaseLinks', $purchaseLinks);
 				}else{
@@ -146,12 +146,12 @@ class AJAX extends Action {
 					$resource->record_id = $id;
 					$resource->source = 'VuFind';
 					if ($resource->find(true)){
-					
+
 						$title = $resource->title;
 						$author = $resource->author;
 						require_once 'services/Record/Purchase.php';
 						$purchaseLinks = Purchase::getStoresForTitle($title, $author);
-						
+
 						if (count($purchaseLinks) > 0){
 							$interface->assign('purchaseLinks', $purchaseLinks);
 						}else{
@@ -169,7 +169,7 @@ class AJAX extends Action {
 			$errors = array("You must provide the id of the title to be purchased. ");
 			$interface->assign('errors', $errors);
 		}
-		
+
 		echo $interface->fetch('Record/ajax-purchase-options.tpl');
 	}
 
@@ -364,7 +364,7 @@ class AJAX extends Action {
 		$upc = $_REQUEST['upc'];
 		$isbn = $_REQUEST['isbn'];
 
-		$formattedData = GoDeeperData::getHtmlData($dataType, $isbn, $upc);
+		$formattedData = GoDeeperData::getHtmlData($dataType, 'Record', $isbn, $upc);
 		return $formattedData;
 
 	}
@@ -423,7 +423,7 @@ class AJAX extends Action {
 				}
 				$titles[] = array(
 	        	  'id' => isset($record['id']) ? $record['id'] : '',
-			    		'image' => $cover, 
+			    		'image' => $cover,
 			    		'title' => $record['title'],
 			    		'author' => $record['author']
 				);
@@ -431,9 +431,9 @@ class AJAX extends Action {
 
 			foreach ($titles as $key => $rawData){
 				$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' . 
-	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" . 
-	    			"</a></div>" . 
+	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+	    			"</a></div>" .
 	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
 				$rawData['formattedTitle'] = $formattedTitle;
 				$titles[$key] = $rawData;
@@ -558,7 +558,7 @@ class AJAX extends Action {
 		$output .= "	<publisher><![CDATA[" . $descriptionArray['publisher'] . "]]></publisher>\n";
 
 		$output .= "</result>\n";
-			
+
 		return $output;
 	}
 }

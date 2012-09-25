@@ -49,8 +49,8 @@
 								</div>
 							</div>
 							{else}
-							<div id = "holdingsSummary{$resource->shortId}" class="holdingsSummary">
-								<div class="statusSummary" id="statusSummary{$resource->shortId}">
+							<div id = "holdingsSummary{$resource->record_id|regex_replace:"/\./":""}" class="holdingsSummary">
+								<div class="statusSummary" id="statusSummary{$resource->record_id|regex_replace:"/\./":""}">
 									<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
 								</div>
 							</div>

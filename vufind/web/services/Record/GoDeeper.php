@@ -30,7 +30,7 @@ class GoDeeper extends Record
 		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($this->isbn, $this->upc, true);
 		$interface->assign('options', $goDeeperOptions['options']);
 		if (isset($goDeeperOptions['defaultOption'])){
-			$defaultData = GoDeeperData::getHtmlData($goDeeperOptions['defaultOption'], $this->isbn, $this->upc);
+			$defaultData = GoDeeperData::getHtmlData($goDeeperOptions['defaultOption'], 'Record', $this->isbn, $this->upc);
 			$interface->assign('defaultGoDeeperData', $defaultData);
 		}
 

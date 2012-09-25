@@ -41,7 +41,18 @@ class AJAX extends Action {
 		}
 	}
 
-function GetEnrichmentInfo(){
+	function GetGoDeeperData(){
+		require_once('Drivers/marmot_inc/GoDeeperData.php');
+		$id = $_REQUEST['id'];
+		$dataType = $_REQUEST['dataType'];
+		$upc = $_REQUEST['upc'];
+		$isbn = $_REQUEST['isbn'];
+
+		$formattedData = GoDeeperData::getHtmlData($dataType, 'eContentRecord', $isbn, $upc);
+		return $formattedData;
+	}
+
+	function GetEnrichmentInfo(){
 		require_once 'Enrichment.php';
 		global $configArray;
 		global $library;

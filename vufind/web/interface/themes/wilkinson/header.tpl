@@ -57,7 +57,7 @@
 												</li>
 											</ul>
 										</li>
-										<li class="item-242 deeper parent"><a href="/library-services" class="sf-with-ul"><span class="sf-sub-indicator"></span>Services</a>
+										<li class="item-242 deeper parent"><a href="{$homeLink}/library-services" class="sf-with-ul"><span class="sf-sub-indicator"></span>Services</a>
 										<ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-282" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/getcard" style="float: none; width: auto;">Get a Library Card </a>
 												</li>
@@ -75,7 +75,7 @@
 												</li>
 											</ul>
 										</li>
-										<li class="item-170 deeper parent"><a href="/events" class="sf-with-ul"><span class="sf-sub-indicator"></span>Events</a>
+										<li class="item-170 deeper parent"><a href="{$homeLink}/events" class="sf-with-ul"><span class="sf-sub-indicator"></span>Events</a>
 										<ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-198" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/events/kids" style="float: none; width: auto;">Kids Programs</a>
 												</li>
@@ -87,7 +87,7 @@
 												</li>
 											</ul>
 										</li>
-										<li class="item-116 deeper parent"><a href="/wplkids" class="sf-with-ul"><span class="sf-sub-indicator"></span>Kids</a>
+										<li class="item-116 deeper parent"><a href="{$homeLink}/wplkids" class="sf-with-ul"><span class="sf-sub-indicator"></span>Kids</a>
 										<ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-117" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/wplkids/find" style="float: none; width: auto;">Find Books &amp; Movies</a>
 												</li>
@@ -103,7 +103,7 @@
 												</li>
 											</ul>
 										</li>
-										<li class="item-106 deeper parent"><a href="/wplteens" class="sf-with-ul"><span class="sf-sub-indicator"></span>Teens</a>
+										<li class="item-106 deeper parent"><a href="{$homeLink}/wplteens" class="sf-with-ul"><span class="sf-sub-indicator"></span>Teens</a>
 										<ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-231" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/wplteens/2012-06-21-21-42-32" style="float: none; width: auto;">Find Books &amp; Movies</a>
 												</li>

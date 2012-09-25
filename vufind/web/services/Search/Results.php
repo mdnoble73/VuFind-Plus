@@ -97,7 +97,7 @@ class Results extends Action {
 
 		$rangeFilters = array('lexile_score', 'accelerated_reader_reading_level', 'accelerated_reader_point_value');
 		foreach ($rangeFilters as $filter){
-			if (isset($_REQUEST[$filter . 'from']) || isset($_REQUEST[$filter . 'to'])){
+			if ((isset($_REQUEST[$filter . 'from']) && strlen($_REQUEST[$filter . 'from']) > 0) || (isset($_REQUEST[$filter . 'to']) && strlen($_REQUEST[$filter . 'to']) > 0)){
 				$queryParams = $_GET;
 				$from = preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'from']) ? $_REQUEST[$filter . 'from'] : '*';
 				$to = preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'to']) ? $_REQUEST[$filter . 'to'] : '*';
@@ -243,6 +243,13 @@ class Results extends Action {
 		$interface->assign('showRatings', $showRatings);
 
 		$numProspectorTitlesToLoad = 0;
+
+		// Save the ID of this search to the session so we can return to it easily:
+		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
+
+		// Save the URL of this search to the session so we can return to it easily:
+		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
+
 		if ($searchObject->getResultTotal() < 1) {
 
 			//Var for the IDCLREADER TEMPLATE
@@ -368,12 +375,6 @@ class Results extends Action {
 			$searchStat = new SearchStat();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
-
-		// Save the ID of this search to the session so we can return to it easily:
-		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
-
-		// Save the URL of this search to the session so we can return to it easily:
-		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		// Done, display the page
 		$interface->display('layout.tpl');

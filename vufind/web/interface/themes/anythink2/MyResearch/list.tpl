@@ -55,8 +55,8 @@
 				<div class="list-actions">
 					<button value="placeHolds" id="FavPlaceHolds" onclick='return requestMarkedAction()'>Request Marked</button>
 					{if $allowEdit}
-					<button value="deleteMarked" id="FavDeleteMarked" onclick='return deletedMarkedAction()'>Delete Marked</button>
-					<button value="deleteAll" id="FavDeleteAll" onclick='return deleteAllAction()'>Delete All</button>
+					<button value="deleteMarked" id="FavDeleteMarked" onclick='return deletedMarkedListItemsAction()'>Delete Marked</button>
+					<button value="deleteAll" id="FavDeleteAll" onclick='return deleteAllListItemsAction()'>Delete All</button>
 					{/if}
 				</div>
 			</div>

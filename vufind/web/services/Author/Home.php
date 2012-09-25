@@ -69,10 +69,11 @@ class Home extends Action
 		// search, and it is better to display nothing than to provide an infinite
 		// loop of links.  Perhaps this can be solved more elegantly with a stack
 		// or with multiple session variables, but for now this seems okay.
-		$interface->assign('lastsearch',
-		(isset($_SESSION['lastSearchURL']) &&
-		!strstr($_SESSION['lastSearchURL'], 'Author/Home')) ?
-		$_SESSION['lastSearchURL'] : false);
+		$interface->assign('lastsearch', (isset($_SESSION['lastSearchURL']) && !strstr($_SESSION['lastSearchURL'], 'Author/Home')) ? $_SESSION['lastSearchURL'] : false);
+
+		$interface->assign('lookfor', $_GET['author']);
+		$interface->assign('basicSearchIndex', 'Author');
+		$interface->assign('searchIndex', 'Author');
 
 		if (!$interface->is_cached('layout.tpl|Author' . $_GET['author'])) {
 			// Clean up author string
@@ -178,7 +179,7 @@ class Home extends Action
 			$interface->assign('showFavorites', 1);
 			$interface->assign('showHoldButton', 1);
 		}
-		
+
 		// Big one - our results
 		$authorTitles = $searchObject->getResultRecordHTML();
 		$interface->assign('recordSet',  $authorTitles);
@@ -218,6 +219,8 @@ class Home extends Action
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
 
+		// Save the ID of this search to the session so we can return to it easily:
+		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 		//Get view & load template

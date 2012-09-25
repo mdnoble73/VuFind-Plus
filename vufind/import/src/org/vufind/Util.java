@@ -493,6 +493,7 @@ public class Util {
 
 	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
 	public static String makeValueSortable(String curTitle) {
+		if (curTitle == null) return "";
 		String sortTitle = curTitle.toLowerCase();
 		Matcher sortMatcher = sortTrimmingPattern.matcher(sortTitle);
 		if (sortMatcher.matches()) {

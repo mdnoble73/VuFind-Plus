@@ -96,6 +96,7 @@ public class MarcProcessor {
 	private Map<Long, String>					libraryIdToSystemFacets	= Collections.synchronizedMap(new HashMap<Long, String>());
 	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
+	private ArrayList<String>					advantageLibraryFacets = new ArrayList<String>();
 	private boolean useEContentDetectionSettings = true;
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
@@ -283,16 +284,21 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
-				librarySystemFacets.put(librarySystemFacetRS.getString("facetLabel"), librarySystemFacetRS.getLong("libraryId"));
+				String facetLabel = librarySystemFacetRS.getString("facetLabel");
+				librarySystemFacets.put(facetLabel, librarySystemFacetRS.getLong("libraryId"));
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
 				if (eContentLinkRulesStr != null && eContentLinkRulesStr.length() > 0) {
 					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
 					eContentLinkRules.put(eContentLinkRulesStr, librarySystemFacetRS.getLong("libraryId"));
 				}
-				libraryIdToSystemFacets.put(librarySystemFacetRS.getLong("libraryId"), librarySystemFacetRS.getString("facetLabel"));
+				libraryIdToSystemFacets.put(librarySystemFacetRS.getLong("libraryId"), facetLabel);
+				String overdriveAdvantageProductsKey = librarySystemFacetRS.getString("overdriveAdvantageProductsKey");
+				if (overdriveAdvantageProductsKey != null && overdriveAdvantageProductsKey.length() > 0){
+					advantageLibraryFacets.add(facetLabel);
+				}
 			}
 		} catch (SQLException e) {
 			logger.error("Unable to load library System Facet information", e);
@@ -722,6 +728,7 @@ public class MarcProcessor {
 							}
 						}
 						MarcIndexInfo marcIndexedInfo = null;
+						String marcRecordId = marcInfo.getId();
 						if (marcIndexInfo.containsKey(marcInfo.getId())) {
 							marcIndexedInfo = marcIndexInfo.get(marcInfo.getId());
 							if (marcInfo.getChecksum() != marcIndexedInfo.getChecksum()){
@@ -752,7 +759,7 @@ public class MarcProcessor {
 							processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 						}
 
-						updateMarcRecordChecksum(marcInfo, recordStatus, marcIndexedInfo);
+						updateMarcRecordChecksum(marcRecordId, marcInfo, recordStatus, marcIndexedInfo);
 					}
 					marcInfo = null;
 					recordsProcessed++;
@@ -780,20 +787,24 @@ public class MarcProcessor {
 		}
 	}
 
-	private void updateMarcRecordChecksum(MarcRecordDetails marcInfo, int recordStatus, MarcIndexInfo marcIndexedInfo) throws SQLException {
-		// Update the checksum in the database
-		if (recordStatus == RECORD_CHANGED_PRIMARY || recordStatus == RECORD_CHANGED_SECONDARY) {
-			updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
-			updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
-			updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-			updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
-			updateMarcInfoStmt.setString(5, marcInfo.getId());
-			updateMarcInfoStmt.executeUpdate();
-		} else if (recordStatus == RECORD_NEW) {
-			insertMarcInfoStmt.setString(1, marcInfo.getId());
-			insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
-			insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
-			insertMarcInfoStmt.executeUpdate();
+	private void updateMarcRecordChecksum(String recordId, MarcRecordDetails marcInfo, int recordStatus, MarcIndexInfo marcIndexedInfo) throws SQLException {
+		try {
+			// Update the checksum in the database
+			if (recordStatus == RECORD_CHANGED_PRIMARY || recordStatus == RECORD_CHANGED_SECONDARY) {
+				updateMarcInfoStmt.setLong(1, marcInfo.getChecksum());
+				updateMarcInfoStmt.setLong(2, marcIndexedInfo.getChecksum());
+				updateMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+				updateMarcInfoStmt.setInt(4, marcIndexedInfo.isEContent() ? 1 : 0);
+				updateMarcInfoStmt.setString(5, recordId);
+				updateMarcInfoStmt.executeUpdate();
+			} else if (recordStatus == RECORD_NEW) {
+				insertMarcInfoStmt.setString(1, recordId);
+				insertMarcInfoStmt.setLong(2, marcInfo.getChecksum());
+				insertMarcInfoStmt.setInt(3, marcInfo.isEContent() ? 1 : 0);
+				insertMarcInfoStmt.executeUpdate();
+			}
+		} catch (Exception e) {
+			ReindexProcess.addNoteToCronLog("Error updating marc checksum for " + recordId + " marcInfo id is " + marcInfo.getId());
 		}
 	}
 
@@ -918,5 +929,9 @@ public class MarcProcessor {
 			ratingFacet.add("Unrated");
 		}
 		return ratingFacet;
+	}
+
+	public ArrayList<String> getAdvantageLibraryFacets() {
+		return advantageLibraryFacets;
 	}
 }

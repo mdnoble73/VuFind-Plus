@@ -6,8 +6,8 @@
   <br />{translate text="Your search terms"} : "<b>{$lookfor|escape:"html"}</b>"
 {else}
   <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
-    <div id="search-type-wrapper">
-      <input type="hidden" name="basicType" value="Keyword"/>
+    <input type="hidden" name="basicType" value="Keyword"/>
+    <div class="clearfix">
       <label id="type-label" for="searchPreFilter">{translate text='Search'}</label>
       <select name="filter[]" id="searchPreFilter">
         <option value=""{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>
@@ -15,39 +15,37 @@
         <option value="format_category:DVD"{if $curFormatCategory == 'DVD'} selected="selected"{/if}>Movies</option>
         <option value="format_category:Music"{if $curFormatCategory == 'Music'} selected="selected"{/if}>Music</option>
       </select>
+      <div id="search-input">
+        <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
+        <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
+      </div>
     </div>
-    <div id="search-input-wrapper">
-      <div id="search-input" class="clearfix">
-      <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
-      <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
-      </div>
-      <div id="shards">
-        <ul class="inline right"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>
-        {if isset($shards)}
-          {foreach from=$shards key=shard item=isSelected}
-            <input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard-{$shard|replace:' ':''|escape}" /> <label for="shard-{$shard|replace:' ':''|escape}">{$shard|translate}</label>
+    <div id="shards">
+      <ul class="inline"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>
+      {if isset($shards)}
+        {foreach from=$shards key=shard item=isSelected}
+          <input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard-{$shard|replace:' ':''|escape}" /> <label for="shard-{$shard|replace:' ':''|escape}">{$shard|translate}</label>
+        {/foreach}
+      {/if}
+      {if $filterList || $hasCheckboxFilters}
+      <div>
+        <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> <label for="retainFiltersCheckbox">{translate text="basic_search_keep_filters"}</label>
+        <div style="display: none;">
+          <ul class="inline">
+          {foreach from=$filterList item=data key=field}
+            {foreach from=$data item=value}
+              <li><input type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' /> {$field}: {$value.value|escape}</li>
+            {/foreach}
           {/foreach}
-        {/if}
-        {if $filterList || $hasCheckboxFilters}
-        <div>
-          <input id="retainFiltersCheckbox" type="checkbox" onclick="filterAll(this);" /> <label for="retainFiltersCheckbox">{translate text="basic_search_keep_filters"}</label>
-          <div style="display: none;">
-            <ul class="inline left">
-            {foreach from=$filterList item=data key=field}
-              {foreach from=$data item=value}
-                <li><input type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' /> {$field}: {$value.value|escape}</li>
-              {/foreach}
-            {/foreach}
-            {foreach from=$checkboxFilters item=current}
-              {if $current.selected}
-                <li><input type="checkbox" name="filter[]" value="{$current.filter|escape}" /> {$current.filter|escape}</li>
-              {/if}
-            {/foreach}
-            </ul>
-          </div>
+          {foreach from=$checkboxFilters item=current}
+            {if $current.selected}
+              <li><input type="checkbox" name="filter[]" value="{$current.filter|escape}" /> {$current.filter|escape}</li>
+            {/if}
+          {/foreach}
+          </ul>
         </div>
-        {/if}
       </div>
+      {/if}
     </div>
 
     {* Do we have any checkbox filters? *}
