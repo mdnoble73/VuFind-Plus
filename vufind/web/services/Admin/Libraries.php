@@ -35,13 +35,21 @@ class Libraries extends ObjectEditor
 		return 'Library Systems';
 	}
 	function getAllObjects(){
-		$library = new Library();
-		$library->orderBy('subdomain');
-		$library->find();
 		$libraryList = array();
-		while ($library->fetch()){
-			$libraryList[$library->libraryId] = clone $library;
+
+		global $user;
+		if ($user->hasRole('opacAdmin')){
+			$library = new Library();
+			$library->orderBy('subdomain');
+			$library->find();
+			while ($library->fetch()){
+				$libraryList[$library->libraryId] = clone $library;
+			}
+		}else if ($user->hasRole('libraryAdmin')){
+			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
+			$libraryList[$patronLibrary->libraryId] = clone $patronLibrary;
 		}
+
 		return $libraryList;
 	}
 	function getObjectStructure(){
@@ -54,7 +62,18 @@ class Libraries extends ObjectEditor
 		return 'libraryId';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('opacAdmin', 'libraryAdmin');
 	}
-
+	function showExportAndCompare(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canAddNew(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canDelete(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
 }

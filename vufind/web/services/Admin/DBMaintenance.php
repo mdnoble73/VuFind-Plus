@@ -920,6 +920,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'libraryAdmin' => array(
+				'title' => 'Create library admin role',
+				'description' => 'Create library admin to allow .',
+				'dependencies' => array(),
+				'sql' => array(
+					"INSERT INTO `roles` (`name`, `description`) VALUES ('libraryAdmin', 'Allows user to update library configuration for their library system only for their home location.')",
+				),
+			),
+
 			'indexUsageTracking' => array(
 				'title' => 'Index Usage Tracking',
 				'description' => 'Update Usage Tracking to include index based on ip and tracking date',
