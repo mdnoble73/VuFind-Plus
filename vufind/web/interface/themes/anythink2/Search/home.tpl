@@ -9,3 +9,8 @@
   {/if}
   {include file='API/listWidgetTabs.tpl'}
 </div>
+{if $widget}
+	<div id="homePageLists">
+		{include file='API/listWidgetTabs.tpl'}
+	</div>
+{/if}
