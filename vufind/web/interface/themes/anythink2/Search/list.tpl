@@ -37,7 +37,7 @@
           </select>
         </form>
       </div>
-      <ul id="utility-links-results" class="inline left">
+      <ul id="utility-links-results" class="inline">
         {if !empty($user)}
           {if $savedSearch}
           <li><a class="button" href="{$url}/MyResearch/SaveSearch?delete={$searchId}">{translate text='save_search_remove'} -</a></li>

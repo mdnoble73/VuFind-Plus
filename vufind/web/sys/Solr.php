@@ -1012,14 +1012,14 @@ class Solr implements IndexEngine {
 			//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
 			$boostFactors[] = 'product(sum(abs(rating),-2.5),10)';
 
-			if (isset($searchLibrary) && !is_null($searchLibrary)){
+			if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1){
 				$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
 			}
 
 			//Boost items owned at our location
 			require_once('Drivers/marmot_inc/Location.php');
 			$searchLocation = Location::getSearchLocation();
-			if (isset($searchLocation) && !is_null($searchLocation)){
+			if (isset($searchLocation) && !is_null($searchLocation) && $searchLibrary->boostByLocation == 1){
 				$boostFactors[] = "loc_boost_{$searchLocation->code}";
 			}
 

@@ -99,8 +99,8 @@
         {*
         <div class="button round less-round hide logged-in-button" style="display: none; "><a href="#" id="bag_email_button" class="icon email_bag">Email</a></div>
         *}
-        <a class="button" href="#" id="bag_request_button" class="">Place Hold</a>
-        <a class="button" href="#" id="bag_print_button" class="print_bag">Print</a>
+        <a class="button" href="#" id="bag_request_button">Place Hold</a>
+        <a class="button print_bag" href="#" id="bag_print_button">Print</a>
         {if $user}
         <a class="button" href="#" id="bag_add_to_my_list_button">Add to list...</a>
         {else}

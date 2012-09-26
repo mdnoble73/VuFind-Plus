@@ -102,7 +102,7 @@
     // Navigate link.
     var navigate_link = $('#navigate-link');
     if (navigate_link.length > 0) {
-      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="700" border="0" frameBorder="0" src="http://www.anythinklibraries.org/vufind/sidebar"></div></div>');
+      var iframe = $('<div id="column-outer-wrapper"><div id="column-outer"><iframe width="200" height="700" style="border: 0;" border="0" frameborder="0" src="http://www.anythinklibraries.org/vufind/sidebar"></div></div>');
       // Add iFrame.
       iframe.css({width: 0});
       $('#central').prepend(iframe);
@@ -348,7 +348,7 @@
     var lightbox = $('#lightbox');
 
     lightbox.css({
-      height: $(document).height() + 'px',
+      height: $(document).height() + 'px'
     });
     lightbox.show();
 

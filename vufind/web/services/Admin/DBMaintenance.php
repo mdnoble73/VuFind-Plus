@@ -1282,6 +1282,16 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'boost_disabling' => array(
+			'title' => 'Disabling Lib and Loc Boosting',
+			'description' => 'Allow boosting of library and location boosting to be disabled',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE `library` ADD `boostByLibrary` TINYINT DEFAULT '1'",
+				"ALTER TABLE `location` ADD `boostByLocation` TINYINT DEFAULT '1'",
+			),
+		),
+
 
 		'remove_old_tables' => array(
 			'title' => 'Remove old tables',

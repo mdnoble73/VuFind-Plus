@@ -266,8 +266,12 @@ public class MarcRecordDetails {
 					}
 					if (!addedUrl){
 						//This only happens if there are no items and the 
-						for (Integer iType : allITypes){
-							sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
+						if (allITypes.size() > 0){
+							for (Integer iType : allITypes){
+								sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
+							}
+						}else{
+							sourceUrls.add(new LibrarySpecificLink(url, libraryId, -1, notesField));
 						}
 					}
 				}
