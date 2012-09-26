@@ -2,6 +2,7 @@
 class BookCoverProcessor{
 	private $bookCoverPath;
 	private $category;
+	private $format;
 	private $id;
 	private $isn;
 	private $isbn10;
@@ -48,7 +49,7 @@ class BookCoverProcessor{
 		}
 
 		$this->log("No image found, using die image", PEAR_LOG_INFO);
-		$this->dieWithFailImage();
+		$this->getDefaultCover();
 
 	}
 
@@ -168,6 +169,7 @@ class BookCoverProcessor{
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
+		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
 		//First check to see if this has a custom cover due to being an e-book
 		if (preg_match('/econtentRecord\d+/', $this->id)){
 			$this->isEContent = true;
@@ -380,17 +382,39 @@ class BookCoverProcessor{
 	/**
 	 * Display a "cover unavailable" graphic and terminate execution.
 	 */
-	function dieWithFailImage(){
+	function getDefaultCover(){
 		$useDefaultNoCover = true;
 
+		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}");
 		$themeName = $this->configArray['Site']['theme'];
-		if (isset($this->category) && strlen($this->category) > 0){
+		if (isset($this->format) && strlen($this->format) > 0){
+
+			if (is_readable("interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png")){
+				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
+				$nocoverurl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
+				$useDefaultNoCover = false;
+			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->format}.png")){
+				$nocoverurl = "interface/themes/{$themeName}/images/{$this->format}.png";
+				header('Content-type: image/png');
+				$useDefaultNoCover = false;
+			}elseif (is_readable("interface/themes/default/images/{$this->format}_{$this->size}.png")){
+				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
+				$nocoverurl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
+				header('Content-type: image/png');
+				$useDefaultNoCover = false;
+			}elseif (is_readable("interface/themes/default/images/$this->format.png")){
+				$nocoverurl = "interface/themes/default/images/$this->format.png";
+				header('Content-type: image/png');
+				$useDefaultNoCover = false;
+			}
+		}
+		if ($useDefaultNoCover && isset($this->category) && strlen($this->category) > 0){
 			if (is_readable("interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png")){
 				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
 				$nocoverurl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
 				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/{$themeName}/images/$this->category.png")){
-				$nocoverurl = "interface/themes/{$themeName}/images/$this->category.png";
+			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->category}.png")){
+				$nocoverurl = "interface/themes/{$themeName}/images/{$this->category}.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/default/images/{$this->category}_{$this->size}.png")){
@@ -735,12 +759,12 @@ class BookCoverProcessor{
 	}
 
 	function log($message, $level){
-		//return;
+		return;
 		$this->logger->log($message, $level);
 	}
 
 	function logTime($message){
-		//return;
+		return;
 		$this->timer->logTime($message);
 	}
 }
