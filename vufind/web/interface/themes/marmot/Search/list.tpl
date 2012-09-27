@@ -27,13 +27,21 @@
 			{* Listing Options *}
 			<div class="resulthead">
 				<div class="yui-u first">
-				{if $recordCount}
-					{translate text="Showing"}
-					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-					{translate text='of'} <b>{$recordCount}</b>
-					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
-				{/if}
+					{if $recordCount}
+						{translate text="Showing"}
+						<b>{$recordStart}</b> - <b>{$recordEnd}</b>
+						{translate text='of'} <b>{$recordCount}</b>
+						{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
+					{/if}
 					{translate text='query time'}: {$qtime}s
+					
+					{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+						<br />
+						<div class="unscopedResultCount">
+							There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+						</div>
+					{/if}
+					
 					{if $spellingSuggestions}
 					<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
 					{foreach from=$spellingSuggestions item=details key=term name=termLoop}

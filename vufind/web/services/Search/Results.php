@@ -232,6 +232,15 @@ class Results extends Action {
 		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
 
+		//Check to see if we should show unscoped results
+		$enableUnscopedSearch = false;
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary != null){
+			$unscopedSearch = clone($searchObject);
+			$unscopedSearch->disableScoping();
+			$enableUnscopedSearch = true;
+		}
+
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		$showRatings = 1;
 		$showProspectorResultsAtEndOfSearch = true;
@@ -243,6 +252,7 @@ class Results extends Action {
 		$interface->assign('showRatings', $showRatings);
 
 		$numProspectorTitlesToLoad = 0;
+		$numUnscopedTitlesToLoad = 5;
 
 		// Save the ID of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
@@ -278,6 +288,7 @@ class Results extends Action {
 			}
 
 			$numProspectorTitlesToLoad = 10;
+			$numUnscopedTitlesToLoad = 5;
 			$timer->logTime('no hits processing');
 
 		} else if ($searchObject->getResultTotal() == 1){
@@ -365,6 +376,20 @@ class Results extends Action {
 			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
 		}else{
 			$interface->assign('prospectorNumTitlesToLoad', 0);
+		}
+
+		if ($numUnscopedTitlesToLoad > 0 && $enableUnscopedSearch){
+			$unscopedSearch->processSearch(false, false);
+			$numUnscopedResults = $unscopedSearch->getResultTotal();
+			$interface->assign('numUnscopedResults', $numUnscopedResults);
+			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
+			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
+				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
+			}else{
+				$unscopedSearchUrl .= "&searchSource=marmot";
+			}
+			$unscopedSearchUrl .= "&shard=";
+			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
 		}
 
 		//Determine whether or not materials request functionality should be enabled

@@ -933,6 +933,10 @@ abstract class SearchObject_Base
 		$this->limit = $limit;
 	}
 
+	public function setSearchSource($searchSource){
+		$this->searchSource = $searchSource;
+	}
+
 	/**
 	 * Add a field to facet on.
 	 *

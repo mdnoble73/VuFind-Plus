@@ -1468,7 +1468,7 @@ class Solr implements IndexEngine {
 			}
 		}
 		// pass the shard parameter along to Solr if necessary:
-		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
+		if (!empty($this->_solrShards) && is_array($this->_solrShards) && !$this->scopingDisabled) {
 			$query[] = 'shards=' . urlencode(implode(',', $this->_solrShards));
 		}
 		$queryString = implode('&', $query);

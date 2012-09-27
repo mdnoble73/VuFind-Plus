@@ -685,9 +685,18 @@ function processShards()
 
 	// If a shard selection list is found as an incoming parameter, we should save
 	// it in the session for future reference:
+	$useDefaultShards = false;
 	if (array_key_exists('shard', $_REQUEST)) {
-		$_SESSION['shards'] = $_REQUEST['shard'];
+		if ($_REQUEST['shard'] == ''){
+			$useDefaultShards = true;
+		}else{
+			$_SESSION['shards'] = $_REQUEST['shard'];
+		}
+
 	} else if (!array_key_exists('shards', $_SESSION)) {
+		$useDefaultShards = true;
+	}
+	if ($useDefaultShards){
 		// If no selection list was passed in, use the default...
 
 		// If we have a default from the configuration, use that...

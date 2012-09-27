@@ -252,8 +252,10 @@ class Library extends DB_DataObject
 		return $structure;
 	}
 
-	static function getSearchLibrary(){
-		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+	static function getSearchLibrary($searchSource = null){
+		if ($searchSource == null){
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		}
 		if ($searchSource == 'local' || $searchSource == 'econtent'){
 			return Library::getActiveLibrary();
 		}else if ($searchSource == 'marmot'){
