@@ -13,6 +13,14 @@
 					<input type="hidden" name="myListActionHead" id="myListActionHead"/>
 		{/if}
 					<h3 class="list" id='listTitle'>{$favList->title|escape:"html"}</h3>
+					{if $notes}
+						<div id="listNotes">
+						{foreach from=$notes item="note"}
+							<div class="listNote">{$note}</div>
+						{/foreach}
+						</div>
+					{/if}
+					
 					{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
 					{if $allowEdit}
 						<div id='listEditControls' style="display:none">
@@ -43,6 +51,7 @@
 				</div>
 			</form>
 		{/if}
+		
 		{if $resourceList}
 			<div class="resulthead">
 				<div >

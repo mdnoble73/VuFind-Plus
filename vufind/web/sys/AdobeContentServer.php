@@ -230,6 +230,9 @@ class AdobeContentServer
 					$importDetails->packagingId = $jsonResponse['packagingId'];
 					$importDetails->status = 'sentToAcs';
 					$importDetails->insert();
+				}else{
+					$logger->log("Error submitting file to packaging service: response\r\n$packagingResponse", PEAR_LOG_ERR);
+					$logger->log("Packaging call $packagingServiceCall", PEAR_LOG_ERR);
 				}
 
 				return $jsonResponse;
@@ -242,6 +245,8 @@ class AdobeContentServer
 
 	static function copyFileToFtp($pathToFile, $itemId, $extension){
 		global $configArray;
+		$copied = false;
+
 		$logger = new Logger();
 		$destinationFilename = "{$itemId}.{$extension}";
 		$packagingFTP = $configArray['EContent']['packagingFTPServer'];
@@ -254,23 +259,26 @@ class AdobeContentServer
 		// Set up a connection
 		$conn = ftp_connect($packagingFTP);
 
-		// Login
-		$copied = false;
-		if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
-			$logger->log("Logged in to server", PEAR_LOG_INFO);
-			// Change the dir
-			ftp_pasv($conn, true);
-			ftp_chdir($conn, $packagingFTPBasePath);
-			if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
-				$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
-				$copied = true;
-			} else {
-				$logger->log("There was a problem while uploading $pathToFile to $destinationFilename", PEAR_LOG_ERR);
+		if ($conn){
+			// Login
+			if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
+				$logger->log("Logged in to server", PEAR_LOG_INFO);
+				// Change the dir
+				ftp_pasv($conn, true);
+				ftp_chdir($conn, $packagingFTPBasePath);
+				if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
+					$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
+					$copied = true;
+				} else {
+					$logger->log("There was a problem while uploading $pathToFile to $destinationFilename", PEAR_LOG_ERR);
+				}
+				// Return the resource
+				ftp_close($conn);
+			}else{
+				$logger->log("Unable to login to FTP server", PEAR_LOG_ERR);
 			}
-			// Return the resource
-			ftp_close($conn);
 		}else{
-			$logger->log("Unable to login to FTP server", PEAR_LOG_ERR);
+			$logger->log("Unable to connect to FTP server $packagingFTP", PEAR_LOG_ERR);
 		}
 
 		if ($copied){

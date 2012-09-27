@@ -1910,6 +1910,16 @@ ul.hold_items li{
 	margin-bottom: 5px;
 }
 
+#listNotes{
+	width: 80%;
+	margin: 10px auto ;
+}
+.listNote{
+	color: red;
+	font-weight: bold;
+	padding: 2px 0px ;
+}
+
 /* Renewal information */
 .renewPassed{
 	font-weight: bold;
