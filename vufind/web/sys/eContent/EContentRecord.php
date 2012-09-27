@@ -20,6 +20,8 @@ class EContentRecord extends SolrDataObject {
 	public $language;
 	public $publisher;
 	public $publishDate;
+	public $publishLocation;
+	public $physicalDescription;
 	public $edition;
 	public $isbn;
 	public $issn;
@@ -421,6 +423,29 @@ class EContentRecord extends SolrDataObject {
 			'storeDb' => true,
 			'storeSolr' => true,
 		),
+		'publishLocation' => array(
+			'property' => 'publishLocation',
+			'type' => 'text',
+			'size' => 100,
+			'maxLength' => 100,
+			'label' => 'Publication Location',
+			'description' => 'Where the title was published.',
+			'required'=> false,
+			'storeDb' => true,
+			'storeSolr' => false,
+		),
+		'physicalDescription' => array(
+			'property' => 'physicalDescription',
+			'type' => 'text',
+			'size' => 100,
+			'maxLength' => 100,
+			'label' => 'Physical Description',
+			'description' => 'A description of the title (number of pages, etc).',
+			'required'=> false,
+			'storeDb' => true,
+			'storeSolr' => false,
+		),
+
 		'edition' => array(
 			'property' => 'edition',
 			'type' => 'crSeparated',

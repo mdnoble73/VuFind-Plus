@@ -269,6 +269,8 @@ class AdobeContentServer
 			}
 			// Return the resource
 			ftp_close($conn);
+		}else{
+			$logger->log("Unable to login to FTP server", PEAR_LOG_ERR);
 		}
 
 		if ($copied){
