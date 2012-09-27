@@ -335,7 +335,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{foreach from=$subjects item=subject name=loop}
 							{foreach from=$subject item=subjectPart name=subloop}
 								{if !$smarty.foreach.subloop.first} &gt; {/if}
-								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;type=Subject">{$subjectPart.title|escape}</a>
+								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
 							{/foreach}
 							<br />
 						{/foreach}

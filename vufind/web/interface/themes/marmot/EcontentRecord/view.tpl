@@ -400,7 +400,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="resultInformationLabel">{translate text='Subjects'}</div>
 				<div class="recordSubjects">
 					{foreach from=$subjectList item=subjectListItem name=loop}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;type=Subject">{$subjectListItem|escape}</a>
+							<a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;basicType=Subject">{$subjectListItem|escape}</a>
 						<br />
 					{/foreach}
 				</div>
