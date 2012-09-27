@@ -44,14 +44,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/foreach}
 			{/if}
 			
-			{if $eContentRecord->publisher}
-				<div class="sidebarLabel">{translate text='Publisher'}:</div>
-				<div class="sidebarValue">{$eContentRecord->publisher|escape}</div>
-			{/if}
-			
-			{if $eContentRecord->publishDate}
+			{if $eContentRecord->publishDate || $eContentRecord->publisher || $eContentRecord->publishLocation}
 				<div class="sidebarLabel">{translate text='Published'}:</div>
-				<div class="sidebarValue">{$eContentRecord->publishDate|escape}</div>
+				<div class="sidebarValue">{$eContentRecord->publisher|escape} {$eContentRecord->publishLocation|escape} {$eContentRecord->publishDate|escape}</div>
 			{/if}
 			
 			<div class="sidebarLabel">{translate text='Format'}:</div>
@@ -61,6 +56,13 @@ function redrawSaveStatus() {literal}{{/literal}
 			 {/foreach}
 			{else}
 				<div class="sidebarValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></div>
+			{/if}
+			
+			{if $eContentRecord->physicalDescription}
+				<div class="sidebarLabel">{translate text='Physical Desc'}:</div>
+				{foreach from=$eContentRecord->physicalDescription item=physicalDescription name=loop}
+					<div class="sidebarValue">{$physicalDescription|escape}</div>
+				{/foreach}
 			{/if}
 	
 			<div class="sidebarLabel">{translate text='Language'}:</div>

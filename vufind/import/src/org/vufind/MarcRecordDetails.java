@@ -3337,7 +3337,11 @@ public class MarcRecordDetails {
 		return doc;
 	}
 
-	public HashMap<String, String> getBrowseSubjects() {
+	public HashMap<String, String> getBrowseSubjects(){
+		return getBrowseSubjects(true);
+	}
+	
+	public HashMap<String, String> getBrowseSubjects(boolean doRotation) {
 		//Get a list of subjects that are valid for browsing.
 		@SuppressWarnings("unchecked")
 		List<VariableField> subjectFields = (List<VariableField>)record.getVariableFields(new String[]{"600", "610", "611", "630", "650", "690"});
@@ -3381,7 +3385,7 @@ public class MarcRecordDetails {
 						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()), fullSubject.toString());
 					}
 				}
-				if (baseSubject.length() > 0 && subdivisions.size() > 0){
+				if (baseSubject.length() > 0 && subdivisions.size() > 0 && doRotation){
 					//Do rotation of subjects
 					for (String curSubdivision : subdivisions){
 						StringBuffer rotatedField = new StringBuffer().append(curSubdivision).append(" -- ").append(baseSubject);
@@ -3547,5 +3551,15 @@ public class MarcRecordDetails {
 			}
 		}
 		return itemAvailability;
+	}
+
+	public String getPublicationLocation() {
+		String publicationLocation = getFirstFieldVal("260a");
+		return publicationLocation;
+	}
+	
+	public String getEContentPhysicalDescription(){
+		String physicalDescription = getFirstFieldVal("300ab");
+		return physicalDescription;
 	}
 }

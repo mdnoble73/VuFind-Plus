@@ -9,12 +9,12 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
  *
  */
 
@@ -94,70 +94,70 @@ class DBMaintenanceEContent extends Admin {
 	private function getSQLUpdates() {
 		global $configArray;
 		return array(
-      'initial_setup' => array(
-      	'title' => 'Setup eContent Database',
-      	'description' => 'Sets up eContent database',
-      	'dependencies' => array(),
-        'sql' => array(
-      		"DROP TABLE IF EXISTS econtent_item",
+			'initial_setup' => array(
+				'title' => 'Setup eContent Database',
+				'description' => 'Sets up eContent database',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS econtent_item",
 					"DROP TABLE IF EXISTS econtent_record",
-					"CREATE TABLE IF NOT EXISTS  econtent_item(" .
-					  "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " .
-					  "`filename` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'The filename of the eContent item if any', " .
-					  "`folder` VARCHAR(100) NOT NULL default '' COMMENT 'A folder containing a group of files for mp-3 files', " .
-					  "`acsId` VARCHAR(128) NULL COMMENT 'The uid of the book within the Adobe Content Server.', " .
-					  "`recordId` int(11) NOT NULL COMMENT 'The id of the record to attach the item to.', " .
-					  "`type` ENUM('epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle'), " .
-					  "`notes` VARCHAR(255) NOT NULL default '', " .
-					  "`addedBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if it was added automatically', " .
-					  "`date_added` LONG NOT NULL COMMENT 'The date the item was added', " .
-					  "`date_updated` LONG NOT NULL COMMENT 'The last time the item was changed', " .
-					  "`reviewdBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if not reviewed', " .
-					  "`reviewStatus` ENUM('Not Reviewed', 'Approved', 'Rejected')  NOT NULL default 'Not Reviewed', " .
-					  "`reviewDate` LONG  NULL COMMENT 'When the review took place.', " .
-					  "`reviewNotes` TEXT COMMENT 'Notes about the review'" .
+					"CREATE TABLE IF NOT EXISTS	econtent_item(" .
+						"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " .
+						"`filename` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'The filename of the eContent item if any', " .
+						"`folder` VARCHAR(100) NOT NULL default '' COMMENT 'A folder containing a group of files for mp-3 files', " .
+						"`acsId` VARCHAR(128) NULL COMMENT 'The uid of the book within the Adobe Content Server.', " .
+						"`recordId` int(11) NOT NULL COMMENT 'The id of the record to attach the item to.', " .
+						"`type` ENUM('epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle'), " .
+						"`notes` VARCHAR(255) NOT NULL default '', " .
+						"`addedBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if it was added automatically', " .
+						"`date_added` LONG NOT NULL COMMENT 'The date the item was added', " .
+						"`date_updated` LONG NOT NULL COMMENT 'The last time the item was changed', " .
+						"`reviewdBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if not reviewed', " .
+						"`reviewStatus` ENUM('Not Reviewed', 'Approved', 'Rejected')	NOT NULL default 'Not Reviewed', " .
+						"`reviewDate` LONG	NULL COMMENT 'When the review took place.', " .
+						"`reviewNotes` TEXT COMMENT 'Notes about the review'" .
 					") ENGINE = MYISAM COMMENT = 'EContent files that can be viewed within VuFind.'",
-					"CREATE TABLE IF NOT EXISTS  econtent_record(" .
-					  "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the e-pub file', " .
-					  "`cover` VARCHAR(255) NULL COMMENT 'The filename of the cover art if any', " .
-					  "`title` VARCHAR(255) NOT NULL default '', " .
-					  "`subTitle` VARCHAR(255) NOT NULL default '', " .
-					  "`accessType` ENUM('free', 'acs', 'singleUse') NOT NULL DEFAULT 'free' COMMENT 'Whether or not the Adobe Content Server should be checked before giving the user access to the file', " .
-					  "`availableCopies` INT NOT NULL default 1, " .
-					  "`onOrderCopies` INT NOT NULL default 0, " .
-					  "`author` VARCHAR(255) NULL, " .
-					  "`author2` TEXT NULL, " .
-					  "`description` TEXT, " .
-					  "`contents` TEXT, " .
-					  "`subject` TEXT NULL COMMENT 'A list of subjects separated by carriage returns', " .
-					  "`language` VARCHAR(255) NOT NULL default '', " .
-					  "`publisher` VARCHAR(255) NOT NULL default '', " .
-					  "`edition` VARCHAR(255) NOT NULL default '', " .
-					  "`isbn`  VARCHAR(255) NULL, " .
-					  "`issn`  VARCHAR(255) NULL, " .
-					  "`upc`  VARCHAR(255) NULL, " .
-					  "`lccn`  VARCHAR(255) NOT NULL default '', " .
-					  "`series`  VARCHAR(255) NOT NULL default '', " .
-					  "`topic` TEXT, " .
-					  "`genre` TEXT, " .
-					  "`region` TEXT, " .
-					  "`era`  VARCHAR(255) NOT NULL default '', " .
-					  "`target_audience` VARCHAR(255) NOT NULL default '', " .
-					  "`notes` TEXT, " .
-					  "`ilsId` VARCHAR(255) NULL, " .
-					  "`source` VARCHAR(50) NOT NULL default '' COMMENT 'Where the file was purchased or loaded from.', " .
-					  "`sourceUrl` VARCHAR(500) NULL COMMENT 'A link to the original file if known.', " .
-					  "`purchaseUrl` VARCHAR(500) NULL COMMENT 'A link to the url where a copy can be purchased if known.', " .
-					  "`publishDate` VARCHAR(100) NULL COMMENT 'The date the item was published', " .
-					  "`addedBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if it was added automatically', " .
-					  "`date_added` INT(11) NOT NULL COMMENT 'The date the item was added', " .
-					  "`date_updated` INT(11) COMMENT 'The last time the item was changed', " .
-					  "`reviewedBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if not reviewed', " .
-					  "`reviewStatus` ENUM('Not Reviewed', 'Approved', 'Rejected')  NOT NULL default 'Not Reviewed', " .
-					  "`reviewDate` INT(11) NULL COMMENT 'When the review took place.', " .
-					  "`reviewNotes` TEXT COMMENT 'Notes about the review', " .
-					  "`trialTitle` TINYINT NOT NULL default 0 COMMENT 'Whether or not the title was purchased outright or on a trial basis.', " .
-					  "`marcControlField` VARCHAR(100) NULL COMMENT 'The control field from the marc record to avoid importing duplicates.' " .
+					"CREATE TABLE IF NOT EXISTS	econtent_record(" .
+						"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the e-pub file', " .
+						"`cover` VARCHAR(255) NULL COMMENT 'The filename of the cover art if any', " .
+						"`title` VARCHAR(255) NOT NULL default '', " .
+						"`subTitle` VARCHAR(255) NOT NULL default '', " .
+						"`accessType` ENUM('free', 'acs', 'singleUse') NOT NULL DEFAULT 'free' COMMENT 'Whether or not the Adobe Content Server should be checked before giving the user access to the file', " .
+						"`availableCopies` INT NOT NULL default 1, " .
+						"`onOrderCopies` INT NOT NULL default 0, " .
+						"`author` VARCHAR(255) NULL, " .
+						"`author2` TEXT NULL, " .
+						"`description` TEXT, " .
+						"`contents` TEXT, " .
+						"`subject` TEXT NULL COMMENT 'A list of subjects separated by carriage returns', " .
+						"`language` VARCHAR(255) NOT NULL default '', " .
+						"`publisher` VARCHAR(255) NOT NULL default '', " .
+						"`edition` VARCHAR(255) NOT NULL default '', " .
+						"`isbn`	VARCHAR(255) NULL, " .
+						"`issn`	VARCHAR(255) NULL, " .
+						"`upc`	VARCHAR(255) NULL, " .
+						"`lccn`	VARCHAR(255) NOT NULL default '', " .
+						"`series`	VARCHAR(255) NOT NULL default '', " .
+						"`topic` TEXT, " .
+						"`genre` TEXT, " .
+						"`region` TEXT, " .
+						"`era`	VARCHAR(255) NOT NULL default '', " .
+						"`target_audience` VARCHAR(255) NOT NULL default '', " .
+						"`notes` TEXT, " .
+						"`ilsId` VARCHAR(255) NULL, " .
+						"`source` VARCHAR(50) NOT NULL default '' COMMENT 'Where the file was purchased or loaded from.', " .
+						"`sourceUrl` VARCHAR(500) NULL COMMENT 'A link to the original file if known.', " .
+						"`purchaseUrl` VARCHAR(500) NULL COMMENT 'A link to the url where a copy can be purchased if known.', " .
+						"`publishDate` VARCHAR(100) NULL COMMENT 'The date the item was published', " .
+						"`addedBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if it was added automatically', " .
+						"`date_added` INT(11) NOT NULL COMMENT 'The date the item was added', " .
+						"`date_updated` INT(11) COMMENT 'The last time the item was changed', " .
+						"`reviewedBy` INT(11) NOT NULL default -1 COMMENT 'The id of the user who added the item or -1 if not reviewed', " .
+						"`reviewStatus` ENUM('Not Reviewed', 'Approved', 'Rejected')	NOT NULL default 'Not Reviewed', " .
+						"`reviewDate` INT(11) NULL COMMENT 'When the review took place.', " .
+						"`reviewNotes` TEXT COMMENT 'Notes about the review', " .
+						"`trialTitle` TINYINT NOT NULL default 0 COMMENT 'Whether or not the title was purchased outright or on a trial basis.', " .
+						"`marcControlField` VARCHAR(100) NULL COMMENT 'The control field from the marc record to avoid importing duplicates.' " .
 					") ENGINE = MYISAM COMMENT = 'EContent records for titles that exist in VuFind, but not the ILS.'",
 
 
@@ -165,45 +165,45 @@ class DBMaintenanceEContent extends Admin {
 
 		),
 
-			'eContentHolds'  => array(
+			'eContentHolds'	=> array(
 				'title' => 'eContent Holds table creation',
 				'description' => 'Sets up tables for handling eContent holds',
 				'dependencies' => array(),
 				'sql' => array(
 					"DROP TABLE IF EXISTS econtent_hold",
-					"CREATE TABLE IF NOT EXISTS  econtent_hold(" .
-					  "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent hold', " .
-					  "`recordId` int(11) NOT NULL COMMENT 'The id of the record being placed on hold', " .
-					  "`datePlaced` LONG NOT NULL COMMENT 'When the hold was placed', " .
-					  "`dateUpdated` LONG NULL COMMENT 'When the hold last changed status', " .
-					  "`userId` int(11) NOT NULL COMMENT 'The user who the hold is for', " .
-					  "`status` ENUM('active', 'suspended', 'cancelled', 'filled', 'available', 'abandoned'), " .
-					  "`reactivateDate` int(11) NULL COMMENT 'When the item should be reactivated.',  " .
-					  "`noticeSent` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not a notice has been sent.' " .
+					"CREATE TABLE IF NOT EXISTS	econtent_hold(" .
+						"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent hold', " .
+						"`recordId` int(11) NOT NULL COMMENT 'The id of the record being placed on hold', " .
+						"`datePlaced` LONG NOT NULL COMMENT 'When the hold was placed', " .
+						"`dateUpdated` LONG NULL COMMENT 'When the hold last changed status', " .
+						"`userId` int(11) NOT NULL COMMENT 'The user who the hold is for', " .
+						"`status` ENUM('active', 'suspended', 'cancelled', 'filled', 'available', 'abandoned'), " .
+						"`reactivateDate` int(11) NULL COMMENT 'When the item should be reactivated.',	" .
+						"`noticeSent` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not a notice has been sent.' " .
 					") ENGINE = MYISAM COMMENT = 'EContent files that can be viewed within VuFind.'",
 		),
 		),
-			'eContentCheckout'  => array(
+			'eContentCheckout'	=> array(
 				'title' => 'eContent Checkout table',
 				'description' => 'Sets up tables for handling eContent checked out items',
 				'dependencies' => array(),
 				'sql' => array(
 					"DROP TABLE IF EXISTS econtent_checkout",
-					"CREATE TABLE IF NOT EXISTS  econtent_checkout(" .
-					  "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent checkout', " .
-					  "`recordId` int(11) NOT NULL COMMENT 'The id of the record being checked out', " .
-					  "`dateCheckedOut` int(11) NOT NULL COMMENT 'When the item was checked out', " .
-					  "`dateDue` int(11) NOT NULL COMMENT 'When the item needs to be returned', " .
-					  "`dateReturned` int(11) NULL COMMENT 'When the item was returned', " .
-					  "`userId` int(11) NOT NULL COMMENT 'The user who the hold is for', " .
-					  "`status` ENUM('out', 'returned'), " .
-					  "`renewalCount` int(11) COMMENT 'The number of times the item has been renewed.', " .
-					  "`acsDownloadLink` VARCHAR(512) COMMENT 'The link to use when downloading an acs protected item', " .
-					  "`dateFulfilled` int(11) NULL COMMENT 'When the item was fulfilled in the ACS server.' " .
+					"CREATE TABLE IF NOT EXISTS	econtent_checkout(" .
+						"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent checkout', " .
+						"`recordId` int(11) NOT NULL COMMENT 'The id of the record being checked out', " .
+						"`dateCheckedOut` int(11) NOT NULL COMMENT 'When the item was checked out', " .
+						"`dateDue` int(11) NOT NULL COMMENT 'When the item needs to be returned', " .
+						"`dateReturned` int(11) NULL COMMENT 'When the item was returned', " .
+						"`userId` int(11) NOT NULL COMMENT 'The user who the hold is for', " .
+						"`status` ENUM('out', 'returned'), " .
+						"`renewalCount` int(11) COMMENT 'The number of times the item has been renewed.', " .
+						"`acsDownloadLink` VARCHAR(512) COMMENT 'The link to use when downloading an acs protected item', " .
+						"`dateFulfilled` int(11) NULL COMMENT 'When the item was fulfilled in the ACS server.' " .
 					") ENGINE = MYISAM COMMENT = 'EContent files that can be viewed within VuFind.'",
 		),
 		),
-		'eContentCheckout_1'  => array(
+		'eContentCheckout_1'	=> array(
 			'title' => 'eContent Checkout Update 1',
 			'description' => 'Updates to checkout to include additional information related to ACS downloads.',
 			'dependencies' => array(),
@@ -214,13 +214,13 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'eContentHistory'  => array(
+		'eContentHistory'	=> array(
 			'title' => 'eContent History table',
 			'description' => 'Sets up tables for handling history of eContent',
 			'dependencies' => array(),
 			'sql' => array(
 					"DROP TABLE IF EXISTS econtent_history;",
-					"CREATE TABLE IF NOT EXISTS  econtent_history(".
+					"CREATE TABLE IF NOT EXISTS	econtent_history(".
 						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 						"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
 						"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
@@ -230,13 +230,13 @@ class DBMaintenanceEContent extends Admin {
 					") ENGINE = MYISAM COMMENT = 'The econtent reading history for patrons' ",
 		),
 		),
-		'eContentRating'  => array(
+		'eContentRating'	=> array(
 			'title' => 'eContent Rating',
 			'description' => 'Sets up tables for handling rating of eContent',
 			'dependencies' => array(),
 			'sql' => array(
 					"DROP TABLE IF EXISTS econtent_rating;",
-					"CREATE TABLE IF NOT EXISTS  econtent_rating(".
+					"CREATE TABLE IF NOT EXISTS	econtent_rating(".
 						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 						"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
 						"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
@@ -246,7 +246,7 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'eContentRecord_1'  => array(
+		'eContentRecord_1'	=> array(
 			'title' => 'eContent Record Update 1',
 			'description' => 'Adds fields for collection and formatted marc record',
 			'dependencies' => array(),
@@ -258,7 +258,7 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'eContentRecord_2'  => array(
+		'eContentRecord_2'	=> array(
 			'title' => 'eContent Record Update 2',
 			'description' => 'Adds status to allow ',
 			'dependencies' => array(),
@@ -267,7 +267,7 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'eContentRecord_3'  => array(
+		'eContentRecord_3'	=> array(
 			'title' => 'eContent Record Update 3',
 			'description' => 'Increase length of isbn field ',
 			'dependencies' => array(),
@@ -276,25 +276,35 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'eContentRecord_4'  => array(
+		'eContentRecord_4'	=> array(
 			'title' => 'eContent Record Update 4',
 			'description' => 'Adds external accessType ',
 			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE econtent_record CHANGE accessType accessType ENUM('free', 'acs', 'singleUse', 'external') DEFAULT 'acs'",
-		),
+			),
 		),
 
-		'eContentRecord_5'  => array(
+		'eContentRecord_5'	=> array(
 			'title' => 'eContent Record Update 5',
 			'description' => 'Adds externalId ',
 			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE econtent_record ADD externalId VARCHAR(50) NULL",
-		),
+			),
 		),
 
-		'notices_1'  => array(
+		'eContentRecord_6'	=> array(
+			'title' => 'eContent Record Update 6',
+			'description' => 'Adds publication location and physical description ',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE econtent_record ADD publishLocation VARCHAR(100) NULL",
+				"ALTER TABLE econtent_record ADD physicalDescription VARCHAR(100) NULL",
+			),
+		),
+
+		'notices_1'	=> array(
 			'title' => 'eContent Notices Update 1',
 			'description' => 'Adds notices fields so each notice is tracked explicitly',
 			'dependencies' => array(),
@@ -305,10 +315,10 @@ class DBMaintenanceEContent extends Admin {
 				"ALTER TABLE econtent_hold ADD holdAbandonedNoticeSent TINYINT NOT NULL DEFAULT 0",
 				"ALTER TABLE econtent_checkout ADD returnReminderNoticeSent TINYINT NOT NULL DEFAULT 0",
 				"ALTER TABLE econtent_checkout ADD recordExpirationNoticeSent TINYINT NOT NULL DEFAULT 0",
-		),
+			),
 		),
 
-		'eContentItem_1'  => array(
+		'eContentItem_1'	=> array(
 			'title' => 'eContent Item Update 1',
 			'description' => 'Updates to allow external links to be added to the system',
 			'dependencies' => array(),
@@ -318,7 +328,7 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 
-		'eContentItem_2'  => array(
+		'eContentItem_2'	=> array(
 			'title' => 'eContent Item Update 2',
 			'description' => 'Allow items to be restricted by library system',
 			'dependencies' => array(),
@@ -330,7 +340,7 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 
-		'eContentItem_3'  => array(
+		'eContentItem_3'	=> array(
 			'title' => 'eContent Item Update 3',
 			'description' => 'Add Overdrive item capabilities',
 			'dependencies' => array(),
@@ -347,15 +357,15 @@ class DBMaintenanceEContent extends Admin {
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS overdrive_item",
-				"CREATE TABLE IF NOT EXISTS  overdrive_item(" .
-					  "`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " .
-					  "`recordId` int(11) NOT NULL COMMENT 'The record id that this record belongs to', " .
-					  "`format` VARCHAR(100) NOT NULL default '' COMMENT 'A description of the format from overdrive', " .
-					  "`formatId` int(11) NULL COMMENT 'The id of the format ', " .
-					  "`size` VARCHAR(25) NOT NULL COMMENT 'A description of the size of the file(s) to be downloaded', " .
-					  "`available` TINYINT COMMENT 'Whether or not the format is available for immediate usage.', " .
-					  "`notes` VARCHAR(255) NOT NULL default '', " .
-					  "`lastLoaded` int(11) NOT NULL " .
+				"CREATE TABLE IF NOT EXISTS	overdrive_item(" .
+						"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " .
+						"`recordId` int(11) NOT NULL COMMENT 'The record id that this record belongs to', " .
+						"`format` VARCHAR(100) NOT NULL default '' COMMENT 'A description of the format from overdrive', " .
+						"`formatId` int(11) NULL COMMENT 'The id of the format ', " .
+						"`size` VARCHAR(25) NOT NULL COMMENT 'A description of the size of the file(s) to be downloaded', " .
+						"`available` TINYINT COMMENT 'Whether or not the format is available for immediate usage.', " .
+						"`notes` VARCHAR(255) NOT NULL default '', " .
+						"`lastLoaded` int(11) NOT NULL " .
 					") ENGINE = MYISAM COMMENT = 'Cached information about overdrive items within VuFind'",
 				'ALTER TABLE `overdrive_item` ADD INDEX `RecordId` ( `recordId` ) ',
 			),
@@ -384,29 +394,29 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 
-		'eContentWishList'  => array(
+		'eContentWishList'	=> array(
 			'title' => 'eContent Wishlist',
 			'description' => 'Create table to allow econtent to be added to a user\'s wishlist if no items exits for the record.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_wishlist;",
-				"CREATE TABLE IF NOT EXISTS  econtent_wishlist(".
+				"CREATE TABLE IF NOT EXISTS	econtent_wishlist(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
 					"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
 					"`dateAdded` INT NOT NULL COMMENT 'The date the record was added to the wishlist', ".
 					"`status` ENUM('active', 'deleted', 'filled') NOT NULL COMMENT 'The status of the item in the wishlist' ".
 				") ENGINE = MYISAM COMMENT = 'The ratings for eContent records' ",
-		),
+			),
 		),
 
-		'acsLog'  => array(
+		'acsLog'	=> array(
 			'title' => 'ACS Log',
-			'description' => 'Create table to store  log of ACS transactions that have been returned by the server.',
+			'description' => 'Create table to store	log of ACS transactions that have been returned by the server.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS acs_log;",
-				"CREATE TABLE IF NOT EXISTS  acs_log(".
+				"CREATE TABLE IF NOT EXISTS	acs_log(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`acsTransactionId` VARCHAR(50) NULL, ".
 					"`userAcsId` VARCHAR(50) NULL, ".
@@ -414,16 +424,16 @@ class DBMaintenanceEContent extends Admin {
 					"`returned` TINYINT NOT NULL, ".
 					"`transactionDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ".
 				") ENGINE = MYISAM COMMENT = 'A trasaction log for transactions sent by the ACS server.' ",
-		),
+			),
 		),
 
-		'econtent_marc_import'  => array(
+		'econtent_marc_import'	=> array(
 			'title' => 'EContent Marc Import Log',
 			'description' => 'Create table to store log of Marc File Imports.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_marc_import;",
-				"CREATE TABLE IF NOT EXISTS  econtent_marc_import(".
+				"CREATE TABLE IF NOT EXISTS	econtent_marc_import(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`filename` VARCHAR(255) NULL, ".
 					"`dateStarted` INT(11) NOT NULL, ".
@@ -431,19 +441,20 @@ class DBMaintenanceEContent extends Admin {
 					"`status` ENUM('running', 'finished') NOT NULL, ".
 					"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
 				") ENGINE = MYISAM COMMENT = 'A trasaction log for marc files imported into the database.' ",
-		),
+			),
 		),
 
-		'econtent_marc_import_1'  => array(
+		'econtent_marc_import_1'	=> array(
 			'title' => 'EContent Marc Import Update 1',
 			'description' => 'Updates Log to include number of records that had errors with any error messages.',
 			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE econtent_marc_import ADD COLUMN recordsWithErrors INT(11) NOT NULL DEFAULT 0",
 				"ALTER TABLE econtent_marc_import ADD COLUMN errors LONGTEXT",
+			),
 		),
-		),
-		'econtent_marc_import_2'  => array(
+
+		'econtent_marc_import_2'	=> array(
 			'title' => 'EContent Marc Import Update 2',
 			'description' => 'Updates Log to include supplemental file and source.',
 			'dependencies' => array(),
@@ -451,16 +462,16 @@ class DBMaintenanceEContent extends Admin {
 				"ALTER TABLE econtent_marc_import ADD COLUMN supplementalFilename VARCHAR(255)",
 				"ALTER TABLE econtent_marc_import ADD COLUMN source VARCHAR(100)",
 				"ALTER TABLE econtent_marc_import ADD COLUMN accessType VARCHAR(100)",
-		),
+			),
 		),
 
-		'econtent_attach'  => array(
+		'econtent_attach'	=> array(
 			'title' => 'EContent Attachment Log',
 			'description' => 'Create table to store log of attaching eContent to records.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_attach;",
-				"CREATE TABLE IF NOT EXISTS  econtent_attach(".
+				"CREATE TABLE IF NOT EXISTS	econtent_attach(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`sourcePath` VARCHAR(255) NULL, ".
 					"`dateStarted` INT(11) NOT NULL, ".
@@ -468,7 +479,7 @@ class DBMaintenanceEContent extends Admin {
 					"`status` ENUM('running', 'finished') NOT NULL, ".
 					"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
 				") ENGINE = MYISAM COMMENT = 'A trasaction log for eContent that has been added to records.' ",
-		),
+			),
 		),
 
 		'econtent_attach_update_1' => array(
@@ -481,13 +492,13 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'overdrive_record_cache'  => array(
+		'overdrive_record_cache'	=> array(
 			'title' => 'OverDrive Record Cache',
 			'description' => 'Create table to cache page information from OverDrive.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS overdrive_record_cache;",
-				"CREATE TABLE IF NOT EXISTS  overdrive_record_cache(".
+				"CREATE TABLE IF NOT EXISTS	overdrive_record_cache(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`sourceUrl` VARCHAR(512) NULL, ".
 					"`pageContents` LONGTEXT, ".
@@ -496,13 +507,13 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'overdrive_account_cache'  => array(
+		'overdrive_account_cache'	=> array(
 			'title' => 'OverDrive Account Cache',
 			'description' => 'Create table to cache account pages from OverDrive.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS overdrive_account_cache;",
-				"CREATE TABLE IF NOT EXISTS  overdrive_account_cache(".
+				"CREATE TABLE IF NOT EXISTS	overdrive_account_cache(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`userId` INT(11) NULL, ".
 					"`holdPage` LONGTEXT, ".
@@ -521,7 +532,7 @@ class DBMaintenanceEContent extends Admin {
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS econtent_record_detection_settings;",
-				"CREATE TABLE IF NOT EXISTS  econtent_record_detection_settings(".
+				"CREATE TABLE IF NOT EXISTS	econtent_record_detection_settings(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`fieldSpec` VARCHAR(100), ".
 					"`valueToMatch` VARCHAR(100), ".
@@ -548,9 +559,9 @@ class DBMaintenanceEContent extends Admin {
 					numberOfHolds INT NOT NULL DEFAULT 0,
 					libraryId INT NOT NULL
 				)",
-				"ALTER TABLE econtent_record ADD COLUMN itemLevelOwnership TINYINT NOT NULL default 0 COMMENT 'If Item level ownership is set on, ownership will be determined at the item level with one copy owned per item.  Library who owns the title is set based on libraryId in items table.  Otherwise ownership is determined based on content_availability table'",
+				"ALTER TABLE econtent_record ADD COLUMN itemLevelOwnership TINYINT NOT NULL default 0 COMMENT 'If Item level ownership is set on, ownership will be determined at the item level with one copy owned per item.	Library who owns the title is set based on libraryId in items table.	Otherwise ownership is determined based on content_availability table'",
 				"UPDATE econtent_record SET accessType = 'external' WHERE accessType = 'free' and source != 'Gutenberg'",
-				"UPDATE econtent_record SET itemLevelOwnership = 1 WHERE (accessType = 'external') and source != 'OverDrive' and source != 'Gutenberg' ORDER BY `econtent_record`.`externalId`  DESC",
+				"UPDATE econtent_record SET itemLevelOwnership = 1 WHERE (accessType = 'external') and source != 'OverDrive' and source != 'Gutenberg' ORDER BY `econtent_record`.`externalId`	DESC",
 				"ALTER TABLE econtent_item CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive', 'external_web', 'external_ebook', 'external_eaudio', 'external_emusic', 'external_evideo', 'text', 'gifs', 'itunes' ) NOT NULL",
 				"ALTER TABLE econtent_item ADD COLUMN size INT NOT NULL default 0",
 				"ALTER TABLE econtent_item ADD COLUMN externalFormat VARCHAR(50) NULL",
@@ -567,7 +578,7 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 
-		'remove_gale_pdfs'  => array(
+		'remove_gale_pdfs'	=> array(
 			'title' => 'Remove Gale PDF Files',
 			'description' => 'Remove Gale PDF files from the catalog.',
 			'dependencies' => array(),
@@ -577,13 +588,13 @@ class DBMaintenanceEContent extends Admin {
 		),
 		),
 
-		'econtent_file_packaging_log'  => array(
+		'econtent_file_packaging_log'	=> array(
 			'title' => 'Create eContent Packaging Log',
 			'description' => 'Create eContent Packaging Log',
 			'dependencies' => array(),
 			'database' => 'dclecontent',
 			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS  econtent_file_packaging_log(".
+				"CREATE TABLE IF NOT EXISTS	econtent_file_packaging_log(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 					"`filename` VARCHAR(255), ".
 					"`libraryFilename` VARCHAR(255), ".
@@ -740,9 +751,9 @@ class DBMaintenanceEContent extends Admin {
 		if (!$tableFound){
 			//Create the table to mark which updates have been run.
 			mysql_query("CREATE TABLE db_update (" .
-                    "update_key VARCHAR( 100 ) NOT NULL PRIMARY KEY ," .
-                    "date_run TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" .
-                    ") ENGINE = InnoDB");
+										"update_key VARCHAR( 100 ) NOT NULL PRIMARY KEY ," .
+										"date_run TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" .
+										") ENGINE = InnoDB");
 		}
 	}
 
