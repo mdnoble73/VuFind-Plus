@@ -549,7 +549,7 @@ class Location extends DB_DataObject
 					'close' => ltrim($hours->close, '0'),
 					'closed' => $hours->closed ? true : false,
 					'openFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->open))),
-					'closeFormatted' => ($hours->open == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
+					'closeFormatted' => ($hours->close == '12:00' ? 'Noon' : date("g:i A", strtotime($hours->close)))
 				);
 			}
 		}
