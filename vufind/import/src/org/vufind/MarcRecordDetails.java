@@ -3161,9 +3161,13 @@ public class MarcRecordDetails {
 				Subfield subFieldB = oh37.getSubfield('b');
 				Subfield subFieldC = oh37.getSubfield('c');
 				if (subFieldB != null && subFieldC != null){
-					String subfieldBVal = subFieldB.getData();
-					String subfieldCVal = subFieldC.getData();
+					String subfieldBVal = subFieldB.getData().trim();
+					String subfieldCVal = subFieldC.getData().trim();
 					DetectionSettings tempDetectionSettings = new DetectionSettings();
+					//Normalize Overdrive since we do specific things with that. 
+					if (subfieldBVal.matches("(?i)overdrive.*")){
+						subfieldBVal = "OverDrive";
+					}
 					tempDetectionSettings.setSource(subfieldBVal);
 					if (subfieldCVal.equalsIgnoreCase("External")){
 						tempDetectionSettings.setAccessType("external");
