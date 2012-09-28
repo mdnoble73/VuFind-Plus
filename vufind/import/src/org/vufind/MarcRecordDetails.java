@@ -3136,8 +3136,9 @@ public class MarcRecordDetails {
 			//logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Check the 037 field first
-			DataField oh37 = (DataField)record.getVariableField("037");
-			if (oh37 != null){
+			@SuppressWarnings("unchecked")
+			List<DataField> oh37Fields = (List<DataField>)record.getVariableFields("037");
+			for (DataField oh37 : oh37Fields){
 				Subfield subFieldB = oh37.getSubfield('b');
 				Subfield subFieldC = oh37.getSubfield('c');
 				if (subFieldB != null && subFieldC != null){
