@@ -27,6 +27,7 @@
 </div>
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
 	<ul>
+		<li><a href="http://www.gcpld.org" >{translate text='Library Home Page'}</a></li>
 		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
 		<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
 		{if isset($illLink)}
