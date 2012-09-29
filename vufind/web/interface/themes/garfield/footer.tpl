@@ -39,7 +39,10 @@
 		<li><a href="http://gcpld.org/locations/library-district-administration">{translate text='Contact Us'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<div class="clearer"></div>
+<div id="copyright">
+	<a href="#" class='mobile-view'>{translate text="Go to Mobile View"}</a>
+</div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
