@@ -33,7 +33,9 @@
 		{if $user->hasRole('opacAdmin')}
 			<div class="adminMenuLink {if $action == "IPAddresses"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/IPAddresses">IP Addresses</a></div>
 		{/if}
-		<div class="adminMenuLink {if $action == "ListWidgets"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
+		{if $user->hasRole('opacAdmin')}
+			<div class="adminMenuLink {if $action == "ListWidgets"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
+		{/if}
 		{if $user->hasRole('opacAdmin')}
 			<div class="adminMenuLink {if $action == "UserSuggestions"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 			<div class="adminMenuLink {if $action == "BookStores"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
@@ -87,55 +89,57 @@
 	{/if}
 	
 	{if $user && $user->hasRole('genealogyContributor')}
-	{assign var="curSection" value=$curSection+1}
-	<h4><a href="#">Genealogy</a></h4>
-	<div class="sidegroupContents">	
-			<div class="adminMenuLink{if $action == "GenealogyImport"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/GenealogyImport">Import Information</a></div>
-			<div class="adminMenuLink{if $action == "GenealogyFixDates"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/GenealogyFixDates">Fix Dates</a></div>
-	</div>
-	{/if}
-	
-	{if $user && $user->hasRole('opacAdmin')}
-	{assign var="curSection" value=$curSection+1}
-	<h4><a href="#">Editorial Reviews</a></h4>
-	<div class="sidegroupContents">		
-		<div class="adminMenuLink{if $action == "Edit" && $module == "EditorialReview"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EditorialReview/Edit">New Review</a></div>
-		<div class="adminMenuLink{if $action == "Search" && $module == "EditorialReview"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EditorialReview/Search">Search Existing Reviews</a></div>
-	</div>
-	
-	{assign var="curSection" value=$curSection+1}
-	<h4><a href="#">Reports</a></h4>
-	<div class="sidegroupContents">		
-		<div class="adminMenuLink{if $action == "ReportPurchase"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
-		<div class="adminMenuLink{if $action == "ReportExternalLinks"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
-		<div class="adminMenuLink{if $action == "ReportPageViewsLocation"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPageViewsLocation">Usage By Location</a></div>
-	</div>
-	{/if}
-	
-	{if $user && ($user->hasRole('epubAdmin') || $user->hasRole('cataloging'))}
-	{assign var="curSection" value=$curSection+1}
-	<h4><a href="#">eContent Reports</a></h4>
-	<div class="sidegroupContents">
-		<div id="econtentReportMenu">
-			<div class="adminMenuLink{if $action == "EContentSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentSummary">Collection Summary</a></div>
-			<div class="adminMenuLink{if $action == "EContentCollection"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentCollection">Collection Details</a></div>
-			{if $user->hasRole('epubAdmin')}
-			<div class="adminMenuLink{if $action == "EContentUsage"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentUsage">Usage Statistics</a></div>
-			{/if}
-			<div class="adminMenuLink{if $action == "ItemlessEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/ItemlessEContent">Itemless eContent</a></div>
-			<div class="adminMenuLink{if $action == "EContentPurchaseAlert"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentPurchaseAlert">Purchase Alert</a></div>
-			<div class="adminMenuLink{if $action == "EContentTrialRecords"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentTrialRecords">Trial Records</a></div>
-			<div class="adminMenuLink{if $action == "EContentWishList"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentWishList">Wish List</a></div>
-			<div class="adminMenuLink{if $action == "ArchivedEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/ArchivedEContent">Archived eContent</a></div>
-			<div class="adminMenuLink{if $action == "DeletedEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/DeletedEContent">Deleted eContent</a></div>
-			<div class="adminMenuLink{if $action == "EContentImportSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentImportSummary">eContent Import Summary</a></div>
-			<div class="adminMenuLink{if $action == "EContentImportDetails"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentImportDetails">eContent Import Details</a></div>
-			{if $showPackagingDetailsReport}
-				<div class="adminMenuLink{if $action == "PackagingSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/PackagingSummary">ACS Packaging Summary</a></div>
-				<div class="adminMenuLink{if $action == "PackagingDetails"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/PackagingDetails">ACS Packaging Details</a></div>
-			{/if}
+		{assign var="curSection" value=$curSection+1}
+		<h4><a href="#">Genealogy</a></h4>
+		<div class="sidegroupContents">	
+				<div class="adminMenuLink{if $action == "GenealogyImport"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/GenealogyImport">Import Information</a></div>
+				<div class="adminMenuLink{if $action == "GenealogyFixDates"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/GenealogyFixDates">Fix Dates</a></div>
 		</div>
-	</div>
+	{/if}
+	
+	{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+		{assign var="curSection" value=$curSection+1}
+		<h4><a href="#">Editorial Reviews</a></h4>
+		<div class="sidegroupContents">		
+			<div class="adminMenuLink{if $action == "Edit" && $module == "EditorialReview"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EditorialReview/Edit">New Review</a></div>
+			<div class="adminMenuLink{if $action == "Search" && $module == "EditorialReview"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EditorialReview/Search">Search Existing Reviews</a></div>
+		</div>
+		
+		{assign var="curSection" value=$curSection+1}
+		<h4><a href="#">Reports</a></h4>
+		<div class="sidegroupContents">		
+			<div class="adminMenuLink{if $action == "ReportPurchase"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
+			<div class="adminMenuLink{if $action == "ReportExternalLinks"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
+			<div class="adminMenuLink{if $action == "ReportPageViewsLocation"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPageViewsLocation">Usage By Location</a></div>
+		</div>
+	{/if}
+	
+	{if $user && ($user->hasRole('epubAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryAdmin'))}
+		{assign var="curSection" value=$curSection+1}
+		<h4><a href="#">eContent Reports</a></h4>
+		<div class="sidegroupContents">
+			<div id="econtentReportMenu">
+				<div class="adminMenuLink{if $action == "EContentSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentSummary">Collection Summary</a></div>
+				<div class="adminMenuLink{if $action == "EContentCollection"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentCollection">Collection Details</a></div>
+				{if $user->hasRole('epubAdmin')}
+				<div class="adminMenuLink{if $action == "EContentUsage"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentUsage">Usage Statistics</a></div>
+				{/if}
+				<div class="adminMenuLink{if $action == "ItemlessEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/ItemlessEContent">Itemless eContent</a></div>
+				<div class="adminMenuLink{if $action == "EContentPurchaseAlert"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentPurchaseAlert">Purchase Alert</a></div>
+				<div class="adminMenuLink{if $action == "EContentTrialRecords"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentTrialRecords">Trial Records</a></div>
+				<div class="adminMenuLink{if $action == "EContentWishListReport"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentWishListReport">Wish List</a></div>
+				{if $user->hasRole('epubAdmin')}
+					<div class="adminMenuLink{if $action == "ArchivedEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/ArchivedEContent">Archived eContent</a></div>
+					<div class="adminMenuLink{if $action == "DeletedEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/DeletedEContent">Deleted eContent</a></div>
+					<div class="adminMenuLink{if $action == "EContentImportSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentImportSummary">eContent Import Summary</a></div>
+					<div class="adminMenuLink{if $action == "EContentImportDetails"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/EContentImportDetails">eContent Import Details</a></div>
+				{/if}
+				{if $showPackagingDetailsReport && $user->hasRole('epubAdmin')}
+					<div class="adminMenuLink{if $action == "PackagingSummary"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/PackagingSummary">ACS Packaging Summary</a></div>
+					<div class="adminMenuLink{if $action == "PackagingDetails"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/PackagingDetails">ACS Packaging Details</a></div>
+				{/if}
+			</div>
+		</div>
 	{/if}
 </div>
 {/strip}

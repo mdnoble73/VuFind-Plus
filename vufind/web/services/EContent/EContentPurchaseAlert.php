@@ -30,7 +30,7 @@ class EContentPurchaseAlert extends Admin
 	{
 		global $interface;
 		global $configArray;
-		
+
 		$purchaseRatio = $configArray['EContent']['holdRatioForPurchase'];
 
 		$interface->setPageTitle('eContent Purchase Alert');
@@ -66,7 +66,7 @@ class EContentPurchaseAlert extends Admin
 		if (isset($_REQUEST['exportToExcel'])) {
 			$this->exportToExcel($recordsToPurchase);
 		}
-		
+
 		$interface->setTemplate('econtentPurchaseAlert.tpl');
 		$interface->display('layout.tpl');
 	}
@@ -100,7 +100,7 @@ class EContentPurchaseAlert extends Admin
 		$a=4;
 		//Loop Through The Report Data
 		foreach ($recordsToPurchase as $recordToPurchase) {
-				
+
 			$objPHPExcel->setActiveSheetIndex(0)
 				->setCellValue('A'.$a, $recordToPurchase->id)
 				->setCellValue('B'.$a, $recordToPurchase->title)
@@ -119,8 +119,8 @@ class EContentPurchaseAlert extends Admin
 		$objPHPExcel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
-			
-			
+
+
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Purchase Alert');
 
@@ -136,8 +136,8 @@ class EContentPurchaseAlert extends Admin
 		$objWriter->save('php://output');
 		exit;
 	}
-	
+
 	function getAllowableRoles(){
-		return array('epubAdmin');
+		return array('epubAdmin', 'libraryAdmin', 'opacAdmin');
 	}
 }

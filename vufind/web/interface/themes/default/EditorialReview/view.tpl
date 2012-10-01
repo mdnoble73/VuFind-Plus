@@ -7,10 +7,12 @@
 	
 	<div id="main-content">
 		<h1>Editorial Review: {$editorialReview->title}</h1>
-		{if $user && $user->hasRole('epubAdmin')}
+		{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') )}
 		<div id='actions'>
 			<div class='button'><a href='{$path}/EditorialReview/{$editorialReview->editorialReviewId}/Edit'>Edit</a></div>
+			{if $user->hasRole('opacAdmin')}
 			<div class='button'><a href='{$path}/EditorialReview/{$editorialReview->editorialReviewId}/Delete' onclick="return confirm('Are you sure you want to delete this Editorial Review?');">Delete</a></div>
+			{/if}
 		</div>
 		{/if}
 		

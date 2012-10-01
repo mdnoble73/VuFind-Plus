@@ -33,9 +33,9 @@ class Search extends Admin {
 		global $configArray;
 
 		$results = array();
-		
+
 		$editorialReview = new EditorialReview();
-		
+
 		$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 		$recordsPerPage = 20;
 		$searchUrl = $configArray['Site']['path'] . '/EditorialReview/Search';
@@ -75,6 +75,6 @@ class Search extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('opacAdmin', 'libraryAdmin');
 	}
 }
