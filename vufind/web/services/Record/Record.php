@@ -57,7 +57,7 @@ class Record extends Action
 		global $configArray;
 		global $library;
 		global $timer;
-		$logger = new Logger();
+		global $logger;
 
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);

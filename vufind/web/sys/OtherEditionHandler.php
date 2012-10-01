@@ -82,7 +82,7 @@ class OtherEditionHandler{
 
 		// Print Debug code
 		if ($configArray['System']['debug']) {
-			$logger = new Logger();
+			global $logger;
 			$logger->log("<pre>XISBN: $url</pre>", PEAR_LOG_INFO);
 		}
 
@@ -134,7 +134,7 @@ class OtherEditionHandler{
 
 		// Print Debug code
 		if ($configArray['System']['debug']) {
-			$logger = new Logger();
+			global $logger;
 			$logger->log("<pre>XISSN: $url</pre>", PEAR_LOG_INFO);
 		}
 

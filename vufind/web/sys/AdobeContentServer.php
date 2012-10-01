@@ -193,7 +193,7 @@ class AdobeContentServer
 
 	static function packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
 			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
 			//Copy the file to the ftp service
@@ -247,7 +247,7 @@ class AdobeContentServer
 		global $configArray;
 		$copied = false;
 
-		$logger = new Logger();
+		global $logger;
 		$destinationFilename = "{$itemId}.{$extension}";
 		$packagingFTP = $configArray['EContent']['packagingFTPServer'];
 		$packagingFTPUser = $configArray['EContent']['packagingFTPUser'];
@@ -292,7 +292,7 @@ class AdobeContentServer
 	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
 		global $configArray;
 
-		$logger = new Logger();
+		global $logger;
 		$logger->log("packaging file $filename", PEAR_LOG_INFO);
 		$packageDoc = new DOMDocument('1.0', 'UTF-8');
 		$packageDoc->formatOutput = true;
@@ -343,7 +343,7 @@ class AdobeContentServer
 	}
 
 	static function addDistributionRights($acsId, $distributorId, $numAvailable){
-		$logger = new Logger();
+		global $logger;
 		$logger->log("Setting up distribution rights for acsid $acsId for distributor $distributorId", PEAR_LOG_INFO);
 		$distributionDoc = new DOMDocument('1.0', 'UTF-8');
 		$distributionDoc->formatOutput = true;

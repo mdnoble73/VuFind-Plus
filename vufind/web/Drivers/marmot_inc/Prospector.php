@@ -114,10 +114,10 @@ class Prospector{
 	 * @return Associative array with the record number in prospector and the list of libraries that own the title in prospector
 	 */
 	function getProspectorDetailsForLocalRecord($record){
-		//Disable prospector details for now. 
+		//Disable prospector details for now.
 		return false;
-		
-		$logger = new Logger();
+
+		global $logger;
 
 		//Check to see if one of our libraries has a copy in Prospector.
 		$shortId = substr($record['id'], 1, -1);

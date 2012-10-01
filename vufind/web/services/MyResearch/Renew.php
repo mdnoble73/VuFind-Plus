@@ -27,7 +27,7 @@ class Renew extends Action
 	{
 		global $configArray;
 		global $user;
-		$logger = new Logger();
+		global $logger;
 		$logger->log("Starting renew action", PEAR_LOG_INFO);
 
 		try {

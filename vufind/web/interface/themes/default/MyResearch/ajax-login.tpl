@@ -37,5 +37,5 @@
 			</div>
 		</form>
 	</div>
-	<script type="text/javascript">$('#username').focus();</script>
+	<script type="text/javascript">$('#username').focus().select();</script>
 </div>

@@ -36,7 +36,7 @@ require_once 'Drivers/Millennium.php';
 class EINetwork extends MillenniumDriver{
 	/**
 	 * Login with barcode and pin
-	 * 
+	 *
 	 * @see Drivers/Millennium::patronLogin()
 	 */
 	public function patronLogin($barcode, $pin)
@@ -44,7 +44,7 @@ class EINetwork extends MillenniumDriver{
 		global $configArray;
 		global $memcache;
 		global $timer;
-		
+
 		if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
 			//User is setting a pin for the first time.  Need to do an actual login rather than just checking patron dump
 			$header=array();
@@ -55,7 +55,7 @@ class EINetwork extends MillenniumDriver{
 			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
 			$header[] = "Accept-Language: en-us,en;q=0.5";
 			$cookie = tempnam ("/tmp", "CURLCOOKIE");
-			
+
 			$curl_connection = curl_init();
 			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
@@ -68,16 +68,16 @@ class EINetwork extends MillenniumDriver{
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
 			curl_setopt($curl_connection, CURLOPT_HEADER, false);
-			
+
 			//Go to the login page
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
-			
+
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			
+
 			//First post without the pin number
 			$post_data = array();
 			$post_data['submit.x']="35";
@@ -95,7 +95,7 @@ class EINetwork extends MillenniumDriver{
 			if (!preg_match('/Please enter your PIN/i', $sresult)){
 				PEAR::raiseError('Unable to register your new pin #.  Did not get to registration page.');
 			}
-			
+
 			//Now post with both pins
 			$post_data = array();
 			$post_items = array();
@@ -114,7 +114,7 @@ class EINetwork extends MillenniumDriver{
 			set_time_limit(15);
 			$sresult = curl_exec($curl_connection);
 			$post_data = array();
-			
+
 			unlink($cookie);
 			if (preg_match('/the information you submitted was invalid/i', $sresult)){
 				PEAR::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
@@ -132,16 +132,16 @@ class EINetwork extends MillenniumDriver{
 		if (strlen($patronDumpBarcode) < 14) { $patronDumpBarcode = ".p" . $patronDumpBarcode; }
 		$host=$configArray['OPAC']['patron_host'];
 		$apiurl = $host . "/PATRONAPI/$patronDumpBarcode/$pin/pintest";
-		
+
 		$api_contents = file_get_contents($apiurl);
 		$api_contents = trim(strip_tags($api_contents));
-	
+
 		$api_array_lines = explode("\n", $api_contents);
 		foreach ($api_array_lines as $api_line) {
 			$api_line_arr = explode("=", $api_line);
 			$api_data[trim($api_line_arr[0])] = trim($api_line_arr[1]);
 		}
-	
+
 		if (!isset($api_data['RETCOD'])){
 			$userValid = false;
 		}else if ($api_data['RETCOD'] == 0){
@@ -166,13 +166,13 @@ class EINetwork extends MillenniumDriver{
                 'username'  => $patronDump['RECORD_#'],
                 'firstname' => $firstname,
                 'lastname'  => $lastname,
-                'fullname'  => $Fullname,     //Added to array for possible display later. 
+                'fullname'  => $Fullname,     //Added to array for possible display later.
                 'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
                 'cat_password' => $pin,
 
                 'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
                 'major' => null,
-                'college' => null);		
+                'college' => null);
 			$timer->logTime("patron logged in successfully");
 			return $user;
 
@@ -182,7 +182,7 @@ class EINetwork extends MillenniumDriver{
 		}
 
 	}
-	
+
 	protected function _getLoginFormValues($patronInfo, $admin = false){
 		global $user;
 		$loginData = array();
@@ -197,12 +197,12 @@ class EINetwork extends MillenniumDriver{
 		$loginData['submit'] = 'submit';
 		return $loginData;
 	}
-	
+
 	protected function _getBarcode(){
 		global $user;
 		return $user->cat_username;
 	}
-	
+
 	protected function _getHoldResult($holdResultPage){
 		$hold_result = array();
 		//Get rid of header and footer information and just get the main content
@@ -228,11 +228,11 @@ class EINetwork extends MillenniumDriver{
 
 		return $hold_result;
 	}
-	
+
 	public function updatePatronInfo($patronId){
 		global $user;
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 
 		//Setup the call to Millennium
 		$id2= $patronId;
@@ -240,7 +240,7 @@ class EINetwork extends MillenniumDriver{
 		//$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
 
 		$this->_updateVuFindPatronInfo($patronId);
-		
+
 		//Update profile information
 		$extraPostInfo = array();
 		$extraPostInfo['tele1'] = $_REQUEST['phone'];
@@ -286,7 +286,7 @@ class EINetwork extends MillenniumDriver{
 
 		curl_close($curl_connection);
 		unlink($cookieJar);
-		
+
 		//$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
 
 		//Should get Patron Information Updated on success
@@ -303,7 +303,7 @@ class EINetwork extends MillenniumDriver{
 		}
 
 	}
-	
+
 	function updatePin(){
 		global $user;
 		global $configArray;
@@ -331,17 +331,17 @@ class EINetwork extends MillenniumDriver{
 		if ($pin1 != $pin2){
 			return "The pin numberdoes not match the confirmed number, please try again.";
 		}
-		
+
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 		$success = false;
 
 		$barcode = $this->_getBarcode();
 		$patronDump = $this->_getPatronDump($barcode);
-		
+
 		//Login to the site
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		
+
 		$curl_connection = curl_init($curl_url);
 		$header=array();
 		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
@@ -367,7 +367,7 @@ class EINetwork extends MillenniumDriver{
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
-		
+
 		//Issue a post request to update the pin
 		$post_data = array();
 		$post_data['pin']= $pin;
@@ -387,7 +387,7 @@ class EINetwork extends MillenniumDriver{
 
 		curl_close($curl_connection);
 		unlink($cookieJar);
-		
+
 		if ($sresult){
 			if (preg_match('/<FONT COLOR=RED SIZE= 2><EM>(.*?)</EM></FONT>/i', $sresult, $matches)){
 				return $matches[1];
@@ -401,9 +401,9 @@ class EINetwork extends MillenniumDriver{
 			return "Sorry, we could not update your pin number. Please try again later.";
 		}
 	}
-	
+
 	function selfRegister(){
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 
 		$firstName = $_REQUEST['firstName'];
@@ -455,7 +455,7 @@ class EINetwork extends MillenniumDriver{
 			$barcode = $matches[1];
 			return array('success' => true, 'barcode' => $barcode);
 		} else {
-			$logger = new Logger();
+			global $logger;
 			$logger->log("$sresult", PEAR_LOG_DEBUG);
 			return array('success' => false, 'barcode' => null);
 		}

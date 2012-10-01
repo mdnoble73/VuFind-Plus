@@ -51,7 +51,7 @@ class AttachEContent extends Admin
 				}
 				$commandToRun .= " source=\"" . $source . "\"";
 				
-				$logger = new Logger();
+				global $logger;
 				$logger->log("attaching eContent $commandToRun", PEAR_LOG_INFO);
 				//$commandToRun .= " > process.out 2> process.err < /dev/null &";
 				$handle = popen($commandToRun, 'r');

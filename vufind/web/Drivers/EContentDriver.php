@@ -1149,7 +1149,7 @@ class EContentDriver implements DriverInterface{
 
 	function returnRecord($id){
 		global $user;
-		$logger = new Logger();
+		global $logger;
 		//Get the item information for the record
 		require_once('sys/eContent/EContentCheckout.php');
 		$checkout = new EContentCheckout();

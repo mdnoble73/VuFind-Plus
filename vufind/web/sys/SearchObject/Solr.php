@@ -1650,7 +1650,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$xmlResult = $xsl->transformToXML($xml);
 			return $xmlResult;
 		}catch (Exception $e){
-			$logger = new Logger();
+			global $logger;
 			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
 			return "";
 		}

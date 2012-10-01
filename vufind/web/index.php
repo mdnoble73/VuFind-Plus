@@ -48,6 +48,9 @@ if (!$memcache->pconnect($host, $port, $timeout)) {
 }
 $timer->logTime("Initialize Memcache");
 
+global $logger;
+$logger = new Logger();
+
 //Cleanup method information so module, action, and id are set properly.
 //This ensures that we don't have to change the http-vufind.conf file when new types are added.
 //$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
@@ -805,7 +808,7 @@ function handlePEARError($error, $method = null){
 	5 => $baseError . $detailedServer . $detailedBacktrace
 	);
 
-	$logger = new Logger();
+	global $logger;
 	$logger->log($errorDetails, PEAR_LOG_ERR);
 
 	exit();
@@ -983,7 +986,7 @@ function formatRenewMessage($renew_message_data){
 	global $interface;
 	$interface->assign('renew_message_data', $renew_message_data);
 	$renew_message = $interface->fetch('Record/renew-results.tpl');
-	$logger = new Logger();
+	global $logger;
 	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
 
 	return $renew_message;

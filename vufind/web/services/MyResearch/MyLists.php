@@ -38,7 +38,7 @@ class MyLists extends Action
 		global $configArray;
 		global $interface;
 		global $user;
-		$logger = new Logger();
+		global $logger;
 
 		//Get all lists for the user
 		$tmpList = new User_list();

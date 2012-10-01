@@ -149,7 +149,7 @@ class OverDriveDriver {
 		if ($overDriveInfo == null){
 			$ch = curl_init();
 			if (!$ch){
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
 				$cart['message'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
 				return $cart;
@@ -219,7 +219,7 @@ class OverDriveDriver {
 			if ($overDriveInfo == null){
 				$ch = curl_init();
 				if (!$ch){
-					$logger = new Logger();
+					global $logger;
 					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
 					$wishlist['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
 					return $cart;
@@ -309,14 +309,14 @@ class OverDriveDriver {
 			if ($overDriveInfo == null){
 				$ch = curl_init();
 				if (!$ch){
-					$logger = new Logger();
+					global $logger;
 					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
 					$bookshelf['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
 					return $bookshelf;
 				}
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				if ($overDriveInfo == null){
-					$logger = new Logger();
+					global $logger;
 					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
 					$bookshelf['error'] = 'Sorry, we could not login to OverDrive, please try again in a few minutes.';
 					return $bookshelf;
@@ -386,7 +386,7 @@ class OverDriveDriver {
 				//Start a curl session
 				$ch = curl_init();
 				if (!$ch){
-					$logger = new Logger();
+					global $logger;
 					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
 					$holds['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
 					return $holds;
@@ -394,7 +394,7 @@ class OverDriveDriver {
 				//Login to overdrive
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				if ($overDriveInfo == null){
-					$logger = new Logger();
+					global $logger;
 					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
 					$holds['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
 					return $holds;
@@ -631,7 +631,7 @@ class OverDriveDriver {
 								$orderId = $user->id . '_' . time() ;
 								$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$eContentRecord->id}::0.00::1&user={$user->id}&orderid={$orderId}";
 								$ret = file_get_contents($strandsUrl);
-								/*$logger = new Logger();
+								/*global $logger;
 								$logger->log("Strands Hold\r\n$ret", PEAR_LOG_INFO);*/
 							}
 						}
@@ -641,7 +641,7 @@ class OverDriveDriver {
 					}else{
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'There was an error placing your hold.';
-						$logger = new Logger();
+						global $logger;
 						$logger->log("Placing hold on OverDrive item. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
 						$logger->log('URL: '.$secureBaseUrl . "BANGAuthenticate.dll?Action=LibraryWaitingList $post_string\r\n" . $waitingListConfirm ,PEAR_LOG_INFO);
 					}
@@ -696,7 +696,7 @@ class OverDriveDriver {
 	public function removeOverDriveItemFromWishlist($overDriveId, $user){
 		global $memcache;
 
-		$logger = new Logger();
+		global $logger;
 
 
 		$cancelHoldResult = array();
@@ -746,7 +746,7 @@ class OverDriveDriver {
 		if ($overDriveInfo == null){
 			$ch = curl_init();
 			if (!$ch){
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
 				$addToCartResult['message'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
 				return $addToCartResult;
@@ -784,7 +784,7 @@ class OverDriveDriver {
 			$timePeriod = isset($confirmationMatches[1]) ? $confirmationMatches[1] : 30;
 			$addToCartResult['message'] = "The title was added to your cart successfully.  You have $confirmationMatches[1] minutes to check out the title before it is returned to the library's collection.";
 		}else{
-			$logger = new Logger();
+			global $logger;
 			$logger->log("Adding OverDrive Item to cart. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
 			$logger->log('URL: '.$addToCartUrl ."\r\n$addCartConfirmation",PEAR_LOG_INFO);
 			$addToCartResult['result'] = false;
@@ -844,7 +844,7 @@ class OverDriveDriver {
 			}else{
 				$addToCartResult['result'] = false;
 				$addToCartResult['message'] = 'There was an error adding the item to your wishlist.';
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error adding item to wishlist ($addToWishlistUrl), page did not have wishlist\r\n$addCartConfirmation", PEAR_LOG_INFO);
 			}
 
@@ -858,7 +858,7 @@ class OverDriveDriver {
 	}
 
 	public function processOverDriveCart($user, $lendingPeriod, $overDriveInfo = null){
-		$logger = new Logger();
+		global $logger;
 		$processCartResult = array();
 		$processCartResult['result'] = false;
 		$processCartResult['message'] = '';
@@ -878,6 +878,21 @@ class OverDriveDriver {
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['cartUrl']);
 			$cartPage = curl_exec($overDriveInfo['ch']);
 			$cartPageInfo = curl_getinfo($overDriveInfo['ch']);
+
+			//Remove any duplicate titles
+			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['removeDupUrl']);
+			$removeDupsPage = curl_exec($overDriveInfo['ch']);
+			preg_match('/BEGIN PAGE CONTENT(.*?)END PAGE CONTENT/s', $removeDupsPage, $content);
+			$removeDupsPage = $content[1];
+			//$logger->log("Cleared duplicate titles", PEAR_LOG_INFO);
+			//$logger->log($removeDupsPage, PEAR_LOG_INFO);
+
+			if (preg_match('/your book (bag|cart) is currently empty/i', $removeDupsPage)){
+				//$logger->log("Book bag is currently empty", PEAR_LOG_INFO);
+				$processCartResult['result'] = false;
+				$processCartResult['message'] = "This title is already checked out to you.";
+				return $processCartResult;
+			}
 
 			//Navigate to Proceed to checkout page
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['checkoutUrl']);
@@ -933,6 +948,9 @@ class OverDriveDriver {
 			}else if (preg_match('/exceeded your checkout limit/si', $processCartConfirmation) ){
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = "We're sorry, you have exceeded your checkout limit. Until one or more digital titles are removed from your account (i.e., a checkout expires so that you can check out another title, or you remove a title from your cart if you are not already at your checkout limit), you will be unable to check out additional titles.";
+			}else if (preg_match('/You already have one or more titles currently in your Book Bag checked out/si', $processCartConfirmation)){
+				$processCartResult['result'] = true;
+				$processCartResult['message'] = "This title is already checked out to you.";
 			}else{
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = 'There was an error processing your cart.';
@@ -962,6 +980,7 @@ class OverDriveDriver {
 	 * @param User $user
 	 */
 	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
+		global $logger;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 		$closeSession = true;
@@ -987,7 +1006,7 @@ class OverDriveDriver {
 						$orderId = $user->id . '_' . time() ;
 						$strandsUrl = "http://bizsolutions.strands.com/api2/event/purchased.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$eContentRecord->id}::0.00::1&user={$user->id}&orderid={$orderId}";
 						$ret = file_get_contents($strandsUrl);
-						/*$logger = new Logger();
+						/*global $logger;
 						$logger->log("Strands Checkout\r\n$ret", PEAR_LOG_INFO);*/
 
 					}
@@ -1073,6 +1092,7 @@ class OverDriveDriver {
 			$overDriveInfo = array(
 				'holdsUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=MyWaitingList.htm&ForceLoginFlag=0',  $urlWithSession),
 				'cartUrl' => str_replace('Default.htm', 'BANGCart.dll',  $urlWithSession),
+				'removeDupUrl' => str_replace('Default.htm', 'BANGCart.dll?Action=RemoveDup',  $urlWithSession),
 				'lendingPeriodsUrl' => str_replace('Default.htm', 'EditLendingPeriod.htm',  $urlWithSession),
 				'bookshelfUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=MyBookshelf.htm&ForceLoginFlag=0',  $urlWithSession),
 				'wishlistUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=WishList.htm&ForceLoginFlag=0',  $urlWithSession),
@@ -1085,7 +1105,7 @@ class OverDriveDriver {
 				'ch' => $ch,
 			);
 		}else{
-			$logger = new Logger();
+			global $logger;
 			$logger->log("Could not login to OverDrive ($matchAccount, $matchCart), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
 			$overDriveInfo = null;
 		}

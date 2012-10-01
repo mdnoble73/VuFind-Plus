@@ -1400,7 +1400,7 @@ class EContentRecord extends SolrDataObject {
 		global $configArray;
 
 		//Clear the cached bookcover if one has been added.
-		$logger = new Logger();
+		global $logger;
 		if (isset($this->cover) && (strlen($this->cover) > 0)){
 			//Call via API since bookcovers may be on a different server
 			$url = $configArray['Site']['coverUrl'] . '/API/ItemAPI?method=clearBookCoverCacheById&id=econtentRecord' . $this->id;

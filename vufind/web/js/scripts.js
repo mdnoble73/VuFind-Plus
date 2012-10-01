@@ -176,7 +176,7 @@ function lightbox(left, width, top, height){
 	
 	var loadMsg = $('#lightboxLoading').html();
 
-	$('#popupbox').html('<div class="lightboxLoadingContents"><div class="lightboxLoadingMessage">' + loadMsg + '</div><img src="' + path + '/images/loading_bar.gif" class="lightboxLoadingImage"/></div>');
+	$('#popupbox').html('<div class="lightboxLoadingContents"><div class="lightboxLoadingMessage">' + loadMsg + '</div><img src="' + url + '/images/loading_bar.gif" class="lightboxLoadingImage"/></div>');
    
 	hideSelects('hidden');
 

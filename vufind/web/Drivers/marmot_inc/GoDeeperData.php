@@ -80,7 +80,7 @@ class GoDeeperData{
 						}
 					}
 				}catch (Exception $e) {
-					$logger = new Logger();
+					global $logger;
 					$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 					if (isset($response)){
 						$logger->log($response, PEAR_LOG_INFO);
@@ -140,7 +140,7 @@ class GoDeeperData{
 					}
 				}
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$logger->log("Request URL was $requestUrl", PEAR_LOG_ERR);
 				$summaryData = array();
@@ -186,7 +186,7 @@ class GoDeeperData{
 				}
 
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$tocData = array();
 			}
@@ -285,7 +285,7 @@ class GoDeeperData{
 					}
 				}
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$fictionData = array();
 			}
@@ -325,7 +325,7 @@ class GoDeeperData{
 
 				return $summaryData;
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
@@ -365,7 +365,7 @@ class GoDeeperData{
 
 				$memcache->set("syndetics_excerpt_{$isbn}_{$upc}", $excerptData, 0, $configArray['Caching']['syndetics_excerpt']);
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$excerptData = array();
 			}
@@ -406,7 +406,7 @@ class GoDeeperData{
 				}
 
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
@@ -456,7 +456,7 @@ class GoDeeperData{
 
 				$memcache->set("syndetics_av_summary_{$isbn}_{$upc}", $avSummaryData, 0, $configArray['Caching']['syndetics_av_summary']);
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$avSummaryData = array();
 			}
@@ -487,7 +487,7 @@ class GoDeeperData{
 					$googleBookId = false;
 				}
 			}catch (Exception $e) {
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Error checking if Google Preview is available $e", PEAR_LOG_ERR);
 				$googleBookId = false;
 			}

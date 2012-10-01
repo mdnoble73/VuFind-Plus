@@ -33,7 +33,7 @@ class Checkout extends Action{
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		
-		$logger = new Logger();
+		global $logger;
 		
 		//Get title information for the record.
 		$eContentRecord = new EContentRecord();

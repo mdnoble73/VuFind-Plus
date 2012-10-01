@@ -35,7 +35,7 @@ class Home extends Action
 	{
 		global $configArray;
 
-		$logger = new Logger();
+		global $logger;
 		$post_body = file_get_contents('php://input');
 		if (isset($_POST['body'])){
 			$post_body = $_POST['body'];

@@ -54,7 +54,7 @@ class Horizon implements DriverInterface{
 					mssql_select_db($configArray['Catalog']['database']);
 				}
 			}catch (Exception $e){
-				$logger = new Logger();
+				global $logger;
 				$logger->log("Could not load Horizon database", PEAR_LOG_ERR);
 			}
 		}else{
@@ -227,7 +227,7 @@ class Horizon implements DriverInterface{
 					}
 					$allItems[$sortString] = $itemData;
 				}else{
-					$logger = new Logger();
+					global $logger;
 					$logger->log("item suppressed for barcode $barcode", PEAR_LOG_INFO);
 				}
 			}
@@ -422,7 +422,7 @@ class Horizon implements DriverInterface{
 	public function getMyHoldsViaHip($patron){
 		global $user;
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 
 		//Setup Curl
 		$header=array();
@@ -1110,7 +1110,7 @@ public function getMyHoldsViaDB($patron)
 	public function getMyFinesViaHIP($patron, $includeMessages){
 		global $user;
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 
 		//Setup Curl
 		$header=array();
@@ -1681,7 +1681,7 @@ private $transactions = array();
 	public function getMyTransactionsViaHIP($patron){
 		global $user;
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 
 		//Setup Curl
 		$header=array();
@@ -1831,7 +1831,7 @@ public function renewItem($patronId, $itemId){
 		global $user;
 		global $configArray;
 
-		$logger = new Logger();
+		global $logger;
 
 		$originalCheckedOutItems = $this->getMyTransactions($user);
 
@@ -2112,7 +2112,7 @@ public function renewItem($patronId, $itemId){
 			}
 		}
 
-		$logger = new Logger();
+		global $logger;
 
 		//Setup Curl
 		$header=array();
@@ -2290,7 +2290,7 @@ public function renewItem($patronId, $itemId){
 	{
 		global $user;
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 		$profile = $this->getMyProfile($user);
 
 		//Setup Curl
@@ -2560,7 +2560,7 @@ public function renewItem($patronId, $itemId){
 	 * Can cancel the hold or update pickup locations.
 	 */
 	private function updateHoldDetailedViaSIP($requestId, $patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue='off') {
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 		global $user;
 
@@ -2602,7 +2602,7 @@ public function renewItem($patronId, $itemId){
 	 * Can cancel the hold or update pickup locations.
 	 */
 	private function updateHoldDetailedViaHIP($requestId, $patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue='off') {
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 		global $user;
 
