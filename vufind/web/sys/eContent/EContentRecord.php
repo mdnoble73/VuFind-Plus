@@ -993,17 +993,20 @@ class EContentRecord extends SolrDataObject {
 		}
 	}
 	function num_holdings(){
+		$numHoldings = 0;
 		if ($this->status == 'active'){
-			if (strcasecmp($this->source, 'OverDrive') == 0){
-				return 1;
-			}elseif ($this->accessType == 'free'){
-				return 25;
+			if ($this->accessType == 'free'){
+				$numHoldings = 25;
 			}else{
-				return $this->availableCopies;
+				$numHoldings = $this->availableCopies;
 			}
 		}else{
-			return 0;
+			$numHoldings = 0;
 		}
+		if ($numHoldings > 1000){
+			$numHoldings = 5;
+		}
+		return $numHoldings;
 	}
 
 	function validateCover(){
