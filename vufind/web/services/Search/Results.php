@@ -264,7 +264,6 @@ class Results extends Action {
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		if ($searchObject->getResultTotal() < 1) {
-
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);

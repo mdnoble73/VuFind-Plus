@@ -1066,8 +1066,13 @@ class Solr implements IndexEngine {
 			$blacklistRecords = null;
 			if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
 				$blacklistRecords = $searchLocation->recordsToBlackList;
-			}else if (isset($searchLibrary) && strlen($searchLibrary->recordsToBlackList) > 0){
-				$blacklistRecords = $searchLibrary->recordsToBlackList;
+			}
+			if (isset($searchLibrary) && strlen($searchLibrary->recordsToBlackList) > 0){
+				if (is_null($blacklistRecords)){
+					$blacklistRecords = $searchLibrary->recordsToBlackList;
+				}else{
+					$blacklistRecords .= "\n" . $searchLibrary->recordsToBlackList;
+				}
 			}
 			if (!is_null($blacklistRecords)){
 				$recordsToBlacklist = preg_split('/\s|\r\n|\r|\n/s', $blacklistRecords);
