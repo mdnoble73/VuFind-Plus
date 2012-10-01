@@ -70,15 +70,28 @@
 			{else}
 				{$pageContent}
 			{/if}
+			
+			{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
+			
+			{if $unscopedResults > 0}
+				<h2>Sample Results from entire Marmot Catalog</h2>
+				<div class="unscopedResultCount">
+					There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+				</div>
+				{foreach from=$unscopedResults item=record name="recordLoop"}
+					<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+						{* This is raw HTML -- do not escape it: *}
+						{$record}
+					</div>
+				{/foreach}
+			{/if}
 
 			{if $prospectorNumTitlesToLoad > 0}
 				<script type="text/javascript">getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
+				{* Prospector Results *}
+				<div id='prospectorSearchResultsPlaceholder'></div>
 			{/if}
-			{* Prospector Results *}
-			<div id='prospectorSearchResultsPlaceholder'></div>
-				
-			{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
-			
+
 			<div class="searchtools">
 				<strong>{translate text='Search Tools'}:</strong>
 				<a href="{$rssLink|escape}" class="feed">{translate text='Get RSS Feed'}</a>

@@ -528,6 +528,19 @@ class SearchObject_Solr extends SearchObject_Base
 		return $html;
 	}
 
+	public function getSupplementalResultRecordHTML(){
+		global $interface;
+		$html = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			$record = RecordDriverFactory::initRecordDriver($current);
+			$html[] = $interface->fetch($record->getSupplementalSearchResult());
+		}
+		return $html;
+	}
+
 	/**
 	 * Set an overriding array of record IDs.
 	 *

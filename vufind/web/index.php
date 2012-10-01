@@ -701,8 +701,8 @@ function processShards()
 
 		// If we have a default from the configuration, use that...
 		if (isset($configArray['ShardPreferences']['defaultChecked'])
-		&& !empty($configArray['ShardPreferences']['defaultChecked'])
-		) {
+				&& !empty($configArray['ShardPreferences']['defaultChecked'])
+				) {
 			$checkedShards = $configArray['ShardPreferences']['defaultChecked'];
 			$_SESSION['shards'] = is_array($checkedShards) ?
 			$checkedShards : array($checkedShards);

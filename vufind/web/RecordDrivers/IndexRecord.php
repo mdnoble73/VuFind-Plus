@@ -725,6 +725,65 @@ class IndexRecord implements RecordInterface
 		return 'RecordDrivers/Index/result.tpl';
 	}
 
+	public function getSupplementalSearchResult(){
+		global $configArray;
+		global $interface;
+
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		if (substr($id, 0, 1) == '.'){
+			$interface->assign('summShortId', substr($id, 1));
+		}else{
+			$interface->assign('summShortId', $id);
+		}
+		$formats = $this->getFormats();
+		$interface->assign('summFormats', $formats);
+		$formatCategories = $this->getFormatCategory();
+		$interface->assign('summFormatCategory', $formatCategories);
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summSubTitle', $this->getSubtitle());
+		$interface->assign('summTitleStatement', $this->getTitleSection());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+		$publishers = $this->getPublishers();
+		$pubDates = $this->getPublicationDates();
+		$pubPlaces = $this->getPlacesOfPublication();
+		$interface->assign('summPublicationDates', $pubDates);
+		$interface->assign('summPublishers', $publishers);
+		$interface->assign('summPublicationPlaces',$pubPlaces);
+		$interface->assign('summDate', $this->getPublicationDates());
+		$interface->assign('summISBN', $this->getCleanISBN());
+		$issn = $this->getCleanISSN();
+		$interface->assign('summISSN', $issn);
+		$upcs = $this->getUPCs();
+		$upc = count($upcs) > 0 ? $upcs[0] : null;
+		$interface->assign('summUPC', $upc);
+		if ($configArray['System']['debugSolr'] == 1){
+			$interface->assign('summScore', $this->getScore());
+			$interface->assign('summExplain', $this->getExplain());
+		}
+		$interface->assign('summPhysical', $this->getPhysicalDescriptions());
+		$interface->assign('summEditions', $this->getEdition());
+
+		// Obtain and assign snippet information:
+		$snippet = $this->getHighlightedSnippet();
+		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
+		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
+
+		//Determine the cover to use
+		$isbn = $this->getCleanISBN();
+		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
+		$format = isset($formats[0]) ? $formats[0] : '';
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
+
+		// By default, do not display AJAX status; we won't assume that all
+		// records exist in the ILS.  Child classes can override this setting
+		// to turn on AJAX as needed:
+		$interface->assign('summAjaxStatus', false);
+
+		return 'RecordDrivers/Index/supplementalResult.tpl';
+	}
+
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);

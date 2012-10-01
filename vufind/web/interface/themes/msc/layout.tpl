@@ -27,6 +27,15 @@
 	</head>
 
 	<body class="{$module} {$action}" >
+		{*- Set focus to the correct location by default *}
+		{if $focusElementId}
+		<script type="text/javascript">{literal}
+		jQuery(function (){
+			jQuery('#{/literal}{$focusElementId}{literal}').focus().select();
+		});{/literal}
+		</script>
+		{/if}
+		
 		{if $systemMessage}
 		<div id="systemMessage">{$systemMessage}</div>
 		{/if}

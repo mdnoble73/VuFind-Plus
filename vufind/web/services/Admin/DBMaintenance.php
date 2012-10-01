@@ -279,6 +279,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `recordsToBlackList` MEDIUMTEXT;",
 				),
 			),
+			'library_20' => array(
+				'title' => 'Library 20',
+				'description' => 'Add the show or hide marmot search results in scoped searches. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showMarmotResultsAtEndOfSearch` INT(11) DEFAULT 1;",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',

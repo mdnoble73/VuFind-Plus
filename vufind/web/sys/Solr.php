@@ -201,18 +201,23 @@ class Solr implements IndexEngine {
 			$this->_specCache = $searchSettings['Cache']['type'];
 		}
 
-		// Deal with session-based shard settings:
-		if (isset($_SESSION['shards'])) {
-			$shards = array();
-			foreach ($_SESSION['shards'] as $current) {
-				if (isset($configArray['IndexShards'][$current])) {
-					$shards[$current] = $configArray['IndexShards'][$current];
-				}
-			}
-			$this->setShards($shards);
+		if (isset($_SESSION['shards'])){
+			$this->_loadShards($_SESSION['shards']);
 		}
 
 		$timer->logTime('Finish Solr Initialization');
+	}
+
+	private function _loadShards($newShards){
+		// Deal with session-based shard settings:
+		$shards = array();
+		global $configArray;
+		foreach ($newShards as $current) {
+			if (isset($configArray['IndexShards'][$current])) {
+				$shards[$current] = $configArray['IndexShards'][$current];
+			}
+		}
+		$this->setShards($shards);
 	}
 
 	/**
@@ -863,6 +868,15 @@ class Solr implements IndexEngine {
 
 	function disableScoping(){
 		$this->scopingDisabled = true;
+		global $configArray;
+		if (isset($configArray['ShardPreferences']['defaultChecked']) && !empty($configArray['ShardPreferences']['defaultChecked']) ) {
+			$checkedShards = $configArray['ShardPreferences']['defaultChecked'];
+			$shards = is_array($checkedShards) ? $checkedShards : array($checkedShards);
+		} else {
+			// If no default is configured, use all shards...
+			$shards = array_keys($configArray['IndexShards']);
+		}
+		$this->_loadShards($shards);
 	}
 
 	/**
@@ -1072,7 +1086,6 @@ class Solr implements IndexEngine {
 				$filter[] = $blacklist;
 			}
 			if ($this->scopingDisabled == false){
-
 				if (isset($searchLibrary)){
 					if (strlen($searchLibrary->defaultLibraryFacet) > 0){
 						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Shared Digital Collection\" OR institution:\"Digital Collection\" OR institution:\"{$searchLibrary->defaultLibraryFacet} Online\")";
@@ -1468,7 +1481,7 @@ class Solr implements IndexEngine {
 			}
 		}
 		// pass the shard parameter along to Solr if necessary:
-		if (!empty($this->_solrShards) && is_array($this->_solrShards) && !$this->scopingDisabled) {
+		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
 			$query[] = 'shards=' . urlencode(implode(',', $this->_solrShards));
 		}
 		$queryString = implode('&', $query);

@@ -236,9 +236,12 @@ class Results extends Action {
 		$enableUnscopedSearch = false;
 		$searchLibrary = Library::getSearchLibrary();
 		if ($searchLibrary != null){
-			$unscopedSearch = clone($searchObject);
-			$unscopedSearch->disableScoping();
-			$enableUnscopedSearch = true;
+			$searchSources = new SearchSources();
+			$searchOptions = $searchSources->getSearchSources();
+			if (isset($searchOptions['marmot']) && $searchLibrary->showMarmotResultsAtEndOfSearch){
+				$unscopedSearch = clone($searchObject);
+				$enableUnscopedSearch = true;
+			}
 		}
 
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
@@ -252,7 +255,7 @@ class Results extends Action {
 		$interface->assign('showRatings', $showRatings);
 
 		$numProspectorTitlesToLoad = 0;
-		$numUnscopedTitlesToLoad = 5;
+		$numUnscopedTitlesToLoad = 0;
 
 		// Save the ID of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
@@ -288,7 +291,7 @@ class Results extends Action {
 			}
 
 			$numProspectorTitlesToLoad = 10;
-			$numUnscopedTitlesToLoad = 5;
+			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
 		} else if ($searchObject->getResultTotal() == 1){
@@ -363,10 +366,8 @@ class Results extends Action {
 			$pager = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
 			if ($pager->isLastPage()){
-				$numProspectorTitlesToLoad = $summary['perPage'] - $pager->getNumRecordsOnPage();
-				if ($numProspectorTitlesToLoad < 5){
-					$numProspectorTitlesToLoad = 5;
-				}
+				$numProspectorTitlesToLoad = 5;
+				$numUnscopedTitlesToLoad = 5;
 			}
 			$timer->logTime('finish hits processing');
 		}
@@ -378,7 +379,9 @@ class Results extends Action {
 			$interface->assign('prospectorNumTitlesToLoad', 0);
 		}
 
-		if ($numUnscopedTitlesToLoad > 0 && $enableUnscopedSearch){
+		if ($enableUnscopedSearch){
+			$unscopedSearch->setLimit($numUnscopedTitlesToLoad);
+			$unscopedSearch->disableScoping();
 			$unscopedSearch->processSearch(false, false);
 			$numUnscopedResults = $unscopedSearch->getResultTotal();
 			$interface->assign('numUnscopedResults', $numUnscopedResults);
@@ -390,6 +393,10 @@ class Results extends Action {
 			}
 			$unscopedSearchUrl .= "&shard=";
 			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
+			if ($numUnscopedTitlesToLoad > 0){
+				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML();
+				$interface->assign('unscopedResults', $unscopedResults);
+			}
 		}
 
 		//Determine whether or not materials request functionality should be enabled
