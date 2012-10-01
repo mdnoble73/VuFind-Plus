@@ -71,6 +71,7 @@ class Suggestions{
 		                    " and userid != " . $userId . ") " . //Make sure that we don't include this user in the results.
 		                    " and rating >= 4 " . //Only include ratings that are 4 or 5 star so we don't get books the other user didn't like.
 		                    " and resourceId != " . $ratings->resourceid . //Make sure we don't get back this title as a recommendation.
+		                    " and deleted = 0 " . //Ignore deleted resources
 		                    " group by resourceid order by rating desc limit 10"); //Sort so the highest titles are on top and limit to 10 suggestions.
 						$otherRaters->query($sqlStatement);
 						if ($otherRaters->N > 0){
