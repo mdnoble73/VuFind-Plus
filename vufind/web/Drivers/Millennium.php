@@ -535,7 +535,8 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			//Add the holding to the sorted array to determine
-			$sortString = $holding['location'] . $holding['callnumber']. $i;
+			$sortString = $holding['location'] . '-'. $i;
+			//$sortString = $holding['location'] . $holding['callnumber']. $i;
 			if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
 				//If the user is in a branch, those holdings come first.
 				$holding['section'] = 'In this library';
