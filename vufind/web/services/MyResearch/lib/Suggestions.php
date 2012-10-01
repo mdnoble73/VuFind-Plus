@@ -78,10 +78,13 @@ class Suggestions{
 							//Other users have also rated this title.
 							while ($otherRaters->fetch()){
 								//Process the title
+								disableErrorHandler();
+
 								if (!($ownedRecord = $db->getRecord($otherRaters->record_id))) {
 									//Old record which has been removed? Ignore for purposes of suggestions.
 									continue;
 								}
+								enableErrorHandler();
 								//get the title from the Solr Index
 								if (strpos($ownedRecord['isbn'][0], ' ') > 0){
 									$isbnInfo = explode(' ', $ownedRecord['isbn'][0]);
