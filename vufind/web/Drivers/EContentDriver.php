@@ -391,7 +391,7 @@ class EContentDriver implements DriverInterface{
 			$statusSummary['showAddToWishlist'] = false;
 			$statusSummary['showAccessOnline'] = true;
 			if (strcasecmp($eContentRecord->source, 'OverDrive') ==0 ){
-				$statusSummary['holdQueueLength'] = $this->getWaitList($id);
+				$statusSummary['holdQueueLength'] = $numHolds;
 			}
 		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;
