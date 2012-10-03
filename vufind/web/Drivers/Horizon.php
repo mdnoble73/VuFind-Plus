@@ -1665,7 +1665,7 @@ private $transactions = array();
 
 					//echo("Permanent location " . $result['variable']['AQ'][0] . " current location " . $result['variable']['AP'][0] . "\r\n");
 					$itemSip2Data['locationCode'] = $result['variable'][$currentLocationSIPField][0];
-					$itemSip2Data['location'] = $this->translateLocation($itemData['locationCode']);
+					$itemSip2Data['location'] = $this->translateLocation($itemSip2Data['locationCode']);
 				}
 				if (!$this->useDb){
 					//Override circulation status based on SIP
