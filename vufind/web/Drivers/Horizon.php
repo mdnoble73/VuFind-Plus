@@ -36,7 +36,7 @@ class Horizon implements DriverInterface{
 		$this->hipUrl = $configArray['Catalog']['hipUrl'];
 		$this->hipProfile = $configArray['Catalog']['hipProfile'];
 		$this->selfRegProfile = $configArray['Catalog']['selfRegProfile'];
-		
+
 		// Connect to database
 		if (!isset($configArray['Catalog']['useDb']) || $configArray['Catalog']['useDb'] == true){
 			try{
@@ -49,7 +49,7 @@ class Horizon implements DriverInterface{
 					$this->db = mssql_connect($configArray['Catalog']['host'] . ':' . $configArray['Catalog']['port'],
 					$configArray['Catalog']['username'],
 					$configArray['Catalog']['password']);
-	
+
 					// Select the databse
 					mssql_select_db($configArray['Catalog']['database']);
 				}
@@ -73,7 +73,7 @@ class Horizon implements DriverInterface{
 		global $locationSingleton;
 		$homeLocation = $locationSingleton->getUserHomeLocation();
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
-		
+
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
@@ -99,7 +99,7 @@ class Horizon implements DriverInterface{
 				}
 				$timer->logTime('Got call number');
 			}
-			
+
 			//Get the item records from the 949 tag
 			$items = $marcRecord->getFields('949');
 			$barcodeSubfield    = $configArray['Catalog']['barcodeSubfield'];
@@ -110,23 +110,23 @@ class Horizon implements DriverInterface{
 			$firstItemWithSIPdata = null;
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
-				//Check to see if we already have data for this barcode 
+				//Check to see if we already have data for this barcode
 				global $memcache;
-				if (isset($barcode) && strlen($barcode) > 0){ 
+				if (isset($barcode) && strlen($barcode) > 0){
 					$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
 				}else{
 					$itemData = false;
 				}
 				if ($itemData == false){
 					//No data exists
-				
+
 					$itemData = array();
-					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');					
+					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
 
 					//Get the barcode from the horizon database
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
-					
+
 					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
 					}else{
@@ -152,12 +152,12 @@ class Horizon implements DriverInterface{
 					}else{
 						$itemData['availability'] = true;
 					}
-					
+
 					//Make the item holdable by default.  Then check rules to make it non-holdable.
 					$itemData['holdable'] = true;
 					//Make lucky day items not holdable
 					$itemData['luckyDay'] = ($item->getSubfield('t') != null ? preg_match('/^yld.*$/i', $item->getSubfield('t')->getData()) == 1 : false);
-					
+
 					$subfield_t = $item->getSubfield('t');
 					if ($subfield_t != null){
 						$subfield_t = strtolower($subfield_t->getData());
@@ -190,15 +190,15 @@ class Horizon implements DriverInterface{
 
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
-					if (isset($barcode) && strlen($barcode) > 0){ 
+					if (isset($barcode) && strlen($barcode) > 0){
 						$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
 					}
 				}
-				
+
 				$suppressItem = false;
 				$statusesToSuppress = $configArray['Catalog']['statusesToSuppress'];
 				if (strlen($statusesToSuppress) > 0 && preg_match("/^($statusesToSuppress)$/i", $itemData['status'])){
-					$suppressItem = true; 
+					$suppressItem = true;
 				}
 				//Suppress items based on location
 				$locationsToSuppress = $configArray['Catalog']['locationsToSuppress'];
@@ -207,7 +207,7 @@ class Horizon implements DriverInterface{
 					global $locationSingleton;
 					$branch = $locationSingleton->getBranchLocationCode();
 					if (!preg_match("/^($locationsToSuppress)$/i", $branch)){
-						$suppressItem = true; 
+						$suppressItem = true;
 					}
 				}
 				//Suppress staff items
@@ -215,9 +215,9 @@ class Horizon implements DriverInterface{
 				$subfieldO = $item->getSubfield('o');
 				if (isset($subfieldO) && is_object($subfieldO) && $subfieldO->getData() == 1){
 					$isStaff = true;
-					$suppressItem = true; 
+					$suppressItem = true;
 				}
-					
+
 				if (!$suppressItem){
 					$sortString = $itemData['location'] . $itemData['callnumber'] . (count($allItems) + 1);
 					if ($physicalLocation != null && strcasecmp($physicalLocation->code, $itemData['locationCode']) == 0){
@@ -272,14 +272,14 @@ class Horizon implements DriverInterface{
                   'username'  => $basicInfo->username,
                   'firstname' => $basicInfo->firstname,
                   'lastname'  => $basicInfo->lastname,
-                  'fullname'  => $basicInfo->firstname . ' ' . $basicInfo->lastname,     //Added to array for possible display later. 
+                  'fullname'  => $basicInfo->firstname . ' ' . $basicInfo->lastname,     //Added to array for possible display later.
                   'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
                   'cat_password' => $password,
                   'displayName' => $basicInfo->displayName,
                   'homeLocationId' => $basicInfo->homeLocationId,
                   'email' => $basicInfo->email,
                   'major' => null,
-                  'college' => null);   
+                  'college' => null);
 			return $user;
 		}else{
 			//User is not valid.
@@ -291,7 +291,7 @@ class Horizon implements DriverInterface{
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		global $configArray;
 		global $timer;
-		
+
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
 		}
@@ -309,8 +309,8 @@ class Horizon implements DriverInterface{
 			$holds = $this->getMyHoldsViaHip($patron);
 		}
 		$timer->logTime("Retrieved holds from ILS");
-		
-		//Get a list of all record id so we can load supplemental information 
+
+		//Get a list of all record id so we can load supplemental information
 		$recordIds = array();
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $hold){
@@ -324,7 +324,7 @@ class Horizon implements DriverInterface{
 			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
 			$resourceInfo->query($resourceSql);
 			$timer->logTime('Got records for all titles');
-	
+
 			//Load title author, etc. information
 			while ($resourceInfo->fetch()){
 				foreach($holds as $section => $holdSections){
@@ -402,14 +402,14 @@ class Horizon implements DriverInterface{
 		}else{
 			$numUnavailableHolds = 0;
 		}
-		
+
 		if (!isset($holds['available'])){
 			$holds['available'] = array();
 		}
 		if (!isset($holds['unavailable'])){
 			$holds['unavailable'] = array();
 		}
-		//Sort the hold sections so vailable holds are first. 
+		//Sort the hold sections so vailable holds are first.
 		ksort($holds);
 
 		$this->holds[$patron['id']] = $holds;
@@ -418,7 +418,7 @@ class Horizon implements DriverInterface{
 			'numUnavailableHolds' => $numUnavailableHolds,
 		);
 	}
-	
+
 	public function getMyHoldsViaHip($patron){
 		global $user;
 		global $configArray;
@@ -468,7 +468,7 @@ class Horizon implements DriverInterface{
       'login_prompt' => 'true',
       'menu' => 'account',
       'profile' => $configArray['Catalog']['hipProfile'],
-      'ri' => '', 
+      'ri' => '',
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
       'session' => $sessionId,
@@ -715,7 +715,7 @@ public function getMyHoldsViaDB($patron)
 		}
 		return $holdList;
 	}
-	
+
 	/**
 	 * Returns a summary of the holdings information for a single id. Used to display
 	 * within the search results and at the top of a full record display to ensure
@@ -730,8 +730,8 @@ public function getMyHoldsViaDB($patron)
 		global $locationSingleton;
 		global $configArray;
 		global $memcache;
-		//Holdings summaries need to be cached based on the actual location since part of the information 
-		//includes local call numbers and statuses. 
+		//Holdings summaries need to be cached based on the actual location since part of the information
+		//includes local call numbers and statuses.
 		$ipLocation = $locationSingleton->getPhysicalLocation();
 		$location = $ipLocation;
 		if (!isset($location) && $location == null){
@@ -751,7 +751,7 @@ public function getMyHoldsViaDB($patron)
 		}
 		$summaryInformation = $memcache->get("holdings_summary_{$id}_{$locationId}" );
 		if ($summaryInformation == false){
-	
+
 			$canShowHoldButton = true;
 			if ($library && $library->showHoldButton == 0){
 				$canShowHoldButton = false;
@@ -759,17 +759,17 @@ public function getMyHoldsViaDB($patron)
 			if ($location != null && $location->showHoldButton == 0){
 				$canShowHoldButton = false;
 			}
-	
+
 			$holdings = $this->getStatus($id, $record, $mysip, true);
 			$timer->logTime('Retrieved Status of holding');
-	
+
 			$counter = 0;
 			$summaryInformation = array();
 			$summaryInformation['recordId'] = $id;
 			$summaryInformation['shortId'] = $id;
 			$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
 			$summaryInformation['holdQueueLength'] = 0;
-	
+
 			//Check to see if we are getting issue summaries or actual holdings
 			$isIssueSummary = false;
 			$numSubscriptions = 0;
@@ -799,7 +799,7 @@ public function getMyHoldsViaDB($patron)
 				}
 			}
 			$timer->logTime('Processed for subscriptions');
-	
+
 			//Valid statuses are:
 			//Available by Request
 			//  - not at the user's home branch or preferred location, but at least one copy is not checked out
@@ -852,7 +852,7 @@ public function getMyHoldsViaDB($patron)
 						$unavailableStatus = $holding['statusfull'];
 					}
 				}
-	
+
 				if (isset($holding['holdable']) && $holding['holdable'] == 1){
 					$numHoldableCopies++;
 				}
@@ -891,11 +891,11 @@ public function getMyHoldsViaDB($patron)
 				}
 			}
 			$timer->logTime('Processed copies');
-	
+
 			//If all items are checked out the status will still be blank
 			$summaryInformation['availableCopies'] = $numAvailableCopies;
 			$summaryInformation['holdableCopies'] = $numHoldableCopies;
-	
+
 			$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
 			//Do some basic sanity checking to make sure that we show the total copies
 			//With at least as many copies as the number of copies on order.
@@ -904,11 +904,11 @@ public function getMyHoldsViaDB($patron)
 			}else{
 				$summaryInformation['numCopies'] = $numCopies;
 			}
-	
+
 			if ($unavailableStatus != 'ONLINE'){
 				$summaryInformation['unavailableStatus'] = $unavailableStatus;
 			}
-	
+
 			//Status is not set, check to see if the item is downloadable
 			if (!isset($summaryInformation['status']) && !isset($summaryInformation['downloadLink'])){
 				// Retrieve Full Marc Record
@@ -933,7 +933,7 @@ public function getMyHoldsViaDB($patron)
 				} else {
 					//Can't process the marc record, ignore it.
 				}
-				
+
 				//If there is a link, add that status information.
 				if (isset($linkURL) ) {
 					$isImageLink = preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/i' , $linkURL);
@@ -987,7 +987,7 @@ public function getMyHoldsViaDB($patron)
 				}
 				$timer->logTime('Checked for downloadable link in 856 tag');
 			}
-	
+
 			$showItsHere = ($ipLibrary == null) ? true : ($ipLibrary->showItsHere == 1);
 			if ($availableHere && $showItsHere){
 				$summaryInformation['status'] = "It's Here";
@@ -1001,7 +1001,7 @@ public function getMyHoldsViaDB($patron)
 				$summaryInformation['availableAt'] = join(', ', $availableLocations);
 				$summaryInformation['numAvailableOther'] = count($availableLocations);
 			}
-	
+
 			//If Status is still not set, apply some logic based on number of copies
 			if (!isset($summaryInformation['status'])){
 				if ($numCopies == 0){
@@ -1029,7 +1029,7 @@ public function getMyHoldsViaDB($patron)
 					}
 				}
 			}
-	
+
 			//Reset status if the status for all items is consistent.
 			//That way it will jive with the actual full record display.
 			if ($allItemStatus != null && $allItemStatus != ''){
@@ -1043,15 +1043,15 @@ public function getMyHoldsViaDB($patron)
 			}else{
 				$summaryInformation['inLibraryUseOnly'] = false;
 			}
-	
-	
+
+
 			if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
 				$summaryInformation['showAvailabilityLine'] = false;
 			}else{
 				$summaryInformation['showAvailabilityLine'] = true;
 			}
 			$timer->logTime('Finished building summary');
-			
+
 			$memcache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
 		}
 		return $summaryInformation;
@@ -1156,7 +1156,7 @@ public function getMyHoldsViaDB($patron)
       'login_prompt' => 'true',
       'menu' => 'account',
       'profile' => $configArray['Catalog']['hipProfile'],
-      'ri' => '', 
+      'ri' => '',
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
       'session' => $sessionId,
@@ -1446,7 +1446,7 @@ private $patronProfiles = array();
 						$homeLocationId = $location->locationId;
 					}
 					global $user;
-					
+
 					$profile= array(
             'lastname' => $result['variable']['DJ'][0],
             'firstname' => isset($result['variable']['DH'][0]) ? $result['variable']['DH'][0] : '',
@@ -1469,13 +1469,13 @@ private $patronProfiles = array();
             'numCheckedOut' => $result['fixed']['ChargedCount'] ,
 					  'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
 					);
-					
+
 					//Get eContent info as well
 					require_once('Drivers/EContentDriver.php');
-					$eContentDriver = new EContentDriver(); 
+					$eContentDriver = new EContentDriver();
 					$eContentAccountSummary = $eContentDriver->getAccountSummary();
 					$profile = array_merge($profile, $eContentAccountSummary);
-					
+
 					//Get a count of the materials requests for the user
 					$materialsRequest = new MaterialsRequest();
 					$materialsRequest->createdBy = $user->id;
@@ -1500,7 +1500,7 @@ private $patronProfiles = array();
 		$timer->logTime('Retrieved Profile for Patron from SIP 2');
 		return $profile;
 	}
-	
+
 private $transactions = array();
 	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
@@ -1535,9 +1535,9 @@ private $transactions = array();
 				$recordIdString = implode(",", $recordIds);
 				$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
 				$resourceInfo->query($resourceSql);
-	
+
 				$timer->logTime('Got records for all titles');
-	
+
 				//Load title author, etc. information
 				while ($resourceInfo->fetch()){
 					foreach ($transactions as $key => $transaction){
@@ -1564,7 +1564,7 @@ private $transactions = array();
 				//Check for hold queue length
 				$itemData = $this->_loadItemSIP2Data($transaction['barcode'], '');
 				$transaction['holdQueueLength'] = intval($itemData['holdQueueLength']);
-				
+
 				$transactions[$key] = $transaction;
 			}
 		}
@@ -1608,7 +1608,7 @@ private $transactions = array();
 			'numTransactions' => $totalTransactions
 		);
 	}
-	
+
 	private $sipInitialized = false;
 	private $mysip = false;
 	private function _loadItemSIP2Data($barcode, $itemStatus){
@@ -1640,7 +1640,7 @@ private $transactions = array();
 				$this->sipInitialized = true;
 				$timer->logTime('Connected to SIP2 server');
 			}
-				
+
 			$in = $this->mysip->msgItemInformation($barcode);
 			$msg_result = $this->mysip->get_message($in);
 
@@ -1657,12 +1657,14 @@ private $transactions = array();
 				}else{
 					$itemSip2Data['holdQueueLength'] = 0;
 				}
-				if ($configArray['Catalog']['realtimeLocations'] == true && isset($result['variable']['AQ'][0])){
-					//Looks like horizon is returning these backwards via SIP.  
-					//AQ should be current, but is always returning the same code. 
+				$currentLocationSIPField = isset($configArray['Catalog']['currentLocationSIPField']) ? $configArray['Catalog']['currentLocationSIPField'] : 'AP';
+				if ($configArray['Catalog']['realtimeLocations'] == true && isset($result['variable'][$currentLocationSIPField][0])){
+					//Looks like horizon is returning these backwards via SIP.
+					//AQ should be current, but is always returning the same code.
 					//AP should be permanent, but is returning the current location
+
 					//echo("Permanent location " . $result['variable']['AQ'][0] . " current location " . $result['variable']['AP'][0] . "\r\n");
-					$itemSip2Data['locationCode'] = $result['variable']['AQ'][0];
+					$itemSip2Data['locationCode'] = $result['variable'][$currentLocationSIPField][0];
 					$itemSip2Data['location'] = $this->translateLocation($itemData['locationCode']);
 				}
 				if (!$this->useDb){
@@ -1727,7 +1729,7 @@ private $transactions = array();
       'login_prompt' => 'true',
       'menu' => 'account',
       'profile' => $configArray['Catalog']['hipProfile'],
-      'ri' => '', 
+      'ri' => '',
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
       'session' => $sessionId,
@@ -1879,7 +1881,7 @@ public function renewItem($patronId, $itemId){
       'login_prompt' => 'true',
       'menu' => 'account',
       'profile' => $configArray['Catalog']['hipProfile'],
-      'ri' => '', 
+      'ri' => '',
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
       'session' => $sessionId,
@@ -1971,13 +1973,13 @@ public function renewItem($patronId, $itemId){
 
 				if (preg_match("/^30/", $msg_result)) {
 					$result = $mysip->parseRenewResponse($msg_result );
-					
+
 					$hold_result['title'] = $result['variable']['AJ'][0];
-					
+
 					//print_r($result);
 					$hold_result['result'] = ($result['fixed']['Ok'] == 1);
 					$hold_result['message'] = $result['variable']['AF'][0];
-					
+
 					//If the renew fails, check to see if we need to override the SIP port
 					$alternatePortSet = false;
 					if (isset($configArray['SIP2']['alternate_port']) && strlen($configArray['SIP2']['alternate_port']) > 0 && $configArray['SIP2']['alternate_port'] != $configArray['SIP2']['port']){
@@ -1985,8 +1987,8 @@ public function renewItem($patronId, $itemId){
 					}
 					if ($alternatePortSet && $hold_result['result'] == false && $useAlternateSIP == false){
 						//Can override the SIP port if there are sufficient copies on the shelf to cover any holds
-						
-						//Get the id for the item 
+
+						//Get the id for the item
 						$searchObject = SearchObjectFactory::initSearchObject();
 						$class = $configArray['Index']['engine'];
 						$url = $configArray['Index']['url'];
@@ -1994,13 +1996,13 @@ public function renewItem($patronId, $itemId){
 						if ($configArray['System']['debugSolr']) {
 							$index->debug = true;
 						}
-						
+
 						$record = $index->getRecordByBarcode($itemId);
-						
+
 						if ($record){
 							//Get holdings summary
 							$statusSummary = $this->getStatusSummary($record['id'], $record, $mysip);
-							
+
 							//If # of available copies >= waitlist change sip port and renew
 							if ($statusSummary['availableCopies'] >= $statusSummary['holdQueueLength']){
 								$hold_result = $this->renewItemViaSIP($patronId, $itemId, true);
@@ -2012,7 +2014,7 @@ public function renewItem($patronId, $itemId){
 		}else{
 			$hold_result['message'] = "Could not connect to circulation server, please try again later.";
 		}
-		
+
 		return $hold_result;
 	}
 
@@ -2161,7 +2163,7 @@ public function renewItem($patronId, $itemId){
       'menu' => 'account',
 		//'npp' => '10',
       'profile' => $configArray['Catalog']['hipProfile'],
-      'ri' => '', 
+      'ri' => '',
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
       'session' => $sessionId,
@@ -2182,10 +2184,10 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'menu' => 'account',
         'newemailtext' => $_REQUEST['email'],
-        'newpin' => '', 
-        'oldpin' => '', 
+        'newpin' => '',
+        'oldpin' => '',
         'profile' => $configArray['Catalog']['hipProfile'],
-        'renewpin' => '', 
+        'renewpin' => '',
         'session' => $sessionId,
         'submenu' => 'info',
         'updateemail' => 'Update',
@@ -2215,8 +2217,8 @@ public function renewItem($patronId, $itemId){
 			$post_data = array(
         'menu' => 'account',
         'newemailtext' => $_REQUEST['email'],
-        'newpin' => $_REQUEST['newPin'],  
-        'oldpin' => $_REQUEST['oldPin'],  
+        'newpin' => $_REQUEST['newPin'],
+        'oldpin' => $_REQUEST['oldPin'],
         'profile' => $configArray['Catalog']['hipProfile'],
         'renewpin' => $_REQUEST['verifyPin'],
         'session' => $sessionId,
@@ -2246,7 +2248,7 @@ public function renewItem($patronId, $itemId){
 		//check to see if the user has provided an alias
 		if ((isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName) ||
 		(isset($_REQUEST['disableRecommendations']) && $_REQUEST['disableRecommendations'] != $user->disableRecommendations) ||
-		(isset($_REQUEST['disableCoverArt']) && $_REQUEST['disableCoverArt'] != $user->disableCoverArt) || 
+		(isset($_REQUEST['disableCoverArt']) && $_REQUEST['disableCoverArt'] != $user->disableCoverArt) ||
 		(isset($_REQUEST['bypassAutoLogout']) && $_REQUEST['bypassAutoLogout'] != $user->bypassAutoLogout)){
 			$user->displayName = $_REQUEST['displayName'];
 			$user->disableRecommendations = $_REQUEST['disableRecommendations'];
@@ -2264,7 +2266,7 @@ public function renewItem($patronId, $itemId){
 	}
 
 	public function placeHold($recordId, $patronId, $comment, $type){
-		//Self registered cards need to use HIP to place holds 
+		//Self registered cards need to use HIP to place holds
 		if (preg_match('/^\\d{12}-\\d$/', $patronId)){
 			$result = $this->placeHoldViaHIP($recordId, $patronId, $comment, $type);
 		}else{
@@ -2423,11 +2425,11 @@ public function renewItem($patronId, $itemId){
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$sresult = curl_exec($curl_connection);
-			
+
 			if (preg_match('/Must specify a valid pickup location/', $sresult)){
 				$failureReason = "Sorry the pickup location could not be recognized.";
 			}
-			
+
 		}
 
 		$hold_result = array();
@@ -2490,7 +2492,7 @@ public function renewItem($patronId, $itemId){
 				$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
 				$mysip->patron = $user->cat_username;
 				$mysip->patronpwd = $user->cat_password;
-				
+
 				if (isset($_REQUEST['campus'])){
 					$campus=trim($_REQUEST['campus']);
 				}else{
@@ -2513,7 +2515,7 @@ public function renewItem($patronId, $itemId){
 				}else{
 					$mode = '+';
 				}
-				
+
 				//expire the hold in 2 years by default
 				$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
 				$in = $mysip->msgHold($mode, $expirationTime, '2', '', $recordId, '', $campus);
@@ -2653,7 +2655,7 @@ public function renewItem($patronId, $itemId){
       'login_prompt' => 'true',
       'menu' => 'account',
       'profile' => $this->hipProfile,
-      'ri' => '', 
+      'ri' => '',
       'sec1' => $user->cat_username,
       'sec2' => $user->cat_password,
       'session' => $sessionId,
@@ -2788,7 +2790,7 @@ public function renewItem($patronId, $itemId){
                     'message' => 'Your hold was updated successfully.');
 		}
 	}
-	
+
 private function parseSip2Fines($finesData){
 		$fines = array();
 		$totalFines = 0;
@@ -2812,7 +2814,7 @@ private function parseSip2Fines($finesData){
 		$fines['formatted'] = sprintf('$%01.2f', $totalFines);
 		return $fines;
 	}
-	
+
 	private function parseSip2Holds($holdData, $mysip){
 		$holds = array();
 		//Fines come in as an array of strings with the following fields.
@@ -2931,7 +2933,7 @@ private function parseSip2Fines($finesData){
 			return mssql_query($query);
 		}
 	}
-	
+
 	protected function _fetch_assoc($result_id){
 		global $configArray;
 		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
@@ -2940,7 +2942,7 @@ private function parseSip2Fines($finesData){
 			return mssql_fetch_assoc($result_id);
 		}
 	}
-	
+
 	protected function _fetch_array($result_id){
 		global $configArray;
 		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
@@ -2949,7 +2951,7 @@ private function parseSip2Fines($finesData){
 			return mssql_fetch_array($result_id);
 		}
 	}
-	
+
 /**
 	 * Email the user's pin number to the account on record if any exists.
 	 */
