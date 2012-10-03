@@ -30,6 +30,7 @@
     {css media="print" filename="print.css"}
     <script type="text/javascript">
       path = '{$path}';
+      url = '{$url}';
       loggedIn = {if $user}true{else}false{/if};
     </script>
     {if $consolidateJs}
