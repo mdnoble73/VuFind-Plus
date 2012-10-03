@@ -46,8 +46,13 @@ class EContentDriver implements DriverInterface{
 	 *                              If an error occures, return a PEAR_Error
 	 * @access  public
 	 */
-	public function getStatus($id){
+	public function getStatus($recordId){
+		$holdings = $this->getHolding($recordId);
+		$statusSummary = $this->getStatusSummary($recordId, $holdings);
+		$statusSummary['id'] = 'econtentRecord' . $recordId;
+		$statusSummary['shortId'] = 'econtentRecord' . $recordId;
 
+		return $statusSummary;
 	}
 
 	/**
@@ -65,7 +70,13 @@ class EContentDriver implements DriverInterface{
 	 * @access  public
 	 */
 	public function getStatuses($ids){
-
+		$items = array();
+		$count = 0;
+		foreach ($ids as $id) {
+			$items[$count] = $this->getStatus($id);
+			$count++;
+		}
+		return $items;
 	}
 
 	/**

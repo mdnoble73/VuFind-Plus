@@ -75,6 +75,7 @@ class EcontentRecordDriver extends IndexRecord
 		}
 		$interface->assign('source', $this->eContentRecord->source);
 		$searchResultTemplate = parent::getSearchResult();
+		$interface->assign('summAjaxStatus', true);
 		//Override fields as needed
 		return 'RecordDrivers/Econtent/result.tpl';
 	}

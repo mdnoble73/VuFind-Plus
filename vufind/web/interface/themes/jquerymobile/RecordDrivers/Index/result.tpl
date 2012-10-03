@@ -12,6 +12,7 @@
 		{if $summAjaxStatus}
 			<p><strong>{translate text='Call Number'}:</strong> <span class="ajax_availability hide callnumber{$summShortId|escape}">{translate text='Loading'}...</span></p>
 			<p><strong>{translate text='Located'}:</strong> <span class="ajax_availability hide location{$summShortId|escape}">{translate text='Loading'}...</span></p>
+			<p><strong>{translate text='Status'}:</strong> <span class="ajax_availability hide status{$summShortId|escape}">{translate text='Loading'}...</span></p>
 		{elseif !empty($summCallNo)}
 			<p><strong>{translate text='Call Number'}:</strong> {$summCallNo|escape}</p>
 		{/if}

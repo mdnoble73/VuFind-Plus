@@ -153,20 +153,34 @@ class JSON extends Action {
 		if (!$catalog || !$catalog->status) {
 			$this->output(translate('An error has occurred'), JSON::STATUS_ERROR);
 		}
-		$results = $catalog->getStatuses($_GET['id']);
-		if (PEAR::isError($results)) {
-			$this->output($results->getMessage(), JSON::STATUS_ERROR);
-		} else if (!is_array($results)) {
-			// If getStatuses returned garbage, let's turn it into an empty array
-			// to avoid triggering a notice in the foreach loop below.
-			$results = array();
+		$printIds = array();
+		$econtentIds = array();
+		$allIds = array();
+		foreach ($_GET['id'] as $id){
+			if (preg_match('/econtentRecord(\d+)$/i', $id, $matches)){
+				$econtentIds[] = $matches[1];
+			}else{
+				$printIds[] = $id;
+			}
+		}
+		$allIds = array_merge($printIds, $econtentIds);
+		$results = array();
+		if (count($printIds) > 0){
+			$results = $catalog->getStatuses($printIds);
+			if (PEAR::isError($results)) {
+				$this->output($results->getMessage(), JSON::STATUS_ERROR);
+			} else if (!is_array($results)) {
+				// If getStatuses returned garbage, let's turn it into an empty array
+				// to avoid triggering a notice in the foreach loop below.
+				$results = array();
+			}
 		}
 
 		// In order to detect IDs missing from the status response, create an
 		// array with a key for every requested ID.  We will clear keys as we
 		// encounter IDs in the response -- anything left will be problems that
 		// need special handling.
-		$missingIds = array_flip($_GET['id']);
+		$missingIds = array_flip($printIds);
 
 		// Load messages for response:
 		$messages = array(
@@ -186,13 +200,9 @@ class JSON extends Action {
 			// Skip errors and empty records:
 			if (!PEAR::isError($record) && count($record)) {
 				if ($locationSetting == "group") {
-					$current = $this->_getItemStatusGroup(
-					$record, $messages, $callnumberSetting
-					);
+					$current = $this->_getItemStatusGroup($record, $messages, $callnumberSetting);
 				} else {
-					$current = $this->_getItemStatus(
-					$record, $messages, $locationSetting, $callnumberSetting
-					);
+					$current = $this->_getItemStatus($record, $messages, $locationSetting, $callnumberSetting);
 				}
 				$statuses[] = $current;
 
@@ -213,6 +223,27 @@ class JSON extends Action {
                 'reserve_message'      => translate('Not On Reserve'),
                 'callnumber'           => ''
                 );
+		}
+
+		if (count($econtentIds) > 0){
+			require_once 'Drivers/EContentDriver.php';
+			$econtentDriver = new EContentDriver();
+			$econtentResults = $econtentDriver->getStatuses($econtentIds);
+			foreach ($econtentResults as $result){
+				$available = $result['available'];
+				$statuses[] = array(
+                'id'                   => $result['id'],
+                'shortId'                   => $result['id'],
+                'availability' => ($available ? 'true' : 'false'),
+                'availability_message' => $messages[$available ? 'available' : 'unavailable'],
+                'location'             => translate('Unknown'),
+                'locationList'         => false,
+                'reserve'              => 'false',
+                'reserve_message'      => translate('Not On Reserve'),
+                'callnumber'           => ''
+                );
+
+			}
 		}
 
 		// Done
