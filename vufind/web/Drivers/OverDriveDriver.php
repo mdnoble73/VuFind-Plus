@@ -951,6 +951,9 @@ class OverDriveDriver {
 			}else if (preg_match('/You already have one or more titles currently in your Book Bag checked out/si', $processCartConfirmation)){
 				$processCartResult['result'] = true;
 				$processCartResult['message'] = "This title is already checked out to you.";
+			}else if (preg_match('/You are barred from borrowing/si', $processCartConfirmation)){
+				$processCartResult['result'] = true;
+				$processCartResult['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
 			}else{
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = 'There was an error processing your cart.';
