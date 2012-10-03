@@ -427,6 +427,7 @@ body.Search--Home #logo {
    */
   background-image: url(../images/flag-shadow.png);
   background-repeat: no-repeat;
+  width: 1175px;
 }
 
 #main-content {
