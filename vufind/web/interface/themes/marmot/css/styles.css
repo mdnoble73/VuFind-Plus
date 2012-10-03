@@ -1425,7 +1425,7 @@ background-image:url(/interface/themes/marmot/images/update.png);
 	width: 80px;
 	vertical-align: top;
 	padding-top: 64px;
-	margin-bottom: 10px;
+	margin-bottom: 22px;
 }
 
 .categoryValueEMedia{
@@ -1908,6 +1908,16 @@ ul.hold_items li{
 }
 #listTopButtons{
 	margin-bottom: 5px;
+}
+
+#listNotes{
+	width: 80%;
+	margin: 10px auto ;
+}
+.listNote{
+	color: red;
+	font-weight: bold;
+	padding: 2px 0px ;
 }
 
 /* Renewal information */

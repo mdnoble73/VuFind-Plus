@@ -149,7 +149,7 @@ class MillenniumDriver implements DriverInterface
 	public function getMillenniumRecordInfo($id){
 		require_once 'Drivers/marmot_inc/MillenniumCache.php';
 		$scope = $this->getMillenniumScope();
-		//$logger = new Logger();
+		//global $logger;
 		//$logger->log('Loaded millennium info for id ' . $id . ' scope ' . $scope, PEAR_LOG_INFO);
 		$millenniumCache = new MillenniumCache();
 		//First clean out any records that are more than 5 minutes old
@@ -535,7 +535,8 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			//Add the holding to the sorted array to determine
-			$sortString = $holding['location'] . $holding['callnumber']. $i;
+			$sortString = $holding['location'] . '-'. $i;
+			//$sortString = $holding['location'] . $holding['callnumber']. $i;
 			if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
 				//If the user is in a branch, those holdings come first.
 				$holding['section'] = 'In this library';
@@ -1418,7 +1419,7 @@ class MillenniumDriver implements DriverInterface
 			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 			$deleteCookie = true;
 		}
-		$logger = new Logger();
+		global $logger;
 		//$logger->log('PatronInfo cookie ' . $cookie, PEAR_LOG_INFO);
 		global $configArray;
 		$scope = $this->getDefaultScope();
@@ -1963,7 +1964,7 @@ class MillenniumDriver implements DriverInterface
 
 	public function parseHoldsPage($sresult){
 		global $timer;
-		$logger = new Logger();
+		global $logger;
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
@@ -2326,7 +2327,7 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$sresult = curl_exec($curl_connection);
 
-			$logger = new Logger();
+			global $logger;
 			$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
 
 			$sresult = preg_replace("/<!--([^(-->)]*)-->/","",$sresult);
@@ -2407,7 +2408,7 @@ class MillenniumDriver implements DriverInterface
 			$hold_result['result'] = false;
 			$hold_result['message'] = $message;
 
-			$logger = new Logger();
+			global $logger;
 			$logger->log('Place Hold Full HTML\n' . $holdResultPage, PEAR_LOG_INFO);
 		}
 		return $hold_result;
@@ -2432,7 +2433,7 @@ class MillenniumDriver implements DriverInterface
 	 */
 	public function updateHoldDetailed($requestId, $patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue='off')
 	{
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 
 		$id2= $patronId;
@@ -2596,7 +2597,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	public function renewAll($patronId){
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 		global $memcache;
 
@@ -2680,7 +2681,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	public function renewItem($patronId, $itemId, $itemIndex){
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 
 		//Setup the call to Millennium
@@ -3052,7 +3053,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function _getItemDetails($id, $holdings){
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 		$scope = $this->getDefaultScope();
 
@@ -3124,7 +3125,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function selfRegister(){
-		$logger = new Logger();
+		global $logger;
 		global $configArray;
 
 		$firstName = $_GET['firstName'];

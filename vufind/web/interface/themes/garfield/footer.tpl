@@ -27,6 +27,7 @@
 </div>
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
 	<ul>
+		<li><a href="http://www.gcpld.org" >{translate text='Library Home Page'}</a></li>
 		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
 		<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
 		{if isset($illLink)}
@@ -39,7 +40,10 @@
 		<li><a href="http://gcpld.org/locations/library-district-administration">{translate text='Contact Us'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<div class="clearer"></div>
+<div id="copyright">
+	<a href="#" class='mobile-view'>{translate text="Go to Mobile View"}</a>
+</div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

@@ -193,7 +193,7 @@ class AdobeContentServer
 
 	static function packageFileWithService($filename, $econtentRecordId, $itemId, $existingResourceId = '', $numAvailable){
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 		if (isset($configArray['EContent']['packagingURL']) && strlen($configArray['EContent']['packagingURL']) > 0){
 			$logger->log("Packaging file with packaging service", PEAR_LOG_INFO);
 			//Copy the file to the ftp service
@@ -230,6 +230,9 @@ class AdobeContentServer
 					$importDetails->packagingId = $jsonResponse['packagingId'];
 					$importDetails->status = 'sentToAcs';
 					$importDetails->insert();
+				}else{
+					$logger->log("Error submitting file to packaging service: response\r\n$packagingResponse", PEAR_LOG_ERR);
+					$logger->log("Packaging call $packagingServiceCall", PEAR_LOG_ERR);
 				}
 
 				return $jsonResponse;
@@ -242,7 +245,9 @@ class AdobeContentServer
 
 	static function copyFileToFtp($pathToFile, $itemId, $extension){
 		global $configArray;
-		$logger = new Logger();
+		$copied = false;
+
+		global $logger;
 		$destinationFilename = "{$itemId}.{$extension}";
 		$packagingFTP = $configArray['EContent']['packagingFTPServer'];
 		$packagingFTPUser = $configArray['EContent']['packagingFTPUser'];
@@ -254,21 +259,26 @@ class AdobeContentServer
 		// Set up a connection
 		$conn = ftp_connect($packagingFTP);
 
-		// Login
-		$copied = false;
-		if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
-			$logger->log("Logged in to server", PEAR_LOG_INFO);
-			// Change the dir
-			ftp_pasv($conn, true);
-			ftp_chdir($conn, $packagingFTPBasePath);
-			if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
-				$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
-				$copied = true;
-			} else {
-				$logger->log("There was a problem while uploading $pathToFile to $destinationFilename", PEAR_LOG_ERR);
+		if ($conn){
+			// Login
+			if (ftp_login($conn, $packagingFTPUser, $packagingFTPPassword)){
+				$logger->log("Logged in to server", PEAR_LOG_INFO);
+				// Change the dir
+				ftp_pasv($conn, true);
+				ftp_chdir($conn, $packagingFTPBasePath);
+				if (ftp_put($conn, $destinationFilename, $pathToFile, FTP_BINARY)) {
+					$logger->log("successfully uploaded $pathToFile to $destinationFilename", PEAR_LOG_INFO);
+					$copied = true;
+				} else {
+					$logger->log("There was a problem while uploading $pathToFile to $destinationFilename", PEAR_LOG_ERR);
+				}
+				// Return the resource
+				ftp_close($conn);
+			}else{
+				$logger->log("Unable to login to FTP server", PEAR_LOG_ERR);
 			}
-			// Return the resource
-			ftp_close($conn);
+		}else{
+			$logger->log("Unable to connect to FTP server $packagingFTP", PEAR_LOG_ERR);
 		}
 
 		if ($copied){
@@ -282,7 +292,7 @@ class AdobeContentServer
 	static function packageFileDirect($filename, $existingResourceId = '', $numAvailable){
 		global $configArray;
 
-		$logger = new Logger();
+		global $logger;
 		$logger->log("packaging file $filename", PEAR_LOG_INFO);
 		$packageDoc = new DOMDocument('1.0', 'UTF-8');
 		$packageDoc->formatOutput = true;
@@ -333,7 +343,7 @@ class AdobeContentServer
 	}
 
 	static function addDistributionRights($acsId, $distributorId, $numAvailable){
-		$logger = new Logger();
+		global $logger;
 		$logger->log("Setting up distribution rights for acsid $acsId for distributor $distributorId", PEAR_LOG_INFO);
 		$distributionDoc = new DOMDocument('1.0', 'UTF-8');
 		$distributionDoc->formatOutput = true;

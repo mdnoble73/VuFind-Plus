@@ -485,12 +485,13 @@ class AJAX extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['formatId'];
 		$lendingPeriod = $_REQUEST['lendingPeriod'];
-		$logger = new Logger();
-		$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
+		//global $logger;
+		//$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
 		if ($user && !PEAR::isError($user)){
 			require_once('Drivers/OverDriveDriver.php');
 			$driver = new OverDriveDriver();
 			$result = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
+			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
 			return json_encode($result);
 		}else{
 			return json_encode(array('result'=>false, 'message'=>'You must be logged in to checkout an item.'));

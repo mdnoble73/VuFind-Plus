@@ -36,8 +36,15 @@ class Locations extends ObjectEditor
 	}
 	function getAllObjects(){
 		//Look lookup information for display in the user interface
+		global $user;
+
 		$location = new Location();
 		$location->orderBy('displayName');
+		if (!$user->hasRole('opacAdmin')){
+			//Scope to just locations for the user based on home library
+			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
+			$location->libraryId = $patronLibrary->libraryId;
+		}
 		$location->find();
 		$locationList = array();
 		while ($location->fetch()){
@@ -58,7 +65,18 @@ class Locations extends ObjectEditor
 		return 'locationId';
 	}
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('opacAdmin', 'libraryAdmin');
 	}
-
+	function showExportAndCompare(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canAddNew(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canDelete(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
 }

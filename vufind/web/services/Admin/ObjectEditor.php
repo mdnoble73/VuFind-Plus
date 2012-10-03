@@ -29,6 +29,14 @@ abstract class ObjectEditor extends Admin
 		global $configArray;
 		global $interface;
 
+		$interface->assign('canAddNew', $this->canAddNew());
+		$interface->assign('canDelete', $this->canDelete());
+		$interface->assign('showReturnToList', $this->showReturnToList());
+		$interface->assign('showExportAndCompare', $this->showExportAndCompare());
+
+		$interface->assign('objectType', $this->getObjectType());
+		$interface->assign('toolName', $this->getToolName());
+
 		//Define the structure of the object.
 		$structure = $this->getObjectStructure();
 		$interface->assign('structure', $structure);
@@ -54,11 +62,7 @@ abstract class ObjectEditor extends Admin
 				$this->viewIndividualObject($structure);
 			}
 		}
-		$interface->assign('canAddNew', $this->canAddNew());
-		$interface->assign('showReturnToList', $this->showReturnToList());
 		$interface->assign('customListActions', $customListActions);
-		$interface->assign('objectType', $this->getObjectType());
-		$interface->assign('toolName', $this->getToolName());
 		$interface->setPageTitle($this->getPageTitle());
 		$interface->display('layout.tpl');
 
@@ -381,9 +385,9 @@ abstract class ObjectEditor extends Admin
 		return null;
 	}
 	function showReturnToList(){
-		return false;
+		return true;
 	}
-	
+
 	function getFilters(){
 		return array();
 	}
@@ -407,7 +411,15 @@ abstract class ObjectEditor extends Admin
 		return true;
 	}
 
+	function canDelete(){
+		return true;
+	}
+
 	function customListActions(){
 		return array();
+	}
+
+	function showExportAndCompare(){
+		return true;
 	}
 }

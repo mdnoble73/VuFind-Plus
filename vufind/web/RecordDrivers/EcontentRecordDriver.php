@@ -209,11 +209,15 @@ class EcontentRecordDriver extends IndexRecord
 	 */
 	public function getTitle()
 	{
-		$title = $this->eContentRecord->title;
-		if ($this->eContentRecord->subTitle != null && strlen($this->eContentRecord->subTitle) > 0){
-			$title .= ': ' . $this->eContentRecord->subTitle;
+		if (isset($this->eContentRecord)){
+			$title = $this->eContentRecord->title;
+			if ($this->eContentRecord->subTitle != null && strlen($this->eContentRecord->subTitle) > 0){
+				$title .= ': ' . $this->eContentRecord->subTitle;
+			}
+			return $title;
+		}else{
+			return parent::getTitle();
 		}
-		return $title;
 	}
 
 	protected function getShortTitle()

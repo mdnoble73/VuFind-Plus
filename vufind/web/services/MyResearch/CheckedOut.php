@@ -27,7 +27,7 @@ class CheckedOut extends MyResearch{
 		global $interface;
 		global $user;
 		global $timer;
-		$logger = new Logger();
+		global $logger;
 
 		// Get My Transactions
 		$oneOrMoreRenewableItems = false;

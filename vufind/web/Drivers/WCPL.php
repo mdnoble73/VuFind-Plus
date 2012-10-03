@@ -362,7 +362,7 @@ class WCPL extends Horizon
 	}
 
 	function selfRegister(){
-		$logger = new Logger();
+		global $logger;
 
 		//Setup Curl
 		$header=array();

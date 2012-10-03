@@ -23,7 +23,7 @@ require_once 'services/Admin/Admin.php';
 require_once 'sys/ListWidget.php';
 require_once 'sys/ListWidgetList.php';
 require_once 'sys/DataObjectUtil.php';
-				
+
 /**
  * Provides a method of running SQL updates to the database.
  * Shows a list of updates that are available with a description of the
@@ -35,25 +35,25 @@ class ListWidgets extends Admin {
 	function launch() 	{
 		global $configArray;
 		global $interface;
-		
-		//Figure out what mode we are in 
+
+		//Figure out what mode we are in
 		if (isset($_REQUEST['objectAction'])){
 			$objectAction = $_REQUEST['objectAction'];
 		}else{
 			$objectAction = 'list';
 		}
-		
+
 		if ($objectAction == 'delete' && isset($_REQUEST['id'])){
-			$widget = new ListWidget(); 
+			$widget = new ListWidget();
 			$widget->id = $_REQUEST['id'];
 			if ($widget->find(true)){
 				$widget->delete();
 			}
-			
+
 			header("Location: $path/Admin/ListWidgets");
 			exit();
 		}
-		
+
 		//Get all available widgets
 		$availableWidgets = array();
 		$listWidget = new ListWidget();
@@ -63,13 +63,13 @@ class ListWidgets extends Admin {
 			$availableWidgets[$listWidget->id] = clone($listWidget);
 		}
 		$interface->assign('availableWidgets', $availableWidgets);
-		
+
 		//Get the selected widget
 		if (isset($_REQUEST['id'])  && is_numeric($_REQUEST['id'])){
 			$widget = $availableWidgets[$_REQUEST['id']];
 			$interface->assign('object', $widget);
 		}
-		
+
 	//Do actions that require preprocessing
 		if ($objectAction == 'save'){
 			if (!isset($widget)){
@@ -85,9 +85,9 @@ class ListWidgets extends Admin {
 				$interface->assign('object', $validationResults['object']);
 				$objectAction = 'view';
 			}
-			
+
 		}
-		
+
 		if ($objectAction == 'list'){
 			$interface->setTemplate('listWidgets.tpl');
 		}else{
@@ -102,17 +102,27 @@ class ListWidgets extends Admin {
 				$interface->setTemplate('listWidget.tpl');
 			}
 		}
-		
+
 		$interface->setPageTitle('List Widgets');
 		$interface->display('layout.tpl');
 
 	}
 
-	
-
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('opacAdmin', 'libraryAdmin');
+	}
+	function showExportAndCompare(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canAddNew(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canDelete(){
+		global $user;
+		return $user->hasRole('opacAdmin');
 	}
 
-	
+
 }

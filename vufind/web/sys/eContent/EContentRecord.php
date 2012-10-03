@@ -20,6 +20,8 @@ class EContentRecord extends SolrDataObject {
 	public $language;
 	public $publisher;
 	public $publishDate;
+	public $publishLocation;
+	public $physicalDescription;
 	public $edition;
 	public $isbn;
 	public $issn;
@@ -421,6 +423,29 @@ class EContentRecord extends SolrDataObject {
 			'storeDb' => true,
 			'storeSolr' => true,
 		),
+		'publishLocation' => array(
+			'property' => 'publishLocation',
+			'type' => 'text',
+			'size' => 100,
+			'maxLength' => 100,
+			'label' => 'Publication Location',
+			'description' => 'Where the title was published.',
+			'required'=> false,
+			'storeDb' => true,
+			'storeSolr' => false,
+		),
+		'physicalDescription' => array(
+			'property' => 'physicalDescription',
+			'type' => 'text',
+			'size' => 100,
+			'maxLength' => 100,
+			'label' => 'Physical Description',
+			'description' => 'A description of the title (number of pages, etc).',
+			'required'=> false,
+			'storeDb' => true,
+			'storeSolr' => false,
+		),
+
 		'edition' => array(
 			'property' => 'edition',
 			'type' => 'crSeparated',
@@ -968,17 +993,20 @@ class EContentRecord extends SolrDataObject {
 		}
 	}
 	function num_holdings(){
+		$numHoldings = 0;
 		if ($this->status == 'active'){
-			if (strcasecmp($this->source, 'OverDrive') == 0){
-				return 1;
-			}elseif ($this->accessType == 'free'){
-				return 25;
+			if ($this->accessType == 'free'){
+				$numHoldings = 25;
 			}else{
-				return $this->availableCopies;
+				$numHoldings = $this->availableCopies;
 			}
 		}else{
-			return 0;
+			$numHoldings = 0;
 		}
+		if ($numHoldings > 1000){
+			$numHoldings = 5;
+		}
+		return $numHoldings;
 	}
 
 	function validateCover(){
@@ -1372,7 +1400,7 @@ class EContentRecord extends SolrDataObject {
 		global $configArray;
 
 		//Clear the cached bookcover if one has been added.
-		$logger = new Logger();
+		global $logger;
 		if (isset($this->cover) && (strlen($this->cover) > 0)){
 			//Call via API since bookcovers may be on a different server
 			$url = $configArray['Site']['coverUrl'] . '/API/ItemAPI?method=clearBookCoverCacheById&id=econtentRecord' . $this->id;

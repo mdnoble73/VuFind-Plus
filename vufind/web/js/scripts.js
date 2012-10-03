@@ -176,7 +176,7 @@ function lightbox(left, width, top, height){
 	
 	var loadMsg = $('#lightboxLoading').html();
 
-	$('#popupbox').html('<div class="lightboxLoadingContents"><div class="lightboxLoadingMessage">' + loadMsg + '</div><img src="' + path + '/images/loading_bar.gif" class="lightboxLoadingImage"/></div>');
+	$('#popupbox').html('<div class="lightboxLoadingContents"><div class="lightboxLoadingMessage">' + loadMsg + '</div><img src="' + url + '/images/loading_bar.gif" class="lightboxLoadingImage"/></div>');
    
 	hideSelects('hidden');
 
@@ -999,4 +999,17 @@ function GetTags(id, elemId, strings) {
 function loadOtherEditionSummaries(id, isEcontent){
 	var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
 	ajaxLightbox(url);
+}
+
+function getQuerystringParameters(){
+	var vars = [];
+	var q = document.URL.split('?')[1];
+	if(q != undefined){
+		q = q.split('&');
+		for(var i = 0; i < q.length; i++){
+			var hash = q[i].split('=');
+			vars[hash[0]] = hash[1];
+		}
+	}
+	return vars;
 }

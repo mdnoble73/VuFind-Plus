@@ -40,7 +40,7 @@ class EContentWishListReport extends Admin
 			$recordsOnWishList[] = clone($eContentRecord);
 		}
 		$interface->assign('recordsOnWishList', $recordsOnWishList);
-		
+
 		//EXPORT To EXCEL
 		if (isset($_REQUEST['exportToExcel'])) {
 			$this->exportToExcel($recordsOnWishList);
@@ -49,7 +49,7 @@ class EContentWishListReport extends Admin
 		$interface->setTemplate('econtentWishList.tpl');
 		$interface->display('layout.tpl');
 	}
-	
+
 	function exportToExcel($itemlessRecords){
 		//PHPEXCEL
 		// Create new PHPExcel object
@@ -78,7 +78,7 @@ class EContentWishListReport extends Admin
 		$a=4;
 		//Loop Through The Report Data
 		foreach ($itemlessRecords as $itemlessRecord) {
-				
+
 			$objPHPExcel->setActiveSheetIndex(0)
 				->setCellValue('A'.$a, $itemlessRecord->id)
 				->setCellValue('B'.$a, $itemlessRecord->title)
@@ -96,8 +96,8 @@ class EContentWishListReport extends Admin
 		$objPHPExcel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
-			
-			
+
+
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Wish List');
 
@@ -115,6 +115,6 @@ class EContentWishListReport extends Admin
 	}
 
 	function getAllowableRoles(){
-		return array('epubAdmin');
+		return array('epubAdmin', 'libraryAdmin', 'opacAdmin');
 	}
 }

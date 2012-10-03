@@ -56,7 +56,7 @@ class DataObjectUtil
 	 * @param $form
 	 */
 	static function saveObject($structure, $dataType){
-		$logger = new Logger();
+		global $logger;
 		//Check to see if we have a new object or an exiting object to update
 		$object = new $dataType();
 		DataObjectUtil::updateFromUI($object, $structure);
@@ -161,7 +161,7 @@ class DataObjectUtil
 	}
 
 	static function processProperty($object, $property){
-		$logger = new Logger();
+		global $logger;
 		$propertyName = $property['property'];
 		if ($property['type'] == 'section'){
 			foreach ($property['properties'] as $subProperty){

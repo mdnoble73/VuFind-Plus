@@ -270,6 +270,24 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showCheckInGrid` INT DEFAULT '1';",
 				),
 			),
+			'library_19' => array(
+				'title' => 'Library 19',
+				'description' => 'Add the ability to specify a list of records to blacklist. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `recordsToBlackList` MEDIUMTEXT;",
+				),
+			),
+			'library_20' => array(
+				'title' => 'Library 20',
+				'description' => 'Add the show or hide marmot search results in scoped searches. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showMarmotResultsAtEndOfSearch` INT(11) DEFAULT 1;",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',
@@ -297,6 +315,16 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `location` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
+				),
+			),
+
+			'location_4' => array(
+				'title' => 'Location 4',
+				'description' => 'Add the ability to specify a list of records to blacklist. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `location` ADD `recordsToBlackList` MEDIUMTEXT;",
 				),
 			),
 
@@ -898,6 +926,15 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO `roles` (`name`, `description`) VALUES ('cataloging', 'Allows user to perform cataloging activities.')",
+				),
+			),
+
+			'libraryAdmin' => array(
+				'title' => 'Create library admin role',
+				'description' => 'Create library admin to allow .',
+				'dependencies' => array(),
+				'sql' => array(
+					"INSERT INTO `roles` (`name`, `description`) VALUES ('libraryAdmin', 'Allows user to update library configuration for their library system only for their home location.')",
 				),
 			),
 

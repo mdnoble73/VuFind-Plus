@@ -18,7 +18,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		}
 		$this->updateStarted = true;
 
-		$logger = new Logger();
+		global $logger;
 		$result = parent::update();
 		if (!$insertInSolr){
 			$logger->log("updateDetailed, not inserting in solr because insertInSolr was false", PEAR_LOG_DEBUG);
@@ -90,7 +90,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		global $configArray;
 		$host = $configArray[$this->getConfigSection()]['url'];
 
-		$logger = new Logger();
+		global $logger;
 		$logger->log("Deleting Record {$this->solrId()}", PEAR_LOG_INFO);
 
 		$cores = $this->cores();
@@ -117,7 +117,7 @@ abstract class SolrDataObject extends DB_DataObject{
 		global $configArray;
 		$this->_quickReindex = $quick;
 		$host = $configArray[$this->getConfigSection()]['url'];
-		$logger = new Logger();
+		global $logger;
 		$logger->log("Updating " . $this->solrId() . " in solr", PEAR_LOG_INFO);
 
 		$cores = $this->cores();
@@ -182,7 +182,7 @@ abstract class SolrDataObject extends DB_DataObject{
 
 		$cores = $this->cores();
 		foreach ($cores as $corename){
-			$logger = new Logger();
+			global $logger;
 			$logger->log("Optimizing Solr Core! $corename", PEAR_LOG_INFO);
 
 			$index = new Solr($host, $corename);

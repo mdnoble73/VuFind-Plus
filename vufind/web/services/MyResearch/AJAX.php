@@ -9,12 +9,12 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
  *
  */
 
@@ -48,7 +48,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
-	               "<AJAXResponse>\n";
+								 "<AJAXResponse>\n";
 			if (is_callable(array($this, $_GET['method']))) {
 				$xml .= $this->$_GET['method']();
 			} else {
@@ -114,13 +114,13 @@ class AJAX extends Action {
 		$patron = $catalog->patronLogin($username, $password);
 		if ($patron == null){
 			$output = "<result>\n" .
-                      "  <PickupLocations>\n";
-			$output .= "  </PickupLocations>\n" .
-                       '</result>';
+											"	<PickupLocations>\n";
+			$output .= "	</PickupLocations>\n" .
+											 '</result>';
 		}else{
 
 			$output = "<result>\n" .
-                      "  <PickupLocations>\n";
+											"	<PickupLocations>\n";
 
 			$patronProfile = $catalog->getMyProfile($patron);
 
@@ -131,7 +131,7 @@ class AJAX extends Action {
 				$output .= "<Location id='{$location->code}' selected='{$location->selected}'>$location->displayName</Location>";
 			}
 
-			$output .= "  </PickupLocations>\n";
+			$output .= "	</PickupLocations>\n";
 			//Also determine if the hold can be cancelled.
 			global $librarySingleton;
 			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
@@ -139,7 +139,7 @@ class AJAX extends Action {
 			if ($patronHomeBranch != null){
 				$showHoldCancelDate = $patronHomeBranch->showHoldCancelDate;
 			}
-			$output .= "  <AllowHoldCancellation>{$showHoldCancelDate}</AllowHoldCancellation>\n";
+			$output .= "	<AllowHoldCancellation>{$showHoldCancelDate}</AllowHoldCancellation>\n";
 			$output .= '</result>';
 
 		}
@@ -149,6 +149,7 @@ class AJAX extends Action {
 	function GetSuggestions(){
 		global $interface;
 		global $library;
+		global $configArray;
 
 		//Make sure to initialize solr
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -167,20 +168,20 @@ class AJAX extends Action {
 		$titles = array();
 		foreach ($suggestions as $suggestion){
 			$titles[] = array(
-	          	'id' => $suggestion['titleInfo']['id'],
-	    		'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=". $suggestion['titleInfo']['id'] . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
-	    		'title' => $suggestion['titleInfo']['title'],
-	    		'author' => $suggestion['titleInfo']['author'],
-	        	'basedOn' => $suggestion['basedOn']
+					'id' => $suggestion['titleInfo']['id'],
+					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=". $suggestion['titleInfo']['id'] . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
+					'title' => $suggestion['titleInfo']['title'],
+					'author' => $suggestion['titleInfo']['author'],
+					'basedOn' => $suggestion['basedOn']
 			);
 		}
 
 		foreach ($titles as $key => $rawData){
 			$formattedTitle = "<div id=\"scrollerTitleSuggestion{$key}\" class=\"scrollerTitle\">" .
-    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-    			"</a></div>" .
-    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+					"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+					"</a></div>" .
+					"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
 			$rawData['formattedTitle'] = $formattedTitle;
 			$titles[$key] = $rawData;
 		}
@@ -221,12 +222,12 @@ class AJAX extends Action {
 				$formatCategory = $title->format_category;
 
 				$titles[] = array(
-		    		'id' => $title->record_id,
-		    		'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $title->record_id . "&isn=" . $title->isbn . "&size=small&upc=" . $upc . "&category=" . $formatCategory,
-		    		'title' => $title->title,
-		    		'author' => $title->author,
-				    'source' => 'VuFind',
-				    'link' => $configArray['Site']['path'] . "/Record/" . $title->record_id,
+						'id' => $title->record_id,
+						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $title->record_id . "&isn=" . $title->isbn . "&size=small&upc=" . $upc . "&category=" . $formatCategory,
+						'title' => $title->title,
+						'author' => $title->author,
+						'source' => 'VuFind',
+						'link' => $configArray['Site']['path'] . "/Record/" . $title->record_id,
 				);
 			}else{
 				require_once('sys/eContent/EContentRecord.php');
@@ -247,10 +248,10 @@ class AJAX extends Action {
 
 		foreach ($titles as $key => $rawData){
 			$formattedTitle = "<div id=\"scrollerTitleList{$listId}{$key}\" class=\"scrollerTitle\">" .
-    			'<a href="' . $rawData['link'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-    			"</a></div>" .
-    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					'<a href="' . $rawData['link'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+					"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+					"</a></div>" .
+					"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
 			$rawData['formattedTitle'] = $formattedTitle;
 			$titles[$key] = $rawData;
 		}

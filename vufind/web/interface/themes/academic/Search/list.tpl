@@ -14,7 +14,7 @@
 		{/if}
 	</div>
 	{* End Narrow Search Options *}
-	
+
 	<div id="main-content">
 		<div id="searchInfo">
 			{* Recommendations *}
@@ -23,7 +23,7 @@
 					{include file=$recommendations}
 				{/foreach}
 			{/if}
-	
+
 			{* Listing Options *}
 			<div class="resulthead">
 				<div id="searchResultSummary" >
@@ -33,46 +33,65 @@
 					{translate text='of'} <b>{$recordCount}</b>
 					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
 				{/if}
-					{translate text='query time'}: {$qtime}s
-					{if $spellingSuggestions}
+				{translate text='query time'}: {$qtime}s
+				{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+					<br />
+					<div class="unscopedResultCount">
+						There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+					</div>
+				{/if}
+				{if $spellingSuggestions}
 					<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
 					{foreach from=$spellingSuggestions item=details key=term name=termLoop}
 						{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
 					{/foreach}
 					</div>
-					{/if}
-				</div>
-	
-				<div class="toggle">
-					{if $recordCount}
-						{translate text='Sort'}
-						<select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
-						{foreach from=$sortList item=sortData key=sortLabel}
-							<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
-						{/foreach}
-						</select>
-					{/if}
-				</div>
-	
-				{if $pageLinks.all}<div class="top pagination">{$pageLinks.all}</div>{/if}
+				{/if}
 			</div>
-			<div class="clearer"></div>
-			{* End Listing Options *}
-	
-			{if $subpage}
-				{include file=$subpage}
-			{else}
-				{$pageContent}
-			{/if}
-	
-			{if $prospectorNumTitlesToLoad > 0}
-				<script type="text/javascript">getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
-			{/if}
-			{* Prospector Results *}
-			<div id='prospectorSearchResultsPlaceholder'></div>
-				
+
+			<div class="toggle">
+				{if $recordCount}
+					{translate text='Sort'}
+					<select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
+					{foreach from=$sortList item=sortData key=sortLabel}
+						<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
+					{/foreach}
+					</select>
+				{/if}
+			</div>
+
+			{if $pageLinks.all}<div class="top pagination">{$pageLinks.all}</div>{/if}
+		</div>
+		<div class="clearer"></div>
+		{* End Listing Options *}
+
+		{if $subpage}
+			{include file=$subpage}
+		{else}
+			{$pageContent}
+		{/if}
+
+		{if $unscopedResults > 0}
+			<h2>Sample Results from entire Marmot Catalog</h2>
+			<div class="unscopedResultCount">
+				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+			</div>
+			{foreach from=$unscopedResults item=record name="recordLoop"}
+				<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+					{* This is raw HTML -- do not escape it: *}
+					{$record}
+				</div>
+			{/foreach}
+		{/if}
+
+		{if $prospectorNumTitlesToLoad > 0}
+			<script type="text/javascript">getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
+		{/if}
+		{* Prospector Results *}
+		<div id='prospectorSearchResultsPlaceholder'></div>
+
 			{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
-			
+
 			<div class="searchtools">
 				<strong>{translate text='Search Tools'}:</strong>
 				<a href="{$rssLink|escape}" class="feed">{translate text='Get RSS Feed'}</a>
@@ -82,6 +101,6 @@
 		</div>
 	</div>
 	{* End Main Listing *}
-	
+
 </div>
 

@@ -607,7 +607,6 @@ function redrawSaveStatus() {literal}{{/literal}
 						{include file="$module/view-staff-reviews.tpl"}
 						</div>
 						
-						<h4>Professional Reviews</h4>
 						<div id='reviewPlaceholder'></div>
 					{/if}
 				{/if}

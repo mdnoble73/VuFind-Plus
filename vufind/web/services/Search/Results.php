@@ -232,6 +232,18 @@ class Results extends Action {
 		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
 
+		//Check to see if we should show unscoped results
+		$enableUnscopedSearch = false;
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary != null){
+			$searchSources = new SearchSources();
+			$searchOptions = $searchSources->getSearchSources();
+			if (isset($searchOptions['marmot']) && $searchLibrary->showMarmotResultsAtEndOfSearch){
+				$unscopedSearch = clone($searchObject);
+				$enableUnscopedSearch = true;
+			}
+		}
+
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		$showRatings = 1;
 		$showProspectorResultsAtEndOfSearch = true;
@@ -243,6 +255,7 @@ class Results extends Action {
 		$interface->assign('showRatings', $showRatings);
 
 		$numProspectorTitlesToLoad = 0;
+		$numUnscopedTitlesToLoad = 0;
 
 		// Save the ID of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
@@ -251,7 +264,6 @@ class Results extends Action {
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		if ($searchObject->getResultTotal() < 1) {
-
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
@@ -278,6 +290,7 @@ class Results extends Action {
 			}
 
 			$numProspectorTitlesToLoad = 10;
+			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
 		} else if ($searchObject->getResultTotal() == 1){
@@ -352,10 +365,8 @@ class Results extends Action {
 			$pager = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
 			if ($pager->isLastPage()){
-				$numProspectorTitlesToLoad = $summary['perPage'] - $pager->getNumRecordsOnPage();
-				if ($numProspectorTitlesToLoad < 5){
-					$numProspectorTitlesToLoad = 5;
-				}
+				$numProspectorTitlesToLoad = 5;
+				$numUnscopedTitlesToLoad = 5;
 			}
 			$timer->logTime('finish hits processing');
 		}
@@ -365,6 +376,26 @@ class Results extends Action {
 			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
 		}else{
 			$interface->assign('prospectorNumTitlesToLoad', 0);
+		}
+
+		if ($enableUnscopedSearch){
+			$unscopedSearch->setLimit($numUnscopedTitlesToLoad);
+			$unscopedSearch->disableScoping();
+			$unscopedSearch->processSearch(false, false);
+			$numUnscopedResults = $unscopedSearch->getResultTotal();
+			$interface->assign('numUnscopedResults', $numUnscopedResults);
+			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
+			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
+				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
+			}else{
+				$unscopedSearchUrl .= "&searchSource=marmot";
+			}
+			$unscopedSearchUrl .= "&shard=";
+			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
+			if ($numUnscopedTitlesToLoad > 0){
+				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML();
+				$interface->assign('unscopedResults', $unscopedResults);
+			}
 		}
 
 		//Determine whether or not materials request functionality should be enabled

@@ -61,7 +61,7 @@ class Hold extends Action {
 		global $interface;
 		global $configArray;
 		global $user;
-		$logger = new Logger();
+		global $logger;
 
 		//TODO: Clean this up so there is only ever one id.
 		if (isset($_REQUEST['recordId'])) {

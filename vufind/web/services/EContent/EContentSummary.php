@@ -37,11 +37,11 @@ class EContentSummary extends Admin
 
 		$collectionSummary = $this->loadCollectionSummary();
 		$interface->assign('collectionSummary', $collectionSummary);
-			
+
 		$interface->display('layout.tpl');
 	}
 
-	
+
 
 	function loadCollectionSummary(){
 		$collectionSummary = array();
@@ -73,7 +73,7 @@ class EContentSummary extends Admin
 
 
 	function getAllowableRoles(){
-		return array('epubAdmin');
+		return array('epubAdmin', 'libraryAdmin', 'opacAdmin');
 	}
 
 }

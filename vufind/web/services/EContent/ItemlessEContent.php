@@ -55,14 +55,14 @@ class ItemlessEContent extends Admin
 			}
 			$sourceRestriction = " AND source IN (" . join(",", $sourcesToShow) . ") ";
 		}
-		
+
 		//Get a list of econtent records that do have items
 		$recordsWithItems = array();
 		$eContentRecord->query("SELECT DISTINCT econtent_item.recordId from econtent_item inner join econtent_record on econtent_record.id = econtent_item.recordId $sourceRestriction");
 		while ($eContentRecord->fetch()){
 			$recordsWithItems[$eContentRecord->recordId] = $eContentRecord->recordId;
 		}
-		
+
 		$eContentRecord->query("SELECT econtent_record.id, title, author, isbn, ilsId, source FROM econtent_record WHERE source != 'OverDrive' and status = 'active' $sourceRestriction");
 		$itemlessRecords = array();
 		while ($eContentRecord->fetch()){
@@ -71,7 +71,7 @@ class ItemlessEContent extends Admin
 			}
 		}
 		$interface->assign('itemlessRecords', $itemlessRecords);
-		
+
 		//EXPORT To EXCEL
 		if (isset($_REQUEST['exportToExcel'])) {
 			$this->exportToExcel($itemlessRecords);
@@ -96,10 +96,10 @@ class ItemlessEContent extends Admin
 			);
 			$resultsSourceFilter[$i++] = $tmp;
 		}
-			
+
 		return $resultsSourceFilter;
 	}
-	
+
 	function exportToExcel($itemlessRecords){
 		//PHPEXCEL
 		// Create new PHPExcel object
@@ -127,7 +127,7 @@ class ItemlessEContent extends Admin
 		$a=4;
 		//Loop Through The Report Data
 		foreach ($itemlessRecords as $itemlessRecord) {
-				
+
 			$objPHPExcel->setActiveSheetIndex(0)
 				->setCellValue('A'.$a, $itemlessRecord->id)
 				->setCellValue('B'.$a, $itemlessRecord->title)
@@ -143,7 +143,7 @@ class ItemlessEContent extends Admin
 		$objPHPExcel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
 		$objPHPExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
-			
+
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Itemless eContent');
 
@@ -161,6 +161,6 @@ class ItemlessEContent extends Admin
 	}
 
 	function getAllowableRoles(){
-		return array('epubAdmin');
+		return array('epubAdmin', 'libraryAdmin', 'opacAdmin');
 	}
 }

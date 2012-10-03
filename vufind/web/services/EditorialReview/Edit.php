@@ -77,6 +77,6 @@ class Edit extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('opacAdmin', 'libraryAdmin');
 	}
 }

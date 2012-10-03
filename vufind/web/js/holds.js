@@ -5,6 +5,10 @@ function updateSelectedHolds(){
 	}
 	var newLocation = $('select:[name=withSelectedLocation]').val();
 	var url = path + '/MyResearch/Holds?multiAction=updateSelected&location=' + newLocation + "&" + selectedTitles;
+	var queryParams = getQuerystringParameters();
+	if ($.inArray('section', queryParams)){
+		url += '&section=' + queryParams['section'];
+	}
 	window.location = url;
 	return false;
 }
@@ -14,6 +18,10 @@ function cancelSelectedHolds(){
 		return false;
 	}
 	var url = path + '/MyResearch/Holds?multiAction=cancelSelected&' + selectedTitles;
+	var queryParams = getQuerystringParameters();
+	if ($.inArray('section', queryParams)){
+		url += '&section=' + queryParams['section'];
+	}
 	window.location = url;
 	return false;
 }
@@ -36,9 +44,17 @@ function freezeSelectedHolds(){
 			return false;
 		}
 		var url = path + '/MyResearch/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+		var queryParams = getQuerystringParameters();
+		if ($.inArray('section', queryParams)){
+			url += '&section=' + queryParams['section'];
+		}
 		window.location = url;
 	}else{
 		var url = path + '/MyResearch/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+		var queryParams = getQuerystringParameters();
+		if ($.inArray('section', queryParams)){
+			url += '&section=' + queryParams['section'];
+		}
 		window.location = url;
 	}
 	return false;
@@ -49,6 +65,10 @@ function thawSelectedHolds(){
 		return false;
 	}
 	var url = path + '/MyResearch/Holds?multiAction=thawSelected&' + selectedTitles;
+	var queryParams = getQuerystringParameters();
+	if ($.inArray('section', queryParams)){
+		url += '&section=' + queryParams['section'];
+	}
 	window.location = url;
 	return false;
 }

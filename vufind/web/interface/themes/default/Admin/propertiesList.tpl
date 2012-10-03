@@ -88,31 +88,35 @@
 			</table>
 		</div>
 		{if $canAddNew}
-		<form>
-			<input type='hidden' name='objectAction' value='addNew' />
-			<button type='submit' value='addNew'>Add New {$objectType}</button>
-			</form>
-			{/if}
 			<form>
-			{foreach from=$customListActions item=customAction}
-				<form>
+				<input type='hidden' name='objectAction' value='addNew' />
+				<button type='submit' value='addNew'>Add New {$objectType}</button>
+			</form>
+		{/if}
+			
+		{foreach from=$customListActions item=customAction}
+			<form>
 				<input type='hidden' name='objectAction' value='{$customAction.action}' />
 				<button type='submit' value='{$customAction.action}'>{$customAction.label}</button>
-				</form>
-			{/foreach}
-			<input type='hidden' name='objectAction' value='export' />
-			<button type='submit' value='export'>Export to file</button>
+			</form>
+		{/foreach}
+			
+		{if $showExportAndCompare}
+			<form>
+				<input type='hidden' name='objectAction' value='export' />
+				<button type='submit' value='export'>Export to file</button>
 			</form>
 			<form enctype="multipart/form-data" method="POST">
-			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-			<input type="hidden" name='objectAction' value='compare' />
-			Choose a file to compare: <input name="uploadedfile" type="file" /> <input type="submit" value="Compare File" /><br />
+				<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+				<input type="hidden" name='objectAction' value='compare' />
+				Choose a file to compare: <input name="uploadedfile" type="file" /> <input type="submit" value="Compare File" /><br />
 			</form>
 			<form enctype="multipart/form-data" method="POST">
-			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-			<input type="hidden" name='objectAction' value='import' />
-			Choose a file to import: <input name="uploadedfile" type="file" /> <input type="submit" value="Import File" /><br />
-			This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!
-		</form>
+				<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+				<input type="hidden" name='objectAction' value='import' />
+				Choose a file to import: <input name="uploadedfile" type="file" /> <input type="submit" value="Import File" /><br />
+				This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!
+			</form>
+		{/if}
 	</div>
 </div>

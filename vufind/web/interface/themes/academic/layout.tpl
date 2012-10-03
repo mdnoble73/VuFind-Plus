@@ -26,7 +26,7 @@
 		{if $focusElementId}
 		<script type="text/javascript">{literal}
 		jQuery(function (){
-			jQuery('#{/literal}{$focusElementId}{literal}').focus();
+			jQuery('#{/literal}{$focusElementId}{literal}').focus().select();
 		});{/literal}
 		</script>
 		{/if}

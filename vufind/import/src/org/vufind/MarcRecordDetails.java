@@ -202,6 +202,7 @@ public class MarcRecordDetails {
 		List<VariableField> eightFiftySixFields = record.getVariableFields("856");
 		for (VariableField eightFiftySixField : eightFiftySixFields) {
 			DataField eightFiftySixDataField = (DataField) eightFiftySixField;
+			
 			String url = null;
 			if (eightFiftySixDataField.getSubfield('u') != null) {
 				url = eightFiftySixDataField.getSubfield('u').getData();
@@ -218,61 +219,40 @@ public class MarcRecordDetails {
 			if (eightFiftySixDataField.getSubfield('3') != null) {
 				notesField = eightFiftySixDataField.getSubfield('3').getData();
 			}
-
-			if (text != null && url != null) {
-				boolean isSourceUrl = false;
-				//boolean isEnrichmentUrl = false;
-				if (text.matches("(?i).*?(?:cover|review).*?")) {
-					// File is an enrichment url
-					//isEnrichmentUrl = true;
-				}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version|summary).*?")) {
-					if (!url.matches("(?i).*?vufind.*?")) {
-						isSourceUrl = true;
-					}
-				} else if (text.matches("(?i).*?purchase|buy.*?")) {
+			
+			char indicator2 = eightFiftySixDataField.getIndicator2();
+			if (indicator2 == '0' || indicator2 == '1' ){
+				//Resource or version of resource
+				addSourceUrl(allITypes, url, text, notesField);
+			}else if (indicator2 == '2'){
+				//Related resource (enrichment)
+				if (text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
-				} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
-					isSourceUrl = true;
-				} else {
-					logger.info("Unknown URL " + url + " " + text);
 				}
-				if (isSourceUrl){
-					// System.out.println("Found source url");
-					boolean addedUrl = false;
-					long libraryId = marcProcessor.getLibraryIdForLink(url);
-					if (libraryId == -1){
-						//Also check link text for the record
-						libraryId = marcProcessor.getLibraryIdForLink(text);
-					}
-					//If the library Id is still not set, check item records to see which library (or libraries own the title).
-					if (libraryId == -1 && marcProcessor.getItemTag() != null && marcProcessor.getSharedEContentLocation() != null){
-						@SuppressWarnings("unchecked")
-						List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
-						for (DataField curItem : itemFields) {
-							Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
-							if (locationField != null){
-								String location = locationField.getData();
-								//Get the libraryId based on the location
-								libraryId = getLibrarySystemIdForLocation(location);
-								if (libraryId != -1L){
-									for (Integer iType : allITypes){
-										sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
-									}
-									addedUrl = true;
-								}
-							}
+			}else{
+				//No information in indicator
+				if (text != null && url != null) {
+					boolean isSourceUrl = false;
+					//boolean isEnrichmentUrl = false;
+					if (text.matches("(?i).*?(?:cover|review).*?")) {
+						// File is an enrichment url
+						//isEnrichmentUrl = true;
+					}else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version|summary).*?")) {
+						if (!url.matches("(?i).*?vufind.*?")) {
+							isSourceUrl = true;
 						}
+					} else if (text.matches("(?i).*?purchase|buy.*?")) {
+						// System.out.println("Found purchase URL");
+						purchaseUrl = url;
+					} else if (url.matches("(?i).*?(idm.oclc.org/login|ezproxy).*?")) {
+						isSourceUrl = true;
+					} else {
+						logger.info("Unknown URL " + url + " " + text);
 					}
-					if (!addedUrl){
-						//This only happens if there are no items and the 
-						if (allITypes.size() > 0){
-							for (Integer iType : allITypes){
-								sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
-							}
-						}else{
-							sourceUrls.add(new LibrarySpecificLink(url, libraryId, -1, notesField));
-						}
+					if (isSourceUrl){
+						// System.out.println("Found source url");
+						addSourceUrl(allITypes, url, text, notesField);
 					}
 				}
 			}
@@ -304,6 +284,45 @@ public class MarcRecordDetails {
 		}
 		
 		urlsLoaded = true;
+	}
+
+	private void addSourceUrl(HashSet<Integer> allITypes, String url, String text, String notesField) {
+		long libraryId = marcProcessor.getLibraryIdForLink(url);
+		if (libraryId == -1 && text != null){
+			//Also check link text for the record
+			libraryId = marcProcessor.getLibraryIdForLink(text);
+		}
+		
+		boolean addedUrl = false;
+		//If the library Id is still not set, check item records to see which library (or libraries own the title).
+		if (libraryId == -1 && marcProcessor.getItemTag() != null && marcProcessor.getSharedEContentLocation() != null){
+			@SuppressWarnings("unchecked")
+			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
+			for (DataField curItem : itemFields) {
+				Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield().charAt(0));
+				if (locationField != null){
+					String location = locationField.getData();
+					//Get the libraryId based on the location
+					libraryId = getLibrarySystemIdForLocation(location);
+					if (libraryId != -1L){
+						for (Integer iType : allITypes){
+							sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
+						}
+						addedUrl = true;
+					}
+				}
+			}
+		}
+		if (!addedUrl){
+			//This only happens if there are no items and the 
+			if (allITypes.size() > 0){
+				for (Integer iType : allITypes){
+					sourceUrls.add(new LibrarySpecificLink(url, libraryId, iType, notesField));
+				}
+			}else{
+				sourceUrls.add(new LibrarySpecificLink(url, libraryId, -1, notesField));
+			}
+		}
 	}
 
 	public long getChecksum() {
@@ -3136,14 +3155,19 @@ public class MarcRecordDetails {
 			//logger.debug("Checking if record is eContent");
 			isEContent = false;
 			// Check the 037 field first
-			DataField oh37 = (DataField)record.getVariableField("037");
-			if (oh37 != null){
+			@SuppressWarnings("unchecked")
+			List<DataField> oh37Fields = (List<DataField>)record.getVariableFields("037");
+			for (DataField oh37 : oh37Fields){
 				Subfield subFieldB = oh37.getSubfield('b');
 				Subfield subFieldC = oh37.getSubfield('c');
 				if (subFieldB != null && subFieldC != null){
-					String subfieldBVal = subFieldB.getData();
-					String subfieldCVal = subFieldC.getData();
+					String subfieldBVal = subFieldB.getData().trim();
+					String subfieldCVal = subFieldC.getData().trim();
 					DetectionSettings tempDetectionSettings = new DetectionSettings();
+					//Normalize Overdrive since we do specific things with that. 
+					if (subfieldBVal.matches("(?i)overdrive.*")){
+						subfieldBVal = "OverDrive";
+					}
 					tempDetectionSettings.setSource(subfieldBVal);
 					if (subfieldCVal.equalsIgnoreCase("External")){
 						tempDetectionSettings.setAccessType("external");
@@ -3337,7 +3361,11 @@ public class MarcRecordDetails {
 		return doc;
 	}
 
-	public HashMap<String, String> getBrowseSubjects() {
+	public HashMap<String, String> getBrowseSubjects(){
+		return getBrowseSubjects(true);
+	}
+	
+	public HashMap<String, String> getBrowseSubjects(boolean doRotation) {
 		//Get a list of subjects that are valid for browsing.
 		@SuppressWarnings("unchecked")
 		List<VariableField> subjectFields = (List<VariableField>)record.getVariableFields(new String[]{"600", "610", "611", "630", "650", "690"});
@@ -3381,7 +3409,7 @@ public class MarcRecordDetails {
 						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()), fullSubject.toString());
 					}
 				}
-				if (baseSubject.length() > 0 && subdivisions.size() > 0){
+				if (baseSubject.length() > 0 && subdivisions.size() > 0 && doRotation){
 					//Do rotation of subjects
 					for (String curSubdivision : subdivisions){
 						StringBuffer rotatedField = new StringBuffer().append(curSubdivision).append(" -- ").append(baseSubject);
@@ -3547,5 +3575,15 @@ public class MarcRecordDetails {
 			}
 		}
 		return itemAvailability;
+	}
+
+	public String getPublicationLocation() {
+		String publicationLocation = getFirstFieldVal("260a");
+		return publicationLocation;
+	}
+	
+	public String getEContentPhysicalDescription(){
+		String physicalDescription = getFirstFieldVal("300ab");
+		return physicalDescription;
 	}
 }

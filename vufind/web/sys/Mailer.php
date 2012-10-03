@@ -69,7 +69,7 @@ class VuFindMailer {
 	 * @return  mixed               PEAR error on error, boolean true otherwise
 	 */
 	public function send($to, $from, $subject, $body) {
-		$logger = new Logger();
+		global $logger;
 		// Validate sender and recipient
 		if (!Mail_RFC822::isValidInetAddress($to)) {
 			return new PEAR_Error('Invalid Recipient Email Address');

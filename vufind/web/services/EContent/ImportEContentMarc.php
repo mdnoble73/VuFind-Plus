@@ -91,7 +91,7 @@ class ImportEContentMarc extends Admin
 					}
 					$commandToRun .= " source=" . escapeshellarg($_REQUEST['source']);
 					$commandToRun .= " accessType=" . escapeshellarg($_REQUEST['accessType']);
-					$logger = new Logger();
+					global $logger;
 					$logger->log("importing marc records $commandToRun", PEAR_LOG_INFO);
 					//$commandToRun .= " > process.out 2> process.err < /dev/null &";
 					$handle = popen($commandToRun, 'r');

@@ -230,17 +230,10 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if}
 				
-				{if $eContentRecord->publisher}
-					<div class="resultInformation">
-						<span class="resultLabel">{translate text='Publisher'}:</span>
-						<span class="resultValue">{$eContentRecord->publisher|escape}</span>
-					</div>
-				{/if}
-				
-				{if $eContentRecord->publishDate}
+				{if $eContentRecord->publishDate || $eContentRecord->publisher || $eContentRecord->publishLocation}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Published'}:</span>
-						<span class="resultValue">{$eContentRecord->publishDate|escape}</span>
+						<span class="resultValue">{$eContentRecord->publisher|escape} {$eContentRecord->publishLocation|escape} {$eContentRecord->publishDate|escape}</span>
 					</div>
 				{/if}
 				
@@ -254,6 +247,13 @@ function redrawSaveStatus() {literal}{{/literal}
 						<span class="resultValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></span>
 					{/if}
 				</div>
+				
+				{if $eContentRecord->physicalDescription}
+				<div class="resultInformation">
+					<span class="resultLabel">{translate text='Physical Description'}:</span>
+					<span class="resultValue">{$eContentRecord->physicalDescription|escape}</span>
+				</div>
+				{/if}
 		
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Language'}:</span>
@@ -279,9 +279,11 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if count($isbnList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='ISBN'}:</span>
-						{foreach from=$isbnList item=isbnListItem name=loop}
-							<span class="resultValue">{$isbnListItem|escape}</span>
+						<span class="resultValue">
+						{foreach from=$isbnList item=isbn name=loop}
+							{$isbn|escape}{if !$smarty.foreach.loop.last},&nbsp;{/if}
 						{/foreach}
+						</span>
 					</div>
 				{/if}
 	
@@ -303,15 +305,6 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if}
 				
-				{if count($topicList) > 0}
-					<div class="resultInformation">
-						<span class="resultLabel">{translate text='Topic'}:</span>
-						{foreach from=$topicList item=topicListItem name=loop}
-							<span class="resultValue"><a href="{$path}/Search/Results?lookfor=%22{$topicListItem|escape:"url"}%22&amp;basicType=Subject">{$topicListItem|escape}</a></span>
-						{/foreach}
-					</div>
-				{/if}
-	
 				{if count($genreList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Genre'}:</span>
@@ -347,7 +340,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultLabel">{translate text='Subjects'}</span>
 					<span class="resultValue">
 						{foreach from=$subjectList item=subjectListItem name=loop}
-								<a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;type=Subject">{$subjectListItem|escape}</a>
+								<a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;basicType=Subject">{$subjectListItem|escape}</a>
 							<br />
 						{/foreach}
 					</span>

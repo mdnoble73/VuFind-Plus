@@ -56,7 +56,7 @@ class HoldItems extends Action
 		global $interface;
 		global $configArray;
 		global $user;
-		$logger = new Logger();
+		global $logger;
 
 		$holdings = array();
 		$ids = array();

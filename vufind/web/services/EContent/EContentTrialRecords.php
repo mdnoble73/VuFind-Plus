@@ -55,6 +55,6 @@ class EContentTrialRecords extends Admin
 	}
 
 	function getAllowableRoles(){
-		return array('epubAdmin');
+		return array('epubAdmin', 'libraryAdmin', 'opacAdmin');
 	}
 }

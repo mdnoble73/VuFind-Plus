@@ -55,7 +55,7 @@ class MyList extends Action {
 			}
 			$interface->assign('allLists', $allLists);
 		}
-		
+
 		// Fetch List object
 		if (isset($_GET['id'])){
 			$list = User_list::staticGet($_GET['id']);
@@ -83,13 +83,18 @@ class MyList extends Action {
 		if (!$list->public && $list->user_id != $user->id) {
 			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
 		}
-		
+
 		//Reindex can happen by anyone since it needs to be called by cron
 		if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
 			$actionToPerform = $_REQUEST['myListActionHead'];
 			if ($actionToPerform == 'reindex'){
 				$list->updateDetailed(true);
 			}
+		}
+
+		if (isset($_SESSION['listNotes'])){
+			$interface->assign('notes', $_SESSION['listNotes']);
+			unset($_SESSION['listNotes']);
 		}
 
 		//Perform an action on the list, but verify that the user has permission to do so.
@@ -113,6 +118,7 @@ class MyList extends Action {
 					die();
 				}elseif ($actionToPerform == 'bulkAddTitles'){
 					$notes = $this->bulkAddTitles($list);
+					$_SESSION['listNotes'] = $notes;
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
 				$actionToPerform = $_REQUEST['myListActionItem'];
@@ -147,7 +153,7 @@ class MyList extends Action {
 
 		// Build Favorites List
 		$favorites = $list->getResources(isset($_GET['tag']) ? $_GET['tag'] : null);
-		
+
 		// Load the User object for the owner of the list (if necessary):
 		if ($user && ($user->id == $list->user_id)) {
 			$listUser = $user;
@@ -201,13 +207,14 @@ class MyList extends Action {
 		$interface->setTemplate('list.tpl');
 		$interface->display('layout.tpl');
 	}
-	
+
 	function bulkAddTitles($list){
 		global $user;
+		$numAdded = 0;
 		$notes = array();
 		$titlesToAdd = $_REQUEST['titlesToAdd'];
 		$titleSearches[] = preg_split("/\\r\\n|\\r|\\n/", $titlesToAdd);
-		
+
 		foreach ($titleSearches[0] as $titleSearch){
 			$_REQUEST['lookfor'] = $titleSearch;
 			$_REQUEST['type'] = 'Keyword';
@@ -232,6 +239,7 @@ class MyList extends Action {
 				$resource->record_id = $id;
 				$resource->source = $source;
 				if ($resource->find(true)){
+					$numAdded++;
 					$user->addResource($resource, $list, null, false);
 				}else{
 					//Could not find a resource for the id
@@ -241,10 +249,14 @@ class MyList extends Action {
 				$notes[] = "Could not find a title matching " . $titleSearch;
 			}
 		}
-		
+
 		//Update solr
 		$list->update();
-		
+
+		if ($numAdded > 0){
+			$notes[] = "Added $numAdded titles to the list";
+		}
+
 		return $notes;
 	}
 }

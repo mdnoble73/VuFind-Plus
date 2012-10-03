@@ -1,4 +1,3 @@
-<h4>Staff Reviews</h4>
 {foreach from=$staffCommentList item=comment}
 	<div class='comment'>
 		<div class="commentHeader">
@@ -11,6 +10,4 @@
 		</div>
 		{$comment->comment|escape:"html"}
 	</div>
-{foreachelse}
-	<div>{translate text='No staff reviews have been posted yet'}.</div>
 {/foreach}

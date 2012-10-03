@@ -1,7 +1,7 @@
 function checkoutOverDriveItem(overdriveId, formatId){
 	if (loggedIn){
-		var url = path + "/EcontentRecord/AJAX?method=GetOverDriveLoanPeriod&overDriveId=" + overdriveId + "&formatId=" + formatId;
-		ajaxLightbox(url);
+		var ajaxUrl = url + "/EcontentRecord/AJAX?method=GetOverDriveLoanPeriod&overDriveId=" + overdriveId + "&formatId=" + formatId;
+		ajaxLightbox(ajaxUrl);
 	}else{
 		ajaxLogin(function(){
 			checkoutOverDriveItem(overdriveId, formatId);
@@ -12,9 +12,10 @@ function checkoutOverDriveItem(overdriveId, formatId){
 function checkoutOverDriveItemStep2(overdriveId, formatId){
 	var lendingPeriod = $("#loanPeriod option:selected").val();
 	showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
-	var url = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId + "&formatId=" + formatId + "&lendingPeriod=" + lendingPeriod;
+	var ajaxUrl = url + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId + "&formatId=" + formatId + "&lendingPeriod=" + lendingPeriod;
 	$.ajax({
-		url: url,
+		url: ajaxUrl,
+		cache: false,
 		success: function(data){
 			hideLightbox();
 			if (data.result == true){
@@ -32,8 +33,10 @@ function checkoutOverDriveItemStep2(overdriveId, formatId){
 			}
 		},
 		dataType: 'json',
-		error: function(){
+		async: false,
+		error: function(jqXHR, textStatus, errorThrown){
 			alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+			alert("ajaxUrl = " + ajaxUrl);
 			hideLightbox();
 		}
 	});
@@ -45,6 +48,7 @@ function placeOverDriveHold(overDriveId, formatId){
 		var url = path + "/EcontentRecord/AJAX?method=PlaceOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
 		$.ajax({
 			url: url,
+			cache: false,
 			success: function(data){
 				alert(data.message);
 				if (data.result){
@@ -54,6 +58,7 @@ function placeOverDriveHold(overDriveId, formatId){
 				}
 			},
 			dataType: 'json',
+			async: false,
 			error: function(){
 				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
 				hideLightbox();
@@ -72,6 +77,7 @@ function addOverDriveRecordToWishList(recordId){
 		var url = path + "/EcontentRecord/AJAX?method=AddOverDriveRecordToWishList&recordId=" + recordId;
 		$.ajax({
 			url: url,
+			cache: false,
 			success: function(data){
 				alert(data.message);
 				if (data.result){
@@ -81,6 +87,7 @@ function addOverDriveRecordToWishList(recordId){
 				}
 			},
 			dataType: 'json',
+			async: false,
 			error: function(){
 				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
 				hideLightbox();
@@ -96,9 +103,10 @@ function addOverDriveRecordToWishList(recordId){
 function removeOverDriveRecordFromWishList(overDriveId){
 	if (loggedIn){
 		showProcessingIndicator("Removing the title from your Wish List in OverDrive.  This may take a minute.");
-		var url = path + "/EcontentRecord/AJAX?method=RemoveOverDriveRecordFromWishList&overDriveId=" + overDriveId;
+		var ajaxUrl = path + "/EcontentRecord/AJAX?method=RemoveOverDriveRecordFromWishList&overDriveId=" + overDriveId;
 		$.ajax({
-			url: url,
+			url: ajaxUrl,
+			cache: false,
 			success: function(data){
 				alert(data.message);
 				if (data.result){
@@ -108,6 +116,7 @@ function removeOverDriveRecordFromWishList(overDriveId){
 				}
 			},
 			dataType: 'json',
+			async: false,
 			error: function(){
 				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
 				hideLightbox();
@@ -123,9 +132,10 @@ function removeOverDriveRecordFromWishList(overDriveId){
 function cancelOverDriveHold(overDriveId, formatId){
 	if (loggedIn){
 		showProcessingIndicator("Cancelling your hold in OverDrive.  This may take a minute.");
-		var url = path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
+		var ajaxUrl = path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
 		$.ajax({
-			url: url,
+			url: ajaxUrl,
+			cache: false,
 			success: function(data){
 				alert(data.message);
 				if (data.result){
@@ -135,6 +145,7 @@ function cancelOverDriveHold(overDriveId, formatId){
 				}
 			},
 			dataType: 'json',
+			async: false,
 			error: function(){
 				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
 				hideLightbox();

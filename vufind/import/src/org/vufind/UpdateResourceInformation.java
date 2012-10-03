@@ -657,7 +657,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				}
 			}else{
 				//Insert a new resource
-				System.out.println("Adding resource for eContentRecord " + econtentId);
+				//System.out.println("Adding resource for eContentRecord " + econtentId);
 				addResourceStmt.setString(1, econtentId);
 				addResourceStmt.setString(2, Util.trimTo(255, title));
 				addResourceStmt.setString(3, "eContent");

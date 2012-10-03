@@ -42,7 +42,7 @@ class Timer{
 				$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
 			//}
 			$this->lastTime = $curTime;
-			$logger = new Logger();
+			global $logger;
 			$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
 			$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
 			$timingInfo .= implode("\r\n", $this->timingMessages);
@@ -53,7 +53,7 @@ class Timer{
 
 	function __destruct() {
 		if ($this->timingsEnabled){
-			$logger = new Logger();
+			global $logger;
 			$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
 			$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
 			$timingInfo .= implode("\r\n", $this->timingMessages);

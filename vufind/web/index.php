@@ -48,6 +48,9 @@ if (!$memcache->pconnect($host, $port, $timeout)) {
 }
 $timer->logTime("Initialize Memcache");
 
+global $logger;
+$logger = new Logger();
+
 //Cleanup method information so module, action, and id are set properly.
 //This ensures that we don't have to change the http-vufind.conf file when new types are added.
 //$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
@@ -685,15 +688,24 @@ function processShards()
 
 	// If a shard selection list is found as an incoming parameter, we should save
 	// it in the session for future reference:
+	$useDefaultShards = false;
 	if (array_key_exists('shard', $_REQUEST)) {
-		$_SESSION['shards'] = $_REQUEST['shard'];
+		if ($_REQUEST['shard'] == ''){
+			$useDefaultShards = true;
+		}else{
+			$_SESSION['shards'] = $_REQUEST['shard'];
+		}
+
 	} else if (!array_key_exists('shards', $_SESSION)) {
+		$useDefaultShards = true;
+	}
+	if ($useDefaultShards){
 		// If no selection list was passed in, use the default...
 
 		// If we have a default from the configuration, use that...
 		if (isset($configArray['ShardPreferences']['defaultChecked'])
-		&& !empty($configArray['ShardPreferences']['defaultChecked'])
-		) {
+				&& !empty($configArray['ShardPreferences']['defaultChecked'])
+				) {
 			$checkedShards = $configArray['ShardPreferences']['defaultChecked'];
 			$_SESSION['shards'] = is_array($checkedShards) ?
 			$checkedShards : array($checkedShards);
@@ -796,7 +808,7 @@ function handlePEARError($error, $method = null){
 	5 => $baseError . $detailedServer . $detailedBacktrace
 	);
 
-	$logger = new Logger();
+	global $logger;
 	$logger->log($errorDetails, PEAR_LOG_ERR);
 
 	exit();
@@ -974,7 +986,7 @@ function formatRenewMessage($renew_message_data){
 	global $interface;
 	$interface->assign('renew_message_data', $renew_message_data);
 	$renew_message = $interface->fetch('Record/renew-results.tpl');
-	$logger = new Logger();
+	global $logger;
 	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
 
 	return $renew_message;

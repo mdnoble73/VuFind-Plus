@@ -324,9 +324,10 @@ class User extends DB_DataObject
           'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
           'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
           'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
-          'username' => array('property'=>'username', 'type'=>'label', 'label'=>'Barcode', 'description'=>'The barcode for the user.'),
+          'password' => array('property'=>'password', 'type'=>'label', 'label'=>'Barcode', 'description'=>'The barcode for the user.'),
           'roles' => array('property'=>'roles', 'type'=>'multiSelect', 'listStyle' =>'checkbox', 'values'=>$roleList, 'label'=>'Roles', 'description'=>'A list of roles that the user has.'),
 		);
+
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
 			$structure[$fieldName] = $field;

@@ -26,7 +26,7 @@ class Anythink extends Horizon {
 	function __construct(){
 		parent::__construct();
 	}
-	
+
 	function translateFineMessageType($code){
 		switch ($code){
 			case "abs":       return "Automatic Bill Sent";
@@ -130,7 +130,7 @@ class Anythink extends Horizon {
         );
         return isset($locationMap[$locationCode]) ? $locationMap[$locationCode] : 'Unknown' ;
 	}
-	
+
 	public function translateCollection($collectionCode){
 		$collectionCode = strtolower($collectionCode);
 		$collectionMap = array(
@@ -260,11 +260,11 @@ class Anythink extends Horizon {
 			'xbconly' => 'ON ORDER',
 			'xparpro' => 'ON ORDER',
 			'xunpro' => 'ON ORDER',
-		
+
 		);
 		return isset($collectionMap[$collectionCode]) ? $collectionMap[$collectionCode] : 'Unknown';
 	}
-	
+
 	public function translateStatus($statusCode){
 		$statusCode = trim(strtolower($statusCode));
 		$statusMap = array(
@@ -310,7 +310,7 @@ class Anythink extends Horizon {
 
 		return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown ';
 	}
-	
+
 	public function getLocationMapLink($locationCode){
 		$locationCode = strtolower($locationCode);
 		$locationMap = array(
@@ -321,10 +321,10 @@ class Anythink extends Horizon {
 	public function getLibraryHours($locationId, $timeToCheck){
 		return null;
 	}
-	
+
 	function selfRegister(){
 		global $configArray;
-		$logger = new Logger();
+		global $logger;
 
 		//Setup Curl
 		$header=array();
@@ -370,7 +370,7 @@ class Anythink extends Horizon {
       'menu' => 'account',
 			'newuser_prompt' => 'true',
       'profile' => $this->selfRegProfile,
-      'ri' => '', 
+      'ri' => '',
       'sec1' => '',
       'sec2' => '',
       'session' => $sessionId,
