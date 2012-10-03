@@ -19,6 +19,7 @@ class ListWidget extends DB_DataObject
 	public $listDisplayType;
 	public $showMultipleTitles;
 	public $autoRotate;
+	public $library;
 
 	private $lists; //varchar(500)
 	/* Static get */
@@ -30,6 +31,15 @@ class ListWidget extends DB_DataObject
 
 	function getObjectStructure(){
 		global $configArray;
+		//Load Libraries for lookup values
+		$library = new Library();
+		$library->orderBy('displayName');
+		$library->find();
+		$libraryList = array();
+		while ($library->fetch()){
+			$libraryList[$library->libraryId] = $library->displayName;
+		}
+
 		$structure = array(
       'id' => array(
         'property'=>'id',
@@ -39,6 +49,7 @@ class ListWidget extends DB_DataObject
         'primaryKey' => true,
         'storeDb' => true,
       ),
+      'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
       'name' => array(
         'property'=>'name',
         'type'=>'text',
