@@ -737,6 +737,7 @@ public function getMyHoldsViaDB($patron)
 		if (!isset($location) && $location == null){
 			$location = $locationSingleton->getUserHomeLocation();
 		}
+		$ipLibrary = null;
 		if (isset($ipLocation)){
 			$ipLibrary = new Library();
 			$ipLibrary->libraryId = $ipLocation->getLibraryId;
@@ -1663,7 +1664,8 @@ private $transactions = array();
 					//AQ should be current, but is always returning the same code.
 					//AP should be permanent, but is returning the current location
 
-					//echo("Permanent location " . $result['variable']['AQ'][0] . " current location " . $result['variable']['AP'][0] . "\r\n");
+					//global $logger;
+					//$logger->log("Permanent location " . $result['variable']['AQ'][0] . " current location " . $result['variable']['AP'][0], PEAR_LOG_INFO);
 					$itemSip2Data['locationCode'] = $result['variable'][$currentLocationSIPField][0];
 					$itemSip2Data['location'] = $this->translateLocation($itemSip2Data['locationCode']);
 				}
