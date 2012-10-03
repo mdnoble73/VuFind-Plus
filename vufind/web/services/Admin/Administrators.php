@@ -73,13 +73,21 @@ class Administrators extends ObjectEditor
 		$login = $_REQUEST['login'];
 		$newAdmin = new User();
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-		
+
 		$newAdmin->$barcodeProperty = $login;
 		$newAdmin->find();
 		if ($newAdmin->N == 1){
-			$newAdmin->fetch();
-			$newAdmin->roles = $_REQUEST['roles'];
-			$newAdmin->update();
+			global $logger;
+			$logger->log(print_r($_REQUEST['roles'], TRUE));
+			if (isset($_REQUEST['roles'])){
+				$newAdmin->fetch();
+				$newAdmin->roles = $_REQUEST['roles'];
+				$newAdmin->update();
+			}else{
+				$newAdmin->fetch();
+				$newAdmin->query('DELETE FROM user_roles where user_roles.userId = ' . $newAdmin->id);
+			}
+
 			global $configArray;
 			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
 				header("Location: " . $_SESSION['redirect_location']);
