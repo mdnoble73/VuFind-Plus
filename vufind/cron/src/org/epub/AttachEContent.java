@@ -64,7 +64,7 @@ public class AttachEContent implements IProcessHandler {
 			createLogEntry = econtentConn.prepareStatement("INSERT INTO econtent_attach (sourcePath, dateStarted, status) VALUES (?, ?, 'running')", PreparedStatement.RETURN_GENERATED_KEYS);
 			markLogEntryFinished = econtentConn.prepareStatement("UPDATE econtent_attach SET dateFinished = ?, recordsProcessed = ?, numErrors =?, notes =?, status = 'finished' WHERE id = ?");
 			updateRecordsProcessed = econtentConn.prepareStatement("UPDATE econtent_attach SET recordsProcessed = ?, numErrors = ? WHERE id = ?");
-			getRelatedRecords = econtentConn.prepareStatement("SELECT id, accessType, source FROM econtent_record WHERE isbn like ?");
+			getRelatedRecords = econtentConn.prepareStatement("SELECT id, accessType, source, availableCopies FROM econtent_record WHERE isbn like ?");
 			doesItemExist = econtentConn.prepareStatement("SELECT id from econtent_item WHERE filename = ? AND recordId = ?");
 			addEContentItem = econtentConn.prepareStatement("INSERT INTO econtent_item (filename, acsId, recordId, item_type, addedBy, date_added, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?)");
 			
@@ -159,12 +159,12 @@ public class AttachEContent implements IProcessHandler {
 									String recordId = existingRecords.getString("id");
 									String accessType = existingRecords.getString("accessType");
 									String source = existingRecords.getString("source");
-									logger.info("  Attaching file to " + recordId + " accessType = " + accessType + " source=" + source);
-										
+									String availableCopies = existingRecords.getString("availableCopies");
+									logger.info("  Attaching file to " + recordId + " accessType = " + accessType + " source=" + source + " Available Copies= " + availableCopies);
 									// Copy the file to the library if it does not exist already
 									File resultsFile = new File(libraryDirectory + source + "_" + file.getName());
 									if (resultsFile.exists()) {
-										logger.info("Skipping file because it already exists in the library");
+										logger.info("Skipping file because it already exists in the library " + libraryDirectory + source + "_" + file.getName());
 										importResult.setStatus(fileType, "skipped" ,"File has already been copied to library");
 										processLog.addNote("Skipping file " + file.getName() + " because it already exists in the library");
 									} else {
@@ -189,7 +189,7 @@ public class AttachEContent implements IProcessHandler {
 												boolean addedToAcs = true;
 												if (accessType.equals("acs")){
 													logger.info("Adding file to the ACS server");
-													addedToAcs = addFileToAcsServer(fileType, resultsFile, importResult);
+													addedToAcs = addFileToAcsServer(fileType, resultsFile, importResult, availableCopies);
 												}
 												
 												if (addedToAcs){
@@ -280,10 +280,10 @@ public class AttachEContent implements IProcessHandler {
 		return true;
 	}
 	
-	protected boolean addFileToAcsServer(String type, File sourceFile, ImportResult result){
+	protected boolean addFileToAcsServer(String type, File sourceFile, ImportResult result, String availableCopies){
 		//Call an API on vufind to make this easier and promote code reuse
 		try {
-			URL apiUrl = new URL(vufindUrl + "/API/ItemAPI?method=addFileToAcsServer&filename=" + URLEncoder.encode(sourceFile.getName(), "utf8"));
+			URL apiUrl = new URL(vufindUrl + "/API/ItemAPI?method=addFileToAcsServer&availableCopies="+availableCopies+"&filename=" + URLEncoder.encode(sourceFile.getName(), "utf8"));
 			
 			String responseJson = Util.convertStreamToString((InputStream)apiUrl.getContent());
 			logger.info("ACS Response: " + responseJson);

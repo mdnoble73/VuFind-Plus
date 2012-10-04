@@ -355,7 +355,7 @@ class AdobeContentServer
 		$distributionElem->setAttribute("action", "create");
 		$distributionElem->setAttribute("auth", "builtin");
 		$distRightsElem = $distributionElem->appendChild($distributionDoc->createElement("distributionRights"));
-		$distRightsElem->appendChild($distributionDoc->createElement("distributor", $distributorId));
+		$distRightsElem->appendChild($distributionDoc->createElement("distributor", "urn:uuid:".$distributorId));
 		$distRightsElem->appendChild($distributionDoc->createElement("resource", $acsId));
 		$distRightsElem->appendChild($distributionDoc->createElement("distributionType", "loan"));
 		$distRightsElem->appendChild($distributionDoc->createElement("available", $numAvailable));
@@ -376,7 +376,7 @@ class AdobeContentServer
 		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
 		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
-		$logger->log("'Response:\r\n $response");
+		$logger->log("'Response:\r\n $response", PEAR_LOG_INFO);
 		//echo("Response:<br/>" . htmlentities($response) . "<br/>");
 		$responseData = simplexml_load_string($response);
 
@@ -394,7 +394,7 @@ class AdobeContentServer
 		$distributionElem->setAttribute("action", "delete");
 		$distributionElem->setAttribute("auth", "builtin");
 		$distRightsElem = $distributionElem->appendChild($distributionDoc->createElement("distributionRights"));
-		$distRightsElem->appendChild($distributionDoc->createElement("distributor", $distributorId));
+		$distRightsElem->appendChild($distributionDoc->createElement("distributor", "urn:uuid:".$distributorId));
 		$distRightsElem->appendChild($distributionDoc->createElement("resource", $acsId));
 		$distRightsElem->appendChild($distributionDoc->createElement("distributionType", "loan"));
 		//Add nonce, expiration, and hmac

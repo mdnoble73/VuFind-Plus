@@ -27,8 +27,8 @@ require_once 'services/Record/Holdings.php';
 require_once 'CatalogConnection.php';
 
 /**
- * API methods related to getting information about specific items. 
- * 
+ * API methods related to getting information about specific items.
+ *
  * Copyright (C) Douglas County Libraries 2011.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@ require_once 'CatalogConnection.php';
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @version 1.0
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Douglas County Libraries 2011.
@@ -90,19 +90,24 @@ class ItemAPI extends Action {
 
 		echo $output;
 	}
-	
+
 	function addFileToAcsServer(){
 		global $configArray;
 		require_once('sys/AdobeContentServer.php');
 		if (!isset($_REQUEST['filename'])){
 			return array('error' => 'Filename parameter was not provided.  Please provide the filename in the library to add to the ACS server.');
 		}
+		if (!isset($_REQUEST['availableCopies'])){
+			return array('error' => 'availableCopies parameter was not provided.  Please provide the availableCopies in the library to add to the ACS server.');
+		}
+
 		$filename = $_REQUEST['filename'];
+		$availableCopies = $_REQUEST['availableCopies'];
 		$fullFilename = $configArray['EContent']['library'] . '/' . $filename;
 		if (!file_exists($fullFilename)){
 			return array('error' => 'Filename does not exist in the library.  Unable to add to the ACS server.');
 		}
-		$ret = AdobeContentServer::packageFile($fullFilename, '', 1);
+		$ret = AdobeContentServer::packageFile($fullFilename, '', 1,'',$availableCopies);
 		return $ret;
 	}
 
@@ -117,7 +122,7 @@ class ItemAPI extends Action {
 		//Load basic information
 		$this->id = $_GET['id'];
 		$itemData['id'] = $this->id;
-			
+
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
@@ -152,12 +157,12 @@ class ItemAPI extends Action {
 				$itemData['language'] = $eContentRecord->language;
 				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
-				
+
 				require_once('sys/eContent/EContentRating.php');
 				$eContentRating = new EContentRating();
 				$eContentRating->recordId = $eContentRecord->id;
 				$itemData['ratingData'] = $eContentRating->getRatingData(false, false);
-				
+
 				// Retrieve tags associated with the record
 				$limit = 5;
 				$resource = new Resource();
@@ -169,18 +174,18 @@ class ItemAPI extends Action {
 				}
 				$itemData['tagList'] = $tags;
 				$timer->logTime('Got tag list');
-				
+
 				$itemData['userComments'] = $resource->getComments();
-				
+
 				require_once 'Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
 			}
 		}else{
-			
+
 			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
 			$timer->logTime('Initialized the Record Driver');
-	
+
 			// Process MARC Data
 			require_once 'sys/MarcLoader.php';
 			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
@@ -190,7 +195,7 @@ class ItemAPI extends Action {
 				$itemData['error'] = 'Cannot Process MARC Record';
 			}
 			$timer->logTime('Processed the marc record');
-	
+
 			// Get ISBN for cover and review use
 			if ($isbnFields = $this->marcRecord->getFields('020')) {
 				//Use the first good ISBN we find.
@@ -224,7 +229,7 @@ class ItemAPI extends Action {
 				}
 			}
 			$timer->logTime('Got UPC, ISBN, and ISSN');
-	
+
 			//Generate basic information from the marc file to make display easier.
 			$itemData['title'] = $record['title'];
 			$itemData['author'] = $record['author'];
@@ -239,11 +244,11 @@ class ItemAPI extends Action {
 			$itemData['physical'] = $record['physical'];
 			$itemData['lccn'] = $record['lccn'];
 			$itemData['contents'] = $record['contents'];
-	
+
 			$itemData['format'] = $record['format'];
 			$itemData['formatCategory'] = $record['format_category'][0];
 			$itemData['language'] = $record['language'];
-	
+
 			//Retrieve description from MARC file
 			$description = '';
 			if ($descriptionField = $this->marcRecord->getField('520')) {
@@ -252,7 +257,7 @@ class ItemAPI extends Action {
 				}
 			}
 			$itemData['description'] = $description;
-	
+
 			// Retrieve tags associated with the record
 			$limit = 5;
 			$resource = new Resource();
@@ -264,21 +269,21 @@ class ItemAPI extends Action {
 			}
 			$itemData['tagList'] = $tags;
 			$timer->logTime('Got tag list');
-	
+
 			//setup 5 star ratings
 			global $user;
 			$ratingData = $resource->getRatingData($user);
 			$itemData['ratingData'] = $ratingData;
 			$timer->logTime('Got 5 star data');
-	
+
 			// Load User comments
 			$itemData['userComments'] =  UserComments::getComments($this->id);
 			$timer->logTime('Loaded Comments');
-	
+
 			//Load Holdings
 			$itemData['holdings'] = Holdings::loadHoldings($this->id);
 			$timer->logTime('Loaded Holdings');
-	
+
 			// Add Marc Record to the output
 			if ($this->marcRecord){
 				$itemData['marc'] = $this->marcRecord->toJSON();
@@ -296,7 +301,7 @@ class ItemAPI extends Action {
 		//Load basic information
 		$this->id = $_GET['id'];
 		$itemData['id'] = $this->id;
-			
+
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
@@ -335,13 +340,13 @@ class ItemAPI extends Action {
 				$itemData['language'] = $eContentRecord->language;
 				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
-				
+
 				require_once('sys/eContent/EContentRating.php');
 				$eContentRating = new EContentRating();
 				$eContentRating->recordId = $eContentRecord->id;
 				$itemData['ratingData'] = $eContentRating->getRatingData($user, false);
 			}
-			 
+
 		}else{
 			require_once 'sys/MarcLoader.php';
 			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
@@ -351,7 +356,7 @@ class ItemAPI extends Action {
 				$itemData['error'] = 'Cannot Process MARC Record';
 			}
 			$timer->logTime('Processed the marc record');
-	
+
 			// Get ISBN for cover and review use
 			if ($isbnFields = $this->marcRecord->getFields('020')) {
 				//Use the first good ISBN we find.
@@ -397,7 +402,7 @@ class ItemAPI extends Action {
 			$itemData['formatCategory'] = $record['format_category'][0];
 			$itemData['language'] = $record['language'];
 			$itemData['cover'] = $configArray['Site']['url'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
-			
+
 			//Retrieve description from MARC file
 			$description = '';
 			if ($descriptionField = $this->marcRecord->getField('520')) {
@@ -406,7 +411,7 @@ class ItemAPI extends Action {
 				}
 			}
 			$itemData['description'] = $description;
-			
+
 			//setup 5 star ratings
 			global $user;
 			$resource = new Resource();
@@ -418,7 +423,7 @@ class ItemAPI extends Action {
 
 		return $itemData;
 	}
-	
+
 	function getItemAvailability(){
 		global $timer;
 		global $configArray;
@@ -427,7 +432,7 @@ class ItemAPI extends Action {
 		//Load basic information
 		$this->id = $_GET['id'];
 		$itemData['id'] = $this->id;
-			
+
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
@@ -455,7 +460,7 @@ class ItemAPI extends Action {
 		}else{
 			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
 			$timer->logTime('Initialized the Record Driver');
-	
+
 			//Load Holdings
 			$itemData['holdings'] = Holdings::loadHoldings($this->id);
 			$timer->logTime('Loaded Holdings');
@@ -527,7 +532,7 @@ class ItemAPI extends Action {
 				}
 			}
 		}
-		
+
 		return array('deletedFiles' => $deletedFiles);
 	}
 
@@ -551,7 +556,7 @@ class ItemAPI extends Action {
 		$record = $this->loadSolrRecord($_GET['id']);
 		$type = $_GET['type'];
 		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
-			
+
 		//Load go deeper data
 		require_once('Drivers/marmot_inc/GoDeeperData.php');
 		$goDeeperOptions = GoDeeperData::getHtmlData($type, $isbn, $upc);
@@ -564,7 +569,7 @@ class ItemAPI extends Action {
 		//Load basic information
 		$this->id = $_GET['id'];
 		$itemData['id'] = $this->id;
-			
+
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
@@ -587,12 +592,12 @@ class ItemAPI extends Action {
 		$expiredItemsWithOnlineHolds = $this->catalog->getExpiredOnlineItemsWithHolds();
 		return $expiredItemsWithOnlineHolds;
 	}
-	
+
 	function getOverdueOnlineItems(){
 		$overdueOnlineItems = $this->catalog->getOverdueOnlineItems();
 		return $overdueOnlineItems;
 	}
-	
+
 	function getOnlineItemsToReturn(){
 		$expiredItemsWithOnlineHolds = $this->catalog->getExpiredOnlineItemsWithHolds();
 		$overdueOnlineItems = $this->catalog->getOverdueOnlineItems();
