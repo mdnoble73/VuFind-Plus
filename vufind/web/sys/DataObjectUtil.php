@@ -204,7 +204,11 @@ class DataObjectUtil
 			$object->$propertyName = isset($_REQUEST[$propertyName]) && $_REQUEST[$propertyName] == 'on' ? 1 : 0;
 
 		}else if ($property['type'] == 'multiSelect'){
-			$object->$propertyName = $_REQUEST[$propertyName];
+			if (isset($_REQUEST[$propertyName]) && is_array($_REQUEST[$propertyName])){
+				$object->$propertyName = $_REQUEST[$propertyName];
+			}else{
+				$object->$propertyName = array();
+			}
 
 		}else if ($property['type'] == 'date'){
 			if (strlen($_REQUEST[$propertyName]) == 0 || $_REQUEST[$propertyName] == '0000-00-00'){

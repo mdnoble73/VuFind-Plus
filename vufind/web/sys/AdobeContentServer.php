@@ -124,14 +124,18 @@ class AdobeContentServer
 			$gbauthdate=gmdate('r', $dateval);
 
 			$rights = "";
-			$acsId = "urn:uuid:" . $eContentItem->acsId;
+			if (strpos($eContentItem->acsId, "urn:uuid:") === FALSE){
+				$acsId = "urn:uuid:" . $eContentItem->acsId;
+			}else{
+				$acsId = $eContentItem->acsId;
+			}
 
 			$bookDownloadURL =
 			    "action=enterloan". //Loan the title out
 			    "&ordersource=".urlencode($configArray['EContent']['orderSource']).
 			    "&orderid=".urlencode($transactionId).
 			    "&resid=".urlencode($acsId).
-			    $rights.
+			$rights.
 			    "&gbauthdate=".urlencode($gbauthdate).
 			    "&dateval=".urlencode($dateval).
 			    "&gblver=4";

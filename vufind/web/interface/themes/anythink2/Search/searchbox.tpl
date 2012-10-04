@@ -7,7 +7,7 @@
 {else}
   <form method="get" action="{$path}/Union/Search" id="searchForm" class="search" onsubmit='startSearch();'>
     <input type="hidden" name="basicType" value="Keyword"/>
-    <div class="clearfix">
+    <div id="search-inputs">
       <label id="type-label" for="searchPreFilter">{translate text='Search'}</label>
       <select name="filter[]" id="searchPreFilter">
         <option value=""{if $curFormatCategory == 'Everything'} selected="selected"{/if}>Everything</option>

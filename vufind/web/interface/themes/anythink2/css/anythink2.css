@@ -181,25 +181,16 @@ a.active {
   color: inherit;
 }
 
+.clearfix:before,
 .clearfix:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
+    content: "";
+    display: table;
+} 
+.clearfix:after {
+    clear: both;
 }
- 
 .clearfix {
-  display: inline-block;
-}
- 
-html[xmlns] .clearfix {
-  display: block;
-}
- 
-* html .clearfix {
-  height: 1%;
+    zoom: 1; /* For IE 6/7 (trigger hasLayout) */
 }
 
 body {
@@ -347,7 +338,13 @@ body {
   height: 1.8em;
 }
 
+#search-inputs {
+  float: right;
+  clear: right;
+}
+
 #shards {
+  float: right;
   margin-top: .5em;
   padding-right: 0;
   text-align: inherit;
@@ -1758,4 +1755,30 @@ div.popupBox ul li a {
 
 input.yearbox {
   width: auto;
+}
+
+/* eContent holdings */
+.eContentHolding{
+	width: 100%;
+	padding-bottom: 10px;
+}
+.eContentHoldingHeader{
+	background-color: #EDEDED;
+	padding: 5px;
+	font-size: 12px;
+}
+.eContentHoldingFormat{
+	font-weight: bold;
+	font-size: 14px;
+}
+.eContentHoldingUsage{
+	font-style: italic;
+	font-size: 12px;
+}
+.eContentHoldingActions{
+	margin: 4px 10px;
+}
+.eContentHoldingNotes{
+	font-size: 11px;
+	margin: 2px 10px;
 }

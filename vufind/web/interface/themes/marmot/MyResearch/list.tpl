@@ -1,3 +1,4 @@
+<script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 {strip}
 <div id="page-content" class="content">
 	<div id="sidebar">
