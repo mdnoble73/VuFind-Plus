@@ -146,20 +146,20 @@ class OverDriveDriver {
 		$cart['items'] = array();
 
 		$closeSession = false;
-		if ($overDriveInfo == null){
+		if ($overDriveInfo['result'] == false){
 			$ch = curl_init();
 			if (!$ch){
 				global $logger;
 				$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
-				$cart['message'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+				$cart['message'] = $overDriveInfo['message'];
 				return $cart;
 			}
 			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 			$closeSession = true;
 		}
 
-		if ($overDriveInfo == null){
-			$cart['error'] = "We were unable to contact the OverDrive server.  Please try again in a few minutes.";
+		if ($overDriveInfo['result'] == false){
+			$cart['error'] = $overDriveInfo['message'];
 			return $cart;
 		}else{
 			//Load the My Cart Page
@@ -216,20 +216,20 @@ class OverDriveDriver {
 			$wishlist['items'] = array();
 
 			$closeSession = false;
-			if ($overDriveInfo == null){
+			if ($overDriveInfo['result'] == false){
 				$ch = curl_init();
 				if (!$ch){
 					global $logger;
 					$logger->log("Could not create curl handle ". $ch, PEAR_LOG_INFO);
-					$wishlist['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+					$wishlist['error'] = $overDriveInfo['mesasage'];
 					return $cart;
 				}
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				$closeSession = true;
 			}
 
-			if ($overDriveInfo == null){
-				$wishlist['error'] = "We were unable to contact the OverDrive server.  Please try again in a few minutes.";
+			if ($overDriveInfo['result'] == false){
+				$wishlist['error'] = $overDriveInfo['message'];
 				return $wishlist;
 			}else{
 
@@ -315,10 +315,10 @@ class OverDriveDriver {
 					return $bookshelf;
 				}
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-				if ($overDriveInfo == null){
+				if ($overDriveInfo['result'] == false){
 					global $logger;
 					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
-					$bookshelf['error'] = 'Sorry, we could not login to OverDrive, please try again in a few minutes.';
+					$bookshelf['error'] = $overDriveInfo['message'];
 					return $bookshelf;
 				}
 				$closeSession = true;
@@ -393,10 +393,10 @@ class OverDriveDriver {
 				}
 				//Login to overdrive
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-				if ($overDriveInfo == null){
+				if ($overDriveInfo['result'] == false){
 					global $logger;
 					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
-					$holds['error'] = 'Sorry, we could not connect to OverDrive, please try again in a few minutes.';
+					$holds['error'] = $overDriveInfo['message'];
 					return $holds;
 				}
 				$closeSession = true;
@@ -540,9 +540,8 @@ class OverDriveDriver {
 
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-		if ($overDriveInfo == null){
-			$holdResult['result'] = false;
-			$holdResult['message'] = 'Sorry, we could not connect to OverDrive.  Please try again later.';
+		if ($overDriveInfo['result'] == false){
+			$holdResult = $overDriveInfo;
 		}else{
 
 			//Switch back to get method
@@ -754,8 +753,8 @@ class OverDriveDriver {
 			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 			$closeSession = true;
 		}
-		if ($overDriveInfo == null){
-			$addToCartResult['message'] = 'Sorry, we could not log you in to OverDrive.  Please check your login information and try again in a few minutes.';
+		if ($overDriveInfo['result'] == false){
+			$addToCartResult['message'] = $overDriveInfo['message'];
 			return $addToCartResult;
 		}
 
@@ -816,7 +815,7 @@ class OverDriveDriver {
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
-		if ($overDriveInfo != null){
+		if ($overDriveInfo['result'] != false){
 			//Switch back to get method
 			curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
 
@@ -851,7 +850,7 @@ class OverDriveDriver {
 			curl_close($overDriveInfo['ch']);
 		}else{
 			$addToCartResult['result'] = false;
-			$addToCartResult['message'] = 'Unable to login to OverDrive, please try again later.';
+			$addToCartResult['message'] = $overDriveInfo['message'];
 		}
 
 		return $addToCartResult;
@@ -870,7 +869,7 @@ class OverDriveDriver {
 			$closeSession = true;
 		}
 
-		if ($overDriveInfo != null){
+		if ($overDriveInfo['result'] != false){
 			//Switch back to get method
 			curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
 
@@ -964,7 +963,7 @@ class OverDriveDriver {
 			}
 		}else{
 			$processCartResult['result'] = false;
-			$processCartResult['message'] = 'Sorry, we could not login to OverDrive now.  Please try again in a few minutes.';
+			$processCartResult['message'] = $overDriveInfo['message'];
 		}
 		if ($closeSession){
 			curl_close($ch);
@@ -1093,6 +1092,7 @@ class OverDriveDriver {
 		if (($matchAccount > 0) || ($matchCart > 0)){
 
 			$overDriveInfo = array(
+				'result' => true,
 				'holdsUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=MyWaitingList.htm&ForceLoginFlag=0',  $urlWithSession),
 				'cartUrl' => str_replace('Default.htm', 'BANGCart.dll',  $urlWithSession),
 				'removeDupUrl' => str_replace('Default.htm', 'BANGCart.dll?Action=RemoveDup',  $urlWithSession),
@@ -1107,10 +1107,18 @@ class OverDriveDriver {
 				'addToWishlistUrl' => str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&ForceLoginFlag=0&URL=BANGCart.dll%3FAction%3DWishListAdd%26ID%3D', $urlWithSession),
 				'ch' => $ch,
 			);
+		}else if (preg_match('/You are barred from borrowing/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
+
 		}else{
 			global $logger;
 			$logger->log("Could not login to OverDrive ($matchAccount, $matchCart), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
 			$overDriveInfo = null;
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "Unknown error logging in to OverDrive.";
 		}
 
 		return $overDriveInfo;
