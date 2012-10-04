@@ -166,9 +166,11 @@
           <div id="column-central">
             <h4 id="flag">{translate text="Catalog"}</h4>
             <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
-                <div id="fixed-wrapper">
-                  {include file="bookcart.tpl"}
-                </div>
+                {if !($module == 'Search' && $action == 'Home')}
+                  <div id="fixed-wrapper">
+                    {include file="bookcart.tpl"}
+                  </div>
+                {/if}
                 {if $showBreadcrumbs}
                   <div id="breadcrumb">
                     <a href="{$url}">{translate text="Catalog"}</a> <span>&gt;</span>

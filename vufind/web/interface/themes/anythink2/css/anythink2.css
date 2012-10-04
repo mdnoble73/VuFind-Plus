@@ -181,25 +181,16 @@ a.active {
   color: inherit;
 }
 
+.clearfix:before,
 .clearfix:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
+    content: "";
+    display: table;
+} 
+.clearfix:after {
+    clear: both;
 }
- 
 .clearfix {
-  display: inline-block;
-}
- 
-html[xmlns] .clearfix {
-  display: block;
-}
- 
-* html .clearfix {
-  height: 1%;
+    zoom: 1; /* For IE 6/7 (trigger hasLayout) */
 }
 
 body {
@@ -347,7 +338,13 @@ body {
   height: 1.8em;
 }
 
+#search-inputs {
+  float: right;
+  clear: right;
+}
+
 #shards {
+  float: right;
   margin-top: .5em;
   padding-right: 0;
   text-align: inherit;
@@ -427,7 +424,6 @@ body.Search--Home #logo {
    */
   background-image: url(../images/flag-shadow.png);
   background-repeat: no-repeat;
-  width: 1175px;
 }
 
 #main-content {

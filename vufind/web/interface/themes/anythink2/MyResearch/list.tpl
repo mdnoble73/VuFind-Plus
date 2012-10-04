@@ -1,4 +1,5 @@
 <script type="text/javascript" src="{$path}/js/lists.js"></script>
+<script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 	<div id="sidebar-wrapper"><div id="sidebar">
 		{include file="MyResearch/menu.tpl"}
 	</div></div>
