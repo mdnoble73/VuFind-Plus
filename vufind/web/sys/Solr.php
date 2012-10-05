@@ -1238,14 +1238,14 @@ class Solr implements IndexEngine {
 			// Add all non-empty values of the current field to the XML:
 			foreach($value as $current) {
 				if ($current != '') {
-					$node = $doc->createElement('field', $current);
+					$node = $doc->createElement('field', stripNonValidXMLCharacters($current));
 					$node->setAttribute('name', $field);
 					$docNode->appendChild($node);
 				}
 			}
 		}
 
-		return stripNonValidXMLCharacters($doc->saveXML());
+		return $doc->saveXML();
 	}
 
 	/**
@@ -1964,15 +1964,16 @@ function stripNonValidXMLCharacters($string) {
 		$char = $string[$i];
 		$charInt = ord($char);
 		if (($charInt == 0x9) ||
-			($charInt == 0xA) ||
-			($charInt == 0xD) ||
-			(($charInt >= 0x20) && ($charInt <= 0xD7FF)) ||
-			(($charInt >= 0xE000) && ($charInt <= 0xFFFD)) ||
-			(($charInt >= 0x10000) && ($charInt <= 0x10FFFF))){
+		($charInt == 0xA) ||
+		($charInt == 0xD) ||
+		(($charInt >= 0x20) && ($charInt <= 0xD7FF)) ||
+		(($charInt >= 0xE000) && ($charInt <= 0xFFFD)) ||
+		(($charInt >= 0x10000) && ($charInt <= 0x10FFFF)) ||
+		$char == '&' || $char == ';'){
 
 			$newString .= $char;
 
 		}
 	}
-	return $newString;
+	return htmlspecialchars(html_entity_decode($newString, ENT_QUOTES, 'UTF-8'),ENT_QUOTES, 'UTF-8');
 }
