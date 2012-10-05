@@ -3002,12 +3002,13 @@ public class MarcRecordDetails {
 			// Now, check for manually suppressed record where the 907c tag is set to
 			// W
 			if (manualSuppressionField != null && !manualSuppressionField.equals("null")) {
+				//System.out.println("Checking manual suppression " + manualSuppressionField);
 				Set<String> input2 = getFieldList(record, manualSuppressionField);
 				Iterator<String> iter2 = input2.iterator();
-				suppressRecord = false;
 				while (iter2.hasNext()) {
 					String curCode = iter2.next();
-					if (curCode.matches(manualSuppressionValue)) {
+					//System.out.println("curCode = " + curCode);
+					if (curCode.equalsIgnoreCase(manualSuppressionValue)) {
 						//logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
 						suppressRecord = true;
 						break;
