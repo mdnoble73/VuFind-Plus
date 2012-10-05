@@ -135,3 +135,39 @@ function getQuerystringParameters(){
 	}
 	return vars;
 }
+
+function returnEpub(returnUrl){
+	$.getJSON(returnUrl, function (data){
+		if (data.success == false){
+			alert("Error returning EPUB file\r\n" + data.message);
+		}else{
+			alert("The file was returned successfully.");
+			window.location.reload();
+		}
+		
+	});
+}
+
+function cancelEContentHold(cancelUrl){
+	$.getJSON(cancelUrl, function (data){
+		if (data.result == false){
+			alert("Error cancelling hold.\r\n" + data.message);
+		}else{
+			alert(data.message);
+			window.location.reload();
+		}
+		
+	});
+}
+
+function reactivateEContentHold(reactivateUrl){
+	$.getJSON(reactivateUrl, function (data){
+		if (data.error){
+			alert("Error reactivating hold.\r\n" + data.error);
+		}else{
+			alert("The hold was activated successfully.");
+			window.location.reload();
+		}
+		
+	});
+}

@@ -97,17 +97,17 @@
 		<div data-role="controlgroup">
 		{* Place hold link *}
 		<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold">Place Hold</a>
 		</div>
 		
 		{* Checkout link *}
 		<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external"><img src="{$path}/interface/themes/default/images/checkout.png" alt="Checkout"/></a>
+			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external">Checkout</a>
 		</div>
 		
 		{* Add to Wish List *}
 		<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external"><img src="{$path}/interface/themes/default/images/add_to_wishlist.png" alt="Add To Wish List"/></a>
+			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external">Add To Wish List</a>
 		</div>
 			<a href="{$path}/EcontentRecord/{$id}/Save" data-role="button" rel="external">{translate text="Add to favorites"}</a>
 			<a href="{$path}/EcontentRecord/{$id}/AddTag" data-role="button" rel="external">{translate text="Add Tag"}</a>
