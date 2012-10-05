@@ -79,7 +79,7 @@ class BookCoverProcessor{
 						$ret = $epubFile->updateDetailed(false); //Don't update solr for performance reasons
 						$this->log("Result of saving cover url is $ret", PEAR_LOG_INFO);
 					}
-				}elseif (preg_match('/Colorado State Gov\\. Docs/si', $epubFile->source) == 1){
+				}elseif (preg_match('/Colorado State Gov\\. Docs/si', $epubFile->source) == 1 || $epubFile->source == 'CO State Gov Docs' ){
 					//Cover is colorado state flag
 					$this->log("Record is a gov docs file.", PEAR_LOG_INFO);
 					$themeName = $this->configArray['Site']['theme'];
