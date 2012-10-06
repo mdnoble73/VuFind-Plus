@@ -1959,6 +1959,7 @@ class Solr implements IndexEngine {
  * @return The in String, stripped of non-valid characters.
  */
 function stripNonValidXMLCharacters($string) {
+	return $string;
 	$newString = "";
 	for($i=0; $i<strlen($string); $i++){
 		$char = $string[$i];
