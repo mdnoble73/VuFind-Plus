@@ -44,6 +44,10 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			if (!response.isSuccess()){
 				results.addNote("Error clearing existing marc records " + response.getMessage());
 			}
+			response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit expungeDeletes=\"true\"/>", logger);
+			if (!response.isSuccess()){
+				results.addNote("Error expunging deletes " + response.getMessage());
+			}
 		}
 		
 		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
@@ -63,7 +67,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	public void finish() {
 		//Make sure that the index is good and swap indexes
 		results.addNote("calling final commit on index");
-		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit />", logger);
+		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit expungeDeletes=\"true\"/>", logger);
 		if (!response.isSuccess()){
 			results.addNote("Error committing changes " + response.getMessage());
 		}

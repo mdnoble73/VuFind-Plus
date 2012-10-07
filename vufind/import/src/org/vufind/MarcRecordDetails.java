@@ -3008,7 +3008,7 @@ public class MarcRecordDetails {
 				while (iter2.hasNext()) {
 					String curCode = iter2.next();
 					//System.out.println("curCode = " + curCode);
-					if (curCode.equalsIgnoreCase(manualSuppressionValue)) {
+					if (curCode.trim().equalsIgnoreCase(manualSuppressionValue.trim())) {
 						//logger.debug("Suppressing due to manual suppression field " + curCode + " matched " + manualSuppressionValue);
 						suppressRecord = true;
 						break;
@@ -3031,7 +3031,7 @@ public class MarcRecordDetails {
 			return "suppressed";
 		} else {
 			// return that the record is not suppressed
-			return "notSuppressed";
+			return "notsuppressed";
 		}
 	}
 
