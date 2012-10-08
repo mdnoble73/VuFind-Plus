@@ -61,7 +61,13 @@ class MySQLSession extends SessionInterface {
 
 	static public function gc($sess_maxlifetime) {
 		$s = new Session();
-		$s->whereAdd('last_used + ' . $sess_maxlifetime . ' < ' . time() + " AND remember_me = 0");
+		$s->whereAdd('last_used + ' . $sess_maxlifetime . ' < ' . time());
+		$s->whereAdd('remember_me = 0');
+		$s->delete(true);
+
+		$s = new Session();
+		$s->whereAdd('last_used + ' . SessionInterface::$rememberMeLifetime . ' < ' . time());
+		$s->whereAdd('remember_me = 1');
 		$s->delete(true);
 	}
 
