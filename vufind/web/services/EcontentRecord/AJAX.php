@@ -180,6 +180,7 @@ class AJAX extends Action {
 		$interface->assign('record', $eContentRecord);
 		$interface->assign('availability', $driver->getScopedAvailability($eContentRecord));
 		$interface->assign('source', $eContentRecord->source);
+		$interface->assign('accessType', $eContentRecord->accessType);
 		$interface->assign('showEContentNotes', $showEContentNotes);
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
 			$interface->assign('showOtherEditionsPopup', false);
