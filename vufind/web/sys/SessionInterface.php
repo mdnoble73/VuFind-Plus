@@ -5,7 +5,7 @@ require_once 'services/MyResearch/lib/Search.php';
 class SessionInterface {
 
 	static public $lifetime = 3600;
-	static public $rememberMeLifetime = 3600;
+	static public $rememberMeLifetime = 1209600;
 
 	public function init($lt, $rememberMeLifetime) {
 		self::$lifetime = $lt;

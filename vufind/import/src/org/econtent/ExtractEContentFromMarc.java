@@ -274,8 +274,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		results.addNote("Loading OverDrive information from API");
 		results.saveResults();
 		if (clientSecret != null && clientKey != null && accountId != null){
-			//Connect to the API
-			connectToOverDriveAPI();
 			//Get the library information 
 			JSONObject libraryInfo = callOverDriveURL("http://api.overdrive.com/v1/libraries/" + accountId);
 			try {
@@ -297,7 +295,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					}
 					logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 				}
-			} catch (JSONException e) {
+			} catch (Exception e) {
 				results.addNote("error loading information from OverDrive API " + e.toString());
 				results.incErrors();
 				logger.error("Error loading overdrive titles", e);
@@ -320,32 +318,22 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		long batchSize = 300;
 		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
 		for (int i = 0; i < numProducts; i += batchSize){
-			int tries = 0;
-			boolean productsLoaded = false;
-			while (tries < 3 && productsLoaded == false){
-				logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
-				String batchUrl = mainProductUrl + "?offset=" + i + "&limit=" + batchSize;
-				JSONObject productBatchInfo = callOverDriveURL(batchUrl);
-				if (productBatchInfo == null){
-					tries++;
-					continue;
-				}else{
-					productsLoaded = true;
+			logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
+			String batchUrl = mainProductUrl + "?offset=" + i + "&limit=" + batchSize;
+			JSONObject productBatchInfo = callOverDriveURL(batchUrl);
+			JSONArray products = productBatchInfo.getJSONArray("products");
+			for(int j = 0; j <products.length(); j++ ){
+				JSONObject curProduct = products.getJSONObject(j);
+				OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
+				if (libraryId == -1){
+					curRecord.setShared(true);
 				}
-				JSONArray products = productBatchInfo.getJSONArray("products");
-				for(int j = 0; j <products.length(); j++ ){
-					JSONObject curProduct = products.getJSONObject(j);
-					OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
-					if (libraryId == -1){
-						curRecord.setShared(true);
-					}
-					if (overDriveTitles.containsKey(curRecord.getId())){
-						OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId());
-						oldRecord.getCollections().add(libraryId);
-					}else{
-						//logger.debug("Loading record " + curRecord.getId());
-						overDriveTitles.put(curRecord.getId(), curRecord);
-					}
+				if (overDriveTitles.containsKey(curRecord.getId())){
+					OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId());
+					oldRecord.getCollections().add(libraryId);
+				}else{
+					//logger.debug("Loading record " + curRecord.getId());
+					overDriveTitles.put(curRecord.getId(), curRecord);
 				}
 			}
 		}
@@ -521,63 +509,72 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 	
 	private JSONObject callOverDriveURL(String overdriveUrl) {
-		if (connectToOverDriveAPI()){
-		//Connect to the API to get our token
-			HttpURLConnection conn = null;
-			try {
-				URL emptyIndexURL = new URL(overdriveUrl);
-				conn = (HttpURLConnection) emptyIndexURL.openConnection();
-				if (conn instanceof HttpsURLConnection){
-					HttpsURLConnection sslConn = (HttpsURLConnection)conn;
-					sslConn.setHostnameVerifier(new HostnameVerifier() {
-						
-						@Override
-						public boolean verify(String hostname, SSLSession session) {
-							//Do not verify host names
-							return true;
+		for (int connectTry = 1 ; connectTry < 5; connectTry++){
+			if (connectToOverDriveAPI(connectTry != 1)){
+			//Connect to the API to get our token
+				HttpURLConnection conn = null;
+				try {
+					URL emptyIndexURL = new URL(overdriveUrl);
+					conn = (HttpURLConnection) emptyIndexURL.openConnection();
+					if (conn instanceof HttpsURLConnection){
+						HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+						sslConn.setHostnameVerifier(new HostnameVerifier() {
+							
+							@Override
+							public boolean verify(String hostname, SSLSession session) {
+								//Do not verify host names
+								return true;
+							}
+						});
+					}
+					conn.setRequestMethod("GET");
+					conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
+					
+					StringBuffer response = new StringBuffer();
+					if (conn.getResponseCode() == 200) {
+						// Get the response
+						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+						String line;
+						while ((line = rd.readLine()) != null) {
+							response.append(line);
 						}
-					});
+						//logger.debug("  Finished reading response");
+						rd.close();
+						return new JSONObject(response.toString());
+					} else {
+						logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API" );
+						// Get any errors
+						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+						String line;
+						while ((line = rd.readLine()) != null) {
+							response.append(line);
+						}
+						logger.debug("  Finished reading response");
+	
+						rd.close();
+						return null;
+					}
+	
+				} catch (Exception e) {
+					if (connectTry == 3){
+						logger.error("Error loading data from overdrive API", e );
+						return null;
+					}
 				}
-				conn.setRequestMethod("GET");
-				conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
-				
-				StringBuffer response = new StringBuffer();
-				if (conn.getResponseCode() == 200) {
-					// Get the response
-					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-					String line;
-					while ((line = rd.readLine()) != null) {
-						response.append(line);
-					}
-					//logger.debug("  Finished reading response");
-					rd.close();
-					return new JSONObject(response.toString());
-				} else {
-					logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API" );
-					// Get any errors
-					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-					String line;
-					while ((line = rd.readLine()) != null) {
-						response.append(line);
-					}
-					logger.debug("  Finished reading response");
-
-					rd.close();
+			}else{
+				if (connectTry == 3){
 					return null;
 				}
-
-			} catch (Exception e) {
-				logger.error("Error loading data from overdrive API", e );
-				return null;
 			}
-		}else{
-			return null;
 		}
+		logger.error("Failed to call overdrive url " +overdriveUrl + " in 3 calls");
+		results.addNote("Failed to call overdrive url " +overdriveUrl + " in 3 calls");
+		return null;
 	}
 
-	private boolean connectToOverDriveAPI(){
+	private boolean connectToOverDriveAPI(boolean getNewToken){
 		//Check to see if we already have a valid token
-		if (overDriveAPIToken != null ){
+		if (overDriveAPIToken != null && getNewToken == false){
 			if (overDriveAPIExpiration - new Date().getTime() > 0){
 				return true;
 			}
@@ -792,9 +789,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private void addItemsToEContentRecord(MarcRecordDetails recordInfo, Logger logger, String source, DetectionSettings detectionSettings, long eContentRecordId) {
 		//Non threaded implementation for adding items
 		boolean itemsAdded = true;
-		if (source.equalsIgnoreCase("gutenberg")){
+		if (source.toLowerCase().startsWith("gutenberg")){
 			attachGutenbergItems(recordInfo, eContentRecordId, logger);
-		}else if (detectionSettings.getSource().matches("(?i)^overdrive.*")){
+		}else if (source.toLowerCase().startsWith("overdrive")){
 			itemsAdded = setupOverDriveItems(recordInfo, eContentRecordId, detectionSettings, logger);
 		}else if (detectionSettings.isAdd856FieldsAsExternalLinks()){
 			//Automatically setup 856 links as external links
@@ -1190,8 +1187,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			logger.info("Loading gutenberg items " + sourceUrl);
 			try {
 				//Get the source URL from the export of all items. 
+				int numGutenbergItemsFound = 0;
 				for (GutenbergItemInfo curItem : gutenbergItemInfo){
 					if (curItem.getSourceUrl().equalsIgnoreCase(sourceUrl)){
+						numGutenbergItemsFound++;
 						//Check to see if the item is already attached to the record.  
 						doesGutenbergItemExist.setLong(1, eContentRecordId);
 						doesGutenbergItemExist.setString(2, curItem.getFormat());
@@ -1222,6 +1221,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						}
 					}
 				}
+				if (numGutenbergItemsFound == 0){
+					logger.warn("No items found for gutenberg title " + recordInfo.getId());
+				}
+				
 				//Attach items based on the source URL
 			} catch (Exception e) {
 				logger.info("Unable to add items for " + eContentRecordId, e);
