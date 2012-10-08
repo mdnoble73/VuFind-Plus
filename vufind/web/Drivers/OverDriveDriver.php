@@ -50,10 +50,10 @@ class OverDriveDriver {
 
 	}
 
-	private function _connectToAPI(){
+	private function _connectToAPI($forceNewConnection = false){
 		global $memcache;
 		$tokenData = $memcache->get('overdrive_token');
-		if ($tokenData == false){
+		if ($forceNewConnection || $tokenData == false){
 			global $configArray;
 			$ch = curl_init("https://oauth.overdrive.com/token");
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
@@ -76,18 +76,28 @@ class OverDriveDriver {
 	}
 
 	public function _callUrl($url){
-		$tokenData = $this->_connectToAPI();
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-		$return = curl_exec($ch);
-		curl_close($ch);
-		return json_decode($return);
+		for ($i = 1; $i < 5; $i++){
+			$tokenData = $this->_connectToAPI($i != 1);
+			$ch = curl_init($url);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			$return = curl_exec($ch);
+			curl_close($ch);
+			$returnVal = json_decode($return);
+			//print_r($returnVal);
+			if ($returnVal != null){
+				if (!isset($returnVal->message) || $returnVal->message != 'An unexpected error has occurred.'){
+					return $returnVal;
+				}
+			}
+			usleep(500);
+		}
+		return null;
 	}
 
 	public function getLibraryAccountInformation(){
