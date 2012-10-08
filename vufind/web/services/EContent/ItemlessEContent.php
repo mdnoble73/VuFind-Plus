@@ -37,12 +37,16 @@ class ItemlessEContent extends Admin
 		$interface->setPageTitle('Itemless eContent');
 
 		//Source Filter
-		$interface->assign('resultsSourceFilter', $this->getSourceFilter());
+		$validSources = $this->getSourceFilter();
+		$interface->assign('resultsSourceFilter', $validSources);
 		$selectedSourceFilter = null;
+		$selectedSourceFilter = array();
 		if (isset($_REQUEST['sourceFilter'])){
-			$selectedSourceFilter = array();
 			$selectedSourceFilter = $_REQUEST['sourceFilter'];
+		}else{
+			$selectedSourceFilter = reset($validSources);
 		}
+
 		$interface->assign('selectedSourceFilter', $selectedSourceFilter);
 
 		//Load the list of eContent without items
@@ -50,25 +54,19 @@ class ItemlessEContent extends Admin
 		$sourceRestriction = " ";
 		if (isset($_REQUEST['sourceFilter'])){
 			$sourcesToShow = $_REQUEST['sourceFilter'];
-			foreach ($sourcesToShow as $key=>$item){
-				$sourcesToShow[$key] = "'" . mysql_escape_string(strip_tags($item)) . "'";
-			}
-			$sourceRestriction = " AND source IN (" . join(",", $sourcesToShow) . ") ";
+		}else{
+			//Get the first key of the array
+			$sourcesToShow = reset($validSources);
 		}
-
-		//Get a list of econtent records that do have items
-		$recordsWithItems = array();
-		$eContentRecord->query("SELECT DISTINCT econtent_item.recordId from econtent_item inner join econtent_record on econtent_record.id = econtent_item.recordId $sourceRestriction");
-		while ($eContentRecord->fetch()){
-			$recordsWithItems[$eContentRecord->recordId] = $eContentRecord->recordId;
+		foreach ($sourcesToShow as $key=>$item){
+			$sourcesToShow[$key] = "'" . mysql_escape_string(strip_tags($item)) . "'";
 		}
+		$sourceRestriction = " AND source IN (" . join(",", $sourcesToShow) . ") ";
 
-		$eContentRecord->query("SELECT econtent_record.id, title, author, isbn, ilsId, source FROM econtent_record WHERE source != 'OverDrive' and status = 'active' $sourceRestriction");
+		$eContentRecord->query("SELECT econtent_record.id, title, author, isbn, ilsId, source FROM econtent_record WHERE status = 'active' $sourceRestriction and econtent_record.id not in (select recordId from econtent_item)");
 		$itemlessRecords = array();
 		while ($eContentRecord->fetch()){
-			if (!array_key_exists($eContentRecord->id, $recordsWithItems)){
-				$itemlessRecords[] = clone($eContentRecord);
-			}
+			$itemlessRecords[] = clone($eContentRecord);
 		}
 		$interface->assign('itemlessRecords', $itemlessRecords);
 
@@ -84,15 +82,15 @@ class ItemlessEContent extends Admin
 	function getSourceFilter(){
 		$eContentRecord = new EContentRecord();
 		//Populate the Source Filter
-		$querySourceFilter = "SELECT DISTINCT source AS SourceValue FROM econtent_record WHERE source IS NOT NULL AND source <> '' AND source <> 'OverDrive' ".
-			"ORDER BY SourceValue ASC";
+		$querySourceFilter = "select distinct source from econtent_record where econtent_record.id not in (select recordId from econtent_item) and status = 'active' ".
+			"ORDER BY source ASC";
 		$eContentRecord->query($querySourceFilter);
 
 		$resultsSourceFilter = array();
 		$i=0;
 		while ($eContentRecord->fetch()) {
 			$tmp = array(
-		    'SourceValue' => $eContentRecord->SourceValue
+		    'SourceValue' => $eContentRecord->source
 			);
 			$resultsSourceFilter[$i++] = $tmp;
 		}
