@@ -11,7 +11,7 @@
 			Search
 			<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='enableSearchTypes();'>
 				{foreach from=$searchSources item=searchOption key=searchKey}
-					<option value="{$searchKey}" {if $searchKey == $searchSource}selected="selected"{/if}title="{$searchOption.description}">{if $searchOption.external}* {/if}{$searchOption.name}</option>
+					<option value="{$searchKey}" {if $searchKey == $searchSource}selected="selected"{/if} title="{$searchOption.description}">{if $searchOption.external}* {/if}{$searchOption.name}</option>
 				{/foreach}
 			</select>
 			for
