@@ -256,7 +256,8 @@ abstract class SearchObject_Base
 					if ($field == 'veteranOf' && $value == '[* TO *]'){
 						$display = 'Any War';
 					}elseif ($field == 'available_at' && $value == '*') {
-						$display = "Any Marmot Library";
+						$anyLocationLabel = $this->getFacetSetting("Availability", "anyLocationLabel");
+						$display = $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel;
 					}else{
 						$display = $translate ? translate($value) : $value;
 					}
