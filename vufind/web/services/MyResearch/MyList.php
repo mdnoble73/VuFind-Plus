@@ -137,8 +137,6 @@ class MyList extends Action {
 				}elseif ($actionToPerform == 'bulkAddTitles'){
 					$notes = $this->bulkAddTitles($list);
 					$_SESSION['listNotes'] = $notes;
-				}elseif ($actionToPerform == 'reindex'){
-					$list->updateDetailed(true);
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
 				$actionToPerform = $_REQUEST['myListActionItem'];
@@ -190,7 +188,7 @@ class MyList extends Action {
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
 		$interface->assign('allowEdit', $userCanEdit);
-		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $allowEdit);
+		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $userCanEdit);
 		$favList->assign();
 
 		//Need to add profile information from MyResearch to show profile data.
