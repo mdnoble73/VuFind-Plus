@@ -1688,10 +1688,13 @@ class MillenniumDriver implements DriverInterface
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1];
 							$title = $matches[2];
+
+							$historyEntry['id'] = $bibid;
+							$historyEntry['shortId'] = $shortId;
+						}else{
+							$title = strip_tags($scols[$i]);
 						}
 
-						$historyEntry['id'] = $bibid;
-						$historyEntry['shortId'] = $shortId;
 						$historyEntry['title'] = $title;
 					}
 
