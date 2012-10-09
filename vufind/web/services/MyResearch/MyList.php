@@ -119,6 +119,8 @@ class MyList extends Action {
 				}elseif ($actionToPerform == 'bulkAddTitles'){
 					$notes = $this->bulkAddTitles($list);
 					$_SESSION['listNotes'] = $notes;
+				}elseif ($actionToPerform == 'reindex'){
+					$list->updateDetailed(true);
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
 				$actionToPerform = $_REQUEST['myListActionItem'];

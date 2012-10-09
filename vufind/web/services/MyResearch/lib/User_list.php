@@ -57,6 +57,57 @@ class User_list extends SolrDataObject
 			return "suppressed";
 		}
 	}
+	function institution(){
+		//Get the user home library
+		$user = new User();
+		$user->id = $this->user_id;
+		$user->find(true);
+
+		//home library
+		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		$institutions = array();
+		$institutions[] = $homeLibrary->facetLabel;
+
+		return $institutions;
+	}
+	function building(){
+		//Get the user home library
+		$user = new User();
+		$user->id = $this->user_id;
+		$user->find(true);
+
+		//get the home location
+		$homeLocation = new Location();
+		$homeLocation->locationId = $user->homeLocationId;
+		$homeLocation->find(true);
+
+		//If the user is scoped to just see holdings for their location, only make the list available for that location
+		//unless the user a library admin
+		$scopeToLocation = false;
+		if ($homeLocation->useScope == 1 && strlen($homeLocation->defaultLocationFacet) > 0){
+			if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin')){
+				$scopeToLocation = false;
+			}else{
+				$scopeToLocation = true;
+			}
+		}
+
+		$buildings = array();
+		if ($scopeToLocation){
+			//publish to all locations
+			$buildings[] = $homeLocation->facetLabel;
+		}else{
+			//publish to all locations for the library
+			$location = new Location();
+			$location->libraryId = $homeLocation->libraryId;
+			$location->find();
+			while ($location->fetch()){
+				$buildings[] = $location->facetLabel;
+			}
+		}
+		print_r($buildings);
+		return $buildings;
+	}
 	function format_boost(){
 		return 100;
 	}
@@ -172,7 +223,20 @@ class User_list extends SolrDataObject
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
-
+			'institution' => array(
+				'property'=>'institution',
+				'type'=>'method',
+				'methodName'=>'institution',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'building' => array(
+				'property'=>'building',
+				'type'=>'method',
+				'methodName'=>'building',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
 		);
 
 		return $structure;

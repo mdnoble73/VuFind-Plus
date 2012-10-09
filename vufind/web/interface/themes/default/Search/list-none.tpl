@@ -53,7 +53,7 @@
 			{/if}
 			
 			{if $unscopedResults > 0}
-				<h2>Sample Results from entire Marmot Catalog</h2>
+				<h2>Sample Results from the entire Marmot Catalog</h2>
 				<div class="unscopedResultCount">
 					There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 				</div>
