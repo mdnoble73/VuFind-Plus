@@ -98,7 +98,25 @@ class MyList extends Action {
 		}
 
 		//Perform an action on the list, but verify that the user has permission to do so.
-		if ($user != false && $user->id == $list->user_id && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
+		$userCanEdit = false;
+		if ($user != false){
+			if ($user->id == $list->user_id){
+				$userCanEdit = true;
+			}elseif ($user->hasRole('opacAdmin')){
+				$userCanEdit = true;
+			}elseif ($user->hasRole('libraryAdmin')){
+				$listUser = new User();
+				$listUser->id = $list->user_id;
+				$listUser->find(true);
+				$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
+				$userLibrary = Library::getLibraryForLocation($user->homeLocationId);
+				if ($userLibrary->libraryId == $listLibrary->libraryId){
+					$userCanEdit = true;
+				}
+			}
+		}
+
+		if ($userCanEdit && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
 			if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
 				$actionToPerform = $_REQUEST['myListActionHead'];
 				if ($actionToPerform == 'makePublic'){
@@ -171,8 +189,7 @@ class MyList extends Action {
 
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
-		$allowEdit = (($user != false) && ($user->id == $list->user_id));
-		$interface->assign('allowEdit', $allowEdit);
+		$interface->assign('allowEdit', $userCanEdit);
 		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $allowEdit);
 		$favList->assign();
 
