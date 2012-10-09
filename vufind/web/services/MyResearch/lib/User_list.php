@@ -105,7 +105,6 @@ class User_list extends SolrDataObject
 				$buildings[] = $location->facetLabel;
 			}
 		}
-		print_r($buildings);
 		return $buildings;
 	}
 	function format_boost(){
