@@ -14,12 +14,11 @@ class ListWidget extends DB_DataObject
 	public $description;                    //varchar(255)
 	public $showTitleDescriptions;
 	public $onSelectCallback;
-	public $fullListLink;
 	public $customCss;
 	public $listDisplayType;
 	public $showMultipleTitles;
 	public $autoRotate;
-	public $library;
+	public $libraryId;
 
 	private $lists; //varchar(500)
 	/* Static get */
@@ -31,19 +30,28 @@ class ListWidget extends DB_DataObject
 
 	function getObjectStructure(){
 		global $configArray;
+		global $user;
+
 		//Load Libraries for lookup values
-		$library = new Library();
-		$library->orderBy('displayName');
-		$library->find();
-		$libraryList = array();
-		while ($library->fetch()){
-			$libraryList[$library->libraryId] = $library->displayName;
+		if ($user->hasRole('opacAdmin')){
+			$library = new Library();
+			$library->orderBy('displayName');
+			$library->find();
+			$libraryList = array();
+			$libraryList[-1] = 'All Libraries';
+			while ($library->fetch()){
+				$libraryList[$library->libraryId] = $library->displayName;
+			}
+		}elseif ($user->hasRole('libraryAdmin')){
+			$libraryList = array();
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$libraryList[$homeLibrary->libraryId] = $homeLibrary->displayName;
 		}
 
 		$structure = array(
       'id' => array(
         'property'=>'id',
-        'type'=>'label',
+        'type'=>'hidden',
         'label'=>'Id',
         'description'=>'The unique id of the list widget file.',
         'primaryKey' => true,
@@ -68,6 +76,7 @@ class ListWidget extends DB_DataObject
         'label'=>'Description',
         'description'=>'A descrption for the widget',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'showTitleDescriptions' => array(
         'property' => 'showTitleDescriptions',
@@ -75,6 +84,7 @@ class ListWidget extends DB_DataObject
         'label' => 'Should the description pop-up be shown when hovering over titles?',
         'storeDb' => true,
         'default' => true,
+        'hideInLists' => true,
       ),
       'showMultipleTitles' => array(
         'property' => 'showMultipleTitles',
@@ -82,12 +92,14 @@ class ListWidget extends DB_DataObject
         'label' => 'Should multiple titles by shown in in the widget or should only one title be shown at a time?',
         'storeDb' => true,
         'default' => true,
+        'hideInLists' => true,
       ),
       'autoRotate' => array(
         'property' => 'autoRotate',
         'type' => 'checkbox',
         'label' => 'Should the widget automatically rotate between titles?',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'onSelectCallback' => array(
         'property'=>'onSelectCallback',
@@ -95,6 +107,7 @@ class ListWidget extends DB_DataObject
         'label'=>'On Select Callback',
         'description'=>'A javascript callback to invoke when a title is selected to override the default behavior.',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'customCss' => array(
         'property'=>'customCss',
@@ -105,6 +118,7 @@ class ListWidget extends DB_DataObject
         'description'=>'The URL to an external css file to be included when rendering as an iFrame.',
         'storeDb' => true,
         'required' => false,
+        'hideInLists' => true,
       ),
       'listDisplayType' => array(
         'property'=>'listDisplayType',
@@ -116,6 +130,7 @@ class ListWidget extends DB_DataObject
         'label'=>'Display lists as',
         'description'=>'The URL to an external css file to be included wen rendering as an iFrame.',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'lists' => array(
         'property' => 'lists',
@@ -129,7 +144,8 @@ class ListWidget extends DB_DataObject
         'sortable' => true,
         'storeDb' => true,
         'serverValidation' => 'validateLists',
-      	'editLink' => 'ListWidgetsListsLinks'
+        'editLink' => 'ListWidgetsListsLinks',
+        'hideInLists' => true,
       ),
 		);
 		foreach ($structure as $fieldName => $field){
@@ -147,7 +163,7 @@ class ListWidget extends DB_DataObject
 		);
 
 		//Check to see if the name is unique
-		$query = "SELECT * FROM list_widgets WHERE name='" . mysql_escape_string($this->name) . "' and id != '{$this->id}'";
+		$query = "SELECT * FROM list_widgets WHERE name='" . mysql_escape_string($this->name) . "' and id != '{$this->id}' and libraryId = '{$this->libraryId}'";
 		$result = mysql_query($query);
 		if (mysql_numrows($result) > 0){
 			//The title is not unique
@@ -179,6 +195,17 @@ class ListWidget extends DB_DataObject
 	public function __set($name, $value){
 		if ($name == "lists") {
 			$this->lists = $value;
+		}
+	}
+
+	public function getLibraryName(){
+		if ($this->libraryId == -1){
+			return 'All libraries';
+		}else{
+			$library = new Library();
+			$library->libraryId = $this->libraryId;
+			$library->find(true);
+			return $library->displayName;
 		}
 	}
 

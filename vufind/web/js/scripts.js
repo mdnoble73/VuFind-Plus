@@ -1013,3 +1013,15 @@ function getQuerystringParameters(){
 	}
 	return vars;
 }
+
+function createWidgetFromList(listId){
+	//prompt for the widget to add to 
+	ajaxLightbox(path + '/Admin/AJAX?method=getAddToWidgetForm&source=list&id=' + listId);
+	return false;
+}
+function createWidgetFromSearch(searchId){
+	//prompt for the widget to add to
+	ajaxLightbox(path + '/Admin/AJAX?method=getAddToWidgetForm&source=search&id=' + searchId);
+	return false;
+}
+

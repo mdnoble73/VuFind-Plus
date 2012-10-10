@@ -152,7 +152,11 @@ abstract class ObjectEditor extends Admin
 	function viewIndividualObject($structure){
 		global $interface;
 		//Viewing an individual record, get the id to show
-		$_SESSION['redirect_location'] = $_SERVER['HTTP_REFERER'];
+		if (isset($_SERVER['HTTP_REFERER'])){
+			$_SESSION['redirect_location'] = $_SERVER['HTTP_REFERER'];
+		}else{
+			unset($_SESSION['redirect_location']);
+		}
 		if (isset($_REQUEST['id'])){
 			$id = $_REQUEST['id'];
 			$existingObject = $this->getExistingObjectById($id);

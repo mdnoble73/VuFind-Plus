@@ -58,6 +58,7 @@ class History extends Action {
 				$searchObject->activateAllFacets();
 
 				$newItem = array(
+					'id'          => $search->id,
 					'time'        => date("g:ia, jS M y", $searchObject->getStartTime()),
 					'url'         => $searchObject->renderSearchUrl(),
 					'searchId'    => $searchObject->getSearchId(),

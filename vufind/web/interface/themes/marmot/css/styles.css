@@ -825,6 +825,13 @@ table.datagrid tr.oddrow {
 	padding:.5em .5em .5em 20px;
 	margin-right:1em;
 }
+.createWidget {
+	background-image:url(/images/silk/cog_go.png);
+	background-repeat:no-repeat;
+	background-position: left; 
+	padding:.5em .5em .5em 20px;
+	margin-right:1em;
+}
 .holdings {
 	background-image:url(/images/silk/book_address.png);
 	background-repeat:no-repeat;

@@ -79,7 +79,14 @@
 								{/if}
 							{/foreach}
 							{if $dataItem->class != 'objectDeleted'}
-							<td class='edit'><a href='{$path}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
+								<td class='edit'>
+									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a>
+									{if $additionalActions}
+										{foreach from=$additionalActions item=action}
+											<a href='{$action.path}&id={$id}'>{$action.name}</a>
+										{/foreach} 
+									{/if}
+								</td>
 							{/if}
 						</tr>
 						{/foreach}

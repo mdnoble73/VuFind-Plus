@@ -33,7 +33,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes'))){
+		}else if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm'))){
 			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -52,11 +52,11 @@ class AJAX extends Action {
 				$xml .= '<Error>Invalid Method</Error>';
 			}
 			$xml .= '</AJAXResponse>';
-			 
+
 			echo $xml;
 		}
 	}
-	
+
 	function getReindexNotes()
 	{
 		global $interface;
@@ -96,7 +96,7 @@ class AJAX extends Action {
 		}
 		return $interface->fetch('popup-wrapper.tpl');
 	}
-	
+
 	function getCronProcessNotes()
 	{
 		global $interface;
@@ -116,7 +116,7 @@ class AJAX extends Action {
 		}
 		return $interface->fetch('popup-wrapper.tpl');
 	}
-	
+
 	function getCronNotes()
 	{
 		global $interface;
@@ -135,5 +135,29 @@ class AJAX extends Action {
 			$interface->assign('popupContent', "We could not find a cron entry with that id.  No notes available.");
 		}
 		return $interface->fetch('popup-wrapper.tpl');
+	}
+
+	function getAddToWidgetForm(){
+		global $interface;
+		global $user;
+		// Display Page
+		$interface->assign('id', strip_tags($_REQUEST['id']));
+		$interface->assign('source', strip_tags($_REQUEST['source']));
+		$interface->assign('popupTitle', 'Create a Widget');
+		$existingWidgets = array();
+		$listWidget = new ListWidget();
+		if ($user->hasRole('libraryAdmin')){
+			//Get all widgets for the library
+			$userLibrary = Library::getPatronHomeLibrary();
+			$listWidget->libraryId = $userLibrary->libraryId;
+		}
+		$listWidget->find();
+		while ($listWidget->fetch()){
+			$existingWidgets[$listWidget->id] = $listWidget->name;
+		}
+		$interface->assign('existingWidgets', $existingWidgets);
+		$pageContent = $interface->fetch('Admin/addToWidgetForm.tpl');
+		$interface->assign('popupContent', $pageContent);
+		echo $interface->fetch('popup-wrapper.tpl');
 	}
 }

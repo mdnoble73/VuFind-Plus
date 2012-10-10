@@ -15,7 +15,7 @@ class ListWidgetList extends DB_DataObject
 	public $displayFor;
 	public $source;                    //varchar(255)
 	public $weight;
-	
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('DB_DataObject',$k,$v); }
 
@@ -27,16 +27,16 @@ class ListWidgetList extends DB_DataObject
 		global $configArray;
 		$structure = array(
       'id' => array(
-        'property'=>'id', 
-        'type'=>'label', 
-        'label'=>'Id', 
+        'property'=>'id',
+        'type'=>'label',
+        'label'=>'Id',
         'description'=>'The unique id of the list widget file.'
       ),
       'listWidgetId' => array(
       	'property' => 'listWidgetId',
       	'type' => 'foreignKey',
       	'label' => 'List Widget Id',
-      	'description' => 'The widget this list is associated with.' 
+      	'description' => 'The widget this list is associated with.'
       ),
       'name' => array(
         'property'=>'name',
@@ -79,7 +79,7 @@ class ListWidgetList extends DB_DataObject
       	'weight' => 'Defines how lists are sorted within the widget.  Lower weights are displayed to the left of the screen.',
       	'required'=> true
       ),
-      
+
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -87,7 +87,7 @@ class ListWidgetList extends DB_DataObject
 		}
 		return $structure;
 	}
-	
+
 	public function __get($name){
 		if ($name == "links") {
 			if (!isset($this->links)){
@@ -104,25 +104,25 @@ class ListWidgetList extends DB_DataObject
 			return $this->links;
 		}
 	}
-	
-	
-	
+
+
+
 	function validateName(){
     //Setup validation return array
     $validationResults = array(
       'validatedOk' => true,
       'errors' => array(),
     );
-    
+
     //TODO: Check to see if the name is unique
-     
+
     //Make sure there aren't errors
     if (count($validationResults['errors']) > 0){
       $validationResults['validatedOk'] = false;
     }
     return $validationResults;
   }
-  
+
   function __toString(){
   	return "{$this->name} ($this->source)";
   }

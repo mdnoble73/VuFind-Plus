@@ -1272,7 +1272,7 @@ abstract class SearchObject_Base
 	 *                              false if no search to restore, returns
 	 *                              PEAR_Error object in case of trouble.
 	 */
-	public function restoreSavedSearch($searchId = null, $redirect = true)
+	public function restoreSavedSearch($searchId = null, $redirect = true, $forceReload = false)
 	{
 		global $user;
 
@@ -1284,7 +1284,7 @@ abstract class SearchObject_Base
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search
-				if ($search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
+				if ($forceReload || $search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
 					// They do, deminify it to a new object.
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);

@@ -35,12 +35,15 @@
 					<div id='listTopButtons'>
 						{if $allowEdit}
 							<button value="editList" id="FavEdit" class="listButton" onclick='return editListAction()'>Edit List</button>
-							<button value="batchAdd" id="FavBatchAdd" onclick='return batchAddToListAction({$favList->id})'>Batch Add Titles</button>
+							&nbsp;&nbsp;<button value="batchAdd" id="FavBatchAdd" onclick='return batchAddToListAction({$favList->id})'>Batch Add Titles</button>
 							<button value="saveList" id="FavSave" class="listButton" style="display:none" onclick='return updateListAction()'>Save Changes</button>
 							{if $favList->public == 0}
 								<button value="makePublic" id="FavPublic" class="listButton" onclick='return makeListPublicAction()'>Make Public</button>
 							{else}
 								<button value="makePrivate" id="FavPrivate" class="listButton" onclick='return makeListPrivateAction()'>Make Private</button>
+								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+									&nbsp;&nbsp;<a href="#" class="button listButton" id="FavCreateWidget" onclick="return createWidgetFromList('{$favList->id}')">Create Widget</a>
+								{/if}
 							{/if}
 							<button value="deleteList" id="FavDelete" class="listButton" onclick='return deleteListAction()'>Delete List</button>
 						{/if}

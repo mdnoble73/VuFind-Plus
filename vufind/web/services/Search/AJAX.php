@@ -9,12 +9,12 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
  *
  */
 
@@ -62,11 +62,11 @@ class AJAX extends Action {
 	 * Support method for getItemStatuses() -- when presented with multiple values,
 	 * pick which one(s) to send back via AJAX.
 	 *
-	 * @access  private
-	 * @param   array       $list       Array of values to choose from.
-	 * @param   string      $mode       config.ini setting -- first, all or msg
-	 * @param   string      $msg        Message to display if $mode == "msg"
-	 * @return  string
+	 * @access	private
+	 * @param	 array			 $list			 Array of values to choose from.
+	 * @param	 string			$mode			 config.ini setting -- first, all or msg
+	 * @param	 string			$msg				Message to display if $mode == "msg"
+	 * @return	string
 	 */
 	private function pickValue($list, $mode, $msg)
 	{
@@ -77,13 +77,13 @@ class AJAX extends Action {
 		// send back the first list value:
 		if ($mode == 'first' || count($list) == 1) {
 			return $list[0];
-			// Empty list?  Return a blank string:
+			// Empty list?	Return a blank string:
 		} else if (count($list) == 0) {
 			return '';
-			// All values mode?  Return comma-separated values:
+			// All values mode?	Return comma-separated values:
 		} else if ($mode == 'all') {
 			return implode(', ', $list);
-			// Message mode?  Return the specified message, translated to the
+			// Message mode?	Return the specified message, translated to the
 			// appropriate language.
 		} else {
 			return translate($msg);
@@ -96,8 +96,8 @@ class AJAX extends Action {
 	 * This is responsible for printing the holdings information for a
 	 * collection of records in XML format.
 	 *
-	 * @access  public
-	 * @author  Chris Delis <cedelis@uillinois.edu>
+	 * @access	public
+	 * @author	Chris Delis <cedelis@uillinois.edu>
 	 */
 	function GetItemStatuses()
 	{
@@ -111,7 +111,7 @@ class AJAX extends Action {
 		$result = $catalog->getStatuses($_GET['id']);
 
 		// In order to detect IDs missing from the status response, create an
-		// array with a key for every requested ID.  We will clear keys as we
+		// array with a key for every requested ID.	We will clear keys as we
 		// encounter IDs in the response -- anything left will be problems that
 		// need special handling.
 		$missingIds = array_flip($_GET['id']);
@@ -156,13 +156,13 @@ class AJAX extends Action {
 
 				echo ' <item id="' . htmlspecialchars($recordId) . '">';
 				if ($available) {
-					echo '  <availability>true</availability>';
+					echo '	<availability>true</availability>';
 				} else {
-					echo '  <availability>false</availability>';
+					echo '	<availability>false</availability>';
 				}
-				echo '  <location>' . htmlspecialchars($location) . '</location>';
-				echo '  <reserve>' . htmlspecialchars($reserve) . '</reserve>';
-				echo '  <callnumber>' . htmlspecialchars($callnumber) . '</callnumber>';
+				echo '	<location>' . htmlspecialchars($location) . '</location>';
+				echo '	<reserve>' . htmlspecialchars($reserve) . '</reserve>';
+				echo '	<callnumber>' . htmlspecialchars($callnumber) . '</callnumber>';
 				echo ' </item>';
 			}
 		}
@@ -170,10 +170,10 @@ class AJAX extends Action {
 		// If any IDs were missing, send back appropriate dummy data
 		foreach($missingIds as $missingId => $junk) {
 			echo ' <item id="' . htmlspecialchars($missingId) . '">';
-			echo '   <availability>false</availability>';
-			echo '   <location>Unknown</location>';
-			echo '   <reserve>N</reserve>';
-			echo '   <callnumber></callnumber>';
+			echo '	 <availability>false</availability>';
+			echo '	 <location>Unknown</location>';
+			echo '	 <reserve>N</reserve>';
+			echo '	 <callnumber></callnumber>';
 			echo ' </item>';
 		}
 	}
@@ -184,8 +184,8 @@ class AJAX extends Action {
 	 * This is responsible for getting holding summary information for a list of
 	 * records from the database.
 	 *
-	 * @access  public
-	 * @author  Mark Noble <mnoble@turningleaftech.com>
+	 * @access	public
+	 * @author	Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function GetStatusSummaries()
 	{
@@ -245,8 +245,8 @@ class AJAX extends Action {
 	 * This is responsible for getting holding summary information for a list of
 	 * records from the database.
 	 *
-	 * @access  public
-	 * @author  Mark Noble <mnoble@turningleaftech.com>
+	 * @access	public
+	 * @author	Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function GetEContentStatusSummaries()
 	{
@@ -282,16 +282,16 @@ class AJAX extends Action {
 			$formattedHoldingsSummary = $interface->fetch('EcontentRecord/holdingsSummary.tpl');
 
 			echo ' <item id="' . htmlspecialchars($record['recordId']) . '">';
-			echo '  <status>' . htmlspecialchars($record['status']) . '</status>';
-			echo '  <showplacehold>' . ($record['showPlaceHold'] ? '1' : '0') . '</showplacehold>';
-			echo '  <showcheckout>' . ($record['showCheckout'] ? '1' : '0') . '</showcheckout>';
-			echo '  <showaccessonline>' . ($record['showAccessOnline'] ? '1' : '0') . '</showaccessonline>';
-			echo '  <showaddtowishlist>' . ($record['showAddToWishlist'] ? '1' : '0') . '</showaddtowishlist>';
-			echo '  <availablecopies>' . htmlspecialchars($record['showAccessOnline']) . '</availablecopies>';
-			echo '  <numcopies>' . htmlspecialchars($record['totalCopies']) . '</numcopies>';
-			echo '  <holdQueueLength>' . htmlspecialchars($record['holdQueueLength']) . '</holdQueueLength>';
-			echo '  <isDownloadable>1</isDownloadable>';
-			echo '  <formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
+			echo '	<status>' . htmlspecialchars($record['status']) . '</status>';
+			echo '	<showplacehold>' . ($record['showPlaceHold'] ? '1' : '0') . '</showplacehold>';
+			echo '	<showcheckout>' . ($record['showCheckout'] ? '1' : '0') . '</showcheckout>';
+			echo '	<showaccessonline>' . ($record['showAccessOnline'] ? '1' : '0') . '</showaccessonline>';
+			echo '	<showaddtowishlist>' . ($record['showAddToWishlist'] ? '1' : '0') . '</showaddtowishlist>';
+			echo '	<availablecopies>' . htmlspecialchars($record['showAccessOnline']) . '</availablecopies>';
+			echo '	<numcopies>' . htmlspecialchars($record['totalCopies']) . '</numcopies>';
+			echo '	<holdQueueLength>' . htmlspecialchars($record['holdQueueLength']) . '</holdQueueLength>';
+			echo '	<isDownloadable>1</isDownloadable>';
+			echo '	<formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
 			echo ' </item>';
 
 		}
@@ -306,8 +306,8 @@ class AJAX extends Action {
 	 *
 	 * Database is returned as json
 	 *
-	 * @access  public
-	 * @author  Mark Noble <mnoble@turningleaftech.com>
+	 * @access	public
+	 * @author	Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function GetRatings()
 	{
@@ -331,7 +331,7 @@ class AJAX extends Action {
 			$resource->source = 'VuFind';
 			$resource->record_id = $id;
 			$resource->find(true);
-			$shortId = str_replace('.b', 'b',  $id);
+			$shortId = str_replace('.b', 'b',	$id);
 			$ratingData['standard'][$shortId] = $resource->getRatingData($user);
 		}
 
@@ -459,8 +459,8 @@ class AJAX extends Action {
 	 * This is responsible for printing the save status for a collection of
 	 * records in XML format.
 	 *
-	 * @access  public
-	 * @author  Chris Delis <cedelis@uillinois.edu>
+	 * @access	public
+	 * @author	Chris Delis <cedelis@uillinois.edu>
 	 */
 	function GetSaveStatuses()
 	{
@@ -487,7 +487,7 @@ class AJAX extends Action {
 				if ($data) {
 					echo '<result>';
 					// Convert the resource list into JSON so it's easily readable
-					// by the calling Javascript code.  Note that we have to entity
+					// by the calling Javascript code.	Note that we have to entity
 					// encode it so it can embed cleanly inside our XML response.
 					$json = array();
 					foreach ($data as $list) {
@@ -530,13 +530,13 @@ class AJAX extends Action {
 
 		$saved = $user->getSavedData($_GET['id']);
 		if ($saved->notes) {
-			echo "  <Notes>$saved->notes</Notes>\n";
+			echo "	<Notes>$saved->notes</Notes>\n";
 		}
 
 		$myTagList = $user->getTags($_GET['id']);
 		if (count($myTagList)) {
 			foreach ($myTagList as $tag) {
-				echo "  <Tag>" . $tag->tag . "</Tag>\n";
+				echo "	<Tag>" . $tag->tag . "</Tag>\n";
 			}
 		}
 
@@ -626,12 +626,12 @@ class AJAX extends Action {
 				}else{
 					$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">';
 				}
-	    	$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-	    			"</a></div>" .
-	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
+				$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+						"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+						"</a></div>" .
+						"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
 				$descriptionInfo .
-	    			"</div>";
+						"</div>";
 				$rawData['formattedTitle'] = $formattedTitle;
 				$titles[$key] = $rawData;
 			}
@@ -645,7 +645,7 @@ class AJAX extends Action {
 	}
 
 	/**
-	 * For historical purposes.  Make sure the old API wll still work.
+	 * For historical purposes.	Make sure the old API wll still work.
 	 */
 	function SysListTitles(){
 		if (!isset($_GET['id'])){
@@ -680,37 +680,39 @@ class AJAX extends Action {
 					$strandsInfo = $titles['strands'];
 				}
 				$titles = $titles['titles'];
-				foreach ($titles as $key => $rawData){
+				if (is_array($titles)){
+					foreach ($titles as $key => $rawData){
 
-					$interface->assign('description', $rawData['description']);
-					$interface->assign('length', $rawData['length']);
-					$interface->assign('publisher', $rawData['publisher']);
-					$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
+						$interface->assign('description', $rawData['description']);
+						$interface->assign('length', $rawData['length']);
+						$interface->assign('publisher', $rawData['publisher']);
+						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
 
-					$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
-					if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
-						$recordId = substr($rawData['id'], 14);
-						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
-					}else{
-						$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+						if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+							$recordId = substr($rawData['id'], 14);
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+						}else{
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+						}
+						$formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
+									$descriptionInfo .
+								"</div>";
+						$rawData['formattedTitle'] = $formattedTitle;
+						$titles[$key] = $rawData;
 					}
-		      $formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-		          "</a></div>" .
-		          "<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
-					      $descriptionInfo .
-		          "</div>";
-					$rawData['formattedTitle'] = $formattedTitle;
-					$titles[$key] = $rawData;
 				}
 				$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
 
 				$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
+				$listData = json_encode($return);
 			}else{
 				$return = array('titles' => array(), 'currentIndex' =>0);
 				$listData = json_encode($return);
 			}
 
-			$listData = json_encode($return);
 			$memcache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
 
 		}

@@ -391,6 +391,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'list_widgets_update_2' => array(
+				'title' => 'List Widget Update 2',
+				'description' => 'Add library id to list widget',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `libraryId` INT(11) NOT NULL DEFAULT '-1'",
+				),
+			),
+
 			'list_widgets_home' => array(
 				'title' => 'List Widget Home',
 				'description' => 'Create the default homepage widget',
