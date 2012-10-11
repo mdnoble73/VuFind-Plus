@@ -424,94 +424,94 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		JSONObject metaData = callOverDriveURL(url);
 		if (metaData == null){
 			logger.error("Could not load metadata from " + url);
-		}
-		try {
-			overDriveInfo.setEdition(metaData.has("edition") ? metaData.getString("edition") : "");
-			overDriveInfo.setPublisher(metaData.has("publisher") ? metaData.getString("publisher") : "");
-			overDriveInfo.setPublishDate(metaData.has("publishDate") ? metaData.getString("publishDate") : "");
-			if (metaData.has("contributors")){
-				JSONArray contributors = metaData.getJSONArray("contributors");
-				for (int i = 0; i < contributors.length(); i++){
-					JSONObject contributor = contributors.getJSONObject(i);
-					overDriveInfo.getContributors().add(contributor.getString("name"));
-				}
-			}
-			if (metaData.has("languages")){
-				JSONArray languages = metaData.getJSONArray("languages");
-				for (int i = 0; i < languages.length(); i++){
-					JSONObject language = languages.getJSONObject(i);
-					overDriveInfo.getLanguages().add(language.getString("name"));
-				}
-			}
-			if (metaData.has("isPublicDomain")){
-				overDriveInfo.setPublicDomain(metaData.getBoolean("isPublicDomain"));
-			}
-			if (metaData.has("isPublicPerformanceAllowed")){
-				overDriveInfo.setPublicPerformanceAllowed(metaData.getBoolean("isPublicPerformanceAllowed"));
-			}
-			if (metaData.has("fullDescription")){
-				overDriveInfo.setDescription(metaData.getString("fullDescription"));
-			}else if (metaData.has("shortDescription")){
-				overDriveInfo.setDescription(metaData.getString("shortDescription"));
-			}
-			if (metaData.has("subjects")){
-				JSONArray subjects = metaData.getJSONArray("subjects");
-				for (int i = 0; i < subjects.length(); i++){
-					JSONObject subject = subjects.getJSONObject(i);
-					overDriveInfo.getSubjects().add(subject.getString("value"));
-				}
-			}
-			JSONArray formats = metaData.getJSONArray("formats");
-			for (int i = 0; i < formats.length(); i++){
-				JSONObject format = formats.getJSONObject(i);
-				OverDriveItem curItem = new OverDriveItem();
-				curItem.setFormatId(format.getString("id"));
-				curItem.setFormat(format.getString("name"));
-				curItem.setFormatNumeric(overDriveFormatMap.get(curItem.getFormat()));
-				curItem.setFilename(format.getString("fileName"));
-				curItem.setPartCount(format.has("partCount") ? format.getLong("partCount") : 0L);
-				curItem.setSize(format.has("fileSize") ? format.getLong("fileSize") : 0L);
-				if (format.has("identifiers")){
-					StringBuffer identifierValue = new StringBuffer();
-					JSONArray identifiers = format.getJSONArray("identifiers");
-					for (int j = 0; j < identifiers.length(); j++){
-						JSONObject identifier = identifiers.getJSONObject(j);
-						if (identifierValue.length() > 0) {
-							identifierValue.append("\r\n");
-						}
-						identifierValue.append(identifier.getString("value"));
-					}
-					curItem.setIdentifier(format.getJSONArray("identifiers").getJSONObject(0).getString("value"));
-				}
-				if (format.has("samples")){
-					JSONArray samples = format.getJSONArray("samples");
-					for (int j = 0; j < samples.length(); j++){
-						JSONObject sample = samples.getJSONObject(j);
-						if (j == 0){
-							curItem.setSampleName_1(sample.getString("source"));
-							curItem.setSampleUrl_1(sample.getString("url"));
-						}else if (j == 1){
-							curItem.setSampleName_2(sample.getString("source"));
-							curItem.setSampleUrl_2(sample.getString("url"));
-						}else{
-							logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + curItem.getFormat());
-						}
+		}else{
+			try {
+				overDriveInfo.setEdition(metaData.has("edition") ? metaData.getString("edition") : "");
+				overDriveInfo.setPublisher(metaData.has("publisher") ? metaData.getString("publisher") : "");
+				overDriveInfo.setPublishDate(metaData.has("publishDate") ? metaData.getString("publishDate") : "");
+				if (metaData.has("contributors")){
+					JSONArray contributors = metaData.getJSONArray("contributors");
+					for (int i = 0; i < contributors.length(); i++){
+						JSONObject contributor = contributors.getJSONObject(i);
+						overDriveInfo.getContributors().add(contributor.getString("name"));
 					}
 				}
-				overDriveInfo.getItems().put(curItem.getFormatId(), curItem);
+				if (metaData.has("languages")){
+					JSONArray languages = metaData.getJSONArray("languages");
+					for (int i = 0; i < languages.length(); i++){
+						JSONObject language = languages.getJSONObject(i);
+						overDriveInfo.getLanguages().add(language.getString("name"));
+					}
+				}
+				if (metaData.has("isPublicDomain")){
+					overDriveInfo.setPublicDomain(metaData.getBoolean("isPublicDomain"));
+				}
+				if (metaData.has("isPublicPerformanceAllowed")){
+					overDriveInfo.setPublicPerformanceAllowed(metaData.getBoolean("isPublicPerformanceAllowed"));
+				}
+				if (metaData.has("fullDescription")){
+					overDriveInfo.setDescription(metaData.getString("fullDescription"));
+				}else if (metaData.has("shortDescription")){
+					overDriveInfo.setDescription(metaData.getString("shortDescription"));
+				}
+				if (metaData.has("subjects")){
+					JSONArray subjects = metaData.getJSONArray("subjects");
+					for (int i = 0; i < subjects.length(); i++){
+						JSONObject subject = subjects.getJSONObject(i);
+						overDriveInfo.getSubjects().add(subject.getString("value"));
+					}
+				}
+				JSONArray formats = metaData.getJSONArray("formats");
+				for (int i = 0; i < formats.length(); i++){
+					JSONObject format = formats.getJSONObject(i);
+					OverDriveItem curItem = new OverDriveItem();
+					curItem.setFormatId(format.getString("id"));
+					curItem.setFormat(format.getString("name"));
+					curItem.setFormatNumeric(overDriveFormatMap.get(curItem.getFormat()));
+					curItem.setFilename(format.getString("fileName"));
+					curItem.setPartCount(format.has("partCount") ? format.getLong("partCount") : 0L);
+					curItem.setSize(format.has("fileSize") ? format.getLong("fileSize") : 0L);
+					if (format.has("identifiers")){
+						StringBuffer identifierValue = new StringBuffer();
+						JSONArray identifiers = format.getJSONArray("identifiers");
+						for (int j = 0; j < identifiers.length(); j++){
+							JSONObject identifier = identifiers.getJSONObject(j);
+							if (identifierValue.length() > 0) {
+								identifierValue.append("\r\n");
+							}
+							identifierValue.append(identifier.getString("value"));
+						}
+						curItem.setIdentifier(format.getJSONArray("identifiers").getJSONObject(0).getString("value"));
+					}
+					if (format.has("samples")){
+						JSONArray samples = format.getJSONArray("samples");
+						for (int j = 0; j < samples.length(); j++){
+							JSONObject sample = samples.getJSONObject(j);
+							if (j == 0){
+								curItem.setSampleName_1(sample.getString("source"));
+								curItem.setSampleUrl_1(sample.getString("url"));
+							}else if (j == 1){
+								curItem.setSampleName_2(sample.getString("source"));
+								curItem.setSampleUrl_2(sample.getString("url"));
+							}else{
+								logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + curItem.getFormat());
+							}
+						}
+					}
+					overDriveInfo.getItems().put(curItem.getFormatId(), curItem);
+				}
+			} catch (JSONException e) {
+				logger.error("Error loading meta data for title ", e);
+				results.addNote("Error loading meta data for title " + overDriveInfo.getId() + " " + e.toString());
+				results.incErrors();
 			}
-			
-		} catch (JSONException e) {
-			logger.error("Error loading meta data for title ", e);
-			results.addNote("Error loading meta data for title " + overDriveInfo.getId() + " " + e.toString());
-			results.incErrors();
 		}
 	}
 	
 	private JSONObject callOverDriveURL(String overdriveUrl) {
 		for (int connectTry = 1 ; connectTry < 5; connectTry++){
 			if (connectToOverDriveAPI(connectTry != 1)){
-			//Connect to the API to get our token
+				//Connect to the API to get our token
 				HttpURLConnection conn = null;
 				try {
 					URL emptyIndexURL = new URL(overdriveUrl);

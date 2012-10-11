@@ -314,7 +314,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		results.incRecordsProcessed();
 		try {
 			//Get the existing resource if any
-			logger.debug("Checking to see if we have an existing resource for the record.");
+			//logger.debug("Checking to see if we have an existing resource for the record.");
 			Long existingResourceId = existingResourceIds.get(recordInfo.getId());
 			
 			if (recordInfo.isEContent()){
