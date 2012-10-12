@@ -3,14 +3,14 @@
 <thead>
 	<tr>
 		{if $property.sortable}
-			<th>Weight</th>
+			<th>Sort</th>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
 			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
 				<th>{$subProperty.label}</th>
 			{/if}
 		{/foreach}
-		<th>&nbsp;</th>
+		<th>Actions</th>
 	</tr>
 </thead>
 <tbody>
