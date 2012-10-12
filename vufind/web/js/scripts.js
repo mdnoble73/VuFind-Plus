@@ -643,7 +643,7 @@ try{
 						my: "left top",
 						at: "left bottom",
 						of: "#lookfor",
-						collision: "fit"
+						collision: "none"
 					},
 					minLength: 4,
 					delay: 600
