@@ -558,6 +558,11 @@ if ($action == "AJAX" || $action == "JSON"){
 		}else{
 			$interface->assign('homeBreadcrumbLink', $interface->getUrl());
 		}
+		if (isset($library) && $library != false){
+			$interface->assign('homeLinkText', $library->homeLinkText);
+		}else{
+			$interface->assign('homeLinkText', 'Home');
+		}
 	}
 	//Load user list for book bag
 	if ($user){

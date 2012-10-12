@@ -62,6 +62,7 @@ class Library extends DB_DataObject
 	public $systemsToRepeatIn;
 	public $showMarmotResultsAtEndOfSearch;
 	public $homeLink;
+	public $homeLinkText;
 	public $useHomeLinkInBreadcrumbs;
 	public $showAdvancedSearchbox;
 	public $enableBookCart;
@@ -129,6 +130,7 @@ class Library extends DB_DataObject
 				'themeName' => array('property'=>'themeName', 'type'=>'text', 'label'=>'Theme Name', 'description'=>'The name of the theme which should be used for the library', 'hideInLists' => true,),
 				'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'size'=>'40', 'hideInLists' => true,),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
+				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
 				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true,),
 				'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
 				'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),

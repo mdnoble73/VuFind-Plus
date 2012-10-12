@@ -288,6 +288,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showMarmotResultsAtEndOfSearch` INT(11) DEFAULT 1;",
 				),
 			),
+			'library_21' => array(
+				'title' => 'Library 21',
+				'description' => 'Add the home link text so the breadcrumbs can be customized. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `homeLinkText` VARCHAR(50) DEFAULT 'Home';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
