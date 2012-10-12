@@ -177,6 +177,7 @@ abstract class ObjectEditor extends Admin
 			}
 		}
 		$interface->assign('contentType', $contentType);
+		$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($existingObject));
 		$interface->setTemplate('../Admin/objectEditor.tpl');
 	}
 
@@ -372,15 +373,19 @@ abstract class ObjectEditor extends Admin
 			}
 		}
 		global $configArray;
-		$redirectLocation = $this->getRedirectLocation($objectAction, $curObject);
-		if (is_null($redirectLocation)){
-			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
-				header("Location: " . $_SESSION['redirect_location']);
-			}else{
-				header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}");
-			}
+		if (isset($_REQUEST['submitStay'])){
+			header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=$id");
 		}else{
-			header("Location: {$redirectLocation}");
+			$redirectLocation = $this->getRedirectLocation($objectAction, $curObject);
+			if (is_null($redirectLocation)){
+				if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
+					header("Location: " . $_SESSION['redirect_location']);
+				}else{
+					header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}");
+				}
+			}else{
+				header("Location: {$redirectLocation}");
+			}
 		}
 		die();
 	}
@@ -425,5 +430,9 @@ abstract class ObjectEditor extends Admin
 
 	function showExportAndCompare(){
 		return true;
+	}
+
+	function getAdditionalObjectActions($existingObject){
+		return array();
 	}
 }

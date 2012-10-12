@@ -382,12 +382,13 @@ class EContentItem extends DB_DataObject {
 		}
 
 		//Make sure to also update the record this is attached to so the full text can be generated
-		if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
+		//Do not update parent for now, it will be indexed the next time the index runs.
+		/*if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
 			$record = new EContentRecord();
 			$record->id = $this->recordId;
 			$record->find(true);
 			$record->update();
-		}
+		}*/
 		return $ret;
 
 	}

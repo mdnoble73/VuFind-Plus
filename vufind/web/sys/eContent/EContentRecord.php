@@ -1115,6 +1115,8 @@ class EContentRecord extends SolrDataObject {
 
 	function econtentText(){
 		$eContentText = "";
+		//Do not index full text for now since we get many invalid characters wih certain files
+		return $eContentText;
 		if (!$this->_quickReindex && strcasecmp($this->source, 'OverDrive') != 0){
 			//Load items for the record
 			$items = $this->getItems();

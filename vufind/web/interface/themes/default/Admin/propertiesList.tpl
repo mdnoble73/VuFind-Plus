@@ -35,7 +35,7 @@
 								{assign var=propOldValue value=$dataItem->$propOldName}
 								{if !isset($property.hideInLists) || $property.hideInLists == false}
 									<td {if $propOldValue}class='fieldUpdated'{/if}>
-									{if $property.type == 'text' || $property.type == 'label' || $property.type == 'hidden' || $property.type == 'file'}
+									{if $property.type == 'text' || $property.type == 'label' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer'}
 										{$propValue}{if $propOldValue} ({$propOldValue}){/if}
 									{elseif $property.type == 'date'}
 										{$propValue}{if $propOldValue} ({$propOldValue}){/if}

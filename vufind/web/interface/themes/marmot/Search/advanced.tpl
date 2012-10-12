@@ -75,17 +75,56 @@
 						{/if}
 						<table class="citation" width="100%" summary="{translate text='Limit To'}">
 							{if $facetList}
-								{foreach from=$facetList item="list" key="label"}
-								<tr>
-									<th align="right">{translate text=$label}: </th>
-									<td>
-										<select name="filter[]">
-											{foreach from=$list item="value" key="display"}
-												<option value="{$value.filter|escape}"{if $value.selected} selected="selected"{/if}>{$display|escape}</option>
-											{/foreach}
-										</select>
-									</td>
-								</tr>
+								{foreach from=$facetList item="facetInfo" key="label"}
+									<tr>
+										<th align="right">{translate text=$label}: </th>
+										<td>
+											{if $facetInfo.facetName == "publishDate"}
+												<label for="yearfrom" class='yearboxlabel'>From:</label>
+												<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom" value="" />
+												<label for="yearto" class='yearboxlabel'>To:</label>
+												<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto" value="" />
+												
+												<div id='yearDefaultLinks'>
+												<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
+												&bull;<a onclick="$('#yearfrom').val('2000');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
+												&bull;<a onclick="$('#yearfrom').val('1995');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
+												</div>
+											{elseif $facetInfo.facetName == "lexile_score"}
+												<div id="lexile-range"></div>
+												<label for="lexile_scorefrom" class='yearboxlabel'>From:</label>
+												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom" id="lexile_scorefrom" value="" />
+												<label for="lexile_scoreto" class='yearboxlabel'>To:</label>
+												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto" id="lexile_scoreto" value="" />
+												<script>{literal}
+												$(function() {
+													$( "#lexile-range" ).slider({
+														range: true,
+														min: 0,
+														max: 2500,
+														step: 10,
+														values: [ 0, 2500 ],
+														slide: function( event, ui ) {
+															$( "#lexile_scorefrom" ).val( ui.values[ 0 ] );
+															$( "#lexile_scoreto" ).val( ui.values[ 1 ] );
+														}
+													});
+													$( "#lexile_scorefrom" ).change(function (){
+														$( "#lexile-range" ).slider( "values", 0, $( "#lexile_scorefrom" ).val());
+													});
+													$( "#lexile_scoreto" ).change(function (){
+														$( "#lexile-range" ).slider( "values", 1, $( "#lexile_scoreto" ).val());
+													});
+												});{/literal}
+											{else}
+												<select name="filter[]">
+													{foreach from=$facetInfo.values item="value" key="display"}
+														<option value="{$value.filter|escape}"{if $value.selected} selected="selected"{/if}>{$display|escape}</option>
+													{/foreach}
+												</select>
+											{/if}
+										</td>
+									</tr>
 								{/foreach}
 							{/if}
 							{if $illustratedLimit}

@@ -22,44 +22,40 @@ require_once 'Action.php';
 require_once 'services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
 
-class Libraries extends ObjectEditor
+class LibraryFacetSettings extends ObjectEditor
 {
 
 	function getObjectType(){
-		return 'Library';
+		return 'LibraryFacetSetting';
 	}
 	function getToolName(){
-		return 'Libraries';
+		return 'LibraryFacetSettings';
 	}
 	function getPageTitle(){
-		return 'Library Systems';
+		return 'Library Facets';
 	}
 	function getAllObjects(){
-		$libraryList = array();
+		$facetsList = array();
+		$libraryId = $_REQUEST['libraryId'];
 
-		global $user;
-		if ($user->hasRole('opacAdmin')){
-			$library = new Library();
-			$library->orderBy('subdomain');
-			$library->find();
-			while ($library->fetch()){
-				$libraryList[$library->libraryId] = clone $library;
-			}
-		}else if ($user->hasRole('libraryAdmin')){
-			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
-			$libraryList[$patronLibrary->libraryId] = clone $patronLibrary;
+		$library = new LibraryFacetSetting();
+		$library->libraryId = $libraryId;
+		$library->orderBy('weight');
+		$library->find();
+		while ($library->fetch()){
+			$facetsList[$library->id] = clone $library;
 		}
 
-		return $libraryList;
+		return $facetsList;
 	}
 	function getObjectStructure(){
-		return Library::getObjectStructure();
+		return LibraryFacetSetting::getObjectStructure();
 	}
 	function getPrimaryKeyColumn(){
-		return 'subdomain';
+		return 'id';
 	}
 	function getIdKeyColumn(){
-		return 'libraryId';
+		return 'id';
 	}
 	function getAllowableRoles(){
 		return array('opacAdmin', 'libraryAdmin');
@@ -78,10 +74,10 @@ class Libraries extends ObjectEditor
 	}
 	function getAdditionalObjectActions($existingObject){
 		$objectActions = array();
-		if ($existingObject != null){
+		if (isset($existingObject) && $existingObject != null){
 			$objectActions[] = array(
-				'text' => 'Edit Facets',
-				'url' => '/Admin/LibraryFacetSettings?libraryId=' . $existingObject->libraryId,
+				'text' => 'Return to Library',
+				'url' => '/Admin/Libraries?objectAction=edit&id=' . $existingObject->libraryId,
 			);
 		}
 		return $objectActions;

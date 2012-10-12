@@ -1,3 +1,4 @@
+{strip}
 <table id="{$propName}" class="{if $property.sortable}sortableProperty{/if}" >
 <thead>
 	<tr>
@@ -5,7 +6,7 @@
 			<th>Weight</th>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
 				<th>{$subProperty.label}</th>
 			{/if}
 		{/foreach}
@@ -23,12 +24,12 @@
 			</td>
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
 				<td>
 					{assign var=subPropName value=$subProperty.property}
 					{assign var=subPropValue value=$subObject->$subPropName}
-					{if $subProperty.type=='text' || $subProperty.type=='date'}
-						<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{/if}{if $subProperty.required == true} required{/if}"/>
+					{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer'}
+						<input type="text" name="{$propName}_{$subPropName}[{$subObject->id}]" value="{$subPropValue|escape}" class="{if $subProperty.type=='date'}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}"/>
 					{elseif $subProperty.type=='checkbox'}
 						<input type='checkbox' name='{$propName}_{$subPropName}[{$subObject->id}]' {if $subPropValue == 1}checked='checked'{/if}/>
 					{else}
@@ -46,8 +47,12 @@
 		<input type="hidden" id="{$propName}Deleted_{$subObject->id}" name="{$propName}Deleted[{$subObject->id}]" value="false"/>
 		<a href="#" onclick="if (confirm('Are you sure you want to delete this?')){literal}{{/literal}$('#{$propName}Deleted_{$subObject->id}').val('true');$('#{$propName}{$subObject->id}').hide(){literal}}{/literal};return false;"><img src="{$path}/images/silk/delete.png" alt="delete" /></a>{* link to delete *}
 		{if $property.editLink neq ''}
-			<a href='{$property.editLink}?objectAction=edit&widgetListId={$subObject->id}&widgetId={$widgetid}' alt='Edit SubLinks' title='Edit SubLinks'>
-				<img src="{$path}/images/silk/link.png" alt="delete" />
+			&nbsp;<a href='{$property.editLink}?objectAction=edit&widgetListId={$subObject->id}&widgetId={$widgetid}' alt='Edit SubLinks' title='Edit SubLinks'>
+				<img src="{$path}/images/silk/link.png" alt="edit links" />
+			</a>
+		{elseif $property.canEdit}
+			&nbsp;<a href='{$subObject->getEditLink()}' alt='Edit' title='Edit'>
+				<img src="{$path}/images/silk/edit.png" alt="edit" />
 			</a>
 		{/if}
 		</td>
@@ -58,7 +63,7 @@
 <div class="{$propName}Actions">
 	<a href="#" onclick="addNew{$propName}();return false;"  class="button">Add New</a>
 </div>
-
+{/strip}
 <script type="text/javascript">
 	{literal}$(document).ready(function(){{/literal}
 	{if $property.sortable}
@@ -74,30 +79,30 @@
 	{/if}
 	{literal}$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});{/literal}
 	{literal}});{/literal}
-	var numAdditional{$property.label} = 0;
+	var numAdditional{$propName} = 0;
 	function addNew{$propName}{literal}(){
-		numAdditional{/literal}{$property.label}{literal} = numAdditional{/literal}{$property.label}{literal} -1;
+		numAdditional{/literal}{$propName}{literal} = numAdditional{/literal}{$propName}{literal} -1;
 		var newRow = "<tr>";
 		{/literal}
-		newRow +=	"<input type='hidden' id='{$propName}Id_" + numAdditional{$property.label} + "' name='{$propName}Id[" + numAdditional{$property.label} + "]' value='" + numAdditional{$property.label} + "'/>"
+		newRow +=	"<input type='hidden' id='{$propName}Id_" + numAdditional{$propName} + "' name='{$propName}Id[" + numAdditional{$propName} + "]' value='" + numAdditional{$propName} + "'/>"
 		{if $property.sortable}
 			newRow += "<td><span class='ui-icon ui-icon-arrowthick-2-n-s'></span>";
-			newRow += "<input type='hidden' id='{$propName}Weight_" + numAdditional{$property.label} +"' name='{$propName}Weight[" + numAdditional{$property.label} +"]' value='" + (100 - numAdditional{$property.label})  +"'/>";
+			newRow += "<input type='hidden' id='{$propName}Weight_" + numAdditional{$propName} +"' name='{$propName}Weight[" + numAdditional{$propName} +"]' value='" + (100 - numAdditional{$propName})  +"'/>";
 			newRow += "</td>";
 		{/if}
 		{foreach from=$property.structure item=subProperty}
-			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox')) }
+			{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer')) }
 				newRow += "<td>";
 				{assign var=subPropName value=$subProperty.property}
 				{assign var=subPropValue value=$subObject->$subPropName}
-				{if $subProperty.type=='text' || $subProperty.type=='date'}
-					newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' value='' class='{if $subProperty.type=="date"}datepicker{/if}{if $subProperty.required == true} required{/if}'/>";
+				{if $subProperty.type=='text' || $subProperty.type=='date' || $subProperty.type=='integer'}
+					newRow += "<input type='text' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' value='{if $subProperty.default}{$subProperty.default}{/if}' class='{if $subProperty.type=="date"}datepicker{elseif $subProperty.type=="integer"}integer{/if}{if $subProperty.required == true} required{/if}'/>";
 				{elseif $subProperty.type=='checkbox'}
-					newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' />";
+					newRow += "<input type='checkbox' name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' {if $subProperty.default == 1}checked='checked'{/if}/>";
 				{else}
-					newRow += "<select name='{$propName}_{$subPropName}[" + numAdditional{$property.label} +"]' id='{$propName}{$subPropName}_" + numAdditional{$property.label} +"' {if $subProperty.required == true}class='required'{/if}>";
+					newRow += "<select name='{$propName}_{$subPropName}[" + numAdditional{$propName} +"]' id='{$propName}{$subPropName}_" + numAdditional{$propName} +"' {if $subProperty.required == true}class='required'{/if}>";
 					{foreach from=$subProperty.values item=propertyName key=propertyValue}
-						newRow += "<option value='{$propertyValue}' >{$propertyName}</option>";
+						newRow += "<option value='{$propertyValue}' {if $subProperty.default == $propertyValue}selected='selected'{/if}>{$propertyName}</option>";
 					{/foreach}
 					newRow += "</select>";
 				{/if}

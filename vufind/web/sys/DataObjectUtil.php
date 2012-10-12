@@ -340,6 +340,7 @@ class DataObjectUtil
 			if ($property['sortable'] == true && isset($_REQUEST[$propertyName . 'Weight'])){
 				$weights = $_REQUEST[$propertyName . 'Weight'];
 			}
+			$values = array();
 			if (isset($_REQUEST[$propertyName.'Id'])){
 				$idsToSave = $_REQUEST[$propertyName.'Id'];
 				$existingValues = $object->$propertyName;
@@ -360,7 +361,7 @@ class DataObjectUtil
 						//Update properties of each associated object
 						foreach ($subStructure as $subProperty){
 							$requestKey = $propertyName . '_' . $subProperty['property'];
-							if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
+							if (in_array($subProperty['type'], array('text', 'enum', 'date', 'integer') )){
 								$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
 							}elseif (in_array($subProperty['type'], array('checkbox') )){
 								$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;

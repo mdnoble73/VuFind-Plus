@@ -6,6 +6,7 @@ require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 require_once 'Drivers/marmot_inc/Holiday.php';
 require_once 'Drivers/marmot_inc/NearbyBookStore.php';
+require_once 'Drivers/marmot_inc/LibraryFacetSetting.php';
 
 class Library extends DB_DataObject
 {
@@ -111,6 +112,13 @@ class Library extends DB_DataObject
 		$nearbyBookStoreStructure = NearbyBookStore::getObjectStructure();
 		unset($nearbyBookStoreStructure['weight']);
 		unset($nearbyBookStoreStructure['libraryId']);
+
+		$facetSettingStructure = LibraryFacetSetting::getObjectStructure();
+		unset($facetSettingStructure['weight']);
+		unset($facetSettingStructure['libraryId']);
+		unset($facetSettingStructure['numEntriesToShowByDefault']);
+		unset($facetSettingStructure['showAsDropDown']);
+		unset($facetSettingStructure['sortMode']);
 
 		$structure = array(
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
@@ -234,7 +242,7 @@ class Library extends DB_DataObject
 			'nearbyBookStores' => array(
 				'property'=>'nearbyBookStores',
 				'type'=>'oneToMany',
-				'label'=>'NearbyBookStores',
+				'label'=>'Nearby Book Stores',
 				'description'=>'A list of book stores to search',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
@@ -243,6 +251,21 @@ class Library extends DB_DataObject
 				'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true
+			),
+			'facets' => array(
+				'property'=>'facets',
+				'type'=>'oneToMany',
+				'label'=>'Facets',
+				'description'=>'A list of facets to display in search results',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibraryFacetSetting',
+				'structure' => $facetSettingStructure,
+				'hideInLists' => true,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => true,
+				'canEdit' => true,
 			),
 		);
 		foreach ($structure as $fieldName => $field){
@@ -363,6 +386,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->nearbyBookStores;
+		}elseif ($name == "facets") {
+			if (!isset($this->facets)){
+				$this->facets = array();
+				$facet = new LibraryFacetSetting();
+				$facet->libraryId = $this->libraryId;
+				$facet->orderBy('weight');
+				$facet->find();
+				while($facet->fetch()){
+					$this->facets[$facet->id] = clone($facet);
+				}
+			}
+			return $this->facets;
 		}
 	}
 
@@ -371,6 +406,8 @@ class Library extends DB_DataObject
 			$this->holidays = $value;
 		}elseif ($name == "nearbyBookStores") {
 			$this->nearbyBookStores = $value;
+		}elseif ($name == "facets") {
+			$this->facets = $value;
 		}
 	}
 
@@ -386,6 +423,7 @@ class Library extends DB_DataObject
 		}else{
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
+			$this->saveFacets();
 		}
 	}
 
@@ -401,6 +439,25 @@ class Library extends DB_DataObject
 		}else{
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
+			$this->saveFacets();
+		}
+	}
+
+	public function saveFacets(){
+		if (isset ($this->facets) && is_array($this->facets)){
+			foreach ($this->facets as $facet){
+				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
+					$facet->delete();
+				}else{
+					if (isset($facet->id) && is_numeric($facet->id)){
+						$ret = $facet->update();
+					}else{
+						$facet->libraryId = $this->libraryId;
+						$facet->insert();
+					}
+				}
+			}
+			unset($this->facets);
 		}
 	}
 

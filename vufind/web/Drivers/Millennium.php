@@ -2749,7 +2749,7 @@ class MillenniumDriver implements DriverInterface
 			$message = 'Unable to renew this item, ' . strtolower($matches[1]) . '.';
 		}else if (preg_match('/Your record is in use/si', $sresult, $matches)) {
 			$success = false;
-			$message = 'Unable to renew this item, your record is in use by the system.';
+			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
 		}else{
 			$success = true;
 			$message = 'Your item was successfully renewed';

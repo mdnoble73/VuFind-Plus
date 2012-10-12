@@ -325,10 +325,20 @@ class SearchObject_Solr extends SearchObject_Base
 		// Call the standard initialization routine in the parent:
 		parent::init();
 
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary == null || count($searchLibrary->facets) == 0){
+			// Adjust facet options to use advanced settings
+			$this->facetConfig = isset($this->allFacetSettings['Advanced']) ? $this->allFacetSettings['Advanced'] : array();
+		}else{
+			$this->facetConfig=array();
+			foreach ($searchLibrary->facets as $facet){
+				if ($facet->showInAdvancedSearch == 1){
+					$this->facetConfig[$facet->facetName] = $facet->displayName;
+				}
+			}
+		}
 		//********************
-		// Adjust facet options to use advanced settings
-		$this->facetConfig = isset($this->allFacetSettings['Advanced']) ?
-		$this->allFacetSettings['Advanced'] : array();
+
 		$facetLimit = $this->getFacetSetting('Advanced_Settings', 'facet_limit');
 		if (is_numeric($facetLimit)) {
 			$this->facetLimit = $facetLimit;
@@ -342,9 +352,9 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->searchTerms[] = array(
             'index'   => $this->defaultIndex,
             'lookfor' => ""
-            );
+		);
 
-            return true;
+		return true;
 	}
 
 	/**

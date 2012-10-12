@@ -289,6 +289,30 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'library_facets' => array(
+				'title' => 'Library Facets',
+				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS library_facet_setting (".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+						"`libraryId` INT NOT NULL, " .
+						"`displayName` VARCHAR(50) NOT NULL, " .
+						"`facetName` VARCHAR(50) NOT NULL, " .
+						"weight INT NOT NULL DEFAULT '0', " .
+						"numEntriesToShowByDefault INT NOT NULL DEFAULT '5', " .
+						"showAsDropDown TINYINT NOT NULL DEFAULT '0', " .
+						"sortMode ENUM ('alphabetically', 'num_results') NOT NULL DEFAULT 'num_results', " .
+						"showAboveResults TINYINT NOT NULL DEFAULT '0', " .
+						"showInResults TINYINT NOT NULL DEFAULT '1', " .
+						"showInAuthorResults TINYINT NOT NULL DEFAULT '1', " .
+						"showInAdvancedSearch TINYINT NOT NULL DEFAULT '1' " .
+					") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
+					"ALTER TABLE `library_facet_setting` ADD UNIQUE `libraryFacet` (`libraryId`, `facetName`)",
+				),
+			),
+
 			'location_1' => array(
 				'title' => 'Location 1',
 				'description' => 'Add fields orginally defined for Marmot',

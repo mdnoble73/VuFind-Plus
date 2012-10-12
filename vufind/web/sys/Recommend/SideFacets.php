@@ -50,22 +50,49 @@ class SideFacets implements RecommendationInterface
 		$iniName = isset($params[2]) ? $params[2] : 'facets';
 
 		// Load the desired facet information:
-		$config = getExtraConfigArray($iniName);
-		$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
-		foreach ($this->mainFacets as $name => $desc){
-			if ($name == 'time_since_added'){
-				//Check to see if we have an active library
-				global $librarySingleton;
-				$searchLibrary = $librarySingleton->getSearchLibrary();
-				if ($searchLibrary != null){
-					unset ($this->mainFacets[$name]);
-					$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] = $desc;
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary == null || count($searchLibrary->facets) == 0){
+			$config = getExtraConfigArray($iniName);
+			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
+			foreach ($this->mainFacets as $name => $desc){
+				if ($name == 'time_since_added'){
+					//Check to see if we have an active library
+					global $librarySingleton;
+					$searchLibrary = $librarySingleton->getSearchLibrary();
+					if ($searchLibrary != null){
+						unset ($this->mainFacets[$name]);
+						$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] = $desc;
+					}
+				}
+			}
+		}else{
+			$this->mainFacets = array();
+			foreach ($searchLibrary->facets as $facet){
+				if ($mainSection == 'Results'){
+					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
+						if ($facet->facetName == 'time_since_added'){
+							//Check to see if we have an active library
+							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}else{
+							$this->mainFacets[$facet->facetName] = $facet->displayName;
+						}
+					}
+				}elseif ($mainSection == 'Author'){
+					if ($facet->showInAuthorResults == 1 && $facet->showAboveResults == 0){
+						if ($facet->facetName == 'time_since_added'){
+							//Check to see if we have an active library
+							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}else{
+							$this->mainFacets[$facet->facetName] = $facet->displayName;
+						}
+					}
 				}
 			}
 		}
 
-		$this->checkboxFacets = ($checkboxSection && isset($config[$checkboxSection])) ?
-		$config[$checkboxSection] : array();
+
+
+		$this->checkboxFacets = ($checkboxSection && isset($config[$checkboxSection])) ? $config[$checkboxSection] : array();
 	}
 
 	/* init

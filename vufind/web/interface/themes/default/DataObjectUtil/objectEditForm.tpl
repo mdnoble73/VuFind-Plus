@@ -26,6 +26,7 @@
 			{include file="DataObjectUtil/property.tpl"}
 			
 		{/foreach}
-		<input type="submit" name="submit" value="Save Changes"/>
+		<input type="submit" name="submitReturnToList" value="Save Changes and Return"/>
+		<input type="submit" name="submitStay" value="Save Changes and Stay Here"/>
 	</div>
 </form>

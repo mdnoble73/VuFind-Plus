@@ -45,7 +45,12 @@ class RenewMultiple extends Action
 			$renewMessages = array();
 			$_SESSION['renew_message']['Unrenewed'] = 0;
 			$_SESSION['renew_message']['Renewed'] = 0;
+			$i = 0;
 			foreach ($selectedItems as $itemInfo => $selectedState){
+				if ($i != 0){
+					usleep(1000);
+				}
+				$i++;
 				list($itemId, $itemIndex) = explode('|', $itemInfo);
 				$renewResult = $this->catalog->driver->renewItem($user->password, $itemId, $itemIndex);
 				$_SESSION['renew_message'][$renewResult['itemId']] = $renewResult;

@@ -46,9 +46,14 @@ class Location extends DB_DataObject
 	}
 
 	function getObjectStructure(){
+		global $user;
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
+		if ($user->hasRole('libraryAdmin')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$library->libraryId = $homeLibrary->libraryId;
+		}
 		$library->find();
 		$libraryList = array();
 		while ($library->fetch()){
