@@ -798,12 +798,15 @@ body.Search--Results--0 #sidebar-wrapper {
 }
 
 div.result {
-  border-bottom: 0;
-  padding: 20px 0;
   background-color: #FFF;
   background-image: url(http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif);
   background-position: bottom left;
   background-repeat: repeat-x;
+  border-bottom: 0;
+  float: left;
+  margin: 0 0 20px 0;
+  padding: 20px 0;
+  width: 100%;
 }
 
 .resultDetails {
