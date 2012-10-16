@@ -11,9 +11,15 @@ $(document).ready(function() {
 
     // if we are printing, ignore update bag
     var url = window.location.href;
-    if(url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
+    if (url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
+      // Print this window.
       window.print();
-      $("link[media='print']").attr("media", "all");
+      // Confirm to empty the bag.
+      if (confirm("Click OK to empty your cart, or click Cancel to leave items in your cart.")) {
+        emptyBag();
+      };
+      // Close this window, as it is assumed to be invoked via JS. @see printBag();
+      window.close();
     } else {
       // run the first check to see if we have anything in the bag
       updateBag(true);
