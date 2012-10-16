@@ -432,6 +432,9 @@ function saveToMyList() {
     // get the response, if good, return the user to the book bag
     // so they can do other stuff like placing holds, printing, etc.
     if (response.result.status  == "OK") {
+      if (confirm("Items have been added to list!\n\nClick OK to empty your cart, or click Cancel to leave items in your cart.")) {
+        emptyBag();
+      };
       $('#save_to_my_list_tags').hide();
       toggleBagActionItems();
     } else {
