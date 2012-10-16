@@ -15,7 +15,8 @@ button,
 input,
 input[type="reset"],
 input[type="submit"],
-input[type="button"] {
+input[type="button"],
+.holdingsSummary .fine-print a {
   display: none;
 }
 
