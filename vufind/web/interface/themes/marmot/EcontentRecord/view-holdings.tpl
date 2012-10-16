@@ -1,3 +1,4 @@
+{strip}
 {if count($holdings) > 0}
 	{foreach from=$holdings item=eContentItem key=index}
 	<div class="eContentHolding">
@@ -64,7 +65,7 @@
 	<a href="#" onclick="return addItem('{$id}');" class="button">Add Item</a>
 {/if}
 
-{if strcasecmp($source, 'OverDrive') == 0}
+{if $showOverDriveConsole}
 	<div id='overdriveMediaConsoleInfo'>
 		<img src="{$path}/images/overdrive.png" width="125" height="42" alt="Powered by Overdrive" class="alignleft"/>
 		<p>This title requires the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a> to use the title.  
@@ -77,16 +78,16 @@
 	</div>
 {/if}
 
-{if $accessType == 'acs'}
+{if $showAdobeDigitalEditions}
 	<div id='digitalEditionsInfo'>
 		<a href="http://www.adobe.com/products/digital-editions/download.html" ><img src="{$path}/images/160x41_Get_Adobe_Digital_Editions.png" alt ="Get Adobe Digital Editions" class="alignleft"/></a>
 		<p>Once checked out, ePUB titles may be read on the web without additional software.</p>
 		<p>
-		To download this title to your eReader you must have <a href="http://www.adobe.com/products/digitaleditions/#fp">Adobe Digital Editions</a> installed on your computer.  If you do not already have the Adobe Digital Editions, you may download it free of charge <a href="http://www.adobe.com/products/digital-editions/download.html">here</a>.
+		To download ePUB and PDF titles to your eReader you must have <a href="http://www.adobe.com/products/digitaleditions/#fp">Adobe Digital Editions</a> installed on your computer.  If you do not already have the Adobe Digital Editions, you may download it <a href="http://www.adobe.com/products/digital-editions/download.html">here</a>.
 		</p> 
 		<p>
 		Need help transferring a title to your device or want to know whether or not your device is compatible with a particular format? Contact your local library.
 		</p>
 	</div>
 {/if}
-
+{/strip}

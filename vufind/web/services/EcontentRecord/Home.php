@@ -350,7 +350,10 @@ class Home extends Action{
 							if (isset($previousResults)){
 								$previousRecord = $previousResults[count($previousResults) -1];
 							}else{
-								$previousRecord = $recordSet[$currentResultIndex - 1 - (($currentPage -1) * $recordsPerPage)];
+								$previousId = $currentResultIndex - 1;
+								if (isset($recordSet[$previousId])){
+									$previousRecord = $recordSet[$previousId];
+								}
 							}
 
 							//Convert back to 1 based index
@@ -369,7 +372,10 @@ class Home extends Action{
 							if (isset($nextResults)){
 								$nextRecord = $nextResults[0];
 							}else{
-								$nextRecord = $recordSet[$currentResultIndex + 1 - (($currentPage -1) * $recordsPerPage)];
+								$nextRecordIndex = $currentResultIndex + 1;
+								if (isset($recordSet[$nextRecordIndex])){
+									$nextRecord = $recordSet[$nextRecordIndex];
+								}
 							}
 							//Convert back to 1 based index
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);

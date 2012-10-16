@@ -185,6 +185,24 @@ class AJAX extends Action {
 		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
+		$showOverDriveConsole = false;
+		$showAdobeDigitalEditions = false;
+		foreach ($holdings as $item){
+			if (strcasecmp($item->getSource(), 'overdrive') == 0){
+				if (in_array($item->externalFormatId, array('ebook-epub-adobe', 'ebook-pdf-adobe'))){
+					$showAdobeDigitalEditions = true;
+				}else if (in_array($item->externalFormatId, array('video-wmv', 'music-wma', 'music-wma', 'audiobook-wma', 'audiobook-mp3'))){
+					$showOverDriveConsole = true;
+				}
+			}else{
+				if (in_array($item->item_type, array('epub', 'pdf'))){
+					$showAdobeDigitalEditions = true;
+				}
+			}
+		}
+		$interface->assign('showOverDriveConsole', $showOverDriveConsole);
+		$interface->assign('showAdobeDigitalEditions', $showAdobeDigitalEditions);
+
 		$interface->assign('holdings', $holdings);
 		//Load status summary
 		$result = $driver->getStatusSummary($id, $holdings);

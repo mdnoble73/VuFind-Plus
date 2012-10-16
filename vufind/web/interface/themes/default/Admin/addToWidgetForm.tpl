@@ -13,8 +13,8 @@
 			<input type="hidden" name="source" value="{$source}" />
 			<input type="hidden" name="id" value="{$id}" />
 			{if count($existingWidgets) > 0}
-				<label for="existingWidgets"><b>Select an existing widget</b></label>: 
-				<select id="existingWidgets" name="existingWidgets">
+				<label for="widget"><b>Select a widget</b></label>: 
+				<select id="widgetId" name="widgetId">
 					<option value="-1">Create a new widget</option>
 					{foreach from=$existingWidgets item=widgetName key=widgetId}
 						<option value="{$widgetId}">{$widgetName}</option>

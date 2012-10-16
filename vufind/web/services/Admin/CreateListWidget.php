@@ -39,7 +39,7 @@ class CreateListWidget extends Action {
 
 		$source = $_REQUEST['source'];
 		$sourceId = $_REQUEST['id'];
-		$existingWidget = isset($_REQUEST['existingWidget']) ? $_REQUEST['existingWidget'] : -1;
+		$existingWidget = isset($_REQUEST['widgetId']) ? $_REQUEST['widgetId'] : -1;
 		$widgetName = isset($_REQUEST['widgetName']) ? $_REQUEST['widgetName'] : '';
 
 		if ($existingWidget == -1){
