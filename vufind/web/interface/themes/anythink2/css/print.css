@@ -1,3 +1,5 @@
+#results-header,
+#results-facets,
 #header,
 #sidebar-wrapper,
 .resultActions,
@@ -67,4 +69,9 @@ body,
 .fine-print,
 .availableAtList {
   color: #000;
+}
+
+#container,
+div.result {
+  background-image: none;
 }
