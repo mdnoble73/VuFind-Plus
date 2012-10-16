@@ -75,6 +75,26 @@
           if (anythink.settings.hold_message != '') {
             lightbox();
             $('#popupbox').html(anythink.settings.hold_message);
+            // If we succesfully placed holds, and we have items in our cart,
+            // prompt to clear the cart.
+            var successful = $('#js-hold-result-successful');
+            if (successful.length > 0) {
+              getBag();
+              if (bookBag.length) {
+                // Add button to clear cart.
+                var button = $('<a />')
+                  .attr('href', '#')
+                  .html('Empty book cart')
+                  .addClass('button')
+                  .bind('click', function() {
+                    if (bookBag.length) {
+                      emptyBag();
+                      $(this).fadeOut();
+                    }
+                  });
+                successful.append(button);
+              };
+            };
           };
           // Show renew message if set.
           if (anythink.settings.renew_message != '') {

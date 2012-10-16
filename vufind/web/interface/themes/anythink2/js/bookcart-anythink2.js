@@ -333,9 +333,7 @@ function emptyBag() {
   return false;
 }
 
-/* Update the bag */
-function updateBag(collapse){
-  // read from cookie
+function getBag() {
   var cookie = $.cookie(BAG_COOKIE);
   if (cookie != null) {
     bookBag = JSON.parse(cookie);
@@ -343,6 +341,11 @@ function updateBag(collapse){
   if (bookBag == null) {
     bookBag = new Array();
   }
+}
+
+/* Update the bag */
+function updateBag(collapse){
+  getBag();
   _updateBookCount();
   // update array view
   if (bookBag.length > 0) {
