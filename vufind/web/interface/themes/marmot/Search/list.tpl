@@ -98,7 +98,7 @@
 				<a href="{$path}/Search/Email" class="mail" onclick="ajaxLightbox('/Search/Email?lightbox'); return false;">{translate text='Email this Search'}</a>
 				{if $savedSearch}<a href="{$path}/MyResearch/SaveSearch?delete={$searchId}" class="delete">{translate text='save_search_remove'}</a>{else}<a href="{$path}/MyResearch/SaveSearch?save={$searchId}" class="add">{translate text='save_search'}</a>{/if}
 				<a href="{$excelLink|escape}" class="exportToExcel">{translate text='Export To Excel'}</a>
-				{if $user && $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin')}
+				{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 					<a href="#" onclick="return createWidgetFromSearch('{$searchId}')" class="createWidget">{translate text='Create Widget'}</a>
 				{/if}
 			</div>
