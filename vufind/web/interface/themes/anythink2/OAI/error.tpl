@@ -1,0 +1,1 @@
+  <error{if !empty($errorCode)} code="{$errorCode|escape}"{/if}>{$errorMessage|escape}</error>
