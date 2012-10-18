@@ -332,6 +332,57 @@
     }
   }
 
+  // Redefine this function from title-scroller.js The original AJAX calls
+  // appear to be unnecessary.
+  TitleScroller.prototype.finishLoadingScroller = function() {
+    $(".scrollerLoadingContainer").hide();
+    var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
+    scrollerBody.show();
+    TitleScroller.prototype.activateCurrentTitle.call(this);
+    var curScroller = this;
+
+    // Whether we are hovering over an individual title or not.
+    $('.scrollerTitle').bind('mouseover', {scroller: curScroller}, function() {
+      curScroller.hovered = true;
+      //console.log('over');
+    }).bind('mouseout', {scroller: curScroller}, function() {
+      curScroller.hovered = false;
+      //console.log('out');
+    });
+
+    // Set initial state.
+    curScroller.hovered = false;
+
+    if (this.autoScroll && this.scrollInterval == 0){
+      this.scrollInterval = setInterval(function() {
+        // Only proceed if not hovering.
+        if (!curScroller.hovered) {
+          curScroller.scrollToRight();
+        }
+      }, 5000);
+    }
+    if (this.enableDescription) {
+      for ( var i in this.scrollerTitles) {
+        // Get desc data, and build tooltip, including title.
+        var id = this.scrollerTitles[i]['id'];
+        var title = this.scrollerTitles[i]['title'];
+        var description = this.scrollerTitles[i]['description'];
+        var length = this.scrollerTitles[i]['length'];
+        var publisher = this.scrollerTitles[i]['length'];
+        var toolTip = "<h2>" + title + "</h2><h3>Description</h3> <div class='description-element'>" + description + "</div><div class='description-element'><div class='description-element-label'>Length: </div>" + length + "</div><div class='description-element'><div class='description-element-label'>Publisher: </div>" + publisher + "</div>";
+        $("#descriptionTrigger" + id).data('toolTip', toolTip).tooltip({
+          track: false,
+          delay: 250,
+          showURL: false,
+          extraClass: "descriptionTooltip",
+          top: 0,
+          bodyHandler: function() {
+            return $(this).data('toolTip');
+          }
+        });
+      }
+    }
+  };
 
   bookInBagAnythink = function(book) {
     var bookInBag = false;
