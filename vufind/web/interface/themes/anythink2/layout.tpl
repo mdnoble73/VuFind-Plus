@@ -54,10 +54,6 @@
       <script src="{$path}/interface/themes/anythink2/js/jquery.formalize.min.js" type="text/javascript"></script>
       <script src="{$path}/interface/themes/anythink2/js/anythink2.js" type="text/javascript"></script>
     {/if}
-    {* Files that should not be combined *}
-    {if $includeAutoLogoutCode == true}
-      <script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
-    {/if}
     {if isset($theme_css)}
     <link rel="stylesheet" type="text/css" href="{$theme_css}" />
     {/if}
@@ -70,6 +66,9 @@
         anythink.settings.hold_message = '{/literal}{if $hold_message}{$hold_message|escape:"javascript"}{/if}{literal}';
         // Renew message.
         anythink.settings.renew_message = '{/literal}{if $renew_message}{$renew_message|escape:"javascript"}{/if}{literal}';
+
+        anythink.settings.autologout = {/literal}{if $includeAutoLogoutCode}true{else}false{/if}{literal};
+
         $(document).ready(function(){
           // Show hold message if set.
           if (anythink.settings.hold_message != '') {

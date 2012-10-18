@@ -185,7 +185,29 @@
         left: position.left + 'px'
       });
     });
+
+
+    // Auto-logout and auto cart-clear.
+    startIdleTimer();
+
+    $(document).bind('idle.idleTimer', function(){
+      // Whether to show the autologout message.
+      if (anythink.settings.autologout) {
+        showLogoutMessage();
+      }
+      else {
+        // Assume this is for anon users and empty the bag. No confirmation.
+        emptyBag();
+      }
+    });
+
   });
+
+  function startIdleTimer() {
+    // Idle time in seconds.
+    var timeout = 90;
+    $.idleTimer(timeout * 1000);
+  }
 
   // Resize the fixed-position element.
   function anythinkResize() {
@@ -227,8 +249,8 @@
   }
 
   setIsbnAndOclcNumberAnythink = function(title, author, isbn, oclcNumber) {
-  	$("#title").val(title);
-  	$("#author").val(author);
+    $("#title").val(title);
+    $("#author").val(author);
     $("#isbn").val(isbn);
     $("#oclcNumber").val(oclcNumber);
     var item = $('[data-isbn_oclc="' + isbn + '--' + oclcNumber +'"]').clone();
@@ -431,6 +453,30 @@
         GetAddTagFormAnythink(id, source);
       });
     }
+  }
+
+
+  var autoLogoutTimer;
+  function showLogoutMessage() {
+   lightbox('33%', '33%', 100, 100);
+   var message = "<div id='autoLogoutMessage'>Are you still there?  Click Continue to keep using the catalog or Logout to end your session immediately.</div>";
+   message += "<div id='autoLogoutActions'>";
+   message += "<div id='continueSession' class='autoLogoutButton' onclick='continueSession();'>Continue</div>";
+   message += "<div id='endSession' class='autoLogoutButton' onclick='endSession();'>Logout</div>";
+   message += "</div>";
+   $("#popupbox").html(message);
+   autoLogoutTimer = setTimeout("endSession()", 10000);
+  }
+
+  function continueSession() {
+   clearTimeout(autoLogoutTimer);
+   hideLightbox();
+   startIdleTimer();
+  }
+
+  function endSession() {
+   // Redirect to logout. Bag is cleared.
+   window.location = path + "/MyResearch/Logout";
   }
 
   // // Reimplement doGetRatings().
