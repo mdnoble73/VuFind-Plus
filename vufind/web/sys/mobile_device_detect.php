@@ -16,9 +16,37 @@ require_once 'sys/mobileesp/mdetect.php';
 
 function mobile_device_detect()
 {
-    // Do the most exhaustive device detection possible; other method calls
-    // may be used instead of DetectMobileLong if you want to target a narrower
-    // class of devices.
-    $mobile = new uagent_info();
-    return $mobile->DetectMobileLong();
+	// Do the most exhaustive device detection possible; other method calls
+	// may be used instead of DetectMobileLong if you want to target a narrower
+	// class of devices.
+	$mobile = new uagent_info();
+	return $mobile->DetectMobileLong();
+}
+
+function get_device_name()
+{
+	// Do the most exhaustive device detection possible; other method calls
+	// may be used instead of DetectMobileLong if you want to target a narrower
+	// class of devices.
+	$mobile = new uagent_info();
+	if ($mobile->DetectKindle()){
+		return 'Kindle';
+	}elseif ($mobile->DetectIpad()){
+		return 'iPad';
+	}elseif ($mobile->DetectIphone()){
+		return 'iPhone';
+	}elseif ($mobile->DetectAndroidPhone()){
+		return 'Android Phone';
+	}elseif ($mobile->DetectAndroidTablet()){
+		return 'Android Tablet';
+	}elseif ($mobile->DetectBlackBerry()){
+		return 'BlackBerry';
+	}elseif ($mobile->DetectGoogleTV()){
+		return 'Google TV';
+	}elseif ($mobile->DetectIos()){
+		return 'iOS';
+	}else{
+		return 'PC';
+	}
+
 }
