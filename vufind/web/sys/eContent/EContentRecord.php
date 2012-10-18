@@ -1125,7 +1125,7 @@ class EContentRecord extends SolrDataObject {
 				$eContentText .= $item->getFullText();
 			}
 		}
-		return $eContentText;/
+		return $eContentText;*/
 	}
 
 	private $items = null;
