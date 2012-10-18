@@ -914,7 +914,8 @@ class EContentDriver implements DriverInterface{
 					}
 
 					//If there are no more records available, reindex
-					$eContentRecord->saveToSolr();
+					//Don't force a reindex to improve speed and deal with non xml characters
+					//$eContentRecord->saveToSolr();
 				}
 			}
 		}
