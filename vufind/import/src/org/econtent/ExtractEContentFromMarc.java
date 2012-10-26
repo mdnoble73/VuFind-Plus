@@ -199,8 +199,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			createEContentRecord = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, subTitle, author, author2, description, contents, subject, language, publisher, publishLocation, physicalDescription, edition, isbn, issn, upc, lccn, topic, genre, region, era, target_audience, sourceUrl, purchaseUrl, publishDate, marcControlField, accessType, date_added, marcRecord, externalId, itemLevelOwnership) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			updateEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = ?, cover = ?, source = ?, title = ?, subTitle = ?, author = ?, author2 = ?, description = ?, contents = ?, subject = ?, language = ?, publisher = ?, publishLocation = ?, physicalDescription = ?, edition = ?, isbn = ?, issn = ?, upc = ?, lccn = ?, topic = ?, genre = ?, region = ?, era = ?, target_audience = ?, sourceUrl = ?, purchaseUrl = ?, publishDate = ?, marcControlField = ?, accessType = ?, date_updated = ?, marcRecord = ?, externalId = ?, itemLevelOwnership = ? WHERE id = ?");
 			
-			createEContentRecordForOverDrive = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, author, author2, description, subject, language, publisher, edition, isbn, publishDate, accessType, date_added, externalId, itemLevelOwnership) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			updateEContentRecordForOverDrive = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = NULL, cover = ?, source = ?, title = ?, author = ?, author2 = ?, description = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, publishDate = ?, accessType = ?, date_updated = ?, externalId = ?, itemLevelOwnership = ? WHERE id = ?");
+			createEContentRecordForOverDrive = econtentConn.prepareStatement("INSERT INTO econtent_record (ilsId, cover, source, title, author, author2, description, subject, language, publisher, edition, isbn, publishDate, accessType, date_added, externalId, itemLevelOwnership, series) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			updateEContentRecordForOverDrive = econtentConn.prepareStatement("UPDATE econtent_record SET ilsId = NULL, cover = ?, source = ?, title = ?, author = ?, author2 = ?, description = ?, subject = ?, language = ?, publisher = ?, edition = ?, isbn = ?, publishDate = ?, accessType = ?, date_updated = ?, externalId = ?, itemLevelOwnership = ?, series = ? WHERE id = ?");
 			
 			deleteEContentRecord = econtentConn.prepareStatement("UPDATE econtent_record set status = 'deleted' where id = ?");
 			deleteEContentItem = econtentConn.prepareStatement("DELETE FROM econtent_item where id = ?");
@@ -1524,7 +1524,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecordForOverDrive.setLong(14, new Date().getTime() / 1000);
 		updateEContentRecordForOverDrive.setString(15, recordInfo.getId());
 		updateEContentRecordForOverDrive.setInt(16, 0);
-		updateEContentRecordForOverDrive.setLong(17, eContentRecordId);
+		updateEContentRecordForOverDrive.setString(17, recordInfo.getSeries());
+		updateEContentRecordForOverDrive.setLong(18, eContentRecordId);
 		int rowsInserted = updateEContentRecordForOverDrive.executeUpdate();
 		boolean recordAdded = false;
 		if (rowsInserted != 1){
@@ -1562,6 +1563,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecordForOverDrive.setLong(14, new Date().getTime() / 1000);
 		createEContentRecordForOverDrive.setString(15, recordInfo.getId());
 		createEContentRecordForOverDrive.setInt(16, 0);
+		createEContentRecordForOverDrive.setString(17, recordInfo.getSeries());
 		int rowsInserted = createEContentRecordForOverDrive.executeUpdate();
 		if (rowsInserted != 1){
 			logger.error("Could not insert row into the database, rowsInserted was " + rowsInserted);
