@@ -209,7 +209,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			addGutenbergItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, link, notes, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			updateGutenbergItem = econtentConn.prepareStatement("UPDATE econtent_item SET filename = ?, folder = ?, link = ?, date_updated =? WHERE recordId = ? AND item_type = ? AND notes = ?");
 			
-			existingEContentRecordLinks = econtentConn.prepareStatement("SELECT id, link, libraryId from econtent_item WHERE recordId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			existingEContentRecordLinks = econtentConn.prepareStatement("SELECT id, link, libraryId, item_type from econtent_item WHERE recordId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			addSourceUrl = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, notes, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			updateSourceUrl = econtentConn.prepareStatement("UPDATE econtent_item SET link = ?, date_updated = ?, item_type = ?, notes = ? WHERE id = ?");
 			
@@ -931,6 +931,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				curLinkInfo.setItemId(allExistingUrls.getLong("id"));
 				curLinkInfo.setLink(allExistingUrls.getString("link"));
 				curLinkInfo.setLibraryId(allExistingUrls.getLong("libraryId"));
+				curLinkInfo.setItemType(allExistingUrls.getString("item_type"));
 				allLinks.add(curLinkInfo);
 			}
 		} catch (SQLException e) {
@@ -987,11 +988,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//logger.debug("Updating link " + linkInfo.getUrl() + " libraryId = " + linkInfo.getLibrarySystemId());
 				String existingUrlValue = existingLinkInfo.getLink();
 				Long existingItemId = existingLinkInfo.getItemId();
-				if (existingUrlValue == null || !existingUrlValue.equals(linkInfo.getUrl())){
+				String newItemType = getItemTypeByItype(linkInfo.getiType());
+				if (existingUrlValue == null || !existingUrlValue.equals(linkInfo.getUrl()) || !newItemType.equals(existingLinkInfo.getItemType())){
 					//Url does not match, add it to the record. 
 					updateSourceUrl.setString(1, linkInfo.getUrl());
 					updateSourceUrl.setLong(2, new Date().getTime());
-					updateSourceUrl.setString(3, getItemTypeByItype(linkInfo.getiType()));
+					updateSourceUrl.setString(3, newItemType);
 					updateSourceUrl.setString(4, linkInfo.getNotes());
 					updateSourceUrl.setLong(5, existingItemId);
 					updateSourceUrl.executeUpdate();
