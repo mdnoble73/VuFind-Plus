@@ -2,7 +2,7 @@
 	<div class="imageColumn">
 			{if $user->disableCoverArt != 1}
 			<div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none'></div>
-			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
+			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource=marmot" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
 			<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 			{/if}
@@ -15,7 +15,7 @@
 	<div class="resultDetails">
 		<div class="resultItemLine1">
 		{if $summScore}({$summScore}) {/if}
-		<a href="{$path}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+		<a href="{$path}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource=marmot" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 		{if $summTitleStatement}
 			<div class="searchResultSectionInfo">
 				{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -28,10 +28,10 @@
 				{translate text='by'}
 				{if is_array($summAuthor)}
 					{foreach from=$summAuthor item=author}
-						<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+						<a href="{$path}/Author/Home?author={$author|escape:"url"}&amp;searchSource=marmot">{$author|highlight:$lookfor}</a>
 					{/foreach}
 				{else}
-					<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+					<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}&amp;searchSource=marmot">{$summAuthor|highlight:$lookfor}</a>
 				{/if}
 			{/if}
 

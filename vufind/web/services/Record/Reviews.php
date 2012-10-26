@@ -34,7 +34,7 @@ class Reviews extends Record
 
 		if (!$interface->is_cached($this->cacheId)) {
 			$interface->setPageTitle('Reviews: ' . $this->record['title_short']);
-			 
+
 			//Load the data for the reviews and populate in the user interface
 			$this->loadReviews($this->id, $this->isbn);
 
@@ -56,7 +56,7 @@ class Reviews extends Record
 		global $interface;
 		global $configArray;
 		global $memcache;
-		
+
 		$reviews = $memcache->get("reviews_{$isbn}");
 		if (!$reviews){
 			// Fetch from provider
@@ -67,7 +67,7 @@ class Reviews extends Record
 					$func = strtolower($provider[0]);
 					$key = $provider[1];
 					$reviews[$func] = Reviews::$func($isbn, $key);
-	
+
 					// If the current provider had no valid reviews, store nothing:
 					if (empty($reviews[$func]) || PEAR::isError($reviews[$func])) {
 						unset($reviews[$func]);
@@ -84,14 +84,14 @@ class Reviews extends Record
 			}
 			$memcache->set("reviews_{$isbn}", $reviews, 0, $configArray['Caching']['purchased_reviews']);
 		}
-		
-		//Load the Editorial Reviews
+
+		//Load Editorial Reviews
 		if (isset($_REQUEST['id'])){
 			$recordId = $_REQUEST['id'];
 		}
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
-		$editorialReview->whereAdd("recordId = '".$recordId."'");
+		$editorialReview->whereAdd("recordId = '{$recordId}'");
 		$editorialReview->find();
 		if ($editorialReview->N > 0){
 			while ($editorialReview->fetch()){
@@ -117,7 +117,7 @@ class Reviews extends Record
 				$interface->assign('reviews', $reviews);
 			}
 		}
-		
+
 		return $reviews;
 	}
 
@@ -295,7 +295,7 @@ class Reviews extends Record
 		global $configArray;
 		global $timer;
 		global $logger;
-		
+
 		$review = array();
 		$location = $locationSingleton->getActiveLocation();
 		if (isset($library) && $location != null){
@@ -309,7 +309,7 @@ class Reviews extends Record
 			//return an empty review
 			return $review;
 		}
-		
+
 		//list of syndetic reviews
 		if (isset($configArray['SyndeticsReviews']['SyndeticsReviewsSources'])){
 			$sourceList = array();
@@ -335,11 +335,11 @@ class Reviews extends Record
 			 'file' => 'CRITICASEREVIEW.XML')*/);
 		}
 		$timer->logTime("Got list of syndetic reviews to show");
-		
+
 		//first request url
 		$url = 'http://syndetics.com/index.aspx?isbn=' . $isbn . '/' .
                'index.xml&client=' . $id . '&type=rw12,hw7';
-		
+
 		//find out if there are any reviews
 		$client = new Proxy_Request();
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
@@ -363,7 +363,7 @@ class Reviews extends Record
 				// Load reviews
 				$url = 'http://syndetics.com/index.aspx?isbn=' . $isbn . '/' .
 				$sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
-				
+
 				$client->setURL($url);
 				if (PEAR::isError($http = $client->sendRequest())) {
 					$logger->log("Error connecting to $url", PEAR_LOG_ERR);
@@ -439,13 +439,13 @@ class Reviews extends Record
 
 		//Setup the soap client to load the
 		$soapClient = new SoapClient('http://contentcafe.btol.com/ContentCafe/Review.asmx?WSDL', array('features' => SOAP_SINGLE_ELEMENT_ARRAYS));
-		 
+
 		$params = array(
     	   'UserID'   => 'EBSMARMOT',
     	   'Password' => $id,
     	   'ItemKey'  => $isbn,
 		);
-		 
+
 		try{
 			$response = $soapClient->fnDetailByItemKey($params);
 
@@ -464,7 +464,7 @@ class Reviews extends Record
 		}catch (Exception $e) {
 			//TODO: Log the error someplace.
 		}
-		 
+
 	}
 
 	private function getAmazonCustomer($id, $customerId){

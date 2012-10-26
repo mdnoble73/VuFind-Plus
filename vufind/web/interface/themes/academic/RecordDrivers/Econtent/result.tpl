@@ -69,6 +69,10 @@
 				</div>
 			{/if}
 			
+			{if $summPublicationDates || $summPublishers || $summPublicationPlaces}
+			<div class="resultInformation"><span class="resultLabel">{translate text='Published'}:</span><span class="resultValue">{$summPublicationPlaces.0|escape} {$summPublishers.0|escape} {$summPublicationDates.0|escape}</span></div>
+			{/if}
+			
 			{if $summFormats}
 				<div class="resultInformation"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 					{if is_array($summFormats)}
@@ -81,7 +85,9 @@
 					</span>
 				</div>
 			{/if}
-			
+			{if $summPhysical}
+			<div class="resultInformation"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
+			{/if}
 			<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue" id="locationValue{$summId|escape}">Online</span></div>
 			<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue{$summId|escape}">Loading...</span></div>
 		</div>

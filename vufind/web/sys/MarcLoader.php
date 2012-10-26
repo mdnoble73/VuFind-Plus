@@ -42,6 +42,27 @@ class MarcLoader{
 		return $marcRecord;
 	}
 
+	public static function loadEContentMarcRecord($econtentRecord){
+		if ($econtentRecord->marcRecord != false){
+			$marc = trim($econtentRecord->marcRecord);
+			$marc = preg_replace('/#29;/', "\x1D", $marc);
+			$marc = preg_replace('/#30;/', "\x1E", $marc);
+			$marc = preg_replace('/#31;/', "\x1F", $marc);
+			$marc = preg_replace('/#163;/', "\xA3", $marc);
+			$marc = preg_replace('/#169;/', "\xA9", $marc);
+			$marc = preg_replace('/#174;/', "\xAE", $marc);
+			$marc = preg_replace('/#230;/', "\xE6", $marc);
+			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
+
+			if (!($marcRecord = $marc->next())) {
+				PEAR::raiseError(new PEAR_Error('Could not load marc record for econtent record ' . $econtentRecord->id));
+			}
+		}else{
+			return null;
+		}
+		return $marcRecord;
+	}
+
 	public static function loadMarcRecordByILSId($ilsId){
 		global $memcache;
 		global $configArray;

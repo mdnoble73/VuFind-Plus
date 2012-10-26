@@ -36,7 +36,7 @@
 {/if}
 
 {* Add availability as needed *}
-{if $availability && count($availability) > 0}
+{if $showAvailability && $availability && count($availability) > 0}
 	<div class="availabilitySection">
 		Owned by the following libraries:
 		<table class="holdingsTable">

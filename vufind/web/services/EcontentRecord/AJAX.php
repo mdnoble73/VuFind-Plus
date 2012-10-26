@@ -179,6 +179,11 @@ class AJAX extends Action {
 		}
 		$interface->assign('record', $eContentRecord);
 		$interface->assign('availability', $driver->getScopedAvailability($eContentRecord));
+		$showAvailability = true;
+		if ($eContentRecord->accessType == 'external' && strcasecmp($eContentRecord->source, 'OverDrive') != 0){
+			$showAvailability = false;
+		}
+		$interface->assign('showAvailability', $showAvailability);
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('accessType', $eContentRecord->accessType);
 		$interface->assign('showEContentNotes', $showEContentNotes);

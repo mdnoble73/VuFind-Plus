@@ -39,7 +39,7 @@
 		{/if}
 
 		{if $mla}
-			<b>{translate text="MLA Citation"}</b> <span class="styleGuide"><a href="http://www.library.cornell.edu/node/148">(style guide)</a></span></span>
+			<b>{translate text="MLA Citation"}</b> <span class="styleGuide"><a href="http://www.library.cornell.edu/node/148">(style guide)</a></span>
 			<p style="width: 95%; padding-left: 25px; text-indent: -25px;">
 				{include file=$mla}
 			</p>

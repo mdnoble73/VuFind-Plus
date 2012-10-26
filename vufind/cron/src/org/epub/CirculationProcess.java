@@ -337,9 +337,9 @@ public class CirculationProcess implements IProcessHandler{
 						logger.info("Sending notification to " + firstname + " " + lastname);
 						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
 						emailBody.append("This is a reminder that the following items that you requested are now available for online usage. ");
-						emailBody.append("You can checkout the items by accessing your eContent at http://catalog.douglascountylibraries.org/MyResearch/MyEContent.\r\n\r\n");
+						emailBody.append("You can checkout the items by accessing your eContent at {$siteUrl}/MyResearch/MyEContent.\r\n\r\n");
 						emailBody.append("***Please Note***\r\n");
-						emailBody.append("If you no longer need these items, please cancel them online at: http://catalog.douglascountylibraries.org/MyResearch/MyEContent.  This will allow these items to be available for the next patron.\r\n\r\n");
+						emailBody.append("If you no longer need these items, please cancel them online at: {$siteUrl}/MyResearch/MyEContent.  This will allow these items to be available for the next patron.\r\n\r\n");
 						
 						//Get a list of records that are available where notices have not been sent
 						getAvailableHoldsForUser.setLong(1, userId);
@@ -416,9 +416,9 @@ public class CirculationProcess implements IProcessHandler{
 						logger.info("Sending notification to " + firstname + " " + lastname);
 						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
 						emailBody.append("The following items that you requested are now available for online usage. ");
-						emailBody.append("You can checkout the items by accessing your eContent at http://catalog.douglascountylibraries.org/MyResearch/MyEContent.\r\n\r\n");
+						emailBody.append("You can checkout the items by accessing your eContent at {$siteUrl}/MyResearch/MyEContent.\r\n\r\n");
 						emailBody.append("***Please Note***\r\n");
-						emailBody.append("If you no longer need these items, please cancel them online at: http://catalog.douglascountylibraries.org/MyResearch/MyEContent.  This will allow these items to be available for the next patron.\r\n\r\n");
+						emailBody.append("If you no longer need these items, please cancel them online at: {$siteUrl}/MyResearch/MyEContent.  This will allow these items to be available for the next patron.\r\n\r\n");
 						
 						//Get a list of records that are available where notices have not been sent
 						getAvailableHoldsForUser.setLong(1, userId);

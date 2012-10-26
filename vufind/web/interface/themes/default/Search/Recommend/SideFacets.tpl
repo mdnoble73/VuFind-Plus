@@ -115,7 +115,7 @@
 								{/foreach}
 								<input type="submit" value="Go" id="goButton" />
 								{if $title == 'lexile_score'}
-								<script>{literal}
+								<script type="text/javascript">{literal}
 									$(function() {
 										$( "#lexile-range" ).slider({
 											range: true,

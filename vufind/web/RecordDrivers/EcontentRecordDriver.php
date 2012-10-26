@@ -31,14 +31,20 @@ require_once 'sys/eContent/EContentRecord.php';
 class EcontentRecordDriver extends IndexRecord
 {
 	private $eContentRecord;
+	private $marcRecord = false;
 	public function __construct($record = null)
 	{
 		// Call the parent's constructor...
 		parent::__construct($record);
+
+		// Also process the MARC record:
+		require_once 'sys/MarcLoader.php';
+
 	}
 
 	public function setDataObject($eContentRecord){
 		$this->eContentRecord = $eContentRecord;
+		$this->marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
 	}
 
 	/**
@@ -226,4 +232,94 @@ class EcontentRecordDriver extends IndexRecord
 		return isset($this->fields['title_short']) ? $this->fields['title_short'] : $this->eContentRecord->title;
 	}
 
+	/**
+	 * Get an array of physical descriptions of the item.
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getPhysicalDescriptions()
+	{
+		if (isset($this->eContentRecord)){
+			return array($this->eContentRecord->physicalDescription);
+		}else{
+			return parent::getPhysicalDescriptions();
+		}
+	}
+
+	/**
+	 * Get an array of publication detail lines combining information from
+	 * getPublicationDates(), getPublishers() and getPlacesOfPublication().
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getPublicationDetails()
+	{
+		if (isset($this->eContentRecord)){
+			return array($eContentRecord->publishLocation . ' ' . $eContentRecord->publisher . ' ' . $eContentRecord->publishDate);
+		}else{
+			return parent::getPhysicalDescriptions();
+		}
+	}
+
+	/**
+	 * Get the item's place of publication.
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getPlacesOfPublication()
+	{
+		// Not currently stored in the Solr index
+		if ($this->marcRecord){
+			return $this->getFieldArray('260');
+		}else if (isset($this->eContentRecord)){
+			return array($this->eContentRecord->publishLocation);
+		}else{
+			return parent::getPlacesOfPublication();
+		}
+	}
+
+/**
+	 * Return an array of all values extracted from the specified field/subfield
+	 * combination.  If multiple subfields are specified and $concat is true, they
+	 * will be concatenated together in the order listed -- each entry in the array
+	 * will correspond with a single MARC field.  If $concat is false, the return
+	 * array will contain separate entries for separate subfields.
+	 *
+	 * @param   string      $field          The MARC field number to read
+	 * @param   array       $subfields      The MARC subfield codes to read
+	 * @param   bool        $concat         Should we concatenate subfields?
+	 * @access  private
+	 * @return  array
+	 */
+	private function getFieldArray($field, $subfields = null, $concat = true)
+	{
+		if (!$this->marcRecord){
+			return array();
+		}
+
+		// Default to subfield a if nothing is specified.
+		if (!is_array($subfields)) {
+			$subfields = array('a');
+		}
+
+		// Initialize return array
+		$matches = array();
+
+		// Try to look up the specified field, return empty array if it doesn't exist.
+		$fields = $this->marcRecord->getFields($field);
+		if (!is_array($fields)) {
+			return $matches;
+		}
+
+		// Extract all the requested subfields, if applicable.
+		foreach($fields as $currentField) {
+			$next = $this->getSubfieldArray($currentField, $subfields, $concat);
+			$matches = array_merge($matches, $next);
+		}
+
+		return $matches;
+	}
 }

@@ -285,7 +285,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultLabel">{translate text='ISBN'}:</span>
 					<span class="resultValue">
 						{foreach from=$isbns item=isbn name=loop}
-							{$isbn|escape}{if !$smarty.foreach.loop.last}, <br/>{/if}
+							{$isbn|escape}{if !$smarty.foreach.loop.last},&nbsp;{/if}
 						{/foreach}
 					</span>
 				</div>
@@ -334,7 +334,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultValue">
 						{foreach from=$subjects item=subject name=loop}
 							{foreach from=$subject item=subjectPart name=subloop}
-								{if !$smarty.foreach.subloop.first} &gt; {/if}
+								{if !$smarty.foreach.subloop.first} -- {/if}
 								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
 							{/foreach}
 							<br />

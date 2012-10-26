@@ -233,7 +233,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $eContentRecord->publishDate || $eContentRecord->publisher || $eContentRecord->publishLocation}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Published'}:</span>
-						<span class="resultValue">{$eContentRecord->publisher|escape} {$eContentRecord->publishLocation|escape} {$eContentRecord->publishDate|escape}</span>
+						<span class="resultValue">{$eContentRecord->publishLocation|escape} {$eContentRecord->publisher|escape} {$eContentRecord->publishDate|escape}</span>
 					</div>
 				{/if}
 				
@@ -250,7 +250,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				
 				{if $eContentRecord->physicalDescription}
 				<div class="resultInformation">
-					<span class="resultLabel">{translate text='Physical Description'}:</span>
+					<span class="resultLabel">{translate text='Physical Desc.'}:</span>
 					<span class="resultValue">{$eContentRecord->physicalDescription|escape}</span>
 				</div>
 				{/if}
@@ -305,15 +305,6 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if}
 				
-				{if count($genreList) > 0}
-					<div class="resultInformation">
-						<span class="resultLabel">{translate text='Genre'}:</span>
-						{foreach from=$genreList item=genreListItem name=loop}
-							<span class="resultValue">{$genreListItem|escape}</span>
-						{/foreach}
-					</div>
-				{/if}	
-	
 				{if count($regionList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Region'}:</span>
@@ -335,12 +326,15 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue">Online</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue">Loading...</span></div>
 					
-				{if count($subjectList) > 0}
+				{if count($subjects) > 0}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Subjects'}</span>
 					<span class="resultValue">
-						{foreach from=$subjectList item=subjectListItem name=loop}
-								<a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;basicType=Subject">{$subjectListItem|escape}</a>
+						{foreach from=$subjects item=subject name=loop}
+							{foreach from=$subject item=subjectPart name=subloop}
+								{if !$smarty.foreach.subloop.first} -- {/if}
+								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+							{/foreach}
 							<br />
 						{/foreach}
 					</span>
