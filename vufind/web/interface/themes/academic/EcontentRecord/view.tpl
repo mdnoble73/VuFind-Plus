@@ -396,7 +396,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 						{/if}
 						{if $notes}
-							<li><a href="#notestab">{translate text="Notes"}</a></li>
+							<li><a href="#notestab">{translate text=$notesTabName}</a></li>
 						{/if}
 						{if $showAmazonReviews || $showStandardReviews || $showComments}
 							<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
