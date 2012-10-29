@@ -595,6 +595,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'editorial_review_2' => array(
+				'title' => 'Add teaser to editorial reviews',
+				'description' => 'Update editorial reviews to include a teaser',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE editorial_reviews add teaser VARCHAR(512);",
+				),
+			),
+
 			'purchase_link_tracking' => array(
 				'title' => 'Create Purchase Link Tracking Table',
 				'description' => 'Create table to track data about the Purchase Links that were clicked',
@@ -1524,6 +1533,72 @@ class DBMaintenance extends Admin {
 					"KEY ( `libraryId`, `storeId` ), " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
+			),
+		),
+
+		'analytics' => array(
+			'title' => 'Analytics',
+			'description' => 'Create tables to store analytics information.',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS analytics_session(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+					"`session_id` VARCHAR(128), " .
+					"`sessionStartTime` INT(11) NOT NULL, " .
+					"`lastRequestTime` INT(11) NOT NULL, " .
+					"`country` VARCHAR(128) , " .
+					"`city` VARCHAR(128), " .
+					"`state` VARCHAR(128), " .
+					"`latitude` FLOAT, " .
+					"`longitude` FLOAT, " .
+					"`ip` CHAR(16), " .
+					"`theme` VARCHAR(128), " .
+					"`mobile` TINYINT, " .
+					"`device` VARCHAR(128), " .
+					"`physicalLocation` VARCHAR(128), " .
+					"`patronType` VARCHAR(50) NOT NULL DEFAULT 'logged out', " .
+					"`homeLocationId` INT(11), " .
+					"UNIQUE KEY ( `session_id` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB",
+				"CREATE TABLE IF NOT EXISTS analytics_page_view(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+					"`sessionId` INT(11), " .
+					"`pageStartTime` INT(11), " .
+					"`pageEndTime` INT(11), "  .
+					"`module` VARCHAR(128), " .
+					"`action` VARCHAR(128), " .
+					"`method` VARCHAR(128), " .
+					"`objectId` VARCHAR(128), " .
+					"`fullUrl` VARCHAR(1024), " .
+					"`language` VARCHAR(128), " .
+					"INDEX ( `sessionId` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB",
+				"CREATE TABLE IF NOT EXISTS analytics_search(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+					"`sessionId` INT(11), " .
+					"`searchType` VARCHAR(30), " .
+					"`scope` VARCHAR(50), "  .
+					"`lookfor` VARCHAR(256), " .
+					"`isAdvanced` TINYINT, " .
+					"`facetsApplied` TINYINT, " .
+					"`numResults` INT(11), " .
+					"INDEX ( `sessionId` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB",
+				"CREATE TABLE IF NOT EXISTS analytics_event(" .
+					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+					"`sessionId` INT(11), " .
+					"`category` VARCHAR(100), " .
+					"`action` VARCHAR(100), "  .
+					"`data` VARCHAR(256), " .
+					"INDEX ( `sessionId` ), " .
+					"INDEX ( `category` ), " .
+					"INDEX ( `action` ), " .
+					"PRIMARY KEY ( `id` )" .
+				") ENGINE = InnoDB",
 			),
 		),
 
