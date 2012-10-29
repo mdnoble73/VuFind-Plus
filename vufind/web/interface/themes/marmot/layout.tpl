@@ -110,5 +110,6 @@
 				</div>
 			</div> {* End outer_span *}
  		</div>
+		{include file=tracking.tpl}
 	</body>
 </html>{/strip}

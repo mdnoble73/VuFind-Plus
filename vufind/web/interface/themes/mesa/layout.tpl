@@ -106,6 +106,7 @@
 
 		</div> {* End doc *}
 		{* include file ='mesafooter.tpl' *}
+		{include file=tracking.tpl}
 	</body>
 </html>
 {/strip}

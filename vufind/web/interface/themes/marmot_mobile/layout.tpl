@@ -60,5 +60,6 @@
 		<div id="lightbox" onclick="hideLightbox(); return false;"></div>
 		<div id="popupbox" class="popupBox"></div>
 		{* End LightBox *}
+		{include file=tracking.tpl}
 	</body>
 </html>

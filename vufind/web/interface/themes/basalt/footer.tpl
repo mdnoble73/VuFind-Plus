@@ -18,9 +18,7 @@
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
-		<li><a href="http://www.basaltrld.org/Resources/index.html">{translate text='Online Resources'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
-		<li><a href="http://www.basaltrld.org/Adults/whattoread.html">{translate text="Reader's Advisory Tools"}</a></li>
 		<li><a href="http://www.basaltlibraryevents.org/VirtualEMS/BrowseEvents.aspx">{translate text='Events'}</a></li>
 	</ul>
 </div>
@@ -35,27 +33,8 @@
 				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
-		<li><a href="http://www.basaltrld.org/AboutUs/ContactUs.html">{translate text='Contact Us'}</a></li>
 	</ul>
 </div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
-
-{* Add Google Analytics*}
-{literal}
-<script type="text/javascript">
-	var _gaq = _gaq || [];
-	_gaq.push(['_setAccount', 'UA-10641564-2']);
-	_gaq.push(['_setDomainName', '.marmot.org']);
-	_gaq.push(['_trackPageview']);
-	_gaq.push(['_trackPageLoadTime']);
-
-	(function() {
-		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	})();
-
-</script>
-{/literal}

@@ -107,5 +107,6 @@
 			</div> {* End ft *}
 
 		</div> {* End outer_span *}
+		{include file=tracking.tpl}
 	</body>
 </html>{/strip}
