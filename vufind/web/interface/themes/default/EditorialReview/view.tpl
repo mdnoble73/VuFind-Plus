@@ -17,11 +17,10 @@
 		{/if}
 		
 		<div id='property'><span class='propertyLabel'>Title: </span><span class='propertyValue'>{$editorialReview->title}</span></div>
+		<div id='property'><span class='propertyLabel'>Teaser: </span><span class='propertyValue'>{$editorialReview->teaser}</span></div>
 		<div id='property'><span class='propertyLabel'>Review: </span><span class='propertyValue'>{$editorialReview->review}</span></div>
 		<div id='property'><span class='propertyLabel'>Source: </span><span class='propertyValue'>{$editorialReview->source}</span></div>
-		<div id='property'><span class='propertyLabel'>Source URL: </span><span class='propertyValue'>{$editorialReview->sourceUrl}</span></div>
 		<div id='property'><span class='propertyLabel'>Record Id: </span><span class='propertyValue'>{$editorialReview->recordId}</span></div>
 		<div id='property'><span class='propertyLabel'>Tab Name: </span><span class='propertyValue'>{$editorialReview->tabName}</span></div>
-<!--		<div id='property'><span class='propertyLabel'>Date: </span><span class='propertyValue'>{$editorialReview->pubDate}</span></div>-->
 	</div>
 </div>

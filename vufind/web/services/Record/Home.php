@@ -38,11 +38,11 @@ class Home extends Record{
 		$timer->logTime('Loaded Comments');
 		Cite::loadCitation();
 		$timer->logTime('Loaded Citations');
-		
+
 		if (isset($_REQUEST['id'])){
 			$recordId = $_REQUEST['id'];
 		}
-		
+
 		if (isset($_REQUEST['strandsReqId']) && isset($configArray['Strands']['APID'])){
 			$url = "http://bizsolutions.strands.com/api2/event/clickedrecommendation.sbs?apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}&rrq={$_REQUEST['strandsReqId']}&tpl={$_REQUEST['strandsTpl']}";
 			$response = file_get_contents($url);
@@ -51,7 +51,7 @@ class Home extends Record{
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId
-		$editorialReview = new EditorialReview();
+		/*$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
 		$editorialReview->recordId = $recordId;
 		$editorialReview->find();
@@ -72,7 +72,7 @@ class Home extends Record{
 				$editorialReviewResults[$reviewKey]['reviews'][] = get_object_vars($editorialReview);
 			}
 		}
-		$interface->assign('editorialReviews', $editorialReviewResults);
+		$interface->assign('editorialReviews', $editorialReviewResults);*/
 		$interface->assign('recordId', $recordId);
 
 		//Enable and disable functionality based on library settings

@@ -103,12 +103,15 @@ class Reviews extends Record
 		if (count($editorialReviewResults) > 0) {
 			foreach ($editorialReviewResults AS $key=>$result ){
 				$reviews["editorialReviews"][$key]["Content"] = $result->review;
-				$reviews["editorialReviews"][$key]["Copyright"] = null;
+				$reviews["editorialReviews"][$key]["Copyright"] = $result->source;
 				$reviews["editorialReviews"][$key]["Source"] = $result->source;
 				$reviews["editorialReviews"][$key]["ISBN"] = null;
 				$reviews["editorialReviews"][$key]["username"] = null;
 
 				$reviews["editorialReviews"][$key] = Reviews::cleanupReview($reviews["editorialReviews"][$key]);
+				if ($result->teaser){
+					$reviews["editorialReviews"][$key]["Teaser"] = $result->teaser;
+				}
 			}
 		}
 
@@ -123,7 +126,7 @@ class Reviews extends Record
 
 	function cleanupReview($reviewData){
 		//Cleanup the review data
-		$fullReview = strip_tags($reviewData['Content'], '<a><p><b><em>');
+		$fullReview = strip_tags($reviewData['Content'], '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe><div>');
 		$reviewData['Content'] = $fullReview;
 		$reviewData['Copyright'] = strip_tags($reviewData['Copyright'], '<a><p><b><em>');
 		//Trim the review to the first paragraph or 240 characters whichever comes first.

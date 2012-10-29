@@ -44,8 +44,13 @@ class Edit extends Admin {
 			}
 		}
 		$structure = EditorialReview::getObjectStructure();
+		if ($isNew){
+			if (isset($_REQUEST['recordId'])){
+				$structure['recordId']['default'] = strip_tags($_REQUEST['recordId']);
+			}
+		}
 
-		if (isset($_REQUEST['submit'])){
+		if (isset($_REQUEST['submit']) || isset($_REQUEST['submitStay'])){
 			//Save the object
 			$results = DataObjectUtil::saveObject($structure, 'EditorialReview');
 			$editorialReview = $results['object'];
