@@ -125,7 +125,7 @@ function readConfig()
 	//Read default configuration file
 	$configFile = '../../sites/default/conf/config.ini';
 	$mainArray = parse_ini_file($configFile, true);
-	
+
 	global $servername;
 	$serverUrl = $_SERVER['SERVER_NAME'];
 	$server = $serverUrl;
@@ -141,13 +141,15 @@ function readConfig()
 		}
 		array_shift($serverParts);
 	}
-	
+
 	if ($servername == 'default'){
 		global $logger;
-		$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
+		if ($logger){
+			$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
+		}
 		PEAR::raiseError("Invalid configuration, could not find site for " . $_SERVER['SERVER_NAME']);
 	}
-	
+
 	if ($mainArray == false){
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
@@ -157,7 +159,7 @@ function readConfig()
 	}else{
 		$mainArray['Site']['url'] = "http://" . $serverUrl;
 	}
-	
+
 	if (isset($mainArray['Extra_Config']) &&
 	isset($mainArray['Extra_Config']['local_overrides'])) {
 		if (file_exists("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides'])){
