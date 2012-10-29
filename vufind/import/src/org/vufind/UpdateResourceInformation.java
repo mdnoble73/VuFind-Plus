@@ -340,10 +340,13 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					}*/
 				}
 				return true;
+			}else{
+				//TODO: Check to see if there is an econtent resource and move to print title
+				
 			}
 			
 			Long existingChecksum = existingResourceChecksums.get(recordInfo.getId());
-			if ((recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) && !updateUnchangedResources){
+			if (existingChecksum != null && (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) && !updateUnchangedResources){
 				boolean updateResource = false; 
 				//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 				if (existingChecksum != null && existingChecksum == -1){

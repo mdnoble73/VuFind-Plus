@@ -207,6 +207,9 @@ public class MarcRecordDetails {
 			if (eightFiftySixDataField.getSubfield('u') != null) {
 				url = eightFiftySixDataField.getSubfield('u').getData();
 			}
+			if (url == null){
+				continue;
+			}
 			String text = null;
 			if (eightFiftySixDataField.getSubfield('y') != null) {
 				text = eightFiftySixDataField.getSubfield('y').getData();
