@@ -689,15 +689,8 @@ $(divId).tooltip({
 		  var rawData = $.ajax(loadDescription,{
 			  async: false
 		  }).responseText;
-		  var xmlDoc = $.parseXML(rawData);
-		  var data = $(xmlDoc);
-		  //parses the xml and sets variables to call later
-		  var descriptAjax = data.find('description').text();
-		  var lengthAjax = data.find('length').text();
-		  var publishAjax =data.find('publisher').text();
-		  var toolTip = "<h3>Description</h3> <div class='description-element'>" + descriptAjax + "</div><div class='description-element'><div class='description-element-label'>Length: </div>" + lengthAjax + "</div><div class='description-element'><div class='description-element-label'>Publisher: </div>" + publishAjax + "</div>";
-		  $("#descriptionPlaceholder" + shortid).html(toolTip);
-		  return toolTip;
+		  $("#descriptionPlaceholder" + shortid).html(rawData);
+		  return rawData;
 		}
 	  }
 });
@@ -1024,4 +1017,6 @@ function createWidgetFromSearch(searchId){
 	ajaxLightbox(path + '/Admin/AJAX?method=getAddToWidgetForm&source=search&id=' + searchId);
 	return false;
 }
-
+function trackEvent(category, action, data){
+	
+}

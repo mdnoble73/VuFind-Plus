@@ -6,7 +6,7 @@
 
 <div class="imageColumn"> 
 	{if $user->disableCoverArt != 1}	
-	<div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none'></div>
+	<div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none' class='descriptionTooltip'></div>
 	<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
 	<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 	</a>

@@ -6,7 +6,7 @@
 	
 	<div class="imageColumn"> 
 		{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}	
-		<div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
+		<div id='descriptionPlaceholder{$summId|escape}' style='display:none' class='descriptionTooltip'></div>
 		<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
 		<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 		</a>
@@ -64,6 +64,7 @@
 		{if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
 	</div>
 
+	<div class="resultItemLine4">
 	{if is_array($summFormats)}
 		{strip}
 		{foreach from=$summFormats item=format name=formatLoop}
@@ -74,6 +75,8 @@
 	{else}
 		<span class="iconlabel {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$summFormats}</span>
 	{/if}
+	</div>
+	
 	<div id = "holdingsEContentSummary{$summId|escape:"url"}" class="holdingsSummary">
 		<div class="statusSummary" id="statusSummary{$summId|escape:"url"}">
 			<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>

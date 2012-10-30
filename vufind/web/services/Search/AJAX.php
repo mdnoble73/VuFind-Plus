@@ -222,12 +222,13 @@ class AJAX extends Action {
 		$result['items'] = array();
 
 		// Loop through all the status information that came back
-		foreach ($summaries as $record) {
+		foreach ($summaries as $id => $record) {
 			// If we encountered errors, skip those problem records.
 			if (PEAR::isError($record)) {
 				continue;
 			}
 			$itemResults = $record;
+			$interface->assign('id', $id);
 			$interface->assign('holdingsSummary', $record);
 
 			$formattedHoldingsSummary = $interface->fetch('Record/holdingsSummary.tpl');
@@ -271,12 +272,13 @@ class AJAX extends Action {
 		$timer->logTime("Retrieved status summaries");
 
 		// Loop through all the status information that came back
-		foreach ($result as $record) {
+		foreach ($result as $id => $record) {
 			// If we encountered errors, skip those problem records.
 			if (PEAR::isError($record)) {
 				continue;
 			}
 
+			$interface->assign('id', $id);
 			$interface->assign('holdingsSummary', $record);
 
 			$formattedHoldingsSummary = $interface->fetch('EcontentRecord/holdingsSummary.tpl');

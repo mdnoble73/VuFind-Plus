@@ -6,7 +6,7 @@
 	
 	<div class="resultsList">
 		{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}	
-			<div id='descriptionPlaceholder{$summId|escape}' style='display:none'></div>
+			<div id='descriptionPlaceholder{$summId|escape}' style='display:none' class='descriptionTooltip'></div>
 			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
 			<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
@@ -56,7 +56,7 @@
 			</div>
 			
 			{if $summAuthor}
-				<div class="resultInformation"><span class="resultLabel">{translate text='Author'}:</span>
+				<div class="resultInformation" id="resultInformationAuthor{$summId|escape}"><span class="resultLabel">{translate text='Author'}:</span>
 					<span class="resultValue">
 						{if is_array($summAuthor)}
 							{foreach from=$summAuthor item=author}
@@ -70,11 +70,11 @@
 			{/if}
 			
 			{if $summPublicationDates || $summPublishers || $summPublicationPlaces}
-			<div class="resultInformation"><span class="resultLabel">{translate text='Published'}:</span><span class="resultValue">{$summPublicationPlaces.0|escape} {$summPublishers.0|escape} {$summPublicationDates.0|escape}</span></div>
+			<div class="resultInformation" id="resultInformationPublisher{$summId|escape}"><span class="resultLabel">{translate text='Published'}:</span><span class="resultValue">{$summPublicationPlaces.0|escape} {$summPublishers.0|escape} {$summPublicationDates.0|escape}</span></div>
 			{/if}
 			
 			{if $summFormats}
-				<div class="resultInformation"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
+				<div class="resultInformation" id="resultInformationFormat{$summId|escape}"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 					{if is_array($summFormats)}
 						{foreach from=$summFormats item=format}
 							<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
@@ -86,10 +86,10 @@
 				</div>
 			{/if}
 			{if $summPhysical}
-			<div class="resultInformation"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
+			<div class="resultInformation" id="resultInformationPhysicalDesc{$summId|escape}"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
 			{/if}
-			<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue" id="locationValue{$summId|escape}">Online</span></div>
-			<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue{$summId|escape}">Loading...</span></div>
+			<div class="resultInformation" id="resultInformationLocation{$summId|escape}"><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue" id="locationValue{$summId|escape}">Online</span></div>
+			<div class="resultInformation" id="resultInformationStatus{$summId|escape}"><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue{$summId|escape}">Loading...</span></div>
 		</div>
 	</div>
 	

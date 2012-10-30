@@ -296,9 +296,17 @@ class EContentDriver implements DriverInterface{
 		$statusSummary['totalCopies'] = $totalCopies;
 		$statusSummary['onOrderCopies'] = $onOrderCopies;
 		$statusSummary['accessType'] = $eContentRecord->accessType;
+		$statusSummary['isOverDrive'] = false;
+		$statusSummary['alwaysAvailable'] = false;
 
 		if ($eContentRecord->accessType == 'external' ){
 			$statusSummary['availableCopies'] = $availableCopies;
+			if( strcasecmp($eContentRecord->source, 'OverDrive') == 0){
+				$statusSummary['isOverDrive'] = true;
+				if ($totalCopies == 1000000){
+					$statusSummary['alwaysAvailable'] = true;
+				}
+			}
 			if ($availableCopies > 0){
 				$statusSummary['status'] = "Available from {$eContentRecord->source}";
 				$statusSummary['available'] = true;
@@ -307,6 +315,7 @@ class EContentDriver implements DriverInterface{
 				$statusSummary['status'] = 'Checked Out';
 				$statusSummary['available'] = false;
 				$statusSummary['class'] = 'checkedOut';
+				$statusSummary['isOverDrive'] = true;
 			}
 		}else{
 			//Check to see if it is checked out

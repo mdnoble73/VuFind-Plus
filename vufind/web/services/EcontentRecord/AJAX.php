@@ -17,7 +17,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions', 'getDescription'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -420,14 +420,11 @@ class AJAX extends Action {
 
 		$output = "<result>\n";
 
-		// Build an XML tag representing the current comment:
-		$output .= "	<description><![CDATA[" . $eContentRecord->description . "]]></description>\n";
-		$output .= "	<length><![CDATA[" . "" . "]]></length>\n";
-		$output .= "	<publisher><![CDATA[" . $eContentRecord->publisher . "]]></publisher>\n";
+		$interface->assign('description', $eContentRecord->description);
+		$interface->assign('length', $eContentRecord->physicalDescription);
+		$interface->assign('publisher', $eContentRecord->publisher);
 
-		$output .= "</result>\n";
-
-		return $output;
+		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 	function AddItem(){
 		require_once 'sys/eContent/EContentItem.php';

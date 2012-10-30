@@ -389,10 +389,11 @@ solid #ccc;-moz-border-radius:5px;-webkit-border-radius:5px;padding:5px}.smallTe
 solid #111;background-color:#eee;padding:5px;opacity:0.85}#tooltip h3, #tooltip
 div{margin:0}
 /* tooltip.css */
-#tooltip.pretty{font-family:Arial;border:none;width:200px;padding:0px;height:auto;opacity:0.95;background:white;border:1px
-solid black;-webkit-border-top-left-radius:5px;-webkit-border-top-right-radius:5px;-moz-border-radius-topleft:5px;-moz-border-radius-topright:5px;border-top-left-radius:5px;border-top-right-radius:5px;-webkit-box-shadow:5px 5px 5px #888;-moz-box-shadow:5px 5px 5px #888}#tooltip.pretty
-h3{margin-bottom:3px;font-size:12pt;width:180px;text-align:center;background:#039;color:white;padding:10px;-webkit-border-top-left-radius:5px;-webkit-border-top-right-radius:5px;-moz-border-radius-topleft:5px;-moz-border-radius-topright:5px;border-top-left-radius:5px;border-top-right-radius:5px}#tooltip.pretty
-div{width:194px;text-align:left;padding:0px;font-size:10pt}
+#tooltip.descriptionTooltip{font-family:Arial;border:none;width:200px;padding:0px;height:auto;opacity:0.95;background:white;border:1px
+solid black;-webkit-border-top-left-radius:5px;-webkit-border-top-right-radius:5px;-moz-border-radius-topleft:5px;-moz-border-radius-topright:5px;border-top-left-radius:5px;border-top-right-radius:5px;-webkit-box-shadow:5px 5px 5px #888;-moz-box-shadow:5px 5px 5px #888}#tooltip.descriptionTooltip
+h3{margin-bottom:3px;font-size:12pt;width:180px;text-align:center;background:#039;color:white;padding:10px;-webkit-border-top-left-radius:5px;-webkit-border-top-right-radius:5px;-moz-border-radius-topleft:5px;-moz-border-radius-topright:5px;border-top-left-radius:5px;border-top-right-radius:5px}#tooltip.descriptionTooltip
+div{width:194px;text-align:left;padding:0px;font-size:10pt}#tooltip.descriptionTooltip .description-element{padding:3px
+5px;font-size:11px}#tooltip.descriptionTooltip .description-element-label{font-weight:bold;padding-right:4px}
 /* record.css */
 @CHARSET "ISO-8859-1";.full-result-content{padding-left:5px}#record-header{border-bottom:1px solid #5D8EAC;padding-bottom:5px;margin-bottom:5px;position:relative;min-height:3em}#recordTitleAuthorGroup{width:525px;display:inline-block;vertical-align:top;zoom:1;*display:inline}#recordTitle{color:#256292;font-size:14px;font-weight:bold}#recordTitleRight{display:inline-block;vertical-align:top;zoom:1;*display:inline;position:absolute;right:0px;top:0px;text-align:right}#returnToSearch{}#previousRecordLink,#nextRecordLink{display:inline-block;vertical-align:top;zoom:1;*display:inline;margin:5px
 4px 0px 4px}.resultitem{margin-left:100px}.resulthead{padding:0px

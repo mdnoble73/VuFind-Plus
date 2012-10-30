@@ -37,7 +37,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions', 'getDescription'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -536,6 +536,7 @@ class AJAX extends Action {
 	function getDescription(){
 		global $memcache;
 		global $configArray;
+		global $interface;
 		$id = $_REQUEST['id'];
 		//Bypass loading solr, etc if we already have loaded the descriptive info before
 		$descriptionArray = $memcache->get("record_description_{$id}");
@@ -544,21 +545,14 @@ class AJAX extends Action {
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init();
 
-			global $interface;
 			$description = new Description(true, $id);
 			$descriptionArray = $description->loadData();
 			$memcache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}
+		$interface->assign('description', $descriptionArray['description']);
+		$interface->assign('length', $descriptionArray['length']);
+		$interface->assign('publisher', $descriptionArray['publisher']);
 
-		$output = "<result>\n";
-
-		// Build an XML tag representing the current comment:
-		$output .= "	<description><![CDATA[" . $descriptionArray['description'] . "]]></description>\n";
-		$output .= "	<length><![CDATA[" . (isset($descriptionArray['length']) ? $descriptionArray['length'] : '') . "]]></length>\n";
-		$output .= "	<publisher><![CDATA[" . $descriptionArray['publisher'] . "]]></publisher>\n";
-
-		$output .= "</result>\n";
-
-		return $output;
+		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 }
