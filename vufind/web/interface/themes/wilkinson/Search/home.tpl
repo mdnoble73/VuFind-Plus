@@ -7,11 +7,22 @@
 			</div>
 		{/if}
 		
+		
+		<script type="text/javascript">
+		widget = "CNLWidget";
+		sid = "5808";
+		list  = "CNL2";
+		rotate = "YES";
+		fade = "NO";
+		title = "YES";
+		</script>
+		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+		
 		<script type="text/javascript">
 		widget = "CNLWidget";
 		sid = "5808";
 		list  = "NLNON";
-		rotate = "NO";
+		rotate = "YES";
 		fade = "NO";
 		title = "YES";
 		
@@ -22,7 +33,7 @@
 		widget = "CNLWidget";
 		sid = "5808";
 		list  = "NLNF";
-		rotate = "NO";
+		rotate = "YES";
 		fade = "NO";
 		title = "YES";
 		
@@ -33,7 +44,7 @@
 		widget = "CNLWidget";
 		sid = "5808";
 		list  = "NLAUDIO";
-		rotate = "NO";
+		rotate = "YES";
 		fade = "NO";
 		title = "YES";
 		
@@ -44,7 +55,7 @@
 		widget = "CNLWidget";
 		sid = "5808";
 		list  = "NLDVD";
-		rotate = "NO";
+		rotate = "YES";
 		fade = "NO";
 		title = "YES";
 		
