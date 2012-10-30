@@ -1,0 +1,18 @@
+.searchHomeForm {
+	background-color: #804913;
+	border-color: #E3A958;
+}
+#header_logo{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+.searchheader{
+	position:relative;
+	background-color: #A9A39A; 
+}
+#loginBlock{
+	z-index: 2;
+}
