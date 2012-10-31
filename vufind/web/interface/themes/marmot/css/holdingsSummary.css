@@ -12,10 +12,11 @@
   padding: 7px;
 }
 
-#holdingsSummary a{
+#holdingsSummary a, .holdingsSummary a{
 	color: inherit;
 }
-#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList{
+#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList,
+.holdingsSummary a:hover, .holdingsSummary a:hover .availableAtList{
 	color: #003399;
 }
 .holdingsSummary .availableAtList{
@@ -27,7 +28,8 @@
 	font-weight: bold;
   font-size: 13px;
 }
-#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine a{
+#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine a,
+.holdingsSummary .holdingsSummaryStatusLine, .holdingsSummary .holdingsSummaryStatusLine a{
 	font-weight: bold;
 	font-size: 14px;
 }

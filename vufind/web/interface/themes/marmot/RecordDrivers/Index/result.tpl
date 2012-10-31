@@ -51,13 +51,16 @@
 		{if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
 	</div>
 
-	{if is_array($summFormats)}
-		{foreach from=$summFormats item=format}
-			<span class="iconlabel" >{translate text=$format}</span>&nbsp;
-		{/foreach}
-	{else}
-		<span class="iconlabel">{translate text=$summFormats}</span>
-	{/if}
+	<div class="resultItemLine4">
+		{if is_array($summFormats)}
+			{foreach from=$summFormats item=format}
+				<span class="iconlabel" >{translate text=$format}</span>&nbsp;
+			{/foreach}
+		{else}
+			<span class="iconlabel">{translate text=$summFormats}</span>
+		{/if}
+	</div>
+	
 	<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">
 		<div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
 			<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
@@ -102,8 +105,6 @@
 		</script>
 	{/if}
 </div>
-
-
 
 <script type="text/javascript">
 	addRatingId('{$summId}');

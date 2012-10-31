@@ -373,11 +373,13 @@ solid #949494;;border-radius:5px;margin:5px
 .adminMenuHeader:first{padding-top:0px}
 /* holdingsSummary.css */
 @CHARSET "ISO-8859-1";.copiesSummary, .copiesSummary
-a{color:#646464;font-size:8pt}.holdableCopiesSummary{color:#646464;font-size:8pt}.holdingsSummary{background:#F9F9F9;margin-left:5px;padding:7px}#holdingsSummary
-a{color:inherit}#holdingsSummary a:hover, #holdingsSummary a:hover
+a{color:#646464;font-size:8pt}.holdableCopiesSummary{color:#646464;font-size:8pt}.holdingsSummary{background:#F9F9F9;margin-left:5px;padding:7px}#holdingsSummary a, .holdingsSummary
+a{color:inherit}#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList,
+.holdingsSummary a:hover, .holdingsSummary a:hover
 .availableAtList{color:#039}.holdingsSummary
 .availableAtList{color:#392529;font-size:12px}.holdingsSummary .callNumber, .holdingsSummary .callNumber
-a{color:black;font-weight:bold;font-size:13px}#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine
+a{color:black;font-weight:bold;font-size:13px}#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine a,
+.holdingsSummary .holdingsSummaryStatusLine, .holdingsSummary .holdingsSummaryStatusLine
 a{font-weight:bold;font-size:14px}
 /* ratings.css */
 @CHARSET "ISO-8859-1";.ui-rater>span{vertical-align:top}.ui-rater-rating{margin-left:.8em}.ui-rater-starsOff,.ui-rater-starsOn{display:inline-block;height:18px;background:url(/interface/themes/default/images/star/stars.png) repeat-x 0 0px;zoom:1;*display:inline}.ui-rater-starsOn{display:block;max-width:90px;top:0;background-position:0 -36px}.ui-rater-starsHover{background-position:0 -18px!important}#ratingSummary{margin:0

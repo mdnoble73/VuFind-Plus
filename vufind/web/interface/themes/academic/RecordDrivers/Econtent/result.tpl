@@ -1,3 +1,4 @@
+{strip}
 <div id="record{$summId|escape}">
 	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
@@ -76,7 +77,8 @@
 			{if $summFormats}
 				<div class="resultInformation" id="resultInformationFormat{$summId|escape}"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 					{if is_array($summFormats)}
-						{foreach from=$summFormats item=format}
+						{foreach from=$summFormats item=format name=formatLoop}
+							{if $smarty.foreach.formatLoop.index != 0}, {/if}
 							<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
 						{/foreach}
 					{else}
@@ -108,3 +110,4 @@
 	{* Clear floats so the record displays as a block*}
 	<div class='clearer'></div>
 </div>
+{/strip}

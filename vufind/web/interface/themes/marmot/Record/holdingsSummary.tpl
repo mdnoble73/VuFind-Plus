@@ -1,4 +1,4 @@
-<div id = "holdingsSummary" class="holdingsSummary {$holdingsSummary.class}">
+<div id = "holdingsSummary{$holdingsSummary.shortId}" class="holdingsSummary {$holdingsSummary.class}">
 	{if $holdingsSummary.status == 'Available At'}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
 			{if $holdingsSummary.numCopies == 0}
