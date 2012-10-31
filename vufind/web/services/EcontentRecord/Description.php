@@ -47,7 +47,7 @@ class Description extends Action{
 	}
 
 	function loadData(){
-	global $library;
+		global $library;
 		$allowExternalDescription = true;
 		if (isset($library) && $library->preferSyndeticsSummary == 0){
 			$allowExternalDescription = false;
@@ -62,19 +62,17 @@ class Description extends Action{
 		global $timer;
 
 		$marc = MarcLoader::loadEContentMarcRecord($eContentRecord);
-		if ($marc){
-
+		$descriptionArray = array();
+		//Load the description
+		if (strlen($eContentRecord->description) > 0) {
+			$descriptionArray['description'] = Description::trimDescription($eContentRecord->description);
 		}else{
-			//Load the description
-			if (strlen($eContentRecord->description) > 0) {
-				$descriptionArray['description'] = trimDescription($eContentRecord->description);
-			}else{
-				$descriptionArray['description'] = "Description Not Provided";
-			}
-
-			//Load publisher
-			$descriptionArray['publisher'] = $eContentRecord->publisher;
+			//TODO: Check syndetics for eContent
+			$descriptionArray['description'] = "Description Not Provided";
 		}
+
+		//Load publisher
+		$descriptionArray['publisher'] = $eContentRecord->publisher;
 
 		if($descriptionArray){
 			return $descriptionArray;

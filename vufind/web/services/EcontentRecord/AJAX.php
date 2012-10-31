@@ -418,9 +418,10 @@ class AJAX extends Action {
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
 
-		$output = "<result>\n";
+		require_once 'Description.php';
+		$descriptionInfo = Description::loadDescription($eContentRecord);
 
-		$interface->assign('description', $eContentRecord->description);
+		$interface->assign('description', $descriptionInfo['description']);
 		$interface->assign('length', $eContentRecord->physicalDescription);
 		$interface->assign('publisher', $eContentRecord->publisher);
 

@@ -1,11 +1,12 @@
-<div id="record{$summId|escape}">
+{strip}
+<div id="record{$summShortId|escape}">
 	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
 		<input type="checkbox" name="selected[{$summShortId|escape:"url"}]" id="selected{$summShortId|escape:"url"}" class="titleSelect" {if $enableBookCart}onclick="toggleInBag('{$summId|escape:"url"}', '{$summTitle|regex_replace:"/(\/|:)$/":""|regex_replace:"/\"/":"&quot;"|escape:'javascript'}', this);"{/if} />&nbsp;
 	</div>
 					
 	<div class="resultsList">
-		<div id='descriptionPlaceholder{$summShortId|escape}'	style='display:none'></div>
+		<div id='descriptionPlaceholder{$summShortId|escape}' style='display:none' class='descriptionTooltip'></div>
 		<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
 			<img src="{$path}/bookcover.php?id={$summId}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
 		</a>
@@ -26,11 +27,11 @@
 				{/if}
 			</div>
 			{if $summEditions}
-			<div class="resultInformation"><span class="resultLabel">{translate text='Edition'}:</span><span class="resultValue">{$summEditions.0|escape}</span></div>
+			<div class="resultInformation" id="resultInformationEdition{$summShortId|escape}"><span class="resultLabel">{translate text='Edition'}:</span><span class="resultValue">{$summEditions.0|escape}</span></div>
 			{/if}
 			
 			{if $summAuthor}
-				<div class="resultInformation"><span class="resultLabel">{translate text='Author'}:</span>
+				<div class="resultInformation" id="resultInformationAuthor{$summShortId|escape}"><span class="resultLabel">{translate text='Author'}:</span>
 					<span class="resultValue">
 						{if is_array($summAuthor)}
 							{foreach from=$summAuthor item=author}
@@ -43,10 +44,10 @@
 				</div>
 			{/if}
 			{if $summPublicationDates || $summPublishers || $summPublicationPlaces}
-			<div class="resultInformation"><span class="resultLabel">{translate text='Published'}:</span><span class="resultValue">{$summPublicationPlaces.0|escape}{$summPublishers.0|escape}{$summPublicationDates.0|escape}</span></div>
+			<div class="resultInformation" id="resultInformationPublisher{$summShortId|escape}"><span class="resultLabel">{translate text='Published'}:</span><span class="resultValue">{$summPublicationPlaces.0|escape}{$summPublishers.0|escape}{$summPublicationDates.0|escape}</span></div>
 			{/if}
 			
-			<div class="resultInformation"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
+			<div class="resultInformation" id="resultInformationFormat{$summShortId|escape}"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 			{if is_array($summFormats)}
 				{foreach from=$summFormats item=format}
 					<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
@@ -56,13 +57,13 @@
 			{/if}
 			</span></div>
 			{if $summPhysical}
-			<div class="resultInformation"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
+			<div class="resultInformation" id="resultInformationPhysicalDesc{$summShortId|escape}"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
 			{/if}
-			<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue{$summShortId|escape}">Loading...</span></div>
-			<div class="resultInformation" ><span class="resultLabel">{translate text='Call Number'}:</span><span class="resultValue callNumber" id="callNumberValue{$summShortId|escape}">Loading...</span></div>
+			<div class="resultInformation" id="resultInformationLocation{$summShortId|escape}"><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue{$summShortId|escape}">Loading...</span></div>
+			<div class="resultInformation" id="resultInformationCallNumber{$summShortId|escape}"><span class="resultLabel">{translate text='Call Number'}:</span><span class="resultValue callNumber" id="callNumberValue{$summShortId|escape}">Loading...</span></div>
 			<div class="resultInformation" id="downloadLink{$summShortId|escape}" style="display:none"><span class="resultLabel">{translate text='Download From'}:</span><span class="resultValue" id="downloadLinkValue{$summShortId|escape}">Loading...</span></div>
-			<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue{$summShortId|escape}">Loading...</span></div>
-					
+			<div class="resultInformation" id="resultInformationStatus{$summShortId|escape}"><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue{$summShortId|escape}">Loading...</span></div>
+			
 			<div class="resultItemLine3">
 				<!-- 
 				<b>{translate text='Call Number'}:</b> <span id="callnumber{$summId|escape}">{translate text='Loading'}</span><br />
@@ -120,3 +121,4 @@
 	{* Clear floats so the record displays as a block*}
 	<div class='clearer'></div>
 </div>
+{/strip}
