@@ -43,6 +43,17 @@ class PersonRecord extends IndexRecord
 			$interface->assign('summPicture', $person->picture);
 		}
 
+		$interface->assign('summTitle', $this->getName());
+		$interface->assign('birthDate', $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear));
+		$interface->assign('deathDate', $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear));
+		$interface->assign('lastUpdate', $person->lastModified);
+		$interface->assign('dateAdded', $person->dateAdded);
+		$interface->assign('numObits', count($person->obituaries));
+
+		return 'RecordDrivers/Person/result.tpl';
+	}
+
+	function getName(){
 		$name = '';
 		if (isset($this->fields['firstName'])){
 			$name = $this->fields['firstName'];
@@ -57,14 +68,7 @@ class PersonRecord extends IndexRecord
 			$name .= ' (' . $person->maidenName . ')';
 		}
 		$name .= ' ' . $this->fields['lastName'];
-		$interface->assign('summTitle', trim($name));
-		$interface->assign('birthDate', $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear));
-		$interface->assign('deathDate', $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear));
-		$interface->assign('lastUpdate', $person->lastModified);
-		$interface->assign('dateAdded', $person->dateAdded);
-		$interface->assign('numObits', count($person->obituaries));
-
-		return 'RecordDrivers/Person/result.tpl';
+		return trim($name);
 	}
 
 	function getBreadcrumb(){
