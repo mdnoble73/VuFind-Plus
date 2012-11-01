@@ -1,1 +1,1 @@
-<span class="checkedout">{translate text="Checked Out"}</span>
+<span class="checkedout">{if $status}{$status|translate}{else}{translate text="Checked Out"}{/if}</span>

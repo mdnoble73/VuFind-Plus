@@ -4,7 +4,7 @@ $('.results-page').live('pageshow', function() {
 
 function checkItemStatuses() {
 	var id = $.map($('.recordId'), function(i) {
-		return $(i).attr('id').substr('record'.length);
+		return $(i).attr('data-record-id');
 	});
 	if (id.length) {
 		$(".ajax_availability").show();

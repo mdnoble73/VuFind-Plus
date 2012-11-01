@@ -1,3 +1,4 @@
+{strip}
 <div data-role="page" id="Search-home">
 	{include file="header.tpl"}
 	<div data-role="content">
@@ -19,3 +20,4 @@
 	</div>
 	{include file="footer.tpl"}
 </div>
+{/strip}

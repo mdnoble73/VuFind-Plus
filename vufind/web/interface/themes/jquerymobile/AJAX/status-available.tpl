@@ -1,1 +1,1 @@
-<span class="available">{translate text="Available"}</span>
+<span class="available">{if $status}{$status|translate}{else}{translate text="Available"}{/if}</span>
