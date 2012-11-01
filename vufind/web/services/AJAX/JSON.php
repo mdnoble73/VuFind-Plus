@@ -190,9 +190,9 @@ class JSON extends Action {
 
 		// Load callnumber and location settings:
 		$callnumberSetting = isset($configArray['Item_Status']['multiple_call_nos'])
-		? $configArray['Item_Status']['multiple_call_nos'] : 'msg';
+			? $configArray['Item_Status']['multiple_call_nos'] : 'msg';
 		$locationSetting = isset($configArray['Item_Status']['multiple_locations'])
-		? $configArray['Item_Status']['multiple_locations'] : 'msg';
+			? $configArray['Item_Status']['multiple_locations'] : 'msg';
 
 		// Loop through all the status information that came back
 		$statuses = array();
@@ -231,11 +231,17 @@ class JSON extends Action {
 			$econtentResults = $econtentDriver->getStatuses($econtentIds);
 			foreach ($econtentResults as $result){
 				$available = $result['available'];
+				$interface->assign('status', $result['status']);
+				if ($available){
+					$message = $interface->fetch('AJAX/status-available.tpl');
+				}else{
+					$message = $interface->fetch('AJAX/status-unavailable.tpl');
+				}
 				$statuses[] = array(
                 'id'                   => $result['id'],
                 'shortId'                   => $result['id'],
                 'availability' => ($available ? 'true' : 'false'),
-                'availability_message' => $messages[$available ? 'available' : 'unavailable'],
+                'availability_message' => $message, //$messages[$available ? 'available' : 'unavailable'],
                 'location'             => translate('Unknown'),
                 'locationList'         => false,
                 'reserve'              => 'false',
@@ -325,6 +331,7 @@ class JSON extends Action {
 	 * @access private
 	 */
 	private function _getItemStatus($record, $messages, $locationSetting, $callnumberSetting) {
+		global $interface;
 		// Summarize call number, location and availability info across all items:
 		$callNumbers = $locations = array();
 		$available = false;
@@ -348,19 +355,23 @@ class JSON extends Action {
 		);
 
 		// Determine location string based on findings:
-		$location = $this->_pickValue(
-		$locations, $locationSetting, 'Multiple Locations'
-		);
+		$location = $this->_pickValue($locations, $locationSetting, 'Multiple Locations');
 
 		// Send back the collected details:
 		$firstRecord = reset($record);
 		$id = (isset($firstRecord['id']) ? $firstRecord['id'] : '');
 		$reserve = (isset($firstRecord['reserve']) ? $firstRecord['reserve'] : '');
+		$interface->assign('status', $firstRecord['status']);
+		if ($available){
+			$message = $interface->fetch('AJAX/status-available.tpl');
+		}else{
+			$message = $interface->fetch('AJAX/status-unavailable.tpl');
+		}
 		return array(
             'id' => $id,
             'shortId' => trim($id, '.'),
             'availability' => ($available ? 'true' : 'false'),
-            'availability_message' => $messages[$available ? 'available' : 'unavailable'],
+            'availability_message' => $message, //$messages[$available ? 'available' : 'unavailable'],
             'location' => $location,
             'locationList' => false,
             'reserve' => ($reserve == 'Y' ? 'true' : 'false'),

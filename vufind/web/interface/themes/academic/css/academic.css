@@ -105,6 +105,9 @@ div#ft_contents {
 	padding: .5em;
 }
 
+.resultitem{
+	width: 540px;
+}
 .resultLabel {
 	width: 110px;
 	color: graytext;
@@ -116,6 +119,7 @@ div#ft_contents {
 .resultValue {
 	display: inline-block;
 	vertical-align: top;
+	width: 430px;
 }
 
 .boldedResultValue {

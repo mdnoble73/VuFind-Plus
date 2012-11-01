@@ -1,3 +1,4 @@
+{strip}
 <div id="record{$summId|escape}">
 	<div class="selectTitle">
 		<input type="checkbox" name="selected[{$summId|escape:"url"}]" id="selected{$summId|escape:"url"}" style="display:none" />&nbsp;
@@ -11,7 +12,7 @@
 	{/if}
 	
 	<div class="resultDetails"> 
-		<div class="resultItemLine1">
+		<div class="resultItemLine1 title">
 			<a href="{$path}/MyResearch/MyList/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 			{if $summTitleStatement}
 				<div class="searchResultSectionInfo">
@@ -20,13 +21,13 @@
 			{/if}
 		</div>
 	
-		<div class="resultItemLine2">
+		<div class="resultItemLine2 description">
 			{if $summDescription}
 				{$summDescription|truncate:500:"..."|highlight:$lookfor}
 			{/if}
 		</div>
 		
-		<div class="resultItemLine3">
+		<div class="resultItemLine3 numTitles">
 			{if $summNumTitles}
 				{$summNumTitles} titles are in this list.
 			{/if}
@@ -35,3 +36,4 @@
 	</div>
 	<div class="clearer"></div>
 </div>
+{/strip}
