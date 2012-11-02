@@ -54,6 +54,10 @@ class PersonRecord extends IndexRecord
 		return 'RecordDrivers/Person/result.tpl';
 	}
 
+	function getBreadcrumb(){
+		return $this->getName();
+	}
+
 	function getName(){
 		$name = '';
 		if (isset($this->fields['firstName'])){
@@ -70,9 +74,5 @@ class PersonRecord extends IndexRecord
 		}
 		$name .= ' ' . $this->fields['lastName'];
 		return $name;
-	}
-
-	function getBreadcrumb(){
-		return $this->fields['firstName'] . ' ' . $this->fields['lastName'];
 	}
 }
