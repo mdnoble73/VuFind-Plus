@@ -83,6 +83,8 @@ class SearchObject_Genealogy extends SearchObject_Base
 		// Include our solr index
 		$class = $configArray['Genealogy']['engine'];
 		require_once "sys/$class.php";
+		$this->searchType = 'genealogy';
+		$this->basicSearchType = 'genealogy';
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Genealogy']['url'], $configArray['Genealogy']['default_core']);
 		$timer->logTime('Created Index Engine for Genealogy');
@@ -126,7 +128,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 			$this->sortOptions = $searchSettings['Sorting'];
 		} else {
 			$this->sortOptions = array('relevance' => 'sort_relevance',
-                'year' => 'sort_year', 'year asc' => 'sort_year asc', 
+                'year' => 'sort_year', 'year asc' => 'sort_year asc',
                 'title' => 'sort_title');
 		}
 

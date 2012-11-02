@@ -1124,7 +1124,8 @@ class MillenniumDriver implements DriverInterface
 
                 'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
                 'major' => null,
-                'college' => null);
+                'college' => null,
+								'patronType' => $patronDump['P_TYPE']);
 			$timer->logTime("patron logged in successfully");
 			return $user;
 
@@ -1779,6 +1780,7 @@ class MillenniumDriver implements DriverInterface
 	 */
 	function doReadingHistoryAction($patron, $action, $selectedTitles){
 		global $configArray;
+		global $analytics;
 		$id2= $patron['id'];
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 		//Load the reading history page
@@ -1821,12 +1823,18 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Delete Marked Reading History Titles');
+			}
 		}elseif ($action == 'deleteAll'){
 			//load patron page readinghistory/rah
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rah";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Delete All Reading History Titles');
+			}
 		}elseif ($action == 'exportList'){
 			//Leave this unimplemented for now.
 		}elseif ($action == 'optOut'){
@@ -1835,12 +1843,18 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Opt Out of Reading History');
+			}
 		}elseif ($action == 'optIn'){
 			//load patron page readinghistory/OptIn
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptIn";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			$sresult = curl_exec($curl_connection);
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
+			}
 		}
 		curl_close($curl_connection);
 		unlink($cookieJar);
@@ -2344,6 +2358,14 @@ class MillenniumDriver implements DriverInterface
 			if ($hold_result['result'] == true){
 				UsageTracking::logTrackingData('numHolds');
 			}
+			global $analytics;
+			if ($analytics){
+				if ($hold_result['result'] == true){
+					$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+				}else{
+					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+				}
+			}
 			return $hold_result;
 		}
 	}
@@ -2466,6 +2488,8 @@ class MillenniumDriver implements DriverInterface
 		$cancelValue = ($type == 'cancel' || $type == 'recall') ? 'on' : 'off';
 
 		if (is_array($xnum)){
+			$loadTitles = (!isset($title) || strlen($title) == 0);
+			$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG);
 			$extraGetInfo = array(
                 'updateholdssome' => 'YES',
                 'currentsortorder' => 'current_pickup',
@@ -2479,8 +2503,25 @@ class MillenniumDriver implements DriverInterface
 				if (strlen($freezeValue) > 0){
 					$extraGetInfo['freeze' . $tmpBib] = $freezeValue;
 				}
+				if ($loadTitles){
+					$resource = new Resource();
+					$resource->shortId = $tmpBib;
+					if ($resource->find(true)){
+						if (strlen($title) > 0) $title .= ", ";
+						$title .= $resource->title;
+					}else{
+						$logger->log("Did not find bib for = $tmpBib", PEAR_LOG_DEBUG);
+					}
+				}
 			}
 		}else{
+			if (!isset($title) || $title == ''){
+				$resource = new Resource();
+				$resource->shortId = $bib;
+				if ($resource->find(true)){
+					$title = $resource->title;
+				}
+			}
 			$extraGetInfo = array(
                 'updateholdssome' => 'YES',
                 'cancel' . $bib . $xnum => $cancelValue,
@@ -2579,19 +2620,23 @@ class MillenniumDriver implements DriverInterface
 		//Clear holds for the patron
 		unset($this->holds[$patronId]);
 
+		global $analytics;
 		if ($type == 'cancel' || $type == 'recall'){
 			if ($success){
+				$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title);
 				return array(
                     'title' => $title,
                     'result' => true,
                     'message' => 'Your hold was cancelled successfully.');
 			}else{
+				$analytics->addEvent('ILS Integration', 'Hold Not Cancelled', $title);
 				return array(
                     'title' => $title,
                     'result' => false,
                     'message' => 'Your hold could not be cancelled.  Please try again later or see your librarian.');
 			}
 		}else{
+			$analytics->addEvent('ILS Integration', 'Hold(s) Updated', $title);
 			return array(
                     'title' => $title,
                     'result' => true,

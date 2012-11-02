@@ -36,6 +36,7 @@ class Results extends Action {
 		global $configArray;
 		global $timer;
 		global $user;
+		global $analytics;
 
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
 
@@ -263,7 +264,11 @@ class Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
+		$allSearchSources = SearchSources::getSearchSources();
+		$translatedSearch = $allSearchSources[$searchSource]['name'];
+		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
+
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);

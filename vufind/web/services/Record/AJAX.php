@@ -30,6 +30,8 @@ class AJAX extends Action {
 
 	function launch() {
 		global $timer;
+		global $analytics;
+		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
 		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord'))){
@@ -338,6 +340,7 @@ class AJAX extends Action {
 		require_once 'services/MyResearch/lib/Resource.php';
 		require_once('Drivers/marmot_inc/UserRating.php');
 		global $user;
+		global $analytics;
 		if (!isset($user) || $user == false){
 			header('HTTP/1.0 500 Internal server error');
 			return 'Please login to rate this title.';
@@ -351,6 +354,8 @@ class AJAX extends Action {
 			$resource->insert();
 		}
 		$resource->addRating($rating, $user);
+		$analytics->addEvent('User Enrichment', 'Rate Title', $resource->title);
+
 		global $memcache;
 		$memcache->delete('rating_' . $_GET['id']);
 

@@ -70,6 +70,7 @@ abstract class SearchObject_Base
 	protected $savedSearch = false;
 	protected $searchType  = 'basic';
 	// Possible values of $searchType:
+	protected $isAdvanced = false;
 	protected $basicSearchType = 'basic';
 	protected $advancedSearchType = 'advanced';
 	// Flag for logging/search history
@@ -227,6 +228,10 @@ abstract class SearchObject_Base
 	 */
 	public function clearFacets(){
 		$this->facetConfig = array();
+	}
+
+	public function hasAppliedFacets(){
+		return count($this->filterList) > 0;
 	}
 
 	/**
@@ -445,6 +450,10 @@ abstract class SearchObject_Base
 		return true;
 	}
 
+	public function isAdvanced(){
+		return $this->isAdvanced;
+	}
+
 	/**
 	 * Initialize the object's search settings for an advanced search found in the
 	 * $_REQUEST superglobal.  Advanced searches have numeric subscripts on the
@@ -455,6 +464,7 @@ abstract class SearchObject_Base
 	 */
 	protected function initAdvancedSearch()
 	{
+		$this->isAdvanced = true;
 		//********************
 		// Advanced Search logic
 		//  'lookfor0[]' 'type0[]'
@@ -863,6 +873,13 @@ abstract class SearchObject_Base
 	public function getSearchId()       {return $this->searchId;}
 	public function getSearchTerms()    {return $this->searchTerms;}
 	public function getSearchType()     {return $this->searchType;}
+	public function getFullSearchType() {
+		if ($this->isAdvanced){
+			return $this->searchType;
+		}else{
+			return $this->searchType . ' - ' . $this->getSearchIndex();
+		}
+	}
 	public function getStartTime()      {return $this->initTime;}
 	public function getTotalSpeed()     {return $this->totalTime;}
 	public function getView()           {return $this->view;}

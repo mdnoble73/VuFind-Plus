@@ -1602,6 +1602,17 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'analytics_1' => array(
+			'title' => 'Analytics Update 1',
+			'description' => 'Add times to searches and events.',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				'ALTER TABLE analytics_event ADD COLUMN eventTime INT(11)',
+				'ALTER TABLE analytics_search ADD COLUMN searchTime INT(11)'
+			),
+		),
+
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
 			'description' => 'Add a field for whether or not the session was started with remember me on.',

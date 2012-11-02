@@ -46,6 +46,7 @@ class Results extends Home {
 	public function launch() {
 		global $interface;
 		global $configArray;
+		global $analytics;
 
 		// Connect to Solr:
 		$db = ConnectionManager::connectToIndex();
@@ -53,7 +54,7 @@ class Results extends Home {
 		// Process incoming parameters:
 		$source = isset($_GET['source']) ? $_GET['source'] : false;
 		$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
-		
+
 		if ($source == false && $type){
 			$source = $type;
 			if (strpos($source, 'browse') === 0){
@@ -75,7 +76,7 @@ class Results extends Home {
 			require_once('sys/AlphaBrowse.php');
 			$alphaBrowse = new AlphaBrowse();
 			$result = $alphaBrowse->getBrowseResults($source, $from, $page, $limit);
-			
+
 			// No results?  Try the previous page just in case we've gone past the
 			// end of the list....
 			if (!$result['success']) {
@@ -83,6 +84,10 @@ class Results extends Home {
 				$result = $alphaBrowse->getBrowseResults($source, $from, $page, $limit);
 			}
 
+			$allSearchSources = SearchSources::getSearchSources();
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			$translatedScope = $allSearchSources[$searchSource]['name'];
+			$analytics->addSearch($translatedScope, $from, false, "alpha browse - $type", false, $result['totalCount']);
 			if ($result['totalCount'] == 0){
 				$interface->assign('error', "No Results were found");
 			}else{
@@ -93,7 +98,7 @@ class Results extends Home {
 				if ($result['showPrev']) {
 					$interface->assign('prevpage', $page - 1);
 				}
-	
+
 				// Send other relevant values to the template:
 				$interface->assign('source', $source);
 				$interface->assign('from', $from);

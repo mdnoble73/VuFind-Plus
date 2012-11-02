@@ -57,7 +57,7 @@
 										<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
 									{/if}
 									<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel">
+									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
 								</div>
 							</div>
 						</form> {* End with selected controls for holds *}

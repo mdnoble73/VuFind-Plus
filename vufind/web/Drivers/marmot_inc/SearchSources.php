@@ -1,6 +1,6 @@
 <?php
 class SearchSources{
-	function getSearchSources(){
+	static function getSearchSources(){
 		$searchOptions = array();
 		//Check to see if marmot catalog is a valid option
 		global $library;

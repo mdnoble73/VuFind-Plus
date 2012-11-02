@@ -363,7 +363,6 @@ class Location extends DB_DataObject
 		global $timer;
 		global $memcache;
 		global $configArray;
-		$timer->logTime('Starting getIPLocation');
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
 		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
@@ -373,21 +372,26 @@ class Location extends DB_DataObject
 		}
 
 		if ($this->ipLocation == false || $this->ipId == false){
+			$timer->logTime('Starting getIPLocation');
 			//echo("Active IP is $activeIp");
 			require_once './Drivers/marmot_inc/ipcalc.php';
 			require_once './Drivers/marmot_inc/subnet.php';
 
 			$subnets = $memcache->get('ip_addresses');
 			if ($subnets == false){
+				$timer->logTime('Starting to load subnets');
 				$subnetSql = new subnet();
 				$subnetSql->find();
 				$subnets = array();
 				while ($subnetSql->fetch()) {
 					$subnets[] = clone $subnetSql;
 				}
+				$timer->logTime('finished loadin subnets');
 				$memcache->set('ip_addresses', $subnets, 0, $configArray['Caching']['ip_addresses']);
 			}
+			$timer->logTime('Starting FindBestMatch');
 			$bestmatch=FindBestMatch($activeIp,$subnets);
+			$timer->logTime('Finished FindBestMatch');
 			//Get the locationId for the subnet.
 			if (isset($bestmatch) && $bestmatch != null){
 				//echo("Best match Location is {$bestmatch->locationid}");
@@ -406,8 +410,9 @@ class Location extends DB_DataObject
 			}
 			$memcache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
 			$memcache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
+			$timer->logTime('Finished getIPLocation');
 		}
-		$timer->logTime('Finished getIPLocation');
+
 		return $this->ipLocation;
 	}
 

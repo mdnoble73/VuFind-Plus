@@ -24,6 +24,8 @@ class AJAX extends Action {
 
 	function launch()
 	{
+		global $analytics;
+		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
 		if (in_array($method, array('GetAutoSuggestList', 'GetRatings', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries'))){
 			header('Content-type: text/plain');

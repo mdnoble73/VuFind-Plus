@@ -122,12 +122,16 @@ $timer->logTime("Include Usage Tracking");
 $timer->logTime('Startup');
 // Set up autoloader (needed for YAML)
 function vufind_autoloader($class) {
+	if (strpos($class, '.php') > 0){
+		$class = substr($class, 0, strpos($class, '.php'));
+	}
+	$nameSpaceClass = str_replace('_', '/', $class) . '.php';
 	if (file_exists('sys/' . $class . '.php')){
 		require_once 'sys/' . $class . '.php';
 	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
 		require_once 'services/MyResearch/lib/' . $class . '.php';
 	}else{
-		require_once str_replace('_', '/', $class) . '.php';
+		require_once $nameSpaceClass;
 	}
 }
 spl_autoload_register('vufind_autoloader');
@@ -216,8 +220,18 @@ if (isset($location) && $location->footerTemplate != 'default'){
 	$interface->assign('footerTemplate', $location->footerTemplate);
 }
 
+require_once 'sys/Analytics.php';
+//Define tracking to be done
+global $analytics;
+$analytics = new Analytics($active_ip, $startTime);
+
+$googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
+$interface->assign('googleAnalyticsId', $googleAnalyticsId);
+
 //Set System Message
-//$interface->assign('systemMessage', "The catalog will be undergoing maintenance on Sunday July 29th from 8am - noon.  The system may be unavailable during this period.");
+if ($configArray['System']['systemMessage']){
+	$interface->assign('systemMessage', $configArray['System']['systemMessage']);
+}
 
 //Get the name of the active instance
 if ($locationSingleton->getActiveLocation() != null){
@@ -229,11 +243,12 @@ if ($locationSingleton->getActiveLocation() != null){
 }
 if ($locationSingleton->getIPLocation() != null){
 	$interface->assign('inLibrary', true);
-	$interface->assign('physicalLocation', $locationSingleton->getIPLocation()->displayName);
+	$physicalLocation = $locationSingleton->getIPLocation()->displayName;
 }else{
 	$interface->assign('inLibrary', false);
-	$interface->assign('physicalLocation', 'Home');
+	$physicalLocation = 'Home';
 }
+$interface->assign('physicalLocation', $physicalLocation);
 
 $productionServer = $configArray['Site']['isProduction'];
 $interface->assign('productionServer', $productionServer);
@@ -375,6 +390,25 @@ $action = preg_replace('/[^\w]/', '', $action);
 $interface->assign('module', $module);
 $interface->assign('action', $action);
 
+if ($analytics){
+	$analytics->setModule($module);
+	$analytics->setAction($action);
+	$analytics->setObjectId(isset($_REQUEST['id']) ? $_REQUEST['id'] : null);
+	$analytics->setMethod(isset($_REQUEST['method']) ? $_REQUEST['method'] : null);
+	$analytics->setLanguage($interface->getLanguage());
+	$analytics->setTheme($interface->getPrimaryTheme());
+	$analytics->setMobile($interface->isMobile() ? 1 : 0);
+	$analytics->setDevice(get_device_name());
+	$analytics->setPhysicalLocation($physicalLocation);
+	if ($user){
+		$analytics->setPatronType($user->patronType);
+		$analytics->setHomeLocationId($user->homeLocationId);
+	}else{
+		$analytics->setPatronType('logged out');
+		$analytics->setHomeLocationId(-1);
+	}
+}
+
 //Determine whether or not materials request functionality should be enabled
 require_once 'sys/MaterialsRequest.php';
 $interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
@@ -433,6 +467,15 @@ if ($user) {
 	}
 }
 $timer->logTime('User authentication');
+
+if ($user){
+	$interface->assign('pType', $user->patronType);
+	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+	$interface->assign('homeLibrary', $homeLibrary->displayName);
+}else{
+	$interface->assign('pType', 'logged out');
+	$interface->assign('homeLibrary', 'n/a');
+}
 
 //Find a resonable default location to go to
 if ($module == null && $action == null){
@@ -650,6 +693,7 @@ if (is_readable("services/$module/$action.php")) {
 }
 $timer->logTime('Finished Index');
 $timer->writeTimings();
+//$analytics->finish();
 
 function processFollowup(){
 	global $configArray;
@@ -877,6 +921,7 @@ function updateConfigForScoping($configArray) {
 	global $servername;
 
 	//split the servername based on
+	global $subdomain;
 	$subdomain = null;
 	if(strpos($_SERVER['SERVER_NAME'], '.')){
 		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);

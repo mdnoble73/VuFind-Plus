@@ -99,7 +99,7 @@
 		<script type="text/javascript">
 			$(
 				 function() {literal} { {/literal}
-						$('.rate{if $summShortId}{$summShortId|escape}{else}{$summId|escape}{/if}').rater({literal}{ {/literal}module: 'Record', recordId: '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}', rating:'0.0', postHref: '{$path}/Record/{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}/AJAX?method=RateTitle'{literal} } {/literal});
+						$('.rate{if $summShortId}{$summShortId|escape}{else}{$summId|escape}{/if}').rater({literal}{ {/literal}module: 'Record', recordId: '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}', rating:'0.0', postHref: '{$path}/Record/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
 				 {literal} } {/literal}
 			);
 		</script>

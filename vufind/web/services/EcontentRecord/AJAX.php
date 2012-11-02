@@ -11,6 +11,8 @@ class AJAX extends Action {
 	}
 
 	function launch() {
+		global $analytics;
+		$analytics->disableTracking();
 		$method = $_GET['method'];
 		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold'))){
 			header('Content-type: text/plain');

@@ -38,6 +38,8 @@ class UInterface extends Smarty
 		$local = $configArray['Site']['local'];
 		$this->vufindTheme = $configArray['Site']['theme'];
 
+		$isMobile = mobile_device_detect();
+
 		// Use mobile theme for mobile devices (if enabled in config.ini)
 		if (isset($configArray['Site']['mobile_theme'])) {
 			// If the user is overriding the UI setting, store that:
@@ -48,7 +50,7 @@ class UInterface extends Smarty
 				// and store the result in a cookie so we don't waste time doing the
 				// detection routine on every page:
 			} else if (!isset($_COOKIE['ui'])) {
-				$_COOKIE['ui'] = mobile_device_detect() ? 'mobile' : 'standard';
+				$_COOKIE['ui'] = $isMobile ? 'mobile' : 'standard';
 				setcookie('ui', $_COOKIE['ui'], null, '/');
 			}
 			// If we're mobile, override the standard theme with the mobile one:
@@ -59,6 +61,8 @@ class UInterface extends Smarty
 				$this->isMobile = true;
 			}
 		}
+		$this->assign('isMobile', $this->isMobile ? 'true' : 'false');
+		$this->assign('device', get_device_name());
 
 		// Check to see if multiple themes were requested; if so, build an array,
 		// otherwise, store a single string.
@@ -75,7 +79,9 @@ class UInterface extends Smarty
 			$this->template_dir  = "$local/interface/themes/{$this->vufindTheme}";
 		}
 		$this->themes = $themeArray;
-		$timer->logTime('Set theme');
+		if (isset($timer)){
+			$timer->logTime('Set theme');
+		}
 
 		// Create an MD5 hash of the theme name -- this will ensure that it's a
 		// writeable directory name (since some config.ini settings may include
@@ -128,6 +134,8 @@ class UInterface extends Smarty
 		$this->assign('supportEmail', $configArray['Site']['email']);
 		$this->assign('libraryName', $configArray['Site']['title']);
 		$this->assign('theme', $this->vufindTheme);
+		$this->assign('primaryTheme', reset($themeArray));
+		$this->assign('device', get_device_name());
 		$timer->logTime('Basic configuration');
 
 		if (isset($configArray['OpenURL']) && isset($configArray['OpenURL']['url'])) {
@@ -206,12 +214,20 @@ class UInterface extends Smarty
 	{
 		//Marmot override, add the name of the site to the title unless we are using the mobile interface.
 		global $configArray;
+		global $owa;
 		$this->assign('shortPageTitle', translate($title));
+		if ($owa){
+			$owa->setPageTitle($title);
+		}
 		if ($this->isMobile){
 			$this->assign('pageTitle', translate($title));
 		}else{
 			$this->assign('pageTitle', $configArray['Site']['title'] . ' | ' . translate($title));
 		}
+	}
+
+	function  getShortPageTitle(){
+		return $this->get_template_vars('shortPageTitle');
 	}
 
 	function getLanguage()
@@ -245,6 +261,14 @@ class UInterface extends Smarty
 
 	public function isMobile(){
 		return $this->isMobile;
+	}
+
+	public function getPrimaryTheme(){
+		if (is_array($this->themes)){
+			return reset($this->themes);
+		}else{
+			return $this->themes;
+		}
 	}
 }
 

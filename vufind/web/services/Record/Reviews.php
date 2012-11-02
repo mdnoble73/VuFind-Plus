@@ -58,7 +58,7 @@ class Reviews extends Record
 		global $memcache;
 
 		$reviews = $memcache->get("reviews_{$isbn}");
-		if (!$reviews){
+		if (!$reviews || isset($_REQUEST['reload'])){
 			// Fetch from provider
 			if (isset($configArray['Content']['reviews'])) {
 				$providers = explode(',', $configArray['Content']['reviews']);
@@ -221,6 +221,7 @@ class Reviews extends Record
 	 */
 	function amazoneditorial($isbn, $id){
 		global $library;
+		$result = array();
 		if (isset($library) && ($library->showAmazonReviews == 0)){
 			//return an empty review
 			return $result;
