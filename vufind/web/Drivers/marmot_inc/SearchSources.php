@@ -9,7 +9,7 @@ class SearchSources{
 		$repeatInWorldCat = false;
 		$repeatInProspector = true;
 		$repeatInAmazon = true;
-		$repeatInOverdrive = true;
+		$repeatInOverdrive = false;
 		$systemsToRepeatIn = array();
 		$searchGenealogy = true;
 		$repeatCourseReserves = false;

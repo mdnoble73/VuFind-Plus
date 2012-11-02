@@ -24,7 +24,7 @@
 		<ul class="filters">
 		{foreach from=$filterList item=filters key=field }
 			{foreach from=$filters item=filter}
-				<li>{translate text=$field}: {$filter.display|escape} <a href="{$filter.removalUrl|escape}"><img src="{$path}/images/silk/delete.png" alt="Delete"/></a></li>
+				<li>{translate text=$field}: {$filter.display|translate|escape} <a href="{$filter.removalUrl|escape}" onclick="trackEvent('Remove Facet', '{$field}', '{$filter.display|escape}');"><img src="{$path}/images/silk/delete.png" alt="Delete"/></a></li>
 			{/foreach}
 		{/foreach}
 		</ul>
@@ -35,7 +35,7 @@
 				<dl class="narrowList navmenu narrow_begin">
 					<dt>{translate text=$cluster.label}</dt>
 					<dd>
-						<form id='{$title}Filter' action='{$fullPath}'>
+						<form id='{$title}Filter' action='{$fullPath}' onsubmit="trackEvent('Apply Facet', '{$cluster.label}', '');">
 						<div>
 							<label for="{$title}yearfrom" class='yearboxlabel'>From:</label>
 							<input type="text" size="4" maxlength="4" class="yearbox" name="{$title}yearfrom" id="{$title}yearfrom" value="" />
@@ -74,15 +74,15 @@
 						{assign var=thisFacet value=$cluster.list.$curLabel}
 						{if $thisFacet.isApplied}
 							{if $curLabel == 'Unrated'}
-								<dd>{$thisFacet.value|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
+								<dd>{$thisFacet.value|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$curLabel|translate}');"/> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
 							{else}
-								<dd><img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate}"/> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
+								<dd><img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate} &amp; Up" title="{$curLabel|translate} &amp; up" onclick="trackEvent('Remove Facet', '{$curLabel|translate}', '{$curLabel|translate}');"/> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
 							{/if}
 						{else}
 							{if $curLabel == 'Unrated'}
-								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if} ({$thisFacet.count})</dd>
+								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$curLabel|translate}');">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if} ({$thisFacet.count})</dd>
 							{else}
-								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}<img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate}"/>{if $thisFacet.url !=null}</a>{/if} ({if $thisFacet.count}{$thisFacet.count}{else}0{/if})</dd>
+								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$curLabel|translate}');">{/if}<img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate} &amp; Up" title="{$curLabel|translate} &amp; Up"/>{if $thisFacet.url !=null}</a>{/if} ({if $thisFacet.count}{$thisFacet.count}{else}0{/if})</dd>
 							{/if}
 						{/if}
 					{/foreach}
@@ -91,7 +91,7 @@
 				<dl class="narrowList navmenu narrowbegin">
 					<dt>{translate text=$cluster.label}</dt>
 					<dd>
-						<form id='{$title}Filter' action='{$fullPath}'>
+						<form id='{$title}Filter' action='{$fullPath}' onsubmit="trackEvent('Apply Facet', '{$cluster.label}', '');">
 							<div>
 								{if $title == 'lexile_score'}
 									<div id="lexile-range"></div>
@@ -151,9 +151,9 @@
 					<dl class="narrowList navmenu narrowGroupHidden" id="narrowGroupHidden_{$title}">
 						{/if}
 						{if $thisFacet.isApplied}
-							<dd>{$thisFacet.display|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
+							<dd>{$thisFacet.display|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></dd>
 						{else}
-							<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</dd>
+							<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</dd>
 						{/if}
 					{/foreach}
 					{if $smarty.foreach.narrowLoop.total > $cluster.valuesToShow}<dd><a href="#" onclick="lessFacets('{$title}'); return false;">{translate text='less'} ...</a></dd>{/if}
