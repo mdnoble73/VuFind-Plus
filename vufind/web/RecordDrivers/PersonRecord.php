@@ -43,7 +43,8 @@ class PersonRecord extends IndexRecord
 			$interface->assign('summPicture', $person->picture);
 		}
 
-		$interface->assign('summTitle', $this->getName());
+		$name = $this->getName();
+		$interface->assign('summTitle', trim($name));
 		$interface->assign('birthDate', $person->formatPartialDate($person->birthDateDay, $person->birthDateMonth, $person->birthDateYear));
 		$interface->assign('deathDate', $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear));
 		$interface->assign('lastUpdate', $person->lastModified);
@@ -68,7 +69,7 @@ class PersonRecord extends IndexRecord
 			$name .= ' (' . $person->maidenName . ')';
 		}
 		$name .= ' ' . $this->fields['lastName'];
-		return trim($name);
+		return $name;
 	}
 
 	function getBreadcrumb(){
