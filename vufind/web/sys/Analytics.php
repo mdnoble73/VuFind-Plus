@@ -149,10 +149,13 @@ class Analytics
 			return;
 		}
 		$this->finished = true;
+		global $configArray;
+		if (!isset($configArray['System']['enableAnalytics']) || $configArray['System']['enableAnalytics'] == false){
+			return;
+		}
 
 		//Make sure that we don't track visits from bots
 		if (BotChecker::isRequestFromBot()){
-			print_r("Not saving because search is from bot");
 			return;
 		}
 
