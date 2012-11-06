@@ -22,6 +22,19 @@
 	display: inline-block;
 	text-align: center;
 	float: left;
+	overflow: auto;
+}
+.reportContainer2{
+	width: 560px;
+	border: 1px solid gray;
+	border-radius: 3px;
+	height: 280px;
+	padding: 10px;
+	margin: 10px;
+	display: inline-block;
+	text-align: center;
+	float: left;
+	overflow: auto;
 }
 .dashboardChart{
 	width: 260px;

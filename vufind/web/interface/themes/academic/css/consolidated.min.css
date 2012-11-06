@@ -373,7 +373,7 @@ solid #949494;;border-radius:5px;margin:5px
 .adminMenuHeader:first{padding-top:0px}
 /* holdingsSummary.css */
 @CHARSET "ISO-8859-1";.copiesSummary, .copiesSummary
-a{color:#646464;font-size:8pt}.holdableCopiesSummary{color:#646464;font-size:8pt}.holdingsSummary{background:#F9F9F9;margin-left:5px;padding:7px}#holdingsSummary a, .holdingsSummary
+a{color:#646464;font-size:8pt}.holdableCopiesSummary,.holdableCopiesSummary2{color:#646464;font-size:8pt}.holdingsSummary{background:#F9F9F9;margin-left:5px;padding:7px}#holdingsSummary a, .holdingsSummary
 a{color:inherit}#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList,
 .holdingsSummary a:hover, .holdingsSummary a:hover
 .availableAtList{color:#039}.holdingsSummary
@@ -434,7 +434,8 @@ solid #000;background:#fff}.exportButton{text-align:center}
 /* analytics.css */
 .reportFilter{display:inline-block;border:1px
 solid gray;border-radius:3px;margin:4px;padding:4px}.filterLabel{font-size:+1;font-weight:bold;text-align:center;text-decoration:underline;padding-bottom:3px}.reportContainer{width:280px;border:1px
-solid gray;border-radius:3px;height:280px;padding:10px;margin:10px;display:inline-block;text-align:center;float:left}.dashboardChart{width:260px;height:260px}.reportOrderedList{text-align:left;height:80%;overflow:auto}.reportOrderedList
+solid gray;border-radius:3px;height:280px;padding:10px;margin:10px;display:inline-block;text-align:center;float:left;overflow:auto}.reportContainer2{width:560px;border:1px
+solid gray;border-radius:3px;height:280px;padding:10px;margin:10px;display:inline-block;text-align:center;float:left;overflow:auto}.dashboardChart{width:260px;height:260px}.reportOrderedList{text-align:left;height:80%;overflow:auto}.reportOrderedList
 li{list-style-type:decimal;list-style-position:outside}
 /* print.css */
 @media

@@ -30,10 +30,10 @@
 			
 			<input type="image" name="submit" id='searchBarFind' value="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/findHome.png" />
 			{if $showAdvancedSearchbox == 1}
-				<a href="{$path}/Search/Advanced" class="small">{translate text="Advanced"}</a>
+				<a href="{$path}/Search/Advanced" class="small" id="advancedSearch">{translate text="Advanced"}</a>
 			{/if}
 			{* Link to Search Tips Help *}
-			<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
+			<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;" id="searchTips">
 				<img src="{$path}/images/silk/help.png" alt="{translate text='Search Tips'}" />
 			</a>
 			

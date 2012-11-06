@@ -106,6 +106,9 @@
 		{assign var="curSection" value=$curSection+1}
 		<h4><a href="#">Reports</a></h4>
 		<div class="sidegroupContents">		
+			<div class="adminMenuLink{if $action == "Dashboard"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
+			<div class="adminMenuLink{if $action == "Searches"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
+			<div class="adminMenuLink{if $action == "PageViews"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/PageViews">PageViews</a></div>
 			<div class="adminMenuLink{if $action == "ReportPurchase"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
 			<div class="adminMenuLink{if $action == "ReportExternalLinks"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
 			<div class="adminMenuLink{if $action == "ReportPageViewsLocation"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPageViewsLocation">Usage By Location</a></div>

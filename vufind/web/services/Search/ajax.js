@@ -208,6 +208,7 @@ function doGetStatusSummaries()
 							$("#downloadLink" + elemId).show();
 						}
 					}
+					$('#holdingsSummary' + elemId).addClass('loaded');
 				}catch (err){
 					//alert("Unexpected error " + err);
 				}
@@ -244,6 +245,7 @@ function doGetStatusSummaries()
 						var status = $(item).find('status').text();
 						$("#statusValue" + elemId).text(status);
 					}
+					$('#holdingsEContentSummary' + elemId).addClass('loaded');
 				});
 			}
 		});
@@ -274,6 +276,7 @@ function doGetStatusSummaries()
 						var status = $(item).find('status').text();
 						$("#statusValue" + elemId).text(status);
 					}
+					$('#holdingsEContentSummary' + elemId).addClass('loaded');
 				});
 			}
 		});

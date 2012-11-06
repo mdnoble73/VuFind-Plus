@@ -159,4 +159,79 @@ class AJAX extends Action {
 
 		return $searchesByType;
 	}
+
+	function getPageViewsByModuleData(){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$pageViews->selectAdd('count(id) as numViews');
+		$pageViews->selectAdd('module');
+		$pageViews->groupBy('module');
+		$pageViews->orderBy('numViews DESC');
+		$pageViews->find();
+		$pageViewsByModuleRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByModuleRaw[] = array ($pageViews->module, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByModuleRaw;
+	}
+
+	function getPageViewsByThemeData(){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$session = new Analytics_Session();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('theme');
+		$pageViews->groupBy('theme');
+		$pageViews->orderBy('numViews DESC');
+		$pageViews->find();
+		$pageViewsByThemeRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByThemeRaw[] = array ($pageViews->theme, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByThemeRaw;
+	}
+
+	function getPageViewsByDeviceData(){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$session = new Analytics_Session();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('device');
+		$pageViews->groupBy('device');
+		$pageViews->orderBy('numViews DESC');
+		$pageViews->find();
+		$pageViewsByDeviceRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByDeviceRaw[] = array ($pageViews->device, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByDeviceRaw;
+	}
+
+	function getPageViewsByHomeLocationData(){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$session = new Analytics_Session();
+		$location = new Location();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session->joinAdd($location);
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('displayName');
+		$pageViews->groupBy('displayName');
+		$pageViews->orderBy('numViews DESC');
+		$pageViews->find();
+		$pageViewsByDeviceRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByDeviceRaw[] = array ($pageViews->displayName, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByDeviceRaw;
+	}
 }

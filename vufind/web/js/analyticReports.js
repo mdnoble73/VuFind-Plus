@@ -259,3 +259,200 @@ function getSearchByScopeData(){
 		}
 	);
 }
+
+var pageViewsByModuleChart;
+function setupPageViewsByModuleChart() {
+	pageViewsByModuleChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'pageViewsByModuleChart',
+			type: 'bar',
+			events: {
+				load: getPageViewsByModuleData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Page Views By Module'
+		},
+		xAxis: {
+			title: {
+				text: 'Module'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: 'Page Views'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Page Views',
+			data: []
+		}]
+	});
+}
+function getPageViewsByModuleData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByModuleData" + filterParms,
+		function(data) {
+			var categories = new Array();
+			$.each(data, function(i, val){
+				pageViewsByModuleChart.series[0].addPoint(val, true, false);
+				categories.push( val[0]);
+			});
+			pageViewsByModuleChart.xAxis[0].setCategories(categories);
+		}
+	);
+}
+
+var pageViewsByThemeChart;
+function setupPageViewsByThemeChart() {
+	pageViewsByThemeChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'pageViewsByThemeChart',
+			type: 'bar',
+			events: {
+				load: getPageViewsByThemeData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Page Views By Theme'
+		},
+		xAxis: {
+			title: {
+				text: 'Theme'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: 'Page Views'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Page Views',
+			data: []
+		}]
+	});
+}
+function getPageViewsByThemeData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByThemeData" + filterParms,
+		function(data) {
+			var categories = new Array();
+			$.each(data, function(i, val){
+				pageViewsByThemeChart.series[0].addPoint(val, true, false);
+				categories.push( val[0]);
+			});
+			pageViewsByThemeChart.xAxis[0].setCategories(categories);
+		}
+	);
+}
+
+
+var pageViewsByDeviceChart;
+function setupPageViewsByDeviceChart() {
+	pageViewsByDeviceChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'pageViewsByDeviceChart',
+			type: 'bar',
+			events: {
+				load: getPageViewsByDeviceData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Page Views By Device'
+		},
+		xAxis: {
+			title: {
+				text: 'Device'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: 'Page Views'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Page Views',
+			data: []
+		}]
+	});
+}
+function getPageViewsByDeviceData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByDeviceData" + filterParms,
+		function(data) {
+			var categories = new Array();
+			$.each(data, function(i, val){
+				pageViewsByDeviceChart.series[0].addPoint(val, true, false);
+				categories.push( val[0]);
+			});
+			pageViewsByDeviceChart.xAxis[0].setCategories(categories);
+		}
+	);
+}
+
+var pageViewsByHomeLocationChart;
+function setupPageViewsByHomeLocationChart() {
+	pageViewsByHomeLocationChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'pageViewsByHomeLocationChart',
+			type: 'bar',
+			events: {
+				load: getPageViewsByHomeLocationData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Page Views By Home Location'
+		},
+		xAxis: {
+			title: {
+				text: 'Home Location'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: 'Page Views'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Page Views',
+			data: []
+		}]
+	});
+}
+function getPageViewsByHomeLocationData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByHomeLocationData" + filterParms,
+		function(data) {
+			var categories = new Array();
+			$.each(data, function(i, val){
+				pageViewsByHomeLocationChart.series[0].addPoint(val, true, false);
+				categories.push( val[0]);
+			});
+			pageViewsByHomeLocationChart.xAxis[0].setCategories(categories);
+		}
+	);
+}
