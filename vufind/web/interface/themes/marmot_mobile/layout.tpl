@@ -16,10 +16,11 @@
 		</script>
 
 		{css filename="jqueryui.css"}
-		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.css" />
+		{css filename="jqueryui.css"}
+		{css filename="jquery.mobile-1.1.1.min.css"}
 		{js filename="jquery-1.7.1.min.js"}
-		<script type="text/javascript" src="{$path}/js/jqueryui/jquery-ui-1.8.18.custom.min.js"></script>
-		<script type="text/javascript" src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
+		{js filename="jquery-ui-1.8.18.custom.min.js"}
+		{js filename="jquery.mobile-1.1.1.min.js"}
 		{js filename="common.js"}
 		{js filename="jquery_cookie.js"}
 		{js filename="cart_cookie.js"}

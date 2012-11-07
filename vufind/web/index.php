@@ -116,8 +116,6 @@ $timer->logTime("Include ConnectionManager");
 require_once 'Drivers/marmot_inc/Library.php';
 require_once 'Drivers/marmot_inc/Location.php';
 $timer->logTime("Include Library and Location");
-require_once 'sys/UsageTracking.php';
-$timer->logTime("Include Usage Tracking");
 
 $timer->logTime('Startup');
 // Set up autoloader (needed for YAML)
@@ -599,7 +597,7 @@ if ($action == "AJAX" || $action == "JSON"){
 		if (isset($library) && $library != false && $library->useHomeLinkInBreadcrumbs){
 			$interface->assign('homeBreadcrumbLink', $library->homeLink);
 		}else{
-			$interface->assign('homeBreadcrumbLink', $interface->getUrl());
+			$interface->assign('homeBreadcrumbLink', '/');
 		}
 		if (isset($library) && $library != false){
 			$interface->assign('homeLinkText', $library->homeLinkText);
@@ -651,13 +649,6 @@ if (!is_null($ipLocation) && $ipLocation != false && $user){
 	$interface->assign('includeAutoLogoutCode', false);
 }
 $timer->logTime('Check whether or not to include auto logout code');
-
-if (!in_array($action, array("AJAX", "JSON")) && !in_array($module, array("API", "Admin", "Report")) ){
-	// Log the usageTracking data
-	$usageTracking = new UsageTracking();
-	$usageTracking->logTrackingData('numPageViews', 1, $ipLocation, $ipId);
-	$timer->logTime('Log Usage Tracking');
-}
 
 // Process Login Followup
 if (isset($_REQUEST['followup'])) {
