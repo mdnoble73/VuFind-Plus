@@ -74,7 +74,7 @@ class AlphaBrowse{
 		$termRank = null;
 		$term = $lookFor;
 		$firstLetter = substr($term, 0, 1);
-		$termRankQuery = "SELECT MIN(alphaRank) as termRank FROM {$browseTable} WHERE firstChar >= '$firstLetter' and sortValue >= '$term'";
+		$termRankQuery = "SELECT MIN(alphaRank) as termRank FROM {$browseTable} WHERE alphaRank > 0 and firstChar >= '$firstLetter' and sortValue >= '$term'";
 		//echo($termRankQuery . "<br />");
 		$termRankResult = mysql_query($termRankQuery);
 		if ($termRankResult){
