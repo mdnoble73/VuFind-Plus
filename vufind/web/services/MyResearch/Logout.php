@@ -27,6 +27,6 @@ class Logout extends Action {
 
 		UserAccount::logout();
 
-		header('Location: ' . $configArray['Site']['url']);
+		header('Location: ' . $configArray['Site']['path'] . '/');
 	}
 }
