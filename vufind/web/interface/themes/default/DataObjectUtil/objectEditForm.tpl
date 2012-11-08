@@ -28,5 +28,6 @@
 		{/foreach}
 		<input type="submit" name="submitReturnToList" value="Save Changes and Return"/>
 		<input type="submit" name="submitStay" value="Save Changes and Stay Here"/>
+		<input type="submit" name="submitAddAnother" value="Save Changes and Add Another"/>
 	</div>
 </form>

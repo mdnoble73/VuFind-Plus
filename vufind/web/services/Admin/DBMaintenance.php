@@ -49,26 +49,13 @@ class DBMaintenance extends Admin {
 					$updateOk = true;
 					foreach ($sqlStatements as $sql){
 						//Give enough time for long queries to run
-						set_time_limit(120);
-						if (method_exists($this, $sql)){
-							$this->$sql();
-						}else{
-							$result = mysql_query($sql);
-							if ($result == 0 || $result == false){
-								if (isset($update['continueOnError']) && $update['continueOnError']){
-									if (!isset($update['status'])) $update['status'] = '';
-									$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
-								}else{
-									$update['status'] = 'Update failed ' . mysql_error();
-									$updateOk = false;
-									break;
-								}
-							}else{
-								if (!isset($update['status'])){
-									$update['status'] = 'Update succeeded';
-								}
-							}
 
+						if (method_exists($this, $sql)){
+							$this->$sql(&$update);
+						}else{
+							if (!$this->runSQLStatement(&$update, $sql)){
+								break;
+							}
 						}
 					}
 					if ($updateOk){
@@ -1221,7 +1208,80 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'alpha_browse_setup_5' => array(
+			'title' => 'Alphabetic Browse scoped tables',
+			'description' => 'Create Scoping tables for global and all libraries.',
+			'continueOnError' => true,
+			'dependencies' => array(),
+			'sql' => array(
+				//Add firstChar fields
+				"ALTER TABLE `title_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE title_browse ADD INDEX ( `firstChar` )",
+				'UPDATE title_browse set firstChar = substr(sortValue, 1, 1);',
+				"ALTER TABLE `author_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE author_browse ADD INDEX ( `firstChar` )",
+				'UPDATE author_browse set firstChar = substr(sortValue, 1, 1);',
+				"ALTER TABLE `subject_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE subject_browse ADD INDEX ( `firstChar` )",
+				'UPDATE subject_browse set firstChar = substr(sortValue, 1, 1);',
+				"ALTER TABLE `callnumber_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE callnumber_browse ADD INDEX ( `firstChar` )",
+				'UPDATE callnumber_browse set firstChar = substr(sortValue, 1, 1);',
+				//Create global tables
+				'CREATE TABLE `title_browse_scoped_results_global` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM',
+				'CREATE TABLE `author_browse_scoped_results_global` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM',
+				'CREATE TABLE `subject_browse_scoped_results_global` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM',
+				'CREATE TABLE `callnumber_browse_scoped_results_global` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM',
+				//Truncate old data
+				"TRUNCATE TABLE `title_browse_scoped_results_global`",
+				"TRUNCATE TABLE `author_browse_scoped_results_global`",
+				"TRUNCATE TABLE `subject_browse_scoped_results_global`",
+				"TRUNCATE TABLE `callnumber_browse_scoped_results_global`",
+				//Load data from old method into tables
+				'INSERT INTO title_browse_scoped_results_global (`browseValueId`, record)
+					SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
+					FROM title_browse_scoped_results
+					WHERE scope = 0;',
+				'INSERT INTO author_browse_scoped_results_global (`browseValueId`, record)
+					SELECT author_browse_scoped_results.browseValueId, author_browse_scoped_results.record
+					FROM author_browse_scoped_results
+					WHERE scope = 0;',
+				'INSERT INTO subject_browse_scoped_results_global (`browseValueId`, record)
+					SELECT subject_browse_scoped_results.browseValueId, subject_browse_scoped_results.record
+					FROM subject_browse_scoped_results
+					WHERE scope = 0;',
+				'INSERT INTO callnumber_browse_scoped_results_global (`browseValueId`, record)
+					SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
+					FROM callnumber_browse_scoped_results
+					WHERE scope = 0;',
+				'createScopingTables',
+				'DROP TABLE title_browse_scoped_results',
+				'DROP TABLE author_browse_scoped_results',
+				'DROP TABLE subject_browse_scoped_results',
+				'DROP TABLE callnumber_browse_scoped_results',
 
+			),
+		),
 
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
@@ -1395,6 +1455,28 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'remove_old_tables_2' => array(
+			'title' => 'Remove old tables 2',
+			'description' => 'Remove tables that are no longer needed due to changes in functionality',
+			'dependencies' => array(),
+			'sql' => array(
+				'DROP TABLE IF EXISTS administrators',
+				'DROP TABLE IF EXISTS administrators_to_roles',
+				'DROP TABLE IF EXISTS resource_callnumber',
+				'DROP TABLE IF EXISTS resource_subject',
+			),
+		),
+
+		'remove_old_tables_3' => array(
+			'title' => 'Remove usage tracking tables',
+			'description' => 'Remove usage tracking tables (replaced with better analytics)',
+			'dependencies' => array(),
+			'sql' => array(
+				'DROP TABLE IF EXISTS usagetracking',
+				'DROP TABLE IF EXISTS usage_tracking',
+			),
+		),
+
 		'rename_tables' => array(
 			'title' => 'Rename tables',
 			'description' => 'Rename tables for consistency and cross platform usage',
@@ -1533,6 +1615,21 @@ class DBMaintenance extends Admin {
 					"KEY ( `libraryId`, `storeId` ), " .
 					"PRIMARY KEY ( `id` )" .
 				") ENGINE = InnoDB"
+			),
+		),
+
+		'ptype' => array(
+			'title' => 'P-Type',
+			'description' => 'Create tables to store information related to P-Types.',
+			'dependencies' => array(),
+			'sql' => array(
+				'CREATE TABLE IF NOT EXISTS ptype(
+					id INT(11) NOT NULL AUTO_INCREMENT,
+					pType INT(11) NOT NULL,
+					maxHolds INT(11) NOT NULL DEFAULT 300,
+					UNIQUE KEY (pType),
+					PRIMARY KEY (id)
+				)',
 			),
 		),
 
@@ -1695,4 +1792,85 @@ class DBMaintenance extends Admin {
 		}
 	}
 
+	function createScopingTables($update){
+		//Create global scoping tables
+		$library = new Library();
+		$library->find();
+		while ($library->fetch()){
+			$this->runSQLStatement(&$update,
+				"CREATE TABLE `title_browse_scoped_results_library_{$library->subdomain}` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM");
+			$this->runSQLStatement(&$update,
+				"CREATE TABLE `author_browse_scoped_results_library_{$library->subdomain}` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM");
+			$this->runSQLStatement(&$update,
+				"CREATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM");
+			$this->runSQLStatement(&$update,
+				"CREATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` (
+					`browseValueId` INT( 11 ) NOT NULL ,
+					`record` VARCHAR( 50 ) NOT NULL ,
+					PRIMARY KEY ( `browseValueId` , `record` ) ,
+					INDEX ( `browseValueId` )
+				) ENGINE = MYISAM");
+			//Truncate old data
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update,
+				"INSERT INTO title_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+					SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
+					FROM title_browse_scoped_results
+					WHERE scope = 1 and scopeId = {$library->libraryId};");
+			$this->runSQLStatement(&$update,
+				"INSERT INTO author_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+					SELECT author_browse_scoped_results.browseValueId, author_browse_scoped_results.record
+					FROM author_browse_scoped_results
+					WHERE scope = 1 and scopeId = {$library->libraryId};");
+			$this->runSQLStatement(&$update,
+				"INSERT INTO subject_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+					SELECT subject_browse_scoped_results.browseValueId, subject_browse_scoped_results.record
+					FROM subject_browse_scoped_results
+					WHERE scope = 1 and scopeId = {$library->libraryId};");
+			$this->runSQLStatement(&$update,
+				"INSERT INTO callnumber_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+					SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
+					FROM callnumber_browse_scoped_results
+					WHERE scope = 1 and scopeId = {$library->libraryId};");
+		}
+
+	}
+
+	function runSQLStatement($update, $sql){
+		set_time_limit(360);
+		$result = mysql_query($sql);
+		$updateOk = true;
+		if ($result == 0 || $result == false){
+			if (isset($update['continueOnError']) && $update['continueOnError']){
+				if (!isset($update['status'])) $update['status'] = '';
+				$update['status'] .= 'Warning: ' . mysql_error() . "<br/>";
+			}else{
+				$update['status'] = 'Update failed ' . mysql_error();
+				$updateOk = false;
+			}
+		}else{
+			if (!isset($update['status'])){
+				$update['status'] = 'Update succeeded';
+			}
+		}
+		return $updateOk;
+	}
 }

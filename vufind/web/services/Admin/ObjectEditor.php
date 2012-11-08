@@ -375,6 +375,8 @@ abstract class ObjectEditor extends Admin
 		global $configArray;
 		if (isset($_REQUEST['submitStay'])){
 			header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=$id");
+		}elseif (isset($_REQUEST['submitAddAnother'])){
+			header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}?objectAction=addNew");
 		}else{
 			$redirectLocation = $this->getRedirectLocation($objectAction, $curObject);
 			if (is_null($redirectLocation)){
