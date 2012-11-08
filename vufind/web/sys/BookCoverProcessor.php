@@ -385,7 +385,7 @@ class BookCoverProcessor{
 	function getDefaultCover(){
 		$useDefaultNoCover = true;
 
-		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}");
+		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
 		$themeName = $this->configArray['Site']['theme'];
 		if (isset($this->format) && strlen($this->format) > 0){
 
