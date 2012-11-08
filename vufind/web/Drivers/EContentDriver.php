@@ -712,9 +712,6 @@ class EContentDriver implements DriverInterface{
 				$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$id}&user={$user->id}";
 				$ret = file_get_contents($strandsUrl);
 			}
-
-			// Log the usageTracking data
-			UsageTracking::logTrackingData('numHolds');
 		}
 		return $return;
 	}

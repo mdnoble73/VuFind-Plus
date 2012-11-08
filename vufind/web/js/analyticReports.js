@@ -456,3 +456,52 @@ function getPageViewsByHomeLocationData(){
 		}
 	);
 }
+
+var pageViewsByPhysicalLocationChart;
+function setupPageViewsByPhysicalLocationChart() {
+	pageViewsByPhysicalLocationChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'pageViewsByPhysicalLocationChart',
+			type: 'bar',
+			events: {
+				load: getPageViewsByPhysicalLocationData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Page Views By Physical Location'
+		},
+		xAxis: {
+			title: {
+				text: 'Physical Location'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: 'Page Views'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Page Views',
+			data: []
+		}]
+	});
+}
+function getPageViewsByPhysicalLocationData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByPhysicalLocationData" + filterParms,
+		function(data) {
+			var categories = new Array();
+			$.each(data, function(i, val){
+				pageViewsByPhysicalLocationChart.series[0].addPoint(val, true, false);
+				categories.push( val[0]);
+			});
+			pageViewsByPhysicalLocationChart.xAxis[0].setCategories(categories);
+		}
+	);
+}

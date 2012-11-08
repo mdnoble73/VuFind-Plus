@@ -57,4 +57,6 @@ class PageViews extends AnalyticsReport{
 		}
 		$interface->assign('slowPages', $slowPages);
 	}
+
+
 }

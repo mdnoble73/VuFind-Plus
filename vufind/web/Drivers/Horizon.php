@@ -1822,11 +1822,6 @@ public function renewItem($patronId, $itemId){
 		}else{
 			$ret =  $this->renewItemViaSIP($patronId, $itemId);
 		}
-		if ($ret['result'] == true){
-			// Log the usageTracking data
-			$usageTracking = new UsageTracking();
-			$usageTracking->logTrackingData('numRenewals', 1, $ipLocation, $ipId);
-		}
 
 		return $ret;
 	}
@@ -1923,10 +1918,6 @@ public function renewItem($patronId, $itemId){
 		}else{
 			$success = true;
 			$message = "Item renewed successfully.";
-
-			// Log the usageTracking data
-			$usageTracking = new UsageTracking();
-			$usageTracking->logTrackingData('numRenewals', 1, $ipLocation);
 		}
 
 		unlink($cookie);
@@ -2067,11 +2058,6 @@ public function renewItem($patronId, $itemId){
 						$hold_result['message'] = "$numRenewed of $totalItemsToRenew items were renewed successfully.";
 					}else{
 						$hold_result['message'] = "All items were renewed successfully.";
-					}
-					if ($numRenewed > 0){
-						// Log the usageTracking data
-						$usageTracking = new UsageTracking();
-						$usageTracking->logTrackingData('numRenewals', $numRenewed, $ipLocation, $ipId);
 					}
 				}
 			}
@@ -2284,8 +2270,6 @@ public function renewItem($patronId, $itemId){
 				$ret = file_get_contents($strandsUrl);
 			}
 
-			// Log the usageTracking data
-			UsageTracking::logTrackingData('numHolds');
 		}
 		return $result;
 	}

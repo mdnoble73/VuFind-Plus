@@ -33,6 +33,11 @@
 		<div id="pageViewsByHomeLocationChart" class="dashboardChart">
 		</div>
 	</div>
+	
+	<div id="pageViewsByPhysicalLocationContainer" class="reportContainer">
+		<div id="pageViewsByPhysicalLocationChart" class="dashboardChart">
+		</div>
+	</div>
 </div>
 <div class="clearer"></div>
 {/strip}
@@ -45,6 +50,7 @@ $(document).ready(function() {
 	setupPageViewsByThemeChart();
 	setupPageViewsByDeviceChart();
 	setupPageViewsByHomeLocationChart();
+	setupPageViewsByPhysicalLocationChart();
 });
 {/literal}
 </script>

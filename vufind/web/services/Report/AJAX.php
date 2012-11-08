@@ -234,4 +234,23 @@ class AJAX extends Action {
 
 		return $pageViewsByDeviceRaw;
 	}
+
+	function getPageViewsByPhysicalLocationData(){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$session = new Analytics_Session();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('physicalLocation');
+		$pageViews->groupBy('physicalLocation');
+		$pageViews->orderBy('numViews DESC');
+		$pageViews->find();
+		$pageViewsByDeviceRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByDeviceRaw[] = array ($pageViews->physicalLocation, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByDeviceRaw;
+	}
 }
