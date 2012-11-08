@@ -3,6 +3,7 @@ require_once 'sys/analytics/Analytics_Session.php';
 require_once 'sys/analytics/Analytics_Event.php';
 require_once 'sys/analytics/Analytics_Search.php';
 require_once 'sys/analytics/Analytics_PageView.php';
+require_once 'sys/BotChecker.php';
 
 class Analytics
 {
