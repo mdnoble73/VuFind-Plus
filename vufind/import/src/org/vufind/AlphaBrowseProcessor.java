@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 //import org.apache.commons.collections.map.LRUMap;
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 
@@ -47,14 +48,14 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private String callNumberSubfield;
 	private String locationSubfield;
 	
-	//@SuppressWarnings("unchecked")
-	private Map<String, Long> existingBrowseValuesTitle = new HashMap<String, Long>(); //new LRUMap(25000);
-	//@SuppressWarnings("unchecked")
-	private Map<String, Long> existingBrowseValuesAuthor = new HashMap<String, Long>(); //new LRUMap(25000);
-	//@SuppressWarnings("unchecked")
-	private Map<String, Long> existingBrowseValuesSubject = new HashMap<String, Long>(); //new LRUMap(40000);
-	//@SuppressWarnings("unchecked")
-	private Map<String, Long> existingBrowseValuesCallNumber = new HashMap<String, Long>(); //new LRUMap(40000);
+	@SuppressWarnings("unchecked")
+	private Map<String, Long> existingBrowseValuesTitle = new LRUMap(10000); //new HashMap<String, Long>();
+	@SuppressWarnings("unchecked")
+	private Map<String, Long> existingBrowseValuesAuthor = new LRUMap(10000); //new HashMap<String, Long>();
+	@SuppressWarnings("unchecked")
+	private Map<String, Long> existingBrowseValuesSubject = new LRUMap(20000); //new HashMap<String, Long>();
+	@SuppressWarnings("unchecked")
+	private Map<String, Long> existingBrowseValuesCallNumber = new LRUMap(20000); //new HashMap<String, Long>(); 
 	
 	private boolean clearAlphaBrowseAtStartOfIndex = false;
 	private boolean updateAlphaBrowseForUnchangedRecords = false;
@@ -113,15 +114,15 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				clearTitleBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM title_browse_scoped_results_library_" + subdomain + " where record = ?"));
 			}
 			
-			getExistingTitleBrowseValue = vufindConn.prepareStatement("SELECT id from title_browse WHERE firstChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			getExistingAuthorBrowseValue = vufindConn.prepareStatement("SELECT id from author_browse WHERE firstChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			getExistingSubjectBrowseValue = vufindConn.prepareStatement("SELECT id from subject_browse WHERE firstChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			getExistingCallNumberBrowseValue = vufindConn.prepareStatement("SELECT id from callnumber_browse WHERE firstChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingTitleBrowseValue = vufindConn.prepareStatement("SELECT id from title_browse WHERE firstChar = ? and secondChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingAuthorBrowseValue = vufindConn.prepareStatement("SELECT id from author_browse WHERE firstChar = ? and secondChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingSubjectBrowseValue = vufindConn.prepareStatement("SELECT id from subject_browse WHERE firstChar = ? and secondChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingCallNumberBrowseValue = vufindConn.prepareStatement("SELECT id from callnumber_browse WHERE firstChar = ? and secondChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			
-			insertTitleBrowseValue = vufindConn.prepareStatement("INSERT INTO title_browse (value, sortValue, alphaRank, firstChar) VALUES (?, ?, 0, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			insertAuthorBrowseValue = vufindConn.prepareStatement("INSERT INTO author_browse (value, sortValue, alphaRank, firstChar) VALUES (?, ?, 0, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			insertSubjectBrowseValue = vufindConn.prepareStatement("INSERT INTO subject_browse (value, sortValue, alphaRank, firstChar) VALUES (?, ?, 0, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
-			insertCallNumberBrowseValue = vufindConn.prepareStatement("INSERT INTO callnumber_browse (value, sortValue, alphaRank, firstChar) VALUES (?, ?, 0, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertTitleBrowseValue = vufindConn.prepareStatement("INSERT INTO title_browse (value, sortValue, alphaRank, firstChar, secondChar) VALUES (?, ?, 0, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertAuthorBrowseValue = vufindConn.prepareStatement("INSERT INTO author_browse (value, sortValue, alphaRank, firstChar, secondChar) VALUES (?, ?, 0, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertSubjectBrowseValue = vufindConn.prepareStatement("INSERT INTO subject_browse (value, sortValue, alphaRank, firstChar, secondChar) VALUES (?, ?, 0, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			insertCallNumberBrowseValue = vufindConn.prepareStatement("INSERT INTO callnumber_browse (value, sortValue, alphaRank, firstChar, secondChar) VALUES (?, ?, 0, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			
 			
 			insertTitleBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
@@ -303,8 +304,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					resourceLocations.add(localCallNumber.getLocationId());
 				}
 			}
-			//logger.debug("  '" + callNumber + "'");
-			addRecordIdToBrowse("callnumber", resourceLibraries, resourceLocations, callNumber, callNumberSort, recordIdFull);
+			//logger.debug("  '" + callNumberSort + "' - '" + callNumber + "'");
+			if (callNumberSort.length() > 0){
+				addRecordIdToBrowse("callnumber", resourceLibraries, resourceLocations, callNumber, callNumberSort, recordIdFull);
+			}
 		}
 	}
 
@@ -496,6 +499,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				insertValueStatement.setString(1, browseValue);
 				insertValueStatement.setString(2, Util.trimTo(255, sortValue));
 				insertValueStatement.setString(3, sortValue.substring(0, 1));
+				insertValueStatement.setString(4, (sortValue.length() > 1) ? sortValue.substring(1, 2) : " ");
 				insertValueStatement.executeUpdate();
 				ResultSet browseValueIdRS = insertValueStatement.getGeneratedKeys();
 				if (browseValueIdRS.next()){
@@ -537,7 +541,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		Long existingBrowseValueId = existingValues.get(browseValue);
 		if (existingBrowseValueId == null){
 			getExistingBrowseValueStatement.setString(1, sortValue.substring(0, 1));
-			getExistingBrowseValueStatement.setString(2, Util.trimTo(255, browseValue));
+			getExistingBrowseValueStatement.setString(2, (sortValue.length() > 1) ? sortValue.substring(1, 2) : " ");
+			getExistingBrowseValueStatement.setString(3, Util.trimTo(255, browseValue));
 			ResultSet existingValueRS = getExistingBrowseValueStatement.executeQuery();
 			if (existingValueRS.next()){
 				existingBrowseValueId = existingValueRS.getLong("id");

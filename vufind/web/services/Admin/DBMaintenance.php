@@ -1283,6 +1283,27 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'alpha_browse_setup_6' => array(
+			'title' => 'Alphabetic Browse second letter',
+			'description' => 'Add second char to the tables.',
+			'continueOnError' => true,
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE `title_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE title_browse ADD INDEX ( `secondChar` )",
+				'UPDATE title_browse set secondChar = substr(sortValue, 2, 1);',
+				"ALTER TABLE `author_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE author_browse ADD INDEX ( `secondChar` )",
+				'UPDATE author_browse set secondChar = substr(sortValue, 2, 1);',
+				"ALTER TABLE `subject_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE subject_browse ADD INDEX ( `secondChar` )",
+				'UPDATE subject_browse set secondChar = substr(sortValue, 2, 1);',
+				"ALTER TABLE `callnumber_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+				"ALTER TABLE callnumber_browse ADD INDEX ( `secondChar` )",
+				'UPDATE callnumber_browse set secondChar = substr(sortValue, 2, 1);',
+			),
+		),
+
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
 			'description' => 'Create Reindex Log table to track reindexing.',
