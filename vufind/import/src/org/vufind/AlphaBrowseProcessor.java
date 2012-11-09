@@ -362,17 +362,25 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			HashSet<Long> resourceLocations = getLocationsForEContentRecord(econtentId);
 			//logger.debug("found " + resourceLocations.size() + " locations for the resource");
 			//Setup title browse
-			addRecordIdToBrowse("title", resourceLibraries, resourceLocations, title, sortTitle, recordIdFull);
+			if (sortTitle.length() >= 1){
+				addRecordIdToBrowse("title", resourceLibraries, resourceLocations, title, sortTitle, recordIdFull);
+			}
 			
 			//Setup author browse
 			for (String curAuthorSortable: browseAuthors.keySet()){
-				addRecordIdToBrowse("author", resourceLibraries, resourceLocations, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
+				if (curAuthorSortable.length() >= 1){
+					addRecordIdToBrowse("author", resourceLibraries, resourceLocations, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
+				}
 			}
 			
 			//Setup subject browse
 			for (String curSubjectSortable: browseSubjects.keySet()){
-				addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
+				if (curSubjectSortable.length() >= 1){
+					addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
+				}
 			}
+			
+			//No call numbers for digital content
 			
 			results.incAdded();
 			return true;
