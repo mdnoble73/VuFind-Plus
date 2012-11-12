@@ -1,3 +1,4 @@
+{strip}
 <script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
@@ -37,9 +38,6 @@
 		You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 	{/if}
 	</div>
+	{include file="footer.tpl"}
 </div>
-<script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-		doGetRatings();
-	{literal} }); {/literal}
-</script>
+{/strip}

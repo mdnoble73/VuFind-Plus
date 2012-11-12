@@ -3,16 +3,12 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
-			{if is_array($recordList) && count($recordList) > 0}
-				{assign var=sectionKey value='unavailable'}
-				{* Check to see if there is data for the secion *}
-				<div class='holdSection'>
-					{if $sectionKey=='available'}
-						<a name="availableHoldsSection" rel="section"></a>
-					{else}
-						<a name="unavailableHoldsSection" rel="section"></a>
-					{/if}
+			{assign var=sectionKey value='unavailable'}
+			<div class='holdSection'>
+				<a name="unavailableHoldsSection" rel="section"></a>
+				{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
 					<h3 class="myAccountTitle">{translate text='Titles On Hold'}</h3>
+					{* Check to see if there is data for the secion *}
 					<div class='holdSectionBody'>
 						<ul class="results holds" data-role="listview">
 						{foreach from=$recordList.$sectionKey item=resource name="recordLoop"}
@@ -46,15 +42,16 @@
 									{/if}
 								</div>
 								</a>
-								<a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" rel="external" data-icon="delete" id="cancelHold{$resource.cancelId|escape}">Cancel Hold</a>
+								<a href="{$path}/MyResearch/Holds?section=unavailable&amp;multiAction=cancelSelected&amp;waitingholdselected[]={$resource.cancelId|escape:"id"}" rel="external" data-icon="delete" id="cancelHold{$resource.cancelId|escape}">Cancel Hold</a>
 							</li>
 						{/foreach}
 						</ul>
 					</div>
-				</div>
-			{else}
-				<p>{translate text='You do not have any holds placed'}.</p>
-			{/if}
+					
+				{else}
+					<p>{translate text='You do not have any holds placed'}.</p>
+				{/if}
+			</div>
 		{else}
 			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}

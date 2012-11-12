@@ -6,17 +6,18 @@
 			
 			{* Check to see if there is data for the secion *}
 			<div class='holdSection'>
-				<h3 class='holdSectionTitle'>{translate text='Holds Ready For Pickup'}</h3>
-				{if $userNoticeFile}
-					{include file=$userNoticeFile}
-				{/if}
-				
 				{assign var=sectionKey value='available'}
 				<div class='holdSectionBody'>
-					{if $libraryHoursMessage}
-						<div class='libraryHours'>{$libraryHoursMessage}</div>
-					{/if}
 					{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
+						<h3 class='holdSectionTitle'>{translate text='Holds Ready For Pickup'}</h3>
+						{if $userNoticeFile}
+							{include file=$userNoticeFile}
+						{/if}
+						
+						{if $libraryHoursMessage}
+							<div class='libraryHours'>{$libraryHoursMessage}</div>
+						{/if}
+				
 						<ul class="results holds" data-role="listview">
 						{foreach from=$recordList.$sectionKey item=resource name="recordLoop"}
 							<li>
@@ -49,12 +50,12 @@
 									{/if}
 								</div>
 								</a>
-								<a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" rel="external" data-icon="delete">Cancel Hold</a>
+								<a href="{$path}/MyResearch/Holds?section=available&amp;multiAction=cancelSelected&amp;availableholdselected[]={$resource.cancelId|escape:"url"}" rel="external" data-icon="delete">Cancel Hold</a>
 							</li>
 						{/foreach}
 						</ul>
 					{else}
-						<p>{translate text='You do not have any holds placed'}.</p>
+						<p>{translate text='You do not have any holds ready for pickup'}.</p>
 					{/if}
 				</div>
 			</div>
