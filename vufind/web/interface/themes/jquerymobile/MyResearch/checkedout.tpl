@@ -3,6 +3,9 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
 			<h3>{translate text='Your Checked Out Items'}</h3>
 			{if $renew_message}
 				{$renew_message}

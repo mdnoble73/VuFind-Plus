@@ -3,6 +3,9 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
 			{assign var=sectionKey value='unavailable'}
 			<div class='holdSection'>
 				<a name="unavailableHoldsSection" rel="section"></a>

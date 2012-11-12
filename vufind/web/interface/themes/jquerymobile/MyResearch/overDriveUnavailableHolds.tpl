@@ -10,6 +10,9 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 	{if $user}
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
 		<h3 class="myAccountTitle">{translate text='On Hold in OverDrive'}</h3>
 		{if count($overDriveHolds.unavailable) > 0}
 			<div class='holdSection'>

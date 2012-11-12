@@ -12,6 +12,10 @@
   
 	<div id="main-content">
 	{if $user}
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
+		
 		<div class="myAccountTitle">{translate text='Your OverDrive Wish List'}</div>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}

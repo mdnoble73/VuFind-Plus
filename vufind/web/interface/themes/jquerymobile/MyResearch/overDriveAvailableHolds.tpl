@@ -9,6 +9,9 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 	{if $user}
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
 		{if count($overDriveHolds.available) > 0}
 			<h1>Titles available for checkout</h1>
 			<div class='holdSectionBody'>

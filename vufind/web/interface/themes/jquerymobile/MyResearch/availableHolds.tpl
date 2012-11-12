@@ -3,7 +3,9 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
-			
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
 			{* Check to see if there is data for the secion *}
 			<div class='holdSection'>
 				{assign var=sectionKey value='available'}

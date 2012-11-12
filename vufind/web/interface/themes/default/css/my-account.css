@@ -215,3 +215,14 @@
 .adminMenuHeader:first{
 	padding-top: 0px;
 }
+#web_note{
+	text-align: center;
+	margin: 8px;
+	padding: 8px;
+	background-color: #EDEDED;
+	border: 1px solid #949494;
+	border-radius: 4px;
+	font-weight: bold;
+	font-family: sans-serif;
+	color: darkblue;
+}

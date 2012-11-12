@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
+{strip}
 {if (isset($title)) }
 <script type="text/javascript">
 	alert("{$title}");
@@ -8,6 +8,9 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user}
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
 			{if count($checkedOut) > 0}
 				<ul class="results checkedout-list" data-role="listview">
 				{foreach from=$checkedOut item=record}
@@ -49,5 +52,6 @@
 		You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 	{/if}
 	</div>
+	{include file="footer.tpl"}
 </div>
-{include file="footer.tpl"}
+{/strip}

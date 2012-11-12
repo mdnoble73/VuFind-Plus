@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
+{strip}
 {if (isset($title)) }
 <script type="text/javascript">
 		alert("{$title}");
@@ -28,6 +28,10 @@
 					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
 					recommendedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
 				</script>
+			{/if}
+			
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
 			{/if}
 					
 			<div class="myAccountTitle">{translate text='Your Checked Out eContent'}</div>
@@ -133,3 +137,4 @@
 		doGetRatings();
 	{literal} }); {/literal}
 </script>
+{/strip}

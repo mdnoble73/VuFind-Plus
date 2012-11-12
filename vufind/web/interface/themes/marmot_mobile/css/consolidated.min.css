@@ -82,4 +82,5 @@ td{font-size:14px}label,legend,.ui-controlgroup-label{font-size:14px !important;
 a{color:#8a1f11}.notice
 a{color:#514721}.success
 a{color:#264409}.info
-a{color:#205791}.renewPassed{font-weight:bold;color:green}.renewFailed{font-weight:bold;color:red}.overdueLabel{font-weight:bold;color:red}.dueSoonLabel{font-weight:bold;color:#E58E29}div.pageWarning{font-weight:bold;margin:10px;width:100%;text-align:center;color:#900;+}
+a{color:#205791}.renewPassed{font-weight:bold;color:green}.renewFailed{font-weight:bold;color:red}.overdueLabel{font-weight:bold;color:red}.dueSoonLabel{font-weight:bold;color:#E58E29}div.pageWarning{font-weight:bold;margin:10px;width:100%;text-align:center;color:#900}#web_note{text-align:center;margin:8px;padding:8px;background-color:#EDEDED;border:1px
+solid #949494;border-radius:4px;font-weight:bold;font-family:sans-serif;color:darkblue}

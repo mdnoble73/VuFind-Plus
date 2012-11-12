@@ -27,6 +27,9 @@
 				</script>
 			{/if}
 
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
 
 			<div class="myAccountTitle">{translate text='Holds Ready For Pickup'}</div>
 			{if $userNoticeFile}
