@@ -3,7 +3,6 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
-			<h3>{translate text='Your Holds'}</h3>
 			{if is_array($recordList) && count($recordList) > 0}
 				{assign var=sectionKey value='unavailable'}
 				{* Check to see if there is data for the secion *}
@@ -13,10 +12,10 @@
 					{else}
 						<a name="unavailableHoldsSection" rel="section"></a>
 					{/if}
-					<div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
+					<h3 class="myAccountTitle">{translate text='Titles On Hold'}</h3>
 					<div class='holdSectionBody'>
 						<ul class="results holds" data-role="listview">
-						{foreach from=$recordData item=resource name="recordLoop"}
+						{foreach from=$recordList.$sectionKey item=resource name="recordLoop"}
 							<li>
 								<a rel="external" href="{if !empty($resource.id)}{$path}/Record/{$resource.id|escape}{else}#{/if}">
 								<div class="result">

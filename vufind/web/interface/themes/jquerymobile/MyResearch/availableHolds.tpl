@@ -3,20 +3,22 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
-			<h3>{translate text='Your Holds'}</h3>
-			{if is_array($recordList) && count($recordList) > 0}
+			
+			{* Check to see if there is data for the secion *}
+			<div class='holdSection'>
+				<h3 class='holdSectionTitle'>{translate text='Holds Ready For Pickup'}</h3>
+				{if $userNoticeFile}
+					{include file=$userNoticeFile}
+				{/if}
+				
 				{assign var=sectionKey value='available'}
-				{* Check to see if there is data for the secion *}
-				<div class='holdSection'>
-					{if $sectionKey=='available'}
-						<a name="availableHoldsSection" rel="section"></a>
-					{else}
-						<a name="unavailableHoldsSection" rel="section"></a>
+				<div class='holdSectionBody'>
+					{if $libraryHoursMessage}
+						<div class='libraryHours'>{$libraryHoursMessage}</div>
 					{/if}
-					<div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
-					<div class='holdSectionBody'>
+					{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
 						<ul class="results holds" data-role="listview">
-						{foreach from=$recordData item=resource name="recordLoop"}
+						{foreach from=$recordList.$sectionKey item=resource name="recordLoop"}
 							<li>
 								<a rel="external" href="{if !empty($resource.id)}{$path}/Record/{$resource.id|escape}{else}#{/if}">
 								<div class="result">
@@ -51,11 +53,11 @@
 							</li>
 						{/foreach}
 						</ul>
-					</div>
+					{else}
+						<p>{translate text='You do not have any holds placed'}.</p>
+					{/if}
 				</div>
-			{else}
-				<p>{translate text='You do not have any holds placed'}.</p>
-			{/if}
+			</div>
 		{else}
 			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}
