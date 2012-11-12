@@ -15,18 +15,8 @@
 		//]]>
 		</script>
 
-		{css filename="jqueryui.css"}
-		{css filename="jqueryui.css"}
-		{css filename="jquery.mobile-1.1.1.min.css"}
-		{js filename="jquery-1.7.1.min.js"}
-		{js filename="jquery-ui-1.8.18.custom.min.js"}
-		{js filename="jquery.mobile-1.1.1.min.js"}
-		{js filename="common.js"}
-		{js filename="jquery_cookie.js"}
-		{js filename="cart_cookie.js"}
-		{js filename="cart.js"}		
-		{css filename="styles.css"}
-		{css filename="formats.css"}
+		{css filename="consolidated.min.css"}
+		{js filename="consolidated.min.js"}
 	</head> 
 	<body>
 		{if $hold_message}

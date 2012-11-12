@@ -101,7 +101,7 @@ function consolidateFiles($info, $themes, $minify){
 		if ($fileContents != null){
 			fwrite($fileGeneratedFileHnd, "/* $filename */\r\n");
 			//minify the css
-			if ($minify){
+			if ($minify && !preg_match('/.*\.min\.css$/i', $filename)){
 				$minifiedCss = Minify_CSS::minify($fileContents, array());
 			}else{
 				$minifiedCss = $fileContents;
@@ -126,7 +126,7 @@ function consolidateFiles($info, $themes, $minify){
 		if ($fileContents != null){
 			fwrite($fileGeneratedFileHnd, "/* $filename */\r\n");
 			//minify the javascript
-			if ($minify){
+			if ($minify && !preg_match('/.*\.min\.js$/i', $filename)){
 				$minifiedJs = JSMin::minify($fileContents);
 			}else{
 				$minifiedJs = $fileContents;
