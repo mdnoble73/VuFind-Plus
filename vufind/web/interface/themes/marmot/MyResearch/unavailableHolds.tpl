@@ -147,7 +147,7 @@
 												<div class="searchResultSectionInfo">
 													{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
 												</div>
-												{/if}f
+												{/if}
 										</div>
 
 										<div class="resultItemLine2">

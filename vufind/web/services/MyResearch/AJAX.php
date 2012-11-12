@@ -33,7 +33,7 @@ class AJAX extends Action {
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList'))){
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -113,25 +113,38 @@ class AJAX extends Action {
 		//Get the list of pickup branch locations for display in the user interface.
 		$patron = $catalog->patronLogin($username, $password);
 		if ($patron == null){
-			$output = "<result>\n" .
-											"	<PickupLocations>\n";
-			$output .= "	</PickupLocations>\n" .
-											 '</result>';
+			$result = array(
+				'PickupLocations' => array(),
+				'loginFailed' => true
+			);
 		}else{
-
-			$output = "<result>\n" .
-											"	<PickupLocations>\n";
-
 			$patronProfile = $catalog->getMyProfile($patron);
 
 			$location = new Location();
 			$locationList = $location->getPickupBranches($patronProfile, $patronProfile['homeLocationId']);
-
-			foreach ($locationList as $location){
-				$output .= "<Location id='{$location->code}' selected='{$location->selected}'>$location->displayName</Location>";
+			$pickupLocations = array();
+			foreach ($locationList as $curLocation){
+				$pickupLocations[] = array(
+					'id' => $curLocation->locationId,
+					'displayName' => $curLocation->displayName,
+					'selected' => $curLocation->selected,
+				);
+			}
+			require_once 'Drivers/marmot_inc/PType.php';
+			$maxHolds = -1;
+			//Determine if we should show a warning
+			$ptype = new PType();
+			$ptype->pType = $patronProfile['ptype'];
+			if ($ptype->find(true)){
+				$maxHolds = $ptype->maxHolds;
+			}
+			$currentHolds = $patronProfile['numHolds'];
+			$holdCount = $_REQUEST['holdCount'];
+			$showOverHoldLimit = false;
+			if ($maxHolds != -1 && ($currentHolds + $holdCount > $maxHolds)){
+				$showOverHoldLimit = true;
 			}
 
-			$output .= "	</PickupLocations>\n";
 			//Also determine if the hold can be cancelled.
 			global $librarySingleton;
 			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
@@ -139,11 +152,16 @@ class AJAX extends Action {
 			if ($patronHomeBranch != null){
 				$showHoldCancelDate = $patronHomeBranch->showHoldCancelDate;
 			}
-			$output .= "	<AllowHoldCancellation>{$showHoldCancelDate}</AllowHoldCancellation>\n";
-			$output .= '</result>';
-
+			$result = array(
+				'PickupLocations' => $pickupLocations,
+				'loginFailed' => false,
+				'AllowHoldCancellation' => $showHoldCancelDate,
+				'showOverHoldLimit' => $showOverHoldLimit,
+				'maxHolds' => $maxHolds,
+				'currentHolds' => $currentHolds
+			);
 		}
-		return $output;
+		return json_encode($result);
 	}
 
 	function GetSuggestions(){

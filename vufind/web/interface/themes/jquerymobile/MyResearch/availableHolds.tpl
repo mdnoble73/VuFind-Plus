@@ -5,7 +5,7 @@
 		{if $user->cat_username}
 			<h3>{translate text='Your Holds'}</h3>
 			{if is_array($recordList) && count($recordList) > 0}
-				{foreach from=$recordList item=recordData key=sectionKey}
+				{assign var=sectionKey value='available'}
 				{* Check to see if there is data for the secion *}
 				<div class='holdSection'>
 					{if $sectionKey=='available'}
@@ -53,7 +53,6 @@
 						</ul>
 					</div>
 				</div>
-				{/foreach}
 			{else}
 				<p>{translate text='You do not have any holds placed'}.</p>
 			{/if}

@@ -48,6 +48,7 @@
 	zoom: 1;
 	*display: inline;
 	width: 150px;
+	text-align: left;
 }
 
 .loginFormRow{
@@ -168,11 +169,11 @@
 }
 .sortDescHeader{
   background-image: url(/images/sort_desc_icon.gif);
-  background-color: #3399F;
+  background-color: #3399FF;
 }
 .sortAscHeader{
   background-image: url(/images/sort_asc_icon.gif);
-  background-color: #3399F;
+  background-color: #3399FF;
 }
 
 #notice{

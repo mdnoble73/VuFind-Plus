@@ -183,6 +183,7 @@ class Holds extends MyResearch
 		$hasSeparateTemplates = $interface->template_exists('MyResearch/availableHolds.tpl');
 		if ($hasSeparateTemplates){
 			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
+			$interface->assign('section', $section);
 			if ($section == 'available'){
 				$interface->setPageTitle('Available Holds');
 				$interface->setTemplate('availableHolds.tpl');

@@ -114,6 +114,7 @@ function LoadComments(id, strings) {
 function GetPreferredBranches() {
 	var username = document.forms['placeHoldForm'].elements['username'].value;
 	var barcode = document.forms['placeHoldForm'].elements['password'].value;
+	var holdCount = document.forms['placeHoldForm'].elements['holdCount'].value;
 	if (username.length == 0 || barcode.length == 0) {
 		return;
 	}
@@ -121,49 +122,44 @@ function GetPreferredBranches() {
 	var url = path + "/MyResearch/AJAX";
 	var params = "method=GetPreferredBranches&username="
 	    + encodeURIComponent(username) + "&barcode="
-	    + encodeURIComponent(barcode);
+	    + encodeURIComponent(barcode) + "&holdCount=" 
+	    + encodeURIComponent(holdCount);
 	
-	$.ajax(url + "?" + params, {
-	  success : function(data) {
-		  if ($(data).find('result')) {
+	$.getJSON(url + "?" + params, function(data) {
+			if (data.loginFailed == false) {
+				var locations = data.PickupLocations;
+				$('#loginButton').hide();
+				$('#holdOptions').show();
+				// Remove the old options
+				var campus = document.placeHoldForm.campus;
+				campus.options.length = 0;
+				for (i = 0; i < locations.length; i++) {
+					campus.options[campus.options.length] = new Option(locations[i].displayName, 
+							locations[i].id, 
+							locations[i].selected);
+				}
+				// Check to see if the user can cancel the hold
+				/*var allowHoldCancellation = $(data).find("AllowHoldCancellation").text();
+				if (allowHoldCancellation == 1) {
+					$('#cancelHoldDate').show();
+				} else {
+					$('#cancelHoldDate').hide();
+				}*/
+				if (data.showOverHoldLimit == true){
+					$(".maxHolds").html(data.maxHolds);
+					$(".currentHolds").html(data.currentHolds);
+					$("#overHoldCountWarning").show();
+				}
+				// Enable the place hold button
+				$("#requestTitleButton").removeAttr('disabled');
+			} else {
+				$('#loginButton').show();
+				// document.getElementById('holdOptions').style.display = 'none';
+				alert('Invalid Login, please try again.');
+			}
 
-			  var locations = $(data).find('Location');
-			  if (locations.length > 0) {
-				  $('#loginButton').hide();
-				  $('#holdOptions').show();
-				  // Remove the old options
-				  var campus = document.placeHoldForm.campus;
-				  campus.options.length = 0;
-				  for (i = 0; i < locations.length; i++) {
-					  campus.options[campus.options.length] = new Option($(locations[i]).text(), 
-					      $(locations[i]).attr('id'), 
-					      $(locations[i]).attr('selected'));
-				  }
-				  // Check to see if the user can cancel the hold
-				  /*var allowHoldCancellation = $(data).find("AllowHoldCancellation").text();
-				  if (allowHoldCancellation == 1) {
-					  $('#cancelHoldDate').show();
-				  } else {
-					  $('#cancelHoldDate').hide();
-				  }*/
-				  // Enable the place hold button
-				  $("#requestTitleButton").removeAttr('disabled');
-			  } else {
-				  $('#loginButton').show();
-				  // document.getElementById('holdOptions').style.display = 'none';
-				  alert('Invalid Login, please try again.');
-			  }
-		  } else {
-			  alert('Error: Call to GetPreferredBranches failed.');
-		  }
-	  },
-	  failure : function(transaction) {
-		  alert('Failure: Could Not Load Preferred Branches');
-	  },
-	  error : function(jqXHR, textStatus, errorThrown) {
-		  alert('Error: Could Not Load Preferred Branches');
 	  }
-	});
+	);
 	
 	return false;
 }

@@ -1,5 +1,5 @@
 {strip}
-<a rel="external" href="{$path}/Record/{$summId|escape:'url'}/Holdings">
+<a rel="external" href="{$path}/Record/{$summId|escape:'url'}/Holdings" id="recordLink{$summShortId|escape}">
 	<div class="result recordId" id="record{$summShortId|escape}" data-record-id="{$summId}">
 		<h3 class="recordTitle">
 			{if !empty($summHighlightedTitle)}{$summHighlightedTitle|trim:':/'|highlight}{else}{$summTitle|trim:':/'|escape}{/if}
@@ -32,5 +32,5 @@
 		{/if}
 	</div>
 </a>
-<a href="#" data-record-id="{$summId|escape}" title="{translate text='Add to book bag'}" class="add_to_book_bag">{translate text="Add to book bag"}</a>
+<a id="selected{$summShortId|escape}" href="#" data-record-id="{$summId|escape}" title="{translate text='Add to book bag'}" class="add_to_book_bag">{translate text="Add to book bag"}</a>
 {/strip}

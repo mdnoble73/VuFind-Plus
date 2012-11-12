@@ -32,7 +32,7 @@
 				</div>
 				{/if}
 				<div id='loginSubmitButtonRow' class='loginFormRow'>
-					<input type="submit" name="submit" value="Login" />
+					<input type="submit" name="submit" value="Login" id="loginFormSubmit"/>
 					{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
         	{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
         	{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}"/>{/if}

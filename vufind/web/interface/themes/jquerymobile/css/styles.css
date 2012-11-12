@@ -227,3 +227,10 @@ div.footer-text {
 	font-weight: bold;
 	color: #E58E29;
 }
+div.pageWarning{
+	font-weight: bold;
+	margin: 10px;
+	width: 100%;
+	text-align: center;
+	color: #990000;
++}

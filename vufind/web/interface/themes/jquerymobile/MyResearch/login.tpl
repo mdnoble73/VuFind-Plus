@@ -18,7 +18,7 @@
 				{/if}
 			</div>
 			<div data-role="fieldcontain">
-				<input type="submit" name="submit" value="{translate text='Login'}"/>
+				<input type="submit" name="submit" value="{translate text='Login'}" id="loginFormSubmit"/>
 			</div>
 				{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
 				{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}

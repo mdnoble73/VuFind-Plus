@@ -1,9 +1,13 @@
 <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
-<script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
 <div data-role="page" id="Record-view">
 	{include file="header.tpl"}
 	<div class="record" data-role="content">
 		<form name="placeHoldForm" id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post" data-ajax="true">
+			<div class="holdsSummary">
+				<h3>Placing hold on <span id='newHoldCount'>1</span> title.</h3>
+				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
+				<div class="pageWarning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
+			</div>
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>
 			{/if}

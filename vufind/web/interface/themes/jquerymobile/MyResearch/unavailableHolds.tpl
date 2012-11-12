@@ -5,7 +5,7 @@
 		{if $user->cat_username}
 			<h3>{translate text='Your Holds'}</h3>
 			{if is_array($recordList) && count($recordList) > 0}
-				{foreach from=$recordList item=recordData key=sectionKey}
+				{assign var=sectionKey value='unavailable'}
 				{* Check to see if there is data for the secion *}
 				<div class='holdSection'>
 					{if $sectionKey=='available'}
@@ -47,13 +47,12 @@
 									{/if}
 								</div>
 								</a>
-								<a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" rel="external" data-icon="delete">Cancel Hold</a>
+								<a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" rel="external" data-icon="delete" id="cancelHold{$resource.cancelId|escape}">Cancel Hold</a>
 							</li>
 						{/foreach}
 						</ul>
 					</div>
 				</div>
-				{/foreach}
 			{else}
 				<p>{translate text='You do not have any holds placed'}.</p>
 			{/if}

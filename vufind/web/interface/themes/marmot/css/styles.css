@@ -2,6 +2,9 @@ html, body {
 	height: 100%;
 	background-color:#CCC;
 }
+.center{
+	text-align: center;
+}
 #systemMessage{
 	width: 100%;
 	background-color: yellow;
@@ -374,6 +377,13 @@ p.correction a {
 	font-weight: bold;
 	font-style: italic;
 	text-align: center;
+}
+div.pageWarning{
+	font-weight: bold;
+	margin: 10px;
+	width: 100%;
+	text-align: center;
+	color: #990000;
 }
 div.warning {
 	font-weight: bold;
@@ -1816,10 +1826,12 @@ display:none;
 	font-weight: bold;
 }
 
-/* MyAccount Sorting */
+/* MyAccount */
 .sortOptions{
 	float: right;
-	
+}
+#placeHoldForm{
+	width: 500px;
 }
 /* Hold Result Display */
 .hold_result_title{

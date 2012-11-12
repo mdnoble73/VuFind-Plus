@@ -1,18 +1,16 @@
-@CHARSET "ISO-8859-1";
-
 #loginFormWrapper{
 	border-right: 0px solid black;
 }
 .loginField{
-	width: 175px;
-	text-align: right;
+	width: 200px;
+	text-align: left;
 }
 
 .loginLabel{
-	width: 150px;
+	width: 200px;
 }
 #loginFormWrapper{
-	width: 350px;
+	width: 400px;
 }
 .ui-autocomplete{
 	font-size:10px;

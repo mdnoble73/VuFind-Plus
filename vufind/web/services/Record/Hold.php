@@ -116,6 +116,22 @@ class Hold extends Action {
 				$profile = $this->catalog->getMyProfile($user);
 				$interface->assign('profile', $profile);
 
+				//Get information to show a warning if the user does not have sufficient holds
+				require_once 'Drivers/marmot_inc/PType.php';
+				$maxHolds = -1;
+				//Determine if we should show a warning
+				$ptype = new PType();
+				$ptype->pType = $user->patronType;
+				if ($ptype->find(true)){
+					$maxHolds = $ptype->maxHolds;
+				}
+				$currentHolds = $profile['numHolds'];
+				if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
+					$interface->assign('showOverHoldLimit', true);
+					$interface->assign('maxHolds', $maxHolds);
+					$interface->assign('currentHolds', $currentHolds);
+				}
+
 				global $locationSingleton;
 				//Get the list of pickup branch locations for display in the user interface.
 				$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);

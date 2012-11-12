@@ -77,6 +77,7 @@ class EContentHolds extends MyResearch {
 		$hasSeparateTemplates = $interface->template_exists('MyResearch/eContentAvailableHolds.tpl');
 		if ($hasSeparateTemplates){
 			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
+			$interface->assign('section', $section);
 			if ($section == 'available'){
 				$interface->setPageTitle('Available eContent');
 				$interface->setTemplate('eContentAvailableHolds.tpl');
