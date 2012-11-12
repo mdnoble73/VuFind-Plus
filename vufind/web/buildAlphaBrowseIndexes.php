@@ -69,3 +69,4 @@ while ($library->fetch()){
 	mysql_query("INSERT INTO callnumber_browse_metadata (SELECT 1, {$library->libraryId}, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results_library_{$library->subdomain} ON id = browseValueId)");
 	echo("<br>Built meta data for {$library->displayName}\r\n");
 }
+
