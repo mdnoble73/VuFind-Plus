@@ -19,8 +19,9 @@ vufind/web/images/covers/small/*
 vufind/web/images/covers/large/*
 vufind/web/files/original/*
 vufind/web/*.csv
+tests/*
 
-# Compiled source #
+# Compiled source #                                                                                   
 ###################
 *.com
 *.class

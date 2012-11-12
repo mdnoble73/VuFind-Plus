@@ -304,14 +304,14 @@ class Results extends Action {
 			$record = reset($recordSet);
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
-				header("Location: " . $interface->getUrl() . "/MyResearch/MyList/{$listId}");
+				header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyList/{$listId}");
 				exit();
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
-				header("Location: " . $interface->getUrl() . "/EcontentRecord/$shortId/Home");
+				header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/$shortId/Home");
 				exit();
 			}else{
-				header("Location: " . $interface->getUrl() . "/Record/{$record['id']}/Home");
+				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");
 				exit();
 			}
 

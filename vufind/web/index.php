@@ -286,6 +286,18 @@ if (isset($library)){
 }
 $timer->logTime('Interface checks for library and location');
 
+if ($library){
+	$searchLibrary = $library->getSearchLibrary();
+	if ($searchLibrary){
+		$interface->assign('millenniumScope', $searchLibrary->scope);
+	}else{
+		$interface->assign('millenniumScope', '93');
+	}
+}else{
+	$interface->assign('millenniumScope', '93');
+}
+
+
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
 

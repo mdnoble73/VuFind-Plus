@@ -226,7 +226,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		{/if}
 		
 		{if $classicId}
-			<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false">Classic View</a></div>
+			<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" rel="external" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">Classic View</a></div>
 		{/if}
 		
 		{if $linkToAmazon == 1 && $isbn}
