@@ -96,7 +96,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			//logger.debug("found " + librarySubdomains.size() + "library subdomains");
 			
-			getExistingBrowseRecordsStmt = vufindConn.prepareStatement("SELECT distinct record from title_browse_scoped_results", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getExistingBrowseRecordsStmt = vufindConn.prepareStatement("SELECT distinct record from title_browse_scoped_results_global", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			
 			clearAuthorBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			clearCallNumberBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
