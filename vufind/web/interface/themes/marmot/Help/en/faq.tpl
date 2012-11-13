@@ -4,7 +4,7 @@
 A big thank you goes out to all the members of the VuFind community for all their hard work.  
 VuFind is licensed under the <a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>GNU General Public License</a>. 
 Code developed by Marmot is contributed back to the Open Source Community whenever possible.  
-For more information about our codebase please contact <a href='mailto:cj@marmot.org'>C.J. O'Hara</a>.</div>
+</div>
 
 <div class='faqQuestion'>Q. What is Prospector?</div>
 <div class='faqAnswer'>A. Prospector is a unified catalog of twenty six academic, public and special libraries in Colorado and Wyoming. Through Prospector you have access to over 27 million books, journals, DVDs, CDs, videos and other materials held in these libraries. With a single search you can identify and borrow materials from the collections and have them delivered to your local library.</div>
