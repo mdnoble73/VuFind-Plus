@@ -35,6 +35,7 @@
 
 <div class="resultDetails">
 	<div class="resultItemLine1">
+	{if $summScore}({$summScore}) {/if}
 	<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $summTitleStatement}
 		<div class="searchResultSectionInfo">

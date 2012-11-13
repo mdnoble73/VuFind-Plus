@@ -3532,6 +3532,10 @@ public class MarcRecordDetails {
 			}
 			availableAt = itemAvailability;
 		}
+		//Limit always available titles to 5 holdings so hey don't dominate search results.
+		if (numHoldings > 1000){
+			numHoldings = 5;
+		}
 		if (buildings.size() > 0){
 			addFields(mappedFields, "institution", null, buildings);
 			addFields(mappedFields, "building", null, buildings);

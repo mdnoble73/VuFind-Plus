@@ -381,7 +381,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			
 			//No call numbers for digital content
-			
+			if (recordStatus == MarcProcessor.RECORD_NEW){
+				results.incAdded();
+			}else{
+				results.incUpdated();
+			}
 			results.incAdded();
 			return true;
 		} catch (SQLException e) {
