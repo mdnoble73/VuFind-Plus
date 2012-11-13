@@ -23,8 +23,12 @@ $(document).ready(function(){
 	$('a.mobile-view').each(function() {
 		$(this).attr('href', url);
 	});
+	collapseFieldsets();
 	
-	// Implement collapsible fieldsets.
+});
+
+function collapseFieldsets(){
+	//Implement collapsible fieldsets.
 	var collapsibles = $('fieldset.fieldset-collapsible');
 	if (collapsibles.length > 0) {
 		collapsibles.each(function() {
@@ -43,7 +47,7 @@ $(document).ready(function(){
 			collapsible.addClass('fieldset-collapsed');
 		});
 	}
-});
+}
 
 function getLightbox(module, action, id, lookfor, message, followupModule,
 		followupAction, followupId, left, width, top, height) {

@@ -412,7 +412,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div id = "holdingstab">
 						<div id="holdingsPlaceholder">Loading...</div>
 						{if $showOtherEditionsPopup}
-						<div class="otherEditionCopies">
+						<div class="otherEditionCopies button">
 							<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
 						</div>
 						{/if}
