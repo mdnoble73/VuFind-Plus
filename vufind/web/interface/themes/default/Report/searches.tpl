@@ -46,6 +46,10 @@
 		<div id="searchesWithFacetsChart" class="dashboardChart">
 		</div>
 	</div>
+	<div id="facetUsageByTypeContainer" class="reportContainer">
+		<div id="facetUsageByTypeChart" class="dashboardChart">
+		</div>
+	</div>
 </div>
 <div class="clearer"></div>
 {/strip}
@@ -57,6 +61,7 @@ $(document).ready(function() {
 	setupSearchesByTypeChart();
 	setupSearchesByScopeChart();
 	setupSearchesWithFacetsChart();
+	setupFacetUsageByTypeChart();
 });
 {/literal}
 </script>

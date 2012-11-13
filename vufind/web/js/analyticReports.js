@@ -306,6 +306,52 @@ function getSearchWithFacetsData(){
 	);
 }
 
+var facetUsageByTypeChart;
+function setupFacetUsageByTypeChart() {
+	facetUsageByTypeChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'facetUsageByTypeChart',
+			type: 'pie',
+			events: {
+				load: getFacetUsageByTypeData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Facets By Type'
+		},
+		xAxis: {
+			title: {
+				text: 'Type'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: '% Usage'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Facet',
+			data: []
+		}]
+	});
+}
+function getFacetUsageByTypeData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getFacetUsageByTypeData" + filterParms,
+		function(data) {
+			$.each(data, function(i, val){
+				facetUsageByTypeChart.series[0].addPoint(val, true, false);
+			});
+		}
+	);
+}
+
 var pageViewsByModuleChart;
 function setupPageViewsByModuleChart() {
 	pageViewsByModuleChart = new Highcharts.Chart({

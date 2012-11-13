@@ -273,4 +273,22 @@ class AJAX extends Action {
 
 		return $pageViewsByDeviceRaw;
 	}
+
+	function getFacetUsageByTypeData(){
+		//load searches by type
+		$events = new Analytics_Event();
+
+		$events->selectAdd('count(analytics_event.id) as numEvents');
+		$events->category = 'Apply Facet';
+		$events->selectAdd('action');
+		$events->groupBy('action');
+		$events->orderBy('numEvents DESC');
+		$events->find();
+		$eventsByFacetTypeRaw = array();
+		while ($events->fetch()){
+			$eventsByFacetTypeRaw[] = array ($events->action, (int)$events->numEvents);
+		}
+
+		return $eventsByFacetTypeRaw;
+	}
 }
