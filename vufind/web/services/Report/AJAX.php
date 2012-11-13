@@ -160,6 +160,26 @@ class AJAX extends Action {
 		return $searchesByType;
 	}
 
+	function getSearchWithFacetsData(){
+		//load searches by type
+		$searches = new Analytics_Search();
+		$searches->selectAdd('count(id) as numSearches');
+		$searches->groupBy('facetsApplied');
+		$searches->find();
+		$totalSearches = 0;
+		$searchByTypeRaw = array();
+		while ($searches->fetch()){
+			$searchByTypeRaw[$searches->facetsApplied == 0 ? 'No Facets' : 'Facets Applied'] = $searches->numSearches;
+			$totalSearches += $searches->numSearches;
+		}
+		$searchesByType = array();
+		foreach ($searchByTypeRaw as $searchName => $searchCount){
+			$searchesByType[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
+		}
+
+		return $searchesByType;
+	}
+
 	function getPageViewsByModuleData(){
 		//load searches by type
 		$pageViews = new Analytics_PageView();

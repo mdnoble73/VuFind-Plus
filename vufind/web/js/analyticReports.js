@@ -260,6 +260,52 @@ function getSearchByScopeData(){
 	);
 }
 
+var searchesWithFacetsChart;
+function setupSearchesWithFacetsChart() {
+	searchesWithFacetsChart = new Highcharts.Chart({
+		chart : {
+			renderTo : 'searchesWithFacetsChart',
+			type: 'pie',
+			events: {
+				load: getSearchWithFacetsData
+			}
+		},
+		legend : {
+			enabled: false,
+		},
+		title: {
+			text: 'Searches with Facets'
+		},
+		xAxis: {
+			title: {
+				text: 'Scope'
+			},
+		},
+		
+		yAxis: {
+			title: {
+				text: '% Usage'
+			},
+			allowDecimals: false,
+			min: 0,
+		},
+		series: [{
+			name: 'Searches with Facets',
+			data: []
+		}]
+	});
+}
+function getSearchWithFacetsData(){
+	var filterParms = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getSearchWithFacetsData" + filterParms,
+		function(data) {
+			$.each(data, function(i, val){
+				searchesWithFacetsChart.series[0].addPoint(val, true, false);
+			});
+		}
+	);
+}
+
 var pageViewsByModuleChart;
 function setupPageViewsByModuleChart() {
 	pageViewsByModuleChart = new Highcharts.Chart({
@@ -505,3 +551,4 @@ function getPageViewsByPhysicalLocationData(){
 		}
 	);
 }
+

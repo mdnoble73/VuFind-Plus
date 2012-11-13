@@ -42,6 +42,10 @@
 		<div id="searchesByScopeChart" class="dashboardChart">
 		</div>
 	</div>
+	<div id="searchesWithFacetsContainer" class="reportContainer">
+		<div id="searchesWithFacetsChart" class="dashboardChart">
+		</div>
+	</div>
 </div>
 <div class="clearer"></div>
 {/strip}
@@ -52,6 +56,7 @@
 $(document).ready(function() {
 	setupSearchesByTypeChart();
 	setupSearchesByScopeChart();
+	setupSearchesWithFacetsChart();
 });
 {/literal}
 </script>
