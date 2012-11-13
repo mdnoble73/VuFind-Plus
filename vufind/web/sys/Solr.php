@@ -636,33 +636,33 @@ class Solr implements IndexEngine {
 		}
 
 		// Apply custom munge operations if necessary:
-		if (is_array($custom)) {
+		if (is_array($custom) && $basic) {
 			foreach($custom as $mungeName => $mungeOps) {
 				$values[$mungeName] = $lookfor;
 
 				// Skip munging if tokenization is disabled.
-				if ($tokenize) {
-					foreach($mungeOps as $operation) {
-						switch($operation[0]) {
-							case 'append':
-								$values[$mungeName] .= $operation[1];
-								break;
-							case 'lowercase':
-								$values[$mungeName] = strtolower($values[$mungeName]);
-								break;
-							case 'preg_replace':
-								$values[$mungeName] = preg_replace($operation[1],
-								$operation[2], $values[$mungeName]);
-								break;
-							case 'uppercase':
-								$values[$mungeName] = strtoupper($values[$mungeName]);
-								break;
-						}
+				foreach($mungeOps as $operation) {
+					switch($operation[0]) {
+						case 'exact':
+							$values[$mungeName] = '"' . $values[$mungeName] . '"';
+							break;
+						case 'append':
+							$values[$mungeName] .= $operation[1];
+							break;
+						case 'lowercase':
+							$values[$mungeName] = strtolower($values[$mungeName]);
+							break;
+						case 'preg_replace':
+							$values[$mungeName] = preg_replace($operation[1],
+							$operation[2], $values[$mungeName]);
+							break;
+						case 'uppercase':
+							$values[$mungeName] = strtoupper($values[$mungeName]);
+							break;
 					}
 				}
 			}
 		}
-
 		return $values;
 	}
 

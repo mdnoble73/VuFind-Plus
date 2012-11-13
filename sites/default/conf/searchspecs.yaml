@@ -247,19 +247,20 @@ Title:
     - title_proper:
       - [onephrase, 600]
     - title_short:
-      - [onephrase, 500]
-    - title_full:
-      - [onephrase, 400]
+      - [onephrase, 1200]
+    #Do not search title full since that includes the author name
+    #- title_full:
+    #  - [onephrase, 400]
     - title:
       - [onephrase, 300]
       - [and, 250]
     - title_alt:
+      - [onephrase, 250]
       - [and, 200]
-      - [or, ~]
     - title_new:
       - [and, 100]
     - title_old:
-      - [and, ~]
+      - [and, ~]  
     - series_proper:
       - [onephrase, 200]
       - [and, 100]
