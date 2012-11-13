@@ -1125,7 +1125,8 @@ class MillenniumDriver implements DriverInterface
                 'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
                 'major' => null,
                 'college' => null,
-								'patronType' => $patronDump['P_TYPE']);
+								'patronType' => $patronDump['P_TYPE'],
+								'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
 			$timer->logTime("patron logged in successfully");
 			return $user;
 
@@ -1296,7 +1297,7 @@ class MillenniumDriver implements DriverInterface
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 				'ptype' => $patronDump['P_TYPE'],
 				'notices' => $patronDump['NOTICE_PREF'],
-				'web_note' => $patronDump['WEB_NOTE'],
+				'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '',
 		);
 
 		//Get eContent info as well
