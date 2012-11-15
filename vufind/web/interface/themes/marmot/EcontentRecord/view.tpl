@@ -579,7 +579,6 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 				 
 				{if $showAmazonReviews || $showStandardReviews}
-				<h4>Professional Reviews</h4>
 				<div id='reviewPlaceholder'></div>
 				{/if}
 			</div>

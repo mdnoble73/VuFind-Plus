@@ -626,6 +626,18 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/if}
 				{/if}
 			</div>
+			{foreachelse}
+				<div id="reviewtab">
+					{if $showComments}
+					<div id = "staffReviewtab" >
+					{include file="$module/view-staff-reviews.tpl"}
+					</div>
+					{/if}
+						
+					{if $showAmazonReviews || $showStandardReviews}
+					<div id='reviewPlaceholder'></div>
+					{/if}
+				</div>
 			{/foreach}
 			
 			{if $showComments == 1}
