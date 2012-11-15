@@ -334,7 +334,7 @@ abstract class ObjectEditor extends Admin
 
 			if ($objectAction == 'import'){
 				global $configArray;
-				header("Location: {$configArray['Site']['url']}/Admin/{$this->getToolName()}");
+				header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 				return true;
 			}else{
 				//Show the grid with the comparison results
@@ -374,16 +374,16 @@ abstract class ObjectEditor extends Admin
 		}
 		global $configArray;
 		if (isset($_REQUEST['submitStay'])){
-			header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=$id");
+			header("Location: {$configArray['Site']['path']}/{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=$id");
 		}elseif (isset($_REQUEST['submitAddAnother'])){
-			header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}?objectAction=addNew");
+			header("Location: {$configArray['Site']['path']}/{$this->getModule()}/{$this->getToolName()}?objectAction=addNew");
 		}else{
 			$redirectLocation = $this->getRedirectLocation($objectAction, $curObject);
 			if (is_null($redirectLocation)){
 				if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
 					header("Location: " . $_SESSION['redirect_location']);
 				}else{
-					header("Location: {$configArray['Site']['url']}/{$this->getModule()}/{$this->getToolName()}");
+					header("Location: {$configArray['Site']['path']}/{$this->getModule()}/{$this->getToolName()}");
 				}
 			}else{
 				header("Location: {$redirectLocation}");
