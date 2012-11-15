@@ -1260,7 +1260,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//logger.debug("Added document to solr");
 				updateServer.add(doc);
 				//updateServer.add(doc, 60000);
-				results.incAdded();
+				//results.incAdded();
 			}else{
 				results.incErrors();
 			}

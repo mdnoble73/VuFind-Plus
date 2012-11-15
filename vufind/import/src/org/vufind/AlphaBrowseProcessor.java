@@ -37,6 +37,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private PreparedStatement	insertSubjectBrowseValue;
 	private PreparedStatement	insertCallNumberBrowseValue;
 	
+	private PreparedStatement optimizeTitleStmt;
+	private PreparedStatement optimizeAuthorStmt;
+	private PreparedStatement optimizeSubjectStmt;
+	private PreparedStatement optimizeCallNumberStmt;
+	
 	private PreparedStatement	getLibraryIdsForEContent;
 	private HashMap<String, PreparedStatement> insertTitleBrowseScopeValueStmts;
 	private HashMap<String, PreparedStatement>	insertAuthorBrowseScopeValueStmts;
@@ -102,6 +107,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			clearCallNumberBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			clearSubjectBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			clearTitleBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
+			
+			optimizeTitleStmt = vufindConn.prepareStatement("OPTIMIZE TABLE title_browse");
+			optimizeAuthorStmt = vufindConn.prepareStatement("OPTIMIZE TABLE author_browse");
+			optimizeSubjectStmt = vufindConn.prepareStatement("OPTIMIZE TABLE subject_browse");
+			optimizeCallNumberStmt = vufindConn.prepareStatement("OPTIMIZE TABLE callnumber_browse");
 			
 			clearAuthorBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results_global where record = ?"));
 			clearCallNumberBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results_global where record = ?"));
@@ -175,10 +185,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		try {
 			//For alpha browse processing, everything is handled in the finish method
 			results.incRecordsProcessed();
-			if (recordInfo.isEContent()){
-				results.incSkipped();
-				return true;
-			}
 			if (!updateAlphaBrowseForUnchangedRecords && (recordStatus == MarcProcessor.RECORD_UNCHANGED)){
 				//Check to see if the record has been added to alpha browse and force it to be indexed even if it hasn't changed
 				if (isRecordInBrowse(recordInfo.getId())){
@@ -186,48 +192,52 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					return true;
 				}
 			}
-			if (!clearAlphaBrowseAtStartOfIndex){
-				clearBrowseInfoForRecord(recordInfo.getId());
-			}
-			HashMap<String, String> titles = recordInfo.getBrowseTitles();
-			HashMap<String, String> authors = recordInfo.getBrowseAuthors();
-			String recordIdFull = recordInfo.getId();
-			HashMap<String, String> subjects = recordInfo.getBrowseSubjects();
-			Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
-			HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
-			//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
-			HashSet<Long> resourceLocations = getLocationsForPrintRecord(localCallNumbers);
-			//logger.debug("found " + resourceLocations.size() + " locations for the resource");
-			//logger.debug("found " + titles.size() + " titles for the resource");
-			for (String sortTitle: titles.keySet()){
-				//logger.debug("  " + curTitle);
-				String curTitle = titles.get(sortTitle);
-				addRecordIdToBrowse("title", resourceLibraries, resourceLocations, curTitle, sortTitle, recordIdFull);
-			}
-			
-			//Setup author browse
-			//logger.debug("found " + authors.size() + " authors for the resource");
-			for (String sortAuthor: authors.keySet()){
-				//logger.debug("  " + curAuthor);
-				String curAuthor = authors.get(sortAuthor);
-				addRecordIdToBrowse("author", resourceLibraries, resourceLocations, curAuthor, sortAuthor, recordIdFull);
-			}
-			
-			//Setup subject browse
-			//logger.debug("found " + subjects.size() + " subjects for the resource");
-			for (String sortSubject: subjects.keySet()){
-				//logger.debug("  " + curSubject);
-				String curSubject = subjects.get(sortSubject);
-				addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, curSubject, sortSubject, recordIdFull);
-			}
-			
-			//Setup call number browse
-			addCallNumbersToBrowse(localCallNumbers, recordIdFull);
-			
-			if (recordStatus == MarcProcessor.RECORD_NEW){
-				results.incAdded();
+			if (!recordInfo.isEContent()){
+				if (!clearAlphaBrowseAtStartOfIndex){
+					clearBrowseInfoForRecord(recordInfo.getId());
+				}
+				HashMap<String, String> titles = recordInfo.getBrowseTitles();
+				HashMap<String, String> authors = recordInfo.getBrowseAuthors();
+				String recordIdFull = recordInfo.getId();
+				HashMap<String, String> subjects = recordInfo.getBrowseSubjects();
+				Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
+				HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
+				//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
+				HashSet<Long> resourceLocations = getLocationsForPrintRecord(localCallNumbers);
+				//logger.debug("found " + resourceLocations.size() + " locations for the resource");
+				//logger.debug("found " + titles.size() + " titles for the resource");
+				for (String sortTitle: titles.keySet()){
+					//logger.debug("  " + curTitle);
+					String curTitle = titles.get(sortTitle);
+					addRecordIdToBrowse("title", resourceLibraries, resourceLocations, curTitle, sortTitle, recordIdFull);
+				}
+				
+				//Setup author browse
+				//logger.debug("found " + authors.size() + " authors for the resource");
+				for (String sortAuthor: authors.keySet()){
+					//logger.debug("  " + curAuthor);
+					String curAuthor = authors.get(sortAuthor);
+					addRecordIdToBrowse("author", resourceLibraries, resourceLocations, curAuthor, sortAuthor, recordIdFull);
+				}
+				
+				//Setup subject browse
+				//logger.debug("found " + subjects.size() + " subjects for the resource");
+				for (String sortSubject: subjects.keySet()){
+					//logger.debug("  " + curSubject);
+					String curSubject = subjects.get(sortSubject);
+					addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, curSubject, sortSubject, recordIdFull);
+				}
+				
+				//Setup call number browse
+				addCallNumbersToBrowse(localCallNumbers, recordIdFull);
+				
+				if (recordStatus == MarcProcessor.RECORD_NEW){
+					results.incAdded();
+				}else{
+					results.incUpdated();
+				}
 			}else{
-				results.incUpdated();
+				results.incSkipped();
 			}
 			return true;
 		} catch (SQLException e) {
@@ -239,11 +249,25 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			if (results.getRecordsProcessed() % 100 == 0){
 				results.saveResults();
 			}
+			if (results.getRecordsProcessed() % 10000 == 0){
+				optimizeTables();
+			}
 		}
 		
 	}
 	
-	
+	private void optimizeTables(){
+		try {
+			optimizeTitleStmt.execute();
+			optimizeAuthorStmt.execute();
+			optimizeSubjectStmt.execute();
+			optimizeCallNumberStmt.execute();
+		} catch (SQLException e) {
+			results.addNote("Error processing optimizing tables " + e.toString());
+			results.incErrors();
+			logger.error("Error processing optimizing tables ", e);
+		}
+	}
 
 	private void clearBrowseInfoForRecord(String id) {
 		try {
