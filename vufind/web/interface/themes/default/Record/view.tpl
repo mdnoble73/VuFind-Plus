@@ -528,6 +528,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $showAmazonReviews || $showStandardReviews || $showComments}
 					{foreach from=$editorialReviews key=key item=reviewTabInfo}
 						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
+					{foreachelse}
+						<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
 					{/foreach}
 				{/if}
 				{if $showComments}
