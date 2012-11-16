@@ -21,7 +21,7 @@
 		<li><a href="http://www.gcpld.org/research">{translate text='Online Resources'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
 		<li><a href="http://www.gcpld.org/books-and-more">{translate text="Reader's Advisory Tools"}</a></li>
-		<li><a href="http://www.gcpld.org/locations">{translate text='Locations & Hours'}</a></li>
+		<li><a href="http://www.gcpld.org/locations">{translate text='Locations &amp; Hours'}</a></li>
 		<li><a href="http://www.gcpld.org/calendar">{translate text='Events'}</a></li>
 	</ul>
 </div>

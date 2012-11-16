@@ -1,6 +1,6 @@
 <div id="loginBlock" class="alignright" style="text-align: right;">
 	<div id="logoutOptions" class="logoutOptions" {if !$user} style="display: none;"{/if}>
-		<a id="logoutLink" href="{$path}/MyResearch/Home" id="myAccountNameLink">{$user->firstname|capitalize} {$user->lastname|capitalize}</a> | <a href="{$path}/MyResearch/Home">{translate text="Your Account"}</a> | <a href="{$path}/MyResearch/Logout">{translate
+		<a href="{$path}/MyResearch/Home" id="myAccountNameLink">{$user->firstname|capitalize} {$user->lastname|capitalize}</a> | <a href="{$path}/MyResearch/Home">{translate text="Your Account"}</a> | <a href="{$path}/MyResearch/Logout" id="logoutLink" >{translate
 			text="Log Out"}</a>
 	</div>
 	<div id="loginOptions" class="loginOptions" {if $user} style="display: none;"{/if}>
