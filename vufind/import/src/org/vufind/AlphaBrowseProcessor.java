@@ -249,9 +249,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			if (results.getRecordsProcessed() % 100 == 0){
 				results.saveResults();
 			}
-			if (results.getRecordsProcessed() % 10000 == 0){
+			/*if (results.getRecordsProcessed() % 10000 == 0){
 				optimizeTables();
-			}
+			}*/
 		}
 		
 	}

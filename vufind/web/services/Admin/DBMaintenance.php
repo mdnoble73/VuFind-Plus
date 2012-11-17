@@ -1304,6 +1304,17 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'alpha_browse_setup_7' => array(
+			'title' => 'Alphabetic Browse change scoping engine',
+			'description' => 'Change DB Engine to INNODB for all scoping tables.',
+			'continueOnError' => true,
+			'dependencies' => array(),
+			'sql' => array(
+				"setScopingTableEngine",
+			),
+		),
+
+
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
 			'description' => 'Create Reindex Log table to track reindexing.',
@@ -1873,10 +1884,37 @@ class DBMaintenance extends Admin {
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
 		}
 
+		//TODO: Convert tables that do lots of indexing to INNODB
+
+	}
+
+	function setScopingTableEngine($update){
+		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ADD INDEX ( `record` )");
+		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ADD INDEX ( `record` )");
+		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ADD INDEX ( `record` )");
+		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ADD INDEX ( `record` )");
+
+		$library = new Library();
+		$library->find();
+		while ($library->fetch()){
+			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+
+		}
 	}
 
 	function runSQLStatement($update, $sql){
-		set_time_limit(360);
+		set_time_limit(500);
 		$result = mysql_query($sql);
 		$updateOk = true;
 		if ($result == 0 || $result == false){
