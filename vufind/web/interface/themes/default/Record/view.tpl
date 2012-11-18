@@ -298,8 +298,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			{/if}
 					
-			
-			{if $showRating}
+			{if $showRatings == 1}
 				<div id="myrating" class="stat">
 					<div class="statVal">
 						<div class="ui-rater">
