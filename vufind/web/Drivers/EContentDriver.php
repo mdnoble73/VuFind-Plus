@@ -870,7 +870,7 @@ class EContentDriver implements DriverInterface{
 			$holds = new EContentHold();
 			$holds->userId = $user->id;
 			$holds->recordId = $id;
-			$holds->whereAdd("status != 'filled' AND status != 'cancelled'");
+			$holds->whereAdd("status != 'filled' AND status != 'cancelled' AND status != 'abandoned'");
 			$checkoutRecord = true;
 			if ($holds->find(true)){
 				if ($holds->status == 'available'){
