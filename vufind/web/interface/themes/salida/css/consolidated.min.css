@@ -52,7 +52,7 @@ auto 0px;width:1000px;min-height:100%}#page-content,#ft{padding:10px;text-align:
 10px;zoom:1;*display:inline}#main-content{display:inline-block;position:relative;vertical-align:top;width:726px;background-color:white;padding:10px
 10px 0px;border-radius:8px;zoom:1;*display:inline}.searchHome{background-color:#fff;text-align:center;margin-top:2.5em}.searchHomeContent{padding:3em
 0 2em 0;margin:0
-auto;width:90%;text-align:left}#homeSearchLabel{color:white;font-size:14px}#searchBarFind{vertical-align:bottom;position:relative;top:2px;padding-bottom:2px;margin-left:4px}.searchHomeForm{background-color:#4874c5;padding:1em;text-align:center;margin-top:.5em;border-top:#304c7e 2px solid;color:white}.searchHomeForm a, .searchHomeForm a:hover{color:#fff}.searchHomeBrowse{background-color:#94c632}.searchHomeBrowseInner{padding:0
+auto;width:90%;text-align:left}#homeSearchLabel{color:white;font-size:14px}#searchBarFind{vertical-align:bottom;position:relative;padding-bottom:2px;margin-left:4px}.searchHomeForm{background-color:#4874c5;padding:1em;text-align:center;margin-top:.5em;border-top:#304c7e 2px solid;color:white}.searchHomeForm a, .searchHomeForm a:hover{color:#fff}.searchHomeBrowse{background-color:#94c632}.searchHomeBrowseInner{padding:0
 25px;font-size:90%}.searchHomeBrowse a, .searchHomeBrowse a:hover{color:#fff}.searchHomeBrowseInner
 div{float:left;border-right:1px dotted #fff;margin-right:1em;padding:1em
 2em 1em 0;width:12em;min-height:16em}.searchHomeForm input,.searchHomeForm
@@ -499,7 +499,10 @@ solid #c0c0c0;margin:6px
 #prospectorSearchResultsHeader{padding-top:25px}#prospectorSearchResultsTitle{padding-top:15px;color:#000;font-size:140%;font-weight:normal}#prospectorSearchResultsNote{color:#333;font-style:italic;margin-bottom:0.5em}#prospectorMan{float:left;margin-right:7px}#prospectorSidebarResults{border-bottom:2px solid #D5D5D5}#prospectorAvailabilityTitle{padding-top:15px;color:#000;font-size:140%;font-weight:normal}.prospectorLibrary{white-space:nowrap;width:225px;font-size:11px;display:inline-block;zoom:1;*display:inline}.prospectorTitle.currentRecord{font-weight:bold}.prospectorRequest{margin-left:20px}
 /* marmot.css */
 #loginFormWrapper{border-right:0px solid black}.loginField{width:200px;text-align:left}.loginLabel{width:200px}#loginFormWrapper{width:400px}.ui-autocomplete{font-size:10px}.ui-widget-content
-a{color:#039}#outer_span{margin:auto;width:1000px;background-image:url("/interface/themes/marmot/images/sub_content_bg.png");background-repeat:repeat-y;padding:0
-20px 0px}
+a{color:#039}#pageBody{width:960px}#outer_span{margin:auto;width:920px;background-image:url("/interface/themes/marmot/images/background-gradient.png");background-repeat:repeat-y;padding:0
+20px 0px}#ft
+div.footerCol{padding:0
+0.75em 0.75em 0;margin-right:0.5em}div.footerCol
+ul{padding-left:1.25em}#main-content{width:656px}#record-details-column{width:440px}
 /* extra_styles.css */
 .searchHomeForm{background-color:#9a6;border-color:#232}

@@ -12,6 +12,10 @@ html, body{
 	border-top: black 2px solid;
 }
 
+.searchHome{
+	margin: 0px;
+}
+
 #header_logo{
 	position: relative;
 	left: 0px;
