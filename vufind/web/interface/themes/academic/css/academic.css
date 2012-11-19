@@ -119,7 +119,7 @@ div#ft_contents {
 .resultValue {
 	display: inline-block;
 	vertical-align: top;
-	width: 430px;
+	width: 350px;
 }
 
 .boldedResultValue {
@@ -231,6 +231,9 @@ td {
 	border: thin solid #B0B0B0;
 	width: 170px;
 }
+.sidegroup h4{
+	width: 170px;
+}
 
 .callNumber {
 	font-weight: bold;
@@ -257,7 +260,7 @@ td {
 	vertical-align:top;
 }
 .resultsList{
-	width: 665px;
+	width: 585px;
 	display:inline-block;
 	zoom:1;
 	*display:inline;
