@@ -51,7 +51,7 @@ class Home extends Record{
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId
-		/*$editorialReview = new EditorialReview();
+		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
 		$editorialReview->recordId = $recordId;
 		$editorialReview->find();
@@ -72,7 +72,7 @@ class Home extends Record{
 				$editorialReviewResults[$reviewKey]['reviews'][] = get_object_vars($editorialReview);
 			}
 		}
-		$interface->assign('editorialReviews', $editorialReviewResults);*/
+		$interface->assign('editorialReviews', $editorialReviewResults);
 		$interface->assign('recordId', $recordId);
 
 		//Enable and disable functionality based on library settings
