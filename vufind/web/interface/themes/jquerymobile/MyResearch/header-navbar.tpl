@@ -4,7 +4,7 @@
 {if $user}
 	<div data-role="navbar">
 		<ul>
-			<li><a rel="external" {if $pageTemplate=="checkedout.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/CheckedOut">{translate text='Checked Out'}</a></li>
+			<li><a rel="external" {if $pageTemplate=="checkedout.tpl" || $pageTemplate=="eContentCheckedOut.tpl" || $pageTemplate=="overDriveCheckedOut.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/CheckedOut">{translate text='Checked Out'}</a></li>
 			<li><a rel="external" {if $pageTemplate=="availableHolds.tpl" || $pageTemplate=="eContentAvailableHolds.tpl" || $pageTemplate=="overDriveAvailableHolds.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/Holds?section=available">{translate text='Ready For Pickup'}</a></li>
 			<li><a rel="external" {if $pageTemplate=="unavailableHolds.tpl" || $pageTemplate=="eContentUnavailableHolds.tpl" || $pageTemplate=="overDriveUnavailableHolds.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/Holds?section=unavailable">{translate text='On Hold'}</a></li>
 			<li><a rel="external" {if $pageTemplate=="fines.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/Fines">{translate text='Fines'}</a></li>
