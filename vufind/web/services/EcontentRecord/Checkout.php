@@ -54,6 +54,8 @@ class Checkout extends Action{
 				$interface->assign('result', $return['result']);
 				$message = $return['message'];
 				$interface->assign('message', $message);
+				global $logger;
+				$logger->log("Result of checkout " . print_r($return, true), PEAR_LOG_DEBUG);
 				$showMessage = true;
 			} else {
 				$message = 'Incorrect Patron Information';

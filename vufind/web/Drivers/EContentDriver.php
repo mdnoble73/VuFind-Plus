@@ -916,7 +916,6 @@ class EContentDriver implements DriverInterface{
 					//Add the records to the reading history for the user
 					if ($user->trackReadingHistory == 1){
 						$this->addRecordToReadingHistory($eContentRecord, $user);
-
 					}
 
 					//If there are no more records available, reindex
