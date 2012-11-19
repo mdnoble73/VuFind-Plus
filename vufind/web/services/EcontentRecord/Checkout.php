@@ -23,7 +23,7 @@ require_once 'Drivers/EContentDriver.php';
 require_once 'Action.php';
 
 class Checkout extends Action{
-	
+
 	function launch(){
 		global $interface;
 		global $configArray;
@@ -32,16 +32,16 @@ class Checkout extends Action{
 		$driver = new EContentDriver();
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		
+
 		global $logger;
-		
+
 		//Get title information for the record.
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		if (!$eContentRecord->find(true)){
 			PEAR::raiseError("Unable to find eContent record for id: $id");
 		}
-		
+
 		if (isset($_POST['submit']) || $user) {
 			if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 				//Log the user in
@@ -76,9 +76,8 @@ class Checkout extends Action{
 				//set focus to the username field by default.
 				$interface->assign('focusElementId', 'username');
 			}
-
 		}
-		
+
 		if (isset($return) && $showMessage) {
 			$hold_message_data = array(
               'successful' => $return['result'] ? 'all' : 'none',
@@ -98,18 +97,18 @@ class Checkout extends Action{
 					unset($_SESSION['autologout']);
 					UserAccount::softLogout();
 				}
-				
+
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main eContent page', PEAR_LOG_INFO);
-				header("Location: " . $configArray['Site']['url'] . '/MyResearch/EContentCheckedOut');
+				header("Location: /MyResearch/EContentCheckedOut");
 			}
 		} else {
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','Login to your account');
-			
-			
+
+
 			$logger->log('eContent checkout finished, do not need to show a message', PEAR_LOG_INFO);
 			$interface->setPageTitle('Checkout Item');
 			$interface->assign('subTemplate', 'checkout.tpl');
