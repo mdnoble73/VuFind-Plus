@@ -1,17 +1,15 @@
 {strip}
 <div class="searchheader">
 	<div class="searchcontent">
-		<div class="toptabs">
-			<a href="{$path}/MyResearch/Home"><span class="tab button">My Account</span></a>
-			<a href="http://www.englewoodgov.org/Index.aspx?page=1168"><span class="tab button">Ebooks</span></a>
-			<a href="http://www.englewoodgov.org/Index.aspx?page=509"><span class="tab button">Events</span></a>
-			<a href="http://www.englewoodgov.org/Index.aspx?page=224"><span class="tab button">Kids</span></a>
+		<div id="toptabs">
+			<span class="toptab"><a href="{$path}/MyResearch/Home">My Account</a></span>
+			<span class="toptab"><a href="http://www.englewoodgov.org/Index.aspx?page=1168">Ebooks</a></span>
+			<span class="toptab"><a href="http://www.englewoodgov.org/Index.aspx?page=509">Events</a></span>
+			<span class="toptab"><a href="http://www.englewoodgov.org/Index.aspx?page=224">Kids</a></span>
 		</div>
 		{include file='login-block.tpl'}
 
-		{if $showTopSearchBox || $widget}
-			<a href="{if $homeLink}{$homeLink}{else}{$path}/{/if}"><img src="{if $smallLogo}{$smallLogo}{else}{img filename="logo_small.png"}{/if}" alt="Catalog Home" title="Return to Catalog Home" class="alignleft"  id="header_logo"/></a>
-		{/if}
+		<a href="{if $homeLink}{$homeLink}{else}{$path}/{/if}"><img src="{if $smallLogo}{$smallLogo}{else}{img filename="logo_small.png"}{/if}" alt="Catalog Home" title="Return to Catalog Home" class="alignleft"  id="header_logo"/></a>
 
 		<div class="clearer">&nbsp;</div>
 	</div>

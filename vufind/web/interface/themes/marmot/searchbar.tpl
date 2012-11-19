@@ -9,15 +9,15 @@
 	{else}
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="search">
 			<div>
-			Search
+			Search&nbsp;
 			<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='enableSearchTypes();'>
 				{foreach from=$searchSources item=searchOption key=searchKey}
 					<option value="{$searchKey}"{if $searchKey == $searchSource} selected="selected"{/if} title="{$searchOption.description}">{if $searchOption.external}* {/if}{$searchOption.name}</option>
 				{/foreach}
 			</select>
-			for
+			&nbsp;for&nbsp;
 			<input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."/>
-			by
+			&nbsp;by&nbsp;
 			<select name="basicType" id="basicSearchTypes" {if $searchSource == 'genealogy'}style='display:none'{/if}>
 			{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 				<option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
@@ -29,11 +29,15 @@
 			{/foreach}
 			</select>
 
+			{*
 			<input type="image" name="submit" id='searchBarFind' value="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/find.png" />
+			*}
+			<input type="submit" name="submit" id='searchBarFind' value="{translate text="Find"}" />
 			{if $showAdvancedSearchbox == 1}
-				<a href="{$path}/Search/Advanced" class="small">{translate text="Advanced"}</a>
+				&nbsp;<a href="{$path}/Search/Advanced" class="small">{translate text="Advanced"}</a>
 			{/if}
 			{* Link to Search Tips Help *}
+			&nbsp;
 			<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
 				<img src="{$path}/images/silk/help.png" alt="{translate text='Search Tips'}" />
 			</a>

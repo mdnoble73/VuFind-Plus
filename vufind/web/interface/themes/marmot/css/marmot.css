@@ -18,11 +18,26 @@
 .ui-widget-content a {
 	color: #003399;
 }
-
+#pageBody{
+	width: 960px;
+}
 #outer_span {
 	margin: auto;
-	width: 1000px;
-	background-image: url("/interface/themes/marmot/images/sub_content_bg.png");
+	width: 920px;
+	background-image: url("/interface/themes/marmot/images/background-gradient.png");
 	background-repeat: repeat-y;
 	padding: 0 20px 0px;
+}
+#ft div.footerCol{
+	padding: 0 0.75em 0.75em 0;
+	margin-right: 0.5em;
+}
+div.footerCol ul{
+	padding-left: 1.25em;
+}
+#main-content{
+	width: 656px;
+}
+#record-details-column{
+	width: 440px;
 }

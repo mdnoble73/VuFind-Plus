@@ -1,1 +1,58 @@
 /*****************Homepage*******************/
+a, a:visited{
+	color: green;
+}
+a:hover{
+	color: darkgreen;
+	text-decoration: underline;
+}
+.searchheader{
+	background-color: white;
+	position: relative;
+	border-bottom: 2px solid darkgreen;
+}
+#toptabs{
+	position: absolute;
+	bottom: 2px;
+	left: 110px;
+	color: white;
+}
+.toptab{
+	margin-right: 8px;
+	padding: 4px 8px 2px 8px;
+	font-size: 16px;
+	font-weight: bold;
+	background-color: #45820D;
+	border-radius: 6px 6px 0px 0px;
+	border: 1px solid darkgreen;
+	border-bottom-style: none;
+}
+.toptab a,.toptab a:visited{
+	color: white;
+}
+.toptab a:hover{
+	color: lightyellow;
+	text-decoration: underline;
+}
+.searchbar{
+	color: white;
+	background-color: #45820D;
+}
+.searchHomeForm{
+	color: white;
+	background-color: #45820D;
+	border-top: 2px solid darkgreen;
+}
+.searchHomeContent{
+	padding: 0;
+}
+#searchbar{
+	color: white;
+	background-color: #45820D;
+}
+#searchbar a,#searchbar a:visited{
+	color: white;
+}
+#searchbar a:hover{
+	color: lightyellow;
+}

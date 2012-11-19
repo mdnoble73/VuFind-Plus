@@ -68,7 +68,7 @@ div.yui-b.first {background-color:#fff;}
 #searchBarFind{
 	vertical-align: bottom;
 	position: relative;
-	top: 2px;
+	/* top: 2px;*/
 	padding-bottom: 2px;
 	margin-left: 4px;
 }
