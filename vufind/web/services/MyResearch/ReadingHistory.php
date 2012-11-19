@@ -66,6 +66,7 @@ class ReadingHistory extends MyResearch
 					                     'checkedOut' => 'Checkout Date',
 					                     'format' => 'Format',
 					);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
 				}else{
 					$sortOptions = array('title' => 'Title',
 					                     'author' => 'Author',
@@ -73,9 +74,10 @@ class ReadingHistory extends MyResearch
 					                     'returned' => 'Return Date',
 					                     'format' => 'Format',
 					);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
 				}
 				$interface->assign('sortOptions', $sortOptions);
-				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
+
 				$interface->assign('defaultSortOption', $selectedSortOption);
 				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 
