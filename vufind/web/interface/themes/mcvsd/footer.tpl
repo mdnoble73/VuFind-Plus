@@ -34,7 +34,7 @@
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<div class="clearer"></div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

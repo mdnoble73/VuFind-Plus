@@ -392,10 +392,11 @@ class Results extends Action {
 			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
 			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
 				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
+				$unscopedSearchUrl = preg_replace('/&/', '&amp;', $unscopedSearchUrl);
 			}else{
-				$unscopedSearchUrl .= "&searchSource=marmot";
+				$unscopedSearchUrl .= "&amp;searchSource=marmot";
 			}
-			$unscopedSearchUrl .= "&shard=";
+			$unscopedSearchUrl .= "&amp;shard=";
 			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
 			if ($numUnscopedTitlesToLoad > 0){
 				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML();

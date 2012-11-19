@@ -2,18 +2,18 @@
 	{* Narrow Search Options *}
 	<div id="sidebar">
 		{* Display spelling suggestions if any *}
-	{if $spellingSuggestions}
-		<div class="sidegroup" id="spellingSuggestions">
-			<h4>{translate text='spell_suggest'}</h4>
-			<div class="sidegroupContents">
-				<dl class="narrowList navmenu narrow_begin">
-				{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-					<dd>{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}</dd>
-				{/foreach}
-				</dl>
+		{if $spellingSuggestions}
+			<div class="sidegroup" id="spellingSuggestions">
+				<h4>{translate text='spell_suggest'}</h4>
+				<div class="sidegroupContents">
+					<dl class="narrowList navmenu narrow_begin">
+					{foreach from=$spellingSuggestions item=details key=term name=termLoop}
+						<dd>{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}</dd>
+					{/foreach}
+					</dl>
+				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
 			
 		{if $sideRecommendations}
 			{foreach from=$sideRecommendations item="recommendations"}
@@ -31,16 +31,20 @@
 		{/if}
 		<div class="resulthead"><h3>{translate text='nohit_heading'}</h3></div>
 			
-			<p class="error">{translate text='nohit_prefix'} - <b>{$lookfor|escape:"html"}</b> - {translate text='nohit_suffix'}</p>
+		<p class="error">{translate text='nohit_prefix'} - <b>{$lookfor|escape:"html"}</b> - {translate text='nohit_suffix'}</p>
 
+		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+			<div class="unscopedResultCount">
+				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+			</div>
+		{/if}
 		<div>
-		<ul id="noResultsSuggest">
-		<li>Check the spelling of your search terms.</li>
-		<li>Restate your query by using more, other or broader terms.</li>
-		</ul>
+			<ul id="noResultsSuggest">
+				<li>Check the spelling of your search terms.</li>
+				<li>Restate your query by using more, other or broader terms.</li>
+			</ul>
 
 			{if $parseError}
-					<p class="error">{translate text='nohit_parse_error'}</p>
 			{/if}
 			
 			{if $spellingSuggestions}
@@ -74,19 +78,19 @@
 			
 			{* Display Repeat this search links *}
 			{if strlen($lookfor) > 0 && count($repeatSearchOptions) > 0}
-		<div class='repeatSearchHead'><h4>Try another catalog</h4></div>
-			<div class='repeatSearchList'>
-			{foreach from=$repeatSearchOptions item=repeatSearchOption}
-				<div class='repeatSearchItem'>
-						<a href="{$repeatSearchOption.link}" class='repeatSearchName' target='_blank'>{$repeatSearchOption.name}</a>{if $repeatSearchOption.description} - {$repeatSearchOption.description}{/if}
-					</div>
-				{/foreach}
-		</div>
-		{/if}
+				<div class='repeatSearchHead'><h4>Try another catalog</h4></div>
+					<div class='repeatSearchList'>
+					{foreach from=$repeatSearchOptions item=repeatSearchOption}
+						<div class='repeatSearchItem'>
+							<a href="{$repeatSearchOption.link}" class='repeatSearchName' target='_blank'>{$repeatSearchOption.name}</a>{if $repeatSearchOption.description} - {$repeatSearchOption.description}{/if}
+						</div>
+					{/foreach}
+				</div>
+			{/if}
 
-		{if $enableMaterialsRequest}
-		Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
-		{/if}
-		
+			{if $enableMaterialsRequest}
+				Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
+			{/if}
+		</div>
 	</div>
 </div>
