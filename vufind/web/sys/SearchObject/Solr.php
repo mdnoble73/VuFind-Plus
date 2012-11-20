@@ -333,7 +333,11 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->facetConfig=array();
 			foreach ($searchLibrary->facets as $facet){
 				if ($facet->showInAdvancedSearch == 1){
-					$this->facetConfig[$facet->facetName] = $facet->displayName;
+					if ($facet->facetName == 'time_since_added'){
+						$this->facetConfig['local_time_since_added_' . $searchLibrary->subdomain] = $facet->displayName;
+					}else{
+						$this->facetConfig[$facet->facetName] = $facet->displayName;
+					}
 				}
 			}
 		}
