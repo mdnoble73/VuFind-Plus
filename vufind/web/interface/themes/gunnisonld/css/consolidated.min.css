@@ -402,7 +402,7 @@ div{width:194px;text-align:left;padding:0px;font-size:10pt}#tooltip.descriptionT
 4px 0px 4px}.resultitem{margin-left:100px}.resulthead{padding:0px
 10px 0 10px;margin-bottom:.5em;border-bottom:1px #eee solid}.title{font-size:120%}.searchResultSectionInfo{color:#039;font-size:110%}.recordcover{padding:3px;background-color:white;border:1px
 solid #cfcfcf;max-width:180px}.recordcoverWrapper{padding:3px;background-color:#eee;border:1px
-solid #cfcfcf;position:relative;margin:auto;text-align:center;display:inline-block;position:relative;zoom:1;*display:inline;max-width:188px}.holdingsSummaryRecord{display:inline-block;zoom:1;*display:inline;width:330px}#recordTools{display:inline-block;zoom:1;*display:inline}#record-details-header{border-bottom:1px solid #5D8EAC}#image-column{display:inline-block;width:210px;vertical-align:top;text-align:center;zoom:1;*display:inline}#record-details-column{display:inline-block;width:500px;vertical-align:top;zoom:1;*display:inline}.resultInformationLabel{color:#256292;font-size:14px;font-weight:bold;padding-bottom:5px}.resultInformation{padding-top:8px}#recordcover{margin-bottom:15px}#myrating{margin:15px
+solid #cfcfcf;position:relative;margin:auto;text-align:center;display:inline-block;position:relative;zoom:1;*display:inline;max-width:188px}.holdingsSummaryRecord{display:inline-block;zoom:1;*display:inline;width:300px}#recordTools{display:inline-block;zoom:1;*display:inline}#record-details-header{border-bottom:1px solid #5D8EAC}#image-column{display:inline-block;width:210px;vertical-align:top;text-align:center;zoom:1;*display:inline}#record-details-column{display:inline-block;width:500px;vertical-align:top;zoom:1;*display:inline}.resultInformationLabel{color:#256292;font-size:14px;font-weight:bold;padding-bottom:5px}.resultInformation{padding-top:8px}#recordcover{margin-bottom:15px}#myrating{margin:15px
 0px}.reviewSource{font-weight:bold}.reviewProvider{font-style:italic;font-size:11px}.reviewCopyright{font-size:11px}.reviewMoreLink{font-weight:bold;color:#039;cursor:pointer}.reviewContent>p:last-of-type,.reviewTeaser>p:last-of-type{margin-bottom:2px}#titleDetailsSidegroup
 h4{}#tagsSidegroup
 h4{}#similarTitlesSidegroup{display:none}#similarTitlesSidegroup
@@ -503,6 +503,6 @@ a{color:#039}#pageBody{width:1000px}#outer_span{margin:auto;width:960px;backgrou
 20px 0px}#ft
 div.footerCol{padding:0
 0.75em 0.75em 0;margin-right:0.5em}div.footerCol
-ul{padding-left:1.25em}#main-content{width:696px}#record-details-column{width:480px}
+ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}
 /* extra_styles.css */
 .searchHomeForm{background-color:#23410D;border-color:#183600}
