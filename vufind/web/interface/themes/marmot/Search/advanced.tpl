@@ -55,7 +55,7 @@
 	
 						<a href="#" class="add" onclick="addGroup(); return false;">{translate text="add_search_group"}</a>
 						<br /><br />
-						<input type="submit" name="submit" value="{translate text="Find"}"><br /><br />
+						<input type="submit" name="submit" value="{translate text="Find"}" /><br /><br />
 					 {if $facetList || $illustratedLimit || $showPublicationDate}
 						<h3>{translate text='Limit To'}</h3><br />
 						{if $formatCategoryLimit}
@@ -96,7 +96,7 @@
 												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom" id="lexile_scorefrom" value="" />
 												<label for="lexile_scoreto" class='yearboxlabel'>To:</label>
 												<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto" id="lexile_scoreto" value="" />
-												<script>{literal}
+												<script type="text/javascript">{literal}
 												$(function() {
 													$( "#lexile-range" ).slider({
 														range: true,
@@ -116,6 +116,7 @@
 														$( "#lexile-range" ).slider( "values", 1, $( "#lexile_scoreto" ).val());
 													});
 												});{/literal}
+												</script>
 											{else}
 												<select name="filter[]">
 													{foreach from=$facetInfo.values item="value" key="display"}
@@ -137,56 +138,7 @@
 									</td>
 								</tr>
 							{/if}
-							{if $showPublicationDate}
-								<tr>
-									<th align="right">{translate text="Publication Year"}: </th>
-									<td>
-										<label for="yearfrom" class='yearboxlabel'>From:</label>
-										<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom" value="" />
-										<label for="yearto" class='yearboxlabel'>To:</label>
-										<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto" value="" />
-										
-										<div id='yearDefaultLinks'>
-										<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
-										&bull;<a onclick="$('#yearfrom').val('2000');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-										&bull;<a onclick="$('#yearfrom').val('1995');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
-										</div>
-									</td>
-								</tr>
-							{/if}
-							{if $showLexileScore}
-								<tr>
-									<th align="right">{translate text="Lexile Score"}: </th>
-									<td>
-										<div id="lexile-range"></div>
-										<label for="lexile_scorefrom" class='yearboxlabel'>From:</label>
-										<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom" id="lexile_scorefrom" value="" />
-										<label for="lexile_scoreto" class='yearboxlabel'>To:</label>
-										<input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto" id="lexile_scoreto" value="" />
-									</td>
-									<script>{literal}
-									$(function() {
-										$( "#lexile-range" ).slider({
-											range: true,
-											min: 0,
-											max: 2500,
-											step: 10,
-											values: [ 0, 2500 ],
-											slide: function( event, ui ) {
-												$( "#lexile_scorefrom" ).val( ui.values[ 0 ] );
-												$( "#lexile_scoreto" ).val( ui.values[ 1 ] );
-											}
-										});
-										$( "#lexile_scorefrom" ).change(function (){
-											$( "#lexile-range" ).slider( "values", 0, $( "#lexile_scorefrom" ).val());
-										});
-										$( "#lexile_scoreto" ).change(function (){
-											$( "#lexile-range" ).slider( "values", 1, $( "#lexile_scoreto" ).val());
-										});
-									});{/literal}
-									</script>
-								</tr>
-							{/if}
+							
 							</table>
 						{/if}
 						<input type="submit" name="submit" value="{translate text="Find"}" /><br />

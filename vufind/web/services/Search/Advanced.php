@@ -27,6 +27,7 @@ class Advanced extends Action {
 		global $interface;
 		global $configArray;
 		global $user;
+		global $library;
 
 		// Create our search object
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -50,7 +51,12 @@ class Advanced extends Action {
 			$label = $facetList['format_category']['label'];
 			foreach ($facets[$label]['values'] as $key => $optionInfo){
 				$optionInfo['imageName'] = str_replace(" ", "", strtolower($key)) . '.png';
-				$facets[$label]['values'][$key] = $optionInfo;
+				if ($key != 'Other' || !$library || $library->showOtherFormatCategory == 1){
+					$facets[$label]['values'][$key] = $optionInfo;
+				}else{
+					unset($facets[$label]['values'][$key]);
+				}
+
 			}
 			$interface->assign('formatCategoryLimit', $facets[$label]['values']);
 			unset($facets[$label]);
@@ -68,12 +74,7 @@ class Advanced extends Action {
 			$interface->assign('illustratedLimit',
 			$this->getIllustrationSettings($savedSearch));
 		}
-		if (stristr($specialFacets, 'publishDate')) {
-			$interface->assign('showPublicationDate', true);
-		}
-		if (stristr($specialFacets, 'lexile_score')) {
-			$interface->assign('showLexileScore', true);
-		}
+
 
 		// Send search type settings to the template
 		$interface->assign('advSearchTypes', $searchObject->getAdvancedTypes());
