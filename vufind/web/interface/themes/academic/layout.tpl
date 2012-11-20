@@ -8,9 +8,10 @@
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 		<script type="text/javascript">
-		path = '{$path}';
-		url = '{$url}';
-		loggedIn = {if $user}true{else}false{/if};
+			path = '{$path}';
+			url = '{$url}';
+			loggedIn = {if $user}true{else}false{/if};
+			automaticTimeoutLength = {if $automaticTimeoutLength}{$automaticTimeoutLength}{else}90{/if};
 		</script>
 
 		{css filename="consolidated.min.css"}

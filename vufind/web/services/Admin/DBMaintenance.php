@@ -284,6 +284,16 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `homeLinkText` VARCHAR(50) DEFAULT 'Home';",
 				),
 			),
+			'library_23' => array(
+				'title' => 'Library 23',
+				'description' => 'Add the ability to disable wikipedia and the Other format icon by library. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `showOtherFormatCategory` TINYINT(1) DEFAULT '1';",
+					"ALTER TABLE `library` ADD `showWikipediaContent` TINYINT(1) DEFAULT '1';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
@@ -345,6 +355,15 @@ class DBMaintenance extends Admin {
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `location` ADD `recordsToBlackList` MEDIUMTEXT;",
+				),
+			),
+
+			'location_5' => array(
+				'title' => 'Location 5',
+				'description' => 'Add ability to configure the automatic timeout length. ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `location` ADD `automaticTimeoutLength` INT(11) DEFAULT '90';",
 				),
 			),
 

@@ -34,6 +34,7 @@ class Home extends Action
 		global $configArray;
 		global $interface;
 		global $user;
+		global $library;
 
 		// Initialise from the current search globals
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -119,8 +120,10 @@ class Home extends Action
 			// Pull External Author Content
 			if ($searchObject->getPage() == 1) {
 				// Only load Wikipedia info if turned on in config file:
-				if (isset($configArray['Content']['authors']) &&
-				stristr($configArray['Content']['authors'], 'wikipedia')) {
+				if (isset($configArray['Content']['authors'])
+						&& stristr($configArray['Content']['authors'], 'wikipedia')
+						&& (!$library || $library->showWikipediaContent == 1)
+						) {
 					// Only use first two characters of language string; Wikipedia
 					// uses language domains but doesn't break them up into regional
 					// variations like pt-br or en-gb.

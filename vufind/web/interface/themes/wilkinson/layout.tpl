@@ -11,6 +11,7 @@
 			path = '{$path}';
 			url = '{$url}';
 			loggedIn = {if $user}true{else}false{/if};
+			automaticTimeoutLength = {if $automaticTimeoutLength}{$automaticTimeoutLength}{else}90{/if};
 		</script>
 
 		{css filename="consolidated.min.css"}

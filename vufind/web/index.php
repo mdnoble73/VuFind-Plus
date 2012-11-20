@@ -635,7 +635,7 @@ if ($action == "AJAX" || $action == "JSON"){
 $ipLocation = $locationSingleton->getIPLocation();
 $ipId = $locationSingleton->getIPid();
 
-if (!is_null($ipLocation) && $ipLocation != false && $user){
+if (!is_null($ipLocation) && $ipLocation != false){
 	$interface->assign('onInternalIP', true);
 	if (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1){
 		$interface->assign('includeAutoLogoutCode', false);
@@ -653,9 +653,14 @@ if (!is_null($ipLocation) && $ipLocation != false && $user){
 				}
 			}
 		}
-
+		//Only include auto logout code if we are not on the home page
+		if (!$user && $module == 'Search' && $action == 'Home'){
+			$includeAutoLogoutCode = false;
+		}
 		$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 	}
+	$automaticTimeoutLength = $ipLocation->automaticTimeoutLength;
+	$interface->assign('automaticTimeoutLength', $automaticTimeoutLength);
 }else{
 	$interface->assign('onInternalIP', false);
 	$interface->assign('includeAutoLogoutCode', false);

@@ -41,6 +41,7 @@ class TopFacets implements RecommendationInterface
 	 */
 	public function __construct($searchObject, $params)
 	{
+		global $library;
 		// Save the basic parameters:
 		$this->searchObject = $searchObject;
 
@@ -97,17 +98,22 @@ class TopFacets implements RecommendationInterface
 	public function process()
 	{
 		global $interface;
+		global $library;
 
 		// Grab the facet set -- note that we need to take advantage of the third
 		// parameter to getFacetList in order to pass down row and column
 		// information for inclusion in the final list.
 		$facetList = $this->searchObject->getFacetList($this->facets, false);
 		foreach ($facetList as $facetSetkey => $facetSet){
-			if ($facetSet['label'] == 'Category'){
+			if ($facetSet['label'] == 'Category' || $facetSet['label'] == 'Format Category'){
 				//add an image name for display in the template
 				foreach ($facetSet['list'] as $facetKey => $facet){
 					$facet['imageName'] = strtolower(str_replace(' ', '', $facet['value']));
-					$facetSet['list'][$facetKey] = $facet;
+					if ($facetKey != 'Other' || !$library || $library->showOtherFormatCategory == 1){
+						$facetSet['list'][$facetKey] = $facet;
+					}else{
+						unset($facetSet['list'][$facetKey]);
+					}
 				}
 				$facetList[$facetSetkey] = $facetSet;
 			}

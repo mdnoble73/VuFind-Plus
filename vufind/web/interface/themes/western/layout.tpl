@@ -14,7 +14,8 @@
 		<script type="text/javascript">
 			path = '{$path}';
 			url = '{$url}';
-			loggedIn = {if $user}true{else}false{/if}
+			loggedIn = {if $user}true{else}false{/if};
+			automaticTimeoutLength = {if $automaticTimeoutLength}{$automaticTimeoutLength}{else}90{/if};
 		</script>
 
 		{js filename="consolidated.min.js"}
