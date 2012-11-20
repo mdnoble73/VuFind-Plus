@@ -35,7 +35,7 @@
 
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 			<div class="unscopedResultCount">
-				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <span style="font-size:15px"><a href="{$unscopedSearchUrl}">Search the entire collection.</a></span>
 			</div>
 		{/if}
 		<div>
