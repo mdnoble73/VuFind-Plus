@@ -169,6 +169,14 @@ global $locationSingleton;
 $locationSingleton = new Location();
 $timer->logTime('Created Location');
 
+if (isset($_REQUEST['test_role'])){
+	if ($_REQUEST['test_role'] == ''){
+		setcookie('test_role', $_REQUEST['test_role'], time() - 1000, '/');
+	}else{
+		setcookie('test_role', $_REQUEST['test_role'], 0, '/');
+	}
+}
+
 $active_ip = $locationSingleton->getActiveIp();
 if (!isset($_COOKIE['test_ip']) || $active_ip != $_COOKIE['test_ip']){
 	if ($active_ip == ''){
@@ -391,6 +399,7 @@ $interface->setLanguage($language);
 // Determine Module and Action
 global $user;
 $user = UserAccount::isLoggedIn();
+
 $timer->logTime('Check if user is logged in');
 $module = (isset($_GET['module'])) ? $_GET['module'] : null;
 $module = preg_replace('/[^\w]/', '', $module);

@@ -251,11 +251,44 @@ class User extends DB_DataObject
 				//Load roles for the user from the user
 				require_once 'sys/Administration/Role.php';
 				$role = new Role();
+				$canMasquerade = false;
 				if ($this->id){
 					$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = {$this->id} ORDER BY name");
 					$this->roles = array();
 					while ($role->fetch()){
 						$this->roles[$role->roleId] = $role->name;
+						if (in_array($role->name, array('userAdmin'))){
+							$canMasquerade = true;
+						}
+					}
+				}
+
+				//Setup masquerading as different users
+				$testRole = '';
+				if (isset($_REQUEST['test_role'])){
+					$testRole = $_REQUEST['test_role'];
+				}elseif (isset($_COOKIE['test_role'])){
+					$testRole = $_COOKIE['test_role'];
+				}
+				if ($canMasquerade && $testRole != ''){
+					$this->roles = array();
+					$testRoles = array();
+					if (is_array($testRole)){
+						$testRoles = $testRole;
+					}else{
+						$testRoles = array($testRole);
+					}
+					foreach ($testRoles as $tmpRole){
+						$role = new Role();
+						if (is_numeric($tmpRole)){
+							$role->roleId = $tmpRole;
+						}else{
+							$role->name = $tmpRole;
+						}
+						$found = $role->find(true);
+						if ($found == true){
+							$this->roles[$role->roleId] = $role->name;
+						}
 					}
 				}
 				return $this->roles;

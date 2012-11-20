@@ -13,10 +13,10 @@
 	padding-bottom: 3px;
 }
 .reportContainer{
-	width: 280px;
+	width: 250px;
 	border: 1px solid gray;
 	border-radius: 3px;
-	height: 280px;
+	height: 250px;
 	padding: 10px;
 	margin: 10px;
 	display: inline-block;
@@ -25,10 +25,10 @@
 	overflow: auto;
 }
 .reportContainer2{
-	width: 560px;
+	width: 540px;
 	border: 1px solid gray;
 	border-radius: 3px;
-	height: 280px;
+	height: 250px;
 	padding: 10px;
 	margin: 10px;
 	display: inline-block;
