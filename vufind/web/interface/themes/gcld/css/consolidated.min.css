@@ -499,10 +499,10 @@ solid #c0c0c0;margin:6px
 #prospectorSearchResultsHeader{padding-top:25px}#prospectorSearchResultsTitle{padding-top:15px;color:#000;font-size:140%;font-weight:normal}#prospectorSearchResultsNote{color:#333;font-style:italic;margin-bottom:0.5em}#prospectorMan{float:left;margin-right:7px}#prospectorSidebarResults{border-bottom:2px solid #D5D5D5}#prospectorAvailabilityTitle{padding-top:15px;color:#000;font-size:140%;font-weight:normal}.prospectorLibrary{white-space:nowrap;width:225px;font-size:11px;display:inline-block;zoom:1;*display:inline}.prospectorTitle.currentRecord{font-weight:bold}.prospectorRequest{margin-left:20px}
 /* marmot.css */
 #loginFormWrapper{border-right:0px solid black}.loginField{width:200px;text-align:left}.loginLabel{width:200px}#loginFormWrapper{width:400px}.ui-autocomplete{font-size:10px}.ui-widget-content
-a{color:#039}#pageBody{width:960px}#outer_span{margin:auto;width:920px;background-image:url("/interface/themes/marmot/images/background-gradient.png");background-repeat:repeat-y;padding:0
+a{color:#039}#pageBody{width:1000px}#outer_span{margin:auto;width:960px;background-image:url("/interface/themes/marmot/images/background-gradient.png");background-repeat:repeat-y;padding:0
 20px 0px}#ft
 div.footerCol{padding:0
 0.75em 0.75em 0;margin-right:0.5em}div.footerCol
-ul{padding-left:1.25em}#main-content{width:656px}#record-details-column{width:440px}
+ul{padding-left:1.25em}#main-content{width:696px}#record-details-column{width:480px}
 /* extra_styles.css */
 .searchHomeForm{background-color:#73B5D3;border-color:#409AC2}

@@ -19,11 +19,11 @@
 	color: #003399;
 }
 #pageBody{
-	width: 960px;
+	width: 1000px;
 }
 #outer_span {
 	margin: auto;
-	width: 920px;
+	width: 960px;
 	background-image: url("/interface/themes/marmot/images/background-gradient.png");
 	background-repeat: repeat-y;
 	padding: 0 20px 0px;
@@ -36,8 +36,8 @@ div.footerCol ul{
 	padding-left: 1.25em;
 }
 #main-content{
-	width: 656px;
+	width: 696px;
 }
 #record-details-column{
-	width: 440px;
+	width: 480px;
 }
