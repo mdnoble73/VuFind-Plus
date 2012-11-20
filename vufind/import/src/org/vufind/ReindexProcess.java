@@ -330,7 +330,7 @@ public class ReindexProcess {
 			if (idsToProcess != null && idsToProcess.length() > 0){
 				idFilter = " AND id REGEXP '" + idsToProcess + "'";
 			}
-			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter);
+			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			long indexTime = new Date().getTime() / 1000;
 			while (allEContent.next()){

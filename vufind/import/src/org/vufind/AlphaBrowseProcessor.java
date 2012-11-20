@@ -37,10 +37,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private PreparedStatement	insertSubjectBrowseValue;
 	private PreparedStatement	insertCallNumberBrowseValue;
 	
-	private PreparedStatement optimizeTitleStmt;
+	/*private PreparedStatement optimizeTitleStmt;
 	private PreparedStatement optimizeAuthorStmt;
 	private PreparedStatement optimizeSubjectStmt;
-	private PreparedStatement optimizeCallNumberStmt;
+	private PreparedStatement optimizeCallNumberStmt;*/
 	
 	private PreparedStatement	getLibraryIdsForEContent;
 	private HashMap<String, PreparedStatement> insertTitleBrowseScopeValueStmts;
@@ -108,10 +108,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			clearSubjectBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			clearTitleBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			
-			optimizeTitleStmt = vufindConn.prepareStatement("OPTIMIZE TABLE title_browse");
+			/*optimizeTitleStmt = vufindConn.prepareStatement("OPTIMIZE TABLE title_browse");
 			optimizeAuthorStmt = vufindConn.prepareStatement("OPTIMIZE TABLE author_browse");
 			optimizeSubjectStmt = vufindConn.prepareStatement("OPTIMIZE TABLE subject_browse");
-			optimizeCallNumberStmt = vufindConn.prepareStatement("OPTIMIZE TABLE callnumber_browse");
+			optimizeCallNumberStmt = vufindConn.prepareStatement("OPTIMIZE TABLE callnumber_browse");*/
 			
 			clearAuthorBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results_global where record = ?"));
 			clearCallNumberBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results_global where record = ?"));
@@ -256,7 +256,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		
 	}
 	
-	private void optimizeTables(){
+	/*private void optimizeTables(){
 		try {
 			optimizeTitleStmt.execute();
 			optimizeAuthorStmt.execute();
@@ -267,7 +267,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			results.incErrors();
 			logger.error("Error processing optimizing tables ", e);
 		}
-	}
+	}*/
 
 	private void clearBrowseInfoForRecord(String id) {
 		try {
