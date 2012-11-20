@@ -58,9 +58,9 @@
 							<br/>
 							{if $title == 'publishDate'}
 								<div id='yearDefaultLinks'>
-								<a onclick="$('#{$title}yearfrom').val('2005');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
+								<a onclick="$('#{$title}yearfrom').val('2010');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2010</a>
+								&bull;<a onclick="$('#{$title}yearfrom').val('2005');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
 								&bull;<a onclick="$('#{$title}yearfrom').val('2000');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-								&bull;<a onclick="$('#{$title}yearfrom').val('1995');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
 								</div>
 							{/if}
 							</div>
