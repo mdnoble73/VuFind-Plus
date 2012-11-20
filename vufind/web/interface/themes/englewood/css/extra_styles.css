@@ -43,6 +43,9 @@ a:hover{
 	background-color: #45820D;
 	border-top: 2px solid darkgreen;
 }
+.searchHomeForm a,.searchHomeForm a:visited{
+	color: white;
+}
 .searchHomeContent{
 	padding: 0;
 }
