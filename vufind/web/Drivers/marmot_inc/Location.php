@@ -376,8 +376,28 @@ class Location extends DB_DataObject
 		if ($this->ipLocation == false || $this->ipId == false){
 			$timer->logTime('Starting getIPLocation');
 			//echo("Active IP is $activeIp");
-			require_once './Drivers/marmot_inc/ipcalc.php';
 			require_once './Drivers/marmot_inc/subnet.php';
+			$subnet = new subnet();
+			$ipVal = ip2long($activeIp);
+
+			$this->activeIp = '';
+			$this->ipLocation = null;
+			$this->ipId = -1;
+			if (is_numeric($ipVal)){
+				disableErrorHandler();
+				$subnet->whereAdd('startIpVal <= ' . $ipVal);
+				$subnet->whereAdd('endIpVal >= ' . $ipVal);
+				if ($subnet->find(true)){
+					//echo("Found {$subnet->N} matching IP addresses {$subnet->location}");
+					$matchedLocation = $this->staticGet('locationId', $subnet->locationid);
+					//Only use the physical location regardless of where we are
+					//echo("Active location is {$matchedLocation->displayName}");
+					$this->ipLocation = clone($matchedLocation);
+					$this->ipId = $subnet->id;
+				}
+				enableErrorHandler();
+			}
+			/*require_once './Drivers/marmot_inc/ipcalc.php';
 
 			$subnets = $memcache->get('ip_addresses');
 			if ($subnets == false){
@@ -409,7 +429,7 @@ class Location extends DB_DataObject
 				$this->activeIp = '';
 				$this->ipLocation = null;
 				$this->ipId = -1;
-			}
+			}*/
 			$memcache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
 			$memcache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
 			$timer->logTime('Finished getIPLocation');

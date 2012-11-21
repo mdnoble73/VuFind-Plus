@@ -161,7 +161,9 @@ abstract class ObjectEditor extends Admin
 			$id = $_REQUEST['id'];
 			$existingObject = $this->getExistingObjectById($id);
 			$interface->assign('id', $id);
-			$interface->assign('objectName', $existingObject->label());
+			if (method_exists($existingObject, 'label')){
+				$interface->assign('objectName', $existingObject->label());
+			}
 		}
 		if (!isset($_REQUEST['id']) || $existingObject == null){
 			$objectType = $this->getObjectType();

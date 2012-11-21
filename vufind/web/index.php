@@ -652,7 +652,7 @@ if (!is_null($ipLocation) && $ipLocation != false){
 		$includeAutoLogoutCode = true;
 		//Get the PType for the user
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-		if ($catalog->checkFunction('isUserStaff')){
+		if ($user && $catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
 			if ($userIsStaff){

@@ -995,6 +995,19 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'ip_lookup_1' => array(
+				'title' => 'IP Lookup Update 1',
+				'description' => 'Add start and end ranges for IP Lookup table to improve performance.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE ip_lookup ADD COLUMN startIpVal INT(11)",
+					"ALTER TABLE ip_lookup ADD COLUMN endIpVal INT(11)",
+					"ALTER TABLE `ip_lookup` ADD INDEX ( `startIpVal` )",
+					"ALTER TABLE `ip_lookup` ADD INDEX ( `endIpVal` )",
+					"createDefaultIpRanges"
+				),
+			),
+
 			'indexUsageTracking' => array(
 				'title' => 'Index Usage Tracking',
 				'description' => 'Update Usage Tracking to include index based on ip and tracking date',
@@ -1950,5 +1963,15 @@ class DBMaintenance extends Admin {
 			}
 		}
 		return $updateOk;
+	}
+
+	function createDefaultIpRanges(){
+		require_once 'Drivers/marmot_inc/ipcalc.php';
+		require_once 'Drivers/marmot_inc/subnet.php';
+		$subnet = new subnet();
+		$subnet->find();
+		while ($subnet->fetch()){
+			$subnet->update();
+		}
 	}
 }
