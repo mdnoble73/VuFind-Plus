@@ -193,13 +193,14 @@ class Hold extends Action {
 
 			$_SESSION['hold_message'] = $hold_message_data;
 			if (isset($_SESSION['hold_referrer'])){
-				$logger->log('Hold Referrer is set, redirecting to there.  type = ' . $_REQUEST['type'], PEAR_LOG_INFO);
+				$logger->log('Hold Referrer is set, redirecting to there. location ' . $_SESSION['hold_referrer'], PEAR_LOG_INFO);
 
-				if ($_REQUEST['type'] != 'recall' && $_REQUEST['type'] != 'cancel' && $_REQUEST['type'] != 'update'){
+				if (($_REQUEST['type'] != 'recall' && $_REQUEST['type'] != 'cancel' && $_REQUEST['type'] != 'update')){
 					header("Location: " . $_SESSION['hold_referrer']);
 				} else{
 					//Redirect for hold cancellation or update
-					header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+					$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'unavailable';
+					header("Location: " . '/MyResearch/Holds?section=' . $section);
 				}
 				if (!isset($hold_message_data['showItemForm']) || $hold_message_data['showItemForm'] == false){
 					unset($_SESSION['hold_referrer']);
@@ -208,13 +209,15 @@ class Hold extends Action {
 						UserAccount::softLogout();
 					}
 				}
+				//session_write_close();
+				//die();
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);
-				header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+				header("Location: " . '/MyResearch/Holds');
 				die();
 			}
 		} else {
-			$logger->log('placeHold finished, do not need to show a message', PEAR_LOG_INFO);
+			//$logger->log('placeHold finished, do not need to show a message', PEAR_LOG_INFO);
 			$interface->setPageTitle('Request an Item');
 			$interface->assign('subTemplate', 'hold.tpl');
 			$interface->setTemplate('hold.tpl');
