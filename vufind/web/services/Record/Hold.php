@@ -209,8 +209,6 @@ class Hold extends Action {
 						UserAccount::softLogout();
 					}
 				}
-				//session_write_close();
-				//die();
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);
 				header("Location: " . '/MyResearch/Holds');
