@@ -368,7 +368,7 @@ class Location extends DB_DataObject
 		global $logger;
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
-		$logger->log("Active IP is $activeIp", PEAR_LOG_DEBUG);
+		//$logger->log("Active IP is $activeIp", PEAR_LOG_DEBUG);
 		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
 		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
 		if ($this->ipId == -1){

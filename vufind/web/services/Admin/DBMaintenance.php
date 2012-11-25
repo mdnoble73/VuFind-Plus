@@ -999,11 +999,24 @@ class DBMaintenance extends Admin {
 				'title' => 'IP Lookup Update 1',
 				'description' => 'Add start and end ranges for IP Lookup table to improve performance.',
 				'dependencies' => array(),
+				'continueOnError' => true,
 				'sql' => array(
-					"ALTER TABLE ip_lookup ADD COLUMN startIpVal INT(11)",
-					"ALTER TABLE ip_lookup ADD COLUMN endIpVal INT(11)",
+					"ALTER TABLE ip_lookup ADD COLUMN startIpVal BIGINT",
+					"ALTER TABLE ip_lookup ADD COLUMN endIpVal BIGINT",
 					"ALTER TABLE `ip_lookup` ADD INDEX ( `startIpVal` )",
 					"ALTER TABLE `ip_lookup` ADD INDEX ( `endIpVal` )",
+					"createDefaultIpRanges"
+				),
+			),
+
+			'ip_lookup_2' => array(
+				'title' => 'IP Lookup Update 2',
+				'description' => 'Change start and end ranges to be big integers.',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `ip_lookup` CHANGE `startIpVal` `startIpVal` BIGINT NULL DEFAULT NULL ",
+					"ALTER TABLE `ip_lookup` CHANGE `endIpVal` `endIpVal` BIGINT NULL DEFAULT NULL ",
 					"createDefaultIpRanges"
 				),
 			),
