@@ -2147,3 +2147,6 @@ ul.hold_items li{
 #digitalEditionsInfo {
 	padding-top: 20px;
 }
+.facetDropDown{
+	width: 175px;
+}

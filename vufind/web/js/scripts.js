@@ -1022,10 +1022,17 @@ function createWidgetFromSearch(searchId){
 	return false;
 }
 function trackEvent(category, action, data){
-	var url =path + '/AJAX/JSON?method=trackEvent&category=' + category + '&eventAction=' + action + '&data=' + data;
+	var url =path + '/AJAX/JSON?method=trackEvent&category=' + encodeURIComponent(category) + '&eventAction=' + encodeURIComponent(action) + '&data=' + encodeURIComponent(data);
 	$.ajax({
 		url: url,
 		async: true,
 	});
 	return true;
+}
+
+function changeDropDownFacet(dropDownId, facetLabel){
+	var selectedOption = $("#" + dropDownId + " :selected");
+	var destination = selectedOption.data("destination");
+	var value = selectedOption.data("label");
+	window.location.href= destination;
 }

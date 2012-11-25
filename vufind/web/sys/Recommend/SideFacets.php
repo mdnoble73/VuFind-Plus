@@ -90,8 +90,6 @@ class SideFacets implements RecommendationInterface
 			}
 		}
 
-
-
 		$this->checkboxFacets = ($checkboxSection && isset($config[$checkboxSection])) ? $config[$checkboxSection] : array();
 	}
 
@@ -222,6 +220,22 @@ class SideFacets implements RecommendationInterface
 			$sideFacets['available_at']['list'] = $availableAtFacets;
 
 			//print_r($sideFacets['available_at']);
+		}
+
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary != null && count($searchLibrary->facets) > 0){
+			foreach ($searchLibrary->facets as $facet){
+				if (array_key_exists($facet->facetName, $sideFacets)){
+					if ($facet->sortMode == 'alphabetically'){
+						asort($sideFacets[$facet->facetName]['list']);
+					}
+					$sideFacets[$facet->facetName]['valuesToShow'] = $facet->numEntriesToShowByDefault;
+					if ($facet->showAsDropDown){
+						$sideFacets[$facet->facetName]['showAsDropDown'] = $facet->showAsDropDown;
+					}
+				}
+
+			}
 		}
 
 		$interface->assign('sideFacetSet', $sideFacets);

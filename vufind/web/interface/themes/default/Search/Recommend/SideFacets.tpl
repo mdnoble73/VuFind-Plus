@@ -35,7 +35,7 @@
 				<dl class="narrowList navmenu narrow_begin">
 					<dt>{translate text=$cluster.label}</dt>
 					<dd>
-						<form id='{$title}Filter' action='{$fullPath}' onsubmit="trackEvent('Apply Facet', '{$cluster.label}', '');">
+						<form id='{$title}Filter' action='{$fullPath}'>
 						<div>
 							<label for="{$title}yearfrom" class='yearboxlabel'>From:</label>
 							<input type="text" size="4" maxlength="4" class="yearbox" name="{$title}yearfrom" id="{$title}yearfrom" value="" />
@@ -80,9 +80,9 @@
 							{/if}
 						{else}
 							{if $curLabel == 'Unrated'}
-								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$curLabel|translate}');">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if} ({$thisFacet.count})</dd>
+								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if} ({$thisFacet.count})</dd>
 							{else}
-								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$curLabel|translate}');">{/if}<img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate} &amp; Up" title="{$curLabel|translate} &amp; Up"/>{if $thisFacet.url !=null}</a>{/if} ({if $thisFacet.count}{$thisFacet.count}{else}0{/if})</dd>
+								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}<img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate} &amp; Up" title="{$curLabel|translate} &amp; Up"/>{if $thisFacet.url !=null}</a>{/if} ({if $thisFacet.count}{$thisFacet.count}{else}0{/if})</dd>
 							{/if}
 						{/if}
 					{/foreach}
@@ -91,7 +91,7 @@
 				<dl class="narrowList navmenu narrowbegin">
 					<dt>{translate text=$cluster.label}</dt>
 					<dd>
-						<form id='{$title}Filter' action='{$fullPath}' onsubmit="trackEvent('Apply Facet', '{$cluster.label}', '');">
+						<form id='{$title}Filter' action='{$fullPath}'>
 							<div>
 								{if $title == 'lexile_score'}
 									<div id="lexile-range"></div>
@@ -141,6 +141,18 @@
 						</form>
 					</dd>
 				</dl>
+			{elseif $cluster.showAsDropDown}
+				<dl class="narrowList navmenu narrowbegin">
+					<dt>{translate text=$cluster.label}</dt>
+					<dd>
+						<select class="facetDropDown" onchange="changeDropDownFacet('facetDropDown-{$title}', '{$cluster.label}')" id="facetDropDown-{$title}">
+							<option selected="selected">Choose {$cluster.label}</option>
+							{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
+								<option data-destination="{$thisFacet.url}" data-label="{$thisFacet.display|escape}">{$thisFacet.display|escape}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</option>
+							{/foreach}
+						</select>
+					</dd>
+				</dl>
 			{else}
 				<dl class="narrowList navmenu narrowbegin">
 					<dt>{translate text=$cluster.label}</dt>
@@ -153,7 +165,7 @@
 						{if $thisFacet.isApplied}
 							<dd>{$thisFacet.display|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></dd>
 						{else}
-							<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</dd>
+							<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</dd>
 						{/if}
 					{/foreach}
 					{if $smarty.foreach.narrowLoop.total > $cluster.valuesToShow}<dd><a href="#" onclick="lessFacets('{$title}'); return false;">{translate text='less'} ...</a></dd>{/if}

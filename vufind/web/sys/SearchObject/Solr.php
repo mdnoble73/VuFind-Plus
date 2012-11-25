@@ -994,6 +994,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function processSearch($returnIndexErrors = false, $recommendations = false) {
 		global $timer;
+		global $analytics;
 
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
@@ -1044,6 +1045,7 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
+				$analytics->addEvent('Apply Facet', $field, $value);
 				// Special case -- allow trailing wildcards:
 				if (substr($value, -1) == '*') {
 					$filterQuery[] = "$field:$value";
