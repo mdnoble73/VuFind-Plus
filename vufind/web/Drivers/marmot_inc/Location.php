@@ -365,12 +365,14 @@ class Location extends DB_DataObject
 		global $timer;
 		global $memcache;
 		global $configArray;
+		global $logger;
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
+		$logger->log("Active IP is $activeIp", PEAR_LOG_DEBUG);
 		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
 		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
 		if ($this->ipId == -1){
-			$this->ipLocation = null;
+			$this->ipLocation = false;
 		}
 
 		if ($this->ipLocation == false || $this->ipId == false){
@@ -388,12 +390,17 @@ class Location extends DB_DataObject
 				$subnet->whereAdd('startIpVal <= ' . $ipVal);
 				$subnet->whereAdd('endIpVal >= ' . $ipVal);
 				if ($subnet->find(true)){
-					//echo("Found {$subnet->N} matching IP addresses {$subnet->location}");
-					$matchedLocation = $this->staticGet('locationId', $subnet->locationid);
-					//Only use the physical location regardless of where we are
-					//echo("Active location is {$matchedLocation->displayName}");
-					$this->ipLocation = clone($matchedLocation);
-					$this->ipId = $subnet->id;
+					//$logger->log("Found {$subnet->N} matching IP addresses {$subnet->location}", PEAR_LOG_DEBUG);
+					$matchedLocation = new Location();
+					$matchedLocation->locationId = $subnet->locationid;
+					if ($matchedLocation->find(true)){
+						//Only use the physical location regardless of where we are
+						//$logger->log("Active location is {$matchedLocation->displayName}", PEAR_LOG_DEBUG);
+						$this->ipLocation = clone($matchedLocation);
+						$this->ipId = $subnet->id;
+					}else{
+						$logger->log("Did not find location for ip location id {$subnet->locationid}", PEAR_LOG_WARNING);
+					}
 				}
 				enableErrorHandler();
 			}
