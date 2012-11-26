@@ -1025,7 +1025,7 @@ function trackEvent(category, action, data){
 	var url =path + '/AJAX/JSON?method=trackEvent&category=' + category + '&eventAction=' + action + '&data=' + data;
 	$.ajax({
 		url: url,
-		async: true,
+		async: true
 	});
 	return true;
 }
