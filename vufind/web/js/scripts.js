@@ -1025,7 +1025,7 @@ function trackEvent(category, action, data){
 	var url =path + '/AJAX/JSON?method=trackEvent&category=' + encodeURIComponent(category) + '&eventAction=' + encodeURIComponent(action) + '&data=' + encodeURIComponent(data);
 	$.ajax({
 		url: url,
-		async: true,
+		async: true
 	});
 	return true;
 }
@@ -1034,5 +1034,5 @@ function changeDropDownFacet(dropDownId, facetLabel){
 	var selectedOption = $("#" + dropDownId + " :selected");
 	var destination = selectedOption.data("destination");
 	var value = selectedOption.data("label");
-	window.location.href= destination;
+	window.location.href = destination;
 }

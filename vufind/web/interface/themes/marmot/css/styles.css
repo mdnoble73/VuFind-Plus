@@ -1087,7 +1087,7 @@ img.centered {
 /* New advanced search screen stuff */
 .advSearchContent {
 	/* Needed for IE7 compatibility: */
-	width: 96%;
+	width: 99%;
 }
 .groupSearchHolder {
 	padding: 10px 10px 5px;
