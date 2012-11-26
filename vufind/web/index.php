@@ -717,21 +717,21 @@ function processFollowup(){
 
 	switch($_REQUEST['followup']) {
 		case 'SaveRecord':
-			$result = file_get_contents($configArray['Site']['url'] .
+			$result = file_get_contents($configArray['Site']['path'] .
                     "/Record/AJAX?method=SaveRecord&id=" . urlencode($_REQUEST['id']));
 			break;
 		case 'SaveTag':
-			$result = file_get_contents($configArray['Site']['url'] .
+			$result = file_get_contents($configArray['Site']['path'] .
                     "/Record/AJAX?method=SaveTag&id=" . urlencode($_REQUEST['id']) .
                     "&tag=" . urlencode($_REQUEST['tag']));
 			break;
 		case 'SaveComment':
-			$result = file_get_contents($configArray['Site']['url'] .
+			$result = file_get_contents($configArray['Site']['path'] .
                     "/Record/AJAX?method=SaveComment&id=" . urlencode($_REQUEST['id']) .
                     "&comment=" . urlencode($_REQUEST['comment']));
 			break;
 		case 'SaveSearch':
-			header("Location: {$configArray['Site']['url']}/".$_REQUEST['followupModule']."/".$_REQUEST['followupAction']."?".$_REQUEST['recordId']);
+			header("Location: {$configArray['Site']['path']}/".$_REQUEST['followupModule']."/".$_REQUEST['followupAction']."?".$_REQUEST['recordId']);
 			die();
 			break;
 	}
@@ -1013,7 +1013,7 @@ function updateConfigForScoping($configArray) {
 		$themes = explode(',', $library->themeName);
 		foreach ($themes as $themeName){
 			if ($location != null && file_exists('./interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css')) {
-				$configArray['Site']['theme_css'] = $configArray['Site']['url'] . '/interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css';
+				$configArray['Site']['theme_css'] = $configArray['Site']['path'] . '/interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css';
 			}
 			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
 				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';

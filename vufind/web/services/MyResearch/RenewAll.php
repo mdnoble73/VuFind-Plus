@@ -48,7 +48,7 @@ class RenewAll extends Action
 		}
 
 		//Redirect back to the hold screen with status from the renewal
-		header("Location: " . $configArray['Site']['url'] . '/MyResearch/CheckedOut');
+		header("Location: " . $configArray['Site']['path'] . '/MyResearch/CheckedOut');
 	}
 
 }
