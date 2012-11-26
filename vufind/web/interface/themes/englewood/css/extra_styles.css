@@ -59,3 +59,6 @@ a:hover{
 #searchbar a:hover{
 	color: lightyellow;
 }
+td.holdings-section{
+	background-color: #45820D;
+}

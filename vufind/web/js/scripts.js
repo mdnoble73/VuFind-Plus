@@ -1036,3 +1036,8 @@ function changeDropDownFacet(dropDownId, facetLabel){
 	var value = selectedOption.data("label");
 	window.location.href = destination;
 }
+
+function toggleSection(sectionName){
+	$("." + sectionName).toggle();
+	$("#holdings-section-" + sectionName).toggleClass('collapsed expanded');
+}

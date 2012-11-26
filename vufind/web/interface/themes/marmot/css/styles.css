@@ -2062,7 +2062,9 @@ ul.hold_items li{
 .alphaBrowseRelatedHeading li {
 	margin-left: 4em;
 }
-
+.collapsed, .expanded{
+	cursor: pointer;
+}
 .collapsed:before{
 	content: "► ";
 }

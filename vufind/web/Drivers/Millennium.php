@@ -540,26 +540,32 @@ class MillenniumDriver implements DriverInterface
 			if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
 				//If the user is in a branch, those holdings come first.
 				$holding['section'] = 'In this library';
+				$holding['sectionId'] = 1;
 				$sorted_array['1' . $sortString] = $holding;
 			} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
 				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
 				$holding['section'] = 'Your library';
+				$holding['sectionId'] = 2;
 				$sorted_array['2' . $sortString] = $holding;
 			} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
 				//Next come nearby locations for the user
 				$holding['section'] = 'Nearby Libraries';
+				$holding['sectionId'] = 3;
 				$sorted_array['3' . $sortString] = $holding;
 			} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
 				//Next come nearby locations for the user
 				$holding['section'] = 'Nearby Libraries';
+				$holding['sectionId'] = 4;
 				$sorted_array['4' . $sortString] = $holding;
 			} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $holding['location'])){
 				//Next come any locations within the same system we are in.
 				$holding['section'] = $library->displayName;
+				$holding['sectionId'] = 5;
 				$sorted_array['5' . $sortString] = $holding;
 			} else {
 				//Finally, all other holdings are shown sorted alphabetically.
 				$holding['section'] = 'Other Locations';
+				$holding['sectionId'] = 6;
 				$sorted_array['6' . $sortString] = $holding;
 			}
 			$i++;
@@ -576,6 +582,7 @@ class MillenniumDriver implements DriverInterface
 				$sorted_array['7' . $location . $i] = array(
                     'location' => $location,
                     'section' => 'On Order',
+                    'sectionId' => 7,
                     'holdable' => 1,
 				);
 			}
