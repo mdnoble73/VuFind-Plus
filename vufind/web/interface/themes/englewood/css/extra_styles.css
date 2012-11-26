@@ -62,3 +62,8 @@ a:hover{
 td.holdings-section{
 	background-color: #45820D;
 }
+.titleScrollerBody{
+	border: 1px solid #949494;
+	border-radius: 3px 3px 3px 3px;
+	margin: 6px 0px;
+}
