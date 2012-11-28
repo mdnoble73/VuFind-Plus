@@ -72,22 +72,21 @@ class Record extends Action
 			$this->id = $record_id;
 		}
 
-		//Check to see if the record has been converted to an eContent record
-		require_once 'sys/eContent/EContentRecord.php';
-		$econtentRecord = new EContentRecord();
-		$econtentRecord->ilsId = $this->id;
-		$econtentRecord->status = 'active';
-		if ($econtentRecord->find(true)){
-			header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
-			die();
-		}
-
 		//Check to see if the record exists within the resources table
 		$resource = new Resource();
 		$resource->record_id = $this->id;
 		$resource->source = 'VuFind';
 		$resource->deleted = 0;
 		if (!$resource->find()){
+			//Check to see if the record has been converted to an eContent record
+			require_once 'sys/eContent/EContentRecord.php';
+			$econtentRecord = new EContentRecord();
+			$econtentRecord->ilsId = $this->id;
+			$econtentRecord->status = 'active';
+			if ($econtentRecord->find(true)){
+				header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
+				die();
+			}
 			$logger->log("Did not find a record for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
 			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
