@@ -313,6 +313,17 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 
+		'eContentRecord_8'	=> array(
+			'title' => 'eContent Record Update 8',
+			'description' => 'Add additional indexes to econtent record.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE `econtent_record` ADD INDEX (`status`)",
+				"ALTER TABLE `econtent_record` ADD INDEX (`ilsId`)",
+				"ALTER TABLE `econtent_record` ADD INDEX (`externalId`)",
+			),
+		),
+
 
 		'notices_1'	=> array(
 			'title' => 'eContent Notices Update 1',
