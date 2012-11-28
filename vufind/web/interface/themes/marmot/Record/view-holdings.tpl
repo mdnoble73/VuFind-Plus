@@ -13,7 +13,7 @@
 				{assign var=lastSection value=$holding.section}
 			{/if}
 			
-			<tr class="{$holding.section|replace:' ':'_'}" {if $holding.sectionId > 5}style='display:none'{/if}>
+			<tr class="{$holding.section|replace:' ':'_'}" {if $holding.sectionId > 5 && strlen($holding.section) > 0}style='display:none'{/if}>
 				<td style = "padding-bottom:5px;">
 					<span><strong>
 					{$holding.location|escape}
