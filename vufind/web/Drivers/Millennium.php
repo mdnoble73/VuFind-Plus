@@ -2269,6 +2269,14 @@ class MillenniumDriver implements DriverInterface
 				$campus = $user->homeLocationId;
 			}
 
+			if (is_numeric($campus)){
+				$location = new Location();
+				$location->locationId = $campus;
+				if ($location->find(true)){
+					$campus = $location->code;
+				}
+			}
+
 			list($Month, $Day, $Year)=explode("/", $date);
 
 			//------------BEGIN CURL-----------------------------------------------------------------
