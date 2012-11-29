@@ -7,6 +7,7 @@
 				<h3>Placing hold on <span id='newHoldCount'>1</span> title.</h3>
 				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
 				<div class="pageWarning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
+				<div id='holdError' style='display: none'></div>
 			</div>
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>

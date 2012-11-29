@@ -124,7 +124,7 @@ function GetPreferredBranches() {
 	    + encodeURIComponent(username) + "&barcode="
 	    + encodeURIComponent(barcode) + "&holdCount=" 
 	    + encodeURIComponent(holdCount);
-	
+	$('#holdError').hide();
 	$.getJSON(url + "?" + params, function(data) {
 			if (data.loginFailed == false) {
 				var locations = data.PickupLocations;
@@ -155,7 +155,8 @@ function GetPreferredBranches() {
 			} else {
 				$('#loginButton').show();
 				// document.getElementById('holdOptions').style.display = 'none';
-				alert('Invalid Login, please try again.');
+				$('#holdError').html('Invalid Login, please try again.');
+				$('#holdError').show();
 			}
 
 	  }
