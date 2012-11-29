@@ -1112,6 +1112,9 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getLexileCode") ){
 					retval = getLexileCode();
 					returnType = String.class;
+				}else if (functionName.equals("getBarcode") && parms.length == 1){
+					retval = getBarcode(parms[0]);
+					returnType = Set.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
@@ -3593,5 +3596,23 @@ public class MarcRecordDetails {
 	public String getEContentPhysicalDescription(){
 		String physicalDescription = getFirstFieldVal("300ab");
 		return physicalDescription;
+	}
+	
+	Pattern digitPattern = Pattern.compile("^\\d+$");
+	public Set<String> getBarcode(String fieldSpec){
+		Set<String> result = new LinkedHashSet<String>();
+		// Loop through the specified MARC fields:
+		Set<String> input = getFieldList(record, fieldSpec);
+		Iterator<String> iter = input.iterator();
+		while (iter.hasNext()) {
+			// Get the current string to work on:
+			String current = iter.next();
+
+			// Make sure the barcode is numeric since we also get call numbers in the barcode field.
+			if (digitPattern.matcher(current).matches()) {
+				result.add(current);
+			}
+		}
+		return result;
 	}
 }
