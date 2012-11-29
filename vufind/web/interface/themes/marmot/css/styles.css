@@ -1690,7 +1690,7 @@ div.listEntryRight{
 .searchHomeContent{
 	text-align: center;
 }
-#ft div.location_info{
+#ft div.location_info, #ft div.version_info{
 	width: 100%;
 	font-size: 10px;
 }

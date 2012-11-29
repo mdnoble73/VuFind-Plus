@@ -118,20 +118,7 @@ require_once 'Drivers/marmot_inc/Location.php';
 $timer->logTime("Include Library and Location");
 
 $timer->logTime('Startup');
-// Set up autoloader (needed for YAML)
-function vufind_autoloader($class) {
-	if (strpos($class, '.php') > 0){
-		$class = substr($class, 0, strpos($class, '.php'));
-	}
-	$nameSpaceClass = str_replace('_', '/', $class) . '.php';
-	if (file_exists('sys/' . $class . '.php')){
-		require_once 'sys/' . $class . '.php';
-	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-		require_once 'services/MyResearch/lib/' . $class . '.php';
-	}else{
-		require_once $nameSpaceClass;
-	}
-}
+
 spl_autoload_register('vufind_autoloader');
 
 // Sets global error handler for PEAR errors
@@ -225,6 +212,7 @@ $interface->assign('footerTemplate', 'footer.tpl');
 if (isset($location) && $location->footerTemplate != 'default'){
 	$interface->assign('footerTemplate', $location->footerTemplate);
 }
+getGitBranch();
 
 require_once 'sys/Analytics.php';
 //Define tracking to be done
@@ -1057,4 +1045,27 @@ function formatRenewMessage($renew_message_data){
 	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
 
 	return $renew_message;
+}
+function getGitBranch(){
+	global $interface;
+	$stringfromfile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
+	$stringfromfile = $stringfromfile[0]; //get the string from the array
+	$explodedstring = explode("/", $stringfromfile); //seperate out by the "/" in the string
+	$branchname = $explodedstring[2]; //get the one that is always the branch name
+
+	$interface->assign('gitBranch', $branchname);
+}
+// Set up autoloader (needed for YAML)
+function vufind_autoloader($class) {
+	if (strpos($class, '.php') > 0){
+		$class = substr($class, 0, strpos($class, '.php'));
+	}
+	$nameSpaceClass = str_replace('_', '/', $class) . '.php';
+	if (file_exists('sys/' . $class . '.php')){
+		require_once 'sys/' . $class . '.php';
+	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
+		require_once 'services/MyResearch/lib/' . $class . '.php';
+	}else{
+		require_once $nameSpaceClass;
+	}
 }
