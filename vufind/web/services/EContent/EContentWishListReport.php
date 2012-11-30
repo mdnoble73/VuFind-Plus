@@ -46,7 +46,7 @@ class EContentWishListReport extends Admin
 			$this->exportToExcel($recordsOnWishList);
 		}
 
-		$interface->setTemplate('econtentWishList.tpl');
+		$interface->setTemplate('econtentWishlist.tpl');
 		$interface->display('layout.tpl');
 	}
 
