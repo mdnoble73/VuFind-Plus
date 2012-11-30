@@ -59,7 +59,7 @@ class UserSuggestions extends Admin
                     //Couldn't find the record.  Something went haywire.
                 }
             }
-            header("Location: {$configArray['Site']['url']}/Admin/UserSuggestions");
+            header("Location: {$configArray['Site']['path']}/Admin/UserSuggestions");
             die();
             break;
         }

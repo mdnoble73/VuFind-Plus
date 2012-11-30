@@ -99,7 +99,7 @@ class MyLists extends Action
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){
 					$list->delete();
-					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
+					header("Location: {$configArray['Site']['path']}/MyResearch/Home");
 					die();
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
@@ -124,7 +124,7 @@ class MyLists extends Action
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.
-			header("Location: {$configArray['Site']['url']}/MyResearch/MyList/{$list->id}");
+			header("Location: {$configArray['Site']['path']}/MyResearch/MyList/{$list->id}");
 			die();
 
 		}

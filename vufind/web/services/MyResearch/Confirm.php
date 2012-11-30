@@ -57,7 +57,7 @@ class Confirm extends MyResearch
 				$myList = new MyList();
 				$myList->launch();
 			} else if ($_POST['cancel']) {
-				$followupUrl =  $configArray['Site']['url'] .
+				$followupUrl =  $configArray['Site']['path'] .
                     "/MyResearch/MyList/" . urlencode($_POST['listID']);
 				header(
                     "Location: " . $followupUrl . "?infoMsg=fav_list_delete_cancel"

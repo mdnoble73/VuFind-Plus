@@ -67,14 +67,14 @@ class Export extends MyResearch
 		$doExport = false;
 
 		if (isset($_REQUEST['followup'])) {
-			$this->followupUrl =  $configArray['Site']['url'] . "/".
+			$this->followupUrl =  $configArray['Site']['path'] . "/".
 			$_REQUEST['followupModule'];
 			$this->followupUrl .= "/" . $_REQUEST['followupAction'];
 		} else if (isset($_REQUEST['listID']) && !empty($_REQUEST['listID'])) {
-			$this->followupUrl = $configArray['Site']['url'] .
+			$this->followupUrl = $configArray['Site']['path'] .
                 "/MyResearch/MyList/" . urlencode($_REQUEST['listID']);
 		} else {
-			$this->followupUrl = $configArray['Site']['url'] .
+			$this->followupUrl = $configArray['Site']['path'] .
                 "/MyResearch/Favorites";
 		}
 

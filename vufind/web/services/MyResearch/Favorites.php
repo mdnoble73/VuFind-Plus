@@ -39,7 +39,7 @@ class Favorites extends MyResearch
 		global $user;
 
 		if (isset($_REQUEST['followup'])) {
-			$followupUrl =  $configArray['Site']['url'] . "/". strip_tags($_REQUEST['followupModule']);
+			$followupUrl =  $configArray['Site']['path'] . "/". strip_tags($_REQUEST['followupModule']);
 			if (!empty($_REQUEST['recordId'])) {
 				$followupUrl .= "/" . strip_tags($_REQUEST['recordId']);
 			}

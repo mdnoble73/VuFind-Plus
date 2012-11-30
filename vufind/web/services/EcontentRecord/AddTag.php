@@ -61,7 +61,7 @@ class AddTag extends Action {
 
 		if (isset($_POST['submit'])) {
 			$result = $this->save();
-			header("Location: " . $configArray['Site']['url'] . '/EcontentRecord/' .
+			header("Location: " . $configArray['Site']['path'] . '/EcontentRecord/' .
 			urlencode($_GET['id']) . '/Home');
 		} else {
 			return $this->display();

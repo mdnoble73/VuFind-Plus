@@ -89,7 +89,7 @@ function printLink($params)
 
 	if ($record['id']) {
 		$record = $finesIndexEngine->getRecord($record['id']);
-		return '<a href="' . $configArray['Site']['url'] . '/Record/' . urlencode($record['id']) . '">' . htmlspecialchars($record['title_short']) . '</a>';
+		return '<a href="' . $configArray['Site']['path'] . '/Record/' . urlencode($record['id']) . '">' . htmlspecialchars($record['title_short']) . '</a>';
 	} else {
 		if ($record['comment']){
 			$record['comment'];

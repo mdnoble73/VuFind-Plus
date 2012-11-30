@@ -103,7 +103,7 @@ class Edit extends Action
 			} else {
 				$nextAction = 'Home';
 			}
-			header('Location: ' . $configArray['Site']['url'] . '/MyResearch/' . $nextAction);
+			header('Location: ' . $configArray['Site']['path'] . '/MyResearch/' . $nextAction);
 			exit();
 		}
 

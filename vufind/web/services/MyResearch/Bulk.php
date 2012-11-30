@@ -55,14 +55,14 @@ class Bulk extends Action
 
 		// Set FollowUp URL
 		if (isset($_REQUEST['followup'])) {
-			$this->followupUrl =  $configArray['Site']['url'] . "/".
+			$this->followupUrl =  $configArray['Site']['path'] . "/".
 			$_REQUEST['followupModule'];
 			$this->followupUrl .= "/" . $_REQUEST['followupAction'];
 		} else if (isset($_REQUEST['listID']) && !empty($_REQUEST['listID'])) {
-			$this->followupUrl = $configArray['Site']['url'] .
+			$this->followupUrl = $configArray['Site']['path'] .
                 "/MyResearch/MyList/" . urlencode($_REQUEST['listID']);
 		} else {
-			$this->followupUrl = $configArray['Site']['url'] .
+			$this->followupUrl = $configArray['Site']['path'] .
                 "/MyResearch/Favorites";
 		}
 
@@ -88,7 +88,7 @@ class Bulk extends Action
 			$confirm->launch();
 		} else if (isset($_REQUEST['editList']) && isset($_POST['listID'])) {
 			// Edit List
-			$this->followupUrl = $configArray['Site']['url'] .
+			$this->followupUrl = $configArray['Site']['path'] .
                 "/MyResearch/EditList/" . $_POST['listID'];
 			header("Location: " . $this->followupUrl);
 			exit();

@@ -92,7 +92,7 @@ class Administrators extends ObjectEditor
 			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
 				header("Location: " . $_SESSION['redirect_location']);
 			}else{
-				header("Location: {$configArray['Site']['url']}/Admin/{$this->getToolName()}");
+				header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 			}
 			die();
 		}else{

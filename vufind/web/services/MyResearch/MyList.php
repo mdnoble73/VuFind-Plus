@@ -132,7 +132,7 @@ class MyList extends Action {
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){
 					$list->delete();
-					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
+					header("Location: {$configArray['Site']['path']}/MyResearch/Home");
 					die();
 				}elseif ($actionToPerform == 'bulkAddTitles'){
 					$notes = $this->bulkAddTitles($list);
@@ -160,7 +160,7 @@ class MyList extends Action {
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.
-			header("Location: {$configArray['Site']['url']}/MyResearch/MyList/{$list->id}");
+			header("Location: {$configArray['Site']['path']}/MyResearch/MyList/{$list->id}");
 			die();
 
 		}

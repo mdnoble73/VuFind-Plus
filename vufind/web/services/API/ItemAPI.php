@@ -401,7 +401,7 @@ class ItemAPI extends Action {
 			$itemData['format'] = isset($record['format']) ? $record['format'][0] : '';
 			$itemData['formatCategory'] = $record['format_category'][0];
 			$itemData['language'] = $record['language'];
-			$itemData['cover'] = $configArray['Site']['url'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
+			$itemData['cover'] = $configArray['Site']['path'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
 
 			//Retrieve description from MARC file
 			$description = '';

@@ -154,7 +154,10 @@ function readConfig()
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
 	//If we are accessing the site via a subdomain, need to preserve the subdomain
-	if (isset($_SERVER['HTTPS'])){
+	//Don't try to preserve SSL since the combination of proxy and SSL does not work nicely.
+	//i.e. https://mesa.marmot.org is proxied to https://mesa.opac.marmot.org which does not have
+	//a valid SSL cert
+	if (false && isset($_SERVER['HTTPS'])){
 		$mainArray['Site']['url'] = "https://" . $serverUrl;
 	}else{
 		$mainArray['Site']['url'] = "http://" . $serverUrl;

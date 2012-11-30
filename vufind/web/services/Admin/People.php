@@ -59,9 +59,9 @@ class People extends ObjectEditor
 	function getRedirectLocation($objectAction, $curObject){
 		global $configArray;
 		if ($objectAction == 'delete'){
-			return $configArray['Site']['url'] . '/Union/Search?searchSource=genealogy&lookfor=&genealogyType=GenealogyName&submit=Find';
+			return $configArray['Site']['path'] . '/Union/Search?searchSource=genealogy&lookfor=&genealogyType=GenealogyName&submit=Find';
 		}else{
-			return $configArray['Site']['url'] . '/Person/' . $curObject->personId;
+			return $configArray['Site']['path'] . '/Person/' . $curObject->personId;
 		}
 	}
 	function showReturnToList(){

@@ -31,7 +31,7 @@ class Edit extends Action {
 
 		//If the user isn't logged in, take them to the login page
 		if (!$user){
-			header("Location: {$configArray['Site']['url']}/MyResearch/Login");
+			header("Location: {$configArray['Site']['path']}/MyResearch/Login");
 			die();
 		}
 

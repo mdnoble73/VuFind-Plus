@@ -447,7 +447,7 @@ if ($user) {
 	if ($user){
 		if (isset($_REQUEST['followupModule']) && isset($_REQUEST['followupAction'])) {
 			echo("Redirecting to followup location");
-			$followupUrl =  $configArray['Site']['url'] . "/".  strip_tags($_REQUEST['followupModule']);
+			$followupUrl =  $configArray['Site']['path'] . "/".  strip_tags($_REQUEST['followupModule']);
 			if (!empty($_REQUEST['recordId'])) {
 				$followupUrl .= "/" .  strip_tags($_REQUEST['recordId']);
 			}

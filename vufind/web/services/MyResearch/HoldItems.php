@@ -105,7 +105,7 @@ class HoldItems extends Action
 			}
 		}else{
 			$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);
-			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Holds');
 		}
 	}
 }

@@ -91,7 +91,7 @@ class Results extends Action {
 					$queryParamStrings[] = "&filter[]=$dateFilter:[$yearFrom+TO+$yearTo]";
 				}
 				$queryParamString = join('&', $queryParamStrings);
-				header("Location: {$configArray['Site']['url']}/Genealogy/Results?$queryParamString");
+				header("Location: {$configArray['Site']['path']}/Genealogy/Results?$queryParamString");
 				exit;
 			}
 		}

@@ -83,7 +83,7 @@ class Suggestion extends Action
                 
                 
                 //Redirect to the confirmation page
-                header("Location: " . $configArray['Site']['url'] . '/Help/SuggestionConfirm');
+                header("Location: " . $configArray['Site']['path'] . '/Help/SuggestionConfirm');
                 die();
             }
                         

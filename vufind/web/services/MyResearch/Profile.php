@@ -32,13 +32,13 @@ class Profile extends MyResearch
 			$result = $this->catalog->updatePatronInfo($user->cat_password);
 			$_SESSION['profileUpdateErrors'] = $result;
 
-			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Profile');
+			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
 		}elseif (isset($_POST['updatePin'])) {
 			$result = $this->catalog->updatePin();
 			$_SESSION['profileUpdateErrors'] = $result;
 
-			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Profile');
+			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
 		}else if (isset($_POST['edit'])){
 			$interface->assign('edit', true);

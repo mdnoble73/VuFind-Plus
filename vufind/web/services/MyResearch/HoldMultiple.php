@@ -206,7 +206,7 @@ class HoldMultiple extends Action
 					header("Location: " . $_SESSION['hold_referrer']);
 				} else{
 					//Redirect for hold cancellation or update
-					header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+					header("Location: " . $configArray['Site']['path'] . '/MyResearch/Holds');
 				}
 				if (!isset($hold_message_data['showItemForm']) || $hold_message_data['showItemForm'] == false){
 					unset($_SESSION['hold_referrer']);
@@ -216,7 +216,7 @@ class HoldMultiple extends Action
 					}
 				}
 			}else{
-				header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+				header("Location: " . $configArray['Site']['path'] . '/MyResearch/Holds');
 			}
 		} else {
 			$interface->assign('fromCart', isset($_REQUEST['fromCart']));

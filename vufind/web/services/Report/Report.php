@@ -35,7 +35,7 @@ class Report extends Admin
 		global $user;
 
 		if (!UserAccount::isLoggedIn()) {
-			header("Location: " . $configArray['Site']['url'] . "/MyResearch/Home");
+			header("Location: " . $configArray['Site']['path'] . "/MyResearch/Home");
 		}
 
 	}

@@ -69,7 +69,7 @@ class AuthorFacets implements RecommendationInterface
         // Grab some necessary values from the SearchObject and config array:
         global $configArray;
         $indexEngine = $this->searchObject->getIndexEngine();
-        $serverUrl = $configArray['Site']['url'];
+        $serverUrl = $configArray['Site']['path'];
         $search = $this->searchObject->getSearchTerms();
         $lookfor = isset($search[0]['lookfor']) ? $search[0]['lookfor'] : '';
 

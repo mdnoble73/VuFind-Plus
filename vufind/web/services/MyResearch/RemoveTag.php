@@ -43,11 +43,11 @@ class RemoveTag extends Action
 			if (isset($_REQUEST['resourceId'])){
 				$resource = $resource->staticGet('record_id', $_REQUEST['resourceId']);
 				$resource->removeTag($_REQUEST['tagId'], $user, false);
-				header('Location: ' . $configArray['Site']['url'] . '/Record/' . $_REQUEST['resourceId']);
+				header('Location: ' . $configArray['Site']['path'] . '/Record/' . $_REQUEST['resourceId']);
 				exit();
 			}else{
 				$resource->removeTag($_REQUEST['tagId'], $user, true);
-				header('Location: ' . $configArray['Site']['url'] . '/MyResearch/Favorites');
+				header('Location: ' . $configArray['Site']['path'] . '/MyResearch/Favorites');
 				exit();
 			}
 

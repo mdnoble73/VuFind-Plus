@@ -53,12 +53,12 @@ class SaveSearch extends MyResearch
 
 		// If we are in "edit history" mode, stay in Search History:
 		if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'history') {
-			header("Location: ".$configArray['Site']['url']."/Search/History");
+			header("Location: ".$configArray['Site']['path']."/Search/History");
 		} else {
 			// If the ID wasn't found, or some other error occurred, nothing will
 			//   have processed be now, let the error handling on the display
 			//   screen take care of it.
-			header("Location: ".$configArray['Site']['url']."/Search/Results?saved=$searchId");
+			header("Location: ".$configArray['Site']['path']."/Search/Results?saved=$searchId");
 		}
 	}
 

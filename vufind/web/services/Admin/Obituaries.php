@@ -58,7 +58,7 @@ class Obituaries extends ObjectEditor
 	}
 	function getRedirectLocation($objectAction, $curObject){
 		global $configArray;
-		return $configArray['Site']['url'] . '/Person/' . $curObject->personId;
+		return $configArray['Site']['path'] . '/Person/' . $curObject->personId;
 	}
 	function showReturnToList(){
 		return false;

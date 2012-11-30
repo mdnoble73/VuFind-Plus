@@ -261,7 +261,7 @@ class HoldLogic
     {
         global $configArray;
 
-        $siteUrl = $configArray['Site']['url'];
+        $siteUrl = $configArray['Site']['path'];
         $id = $holdDetails['id'];
 
         // Generate HMAC

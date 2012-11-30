@@ -473,9 +473,9 @@ class Home extends Action
 
 		// Convert wikipedia links
 		$pattern[] = '/(\x5b\x5b)([^\x5d|]*)(\x5d\x5d)/Us';
-		$replacement[] = '<a href="' . $configArray['Site']['url'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$2</a>';
+		$replacement[] = '<a href="' . $configArray['Site']['path'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$2</a>';
 		$pattern[] = '/(\x5b\x5b)([^\x5d]*)\x7c([^\x5d]*)(\x5d\x5d)/Us';
-		$replacement[] = '<a href="' . $configArray['Site']['url'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$3</a>';
+		$replacement[] = '<a href="' . $configArray['Site']['path'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$3</a>';
 
 		// Fix pronunciation guides
 		$pattern[] = '/({{)pron-en\|([^}]*)(}})/Us';

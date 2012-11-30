@@ -93,7 +93,7 @@ class EditList extends Action
 				// After changes are saved, send the user back to an appropriate page
 				$nextAction = 'MyList/' . $list->id;
 				header(
-                    'Location: ' . $configArray['Site']['url'] . '/MyResearch/' .
+                    'Location: ' . $configArray['Site']['path'] . '/MyResearch/' .
 				$nextAction
 				);
 				exit();

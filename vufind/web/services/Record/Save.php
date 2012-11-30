@@ -64,7 +64,7 @@ class Save extends Action
 
 		if (isset($_GET['submit'])) {
 			$this->saveRecord();
-			header('Location: ' . $configArray['Site']['url'] . '/Record/' .
+			header('Location: ' . $configArray['Site']['path'] . '/Record/' .
 			urlencode($_GET['id']));
 			exit();
 		}

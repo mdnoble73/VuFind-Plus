@@ -494,7 +494,7 @@ class Record extends Action
 			$interface->assign('shortId', $this->id);
 		}
 
-		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' . $configArray['Site']['url']  . '/Record/' . urlencode($this->id) . '/RDF" />');
+		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' . $configArray['Site']['path']  . '/Record/' . urlencode($this->id) . '/RDF" />');
 
 		// Define Default Tab
 		$tab = (isset($_GET['action'])) ? $_GET['action'] : 'Description';
