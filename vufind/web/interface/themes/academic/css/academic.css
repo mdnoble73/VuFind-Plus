@@ -119,7 +119,7 @@ div#ft_contents {
 .resultValue {
 	display: inline-block;
 	vertical-align: top;
-	width: 350px;
+	width: 330px;
 }
 
 .boldedResultValue {
@@ -133,6 +133,7 @@ div#ft_contents {
 
 .listResultImage {
 	float: right;
+	text-align: center;
 }
 
 .resultitem {

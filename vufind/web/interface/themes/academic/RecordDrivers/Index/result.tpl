@@ -7,10 +7,17 @@
 					
 	<div class="resultsList">
 		<div id='descriptionPlaceholder{$summShortId|escape}' style='display:none' class='descriptionTooltip'></div>
-		<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
-			<img src="{$path}/bookcover.php?id={$summId}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
-		</a>
-		
+		<div class="listResultImage">
+			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
+				<img src="{$path}/bookcover.php?id={$summId}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" alt="{translate text='Cover Image'}"/>
+			</a>
+			{* Place hold link *}
+			{if $showHoldButton}
+			<div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
+				<a href="{$path}/Record/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+			</div>
+			{/if}
+		</div>
 	 
 		<div class="resultitem">
 			<div class="resultItemLine1">
