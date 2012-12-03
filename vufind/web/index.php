@@ -1051,7 +1051,7 @@ function getGitBranch(){
 	//Figure out if FETCH_HEAD or HEAD is later
 	$headTime = filemtime('../../.git/HEAD');
 	$fetchHeadTime = filemtime('../../.git/FETCH_HEAD');
-	if (false && $headTime >= $fetchHeadTime){
+	if ($headTime >= $fetchHeadTime){
 		$stringfromfile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
 		$stringfromfile = $stringfromfile[0]; //get the string from the array
 		$explodedstring = explode("/", $stringfromfile); //seperate out by the "/" in the string

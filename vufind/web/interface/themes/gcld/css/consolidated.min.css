@@ -416,7 +416,7 @@ auto 6px}.eContentHolding{width:100%;padding-bottom:10px}.eContentHoldingHeader{
 10px}
 /* search-results.css */
 .selectTitle{display:inline-block;vertical-align:top;width:17px;zoom:1;*display:inline}.imageColumn{display:inline-block;vertical-align:top;width:110px;text-align:center;zoom:1;*display:inline}.imageColumn
-.listResultImage{max-width:100px;padding-bottom:4px}.resultDetails{display:inline-block;vertical-align:top;width:405px;zoom:1;*display:inline}.resultActions{display:inline-block;vertical-align:top;zoom:1;*display:inline;position:relative}#searchResultTopTools{max-width:50%;text-align:right;position:absolute;right:0px;top:25px}.searchtool-top{font-size:10px;display:inline-block;margin-top:1-px;zoom:1;*display:inline}#searchResultTopToolLinks{margin-top:40px}.holdingsSummary{min-height:4.5em}#formatCategories{min-height:60px;margin-top:20px}#noResultsSuggest
+.listResultImage{max-width:100px;padding-bottom:4px}.resultDetails{display:inline-block;vertical-align:top;width:405px;zoom:1;*display:inline}.resultActions{display:inline-block;vertical-align:top;zoom:1;*display:inline;position:relative;width:120px;text-align:center}#searchResultTopTools{max-width:50%;text-align:right;position:absolute;right:0px;top:25px}.searchtool-top{font-size:10px;display:inline-block;margin-top:1-px;zoom:1;*display:inline}#searchResultTopToolLinks{margin-top:40px}.holdingsSummary{min-height:4.5em}#formatCategories{min-height:60px;margin-top:20px}#noResultsSuggest
 ul{margin-left:20px;list-style-type:disc}#noResultsSuggest
 li{margin-left:20px;list-style-type:disc}
 /* suggestions.css */

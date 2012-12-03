@@ -1,3 +1,4 @@
+{strip}
 <script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
 {if (isset($title)) }
 <script type="text/javascript">
@@ -35,7 +36,9 @@
 				<tbody>
 				{foreach from=$overDriveCheckedOutItems item=record}
 					<tr>
-						<td rowspan="{$record.numRows}" class='imageColumnOverdrive'><img src="{$record.imageUrl}"></td>
+						<td {if $record.numRows}rowspan="{$record.numRows}"{/if} class='imageColumnOverdrive'>
+							<img src="{$record.imageUrl}" alt="Cover Image" />
+						</td>
 						<td>
 							{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId != -1}</a>{/if}
 							{if $record.subTitle}<br/>{$record.subTitle}{/if}
@@ -50,7 +53,7 @@
 								<div class="rate{$record.recordId|escape} stat">
 									<div class="statVal">
 										<span class="ui-rater">
-											<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
+											<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
 											(<span class="ui-rater-rateCount-{$record.recordId|escape} ui-rater-rateCount">0</span>)
 										</span>
 									</div>
@@ -73,7 +76,7 @@
 									);
 								</script>
 								{assign var=id value=$record.recordId}
-								{include file="Record/title-review.tpl"}
+								{include file="EcontentRecord/title-review.tpl"}
  							</div>
 
 							<script type="text/javascript">
@@ -82,7 +85,7 @@
 							{/if}
 						</td>
 						<td>
-							<a href="{$record.downloadLink}" class="button">Download</a>
+							<a href="{$record.downloadLink|replace:'&':'&amp;'}" class="button">Download</a>
 						</td>
 					</tr>
 				{/foreach}
@@ -106,3 +109,4 @@
 	{/if}
 	</div>
 </div>
+{/strip}

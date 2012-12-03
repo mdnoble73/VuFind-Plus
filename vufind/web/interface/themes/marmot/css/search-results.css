@@ -40,6 +40,8 @@
 	zoom: 1;
 	*display: inline;
 	position: relative;
+	width: 120px;
+	text-align: center;
 }
 #searchResultTopTools{
 	max-width: 50%;

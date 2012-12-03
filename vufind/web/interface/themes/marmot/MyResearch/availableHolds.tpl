@@ -1,3 +1,4 @@
+{strip}
 {if (isset($title)) }
 <script type="text/javascript">
 	alert("{$title}");
@@ -50,7 +51,7 @@
 								<input type="hidden" name="withSelectedAction" value="" />
 								<div id='holdsUpdateSelected{$sectionKey}'>
 									<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
+									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}Top" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
 								</div>
 							</div>
 						</form> {* End with selected controls for holds *}
@@ -90,7 +91,7 @@
 								{/if}
 
 								<td class="titleSelectCheckedOut myAccountCell">
-									<input type="checkbox" name="availableholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
+									<input type="checkbox" name="availableholdselected[]" value="{$record.cancelId}" id="selected{$record.recordId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 								</td>
 
 								<td class="myAccountCell">
@@ -177,7 +178,7 @@
 										<div class="rate{$record.shortId|escape} stat">
 											<div class="statVal">
 												<span class="ui-rater">
-													<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
+													<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
 													(<span class="ui-rater-rateCount-{$record.recordId|escape} ui-rater-rateCount">0</span>)
 												</span>
 											</div>
@@ -229,7 +230,7 @@
 							<input type="hidden" name="withSelectedAction" value="" />
 							<div id='holdsUpdateSelected{$sectionKey}Bottom' class='holdsUpdateSelected{$sectionKey}'>
 								<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-								<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel">
+								<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}Bottom" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
 							</div>
 						</div>
 					</form>
@@ -249,3 +250,4 @@
 		{/if}
 	</div>
 </div>
+{/strip}
