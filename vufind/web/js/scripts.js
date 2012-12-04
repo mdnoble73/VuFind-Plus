@@ -248,7 +248,11 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 		if ($("#popupboxHeader").length > 0){
 			$("#popupbox").draggable({ handle: "#popupboxHeader" });
 		}
-	});
+	}).error(function(){ 
+		$('#popupbox').html("There was an error loading this information, please try again later.")
+		$('#popupbox').show();
+	})
+	;
 }
 
 function showElementInLightbox(title, elementSelector){
