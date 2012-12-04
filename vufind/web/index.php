@@ -150,11 +150,11 @@ if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && 
 $interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
+$interface->assign('activeIp', Location::getActiveIp());
+
 // Check system availability
 $mode = checkAvailabilityMode();
 if ($mode['online'] === false) {
-	$activeIp = $_SERVER['REMOTE_ADDR'];
-	$interface->assign('activeIp', $activeIp);
 	// Why are we offline?
 	switch ($mode['level']) {
 		// Forced Downtime

@@ -453,9 +453,9 @@ class Location extends DB_DataObject
 		return $this->ipId;
 	}
 
-	private $activeIp = null;
-	function getActiveIp(){
-		if (!is_null($this->activeIp)) return $this->activeIp;
+	private static $activeIp = null;
+	static function getActiveIp(){
+		if (!is_null(Location::$activeIp)) return Location::$activeIp;
 		global $timer;
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
@@ -465,11 +465,17 @@ class Location extends DB_DataObject
 		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
 			$ip = $_COOKIE['test_ip'];
 		}else{
-			$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+			if (isset($_SERVER['REMOTE_HOST']) && strlen($_SERVER['REMOTE_HOST']) > 0){
+				$ip = $_SERVER['REMOTE_HOST'];
+			}elseif (isset($_SERVER['REMOTE_ADDR']) && strlen($_SERVER['REMOTE_ADDR']) > 0){
+				$ip = $_SERVER['REMOTE_ADDR'];
+			}else{
+				$ip = '';
+			}
 		}
-		$this->activeIp = $ip;
+		Location::$activeIp = $ip;
 		$timer->logTime("getActiveIp");
-		return $this->activeIp;
+		return Location::$activeIp;
 	}
 
 	function getLocationsFacetsForLibrary($libraryId){
