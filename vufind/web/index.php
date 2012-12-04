@@ -19,142 +19,12 @@
  */
 
 /** CORE APPLICATION CONTROLLER **/
-$startTime = microtime(true);
-// Retrieve values from configuration file
-require_once 'sys/Logger.php';
-require_once 'PEAR.php';
-require_once 'sys/ConfigArray.php';
-$configArray = readConfig();
-require_once 'sys/Timer.php';
-global $timer;
-$timer = new Timer($startTime);
-$timer->logTime("Read Config");
+require_once 'bootstrap.php';
 
-if ($configArray['System']['debug']) {
-	ini_set('display_errors', true);
-	error_reporting(E_ALL & ~E_DEPRECATED);
-}
-
-global $memcache;
-// Set defaults if nothing set in config file.
-$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
-$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
-$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
-
-// Connect to Memcache:
-$memcache = new Memcache();
-if (!$memcache->pconnect($host, $port, $timeout)) {
-	PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
-}
-$timer->logTime("Initialize Memcache");
-
-global $logger;
-$logger = new Logger();
-
-//Cleanup method information so module, action, and id are set properly.
-//This ensures that we don't have to change the http-vufind.conf file when new types are added.
-//$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
-//$dataObjectsStr = implode('|', $dataObjects);
-//Deal with old path based urls by removing the leading path.
-$requestURI = $_SERVER['REQUEST_URI'];
-$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
-if (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
-	$_GET['module'] = $matches[1];
-	$_GET['id'] = $matches[3];
-	$_GET['action'] = $matches[2];
-	$_REQUEST['module'] = $matches[1];
-	$_REQUEST['id'] = $matches[3];
-	$_REQUEST['action'] = $matches[2];
-}elseif (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
-	$_GET['module'] = $matches[1];
-	$_GET['action'] = $matches[2];
-	$_REQUEST['id'] = '';
-	$_REQUEST['module'] = $matches[1];
-	$_REQUEST['action'] = $matches[2];
-	$_REQUEST['id'] = '';
-}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
-	$_GET['module'] = $matches[1];
-	$_GET['id'] = $matches[2];
-	$_GET['action'] = $matches[3];
-	$_REQUEST['module'] = $matches[1];
-	$_REQUEST['id'] = $matches[2];
-	$_REQUEST['action'] = $matches[3];
-}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)/", $requestURI, $matches)){
-	$_GET['module'] = $matches[1];
-	$_GET['id'] = $matches[2];
-	$_GET['action'] = 'Home';
-	$_REQUEST['module'] = $matches[1];
-	$_REQUEST['id'] = $matches[2];
-	$_REQUEST['action'] = 'Home';
-}elseif (preg_match("/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
-	$_GET['module'] = $matches[1];
-	$_GET['action'] = $matches[2];
-	$_REQUEST['module'] = $matches[1];
-	$_REQUEST['action'] = $matches[2];
-}
-if (isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
-	$_GET['module'] = 'MyResearch';
-	$_REQUEST['module'] = 'MyResearch';
-}
-// Try to set the locale to UTF-8, but fail back to the exact string from the config
-// file if this doesn't work -- different systems may vary in their behavior here.
-setlocale(LC_MONETARY, array($configArray['Site']['locale'] . ".UTF-8",
-$configArray['Site']['locale']));
-date_default_timezone_set($configArray['Site']['timezone']);
-
-// Require System Libraries
-require_once 'sys/Interface.php';
-$timer->logTime("Include Interface");
-require_once 'sys/User.php';
-$timer->logTime("Include User");
-require_once 'sys/Translator.php';
-$timer->logTime("Include Translator");
-require_once 'sys/SearchObject/Factory.php';
-$timer->logTime("Include Search Object Factory");
-require_once 'sys/ConnectionManager.php';
-$timer->logTime("Include ConnectionManager");
-require_once 'Drivers/marmot_inc/Library.php';
-require_once 'Drivers/marmot_inc/Location.php';
-$timer->logTime("Include Library and Location");
-
-$timer->logTime('Startup');
-
+//Do additional tasks that are only needed when running the full website
+loadModuleActionId();
 spl_autoload_register('vufind_autoloader');
-
-// Sets global error handler for PEAR errors
-PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'handlePEARError');
-
-// Sets global error handler for PHP errors
-//set_error_handler('handlePHPError');
-
-// Setup Local Database Connection
-define('DB_DATAOBJECT_NO_OVERLOAD', 0);
-$options =& PEAR::getStaticProperty('DB_DataObject', 'options');
-$options = $configArray['Database'];
-$timer->logTime('Setup database connection');
-
-// Initiate Session State
-$session_type = $configArray['Session']['type'];
-$session_lifetime = $configArray['Session']['lifetime'];
-$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
-register_shutdown_function('session_write_close');
-if (isset($configArray['Site']['cookie_domain'])){
-	session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
-}
-require_once 'sys/' . $session_type . '.php';
-if (class_exists($session_type)) {
-	$session = new $session_type();
-	$session->init($session_lifetime, $session_rememberMeLifetime);
-}
-$timer->logTime('Session initialization ' . $session_type);
-
-//Create global singleton instances for Library and Location
-global $librarySingleton;
-$librarySingleton = new Library();
-$timer->logTime('Created library');
-global $locationSingleton;
-$locationSingleton = new Location();
-$timer->logTime('Created Location');
+initializeSession();
 
 if (isset($_REQUEST['test_role'])){
 	if ($_REQUEST['test_role'] == ''){
@@ -163,33 +33,6 @@ if (isset($_REQUEST['test_role'])){
 		setcookie('test_role', $_REQUEST['test_role'], 0, '/');
 	}
 }
-
-$active_ip = $locationSingleton->getActiveIp();
-if (!isset($_COOKIE['test_ip']) || $active_ip != $_COOKIE['test_ip']){
-	if ($active_ip == ''){
-		setcookie('test_ip', $active_ip, time() - 1000, '/');
-	}else{
-		setcookie('test_ip', $active_ip, 0, '/');
-	}
-}
-$timer->logTime('Got active ip address');
-$branch = $locationSingleton->getBranchLocationCode();
-if (!isset($_COOKIE['branch']) || $branch != $_COOKIE['branch']){
-	if ($branch == ''){
-		setcookie('branch', $branch, time() - 1000, '/');
-	}else{
-		setcookie('branch', $branch, 0, '/');
-	}
-}
-$timer->logTime('Got branch');
-
-//Update configuration information for scoping now that the database is setup.
-$configArray = updateConfigForScoping($configArray);
-$timer->logTime('Updated config for scoping');
-
-//Now check the Active Location to see if there is an override for the facets.
-$configArray = updateConfigForActiveLocation($configArray);
-$timer->logTime('Updated config for active location');
 
 // Start Interface
 $interface = new UInterface();
@@ -217,6 +60,7 @@ getGitBranch();
 require_once 'sys/Analytics.php';
 //Define tracking to be done
 global $analytics;
+global $active_ip;
 $analytics = new Analytics($active_ip, $startTime);
 
 $googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
@@ -793,80 +637,7 @@ function enableErrorHandler(){
 }
 
 // Process any errors that are thrown
-function handlePEARError($error, $method = null){
-	global $errorHandlingEnabled;
-	if (isset($errorHandlingEnabled) && $errorHandlingEnabled == false){
-		return;
-	}
-	global $configArray;
 
-	// It would be really bad if an error got raised from within the error handler;
-	// we would go into an infinite loop and run out of memory.  To avoid this,
-	// we'll set a static value to indicate that we're inside the error handler.
-	// If the error handler gets called again from within itself, it will just
-	// return without doing anything to avoid problems.  We know that the top-level
-	// call will terminate execution anyway.
-	static $errorAlreadyOccurred = false;
-	if ($errorAlreadyOccurred) {
-		return;
-	} else {
-		$errorAlreadyOccurred = true;
-	}
-
-	//Clear any output that has been generated so far so the user just gets the error message.
-	if (!$configArray['System']['debug']){
-		@ob_clean();
-		header("Content-Type: text/html");
-	}
-
-	// Display an error screen to the user:
-	global $interface;
-	if (!isset($interface) || $interface == false){
-		$interface = new UInterface();
-	}
-
-	$interface->assign('error', $error);
-	$interface->assign('debug', $configArray['System']['debug']);
-	$interface->display('error.tpl');
-
-	// Exceptions we don't want to log
-	$doLog = true;
-	// Microsoft Web Discussions Toolbar polls the server for these two files
-	//    it's not script kiddie hacking, just annoying in logs, ignore them.
-	if (strpos($_SERVER['REQUEST_URI'], "cltreq.asp") !== false) $doLog = false;
-	if (strpos($_SERVER['REQUEST_URI'], "owssvr.dll") !== false) $doLog = false;
-	// If we found any exceptions, finish here
-	if (!$doLog) exit();
-
-	// Log the error for administrative purposes -- we need to build a variety
-	// of pieces so we can supply information at five different verbosity levels:
-	$baseError = $error->toString();
-	$basicServer = " (Server: IP = {$_SERVER['REMOTE_ADDR']}, " .
-        "Referer = " . (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '') . ", " .
-        "User Agent = " . (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '') . ", " .
-        "Request URI = {$_SERVER['REQUEST_URI']})";
-	$detailedServer = "\nServer Context:\n" . print_r($_SERVER, true);
-	$basicBacktrace = "\nBacktrace:\n";
-	if (is_array($error->backtrace)) {
-		foreach($error->backtrace as $line) {
-			$basicBacktrace .= (isset($line['file']) ? $line['file'] : 'none') . "  line " . (isset($line['line']) ? $line['line'] : 'none') . " - " .
-                "class = " . (isset($line['class']) ? $line['class'] : 'none') . ", function = " . (isset($line['function']) ? $line['function'] : 'none') . "\n";
-		}
-	}
-	$detailedBacktrace = "\nBacktrace:\n" . print_r($error->backtrace, true);
-	$errorDetails = array(
-	1 => $baseError,
-	2 => $baseError . $basicServer,
-	3 => $baseError . $basicServer . $basicBacktrace,
-	4 => $baseError . $detailedServer . $basicBacktrace,
-	5 => $baseError . $detailedServer . $detailedBacktrace
-	);
-
-	global $logger;
-	$logger->log($errorDetails, PEAR_LOG_ERR);
-
-	exit();
-}
 
 // Check for the various stages of functionality
 function checkAvailabilityMode() {
@@ -910,125 +681,6 @@ function checkAvailabilityMode() {
 	// No problems? We are online then
 	$mode['online'] = true;
 	return $mode;
-}
-
-/**
- * Update the configuration array as needed based on scoping rules defined
- * by the subdomain.
- *
- * @param array $configArray the existing main configuration options.
- *
- * @return array the configuration options adjusted based on the scoping rules.
- */
-function updateConfigForScoping($configArray) {
-	global $timer;
-	//Get the subdomain for the request
-	global $servername;
-
-	//split the servername based on
-	global $subdomain;
-	$subdomain = null;
-	if(strpos($_SERVER['SERVER_NAME'], '.')){
-		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);
-		if (count($serverComponents) >= 3){
-			//URL is probably of the form subdomain.marmot.org or subdomain.opac.marmot.org
-			$subdomain = $serverComponents[0];
-		} else if (count($serverComponents) == 2){
-			//URL could be either subdomain.localhost or marmot.org. Only use the subdomain
-			//If the second component is localhost.
-			if (strcasecmp($serverComponents[1], 'localhost') == 0){
-				$subdomain = $serverComponents[0];
-			}
-		}
-	}
-
-	$timer->logTime('got subdomain');
-
-	//Load the library system information
-	global $library;
-	global $locationSingleton;
-	if (isset($_SESSION['library']) && isset($_SESSION['location'])){
-		$library = $_SESSION['library'];
-		$locationSingleton = $_SESSION['library'];
-	}else{
-		$Library = new Library();
-		$Library->whereAdd("subdomain = '$subdomain'");
-		$Library->find();
-
-
-		if ($Library->N == 1) {
-			$Library->fetch();
-			//Make the library infroamtion global so we can work with it later.
-			$library = $Library;
-		}else{
-			//The subdomain can also indicate a location.
-			$Location = new Location();
-			$Location->whereAdd("code = '$subdomain'");
-			$Location->find();
-			if ($Location->N == 1){
-				$Location->fetch();
-				//We found a location for the subdomain, get the library.
-				global $librarySingleton;
-				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
-				$locationSingleton->setActiveLocation(clone $Location);
-			}
-		}
-	}
-	if (isset($library) && $library != null){
-		//Update the title
-		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
-		$configArray['Site']['title'] = $library->displayName;
-		//Update the facets file
-		if (strlen($library->facetFile) > 0 && $library->facetFile != 'default'){
-			$file = trim("../../sites/$servername/conf/facets/" . $library->facetFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['facets'] = 'facets/' . $library->facetFile . '.ini';
-			}
-		}
-
-		//Update the searches file
-		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
-			}
-		}
-
-
-		$location = $locationSingleton->getActiveLocation();
-
-		//Add an extra css file for the location if it exists.
-		$themes = explode(',', $library->themeName);
-		foreach ($themes as $themeName){
-			if ($location != null && file_exists('./interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css')) {
-				$configArray['Site']['theme_css'] = $configArray['Site']['path'] . '/interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css';
-			}
-			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
-				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';
-			}
-			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png')) {
-				$configArray['Site']['largeLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png';
-			}
-		}
-	}
-	$timer->logTime('finished update config for scoping');
-
-	return $configArray;
-}
-
-function updateConfigForActiveLocation($configArray){
-	global $locationSingleton;
-	$location = $locationSingleton->getActiveLocation();
-	if ($location != null){
-		if (strlen($location->facetFile) > 0 && $location->facetFile != 'default'){
-			$file = trim('../../conf/facets/' . $location->facetFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['facets'] = 'facets/' . $location->facetFile . '.ini';
-			}
-		}
-	}
-
-	return $configArray;
 }
 
 function formatHoldMessage($hold_message_data){
@@ -1078,4 +730,71 @@ function vufind_autoloader($class) {
 	}else{
 		require_once $nameSpaceClass;
 	}
+}
+
+function loadModuleActionId(){
+	//Cleanup method information so module, action, and id are set properly.
+	//This ensures that we don't have to change the http-vufind.conf file when new types are added.
+	//$dataObjects = array('Record', 'EcontentRecord', 'EContent', 'EditorialReview', 'Person');
+	//$dataObjectsStr = implode('|', $dataObjects);
+	//Deal with old path based urls by removing the leading path.
+	$requestURI = $_SERVER['REQUEST_URI'];
+	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
+	if (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[3];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[3];
+		$_REQUEST['action'] = $matches[2];
+	}elseif (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['id'] = '';
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+		$_REQUEST['id'] = '';
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[2];
+		$_GET['action'] = $matches[3];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[2];
+		$_REQUEST['action'] = $matches[3];
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['id'] = $matches[2];
+		$_GET['action'] = 'Home';
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['id'] = $matches[2];
+		$_REQUEST['action'] = 'Home';
+	}elseif (preg_match("/([^\/?]+)\/([^\/?]+)/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = $matches[2];
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = $matches[2];
+	}
+	if (isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
+		$_GET['module'] = 'MyResearch';
+		$_REQUEST['module'] = 'MyResearch';
+	}
+}
+
+function initializeSession(){
+	global $configArray;
+	global $timer;
+	// Initiate Session State
+	$session_type = $configArray['Session']['type'];
+	$session_lifetime = $configArray['Session']['lifetime'];
+	$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
+	register_shutdown_function('session_write_close');
+	if (isset($configArray['Site']['cookie_domain'])){
+		session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
+	}
+	require_once 'sys/' . $session_type . '.php';
+	if (class_exists($session_type)) {
+		$session = new $session_type();
+		$session->init($session_lifetime, $session_rememberMeLifetime);
+	}
+	$timer->logTime('Session initialization ' . $session_type);
 }

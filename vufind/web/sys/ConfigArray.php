@@ -142,6 +142,8 @@ function readConfig()
 		array_shift($serverParts);
 	}
 
+	// Sanity checking to make sure we loaded a good file
+	// @codeCoverageIgnoreStart
 	if ($servername == 'default'){
 		global $logger;
 		if ($logger){
@@ -153,18 +155,19 @@ function readConfig()
 	if ($mainArray == false){
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
+	// @codeCoverageIgnoreEnd
+
 	//If we are accessing the site via a subdomain, need to preserve the subdomain
 	//Don't try to preserve SSL since the combination of proxy and SSL does not work nicely.
 	//i.e. https://mesa.marmot.org is proxied to https://mesa.opac.marmot.org which does not have
 	//a valid SSL cert
-	if (false && isset($_SERVER['HTTPS'])){
-		$mainArray['Site']['url'] = "https://" . $serverUrl;
-	}else{
+	//if (isset($_SERVER['HTTPS'])){
+	//	$mainArray['Site']['url'] = "https://" . $serverUrl;
+	//}else{
 		$mainArray['Site']['url'] = "http://" . $serverUrl;
-	}
+	//}
 
-	if (isset($mainArray['Extra_Config']) &&
-	isset($mainArray['Extra_Config']['local_overrides'])) {
+	if (isset($mainArray['Extra_Config']) && isset($mainArray['Extra_Config']['local_overrides'])) {
 		if (file_exists("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides'])){
 			$file = trim("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides']);
 			$localOverride = @parse_ini_file($file, true);
@@ -177,4 +180,124 @@ function readConfig()
 		}
 	}
 	return $mainArray;
+}
+
+/**
+ * Update the configuration array as needed based on scoping rules defined
+ * by the subdomain.
+ *
+ * @param array $configArray the existing main configuration options.
+ *
+ * @return array the configuration options adjusted based on the scoping rules.
+ */
+function updateConfigForScoping($configArray) {
+	global $timer;
+	//Get the subdomain for the request
+	global $servername;
+
+	//split the servername based on
+	global $subdomain;
+	$subdomain = null;
+	if(strpos($_SERVER['SERVER_NAME'], '.')){
+		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);
+		if (count($serverComponents) >= 3){
+			//URL is probably of the form subdomain.marmot.org or subdomain.opac.marmot.org
+			$subdomain = $serverComponents[0];
+		} else if (count($serverComponents) == 2){
+			//URL could be either subdomain.localhost or marmot.org. Only use the subdomain
+			//If the second component is localhost.
+			if (strcasecmp($serverComponents[1], 'localhost') == 0){
+				$subdomain = $serverComponents[0];
+			}
+		}
+	}
+
+	$timer->logTime('got subdomain');
+
+	//Load the library system information
+	global $library;
+	global $locationSingleton;
+	if (isset($_SESSION['library']) && isset($_SESSION['location'])){
+		$library = $_SESSION['library'];
+		$locationSingleton = $_SESSION['library'];
+	}else{
+		$Library = new Library();
+		$Library->whereAdd("subdomain = '$subdomain'");
+		$Library->find();
+
+
+		if ($Library->N == 1) {
+			$Library->fetch();
+			//Make the library infroamtion global so we can work with it later.
+			$library = $Library;
+		}else{
+			//The subdomain can also indicate a location.
+			$Location = new Location();
+			$Location->whereAdd("code = '$subdomain'");
+			$Location->find();
+			if ($Location->N == 1){
+				$Location->fetch();
+				//We found a location for the subdomain, get the library.
+				global $librarySingleton;
+				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
+				$locationSingleton->setActiveLocation(clone $Location);
+			}
+		}
+	}
+	if (isset($library) && $library != null){
+		//Update the title
+		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
+		$configArray['Site']['title'] = $library->displayName;
+		//Update the facets file
+		if (strlen($library->facetFile) > 0 && $library->facetFile != 'default'){
+			$file = trim("../../sites/$servername/conf/facets/" . $library->facetFile . '.ini');
+			if (file_exists($file)) {
+				$configArray['Extra_Config']['facets'] = 'facets/' . $library->facetFile . '.ini';
+			}
+		}
+
+		//Update the searches file
+		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
+			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
+			if (file_exists($file)) {
+				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
+			}
+		}
+
+
+		$location = $locationSingleton->getActiveLocation();
+
+		//Add an extra css file for the location if it exists.
+		$themes = explode(',', $library->themeName);
+		foreach ($themes as $themeName){
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css')) {
+				$configArray['Site']['theme_css'] = $configArray['Site']['path'] . '/interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css';
+			}
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
+				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';
+			}
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png')) {
+				$configArray['Site']['largeLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png';
+			}
+		}
+	}
+	$timer->logTime('finished update config for scoping');
+
+	$configArray = updateConfigForActiveLocation($configArray);
+	return $configArray;
+}
+
+function updateConfigForActiveLocation($configArray){
+	global $locationSingleton;
+	$location = $locationSingleton->getActiveLocation();
+	if ($location != null){
+		if (strlen($location->facetFile) > 0 && $location->facetFile != 'default'){
+			$file = trim('../../conf/facets/' . $location->facetFile . '.ini');
+			if (file_exists($file)) {
+				$configArray['Extra_Config']['facets'] = 'facets/' . $location->facetFile . '.ini';
+			}
+		}
+	}
+
+	return $configArray;
 }
