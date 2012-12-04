@@ -465,7 +465,7 @@ class Location extends DB_DataObject
 		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
 			$ip = $_COOKIE['test_ip'];
 		}else{
-			$ip = $_SERVER['REMOTE_ADDR'];
+			$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
 		}
 		$this->activeIp = $ip;
 		$timer->logTime("getActiveIp");

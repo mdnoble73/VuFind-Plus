@@ -649,7 +649,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			authorRankingUpdate.executeUpdate();
 			PreparedStatement authorMetaDataClear = vufindConn.prepareStatement("TRUNCATE author_browse_metadata");
 			authorMetaDataClear.executeUpdate();
-			PreparedStatement authorMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results_global ON id = browseValueId)");
+			PreparedStatement authorMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			authorMetaDataUpdate.executeUpdate();
 			
 			results.addNote("Updating browse tables for call numbers");
@@ -659,7 +659,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			callnumberRankingUpdate.executeUpdate();
 			PreparedStatement callnumberMetaDataClear = vufindConn.prepareStatement("TRUNCATE callnumber_browse_metadata");
 			callnumberMetaDataClear.executeUpdate();
-			PreparedStatement callnumberMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results_global ON id = browseValueId)");
+			PreparedStatement callnumberMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			callnumberMetaDataUpdate.executeUpdate();
 			
 			results.addNote("Updating browse tables for subjects");
@@ -669,7 +669,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			subjectRankingUpdate.executeUpdate();
 			PreparedStatement subjectMetaDataClear = vufindConn.prepareStatement("TRUNCATE subject_browse_metadata");
 			subjectMetaDataClear.executeUpdate();
-			PreparedStatement subjectMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results_global ON id = browseValueId)");
+			PreparedStatement subjectMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			subjectMetaDataUpdate.executeUpdate();
 			
 			results.addNote("Updating browse tables for titles");
@@ -679,7 +679,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			titleRankingUpdate.executeUpdate();
 			PreparedStatement titleMetaDataClear = vufindConn.prepareStatement("TRUNCATE title_browse_metadata");
 			titleMetaDataClear.executeUpdate();
-			PreparedStatement titleMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results_global ON id = browseValueId)");
+			PreparedStatement titleMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			titleMetaDataUpdate.executeUpdate();
 			
 			for (Long libraryId : librarySubdomains.keySet()){
@@ -687,10 +687,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				results.addNote("Updating meta data for " + subdomain);
 				results.saveResults();
 				try{
-					vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results_library_" + subdomain + " ON id = browseValueId)").executeUpdate();
-					vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results_library_" + subdomain + " ON id = browseValueId)").executeUpdate();
-					vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results_library_" + subdomain + " ON id = browseValueId)").executeUpdate();
-					vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results_library_" + subdomain + " ON id = browseValueId)").executeUpdate();
+					vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
+					vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
+					vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
+					vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
 				} catch (SQLException e) {
 					logger.error("Error updating meta data for " + subdomain, e);
 					results.incErrors();

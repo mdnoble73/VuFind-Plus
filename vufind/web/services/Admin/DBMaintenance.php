@@ -1787,6 +1787,15 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'analytics_2' => array(
+			'title' => 'Analytics Update 2',
+			'description' => 'Adjust length of searchType Field.',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE analytics_search CHANGE COLUMN searchType searchType VARCHAR(50)'
+			),
+		),
+
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
 			'description' => 'Add a field for whether or not the session was started with remember me on.',

@@ -48,12 +48,15 @@ class AlphaBrowse{
 		}
 		$query = "SELECT * FROM {$browseTable}_metadata WHERE $scopingFilter";
 		$result = mysql_query($query);
+		// @codeCoverageIgnoreStart
 		if ($result == FALSE){
 			return array(
 				'success' => false,
 				'message' => "Sorry, unable to browse $browseType right now, please try again later."
 			);
 		}
+		// @codeCoverageIgnoreEnd
+
 		$timer->logTime("Loaded metadata");
 		$metaData = mysql_fetch_assoc($result);
 		//echo("NumRows = {$metaData['numResults']}");
@@ -83,9 +86,12 @@ class AlphaBrowse{
 		}
 		$term = substr($term, 0, strlen($term) -1);
 
+		// @codeCoverageIgnoreStart
 		if ($termRank == null){
 			$termRank = 0;
 		}
+		// @codeCoverageIgnoreEnd
+
 		$timer->logTime("Loaded position of alpha browse search term");
 
 		if ($relativePage >= 0){
@@ -100,7 +106,7 @@ class AlphaBrowse{
 			if ($scope == 0){
 				$query = "SELECT DISTINCT {$browseTable}.value, {$browseTable}.id FROM {$browseTable} inner join {$browseTable}_scoped_results_global on {$browseTable}.id = browseValueId WHERE {$browseTable}.alphaRank < $termRank  and {$browseTable}.alphaRank > " . ($termRank - -$relativePage * $resultsPerPage * 20) . " ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
 			}else if ($scope == 1){
-				$query = "SELECT DISTINCT {$browseTable}.value, {$browseTable}.id FROM {$browseTable} inner join {$browseTable}_scoped_results_library_{$scopeId} on {$browseTable}.id = browseValueId WHERE {$browseTable}.alphaRank < $termRank and {$browseTable}.alphaRank > " . ($termRank - -$relativePage * $resultsPerPage * 20) . " ORDER BY alphaRank LIMIT " . ($relativePage * $resultsPerPage) . ", $resultsPerPage";
+				$query = "SELECT DISTINCT {$browseTable}.value, {$browseTable}.id FROM {$browseTable} inner join {$browseTable}_scoped_results_library_{$scopeId} on {$browseTable}.id = browseValueId WHERE {$browseTable}.alphaRank < $termRank and {$browseTable}.alphaRank > " . ($termRank - -$relativePage * $resultsPerPage * 20) . " ORDER BY alphaRank DESC LIMIT " . (-$relativePage * $resultsPerPage) . ", $resultsPerPage";
 			}
 		}
 		//echo $query . "<br />";
@@ -129,14 +135,12 @@ class AlphaBrowse{
 				$searchLink = "/Search/Results?basicType=Keyword&amp;lookfor=" . urlencode($recordsToFind);
 
 			}else{
-				if ($browseResult['numResults'] > 0){
-					if ($browseType=="author"){
-						$searchLink = "/Author/Home?sort=title&amp;author=" . urlencode($browseResult['value']);
-					}else if ($browseType=="callnumber"){
-						$searchLink = "/Search/Results?basicType=AllFields&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
-					}else{
-						$searchLink = "/Search/Results?basicType=" . ucfirst($browseType) . "&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
-					}
+				if ($browseType=="author"){
+					$searchLink = "/Author/Home?sort=title&amp;author=" . urlencode($browseResult['value']);
+				}else if ($browseType=="callnumber"){
+					$searchLink = "/Search/Results?basicType=AllFields&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
+				}else{
+					$searchLink = "/Search/Results?basicType=" . ucfirst($browseType) . "&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
 				}
 			}
 			$browseResult['searchLink'] = $searchLink;
@@ -160,7 +164,6 @@ class AlphaBrowse{
 			'showPrev' => $termRank > $metaData['minAlphaRank'],
 			'termRank' => $termRank
 		);
-		//print_r($result);
 		return $result;
 	}
 }
