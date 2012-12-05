@@ -120,7 +120,9 @@
 											{else}
 												<select name="filter[]">
 													{foreach from=$facetInfo.values item="value" key="display"}
-														<option value="{$value.filter|escape}"{if $value.selected} selected="selected"{/if}>{$display|escape}</option>
+														{if strlen($display) > 0}
+															<option value="{$value.filter|escape}"{if $value.selected} selected="selected"{/if}>{$display|escape}</option>
+														{/if}
 													{/foreach}
 												</select>
 											{/if}

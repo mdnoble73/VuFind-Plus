@@ -4,7 +4,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Week"'>{translate text='New This Week'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;basicType=Keyword&amp;filter[]=format_category%3A"Video"&amp;filter[]=publishDate:[2012 TO *]&amp;filter[]=local_time_since_added_basalt%3A"Six+Months"&amp;sort=year&amp;view=list&amp;searchSource=local'>{translate text='New DVDs'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;basicType=Keyword&amp;filter[]=format_category%3A"Video"&amp;filter[]=publishDate:[2012+TO+*]&amp;filter[]=local_time_since_added_basalt%3A"Six+Months"&amp;sort=year&amp;view=list&amp;searchSource=local'>{translate text='New DVDs'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=format_category%3A"Audio"'>{translate text='New Audio Books &amp; CDs'}</a></li>
 	</ul>
 </div>

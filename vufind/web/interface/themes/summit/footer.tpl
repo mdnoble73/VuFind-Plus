@@ -35,10 +35,10 @@
 				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
-		<li><a href="http://summitcountylibraries.org/contact/">{translate text='Locations & Contact Us'}</a></li>
+		<li><a href="http://summitcountylibraries.org/contact/">{translate text='Locations &amp; Contact Us'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

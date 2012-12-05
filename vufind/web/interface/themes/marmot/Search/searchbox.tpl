@@ -28,7 +28,7 @@
 			{/foreach}
 			</select>
 			
-			<input type="image" name="submit" id='searchBarFind' value="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/findHome.png" />
+			<input type="image" name="submit" id='searchBarFind' alt="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/findHome.png" />
 			{if $showAdvancedSearchbox == 1}
 				<a href="{$path}/Search/Advanced" class="small" id="advancedSearch">{translate text="Advanced"}</a>
 			{/if}

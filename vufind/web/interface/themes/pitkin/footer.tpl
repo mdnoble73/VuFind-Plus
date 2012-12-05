@@ -43,7 +43,7 @@
 		<li><a href="http://www.millennium.marmot.org/search~S21">Search Classic Catalog</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

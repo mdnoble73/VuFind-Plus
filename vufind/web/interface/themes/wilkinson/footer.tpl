@@ -1,3 +1,4 @@
+{strip}
 <div id="bottomrow">
 	<div class="container center">
 		<div class="row">
@@ -38,50 +39,8 @@
 											<span style="color: #acacac;">Telluride, Colorado 81435</span>
 										</p>
 										<p>
-											<span style="color: #acacac;"><strong>Email: </strong><a
-												href="mailto:
-											 <script type='text/javascript'>
-											 <!--
-											 var prefix = 'ma' + 'il' + 'to';
-											 var mail_path = 'hr' + 'ef' + '=';
-											 var addy22065 = 'askus' + '@';
-											 addy22065 = addy22065 + 'telluridelibrary' + '.' + 'org';
-											 document.write('<a ' + mail_path + '\'' + prefix + ':' + addy22065 + '\'>');
-											 document.write(addy22065);
-											 document.write('<\/a>');
-											 //-->\n </script><script type='text/javascript'>
-											 <!--
-											 document.write('<span style=\'display: none;\'>');
-											 //-->
-											 </script>This email address is being protected from spambots. You need JavaScript enabled to view it.
-											 <script type='text/javascript'>
-											 <!--
-											 document.write('</');
-											 document.write('span>');
-											 //-->
-											 </script>"><span style="color: #acacac;"> <script type="text/javascript">
-											 <!--
-											 var prefix = '&#109;a' + 'i&#108;' + '&#116;o';
-											 var mail_path = 'hr' + 'ef' + '=';
-											 var addy96585 = '&#97;sk&#117;s' + '&#64;';
-											 addy96585 = addy96585 + 't&#101;ll&#117;r&#105;d&#101;l&#105;br&#97;ry' + '&#46;' + '&#111;rg';
-											 document.write('<a ' + mail_path + '\'' + prefix + ':' + addy96585 + '\'>');
-											 document.write(addy96585);
-											 document.write('<\/a>');
-											 //-->\n </script>
-																							</span>
-																						</a>
-																						<script type="text/javascript">
-											 <!--
-											 document.write('<span style=\'display: none;\'>');
-											 //-->
-											 </script><span style="display: none;">This email address is being protected from spambots. You need JavaScript enabled to view it. <script type="text/javascript">
-											 <!--
-											 document.write('</');
-											 document.write('span>');
-											 //-->
-											 </script>
-											</span>
+											<span style="color: #acacac;"><strong>Email: </strong>
+												<a id="mailLink" href="#" style="color: #acacac;">This email address is being protected from spambots. You need JavaScript enabled to view it.</a>
 											</span>
 										</p>
 										<p>
@@ -180,7 +139,16 @@
 	</div>
 	<!-- Container -->
 </div>
-<div class="clearer"></div>
+<div class="clearer">&nbsp;</div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
+{/strip}
+<script type='text/javascript'>
+	var prefix = 'ma' + 'il' + 'to';
+	var mail_path = 'hr' + 'ef' + '=';
+	var addy22065 = 'askus' + '@';
+	addy22065 = addy22065 + 'telluridelibrary' + '.' + 'org';
+	$("#mailLink").attr('href', prefix + ':' + addy22065);
+	$("#mailLink").html(addy22065);
+</script>

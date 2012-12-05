@@ -1,12 +1,12 @@
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&filter[]=literary_form_full%3A%22Fiction%22&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format_category%3A%22Books%22'>{translate text='New Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&filter[]=literary_form_full%3A%22Non+Fiction%22&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format_category%3A%22Books%22 '>{translate text='New Non-Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&filter[]=format%3A%22DVD%22&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22'>{translate text='New DVDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format%3A%22Blu-ray%22&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22'>{translate text='New Bluray'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format_category%3A%22Audio%22&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22 '>{translate text='New Audio Books & Music'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A"Week"'>{translate text='New This Week'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&amp;filter[]=literary_form_full%3A%22Fiction%22&amp;filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&amp;filter[]=format_category%3A%22Books%22'>{translate text='New Fiction'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&amp;filter[]=literary_form_full%3A%22Non+Fiction%22&amp;filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&amp;filter[]=format_category%3A%22Books%22 '>{translate text='New Non-Fiction'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&amp;filter[]=format%3A%22DVD%22&amp;filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22'>{translate text='New DVDs'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&amp;filter[]=format%3A%22Blu-ray%22&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22'>{translate text='New Bluray'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&amp;filter[]=format_category%3A%22Audio%22&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22 '>{translate text='New Audio Books &amp; Music'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A"Week"'>{translate text='New This Week'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
@@ -39,7 +39,7 @@
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

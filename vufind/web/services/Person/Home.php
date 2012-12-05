@@ -97,9 +97,6 @@ class Home extends Action
 		//Do actions needed if this is the main action.
 		$interface->assign('id', $this->id);
 
-		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' .
-		$configArray['Site']['path']  . '/Genealogy/' . urlencode($this->id) . '/RDF">');
-
 		// Retrieve User Search History
 		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
 		$_SESSION['lastSearchURL'] : false);

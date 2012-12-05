@@ -33,18 +33,18 @@
 <div class="footerCol"><div><strong>{translate text='Need Help?'}</strong></div>
 	<ul>
 		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
-		<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
+		<li><a href="{$askALibrarianLink|replace:"&":"&amp;"}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
 		{if isset($illLink)}
-				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
+				<li><a href="{$illLink|replace:"&":"&amp;"}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
 		{/if}
 		{if isset($suggestAPurchaseLink)}
-				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
+				<li><a href="{$suggestAPurchaseLink|replace:"&":"&amp;"}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

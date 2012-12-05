@@ -11,7 +11,7 @@
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
 		<li><a href="http://www.evld.org">{translate text='Coming Soon'}</a></li>
-		<li><a href="http://www.evld.org/books">{translate text='New Books, DVDs & CDs'}</a></li>
+		<li><a href="http://www.evld.org/books">{translate text='New Books, DVDs &amp; CDs'}</a></li>
 		<li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
 		<!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li>
 		<li><a href="{$path}/Search/NewItem">{translate text='New Items'}</a></li> -->
@@ -32,7 +32,7 @@
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

@@ -33,7 +33,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
-				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."}{/if}">{translate text="Previous"}</a></li>
+				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}">{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
 				<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
@@ -62,7 +62,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			<li id="HoldingsLink"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
 			{if isset($nextId)}
-				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."}{/if}">{translate text="Next"}</a></li>
+				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}">{translate text="Next"}</a></li>
 			{/if}
 		</ul>
 	</div>

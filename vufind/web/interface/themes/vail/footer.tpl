@@ -33,7 +33,7 @@
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

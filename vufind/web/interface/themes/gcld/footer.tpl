@@ -21,7 +21,7 @@
 		<li><a href="http://www.gcld.org/online-resources">{translate text='Online Resources'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
 		<li><a href="http://www.gcld.org/content/pages/readers-advisory-tools">{translate text="Reader's Advisory Tools"}</a></li>
-		<li><a href="http://www.gcld.org/content/pages/hours">{translate text='Locations, Hours & Events'}</a></li>
+		<li><a href="http://www.gcld.org/content/pages/hours">{translate text='Locations, Hours &amp; Events'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
@@ -38,7 +38,7 @@
 		<li><a href="http://www.gcld.org/content/locations/district-office">{translate text='Contact Us'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
