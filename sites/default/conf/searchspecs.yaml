@@ -426,11 +426,16 @@ id:
     - id:
       - [onephrase, ~]
       - [or, ~]
+    - id_alt:
+      - [onephrase, ~]
+      - [or, ~]
 
 # Fields for exact matches originating from alphabetic browse
 ids:
   QueryFields:
     - id:
+      - [or, ~]
+    -id_alt:
       - [or, ~]
 
 TopicBrowse:

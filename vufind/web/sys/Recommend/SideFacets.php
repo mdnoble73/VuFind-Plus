@@ -63,6 +63,14 @@ class SideFacets implements RecommendationInterface
 						unset ($this->mainFacets[$name]);
 						$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] = $desc;
 					}
+				}elseif ($name == 'itype'){
+					//Check to see if we have an active library
+					global $librarySingleton;
+					$searchLibrary = $librarySingleton->getSearchLibrary();
+					if ($searchLibrary != null){
+						unset ($this->mainFacets[$name]);
+						$this->mainFacets['itype_' . $searchLibrary->subdomain] = $desc;
+					}
 				}
 			}
 		}else{
@@ -73,6 +81,9 @@ class SideFacets implements RecommendationInterface
 						if ($facet->facetName == 'time_since_added'){
 							//Check to see if we have an active library
 							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}elseif ($facet->facetName == 'itype'){
+							//Check to see if we have an active library
+							$this->mainFacets['itype_' . $searchLibrary->subdomain] =  $facet->displayName;
 						}else{
 							$this->mainFacets[$facet->facetName] = $facet->displayName;
 						}

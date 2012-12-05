@@ -1115,6 +1115,9 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getBarcode") && parms.length == 1){
 					retval = getBarcode(parms[0]);
 					returnType = Set.class;
+				}else if (functionName.equals("getLocalItemTypes") && parms.length == 4){
+					retval = getLocalItemTypes(parms[0], parms[1], parms[2], parms[3]);
+					returnType = Set.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
@@ -2024,6 +2027,28 @@ public class MarcRecordDetails {
 			}
 		}
 		return localCallnumbers;
+	}
+	
+	public Set<String> getLocalItemTypes(String itemTag, String iTypeSubfield, String locationSubfield, String validLocations) {
+		Set<String> returnVal = new LinkedHashSet<String>();
+		@SuppressWarnings("unchecked")
+		List<DataField> itemFields = record.getVariableFields(itemTag);
+		char iTypeSubfieldChar = iTypeSubfield.charAt(0);
+		char locationSubfieldChar = locationSubfield.charAt(0);
+		Iterator<DataField> itemFieldIterator = itemFields.iterator();
+		while (itemFieldIterator.hasNext()) {
+			DataField itemField = (DataField) itemFieldIterator.next();
+			Subfield iType = itemField.getSubfield(iTypeSubfieldChar);
+			Subfield location = itemField.getSubfield(locationSubfieldChar);
+			if (iType != null && location != null) {
+				String iTypeData = iType.getData();
+				String locationCode = location.getData();
+				if (locationCode.matches(validLocations)){
+					returnVal.add(iTypeData);
+				}
+			}
+		}
+		return returnVal;
 	}
 
 	private Set<String>	locationCodes;
@@ -3358,16 +3383,6 @@ public class MarcRecordDetails {
 		return rawRecord;
 	}
 
-	public SolrInputDocument getSolrDocument() {
-		SolrInputDocument doc = new SolrInputDocument();
-		HashMap <String, Object> allFields = getFields("getSolrDocument");
-		for (String fieldName : allFields.keySet()){
-			Object value = allFields.get(fieldName);
-			doc.addField(fieldName, value);
-		}
-		return doc;
-	}
-
 	public HashMap<String, String> getBrowseSubjects(){
 		return getBrowseSubjects(true);
 	}
@@ -3460,6 +3475,16 @@ public class MarcRecordDetails {
 			}
 		}
 		return 0;
+	}
+	
+	public SolrInputDocument getSolrDocument() {
+		SolrInputDocument doc = new SolrInputDocument();
+		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		for (String fieldName : allFields.keySet()){
+			Object value = allFields.get(fieldName);
+			doc.addField(fieldName, value);
+		}
+		return doc;
 	}
 
 	public SolrInputDocument getEContentSolrDocument(long econtentRecordId, ResultSet eContentInfo, ResultSet itemInfo, ResultSet availabilityInfo) throws SQLException {
@@ -3568,6 +3593,7 @@ public class MarcRecordDetails {
 			Object value = allFields.get(fieldName);
 			if (fieldName.equals("id")){
 				doc.addField(fieldName, "econtentRecord" + econtentRecordId);
+				doc.addField("id_alt", getId());
 			}else{
 				doc.addField(fieldName, value);
 			}
