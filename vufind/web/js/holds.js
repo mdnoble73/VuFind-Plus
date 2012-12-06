@@ -89,6 +89,6 @@ function getSelectedTitles(){
 }
 function renewSelectedTitles(){
 	var selectedTitles = getSelectedTitles();
-	$('#renewForm').submit()
+	$('#renewForm').submit();
 	return false;
 }
