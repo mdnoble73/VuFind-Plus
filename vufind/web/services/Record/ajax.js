@@ -357,7 +357,11 @@ function GetReviewInfo(id, isbn) {
 			if (reviewsData) {
 				if (reviewsData.length > 0) {
 					$("#reviewPlaceholder").html(reviewsData);
+				}else{
+					$("#reviewPlaceholder").html("There are no reviews for this title.");
 				}
+			}else{
+				$("#reviewPlaceholder").html("There are no reviews for this title.");
 			}
 		}
 	});

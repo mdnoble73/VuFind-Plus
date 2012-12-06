@@ -1,4 +1,5 @@
 {php}$index = 0;{/php}
+{strip}
 {foreach from=$reviews item=providerList key=provider}
 	{foreach from=$providerList item=review}
 		{if $review.Content}
@@ -31,3 +32,4 @@
 		<hr/>
 	{/foreach}
 {/foreach}
+{/strip}

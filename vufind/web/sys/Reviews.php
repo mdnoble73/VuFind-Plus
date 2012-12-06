@@ -50,7 +50,7 @@ class ExternalReviews
 
 		// We can't proceed without an ISBN:
 		if (empty($this->isbn)) {
-			return;
+			return $this->results;
 		}
 
 		// Fetch from provider
@@ -81,97 +81,6 @@ class ExternalReviews
 	{
 		return $this->results;
 	}
-
-	/**
-	 * Amazon Reviews
-	 *
-	 * This method is responsible for connecting to Amazon AWS and abstracting
-	 * customer reviews for the specific ISBN
-	 *
-	 * @param   string      $id             Amazon access key
-	 * @return  array       Returns array with review data, otherwise a
-	 *                      PEAR_Error.
-	 * @access  private
-	 * @author  Andrew Nagy <andrew.nagy@villanova.edu>
-	 */
-	private function amazon($id)
-	{
-		$params = array('ResponseGroup' => 'Reviews', 'ItemId' => $this->isbn);
-		$request = new AWS_Request($id, 'ItemLookup', $params);
-		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
-			$unxml = new XML_Unserializer();
-			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
-				$data = $unxml->getUnserializedData();
-				if ($data['Items']['Item']['CustomerReviews']['Review']['ASIN']) {
-					$data['Items']['Item']['CustomerReviews']['Review'] = array($data['Items']['Item']['CustomerReviews']['Review']);
-				}
-				$i = 0;
-				$result = array();
-				if (!empty($data['Items']['Item']['CustomerReviews']['Review'])) {
-					foreach ($data['Items']['Item']['CustomerReviews']['Review'] as $review) {
-						$customer = $this->getAmazonCustomer($id, $review['CustomerId']);
-						if (!PEAR::isError($customer)) {
-							$result[$i]['Source'] = $customer;
-						}
-						$result[$i]['Rating'] = $review['Rating'];
-						$result[$i]['Summary'] = $review['Summary'];
-						$result[$i]['Content'] = $review['Content'];
-						$i++;
-					}
-				}
-				return $result;
-			} else {
-				return $result;
-			}
-		} else {
-			return $result;
-		}
-	}
-
-	/**
-	 * Amazon Editorial
-	 *
-	 * This method is responsible for connecting to Amazon AWS and abstracting
-	 * editorial reviews for the specific ISBN
-	 *
-	 * @param   string      $id             Amazon access key
-	 * @return  array       Returns array with review data, otherwise a
-	 *                      PEAR_Error.
-	 * @access  private
-	 * @author  Andrew Nagy <andrew.nagy@villanova.edu>
-	 */
-	private function amazoneditorial($id)
-	{
-		$params = array('ResponseGroup' => 'EditorialReview', 'ItemId' => $this->isbn);
-		$request = new AWS_Request($id, 'ItemLookup', $params);
-		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
-			$unxml = new XML_Unserializer();
-			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
-				$data = $unxml->getUnserializedData();
-				if (isset($data['Items']['Item']['EditorialReviews']['EditorialReview']['Source'])) {
-					$data['Items']['Item']['EditorialReviews']['EditorialReview'] = array($data['Items']['Item']['EditorialReviews']['EditorialReview']);
-				}
-
-				// Filter out product description
-				for ($i=0; $i<=count($data['Items']['Item']['EditorialReviews']['EditorialReview']); $i++) {
-					if ($data['Items']['Item']['EditorialReviews']['EditorialReview'][$i]['Source'] == 'Product Description') {
-						unset($data['Items']['Item']['EditorialReviews']['EditorialReview'][$i]);
-					}
-				}
-
-				return $data['Items']['Item']['EditorialReviews']['EditorialReview'];
-			} else {
-				return $result;
-			}
-		} else {
-			return $result;
-		}
-	}
-
 
 	/**
 	 * syndetics
@@ -229,12 +138,16 @@ class ExternalReviews
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
 		if (PEAR::isError($http = $client->sendRequest())) {
+			// @codeCoverageIgnoreStart
 			return $http;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// Test XML Response
 		if (!($xmldoc = @DOMDocument::loadXML($client->getResponseBody()))) {
+			// @codeCoverageIgnoreStart
 			return new PEAR_Error('Invalid XML');
+			// @codeCoverageIgnoreEnd
 		}
 
 		$review = array();
@@ -247,20 +160,26 @@ class ExternalReviews
 				$sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
 				$client->setURL($url);
 				if (PEAR::isError($http = $client->sendRequest())) {
+					// @codeCoverageIgnoreStart
 					return $http;
+					// @codeCoverageIgnoreEnd
 				}
 
 				// Test XML Response
 				$responseBody = $client->getResponseBody();
 				if (!($xmldoc2 = @DOMDocument::loadXML($responseBody))) {
+					// @codeCoverageIgnoreStart
 					return new PEAR_Error('Invalid XML');
+					// @codeCoverageIgnoreEnd
 				}
 
 				// Get the marc field for reviews (520)
 				$nodes = $xmldoc2->GetElementsbyTagName("Fld520");
 				if (!$nodes->length) {
+					// @codeCoverageIgnoreStart
 					// Skip reviews with missing text
 					continue;
+					// @codeCoverageIgnoreEnd
 				}
 				$review[$i]['Content'] = html_entity_decode($xmldoc2->saveXML($nodes->item(0)));
 
@@ -269,13 +188,17 @@ class ExternalReviews
 				if ($nodes->length) {
 					$review[$i]['Copyright'] = html_entity_decode($xmldoc2->saveXML($nodes->item(0)));
 				} else {
+					// @codeCoverageIgnoreStart
 					$review[$i]['Copyright'] = null;
+					// @codeCoverageIgnoreEnd
 				}
 
 				if ($review[$i]['Copyright']) {  //stop duplicate copyrights
 					$location = strripos($review[0]['Content'], $review[0]['Copyright']);
 					if ($location > 0) {
+						// @codeCoverageIgnoreStart
 						$review[$i]['Content'] = substr($review[0]['Content'], 0, $location);
+						// @codeCoverageIgnoreEnd
 					}
 				}
 
@@ -289,38 +212,4 @@ class ExternalReviews
 
 		return $review;
 	}
-
-	/**
-	 * Get the name of an Amazon customer.
-	 *
-	 * @access  private
-	 * @param   string      $id             Amazon access key
-	 * @param   string      $customerId     Amazon customer to look up
-	 * @return  string                      Customer name, if available.
-	 */
-	private function getAmazonCustomer($id, $customerId)
-	{
-		$params = array('ResponseGroup' => 'CustomerInfo', 'CustomerId' => $customerId);
-		$request = new AWS_Request($id, 'CustomerContentLookup', $params);
-		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
-			$unxml = new XML_Unserializer();
-			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
-				$data = $unxml->getUnserializedData();
-				if (isset($data['Customers']['Customer']['Name'])) {
-					return $data['Customers']['Customer']['Name'];
-				} elseif (isset($data['Customers']['Customer']['Nickname'])) {
-					return $data['Customers']['Customer']['Nickname'];
-				} else {
-					return 'Anonymous';
-				}
-			} else {
-				return $result;
-			}
-		} else {
-			return $result;
-		}
-	}
 }
-?>
