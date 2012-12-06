@@ -13,7 +13,7 @@
 			{* Place hold link *}
 			{if $showHoldButton}
 			<div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
-				<a href="{$path}/Record/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+				<a href="{$path}/Record/{$summId|escape:"url"}/Hold" class="button">{translate text="Request This"}</a>
 			</div>
 			{/if}
 		</div>

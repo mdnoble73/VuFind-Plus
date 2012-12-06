@@ -193,13 +193,15 @@ class ExternalReviews
 					// @codeCoverageIgnoreEnd
 				}
 
+				//Check to see if the copyright is contained in the main body of the review and if so, remove it.
+				//Does not happen often.
 				if ($review[$i]['Copyright']) {  //stop duplicate copyrights
 					$location = strripos($review[0]['Content'], $review[0]['Copyright']);
+					// @codeCoverageIgnoreStart
 					if ($location > 0) {
-						// @codeCoverageIgnoreStart
 						$review[$i]['Content'] = substr($review[0]['Content'], 0, $location);
-						// @codeCoverageIgnoreEnd
 					}
+					// @codeCoverageIgnoreEnd
 				}
 
 				$review[$i]['Source'] = $sourceInfo['title'];  //changes the xml to actual title
