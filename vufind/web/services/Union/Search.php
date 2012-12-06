@@ -59,7 +59,7 @@ class Search extends Action {
 			$results = new Results();
 			return $results->launch();
 		}else{
-			$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
+			$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
 			if (strpos($type , 'browse') === 0){
 				require_once ('services/AlphaBrowse/Results.php');
 				$module = 'AlphaBrowse';
@@ -76,11 +76,11 @@ class Search extends Action {
 				$interface->assign('action', $action);
 				if ($searchSource == 'econtent'){
 					if (!isset($_REQUEST['shard'])){
-						$_SESSION['shards'] = array('eContent');  
+						$_SESSION['shards'] = array('eContent');
 					}
 				}else{
 					if (!isset($_REQUEST['shard'])){
-						$_SESSION['shards'] = array('eContent', 'Main Catalog');  
+						$_SESSION['shards'] = array('eContent', 'Main Catalog');
 					}
 				}
 				$results = new Results();

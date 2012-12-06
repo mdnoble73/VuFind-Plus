@@ -1,4 +1,3 @@
-{strip}
 <div id="record{$summShortId|escape}">
 	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
@@ -128,4 +127,3 @@
 	{* Clear floats so the record displays as a block*}
 	<div class='clearer'></div>
 </div>
-{/strip}
