@@ -48,9 +48,9 @@
 		<div class="yui-ge resulthead">
 			<div class="yui-u first">
 				{if $recordCount}
-					{translate text="Showing"}
+					{translate text="Showing"}&nbsp;
 					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-					{translate text='of'} <b>{$recordCount}</b>
+					&nbsp;{translate text='of'}&nbsp;<b>{$recordCount}</b>
 					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
 				{/if}
 				{translate text='query time'}: {$qtime}s

@@ -1,3 +1,4 @@
+{strip}
 {if $recordCount > 0 || $filterList || ($sideFacetSet && $recordCount > 0)}
 <div class="sidegroup">
 	<h4>{translate text='Narrow Search'}</h4>
@@ -178,3 +179,4 @@
 	{/if}
 </div>
 {/if}
+{/strip}

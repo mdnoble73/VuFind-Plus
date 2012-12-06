@@ -1,3 +1,4 @@
+{strip}
 {if !empty($sideFacetSet)}
 <div data-role="dialog" id="Search-narrow">
 	<div data-role="header" data-theme="d" data-position="inline">
@@ -21,7 +22,7 @@
 								</li>
 							{else}
 								<li {if $smarty.foreach.narrowLoop.iteration >= ($cluster.valuesToShow + 1)}class="narrowGroupHidden_{$title}" style="display:none"{/if}>
-									<a rel="external" href="{$thisFacet.url|escape}">{$thisFacet.value|escape}</a> <span class="ui-li-count">{$thisFacet.count}</span>
+									<a rel="external" href="{$thisFacet.url|escape|replace:"[":"%5B"|replace:"]":"%5D"}">{$thisFacet.value|escape}</a> <span class="ui-li-count">{$thisFacet.count}</span>
 								</li>
 							{/if}
 						{/foreach}
@@ -35,3 +36,4 @@
 	</div>
 </div>
 {/if}
+{/strip}

@@ -511,6 +511,10 @@ class Home extends Action
 
 		$body = preg_replace($pattern, $replacement, $body);
 
+		$tidy = new tidy();
+		$body = $tidy->repairString($body, array('doctype' => 'omit', 'show-body-only' => true));
+		$body = str_replace('<br>', '<br/>', $body);
+
 		if (isset($imageUrl) && $imageUrl != false) {
 			$info['image'] = $imageUrl;
 			if (isset($image_caption)) {

@@ -35,7 +35,7 @@
 							{translate text='Password'}:<br />
 							<input type="password" name="password" id="bag_password" size="25"/>
 							<br />
-							<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('bag_password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+							<input type="checkbox" id="showPwdCart" name="showPwd" onclick="return pwdToText('bag_password')"/><label for="showPwdCart">{translate text="Reveal Password"}</label>
 						</div>
 					</form>
 				 </div>
