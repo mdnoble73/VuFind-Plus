@@ -636,6 +636,11 @@ function redrawSaveStatus() {literal}{{/literal}
 			{if $eContentRecord->marcRecord && $staffDetails != null}
 				<div id = "stafftab">
 					{include file=$staffDetails}
+					
+					{if $user && $user->hasRole('opacAdmin')}
+						<br/>
+						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AJAX?method=downloadMarc" class="button">{translate text="Download Marc"}</a>
+					{/if}
 				</div>
 			{/if}
 		</div> {* End of tabs*}

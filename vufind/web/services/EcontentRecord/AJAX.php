@@ -24,7 +24,8 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-
+		}else if ($method == 'downloadMarc'){
+			echo $this->$method();
 		}else{
 			header ('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -42,7 +43,25 @@ class AJAX extends Action {
 			echo $xmlResponse;
 		}
 	}
+	function downloadMarc(){
+		$id = $_REQUEST['id'];
+		$econtentRecord = new EContentRecord();
+		$econtentRecord->id = $id;
+		$econtentRecord->find(true);
+		$marcData = MarcLoader::loadEContentMarcRecord($econtentRecord);
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header("Content-Disposition: attachment; filename={$econtentRecord->ilsId}.mrc");
+		header('Content-Transfer-Encoding: binary');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
 
+		header('Content-Length: ' . strlen($marcData->toRaw()));
+		ob_clean();
+		flush();
+		echo($marcData->toRaw());
+	}
 	function GetGoDeeperData(){
 		require_once('Drivers/marmot_inc/GoDeeperData.php');
 		$id = $_REQUEST['id'];

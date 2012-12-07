@@ -144,7 +144,7 @@ function redrawSaveStatus() {literal}{{/literal}
 								<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
 								{if $tag->userAddedThis}
 									<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
-										<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">
+										<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png"/>
 									</a>
 								{/if} 
 							</div>
@@ -660,6 +660,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{include file=$staffDetails}
 				
 				{if $user && $user->hasRole('opacAdmin')}
+					<br/>
 					<a href="{$path}/Record/{$id|escape:"url"}/AJAX?method=downloadMarc" class="button">{translate text="Download Marc"}</a>
 				{/if}
 			</div>
