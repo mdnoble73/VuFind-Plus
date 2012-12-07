@@ -152,7 +152,7 @@ class EContentImportSummary extends Admin {
 				$importDetails->whereAdd($publisherRestriction);
 			}
 			$importDetails->groupBy('status');
-			$importDetails->addOrder('status');
+			$importDetails->orderBy('status');
 			$importDetails->find();
 			while ($importDetails->fetch()){
 				$periodDataByStatus[$periodStart->getTimestamp()][$importDetails->status] = $importDetails->numberOfFiles;
