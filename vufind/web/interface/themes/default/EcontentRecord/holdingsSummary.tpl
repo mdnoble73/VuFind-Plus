@@ -1,3 +1,4 @@
+{strip}
 <div id = "holdingsEContentSummary{$id}" class="holdingsSummary {$holdingsSummary.class}">
 	<div class="availability holdingsSummaryStatusLine {$holdingsSummary.class}">
 		{$holdingsSummary.status}
@@ -46,3 +47,4 @@
 		</div>
 	{/if}
  </div>
+ {/strip}

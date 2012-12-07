@@ -102,7 +102,7 @@
 			Need help transferring a title to your device or want to know whether or not your device is compatible with a particular format? <a href='http://marmot.org/node/58'>Contact your local library</a>.
 			</p>
 		</div>
-	</div>
+	</fieldset>
 {/if}
 <script type="text/javascript">
 	collapseFieldsets();
