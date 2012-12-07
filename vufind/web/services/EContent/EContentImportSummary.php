@@ -49,7 +49,7 @@ class EContentImportSummary extends Admin {
 		$interface->assign('selectedPublisherFilter', $selectedPublisherFilter);
 		$publishers = empty($selectedPublisherFilter) ? $allPublishers : $selectedPublisherFilter;
 		$interface->assign('publishers', $publishers);
-		
+
 		// Date range filter
 		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
 		if ($period == 'week'){
@@ -62,17 +62,17 @@ class EContentImportSummary extends Admin {
 			$periodLength = new DateInterval("P1Y");
 		}
 		$interface->assign('period', $period);
-		
+
 		$endDate = (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) ? DateTime::createFromFormat('m/d/Y', $_REQUEST['endDate']) : new DateTime();
 		$interface->assign('endDate', $endDate->format('m/d/Y'));
-		
+
 		if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0){
 			$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
 		} else{
 			if ($period == 'day'){
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 7 days");
 			}elseif ($period == 'week'){
-				//Get the sunday after this 
+				//Get the sunday after this
 				$endDate->setISODate($endDate->format('Y'), $endDate->format("W"), 0);
 				$endDate->modify("+7 days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 28 days");
@@ -90,7 +90,7 @@ class EContentImportSummary extends Admin {
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 2 years");
 			}
 		}
-		
+
 		$interface->assign('startDate', $startDate->format('m/d/Y'));
 
 		//Set the end date to the end of the day
@@ -116,7 +116,7 @@ class EContentImportSummary extends Admin {
 				$publisherRestriction = "publisher IN (" . implode(",", $publishersToShow) . ") ";
 			}
 		}
-	
+
 		//Load data for each period
 		$periodDataByPublisher = array();
 		$periodDataByStatus = array();
@@ -127,7 +127,7 @@ class EContentImportSummary extends Admin {
 			//$periodStart->setTime(23, 59, 59);
 			$periodDataByPublisher[$periodStart->getTimestamp()] = array();
 			$periodDataByStatus[$periodStart->getTimestamp()] = array();
-			
+
 			//Determine how many files were imported by publisher
 			$importDetails = new EContentImportDetailsEntry();
 			$importDetails->selectAdd();
@@ -137,7 +137,7 @@ class EContentImportSummary extends Admin {
 				$importDetails->whereAdd($publisherRestriction);
 			}
 			$importDetails->groupBy('publisher');
-			$importDetails->addOrder('publisher');
+			$importDetails->orderBy('publisher');
 			$importDetails->find();
 			while ($importDetails->fetch()){
 				$periodDataByPublisher[$periodStart->getTimestamp()][$importDetails->publisher] = $importDetails->numberOfFiles;
@@ -207,7 +207,7 @@ class EContentImportSummary extends Admin {
 		foreach ($publishers as $publisher){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $publisher);
 		}
-		
+
 		$row = 4;
 		$column = 0;
 		//Loop Through The Report Data
@@ -222,10 +222,10 @@ class EContentImportSummary extends Admin {
 		for ($i = 0; $i < count($publishers) + 1; $i++){
 			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
-				
-		// skip 5 rows to create some spaces 
+
+		// skip 5 rows to create some spaces
 		$row += 5;
-		
+
 		// Add period data by Status
 		$objPHPExcel->setActiveSheetIndex(0);
 		$activeSheet = $objPHPExcel->getActiveSheet();
@@ -235,7 +235,7 @@ class EContentImportSummary extends Admin {
 		foreach ($statuses as $status => $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, $row+2, $statusLabel);
 		}
-		
+
 		$row += 3;
 		$column = 0;
 		//Loop Through The Report Data
@@ -250,7 +250,7 @@ class EContentImportSummary extends Admin {
 		for ($i = 0; $i < count($statuses) + 1; $i++){
 			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
-		
+
 		// Rename sheet
 		$activeSheet->setTitle('eContent Import Summary Report');
 
@@ -269,7 +269,7 @@ class EContentImportSummary extends Admin {
 		global $configArray;
 		global $interface;
 		$reportData = new pData();
-	
+
 		//Add points for each publisher
 		$periodsFormatted = array();
 		foreach ($publishers as $publisher){
@@ -280,39 +280,39 @@ class EContentImportSummary extends Admin {
 			}
 			$reportData->addPoints($publisherData, $publisher);
 		}
-	
+
 		$reportData->setAxisName(0,"Number of files");
-	
+
 		$reportData->addPoints($periodsFormatted, "Dates");
 		$reportData->setAbscissa("Dates");
-	
+
 		/* Create the pChart object */
 		$myPicture = new pImage(700,290,$reportData);
-	
+
 		/* Draw the background */
 		$Settings = array("R"=>225, "G"=>225, "B"=>225);
 		$myPicture->drawFilledRectangle(0,0,700,290,$Settings);
-	
+
 		/* Add a border to the picture */
 		$myPicture->drawRectangle(0,0,699,289,array("R"=>0,"G"=>0,"B"=>0));
-	
+
 		$myPicture->setFontProperties(array("FontName"=> "sys/pChart/Fonts/verdana.ttf","FontSize"=>9));
 		$myPicture->setGraphArea(50,30,670,190);
 		//$myPicture->drawFilledRectangle(30,30,670,150,array("R"=>255,"G"=>255,"B"=>255,"Surrounding"=>-200,"Alpha"=>10));
 		$myPicture->drawScale(array("DrawSubTicks"=>TRUE, "LabelRotation"=>90));
 		$myPicture->setFontProperties(array("FontName"=> "sys/pChart/Fonts/verdana.ttf","FontSize"=>9));
 		$myPicture->drawLineChart(array("DisplayValues"=>TRUE,"DisplayColor"=>DISPLAY_AUTO));
-	
+
 		/* Write the chart legend */
 		$myPicture->drawLegend(80,20,array("Style"=>LEGEND_NOBORDER,"Mode"=>LEGEND_HORIZONTAL));
-	
+
 		/* Render the picture (choose the best way) */
 		$chartHref = "/images/charts/eContentImportSummaryByPublisher". time() . ".png";
 		$chartPath = $configArray['Site']['local'] . $chartHref;
 		$myPicture->render($chartPath);
 		$interface->assign('chartByPublisher', $chartHref);
 	}
-	
+
 	function generateGraphByStatus($periodData, $periods, $statuses){
 		global $configArray;
 		global $interface;
@@ -330,7 +330,7 @@ class EContentImportSummary extends Admin {
 		}
 
 		$reportData->setAxisName(0,"Number of files");
-		
+
 		$reportData->addPoints($periodsFormatted, "Dates");
 		$reportData->setAbscissa("Dates");
 
@@ -370,7 +370,7 @@ class EContentImportSummary extends Admin {
 		}
 		return $publishers;
 	}
-	
+
 	function getStatuses() {
 		$importDetails = new EContentImportDetailsEntry();
 		$importDetails->query('SELECT DISTINCT status FROM ' . $importDetails->__table . ' ORDER BY status');
@@ -380,7 +380,7 @@ class EContentImportSummary extends Admin {
 		}
 		return $statuses;
 	}
-	
+
 	function getAllowableRoles(){
 		return array('epubAdmin');
 	}
