@@ -100,6 +100,8 @@ function GetEContentHoldingsInfo(id, type, callback) {
 				if (holdingsData.length > 0) {
 					$("#holdingsPlaceholder").html(holdingsData);
 					$("#holdingsPlaceholder").trigger("create");
+				}else{
+					$("#holdingsPlaceholder").html("No Holdings Information found, please try again later.");
 				}
 			}
 			var holdingsSummary = $(data).find("HoldingsSummary").text();

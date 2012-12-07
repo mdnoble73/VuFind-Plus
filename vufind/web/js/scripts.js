@@ -38,8 +38,7 @@ function collapseFieldsets(){
 				var collapsible = event.data.collapsible;
 				if (collapsible.hasClass('fieldset-collapsed')) {
 					collapsible.removeClass('fieldset-collapsed');
-				}
-				else {
+				} else {
 					collapsible.addClass('fieldset-collapsed');
 				}
 			});
@@ -95,8 +94,7 @@ function getLightbox(module, action, id, lookfor, message, followupModule,
 					}
 				}
 			} else {
-				document.getElementById('popupbox').innerHTML = document
-						.getElementById('lightboxError').innerHTML;
+				document.getElementById('popupbox').innerHTML = document.getElementById('lightboxError').innerHTML;
 			}
 
 			// Check to see if an element within the lightbox needs to be given focus.

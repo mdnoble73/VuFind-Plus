@@ -103,6 +103,7 @@ class EContentRecord extends SolrDataObject {
 		}
 		return $formatCategory;
 	}
+
 	function keywords(){
 		return $this->title . "\r\n" .
 		$this->subTitle . "\r\n" .
@@ -1040,6 +1041,15 @@ class EContentRecord extends SolrDataObject {
 			$formats[$formatValue] = $formatValue;
 		}
 		return $formats;
+	}
+
+	function getFirstFormat(){
+		$formats = $this->format();
+		if (count($formats) == 0){
+			return '';
+		}else{
+			return reset($formats);
+		}
 	}
 
 	/**
