@@ -658,6 +658,10 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			<div id = "stafftab">
 				{include file=$staffDetails}
+				
+				{if $user && $user->hasRole('opacAdmin')}
+					<a href="{$path}/Record/{$id|escape:"url"}/AJAX?method=downloadMarc" class="button">{translate text="Download Marc"}</a>
+				{/if}
 			</div>
 		</div> {* End of tabs*}
 		

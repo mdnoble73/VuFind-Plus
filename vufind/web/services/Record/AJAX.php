@@ -44,7 +44,8 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-
+		}else if ($method == 'downloadMarc'){
+			echo $this->$method();
 		}else{
 			header ('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -63,6 +64,22 @@ class AJAX extends Action {
 		}
 	}
 
+	function downloadMarc(){
+		$id = $_REQUEST['id'];
+		$marcData = MarcLoader::loadMarcRecordByILSId($id);
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header("Content-Disposition: attachment; filename={$id}.mrc");
+		header('Content-Transfer-Encoding: binary');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+
+		header('Content-Length: ' . strlen($marcData->toRaw()));
+		ob_clean();
+		flush();
+		echo($marcData->toRaw());
+	}
 	function getPurchaseOptions(){
 		global $interface;
 		if (isset($_REQUEST['id'])){
