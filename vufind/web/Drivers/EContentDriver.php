@@ -908,7 +908,7 @@ class EContentDriver implements DriverInterface{
 
 				if ($checkout->insert()){
 					$return['result'] = true;
-					$return['message'] = "The title was checked out to you successfully.  You may read it from the My eContent page within your account.";
+					$return['message'] = "The title was checked out to you successfully.  You may read it from Checked Out eBooks and eAudio page within your account.";
 
 					//Record that the record was checked out
 					$this->recordEContentAction($id, "Checked Out", $eContentRecord->accessType);

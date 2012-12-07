@@ -4,7 +4,7 @@
 		<meta charset="utf-8"/>
 		<meta name="format-detection" content="telephone=no"/>
 		<meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1"/> 
-		<title>{$site.title|escape}</title>
+		<title>{$pageTitle|escape}</title>
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		
 		{* Set global javascript variables *}
@@ -20,7 +20,9 @@
 	</head> 
 	<body>
 		{if $hold_message}
-		 {$hold_message}
+			{$hold_message}
+		{elseif $checkout_message}
+			{$checkout_message}
 		{else}
 			{include file="$module/$pageTemplate"}	 
 		{/if}

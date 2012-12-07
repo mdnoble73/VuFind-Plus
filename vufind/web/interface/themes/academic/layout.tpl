@@ -98,6 +98,13 @@
 					document.getElementById('popupbox').innerHTML = "{$renew_message|escape:"javascript"}";
 					</script>
 				{/if}
+
+				{if $checkout_message}
+					<script type="text/javascript">
+					lightbox();
+					document.getElementById('popupbox').innerHTML = "{$checkout_message|escape:'javascript'}";
+					</script>
+				{/if}
 			</div> {* End content span *}
 
 				<div id="ft">

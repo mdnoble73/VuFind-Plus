@@ -91,7 +91,7 @@ class Checkout extends Action{
 
 			$_SESSION['checkout_message'] = $hold_message_data;
 			if (isset($_SESSION['checkout_referrer'])){
-				$logger->log('Checkout Referrer is set, redirecting to there.  type = ' . $_REQUEST['type'], PEAR_LOG_INFO);
+				$logger->log('Checkout Referrer is set, redirecting to there.  referrer = ' . $_SESSION['checkout_referrer'], PEAR_LOG_INFO);
 
 				header("Location: " . $_SESSION['checkout_referrer']);
 				unset($_SESSION['checkout_referrer']);

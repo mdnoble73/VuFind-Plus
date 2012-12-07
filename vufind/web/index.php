@@ -520,6 +520,11 @@ if (isset($_SESSION['hold_message'])) {
 	unset($_SESSION['hold_message']);
 }elseif (isset($_SESSION['renew_message'])){
 	$interface->assign('renew_message', formatRenewMessage($_SESSION['renew_message']));
+}elseif (isset($_SESSION['checkout_message'])){
+	$logger->log("Found checkout message", PEAR_LOG_DEBUG);
+	$checkoutMessage = $_SESSION['checkout_message'];
+	unset($_SESSION['checkout_message']);
+	$interface->assign('checkout_message', formatCheckoutMessage($checkoutMessage));
 }
 
 // Process Solr shard settings
@@ -697,6 +702,12 @@ function formatRenewMessage($renew_message_data){
 	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
 
 	return $renew_message;
+}
+function formatCheckoutMessage($checkout_message_data){
+	global $interface;
+	$interface->assign('checkout_message_data', $checkout_message_data);
+	$checkout_message = $interface->fetch('EcontentRecord/checkout-message.tpl');
+	return $checkout_message;
 }
 function getGitBranch(){
 	global $interface;
