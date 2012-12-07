@@ -25,7 +25,7 @@
 				var manifest = new Array();
 				{/literal}
 				{foreach from=$manifest key=href item=manifestId}
-					manifest['{$href}|replace:"'":"\'"}'] = '{$manifestId|replace:"'":"\'"}}';
+					manifest['{$href|replace:"'":"\'"}'] = '{$manifestId|replace:"'":"\'"}}';
 				{/foreach}
 				
 				var tableOfContents = new Array();
