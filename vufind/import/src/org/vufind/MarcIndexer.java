@@ -65,6 +65,13 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 
 	@Override
 	public void finish() {
+		try {
+			updateServer.commit(true, true);
+			updateServer.shutdown();
+		} catch (Exception e) {
+			results.addNote("Error calling final commit " + e.toString());
+			results.incErrors();
+		}
 		//Make sure that the index is good and swap indexes
 		results.addNote("calling final commit on index");
 		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit expungeDeletes=\"true\"/>", logger);

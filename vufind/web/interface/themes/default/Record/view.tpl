@@ -555,6 +555,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 				
 				{if $enablePurchaseLinks == 1 && !$purchaseLinks}
+					<br/>
 					<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
 				{/if}
 					

@@ -19,7 +19,6 @@ import org.econtent.ExtractEContentFromMarc;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
-import org.strands.StrandsProcessor;
 
 
 /**
@@ -53,10 +52,9 @@ public class ReindexProcess {
 	private static boolean updateSolr = true;
 	private static boolean updateResources = true;
 	private static boolean loadEContentFromMarc = false;
-	private static boolean exportStrandsCatalog = false;
-	private static boolean exportOPDSCatalog = true;
 	private static boolean updateAlphaBrowse = true;
 	private static String idsToProcess = null;
+	private static boolean extractEContentFromUnchangedRecords;
 	
 	//Database connections and prepared statements
 	private static Connection vufindConn = null;
@@ -231,16 +229,6 @@ public class ReindexProcess {
 				System.exit(1);
 			}
 		}
-		if (exportStrandsCatalog){
-			addNoteToCronLog("Initializing StrandsProcessor");
-			StrandsProcessor strandsProcessor = new StrandsProcessor();
-			if (strandsProcessor.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
-				supplementalProcessors.add(strandsProcessor);
-			}else{
-				logger.error("Could not initialize strandsProcessor");
-				System.exit(1);
-			}
-		}
 		if (updateAlphaBrowse){
 			addNoteToCronLog("Initializing AlphaBrowseProcessor");
 			AlphaBrowseProcessor alphaBrowseProcessor = new AlphaBrowseProcessor();
@@ -250,9 +238,6 @@ public class ReindexProcess {
 				logger.error("Could not initialize strandsProcessor");
 				System.exit(1);
 			}
-		}
-		if (exportOPDSCatalog){
-			// 14) Generate OPDS catalog
 		}
 		
 		return supplementalProcessors;
@@ -330,9 +315,15 @@ public class ReindexProcess {
 			if (idsToProcess != null && idsToProcess.length() > 0){
 				idFilter = " AND id REGEXP '" + idsToProcess + "'";
 			}
-			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet allEContent = econtentRecordStatement.executeQuery();
+			//Only load anything that has changed
+			String dateChangedFilter = "";
 			long indexTime = new Date().getTime() / 1000;
+			if (!extractEContentFromUnchangedRecords){
+				long minChangeTime = indexTime - (48 * 60 * 60);
+				dateChangedFilter = " AND date_updated >= " + minChangeTime;
+			}
+			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter + dateChangedFilter, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			while (allEContent.next()){
 				for (IEContentProcessor econtentProcessor : econtentProcessors){
 					//Determine if the record is new, updated, deleted, or unchanged
@@ -518,17 +509,15 @@ public class ReindexProcess {
 		if (updateResourcesStr != null){
 			updateResources = Boolean.parseBoolean(updateResourcesStr);
 		}
-		String exportStrandsCatalogStr = configIni.get("Reindex", "exportStrandsCatalog");
-		if (exportStrandsCatalogStr != null){
-			exportStrandsCatalog = Boolean.parseBoolean(exportStrandsCatalogStr);
-		}
-		String exportOPDSCatalogStr = configIni.get("Reindex", "exportOPDSCatalog");
-		if (exportOPDSCatalogStr != null){
-			exportOPDSCatalog = Boolean.parseBoolean(exportOPDSCatalogStr);
-		}
 		String loadEContentFromMarcStr = configIni.get("Reindex", "loadEContentFromMarc");
 		if (loadEContentFromMarcStr != null){
 			loadEContentFromMarc = Boolean.parseBoolean(loadEContentFromMarcStr);
+		}
+		String extractEContentFromUnchangedRecordsVal = configIni.get("Reindex", "extractEContentFromUnchangedRecords");
+		if (extractEContentFromUnchangedRecordsVal == null){
+			extractEContentFromUnchangedRecords = false;
+		}else{
+			extractEContentFromUnchangedRecords = Boolean.parseBoolean(extractEContentFromUnchangedRecordsVal);
 		}
 		String updateAlphaBrowseStr  = configIni.get("Reindex", "updateAlphaBrowse");
 		if (updateAlphaBrowseStr != null){

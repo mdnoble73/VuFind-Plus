@@ -304,18 +304,22 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			}
 			
 			Long existingChecksum = existingResourceChecksums.get(recordInfo.getId());
-			if (existingChecksum != null && (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) && !updateUnchangedResources){
-				boolean updateResource = false; 
-				//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
-				if (existingChecksum != null && existingChecksum == -1){
-					logger.debug("Forcing resource update because checksum is -1");
-					updateResource = true;
-				}
-				if (!updateResource){
-					logger.debug("Skipping record because it hasn't changed");
-					results.incSkipped();
-					return true;
-				}
+			Long recordChecksum = recordInfo.getChecksum();
+			//Check to see if we can skip the record
+			boolean okToSkip = true;
+			if (existingChecksum == null || existingChecksum == -1) {
+				okToSkip = false;
+			}else if (recordChecksum != existingChecksum){
+				okToSkip = false;
+			}else if (!(recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
+				okToSkip = false;
+			}else if (updateUnchangedResources){
+				okToSkip = false;
+			}
+			if (okToSkip){
+				logger.debug("Skipping record because it hasn't changed");
+				results.incSkipped();
+				return true;
 			}
 		
 			//Check to see if we have an existing resource
@@ -331,8 +335,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				}else{
 					results.incSkipped();
 				}
-				
-
 			} else {
 				//logger.debug("This is a brand new record, adding to resources table");
 				resourceId = addResourceToDb(recordInfo, logger, resourceId);

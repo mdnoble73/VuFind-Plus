@@ -1118,6 +1118,9 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getLocalItemTypes") && parms.length == 4){
 					retval = getLocalItemTypes(parms[0], parms[1], parms[2], parms[3]);
 					returnType = Set.class;
+				}else if (functionName.equals("getDetailedLocations") && parms.length == 1){
+					retval = getDetailedLocations(parms[0]);
+					returnType = Set.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
@@ -3111,7 +3114,7 @@ public class MarcRecordDetails {
 	 */
 	public Set<String> getAvailableLocationsMarmot() {
 		String itemField = "989"; 
-		String availableStatus = "-";
+		String availableStatus = "[-dowju]";
 		Set<String> result = new LinkedHashSet<String>();
 		if (isEContent()){
 			return result;
@@ -3136,7 +3139,18 @@ public class MarcRecordDetails {
 						// If the book is available (status of -)
 						// Check the due date subfield m to see if it is out
 						if (dueDate.length() == 0){
-							result.add(location);
+							//check icode2 subfield o to see if it is set to be suppressed (value of n)
+							Subfield icode2Subfield = dataField.getSubfield('o');
+							boolean suppressed = false;
+							if (icode2Subfield != null){
+								String icode2 = icode2Subfield.getData().toLowerCase().trim();
+								if (icode2.equals("n") || icode2.equals("d") || icode2.equals("x")){
+									suppressed = true;
+								}
+							}
+							if (!suppressed){
+								result.add(location);
+							}
 						}
 					}
 				//}else{
@@ -3147,6 +3161,35 @@ public class MarcRecordDetails {
 		return result;
 	}
 	
+	public Set<String> getDetailedLocations(String locationCodesToMatch) {
+		String itemField = "989"; 
+		Set<String> result = new LinkedHashSet<String>();
+		@SuppressWarnings("unchecked")
+		List<VariableField> itemRecords = record.getVariableFields(itemField);
+		char locationSubFieldChar = 'd';
+		for (int i = 0; i < itemRecords.size(); i++) {
+			Object field = itemRecords.get(i);
+			if (field instanceof DataField) {
+				DataField dataField = (DataField) field;
+				Subfield locationSubfield = dataField.getSubfield(locationSubFieldChar);
+				String location = locationSubfield == null ? "" : locationSubfield.getData().toLowerCase().trim();
+				if (location.matches(locationCodesToMatch)){
+					Subfield icode2Subfield = dataField.getSubfield('o');
+					boolean suppressed = false;
+					if (icode2Subfield != null){
+						String icode2 = icode2Subfield.getData().toLowerCase().trim();
+						if (icode2.equals("n") || icode2.equals("d") || icode2.equals("x")){
+							suppressed = true;
+						}
+					}
+					if (!suppressed){
+						result.add(location);
+					}
+				}
+			}
+		}
+		return result;
+	}
 
 	@SuppressWarnings({ "unchecked" })
 	public HashMap<String, String> getBrowseAuthors() {

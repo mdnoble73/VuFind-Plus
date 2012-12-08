@@ -118,10 +118,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			clearSubjectBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM subject_browse_scoped_results_global where record = ?"));
 			clearTitleBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM title_browse_scoped_results_global where record = ?"));
 			for (String subdomain : librarySubdomains.values()){
-				clearAuthorBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results_library_" + subdomain + " where record = ?"));
-				clearCallNumberBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results_library_" + subdomain + " where record = ?"));
-				clearSubjectBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM subject_browse_scoped_results_library_" + subdomain + " where record = ?"));
-				clearTitleBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM title_browse_scoped_results_library_" + subdomain + " where record = ?"));
+				clearAuthorBrowseRecordInfoStmts.put(subdomain, vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results_library_" + subdomain + " where record = ?"));
+				clearCallNumberBrowseRecordInfoStmts.put(subdomain, vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results_library_" + subdomain + " where record = ?"));
+				clearSubjectBrowseRecordInfoStmts.put(subdomain, vufindConn.prepareStatement("DELETE FROM subject_browse_scoped_results_library_" + subdomain + " where record = ?"));
+				clearTitleBrowseRecordInfoStmts.put(subdomain, vufindConn.prepareStatement("DELETE FROM title_browse_scoped_results_library_" + subdomain + " where record = ?"));
 			}
 			
 			getExistingTitleBrowseValue = vufindConn.prepareStatement("SELECT id from title_browse WHERE firstChar = ? and secondChar = ? and value = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -194,6 +194,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			if (!recordInfo.isEContent()){
 				if (!clearAlphaBrowseAtStartOfIndex){
+					//logger.debug("Clearing browse info for " + recordInfo.getId());
 					clearBrowseInfoForRecord(recordInfo.getId());
 				}
 				HashMap<String, String> titles = recordInfo.getBrowseTitles();
@@ -434,6 +435,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		if (browseValue.length() == 0){
 			return;
 		}
+		//logger.debug("Adding record id to browse " + browseType + " browseValue");
 		
 		//Do additional processing of sort value - lower case it and remove any punctuation 
 		sortValue = sortValue.toLowerCase();
@@ -473,8 +475,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			return;
 		}
 		
-		
 		for (Long curLibrary: resourceLibraries){
+			//logger.debug("  Adding browse value " + browseValueId + " to library " + curLibrary);
 			if (curLibrary == -1){
 				//Add to global scope
 				PreparedStatement insertBrowseScopeValueStatement;
@@ -504,9 +506,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseLibraryScopeValueStatement, browseValueId);
 			}
 		}
-		/*for (Long curLocation: resourceLocations){
-			insertBrowseScoping(browseType, browseValue, 2, curLocation, recordIdFull, getExistingBrowseScopeValueStatement, insertBrowseScopeValueStatement, updateBrowseScopeValueStatement, browseValueId);
-		}*/
 	}
 
 	private void insertBrowseScoping(String browseType, String browseValue, String recordIdFull,
