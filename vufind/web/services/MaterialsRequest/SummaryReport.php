@@ -49,17 +49,17 @@ class SummaryReport extends Admin {
 			$periodLength = new DateInterval("P1Y");
 		}
 		$interface->assign('period', $period);
-		
+
 		$endDate = (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) ? DateTime::createFromFormat('m/d/Y', $_REQUEST['endDate']) : new DateTime();
 		$interface->assign('endDate', $endDate->format('m/d/Y'));
-		
+
 		if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0){
 			$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
 		} else{
 			if ($period == 'day'){
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 7 days");
 			}elseif ($period == 'week'){
-				//Get the sunday after this 
+				//Get the sunday after this
 				$endDate->setISODate($endDate->format('Y'), $endDate->format("W"), 0);
 				$endDate->modify("+7 days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 28 days");
@@ -77,7 +77,7 @@ class SummaryReport extends Admin {
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 2 years");
 			}
 		}
-		
+
 		$interface->assign('startDate', $startDate->format('m/d/Y'));
 
 		//Set the end date to the end of the day
@@ -123,7 +123,7 @@ class SummaryReport extends Admin {
 			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
 			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
 			$materialsRequest->groupBy('status');
-			$materialsRequest->addOrder('status');
+			$materialsRequest->orderBy('status');
 			$materialsRequest->find();
 			while ($materialsRequest->fetch()){
 				$periodData[$periodStart->getTimestamp()][$materialsRequest->description] = $materialsRequest->numRequests;
@@ -178,7 +178,7 @@ class SummaryReport extends Admin {
 		foreach ($statuses as $status => $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
 		}
-		
+
 		$row = 4;
 		$column = 0;
 		//Loop Through The Report Data
@@ -225,7 +225,7 @@ class SummaryReport extends Admin {
 		}
 
 		$reportData->setAxisName(0,"Requests");
-		
+
 		$reportData->addPoints($periodsFormatted, "Dates");
 		$reportData->setAbscissa("Dates");
 

@@ -124,7 +124,7 @@ class PackagingSummary extends Admin {
 			//$periodStart->setTime(23, 59, 59);
 			$periodDataByDistributor[$periodStart->getTimestamp()] = array();
 			$periodDataByStatus[$periodStart->getTimestamp()] = array();
-				
+
 			//Determine how many files were imported by distributor
 			$packagingDetails = new PackagingDetailsEntry();
 			$packagingDetails->selectAdd();
@@ -134,7 +134,7 @@ class PackagingSummary extends Admin {
 				$packagingDetails->whereAdd($distributorRestriction);
 			}
 			$packagingDetails->groupBy('distributorId');
-			$packagingDetails->addOrder('distributorId');
+			$packagingDetails->orderBy('distributorId');
 			$packagingDetails->find();
 			while ($packagingDetails->fetch()){
 				$periodDataByDistributor[$periodStart->getTimestamp()][$packagingDetails->distributorId] = $packagingDetails->numberOfFiles;
@@ -149,7 +149,7 @@ class PackagingSummary extends Admin {
 				$packagingDetails->whereAdd($distributorRestriction);
 			}
 			$packagingDetails->groupBy('status');
-			$packagingDetails->addOrder('status');
+			$packagingDetails->orderBy('status');
 			$packagingDetails->find();
 			while ($packagingDetails->fetch()){
 				$periodDataByStatus[$periodStart->getTimestamp()][$packagingDetails->status] = $packagingDetails->numberOfFiles;
@@ -204,7 +204,7 @@ class PackagingSummary extends Admin {
 		foreach ($distributors as $distributor){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $distributor);
 		}
-		
+
 		$row = 4;
 		$column = 0;
 		//Loop Through The Report Data
@@ -219,10 +219,10 @@ class PackagingSummary extends Admin {
 		for ($i = 0; $i < count($distributors) + 1; $i++){
 			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
-				
-		// skip 5 rows to create some spaces 
+
+		// skip 5 rows to create some spaces
 		$row += 5;
-		
+
 		// Add period data by Status
 		$objPHPExcel->setActiveSheetIndex(0);
 		$activeSheet = $objPHPExcel->getActiveSheet();
@@ -232,7 +232,7 @@ class PackagingSummary extends Admin {
 		foreach ($statuses as $status => $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, $row+2, $statusLabel);
 		}
-		
+
 		$row += 3;
 		$column = 0;
 		//Loop Through The Report Data
@@ -247,7 +247,7 @@ class PackagingSummary extends Admin {
 		for ($i = 0; $i < count($statuses) + 1; $i++){
 			$activeSheet->getColumnDimensionByColumn($i)->setAutoSize(true);
 		}
-		
+
 		// Rename sheet
 		$activeSheet->setTitle('Packaging Summary Report');
 
