@@ -71,6 +71,14 @@ class SideFacets implements RecommendationInterface
 						unset ($this->mainFacets[$name]);
 						$this->mainFacets['itype_' . $searchLibrary->subdomain] = $desc;
 					}
+				}elseif ($name == 'detailed_location'){
+					//Check to see if we have an active library
+					global $librarySingleton;
+					$searchLibrary = $librarySingleton->getSearchLibrary();
+					if ($searchLibrary != null){
+						unset ($this->mainFacets[$name]);
+						$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] = $desc;
+					}
 				}
 			}
 		}else{
@@ -84,6 +92,9 @@ class SideFacets implements RecommendationInterface
 						}elseif ($facet->facetName == 'itype'){
 							//Check to see if we have an active library
 							$this->mainFacets['itype_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}elseif ($facet->facetName == 'detailed_location'){
+							//Check to see if we have an active library
+							$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] =  $facet->displayName;
 						}else{
 							$this->mainFacets[$facet->facetName] = $facet->displayName;
 						}

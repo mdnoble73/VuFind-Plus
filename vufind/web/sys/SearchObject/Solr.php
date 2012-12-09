@@ -337,6 +337,8 @@ class SearchObject_Solr extends SearchObject_Base
 						$this->facetConfig['local_time_since_added_' . $searchLibrary->subdomain] = $facet->displayName;
 					}elseif ($facet->facetName == 'itype'){
 						$this->facetConfig['itype_' . $searchLibrary->subdomain] = $facet->displayName;
+					}elseif ($facet->facetName == 'detailed_location'){
+						$this->facetConfig['detailed_location_' . $searchLibrary->subdomain] = $facet->displayName;
 					}else{
 						$this->facetConfig[$facet->facetName] = $facet->displayName;
 					}

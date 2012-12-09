@@ -31,8 +31,8 @@ class LibraryFacetSetting extends DB_DataObject {
 			"format" => "Format",
 			"format_category" => "Format Category",
 			"econtent_device" => "Compatible Device",
-			"econtent_source" => "eContent Collection",
-			"econtent_protection_type" => "eContent Protection",
+			"econtent_source" => "E-Content Collection",
+			"econtent_protection_type" => "E-Content Protection",
 			"topic_facet" => "Topics",
 			"target_audience" => "Audience",
 			"mpaa_rating" => "Movie Rating",
@@ -50,6 +50,7 @@ class LibraryFacetSetting extends DB_DataObject {
 			"time_since_added" => "Added In The Last",
 			"callnumber-first" => "LC Call Number",
 			"awards_facet" => "Awards",
+			"detailed_location" => "Location",
 		);
 		asort($availableFacets);
 		return $availableFacets;
