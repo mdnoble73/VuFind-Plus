@@ -15,18 +15,18 @@ class Novelist{
 		}else{
 			return null;
 		}
-		
+
 		$enrichment = array();
 		if (!isset($isbn) || strlen($isbn) == 0){
 			return null;
 		}
-		
+
 		$enrichment = $memcache->get("novelist_enrichment_$isbn");
 		if ($enrichment == false){
-			
+
 			//$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/SeriesTitles?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$this->isbn}";
 			$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/AllContent?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$isbn}";
-	
+
 			try{
 				//Get the XML from the service
 				disableErrorHandler();
@@ -37,10 +37,10 @@ class Novelist{
 					return null;
 				}
 				enableErrorHandler();
-				
+
 				$response = $req->getResponseBody();
 				$timer->logTime("Made call to Novelist for enrichment information");
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
 				//Convert the data into a structure suitable for display
@@ -59,26 +59,26 @@ class Novelist{
 								$this->loadSimilarAuthorInfo($isbn, $feature, $enrichment);
 								$timer->logTime("Loaded similar title info");
 							}
-	
+
 							//TODO: Load Related Content (Awards and Recommended Reading Lists)
 							//      For now, don't worry about this since the data is not worth using
-	
+
 						}
 					}
-	
+
 				}else{
 					$enrichment = null;
 				}
-	
+
 			}catch (Exception $e) {
 				global $logger;
 				$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
 				$enrichment = null;
 			}
-			
+
 			$memcache->set("novelist_enrichment_$isbn", $enrichment, 0, $configArray['Caching']['novelist_enrichement']);
 		}
-		
+
 		return $enrichment;
 	}
 
@@ -146,6 +146,7 @@ class Novelist{
 		//TODO:  cache this info since it can take a really long time to load
 		$searchObj = SearchObjectFactory::initSearchObject();
 		$searchObj->setBasicQuery(implode(' OR ', $isbnList), 'ISN');
+		$searchObj->disableScoping();
 		//Add a filter to only include books and DVDs
 		$searchObj->processSearch(false, false);
 		$matchingRecords = $searchObj->getResultRecordSet();
