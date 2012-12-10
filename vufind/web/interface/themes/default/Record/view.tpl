@@ -163,7 +163,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div class="sidegroup" id="similarTitlesSidegroup">
 			{* Display either similar tiles from novelist or from the catalog*}
 			<div id="similarTitlePlaceholder"></div>
-			{if is_array($similarRecords)}
+			{if is_array($similarRecords) && count($similarRecords) > 0}
 				<div id="relatedTitles">
 					<h4>{translate text="Other Titles"}</h4>
 					<ul class="similar">
@@ -176,9 +176,11 @@ function redrawSaveStatus() {literal}{{/literal}
 							{/if}
 							<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
 							</span>
+							{if $similar.author}
 							<span style="font-size: 80%">
-							{if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
+							<br/>{translate text='By'}: {$similar.author|escape}
 							</span>
+							{/if}
 						</li>
 						{/foreach}
 					</ul>

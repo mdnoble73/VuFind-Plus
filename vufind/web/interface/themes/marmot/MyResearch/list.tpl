@@ -69,14 +69,13 @@
 			<form action="{$path}/MyResearch/MyList/{$favList->id}" id="myListFormItem">
 				<div>
 					<input type="hidden" name="myListActionItem" id="myListActionItem"/>
-					<ul>
 					{foreach from=$resourceList item=resource name="recordLoop"}
-						<li class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
+						<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 							{* This is raw HTML -- do not escape it: *}
 							{$resource}
-						</li>
+						</div>
 					{/foreach}
-					</ul>
+					
 					<button value="placeHolds" id="FavPlaceHolds" class="listButton" onclick='return requestMarkedAction()'>Request Marked</button>
 					{if $allowEdit}
 					{*

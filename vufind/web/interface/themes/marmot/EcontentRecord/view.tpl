@@ -239,7 +239,7 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div id="main-content" class="full-result-content">
 		<div id="record-header">
 			{if isset($previousId)}
-				<div id="previousRecordLink"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
+				<div id="previousRecordLink"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|replace:'&':'&amp;'|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
 			{/if}
 			<div id="recordTitleAuthorGroup">
 				{* Display Title *}
@@ -266,7 +266,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			<div id ="recordTitleRight">
 				{if isset($nextId)}
-					<div id="nextRecordLink"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
+					<div id="nextRecordLink"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|replace:'&':'&amp;'|truncate:180:"..."}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
 				{/if}
 				{if $lastsearch}
 				<div id="returnToSearch">
@@ -564,7 +564,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id ="notestab">
 					<ul class='notesList'>
 					{foreach from=$notes item=note}
-						<li>{$note}</li>
+						<li>{$note|escape}</li>
 					{/foreach}
 					</ul>
 				</div>
@@ -628,7 +628,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 			 {if $eContentRecord->sourceUrl}
 				<div id="econtentSource">
-					<a href="{$eContentRecord->sourceUrl}">Access original files</a>
+					<a href="{$eContentRecord->sourceUrl|replace:'&':'&amp;'}">Access original files</a>
 				</div>
 				{/if}
 			</div>

@@ -692,6 +692,9 @@ class Record extends Action
 								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
 									$interface->assign('previousType', 'EcontentRecord');
 									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+								}elseif (strpos($previousRecord['id'], 'list') === 0){
+									$interface->assign('previousType', 'MyResearch/MyList');
+									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
 								}else{
 									$interface->assign('previousType', 'Record');
 									$interface->assign('previousId', $previousRecord['id']);
@@ -715,6 +718,9 @@ class Record extends Action
 								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
 									$interface->assign('nextType', 'EcontentRecord');
 									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
+								}elseif (strpos($nextRecord['id'], 'list') === 0){
+									$interface->assign('nextType', 'MyResearch/MyList');
+									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
 								}else{
 									$interface->assign('nextType', 'Record');
 									$interface->assign('nextId', $nextRecord['id']);
