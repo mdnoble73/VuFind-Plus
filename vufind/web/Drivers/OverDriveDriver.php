@@ -1122,6 +1122,16 @@ class OverDriveDriver {
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
 
+		}else if (preg_match('/Library card has expired/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your library card has expired. Please contact your library to renew.";
+
+		}else if (preg_match('/the specified library patron account information is not valid/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your account information is not valid. Please see the circulation desk.";
+
 		}else{
 			global $logger;
 			$logger->log("Could not login to OverDrive ($matchAccount, $matchCart), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
