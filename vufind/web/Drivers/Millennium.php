@@ -3185,13 +3185,13 @@ class MillenniumDriver implements DriverInterface
 		global $logger;
 		global $configArray;
 
-		$firstName = $_GET['firstName'];
-		$lastName = $_GET['lastName'];
-		$address = $_GET['address'];
-		$city = $_GET['city'];
-		$state = $_GET['state'];
-		$zip = $_GET['zip'];
-		$email = $_GET['email'];
+		$firstName = $_REQUEST['firstName'];
+		$lastName = $_REQUEST['lastName'];
+		$address = $_REQUEST['address'];
+		$city = $_REQUEST['city'];
+		$state = $_REQUEST['state'];
+		$zip = $_REQUEST['zip'];
+		$email = $_REQUEST['email'];
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getMillenniumScope();
