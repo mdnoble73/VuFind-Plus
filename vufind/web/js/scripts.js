@@ -1,6 +1,8 @@
 $(document).ready(function(){
 	if($("#searchForm") != null && $("#lookfor") != null){
-		$("#lookfor").focus();
+		setTimeout(function(){
+			$("#lookfor").focus();
+		}, 500);
 	}
 	if($("#loginForm") != null){
 		$("#username").focus();
