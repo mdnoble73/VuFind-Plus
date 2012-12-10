@@ -50,7 +50,7 @@ class LibraryFacetSetting extends DB_DataObject {
 			"time_since_added" => "Added In The Last",
 			"callnumber-first" => "LC Call Number",
 			"awards_facet" => "Awards",
-			"detailed_location" => "Location",
+			"detailed_location" => "Detailed Location",
 		);
 		asort($availableFacets);
 		return $availableFacets;
