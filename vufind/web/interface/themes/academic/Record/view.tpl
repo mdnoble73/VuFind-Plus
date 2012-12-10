@@ -132,12 +132,6 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div id = "classicViewLink">
 			<a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">Classic View</a>
 		</div>
-		
-		{if $linkToAmazon == 1 && $isbn}
-			<div class="titledetails">
-				<a href="http://amazon.com/dp/{$isbn|@formatISBN}" class='amazonLink' onclick="window.open (this.href, 'child'); return false"> {translate text = "View on Amazon"}</a>
-			</div>
-		{/if}
 	</div>
 	{if $error}<p class="error">{$error}</p>{/if} 
 				
