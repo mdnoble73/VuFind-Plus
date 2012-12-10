@@ -118,9 +118,11 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/if}
 						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
 						</span>
-						<span style="font-size: 80%">
-						{if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
-						</span>
+						{if $similar.author}
+							<span style="font-size: 80%">
+								<br />{translate text='By'}: {$similar.author|escape}
+							</span>
+						{/if}
 					</li>
 					{/foreach}
 				</ul>
