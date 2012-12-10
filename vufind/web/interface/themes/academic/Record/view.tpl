@@ -457,7 +457,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						<div id ="tableofcontentstab">
 							<ul class='notesList'>
 							{foreach from=$tableOfContents item=note}
-								<li>{$note}</li>
+								<li>{$note|escape}</li>
 							{/foreach}
 							</ul>
 						</div>
@@ -470,7 +470,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							{/if}
 							<ul class='notesList'>
 							{foreach from=$notes item=note}
-								<li>{$note}</li>
+								<li>{$note|escape}</li>
 							{/foreach}
 							</ul>
 						</div>
