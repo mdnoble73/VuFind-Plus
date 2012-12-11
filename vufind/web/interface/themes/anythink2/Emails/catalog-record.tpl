@@ -1,11 +1,15 @@
 {* This is a text-only email template; do not include HTML! *}
-{translate text="This email was sent from"}: {$from}
+{$from} has sent you a record from the Anythink catalog.
 ------------------------------------------------------------
 
-{$emailDetails}  {translate text="email_link"}: {$path}/Record/{$recordID|escape:"url"}
+{$emailDetails}  {translate text="email_link"}: {$url}/Record/{$recordID|escape:"url"}
 ------------------------------------------------------------
 
 {if !empty($message)}
-{translate text="Message From Sender"}:
+{translate text="Message From"} {$from}:
+------------------------------------------------------------
 {$message}
 {/if}
+
+------------------------------------------------------------
+For information about events, resources available 24/7 and more, visit www.anythinklibraries.org
