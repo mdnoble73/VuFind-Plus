@@ -1,3 +1,10 @@
+{if $lightbox}
+<div onmouseup="this.style.cursor='default';" id="popupboxHeader" class="header">
+  <a onclick="hideLightbox(); return false;" href="">close</a>
+  {translate text='Text Title'}
+</div>
+<div id="popupboxContent" class="content">
+{/if}
 <form method="post" action="{$path}{$formTargetPath|escape}" name="popupForm"
       onSubmit='SendEContentSMS(&quot;{$id|escape}&quot;, this.elements[&quot;to&quot;].value, 
                 this.elements[&quot;provider&quot;][this.elements[&quot;provider&quot;].selectedIndex].value,
@@ -32,3 +39,6 @@
   </tr>
   </table>
 </form>
+{if $lightbox}
+</div>
+{/if}

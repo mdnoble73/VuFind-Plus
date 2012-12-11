@@ -465,7 +465,7 @@ class OverDriveDriver {
 					$hold['formats'] = array();
 					for ($i = 0; $i < count($formatInfo); $i++) {
 						$format = array();
-						$format['name'] = $formatInfo[$i][1];
+						$format['name'] = strip_tags($formatInfo[$i][1]);
 						$format['overDriveId'] = $formatInfo[$i][2];
 						$format['formatId'] = $formatInfo[$i][3];
 						// $result[0][$i];

@@ -59,8 +59,9 @@ class SMS extends Action {
 
 		if (isset($_GET['lightbox'])) {
 			// Use for lightbox
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('EContentRecord/sms.tpl');
+			$interface->assign('lightbox', true);
+			$interface->assign('title', translate('Text Title'));
+			echo $interface->fetch('EcontentRecord/sms.tpl');
 		} else {
 			// Display Page
 			$interface->setPageTitle('Text this');
@@ -77,7 +78,7 @@ class SMS extends Action {
 
 		// Get Holdings
 		$driver = new EContentDriver();
-		
+
 		$id = strip_tags($_REQUEST['id']);
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;

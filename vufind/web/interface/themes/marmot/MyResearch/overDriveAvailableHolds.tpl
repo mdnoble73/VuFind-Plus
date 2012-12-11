@@ -33,7 +33,7 @@
 					<tbody>
 					{foreach from=$overDriveHolds.available item=record}
 						<tr>
-							<td rowspan="{$record.numRows}" class='imageColumnOverdrive'><img src="{$record.imageUrl}"></td>
+							<td rowspan="{$record.numRows}" class='imageColumnOverdrive'><img src="{$record.imageUrl}" alt="Cover Image" /></td>
 							<td>
 								{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId != -1}</a>{/if}
 								{if $record.subTitle}<br/>{$record.subTitle}{/if}

@@ -13,7 +13,7 @@
 			<div id="web_note">{$profile.web_note}</div>
 		{/if}
 		{if count($overDriveHolds.available) > 0}
-			<h1>Titles available for checkout</h1>
+			<h3>Titles available for checkout</h3>
 			<div class='holdSectionBody'>
 				<ul class="results checkedout-list" data-role="listview">
 				{foreach from=$overDriveHolds.available item=record}
@@ -31,7 +31,7 @@
 						{if !empty($record.recordId)}</a>{/if}
 						<div data-role="controlgroup">
 						{foreach from=$record.formats item=format}
-							<a href="#" onclick="checkoutOverDriveItem('{$format.overDriveId}','{$format.formatId}')" data-role="button" rel="external">Check&nbsp;Out {$format.name}</a>
+							<a href="#" onclick="checkoutOverDriveItem('{$format.overDriveId}','{$format.formatId}')" data-role="button" rel="external" data-ajax="false">Check&nbsp;Out {$format.name}</a>
 						{/foreach}
 						</div>
 					</li>

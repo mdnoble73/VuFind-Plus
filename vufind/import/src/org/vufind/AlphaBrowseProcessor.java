@@ -712,8 +712,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		logger.info("Truncating " + tableName);
 		results.addNote("Truncating " + tableName);
 		results.saveResults();
-		//No need to clear out the values since they are reused. 
-		//PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE " + tableName);
+		PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE " + tableName);
+		truncateTable.executeUpdate();
 		//truncateTable.executeUpdate();
 		PreparedStatement truncateScopingTable = vufindConn.prepareStatement("TRUNCATE " + tableName + "_scoped_results_global");
 		truncateScopingTable.executeUpdate();

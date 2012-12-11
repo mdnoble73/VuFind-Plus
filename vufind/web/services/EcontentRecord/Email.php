@@ -28,7 +28,7 @@ class Email extends Action
 	{
 		global $interface;
 		global $configArray;
-		
+
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 
@@ -45,8 +45,8 @@ class Email extends Action
 
 		// Display Page
 		if (isset($_GET['lightbox'])) {
-			$interface->assign('title', $_GET['message']);
-			return $interface->fetch('EContentRecord/email.tpl');
+			$interface->assign('lightbox', true);
+			echo $interface->fetch('EContentRecord/email.tpl');
 		} else {
 			$interface->setPageTitle('Email Record');
 			$interface->assign('subTemplate', 'email.tpl');
@@ -59,12 +59,12 @@ class Email extends Action
 	{
 		global $interface;
 		global $configArray;
-		
+
 		$id = $_REQUEST['id'];
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
-		
+
 		$subject = translate("Library Catalog Record") . ": " . $eContentRecord->title;
 		$interface->assign('from', $from);
 		$emailDetails = $eContentRecord->title . "\n";
