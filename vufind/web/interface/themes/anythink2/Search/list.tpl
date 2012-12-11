@@ -20,7 +20,6 @@
     {/foreach}
   {/if}
 </div></div>
-
 <div id="main-content">
   <div id="results-header">
     {if $recordCount}
@@ -50,7 +49,6 @@
       </ul>
     </div>
   </div>
-
   <div id="results-facets">
     {if $topRecommendations}
       {foreach from=$topRecommendations item="recommendations"}
@@ -58,7 +56,6 @@
       {/foreach}
     {/if}
   </div>
-
   <div id="results-list">
   {if $subpage}
     {include file=$subpage}
@@ -66,15 +63,10 @@
     {$pageContent}
   {/if}
   </div>
-
   <div id="results-bottom">
   {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
-
   {if $enableMaterialsRequest}
-  <div id="materialsRequestInfo">
-  {translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a>.</div>
-  </div>
+  <div class="status"><h3>{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></h3></div>
   {/if}
   </div>
-
 </div>

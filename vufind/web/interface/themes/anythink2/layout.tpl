@@ -149,7 +149,7 @@
             {/if}
           {/if}
           <div id="header-utility-bottom">
-            <ul class="inline">
+            <ul class="inline right">
               {if !$user}
                 <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyAccount/GetCard">{translate text="Get a Card"}</a></li>
@@ -157,6 +157,7 @@
                 <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyAccount/Logout">{translate text="Log Out"}</a></li>
               {/if}
+              <li class="status">{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></li>
             </ul>
           </div>
           {if $useSolr || $useWorldcat || $useSummon}
