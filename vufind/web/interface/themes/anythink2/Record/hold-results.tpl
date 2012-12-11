@@ -12,7 +12,7 @@
       <div class='hold_result_error'>{$hold_message_data.error}</div>
     {else}
       {if $hold_message_data.successful == 'all'}
-      <div class='hold_result successful'>
+      <div class='hold_result successful' id="js-hold-result-successful">
       {if count($hold_message_data.titles) > 1}
       All hold requests were successful.
       {else}

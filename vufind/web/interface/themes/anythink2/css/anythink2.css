@@ -1528,7 +1528,7 @@ div.popupBox {
 }
 
 div.popupBox .header,
-div.popupBox .content {
+div.popupBox .contents {
   padding: 20px;
 }
 
@@ -1784,4 +1784,9 @@ input.yearbox {
 .eContentHoldingNotes{
 	font-size: 11px;
 	margin: 2px 10px;
+}
+
+ol.hold_result_details {
+  margin-left: 0;
+  margin-right: 0;
 }
