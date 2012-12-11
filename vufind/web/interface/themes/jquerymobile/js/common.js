@@ -171,3 +171,20 @@ function reactivateEContentHold(reactivateUrl){
 		
 	});
 }
+
+function getOverDriveSummary(){
+	$.getJSON(path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
+		if (data.error){
+			// Unable to load overdrive summary
+		}else{
+			// Load checked out items
+			$("#checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
+			// Load available holds
+			$("#availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
+			// Load unavailable holds
+			$("#unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
+			// Load wishlist
+			$("#wishlistOverDrivePlaceholder").html(data.numWishlistItems);
+		}
+	});
+}

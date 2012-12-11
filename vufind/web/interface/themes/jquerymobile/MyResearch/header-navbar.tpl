@@ -1,6 +1,4 @@
 {strip}
-<script type="text/javascript" src="{$path}/js/overdrive.js"></script>
-<script type="text/javascript" src="{$path}/js/scripts.js"></script>
 {if $user}
 	<div data-role="navbar">
 		<ul>
