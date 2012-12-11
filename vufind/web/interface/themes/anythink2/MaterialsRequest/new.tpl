@@ -8,7 +8,18 @@
         <p>If you can't find what you're looking for in our catalog, let us do the work for you. We'll try requesting it from another library or consider purchasing it for Anythink's collection. </p>
         <p>Please login below to get started.</p>
         {else}
-        <p>Can't find what you're looking for in our catalog? Fill out the form below with as much information as possible so we can find the exact title you need. For example, if you're looking for a specific season of a TV show, please include that info. We may buy the item for Anythink's collection or borrow it from another library; it could take up to two to eight weeks to receive. {/if}</p>
+          <p>Can't find what you're looking for in our catalog? Fill out the form below to submit a request, and our team will help get the material it in your hands.</p>
+          <dl>
+            <dt><strong>1. Choose your format</strong></dt>
+              <dd>Choose your desired format to ensure we get you the right item. Select book, DVD, music CD, etc.</dd>
+            <dt><strong>2. Tell us what you're looking for</strong></dt>
+              <dd>Tell us about the item you're looking for.  Enter title and author; next click the button to find an exact match or enter more info under "Tell Us More." The more information we get, the more likely we'll find what you're looking for right away.</dd>
+            <dt><strong>3. Confirm your contact info</strong></dt>
+              <dd>Want email updates on the status of your request? Confirm your email address under "Contact info" before clicking the "Submit Request" button.</dd>
+            <dt><strong>4. We'll borrow or buy</strong></dt>
+              <dd>We may borrow the item for you from another library or purchase a copy for the Anythink collection.  Either way, it can take two to eight weeks for your item to arrive. We'll notify you when it's in and ready for pickup. </dd>
+          </dl>
+        {/if}
       </div>
       <form id="materialsRequestForm" action="{$path}/MaterialsRequest/Submit" method="post">
         {include file="MaterialsRequest/request-form-fields.tpl"}
