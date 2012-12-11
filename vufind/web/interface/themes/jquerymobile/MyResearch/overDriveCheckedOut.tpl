@@ -18,15 +18,17 @@
 					{if !empty($record.recordId)}<a rel="external" href="{$path}/EcontentRecord/{$record.recordId|escape}">{/if}
 					<div class="result">
 						<h3>
-							{$record.title}
-							{if $record.subTitle}<br/>{$record.subTitle}{/if}
+							{$record.title|escape}
+							{if $record.subTitle|escape}<br/>{$record.subTitle|escape}{/if}
 						</h3>
-						{if strlen($record.record->author) > 0}<p>by: {$record.record->author}</p>{/if}
-						<p><strong>Checked Out:</strong> {$record.checkedOutOn}</p>
-						<p><strong>Expires:</strong> {$record.expiresOn}</p>
+						{if strlen($record.record->author) > 0}<p>by: {$record.record->author|escape}</p>{/if}
+						<p><strong>Checked Out:</strong> {$record.checkedOutOn|escape}</p>
+						<p><strong>Expires:</strong> {$record.expiresOn|escape}</p>
 					</div>
 					{if !empty($record.recordId)}</a>{/if}
-					<div><a href="{$record.downloadLink}" data-role="button" rel="external">Download {$record.format}</a><div>
+					<div data-role="controlgroup">
+						<a href="{$record.downloadLink|replace:'&':'&amp;'}" data-role="button" rel="external">Download {$record.format|escape}</a>
+					</div>
 				</li>
 			{/foreach}
 			</ul>
