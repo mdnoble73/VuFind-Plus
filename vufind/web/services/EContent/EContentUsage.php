@@ -307,7 +307,7 @@ class EContentUsage extends Admin
 	}
 
 	function getAllowableRoles(){
-		return array('epubAdmin');
+		return array('epubAdmin', 'libaryAdmin');
 	}
 
 	function getSourceFilter(){
