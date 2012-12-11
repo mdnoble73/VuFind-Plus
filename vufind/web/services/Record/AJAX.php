@@ -453,16 +453,24 @@ class AJAX extends Action {
 
 			foreach ($titles as $key => $rawData){
 				if ($rawData['id']){
-					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-						'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-						"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-						"</a></div>" .
-						"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					if (strpos($rawData['id'], 'econtentRecord') === 0){
+						$rawData['id'] = str_replace('econtentRecord', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					}else{
+						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+							'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+							"</a></div>" .
+							"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					}
 				}else{
 					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
 						"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-						"</div>" .
-						"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+						"</div>";
 				}
 				$rawData['formattedTitle'] = $formattedTitle;
 				$titles[$key] = $rawData;

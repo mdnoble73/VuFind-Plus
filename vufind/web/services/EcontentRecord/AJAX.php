@@ -126,19 +126,34 @@ class AJAX extends Action {
 					$cover .= "&category=" . $record['format_category'][0];
 				}
 				$titles[] = array(
-	        	  'id' => isset($record['id']) ? $record['id'] : '',
-			    		'image' => $cover,
-			    		'title' => $record['title'],
-			    		'author' => $record['author']
+							'id' => isset($record['id']) ? $record['id'] : '',
+							'image' => $cover,
+							'title' => $record['title'],
+							'author' => $record['author']
 				);
 			}
 
 			foreach ($titles as $key => $rawData){
-				$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-	    			'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-	    			"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-	    			"</a></div>" .
-	    			"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+				if ($rawData['id']){
+					if (strpos($rawData['id'], 'econtentRecord') === 0){
+						$rawData['id'] = str_replace('econtentRecord', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					}else{
+						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
+					}
+				}else{
+					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+						"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+						"</div>";
+				}
 				$rawData['formattedTitle'] = $formattedTitle;
 				$titles[$key] = $rawData;
 			}
@@ -623,7 +638,7 @@ class AJAX extends Action {
 			if ($eContentRecord->find(true)){
 				$purchaseLinks = array();
 				if ($eContentRecord->purchaseUrl != null){
-					$purchaseLinks[]  = array(
+					$purchaseLinks[] = array(
 						'link' => $eContentRecord->purchaseUrl,
 						'linkText' => 'Buy from ' . $eContentRecord->publisher,
 						'storeName' => $eContentRecord->publisher,
