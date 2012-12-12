@@ -140,7 +140,8 @@ class AlphaBrowse{
 				}else if ($browseType=="callnumber"){
 					$searchLink = "/Search/Results?basicType=AllFields&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
 				}else{
-					$searchLink = "/Search/Results?basicType=" . ucfirst($browseType) . "&amp;lookfor=&quot;" . urlencode($browseResult['value']) . "&quot;";
+					$browseValue = str_replace(' -- ', ' ', $browseResult['value']);
+					$searchLink = "/Search/Results?basicType=" . ucfirst($browseType) . "&amp;lookfor=&quot;" . urlencode($browseValue) . "&quot;";
 				}
 			}
 			$browseResult['searchLink'] = $searchLink;

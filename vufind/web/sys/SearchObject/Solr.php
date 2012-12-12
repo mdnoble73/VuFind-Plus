@@ -1780,7 +1780,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @return  string              The requested resource
 	 */
 	function getRecordByBarcode($barcode){
-		return $this->indexEngine->getRecords($ids);
+		return $this->indexEngine->getRecordByBarcode($barcode);
 	}
 
 }
