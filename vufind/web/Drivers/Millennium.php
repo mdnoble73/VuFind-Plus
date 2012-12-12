@@ -3252,10 +3252,10 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 		global $logger;
 		$results = array();
-		if (!isset($configArray['Catalog']['circa_url'])){
+		if (!isset($configArray['Catalog']['url'])){
 			return array(
 				'success' => false,
-				'message' => 'There is not a url to circa set in the config.ini file.  Please update the configuration',
+				'message' => 'There is not a url to millennium set in the config.ini file.  Please update the configuration',
 			);
 		}
 		if ($login == '' || $password1 == '' || $initials == '' || $password2 == ''){
@@ -3289,7 +3289,7 @@ class MillenniumDriver implements DriverInterface
 			$this->db->debug = true;
 		}
 
-		$circaUrl = $configArray['Catalog']['circa_url'] . '/iii/airwkst/airwkstcore';
+		$circaUrl = $configArray['Catalog']['url'] . '/iii/airwkst/airwkstcore';
 		//Setup curl
 		$curl_url = $circaUrl;
 		$this->curl_connection = curl_init($curl_url);
