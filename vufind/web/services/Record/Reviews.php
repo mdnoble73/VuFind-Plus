@@ -32,15 +32,13 @@ class Reviews extends Record
 		global $interface;
 		global $configArray;
 
-		if (!$interface->is_cached($this->cacheId)) {
-			$interface->setPageTitle('Reviews: ' . $this->record['title_short']);
+		$interface->setPageTitle('Reviews: ' . $this->record['title_short']);
 
-			//Load the data for the reviews and populate in the user interface
-			$this->loadReviews($this->id, $this->isbn);
+		//Load the data for the reviews and populate in the user interface
+		$this->loadReviews($this->id, $this->isbn);
 
-			$interface->assign('subTemplate', 'view-reviews.tpl');
-			$interface->setTemplate('view.tpl');
-		}
+		$interface->assign('subTemplate', 'view-reviews.tpl');
+		$interface->setTemplate('view.tpl');
 
 		// Display Page
 		$interface->display('layout.tpl', $this->cacheId);
@@ -118,7 +116,10 @@ class Reviews extends Record
 		if ($reviews) {
 			if (!PEAR::isError($reviews)) {
 				$interface->assign('reviews', $reviews);
+			}else{
+				echo($reviews);
 			}
+
 		}
 
 		return $reviews;
@@ -303,7 +304,7 @@ class Reviews extends Record
 		$review = array();
 		$location = $locationSingleton->getActiveLocation();
 		if (isset($library) && $location != null){
-			if ($library->showAmazonReviews == 0 || $location->showStandardReviews == 0){
+			if ($library->showStandardReviews == 0 || $location->showStandardReviews == 0){
 				return $review;
 			}
 		}else if ($location != null && ($location->showStandardReviews == 0)){
@@ -468,7 +469,6 @@ class Reviews extends Record
 		}catch (Exception $e) {
 			//TODO: Log the error someplace.
 		}
-
 	}
 
 	private function getAmazonCustomer($id, $customerId){

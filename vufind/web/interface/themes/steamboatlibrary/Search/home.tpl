@@ -25,7 +25,6 @@
 		sid = "7359";
 		group="current";
 		list  = "NLNON";
-		group = "current";
 		rotate = "YES";
 		fade = "NO";
 		title = "YES";
@@ -37,7 +36,6 @@
 		sid = "7359";
 		group="current";
 		list  = "NLAUDIO";
-		group = "current";
 		rotate = "YES";
 		fade = "NO";
 		title = "YES";
@@ -49,7 +47,6 @@
 		sid = "7359";
 		group="current";
 		list  = "NLDVD";
-		group = "current";
 		rotate = "YES";
 		fade = "NO";
 		title = "YES";
@@ -61,7 +58,6 @@
 		sid = "7359";
 		group="current";
 		list  = "CNL1";
-		group = "current";
 		rotate = "YES";
 		fade = "NO";
 		title = "YES";
