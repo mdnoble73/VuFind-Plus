@@ -1818,6 +1818,8 @@ ol.hold_result_details {
 .step {
   background-color: #FFF1E4;
   border-bottom: 1px solid #996;
+  -webkit-border-radius: 1em;
+  -moz-border-radius: 1em;
   border-radius: 1em;
   color: #444;
   display: inline-block;
