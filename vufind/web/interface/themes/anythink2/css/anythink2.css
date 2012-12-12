@@ -1814,3 +1814,15 @@ ol.hold_result_details {
   margin-left: 0;
   margin-right: 0;
 }
+
+.step {
+  background-color: #FFF1E4;
+  border-bottom: 1px solid #996;
+  border-radius: 1em;
+  color: #444;
+  display: inline-block;
+  margin: 0 .5em;
+  padding: .5em .75em;
+  vertical-align: middle;
+  text-align: center;
+}
