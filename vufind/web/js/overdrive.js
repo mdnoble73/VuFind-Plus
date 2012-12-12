@@ -51,11 +51,7 @@ function placeOverDriveHold(overDriveId, formatId){
 			cache: false,
 			success: function(data){
 				alert(data.message);
-				if (data.result){
-					window.location.href = path + "/MyResearch/OverdriveHolds";
-				}else{
-					hideLightbox();
-				}
+				hideLightbox();
 			},
 			dataType: 'json',
 			async: false,
