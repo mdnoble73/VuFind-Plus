@@ -3444,6 +3444,7 @@ class MillenniumDriver implements DriverInterface
 									$results['barcodes'][$barcode]['inventoryResult'] = "Automatically changed status from $lastStatus to on shelf";
 									$results['barcodes'][$barcode]['needsAdditionalProcessing'] = false;
 								}else{
+									$logger->log("Could not update status for barcode $barcode/r/n$sresult", PEAR_LOG_ERR);
 									$results['barcodes'][$barcode]['inventoryResult'] = "Could not automatically fix status, old status is $lastStatus";
 									$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
 								}
