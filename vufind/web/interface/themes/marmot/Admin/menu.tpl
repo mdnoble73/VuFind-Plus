@@ -87,6 +87,14 @@
 	</div>
 	{/if}
 	
+	{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+		{assign var="curSection" value=$curSection+1}
+		<h4><a href="#">Circulation</a></h4>
+		<div class="sidegroupContents">	
+				<div class="adminMenuLink{if $action == "Home" && $module == "Circa"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
+		</div>
+	{/if}
+	
 	{if $user && $user->hasRole('genealogyContributor')}
 		{assign var="curSection" value=$curSection+1}
 		<h4><a href="#">Genealogy</a></h4>
