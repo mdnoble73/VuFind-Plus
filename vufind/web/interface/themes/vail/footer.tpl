@@ -33,7 +33,30 @@
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br class="clearer"/>
+<div class="footerCol"><p><strong>{translate text='About us'}</strong></p>
+	<ul>
+		<li><a href="http://vail.colibraries.org">{translate text='Library Home'}</a></li>
+		<li>
+			292 West Meadow Drive<br/>
+			Vail, CO 81657<br/>
+			970.479.2187 <br/>
+		</li>
+		<li><a href="mailto:libinfo@vailgov.com">{translate text='E-mail'}</a></li>
+	</ul>
+</div>
+<div class="footerCol">
+	<p><strong>{translate text='Hours of Operation'}</strong></p>
+	<ul>
+		<li>
+		<b>Monday - Thursday: </b><br/>
+		&nbsp;&nbsp;10 am to 8 pm<br/>
+		<b>Friday - Sunday: </b><br/>
+		&nbsp;&nbsp;11 am to 6 pm<br/>
+		</li>
+		<li><b>Closed:</b> New Year's Day, Memorial Day,<br/>4th of July, Labor Day, Thanksgiving Day,<br/>Christmas Day</li> 
+	</ul>
+</div>
+<div class="clearer"></div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
