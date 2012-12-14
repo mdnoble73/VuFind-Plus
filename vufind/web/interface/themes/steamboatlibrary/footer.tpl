@@ -9,36 +9,42 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Week%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Music%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Music'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='About Us'}</strong></p>
 	<ul>
-		{if $user}
-		<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
-		{/if}
-		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/board-of-trustees-0">{translate text='Board of Trustees'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/history">{translate text='History'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/building">{translate text='Building'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/mission">{translate text='Mission'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/policies">{translate text='Policies'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/jobs">{translate text='Jobs'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Find Us'}</strong></p>
 	<ul>
-		<li><a href="http://www.steamboatlibrary.org/services/research-databases" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Databases &amp; Websites'}</a></li>
-		<li><a href="http://www.steamboatlibrary.org/books-and-media/books" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Great Reads'}</a></li>
-		<li><a href="http://www.steamboatlibrary.org/downloads" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
-		<li><a href="http://www.steamboatlibrary.org/" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Library Homepage'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/find-us/hours">{translate text='Hours'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/find-us/hours/driving-directions">{translate text='Driving Directions'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/find-us/hours/driving-directions/book-drop-locations">{translate text='Book Drop Locations'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/downloads/mobile-app">{translate text='Mobile App'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Support Us'}</strong></p>
 	<ul>
-		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
-		<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
-		{if isset($illLink)}
-				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
-		{/if}
-		{if isset($suggestAPurchaseLink)}
-				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
-		{/if}
-		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
-		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/book-donations">{translate text='Book Donations'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/volunteer">{translate text='Volunteer'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/donate">{translate text='Donate'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/thanks-to">{translate text='Thanks To'}</a></li>
 	</ul>
 </div>
+<div class="footerCol"><p><strong>{translate text='Contact Us'}</strong></p>
+	<ul>
+		<li><a href="http://www.steamboatlibrary.org/questions-comments-suggestions/questions-comments-suggestions">{translate text='Questions, Comments, Suggestions'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/questions-comments-suggestions/ask-a-librarian">{translate text='Ask a Librarian'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title">{translate text='Request a Title'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title/suggest-a-purchase">{translate text='Suggest a Purchase'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/questions-comments-suggestions/staff-directory">{translate text='Staff Directory'}</a></li>
+	</ul>
+</div>
+
 <br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
