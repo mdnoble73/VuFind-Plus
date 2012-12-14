@@ -21,7 +21,7 @@
 require_once 'Action.php';
 require_once('services/Admin/Admin.php');
 
-class Home extends Admin
+class Home extends Action
 {
 	function launch()
 	{
