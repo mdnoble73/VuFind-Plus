@@ -14,7 +14,7 @@
 		group = "current";
 		rotate = "YES";
 		fade = "YES";
-		title = "NO";
+		title = "YES";
 		</script>
 		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 
@@ -27,7 +27,7 @@
 		group = "current";
 		rotate = "YES";
 		fade = "YES";
-		title = "NO";
+		title = "YES";
 		</script>
 		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 
@@ -40,7 +40,7 @@
 		group = "current";
 		rotate = "YES";
 		fade = "YES";
-		title = "NO";
+		title = "YES";
 		</script>
 		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 
@@ -53,7 +53,7 @@
 		group = "current";
 		rotate = "YES";
 		fade = "YES";
-		title = "NO";
+		title = "YES";
 		</script>
 		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 
@@ -66,7 +66,7 @@
 		group = "EB13";
 		rotate = "YES";
 		fade = "YES";
-		title = "NO";
+		title = "YES";
 		</script>
 		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 
