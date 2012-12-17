@@ -302,17 +302,18 @@ class Results extends Action {
 			//Redirect to the home page for the record
 			$recordSet = $searchObject->getResultRecordSet();
 			$record = reset($recordSet);
+			$_SESSION['searchId'] = $searchObject->getSearchId();
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
 				header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyList/{$listId}");
-				exit();
+				//exit();
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
 				header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/$shortId/Home");
-				exit();
+				//exit();
 			}else{
 				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");
-				exit();
+				//exit();
 			}
 
 		} else {

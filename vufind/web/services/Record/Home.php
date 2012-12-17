@@ -48,6 +48,9 @@ class Home extends Record{
 			$response = file_get_contents($url);
 		}
 
+		if (isset($_SESSION['searchId'])){
+			$interface->assign('searchId', $_SESSION['searchId']);
+		}
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId

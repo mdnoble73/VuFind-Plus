@@ -47,6 +47,10 @@ class Home extends Action{
 			$this->db->debug = true;
 		}
 
+		if (isset($_SESSION['searchId'])){
+			$interface->assign('searchId', $_SESSION['searchId']);
+		}
+
 		$location = $locationSingleton->getActiveLocation();
 		if (isset($library)){
 			$interface->assign('showTextThis', $library->showTextThis);
