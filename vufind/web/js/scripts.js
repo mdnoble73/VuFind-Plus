@@ -671,11 +671,25 @@ try{
  */
 function resultDescription(shortid,id, type){
   //Attach the tooltip function to the HTML element with the id pretty + short record id
-  //this will show the description when the user hovers over the element. 
-var divId = "#descriptionTrigger" + shortid;
-if (type == undefined){
-	type = 'VuFind';
+  //this will show the description when the user hovers over the element.
+if (shortid.length == 0){
+	return;
 }
+if (type == undefined){
+	if (id.indexOf("econtentRecord") == 0){
+		type = 'EcontentRecord';
+		id = id.substring(14);
+	}else{
+		type = 'VuFind';
+		if (id.substring(0, 1) != "."){
+			id = "." + id;
+		}
+		if (shortid.substring(0,1) == "."){
+			shortid = shortid.substring(1);
+		}
+	}
+}
+var divId = "#descriptionTrigger" + shortid;
 if (type == 'VuFind'){
 	var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
 }else{
