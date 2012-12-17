@@ -2,40 +2,73 @@
 <div class="searchHome">
 	<div class="searchHomeContent">
 		{if $widget}
-			<div id="homePageLists">
-				{include file='API/listWidgetTabs.tpl'}
-			</div>
+		<div id="homePageLists">{include file='API/listWidgetTabs.tpl'}</div>
 		{/if}
 
-	<script type="text/javascript">
-	widget = "NLWidget";
-	sid = "7342";
-	list = "NLBLD";
-	rotate = "NO";
-	fade = "NO";
-	title = "NO";
-	</script><script type="text/javascript" src="http://www.booksite.com/widget/widgetloader.js"></script><!--Fiction Best Sellers--><script type="text/javascript">
-	widget = "NLWidget";
-	sid = "7342";
-	list = "NLBFH";
-	rotate = "YES";
-	fade = "YES";
-	title = "NO";
-	</script><script type="text/javascript" src="http://www.booksite.com/widget/widgetloader.js"></script><!--Nonfiction Best Sellers--><script type="text/javascript">
-	widget = "NLWidget";
-	sid = "7342";
-	list = "NLBNFH";
-	rotate = "YES";
-	fade = "YES";
-	title = "NO";
-	</script><script type="text/javascript" src="http://www.booksite.com/widget/widgetloader.js"></script><!--Teen Scene--><script type="text/javascript">
-	widget = "NLWidget";
-	sid = "7342";
-	list = "NLTS";
-	rotate = "YES";
-	fade = "YES";
-	title = "NO";
-	</script><script type="text/javascript" src="http://www.booksite.com/widget/widgetloader.js"></script>
+		{* Daily Pick *}
+		<script type="text/javascript">
+		widget = "CNLWidget";
+		sid = "7342";
+		group="current";
+		list  = "NLBLD";
+		group = "current";
+		rotate = "YES";
+		fade = "YES";
+		title = "NO";
+		</script>
+		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+
+		{* New Fiction *}
+		<script type="text/javascript">
+		widget = "CNLWidget";
+		sid = "7342";
+		group="current";
+		list  = "NLNF";
+		group = "current";
+		rotate = "YES";
+		fade = "YES";
+		title = "NO";
+		</script>
+		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+
+		{* New Nonfiction *}
+		<script type="text/javascript">
+		widget = "CNLWidget";
+		sid = "7342";
+		group="current";
+		list  = "NLNON";
+		group = "current";
+		rotate = "YES";
+		fade = "YES";
+		title = "NO";
+		</script>
+		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+
+		{* Teen Scene *}
+		<script type="text/javascript">
+		widget = "CNLWidget";
+		sid = "7342";
+		group="current";
+		list  = "NLTS";
+		group = "current";
+		rotate = "YES";
+		fade = "YES";
+		title = "NO";
+		</script>
+		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+
+		{* eBooks & eAudiobooks *}
+		<script type="text/javascript">
+		widget = "CNLWidget";
+		sid = "7342";
+		group="EB13";
+		list  = "CNL1";
+		group = "EB13";
+		rotate = "YES";
+		fade = "YES";
+		title = "NO";
+		</script>
+		<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 
 		<div class="searchHomeForm">
 			<div id='homeSearchLabel'>Search the {$librarySystemName} Catalog</div>
