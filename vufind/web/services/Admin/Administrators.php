@@ -89,11 +89,7 @@ class Administrators extends ObjectEditor
 			}
 
 			global $configArray;
-			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
-				header("Location: " . $_SESSION['redirect_location']);
-			}else{
-				header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
-			}
+			header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 			die();
 		}else{
 			$interface->assign('error', 'Could not find a user with that barcode.');
