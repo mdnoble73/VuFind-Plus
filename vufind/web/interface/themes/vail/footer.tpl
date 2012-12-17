@@ -39,7 +39,7 @@
 		<li>
 			292 West Meadow Drive<br/>
 			Vail, CO 81657<br/>
-			970.479.2187 <br/>
+			(970) 479-2184<br/>
 		</li>
 		<li><a href="mailto:libinfo@vailgov.com">{translate text='E-mail'}</a></li>
 	</ul>
