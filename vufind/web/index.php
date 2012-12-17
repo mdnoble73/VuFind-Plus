@@ -478,7 +478,7 @@ $ipId = $locationSingleton->getIPid();
 
 if (!is_null($ipLocation) && $ipLocation != false){
 	$interface->assign('onInternalIP', true);
-	if (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1){
+	if (!$user || (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
 		$interface->assign('includeAutoLogoutCode', false);
 	}else{
 		$includeAutoLogoutCode = true;
