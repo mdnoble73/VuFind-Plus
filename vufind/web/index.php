@@ -322,7 +322,9 @@ $timer->logTime('User authentication');
 if ($user){
 	$interface->assign('pType', $user->patronType);
 	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-	$interface->assign('homeLibrary', $homeLibrary->displayName);
+	if (isset($homeLibrary)){
+		$interface->assign('homeLibrary', $homeLibrary->displayName);
+	}
 }else{
 	$interface->assign('pType', 'logged out');
 	$interface->assign('homeLibrary', 'n/a');
