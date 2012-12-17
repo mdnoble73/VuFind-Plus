@@ -543,6 +543,7 @@ class OverDriveDriver {
 	public function placeOverDriveHold($overDriveId, $format, $user){
 		global $memcache;
 		global $configArray;
+		global $logger;
 
 		$holdResult = array();
 		$holdResult['result'] = false;
@@ -619,7 +620,7 @@ class OverDriveDriver {
 					if (preg_match('/did not complete all of the required fields/', $waitingListConfirm)){
 						$logger->log($waitingListConfirm, PEAR_LOG_INFO);
 						$holdResult['result'] = false;
-						$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your account.';
+						$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your profile.';
 					}elseif (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
@@ -1122,15 +1123,20 @@ class OverDriveDriver {
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
 
+		}else if (preg_match('/You are barred from borrowing/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
+
 		}else if (preg_match('/Library card has expired/si', $myAccountMenuContent)){
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your library card has expired. Please contact your library to renew.";
 
-		}else if (preg_match('/the specified library patron account information is not valid/si', $myAccountMenuContent)){
+		}else if (preg_match('/more than (.*?) in library fines are outstanding/si', $myAccountMenuContent)){
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;
-			$overDriveInfo['message'] = "We're sorry, your account information is not valid. Please see the circulation desk.";
+			$overDriveInfo['message'] = "We're sorry, your account cannot borrow from OverDrive because you have unpaid fines.";
 
 		}else{
 			global $logger;
