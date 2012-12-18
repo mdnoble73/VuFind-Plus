@@ -11,7 +11,7 @@
 		<script type="text/javascript">
 			path = '{$path}';
 			url = '{$url}';
-			loggedIn = {if $user}true{else}false{/if}
+			loggedIn = {if $user}true{else}false{/if};
 			automaticTimeoutLength = {$automaticTimeoutLength};
 			automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 		</script>
