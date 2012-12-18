@@ -37,6 +37,8 @@ class BotChecker{
 			}elseif (file_exists('../../sites/default/conf/bots.ini')){
 				$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
 			}else{
+				global $logger;
+				$logger->log("Did not find bots.ini file, cannot detect bots", PEAR_LOG_ERROR);
 				return false;
 			}
 
@@ -53,6 +55,9 @@ class BotChecker{
 			}
 			fclose($fhnd);
 
+			if ($isBot){
+				$logger->log("Call is from bot " . $userAgent, PEAR_LOG_WARN);
+			}
 			BotChecker::$isBot = $isBot;
 		}
 		return BotChecker::$isBot;
