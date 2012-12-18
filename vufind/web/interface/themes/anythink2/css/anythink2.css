@@ -1828,3 +1828,7 @@ ol.hold_result_details {
   vertical-align: middle;
   text-align: center;
 }
+
+.step-desc {
+  margin-left: 5em;
+}

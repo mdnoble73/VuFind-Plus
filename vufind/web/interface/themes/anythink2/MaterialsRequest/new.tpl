@@ -10,13 +10,13 @@
         {else}
           <p>Can't find what you're looking for in our catalog? Fill out the form below to submit a request, and our team will help get the material it in your hands.</p>
           <h3><span class="step">1</span> Choose your format</h3>
-          <p>Choose your desired format to ensure we get you the right item. Select book, DVD, music CD, etc.</p>
+          <p class="step-desc">Choose your desired format to ensure we get you the right item. Select book, DVD, music CD, etc.</p>
           <h3><span class="step">2</span> Tell us what you're looking for</h3>
-          <p>Tell us about the item you're looking for.  Enter title and author; next click the button to find an exact match or enter more info under "Tell Us More." The more information we get, the more likely we'll find what you're looking for right away.</p>
+          <p class="step-desc">Tell us about the item you're looking for.  Enter title and author; next click the button to find an exact match or enter more info under "Tell Us More." The more information we get, the more likely we'll find what you're looking for right away.</p>
           <h3><span class="step">3</span> Confirm your contact info</h3>
-          <p>Want email updates on the status of your request? Confirm your email address under "Contact info" before clicking the "Submit Request" button.</p>
+          <p class="step-desc">Want email updates on the status of your request? Confirm your email address under "Contact info" before clicking the "Submit Request" button.</p>
           <h3><span class="step">4</span> We'll borrow or buy</h3>
-          <p>We may borrow the item for you from another library or purchase a copy for the Anythink collection.  Either way, it can take two to eight weeks for your item to arrive. We'll notify you when it's in and ready for pickup. </p>
+          <p class="step-desc">We may borrow the item for you from another library or purchase a copy for the Anythink collection.  Either way, it can take two to eight weeks for your item to arrive. We'll notify you when it's in and ready for pickup. </p>
         {/if}
       </div>
       <form id="materialsRequestForm" action="{$path}/MaterialsRequest/Submit" method="post">
