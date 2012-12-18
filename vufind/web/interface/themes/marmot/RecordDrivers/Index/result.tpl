@@ -110,7 +110,7 @@
 	addRatingId('{$summId}');
 	addIdToStatusList('{$summId|escape}');
 	$(document).ready(function(){literal} { {/literal}
-		resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}');
+		resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}','VuFind');
 	{literal} }); {/literal}
 	
 </script>

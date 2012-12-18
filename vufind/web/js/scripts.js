@@ -669,7 +669,7 @@ try{
  * @param id
  * @param type
  */
-function resultDescription(shortid,id, type){
+function resultDescription(shortid, id, type){
   //Attach the tooltip function to the HTML element with the id pretty + short record id
   //this will show the description when the user hovers over the element.
 if (shortid.length == 0){
@@ -677,7 +677,7 @@ if (shortid.length == 0){
 }
 if (type == undefined){
 	if (id.indexOf("econtentRecord") == 0){
-		type = 'EcontentRecord';
+		type = 'eContent';
 		id = id.substring(14);
 	}else{
 		type = 'VuFind';

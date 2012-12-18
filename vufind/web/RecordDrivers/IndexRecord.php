@@ -679,8 +679,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summISBN', $this->getCleanISBN());
 		$issn = $this->getCleanISSN();
 		$interface->assign('summISSN', $issn);
-		$upcs = $this->getUPCs();
-		$upc = count($upcs) > 0 ? $upcs[0] : null;
+		$upc = $this->getCleanUPC();
 		$interface->assign('summUPC', $upc);
 		if ($configArray['System']['debugSolr'] == 1){
 			$interface->assign('summScore', $this->getScore());
@@ -754,8 +753,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summISBN', $this->getCleanISBN());
 		$issn = $this->getCleanISSN();
 		$interface->assign('summISSN', $issn);
-		$upcs = $this->getUPCs();
-		$upc = count($upcs) > 0 ? $upcs[0] : null;
+		$upc = $this->getCleanUPC();
 		$interface->assign('summUPC', $upc);
 		if ($configArray['System']['debugSolr'] == 1){
 			$interface->assign('summScore', $this->getScore());
@@ -1076,9 +1074,21 @@ class IndexRecord implements RecordInterface
 		}
 		$issn = $issns[0];
 		if ($pos = strpos($issn, ' ')) {
-			$isbn = substr($issn, 0, $pos);
+			$issn = substr($issn, 0, $pos);
 		}
 		return $issn;
+	}
+
+	public function getCleanUPC(){
+		$upcs = $this->getUPCs();
+		if (empty($upcs)) {
+			return false;
+		}
+		$upc = $upcs[0];
+		if ($pos = strpos($upc, ' ')) {
+			$upc = substr($upc, 0, $pos);
+		}
+		return $upc;
 	}
 
 	/**

@@ -120,7 +120,7 @@
 	<script type="text/javascript">
 		$(document).ready(function(){literal} { {/literal}
 			addIdToStatusList('{$summId|escape:"javascript"}');
-			resultDescription('{$summShortId}','{$summId}');
+			resultDescription('{$summShortId}','{$summId}', 'VuFind');
 		{literal} }); {/literal}
 	</script>
 	

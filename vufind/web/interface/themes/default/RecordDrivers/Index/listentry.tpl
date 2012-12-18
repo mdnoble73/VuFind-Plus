@@ -94,7 +94,7 @@
   addRatingId('{$listId|escape:"javascript"}');
   addIdToStatusList('{$listId|escape:"javascript"}');
   $(document).ready(function(){literal} { {/literal}
-      resultDescription('{$listId}','{$listId}');
+      resultDescription('{$listId}','{$listId}','VuFind');
   {literal} }); {/literal}
   
 </script>

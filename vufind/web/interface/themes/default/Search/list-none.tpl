@@ -31,7 +31,7 @@
 		{/if}
 		<div class="resulthead"><h3>{translate text='nohit_heading'}</h3></div>
 			
-		<p class="error">{translate text='nohit_prefix'} - <b>{$lookfor|escape:"html"}</b> - {translate text='nohit_suffix'}</p>
+		<p class="error">{translate text='nohit_prefix'} - <b>{if $lookfor}{$lookfor|escape:"html"}{else}&lt;empty&gt;{/if}</b> - {translate text='nohit_suffix'}</p>
 
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 			<div class="unscopedResultCount">
