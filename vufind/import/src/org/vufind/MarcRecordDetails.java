@@ -1121,6 +1121,9 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getDetailedLocations") && parms.length == 1){
 					retval = getDetailedLocations(parms[0]);
 					returnType = Set.class;
+				}else if (functionName.equals("getMillenniumId") && parms.length == 1){
+					retval = getMillenniumId(parms[0]);
+					returnType = String.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
@@ -3683,5 +3686,28 @@ public class MarcRecordDetails {
 			}
 		}
 		return result;
+	}
+	
+	Pattern bibIdPatern = Pattern.compile("^\\.b\\d+x?$");
+	private String recordId = null;
+	public String getMillenniumId(String fieldSpec){
+		if (this.recordId != null){
+			return this.recordId;
+		}
+		Set<String> input = getFieldList(record, fieldSpec);
+		Iterator<String> iter = input.iterator();
+		while (iter.hasNext()) {
+			// Get the current string to work on:
+			String current = iter.next();
+
+			// Make sure the barcode is numeric since we also get call numbers in the barcode field.
+			if (bibIdPatern.matcher(current).matches()) {
+				this.recordId = current;
+				return this.recordId;
+			}
+		}
+		//If we got this far we haven't found a match
+		logger.error("Did not find a bib id for the record");
+		return null;
 	}
 }
