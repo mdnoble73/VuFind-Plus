@@ -16,6 +16,7 @@ class Analytics
 
 	function __construct($ipAddress, $startTime){
 		global $configArray;
+		global $logger;
 		if (!isset($configArray)){
 			die("You must load configuration before creating a tracker");
 		}
@@ -26,8 +27,10 @@ class Analytics
 		}
 
 		//Make sure that we don't track visits from bots
-		if (BotChecker::isRequestFromBot()){
-			$this->disableTracking();
+		if (BotChecker::isRequestFromBot() == true){
+			//$logger->log("Disabling logging because the request is from a bot", PEAR_LOG_DEBUG);
+			$this->trackingDisabled = true;
+			$this->finished = true;
 		}
 
 		//disable error handler since the tables may not be installed yet.
@@ -152,6 +155,8 @@ class Analytics
 
 	function finish(){
 		if ($this->finished){
+			global $logger;
+			//$logger->log("Not logging analytics because tracking is already finished", PEAR_LOG_DEBUG);
 			return;
 		}
 		$this->finished = true;

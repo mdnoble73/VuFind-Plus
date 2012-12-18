@@ -60,7 +60,7 @@ class BotChecker{
 				}
 				fclose($fhnd);
 
-				$memcache->set("bot_by_user_agent_" . $userAgent, (string)$isBot, 0, $configArray['Caching']['bot_by_user_agent']);
+				$memcache->set("bot_by_user_agent_" . $userAgent, ($isBot ? 'TRUE' : 'FALSE'), 0, $configArray['Caching']['bot_by_user_agent']);
 				if ($isBot){
 					$logger->log("$userAgent is a bot", PEAR_LOG_DEBUG);
 				}else{
@@ -68,7 +68,8 @@ class BotChecker{
 				}
 				BotChecker::$isBot = $isBot;
 			}else{
-				BotChecker::$isBot = ($isBot === 'true');
+				//$logger->log("Got bot info from memcache $isBot", PEAR_LOG_DEBUG);
+				BotChecker::$isBot = ($isBot === 'TRUE');
 			}
 
 			$timer->logTime("Checking isRequestFromBot");
