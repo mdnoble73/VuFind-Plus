@@ -32,32 +32,46 @@ class BotChecker{
 	public static function isRequestFromBot(){
 		if (BotChecker::$isBot == null){
 			global $logger;
+			global $timer;
+			global $memcache;
+			global $configArray;
 			$userAgent = $_SERVER['HTTP_USER_AGENT'];
-			$logger->log("Checking if call is from bot " . $userAgent, PEAR_LOG_DEBUG);
-			global $servername;
-			if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
-				$fhnd = fopen('../../sites/' . $servername . '/conf/bots.ini', 'r');
-			}elseif (file_exists('../../sites/default/conf/bots.ini')){
-				$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
-			}else{
-				$logger->log("Did not find bots.ini file, cannot detect bots", PEAR_LOG_ERR);
-				return false;
-			}
-
-			$isBot = false;
-			while (($curAgent = fgets($fhnd, 4096)) !== false) {
-				//Remove line separators
-				$curAgent = str_replace("\r", '', $curAgent);
-				$curAgent = str_replace("\n", '', $curAgent);
-				if (strcasecmp($userAgent, $curAgent) == 0 ){
-					$isBot = true;
-					break;
+			$isBot = $memcache->get("bot_by_user_agent_" . $userAgent);
+			if ($isBot === FALSE){
+				global $servername;
+				if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
+					$fhnd = fopen('../../sites/' . $servername . '/conf/bots.ini', 'r');
+				}elseif (file_exists('../../sites/default/conf/bots.ini')){
+					$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
+				}else{
+					$logger->log("Did not find bots.ini file, cannot detect bots", PEAR_LOG_ERR);
+					return false;
 				}
-			}
-			fclose($fhnd);
 
-			$logger->log("Call is from bot = $isBot ($userAgent)", PEAR_LOG_DEBUG);
-			BotChecker::$isBot = $isBot;
+				$isBot = false;
+				while (($curAgent = fgets($fhnd, 4096)) !== false) {
+					//Remove line separators
+					$curAgent = str_replace("\r", '', $curAgent);
+					$curAgent = str_replace("\n", '', $curAgent);
+					if (strcasecmp($userAgent, $curAgent) == 0 ){
+						$isBot = true;
+						break;
+					}
+				}
+				fclose($fhnd);
+
+				$memcache->set("bot_by_user_agent_" . $userAgent, (string)$isBot, 0, $configArray['Caching']['bot_by_user_agent']);
+				if ($isBot){
+					$logger->log("$userAgent is a bot", PEAR_LOG_DEBUG);
+				}else{
+					$logger->log("$userAgent is not a bot", PEAR_LOG_DEBUG);
+				}
+				BotChecker::$isBot = $isBot;
+			}else{
+				BotChecker::$isBot = ($isBot === 'true');
+			}
+
+			$timer->logTime("Checking isRequestFromBot");
 		}
 		return BotChecker::$isBot;
 	}
