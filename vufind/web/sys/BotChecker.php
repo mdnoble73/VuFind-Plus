@@ -31,19 +31,20 @@ class BotChecker{
 	 */
 	public static function isRequestFromBot(){
 		if (BotChecker::$isBot == null){
+			global $logger;
+			$userAgent = $_SERVER['HTTP_USER_AGENT'];
+			$logger->log("Checking if call is from bot " . $userAgent, PEAR_LOG_DEBUG);
 			global $servername;
-			if (file_exists('../../../sites/' . $servername . '/conf/bots.ini')){
-				$fhnd = fopen('../../../sites/' . $servername . '/conf/bots.ini', 'r');
-			}elseif (file_exists('../../../sites/default/conf/bots.ini')){
-				$fhnd = fopen('../../../sites/default/conf/bots.ini', 'r');
+			if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
+				$fhnd = fopen('../../sites/' . $servername . '/conf/bots.ini', 'r');
+			}elseif (file_exists('../../sites/default/conf/bots.ini')){
+				$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
 			}else{
-				global $logger;
-				$logger->log("Did not find bots.ini file, cannot detect bots", PEAR_LOG_ERROR);
+				$logger->log("Did not find bots.ini file, cannot detect bots", PEAR_LOG_ERR);
 				return false;
 			}
 
 			$isBot = false;
-			$userAgent = $_SERVER['HTTP_USER_AGENT'];
 			while (($curAgent = fgets($fhnd, 4096)) !== false) {
 				//Remove line separators
 				$curAgent = str_replace("\r", '', $curAgent);
@@ -55,9 +56,7 @@ class BotChecker{
 			}
 			fclose($fhnd);
 
-			if ($isBot){
-				$logger->log("Call is from bot " . $userAgent, PEAR_LOG_WARN);
-			}
+			$logger->log("Call is from bot = $isBot ($userAgent)", PEAR_LOG_DEBUG);
 			BotChecker::$isBot = $isBot;
 		}
 		return BotChecker::$isBot;

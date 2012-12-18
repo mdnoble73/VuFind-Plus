@@ -25,6 +25,11 @@ class Analytics
 			die("You must setup the interface before creating a tracker");
 		}
 
+		//Make sure that we don't track visits from bots
+		if (BotChecker::isRequestFromBot()){
+			$this->disableTracking();
+		}
+
 		//disable error handler since the tables may not be installed yet.
 		disableErrorHandler();
 		$sessionId = session_id();
@@ -152,11 +157,6 @@ class Analytics
 		$this->finished = true;
 		global $configArray;
 		if (!isset($configArray['System']['enableAnalytics']) || $configArray['System']['enableAnalytics'] == false){
-			return;
-		}
-
-		//Make sure that we don't track visits from bots
-		if (BotChecker::isRequestFromBot()){
 			return;
 		}
 
