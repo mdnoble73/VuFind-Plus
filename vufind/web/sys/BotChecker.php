@@ -32,10 +32,10 @@ class BotChecker{
 	public static function isRequestFromBot(){
 		if (BotChecker::$isBot == null){
 			global $servername;
-			if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
-				$fhnd = fopen('../../sites/' . $servername . '/conf/bots.ini', 'r');
-			}elseif (file_exists('../../sites/default/conf/bots.ini')){
-				$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
+			if (file_exists('../../../sites/' . $servername . '/conf/bots.ini')){
+				$fhnd = fopen('../../../sites/' . $servername . '/conf/bots.ini', 'r');
+			}elseif (file_exists('../../../sites/default/conf/bots.ini')){
+				$fhnd = fopen('../../../sites/default/conf/bots.ini', 'r');
 			}else{
 				global $logger;
 				$logger->log("Did not find bots.ini file, cannot detect bots", PEAR_LOG_ERROR);
