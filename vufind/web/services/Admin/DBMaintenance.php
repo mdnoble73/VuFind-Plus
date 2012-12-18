@@ -367,6 +367,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_6' => array(
+				'title' => 'Location 6',
+				'description' => 'Add ability to configure the automatic timeout length when logged out. ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `location` ADD `automaticTimeoutLengthLoggedOut` INT(11) DEFAULT '450';",
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',

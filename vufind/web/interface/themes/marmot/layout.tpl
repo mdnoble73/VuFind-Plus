@@ -15,7 +15,8 @@
 			path = '{$path}';
 			url = '{$url}';
 			loggedIn = {if $user}true{else}false{/if};
-			automaticTimeoutLength = {if $automaticTimeoutLength}{$automaticTimeoutLength}{else}90{/if};
+			automaticTimeoutLength = {$automaticTimeoutLength};
+			automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 		</script>
 
 		{js filename="consolidated.min.js"}

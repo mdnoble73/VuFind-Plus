@@ -96,7 +96,6 @@ class Library extends DB_DataObject
 	public $recordsToBlackList;
 	public $showOtherFormatCategory;
 	public $showWikipediaContent;
-	public $automaticTimeoutLength;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }

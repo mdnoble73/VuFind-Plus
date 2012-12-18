@@ -32,8 +32,14 @@ function showRedirectToHomeMessage(){
 }
 
 function startIdleTimer(){
-	var timeout = automaticTimeoutLength * 1000;
-	$.idleTimer(timeout);
+	if (loggedIn){
+		var timeout = automaticTimeoutLength * 1000;
+	}else{
+		var timeout = automaticTimeoutLengthLoggedOut * 1000;
+	}
+	if (timeout > 0){
+		$.idleTimer(timeout);
+	}
 	
 	$(document).on("idle.idleTimer", function(){
 		if (loggedIn){

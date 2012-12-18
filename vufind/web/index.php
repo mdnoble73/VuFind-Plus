@@ -480,7 +480,7 @@ $ipId = $locationSingleton->getIPid();
 
 if (!is_null($ipLocation) && $ipLocation != false){
 	$interface->assign('onInternalIP', true);
-	if (!$user || (isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
+	if ((isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
 		$interface->assign('includeAutoLogoutCode', false);
 	}else{
 		$includeAutoLogoutCode = true;
@@ -497,13 +497,15 @@ if (!is_null($ipLocation) && $ipLocation != false){
 			}
 		}
 		//Only include auto logout code if we are not on the home page
-		if (!$user && $module == 'Search' && $action == 'Home'){
+		if ($module == 'Search' && $action == 'Home'){
 			$includeAutoLogoutCode = false;
 		}
 		$interface->assign('includeAutoLogoutCode', $includeAutoLogoutCode);
 	}
 	$automaticTimeoutLength = $ipLocation->automaticTimeoutLength;
 	$interface->assign('automaticTimeoutLength', $automaticTimeoutLength);
+	$automaticTimeoutLengthLoggedOut = $ipLocation->automaticTimeoutLengthLoggedOut;
+	$interface->assign('automaticTimeoutLengthLoggedOut', $automaticTimeoutLengthLoggedOut);
 }else{
 	$interface->assign('onInternalIP', false);
 	$interface->assign('includeAutoLogoutCode', false);
