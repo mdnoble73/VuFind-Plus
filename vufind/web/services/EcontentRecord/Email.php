@@ -46,7 +46,7 @@ class Email extends Action
 		// Display Page
 		if (isset($_GET['lightbox'])) {
 			$interface->assign('lightbox', true);
-			echo $interface->fetch('EContentRecord/email.tpl');
+			echo $interface->fetch('EcontentRecord/email.tpl');
 		} else {
 			$interface->setPageTitle('Email Record');
 			$interface->assign('subTemplate', 'email.tpl');
