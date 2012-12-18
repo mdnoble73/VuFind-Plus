@@ -609,6 +609,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		while (libraryIdsForEContentRs.next()){
 			librariesForResource.add(libraryIdsForEContentRs.getLong("libraryId"));
 		}
+		//Make sure we add the global scope
+		librariesForResource.add(-1L);
 		return librariesForResource;
 	}
 	
