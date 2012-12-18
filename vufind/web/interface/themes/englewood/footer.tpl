@@ -55,5 +55,5 @@
 </div>
 <div class="clearer"></div>
 {if !$productionServer}
-<div class='location_info'>{$physicalLocation}</div>
+<div class='location_info'>{$physicalLocation} ({$activeIp})</div>
 {/if}
