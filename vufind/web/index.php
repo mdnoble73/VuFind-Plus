@@ -478,6 +478,8 @@ if ($action == "AJAX" || $action == "JSON"){
 $ipLocation = $locationSingleton->getIPLocation();
 $ipId = $locationSingleton->getIPid();
 
+$interface->assign('automaticTimeoutLength', 0);
+$interface->assign('automaticTimeoutLengthLoggedOut', 0);
 if (!is_null($ipLocation) && $ipLocation != false){
 	$interface->assign('onInternalIP', true);
 	if ((isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
