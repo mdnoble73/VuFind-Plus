@@ -105,6 +105,7 @@ class Record extends Action
 		if ($configArray['System']['debugSolr']) {
 			$this->db->debug = true;
 		}
+		$this->db->disableScoping();
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
