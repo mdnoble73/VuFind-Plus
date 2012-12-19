@@ -3688,7 +3688,6 @@ public class MarcRecordDetails {
 		return result;
 	}
 	
-	Pattern bibIdPatern = Pattern.compile("^\\.b\\d+x?$");
 	private String recordId = null;
 	public String getMillenniumId(String fieldSpec){
 		if (this.recordId != null){
@@ -3701,7 +3700,7 @@ public class MarcRecordDetails {
 			String current = iter.next();
 
 			// Make sure the barcode is numeric since we also get call numbers in the barcode field.
-			if (bibIdPatern.matcher(current).matches()) {
+			if (current.startsWith(".b")) {
 				this.recordId = current;
 				return this.recordId;
 			}
