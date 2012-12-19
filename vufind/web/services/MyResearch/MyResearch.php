@@ -71,11 +71,11 @@ class MyResearch extends Action
 				}
 			}
 		}
-		
+
 		//Determine whether or not materials request functionality should be enabled
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-		
-		//Check to see if we have any acs or single use eContent in the catalog 
+
+		//Check to see if we have any acs or single use eContent in the catalog
 		//to enable the holds and wishlist appropriately
 		if (isset($configArray['EContent']['hasProtectedEContent'])){
 			$interface->assign('hasProtectedEContent', $configArray['EContent']['hasProtectedEContent']);
@@ -109,7 +109,11 @@ class MyResearch extends Action
 			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
 				$interface->assign('showEcommerceLink', true);
 				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-				$interface->assign('ecommerceLink', $ecommerceLink);
+				if ($homeLibrary->payFinesLink == 'default'){
+					$interface->assign('ecommerceLink', $ecommerceLink);
+				}else{
+					$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
+				}
 			}else{
 				$interface->assign('showEcommerceLink', false);
 				$interface->assign('minimumFineAmount', 0);

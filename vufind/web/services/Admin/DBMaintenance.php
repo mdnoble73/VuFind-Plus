@@ -294,6 +294,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showWikipediaContent` TINYINT(1) DEFAULT '1';",
 				),
 			),
+			'library_24' => array(
+				'title' => 'Library 24',
+				'description' => 'Add the ability to customize the link to pay fines. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `payFinesLink` VARCHAR(512) DEFAULT 'default';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
