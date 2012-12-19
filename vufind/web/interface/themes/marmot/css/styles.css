@@ -924,6 +924,9 @@ table.datagrid tr.oddrow {
 .holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby, .holdingsSummaryStatusLine.here{
 	color:#009900;
 }
+.holdingsSummaryStatusLine.availableOther{
+	color: #BB0099;
+}
 .holdingsSummaryStatusLine.unavailable {
 	color:#cc0000;
 }

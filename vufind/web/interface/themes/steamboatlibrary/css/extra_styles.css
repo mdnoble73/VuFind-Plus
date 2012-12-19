@@ -2,7 +2,9 @@
 	background-color: #99980A;
 	border-color: #7A1501;
 }
-
+.searchHomeContent{
+	padding: 0px;
+}
 /* Make facets appear on the left */
 .yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main {
 	float: right;

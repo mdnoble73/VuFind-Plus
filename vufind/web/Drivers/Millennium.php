@@ -724,6 +724,7 @@ class MillenniumDriver implements DriverInterface
 		if ($location != null && $location->showHoldButton == 0){
 			$canShowHoldButton = false;
 		}
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
 
 		//Valid statuses are:
 		//It's here
@@ -853,7 +854,11 @@ class MillenniumDriver implements DriverInterface
 					//The item is at a location either in the same system or another system.
 					$summaryInformation['status'] = "Available At";
 					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-					$summaryInformation['class'] = 'available';
+					if ($physicalLocation != null){
+						$summaryInformation['class'] = 'availableOther';
+					}else{
+						$summaryInformation['class'] = 'available';
+					}
 				}
 			}elseif (!isset($summaryInformation['status']) &&
 			(substr($holdingKey, 0, 1) == 6 ) &&

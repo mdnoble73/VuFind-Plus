@@ -72,7 +72,7 @@ if ($configArray['System']['systemMessage']){
 }
 
 //Get the name of the active instance
-if ($locationSingleton->getActiveLocation() != null){
+if ($locationSingleton->getActiveLocation() != null && $locationSingleton->getActiveLocation()->defaultLocationFacet){
 	$interface->assign('librarySystemName', $locationSingleton->getActiveLocation()->displayName);
 }elseif (isset($library)){
 	$interface->assign('librarySystemName', $library->displayName);

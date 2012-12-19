@@ -57,7 +57,7 @@
 		widget = "CNLWidget";
 		sid = "7359";
 		group="current";
-		list  = "CNL1";
+		list  = "NLGC";
 		rotate = "YES";
 		fade = "NO";
 		title = "YES";
