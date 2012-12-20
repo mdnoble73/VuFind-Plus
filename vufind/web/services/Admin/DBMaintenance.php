@@ -303,6 +303,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `payFinesLink` VARCHAR(512) DEFAULT 'default';",
 				),
 			),
+			'library_25' => array(
+				'title' => 'Library 25',
+				'description' => 'Add the ability to customize the link text to pay fines. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `payFinesLinkText` VARCHAR(512) DEFAULT 'Click to Pay Fines Online';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',

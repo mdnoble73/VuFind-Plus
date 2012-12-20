@@ -114,6 +114,7 @@ class MyResearch extends Action
 				}else{
 					$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
 				}
+				$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
 			}else{
 				$interface->assign('showEcommerceLink', false);
 				$interface->assign('minimumFineAmount', 0);
