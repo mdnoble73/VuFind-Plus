@@ -111,7 +111,7 @@
 #menu-item-1875 a:hover span{
 	color:#CCC !important;
 }
-body {
+#pageBody {
 	background:url('http://mesacountylibraries.org/wp-content/themes/mcpl/images/marmot-bg.jpg') repeat-x #FFFFFF;
 }
 #loginBlock {
@@ -135,6 +135,7 @@ body {
 	border-bottom:none;
 	padding:0;
 	height: 175px;
+	position: relative;
 }
 h1#logo {
 	float: left;
