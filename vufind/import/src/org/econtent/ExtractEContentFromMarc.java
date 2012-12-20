@@ -443,8 +443,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				overDriveInfo.setEdition(metaData.has("edition") ? metaData.getString("edition") : "");
 				overDriveInfo.setPublisher(metaData.has("publisher") ? metaData.getString("publisher") : "");
 				String publishDate = metaData.getString("publishDate");
-				if (publishDate.matches(""))
-				overDriveInfo.setPublishDate(metaData.has("publishDate") ? metaData.getString("publishDate") : "");
+				if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
+					publishDate = publishDate.substring(6);
+				}
+				overDriveInfo.setPublishDate(publishDate);
 				if (metaData.has("contributors")){
 					JSONArray contributors = metaData.getJSONArray("contributors");
 					for (int i = 0; i < contributors.length(); i++){
