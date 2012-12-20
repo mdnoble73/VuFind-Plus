@@ -65,7 +65,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private boolean extractEContentFromUnchangedRecords;
 	private boolean checkOverDriveAvailability;
-	private boolean loadOverDriveTitlesNotInMarc;
+	private int numOverDriveTitlesToLoadFromAPI;
 	private String econtentDBConnectionInfo;
 	private ArrayList<GutenbergItemInfo> gutenbergItemInfo = null;
 	
@@ -176,13 +176,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		results.addNote("checkOverDriveAvailability = " + checkOverDriveAvailability);
 		
-		String loadOverDriveTitlesNotInMarcVal = configIni.get("Reindex", "loadOverDriveTitlesNotInMarc");
-		if (loadOverDriveTitlesNotInMarcVal == null){
-			loadOverDriveTitlesNotInMarc = true;
+		String numOverDriveTitlesToLoadFromAPIVal = configIni.get("Reindex", "numOverDriveTitlesToLoadFromAPI");
+		if (numOverDriveTitlesToLoadFromAPIVal == null){
+			numOverDriveTitlesToLoadFromAPI = -1;
 		}else{
-			loadOverDriveTitlesNotInMarc = Boolean.parseBoolean(loadOverDriveTitlesNotInMarcVal);
+			numOverDriveTitlesToLoadFromAPI = Integer.parseInt(numOverDriveTitlesToLoadFromAPIVal);
 		}
-		results.addNote("loadOverDriveTitlesNotInMarc = " + loadOverDriveTitlesNotInMarc);
+		results.addNote("numOverDriveTitlesToLoadFromAPI = " + numOverDriveTitlesToLoadFromAPI);
 		
 		overDriveProductsKey = configIni.get("OverDrive", "productsKey");
 		if (overDriveProductsKey == null){
@@ -442,6 +442,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			try {
 				overDriveInfo.setEdition(metaData.has("edition") ? metaData.getString("edition") : "");
 				overDriveInfo.setPublisher(metaData.has("publisher") ? metaData.getString("publisher") : "");
+				String publishDate = metaData.getString("publishDate");
+				if (publishDate.matches(""))
 				overDriveInfo.setPublishDate(metaData.has("publishDate") ? metaData.getString("publishDate") : "");
 				if (metaData.has("contributors")){
 					JSONArray contributors = metaData.getJSONArray("contributors");
@@ -1340,6 +1342,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private void addOverDriveTitlesWithoutMarcToIndex(){
 		results.addNote("Adding OverDrive titles without marc records to index");
+		int numRecordsAdded = 0;
 		for (String overDriveId : overDriveTitles.keySet()){
 			OverDriveRecordInfo recordInfo = overDriveTitles.get(overDriveId);
 			//logger.debug("Adding OverDrive record " + recordInfo.getId());
@@ -1362,7 +1365,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Reindex the record
 				SolrInputDocument doc = createSolrDocForOverDriveRecord(recordInfo, econtentRecordId);
 				updateServer.add(doc);
-				
+				numRecordsAdded++;
+				if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded >= numOverDriveTitlesToLoadFromAPI){
+					break;
+				}
 			} catch (Exception e) {
 				logger.error("Error processing eContent record " + overDriveId , e);
 				results.incErrors();
@@ -1598,7 +1604,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		if (overDriveTitles.size() > 0){
 			results.addNote(overDriveTitles.size() + " overdrive titles were found using the OverDrive API but did not have an associated MARC record.");
 			results.saveResults();
-			if (loadOverDriveTitlesNotInMarc){
+			if (numOverDriveTitlesToLoadFromAPI != 0){
 				addOverDriveTitlesWithoutMarcToIndex();
 			}
 		}
