@@ -37,8 +37,10 @@ foreach ($configArray['Database'] as $key => $value){
 		}
 		$tableName = $matches[1];
 
-		optimizeTable($tableName);
-
+		//Some tables take too long to optimize, ignore them.
+		if (!in_array($tableName, array('search'))){
+			optimizeTable($tableName);
+		}
 	}
 }
 
