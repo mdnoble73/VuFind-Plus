@@ -57,7 +57,7 @@
 		</div>
 		
 		<div class="bookletters-widget">
-			<div class="bookletters-title">New DVDs</div>
+			<div class="bookletters-title">DVDs &amp; Bluray</div>
 			<div class="bookletters-body">
 				<script type="text/javascript">
 				widget = "CNLWidget";

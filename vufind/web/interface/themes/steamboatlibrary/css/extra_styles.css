@@ -89,6 +89,10 @@ html, body{
 	margin-bottom: 3px;
 }
 .bookletters-body{
-	width: 125px;
-	height: 187px;
+	width: 145px;
+	height: 210px;
+}
+.bookletters-body iframe{
+	width: 145px;
+	height: 210px;
 }
