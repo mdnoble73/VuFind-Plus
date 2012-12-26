@@ -20,9 +20,6 @@ import org.vufind.CronProcessLogEntry;
 import org.vufind.IProcessHandler;
 import org.vufind.Util;
 
-import sun.misc.Cleaner;
-
-
 public class CirculationProcess implements IProcessHandler{
 
 	private Logger logger;
