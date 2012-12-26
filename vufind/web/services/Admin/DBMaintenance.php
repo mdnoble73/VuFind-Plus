@@ -1544,6 +1544,17 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'cleanup_search' => array(
+			'title' => 'Cleanup Search table',
+			'description' => 'Cleanup Search table to remove unused tables and add needed indexes',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE search DROP folder_id',
+				'ALTER TABLE search DROP title',
+				'ALTER TABLE search ADD INDEX (`saved`)',
+			),
+		),
+
 
 		'remove_old_tables' => array(
 			'title' => 'Remove old tables',
@@ -1578,6 +1589,15 @@ class DBMaintenance extends Admin {
 			'sql' => array(
 				'DROP TABLE IF EXISTS usagetracking',
 				'DROP TABLE IF EXISTS usage_tracking',
+			),
+		),
+
+		'remove_old_tables_4' => array(
+			'title' => 'Remove subject tables',
+			'description' => 'Remove subject table (replaced with browse tables)',
+			'dependencies' => array(),
+			'sql' => array(
+				'DROP TABLE IF EXISTS subject',
 			),
 		),
 
