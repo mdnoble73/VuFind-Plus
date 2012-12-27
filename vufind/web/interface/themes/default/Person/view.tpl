@@ -106,7 +106,7 @@
 					<div class="obituaryText">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'/></a>{/if}{$obituary.contents|escape}</div>
 					<div class="clearer"></div>
 				{elseif $obituary.contents}
-					<div class="obituaryText">{$obituary.contents|escape}</div>
+					<div class="obituaryText">{$obituary.contents|escape|replace:"\r":"<br/>"}</div>
 					<div class="clearer"></div>
 				{elseif $obituary.picture}
 					<div class="obituaryPicture">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'/></a>{/if}</div>
