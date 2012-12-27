@@ -1209,6 +1209,7 @@ class Solr implements IndexEngine {
 	 */
 	public function getSaveXML($fields, $waitFlush = true, $delayedCommit = false)
 	{
+		global $logger;
 		// Create XML Document
 		$doc = new DOMDocument('1.0', 'UTF-8');
 
@@ -1238,8 +1239,11 @@ class Solr implements IndexEngine {
 			// Add all non-empty values of the current field to the XML:
 			foreach($value as $current) {
 				if ($current != '') {
-					$node = $doc->createElement('field', stripNonValidXMLCharacters($current));
+					$logger->log("Adding field $field", PEAR_LOG_DEBUG);
+					$logger->log("  value " . $current, PEAR_LOG_DEBUG);
+					$node = $doc->createElement('field');
 					$node->setAttribute('name', $field);
+					$node->appendChild(new DOMText($current));
 					$docNode->appendChild($node);
 				}
 			}
@@ -1562,6 +1566,8 @@ class Solr implements IndexEngine {
 			} else {
 				$errorMsg = $detail;
 			}
+			global $logger;
+			$logger->log("Error updating document\r\n$xml", PEAR_LOG_DEBUG);
 			return new PEAR_Error("Unexpected response -- " . $errorMsg);
 		}elseif ($configArray['System']['debugSolr'] == true){
 			$detail = $this->client->getResponseBody();
@@ -1947,34 +1953,3 @@ class Solr implements IndexEngine {
 	}
 }
 
-/**
- * This method ensures that the output String has only
- * valid XML unicode characters as specified by the
- * XML 1.0 standard. For reference, please see
- * <a href="http://www.w3.org/TR/2000/REC-xml-20001006#NT-Char">the
- * standard</a>. This method will return an empty
- * String if the input is null or empty.
- *
- * @param in The String whose non-valid characters we want to remove.
- * @return The in String, stripped of non-valid characters.
- */
-function stripNonValidXMLCharacters($string) {
-	return $string;
-	$newString = "";
-	for($i=0; $i<strlen($string); $i++){
-		$char = $string[$i];
-		$charInt = ord($char);
-		if (($charInt == 0x9) ||
-		($charInt == 0xA) ||
-		($charInt == 0xD) ||
-		(($charInt >= 0x20) && ($charInt <= 0xD7FF)) ||
-		(($charInt >= 0xE000) && ($charInt <= 0xFFFD)) ||
-		(($charInt >= 0x10000) && ($charInt <= 0x10FFFF)) ||
-		$char == '&' || $char == ';'){
-
-			$newString .= $char;
-
-		}
-	}
-	return htmlspecialchars(html_entity_decode($newString, ENT_QUOTES, 'UTF-8'),ENT_QUOTES, 'UTF-8');
-}
