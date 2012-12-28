@@ -125,7 +125,7 @@
 		<!-- Core Fields  -->
 		<field name="id" type="string" indexed="true" stored="true"/>
 		<field name="id_sort" type="integer" indexed="true" stored="false"/>
-		<field name="id_alt" type="string" indexed="true" stored="true"/>
+		<field name="id_alt" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="fullrecord" type="string" indexed="false" stored="true"/>
 		<field name="allfields" type="text" indexed="true" stored="false"/>
 		<field name="allfields_proper" type="textProper" indexed="true" stored="false"/>
