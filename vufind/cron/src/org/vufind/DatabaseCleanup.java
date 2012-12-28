@@ -18,17 +18,23 @@ public class DatabaseCleanup implements IProcessHandler {
 		
 		//Remove old searches 
 		try {
-			PreparedStatement searchesToRemove = vufindConn.prepareStatement("SELECT id from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search where id = ?");
-			
-			ResultSet searchesToRemoveRs = searchesToRemove.executeQuery();
 			int rowsRemoved = 0;
-			while (searchesToRemoveRs.next()){
-				long curId = searchesToRemoveRs.getLong("id");
-				removeSearchStmt.setLong(1, curId);
-				rowsRemoved += removeSearchStmt.executeUpdate();
+			ResultSet numSearchesRS = vufindConn.prepareStatement("SELECT count(id) from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0").executeQuery();
+			long numSearches = numSearchesRS.getLong(1);
+			long batchSize = 100000;
+			long numBatches = (numSearches / batchSize) + 1;
+			for (int i = 0; i < numBatches; i++){
+				PreparedStatement searchesToRemove = vufindConn.prepareStatement("SELECT id from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0 LIMIT 0, " + batchSize, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search where id = ?");
+				
+				ResultSet searchesToRemoveRs = searchesToRemove.executeQuery();
+				while (searchesToRemoveRs.next()){
+					long curId = searchesToRemoveRs.getLong("id");
+					removeSearchStmt.setLong(1, curId);
+					rowsRemoved += removeSearchStmt.executeUpdate();
+				}
+				processLog.incUpdated();
 			}
-			processLog.incUpdated();
 			processLog.addNote("Removed " + rowsRemoved + " expired searches");
 			processLog.saveToDatabase(vufindConn, logger);
 		} catch (SQLException e) {
