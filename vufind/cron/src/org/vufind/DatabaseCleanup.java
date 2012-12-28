@@ -2,6 +2,7 @@ package org.vufind;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
@@ -17,8 +18,16 @@ public class DatabaseCleanup implements IProcessHandler {
 		
 		//Remove old searches 
 		try {
-			PreparedStatement removeSearches = vufindConn.prepareStatement("DELETE FROM search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0");
-			int rowsRemoved = removeSearches.executeUpdate();
+			PreparedStatement searchesToRemove = vufindConn.prepareStatement("SELECT id from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search where id = ?");
+			
+			ResultSet searchesToRemoveRs = searchesToRemove.executeQuery();
+			int rowsRemoved = 0;
+			while (searchesToRemoveRs.next()){
+				long curId = searchesToRemoveRs.getLong("id");
+				removeSearchStmt.setLong(1, curId);
+				rowsRemoved += removeSearchStmt.executeUpdate();
+			}
 			processLog.incUpdated();
 			processLog.addNote("Removed " + rowsRemoved + " expired searches");
 			processLog.saveToDatabase(vufindConn, logger);
