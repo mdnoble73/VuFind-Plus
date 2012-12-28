@@ -839,7 +839,7 @@ class EContentRecord extends SolrDataObject {
 		$allFields = "";
 		foreach ($this as $field => $value){
 
-			if (!in_array($field, array('__table', 'items', 'N')) && strpos($field, "_") !== 0){
+			if (!in_array($field, array('__table', 'items', 'N', 'marcRecord')) && strpos($field, "_") !== 0){
 				//echo ("Processing $field\r\n<br/>");
 				if (is_array($value)){
 					foreach ($value as $val){

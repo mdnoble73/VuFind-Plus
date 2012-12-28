@@ -29,7 +29,7 @@
 							<td colspan="8" >
 								<table class="logEntryProcessDetails" cellspacing="0">
 									<thead>
-										<tr><th>Process Name</th><th>Records Processed</th><th>eContent Records Processed</th><th>Resources Processed</th><th>Errors</th><th>Added</th><th>Updated</th><th>Deleted</th><th>Skipped</th><th>Notes</th></tr>
+										<tr><th>Process Name</th><th>Records Processed</th><th>eContent Records Processed</th><th>Non-Marc OverDrive Records Processed</th><th>Resources Processed</th><th>Errors</th><th>Added</th><th>Updated</th><th>Deleted</th><th>Skipped</th><th>Notes</th></tr>
 									</thead>
 									<tbody>
 									{foreach from=$logEntry->processes() item=process}

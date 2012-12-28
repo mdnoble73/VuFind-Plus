@@ -45,7 +45,7 @@ class Edit extends Action {
 
 		$structure = EContentRecord::getObjectStructure();
 
-		if (isset($_REQUEST['submitStay']) || isset($_REQUEST['submit'])){
+		if (isset($_REQUEST['submitStay']) || isset($_REQUEST['submit']) || isset($_REQUEST['submitReturnToList']) || isset($_REQUEST['submitAddAnother'])){
 			//Save the object
 			$results = DataObjectUtil::saveObject($structure, 'EContentRecord');
 			$eContentRecord = $results['object'];

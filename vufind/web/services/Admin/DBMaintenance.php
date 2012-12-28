@@ -1427,6 +1427,15 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'reindexLog_2' => array(
+			'title' => 'Reindex Log table update 2',
+			'description' => 'Update Reindex Log table to include a count of non-marc records that have been processed.',
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE reindex_process_log ADD COLUMN `overDriveNonMarcRecordsProcessed` INT(11) COMMENT 'The number of overdrive records processed that do not have a marc record associated with them.'",
+			),
+		),
+
 
 		'cronLog' => array(
 			'title' => 'Cron Log table',
