@@ -25,6 +25,7 @@ public class DatabaseCleanup implements IProcessHandler {
 			long batchSize = 100000;
 			long numBatches = (numSearches / batchSize) + 1;
 			processLog.addNote("Found  " + numSearches + " that need to be removed.  Will process in " + numSearches + " batches");
+			processLog.saveToDatabase(vufindConn, logger);
 			for (int i = 0; i < numBatches; i++){
 				PreparedStatement searchesToRemove = vufindConn.prepareStatement("SELECT id from search where created < (CURDATE() - INTERVAL 2 DAY) and saved = 0 LIMIT 0, " + batchSize, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search where id = ?");
@@ -36,6 +37,7 @@ public class DatabaseCleanup implements IProcessHandler {
 					rowsRemoved += removeSearchStmt.executeUpdate();
 				}
 				processLog.incUpdated();
+				processLog.saveToDatabase(vufindConn, logger);
 			}
 			processLog.addNote("Removed " + rowsRemoved + " expired searches");
 			processLog.saveToDatabase(vufindConn, logger);
