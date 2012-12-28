@@ -10,6 +10,8 @@ vufind/web/images/fiveStar/*.png
 vufind/web/images/charts/*.png
 vufind/web/interface/cache/
 vufind/web/interface/compile/
+vufind/web/files/medium/*.jpg
+vufind/web/files/thumbnail/*.jpg
 vufind/web/*_strandsCatalog.csv
 vufind/web/*Strands.csv
 vufind/web/phpinfo.php
