@@ -185,4 +185,43 @@ class Analytics
 
 		//enableErrorHandler();
 	}
+
+	function getSessionFilters(){
+		$session = null;
+		if (isset($_REQUEST['filter'])){
+			$filterFields = $_REQUEST['filter'];
+			$filterValues = $_REQUEST['filterValue'];
+			foreach($filterFields as $index => $fieldName){
+				$value = $filterValues[$index];
+				if (in_array($fieldName, array('country', 'city', 'state', 'theme', 'mobile', 'device', 'physicalLocation', 'patronType', 'homeLocationId'))){
+					if ($session == null){
+						$session = new Analytics_Session();
+					}
+
+					$session->$fieldName = $value;
+				}
+			}
+		}
+		return $session;
+	}
+
+	function getSessionFilterSQL(){
+		$sessionFilterSQL = null;
+		if (isset($_REQUEST['filter'])){
+			$filterFields = $_REQUEST['filter'];
+			$filterValues = $_REQUEST['filterValue'];
+			foreach($filterFields as $index => $fieldName){
+				if (isset($filterValues[$index])){
+					$value = $filterValues[$index];
+					if (in_array($fieldName, array('country', 'city', 'state', 'theme', 'mobile', 'device', 'physicalLocation', 'patronType', 'homeLocationId'))){
+						if ($sessionFilterSQL != null){
+							$sessionFilterSQL .= " AND ";
+						}
+						$sessionFilterSQL .= "$fieldName = '" . mysql_escape_string($value) . "'";
+					}
+				}
+			}
+		}
+		return $sessionFilterSQL;
+	}
 }

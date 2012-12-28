@@ -6,17 +6,36 @@ class AnalyticsReport extends Report{
 		global $user;
 
 		$filters = array();
-		$filters[] = $this->getSessionFilter('Country', 'country');
-		$filters[] = $this->getSessionFilter('City', 'city');
-		$filters[] = $this->getSessionFilter('State', 'state');
-		$filters[] = $this->getSessionFilter('Theme', 'theme');
-		$filters[] = $this->getSessionFilter('Mobile', 'mobile');
-		$filters[] = $this->getSessionFilter('Device', 'device');
-		$filters[] = $this->getSessionFilter('Physical Location', 'physicalLocation');
-		$filters[] = $this->getSessionFilter('Patron Type', 'patronType');
-		$filters[] = $this->getSessionFilter('Home Location', 'homeLocationId');
+		$filters['country'] = $this->getSessionFilter('Country', 'country');
+		$filters['city'] = $this->getSessionFilter('City', 'city');
+		$filters['state'] = $this->getSessionFilter('State', 'state');
+		$filters['theme'] = $this->getSessionFilter('Theme', 'theme');
+		$filters['mobile'] = $this->getSessionFilter('Mobile', 'mobile');
+		$filters['device'] = $this->getSessionFilter('Device', 'device');
+		$filters['physicalLocation'] = $this->getSessionFilter('Physical Location', 'physicalLocation');
+		$filters['patronType'] = $this->getSessionFilter('Patron Type', 'patronType');
+		$filters['homeLocationId'] = $this->getSessionFilter('Home Location', 'homeLocationId');
 
 		$interface->assign('filters', $filters);
+
+		$filterParams = "";
+		$activeFilters = array();
+		if (isset($_REQUEST['filter'])){
+			foreach ($_REQUEST['filter'] as $index => $filterName){
+				if (isset($_REQUEST['filterValue'][$index])){
+					$filterVal = $_REQUEST['filterValue'][$index];
+					$filterParams .= "&filter[$index]={$filterName}";
+					$filterParams .= "&filterValue[$index]={$filterVal}";
+					$activeFilters[$index] = array(
+						'name' => $filterName,
+						'value' => $filterVal
+					);
+				}
+			}
+		}
+		$interface->assign('activeFilters', $activeFilters);
+		$interface->assign('filterString', $filterParams);
+
 	}
 
 	function getSessionFilter($label, $field){
@@ -26,6 +45,7 @@ class AnalyticsReport extends Report{
 		$analyticsSession->find();
 		$filter = array();
 		$filter['label'] = $label;
+		$filter['field'] = $field;
 		while ($analyticsSession->fetch()){
 			if ($analyticsSession->$field == null){
 				$filter['values']['null'] = 'unset';

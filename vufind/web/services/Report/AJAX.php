@@ -61,7 +61,13 @@ class AJAX extends Action {
 	 * Active sessions are any sessions where the last request happened less than 1 minute ago.
 	 */
 	function getActiveSessions(){
-		$analyticsSession = new Analytics_Session();
+		global $analytics;
+
+		$analyticsSession = $analytics->getSessionFilters();
+		if ($analyticsSession == null){
+			$analyticsSession = new Analytics_Session();
+		}
+
 		$analyticsSession->whereAdd('lastRequestTime >= ' . (time() - 60));
 		$analyticsSession->find();
 		return array('activeSessionCount' => $analyticsSession->N);
@@ -71,11 +77,16 @@ class AJAX extends Action {
 	 * Recent activity includes users, searches done, events, and page views
 	 */
 	function getRecentActivity(){
+		global $analytics;
+
 		$interval = isset($_REQUEST['interval']) ? $_REQUEST['interval'] : 10;
 		$curTime = time();
 		$activityByMinute = array();
 
-		$analyticsSession = new Analytics_Session();
+		$analyticsSession = $analytics->getSessionFilters();
+		if ($analyticsSession == null){
+			$analyticsSession = new Analytics_Session();
+		}
 		$analyticsSession->selectAdd('count(id) as numActiveUsers');
 		$analyticsSession->whereAdd('lastRequestTime > ' . ($curTime - $interval));
 		 $analyticsSession->whereAdd("lastRequestTime <= $curTime");
@@ -119,10 +130,15 @@ class AJAX extends Action {
 	}
 
 	function getSearchByTypeData(){
+		global $analytics;
 		//load searches by type
 		$searches = new Analytics_Search();
-		$searches->selectAdd('count(id) as numSearches');
+		$searches->selectAdd('count(analytics_search.id) as numSearches');
 		$searches->selectAdd('searchType');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$searches->joinAdd($session);
+		}
 		$searches->groupBy('searchType');
 		$searches->find();
 		$totalSearches = 0;
@@ -140,10 +156,15 @@ class AJAX extends Action {
 	}
 
 	function getSearchByScopeData(){
+		global $analytics;
 		//load searches by type
 		$searches = new Analytics_Search();
-		$searches->selectAdd('count(id) as numSearches');
+		$searches->selectAdd('count(analytics_search.id) as numSearches');
 		$searches->selectAdd('scope');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$searches->joinAdd($session);
+		}
 		$searches->groupBy('scope');
 		$searches->find();
 		$totalSearches = 0;
@@ -161,9 +182,14 @@ class AJAX extends Action {
 	}
 
 	function getSearchWithFacetsData(){
+		global $analytics;
 		//load searches by type
 		$searches = new Analytics_Search();
-		$searches->selectAdd('count(id) as numSearches');
+		$searches->selectAdd('count(analytics_search.id) as numSearches');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$searches->joinAdd($session);
+		}
 		$searches->groupBy('facetsApplied');
 		$searches->find();
 		$totalSearches = 0;
@@ -181,12 +207,20 @@ class AJAX extends Action {
 	}
 
 	function getPageViewsByModuleData(){
+		global $analytics;
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-		$pageViews->selectAdd('count(id) as numViews');
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
 		$pageViews->selectAdd('module');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$pageViews->joinAdd($session);
+		}
 		$pageViews->groupBy('module');
 		$pageViews->orderBy('numViews DESC');
+		if (isset($_REQUEST['forChart'])){
+			$pageViews->limit(0, 10);
+		}
 		$pageViews->find();
 		$pageViewsByModuleRaw = array();
 		while ($pageViews->fetch()){
@@ -197,15 +231,22 @@ class AJAX extends Action {
 	}
 
 	function getPageViewsByThemeData(){
+		global $analytics;
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-		$session = new Analytics_Session();
 
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $analytics->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('theme');
 		$pageViews->groupBy('theme');
 		$pageViews->orderBy('numViews DESC');
+		if (isset($_REQUEST['forChart'])){
+			$pageViews->limit(0, 10);
+		}
 		$pageViews->find();
 		$pageViewsByThemeRaw = array();
 		while ($pageViews->fetch()){
@@ -216,15 +257,22 @@ class AJAX extends Action {
 	}
 
 	function getPageViewsByDeviceData(){
+		global $analytics;
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-		$session = new Analytics_Session();
 
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $analytics->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('device');
 		$pageViews->groupBy('device');
 		$pageViews->orderBy('numViews DESC');
+		if (isset($_REQUEST['forChart'])){
+			$pageViews->limit(0, 10);
+		}
 		$pageViews->find();
 		$pageViewsByDeviceRaw = array();
 		while ($pageViews->fetch()){
@@ -235,17 +283,24 @@ class AJAX extends Action {
 	}
 
 	function getPageViewsByHomeLocationData(){
+		global $analytics;
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-		$session = new Analytics_Session();
 		$location = new Location();
 
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
 		$session->joinAdd($location);
+		$session = $analytics->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('displayName');
 		$pageViews->groupBy('displayName');
 		$pageViews->orderBy('numViews DESC');
+		if (isset($_REQUEST['forChart'])){
+			$pageViews->limit(0, 10);
+		}
 		$pageViews->find();
 		$pageViewsByDeviceRaw = array();
 		while ($pageViews->fetch()){
@@ -256,15 +311,22 @@ class AJAX extends Action {
 	}
 
 	function getPageViewsByPhysicalLocationData(){
+		global $analytics;
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-		$session = new Analytics_Session();
 
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $analytics->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('physicalLocation');
 		$pageViews->groupBy('physicalLocation');
 		$pageViews->orderBy('numViews DESC');
+		if (isset($_REQUEST['forChart'])){
+			$pageViews->limit(0, 5);
+		}
 		$pageViews->find();
 		$pageViewsByDeviceRaw = array();
 		while ($pageViews->fetch()){
@@ -275,12 +337,17 @@ class AJAX extends Action {
 	}
 
 	function getFacetUsageByTypeData(){
+		global $analytics;
 		//load searches by type
 		$events = new Analytics_Event();
 
 		$events->selectAdd('count(analytics_event.id) as numEvents');
 		$events->category = 'Apply Facet';
 		$events->selectAdd('action');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$events->joinAdd($session);
+		}
 		$events->groupBy('action');
 		$events->orderBy('numEvents DESC');
 		$events->find();
@@ -291,4 +358,6 @@ class AJAX extends Action {
 
 		return $eventsByFacetTypeRaw;
 	}
+
+
 }

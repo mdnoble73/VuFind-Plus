@@ -28,14 +28,19 @@ class Searches extends AnalyticsReport{
 		global $configArray;
 		global $interface;
 		global $user;
+		global $analytics;
 
 		//Setup filters
 		$this->setupFilters();
 
 		$search = new Analytics_Search();
 		$search->selectAdd();
-		$search->selectAdd("count(id) as timesSearched");
+		$search->selectAdd("count(analytics_search.id) as timesSearched");
 		$search->selectAdd("lookfor");
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$search->joinAdd($session);
+		}
 		$search->whereAdd("numResults > 0");
 		$search->groupBy('lookfor');
 		$search->orderBy('timesSearched DESC');
@@ -53,8 +58,11 @@ class Searches extends AnalyticsReport{
 
 		$search = new Analytics_Search();
 		$search->selectAdd();
-		$search->selectAdd("count(id) as timesSearched");
+		$search->selectAdd("count(analytics_search.id) as timesSearched");
 		$search->selectAdd("lookfor");
+		if ($session != null){
+			$search->joinAdd($session);
+		}
 		$search->whereAdd("numResults = 0");
 		$search->groupBy('lookfor');
 		$search->orderBy('timesSearched DESC');
@@ -74,6 +82,9 @@ class Searches extends AnalyticsReport{
 		$search->selectAdd();
 		$search->selectAdd("lookfor");
 		$search->selectAdd("MAX(searchTime) as lastSearch ");
+		if ($session != null){
+			$search->joinAdd($session);
+		}
 		$search->groupBy('lookfor');
 		$search->orderBy('lastSearch DESC');
 		$search->limit(0, 20);
@@ -92,6 +103,9 @@ class Searches extends AnalyticsReport{
 		$search->selectAdd();
 		$search->selectAdd("lookfor");
 		$search->selectAdd("MAX(searchTime) as lastSearch ");
+		if ($session != null){
+			$search->joinAdd($session);
+		}
 		$search->whereAdd("numResults = 0");
 		$search->groupBy('lookfor');
 		$search->orderBy('lastSearch DESC');

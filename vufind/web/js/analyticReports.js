@@ -1,5 +1,24 @@
+function changeActiveReport(){
+	var newDestination = $("#reportSwitcherSelect option:selected").data("destination");
+	window.location.href = newDestination;
+}
+function showFilterValues(control){
+	//Show options for this 
+	var activeFilter = $(control);
+	var selectedOption = activeFilter.find(":selected").val();
+	var curIndex = activeFilter.data("filter-index");
+	activeFilter.parent().find(".filterValues").remove();
+	var filterValueSelection = "<select class='filterValues' name='filterValue[" + curIndex + "]'>";
+	for (selectedValue in filterValues[selectedOption]){
+		filterValueSelection += "<option value='" + selectedValue + "'>" + selectedValue + "</option>";
+	}
+	filterValueSelection += "</select>";
+	activeFilter.after(filterValueSelection);
+	//
+}
+
 function getFilterParams() {
-	return "";
+	return filterParams;
 }
 
 var activePageViewChart;
@@ -389,7 +408,7 @@ function setupPageViewsByModuleChart() {
 }
 function getPageViewsByModuleData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByModuleData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByModuleData&forChart=1" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -438,7 +457,7 @@ function setupPageViewsByThemeChart() {
 }
 function getPageViewsByThemeData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByThemeData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByThemeData&forChart=1" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -488,7 +507,7 @@ function setupPageViewsByDeviceChart() {
 }
 function getPageViewsByDeviceData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByDeviceData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByDeviceData&forChart=1" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -537,7 +556,7 @@ function setupPageViewsByHomeLocationChart() {
 }
 function getPageViewsByHomeLocationData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByHomeLocationData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByHomeLocationData&forChart=1" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -586,7 +605,7 @@ function setupPageViewsByPhysicalLocationChart() {
 }
 function getPageViewsByPhysicalLocationData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByPhysicalLocationData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByPhysicalLocationData&forChart=1" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){

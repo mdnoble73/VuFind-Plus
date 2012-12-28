@@ -1,16 +1,52 @@
 {strip}
 <div id="filtersContainer">
-	<h3>Filters</h3>
-	<div id="filters">
-	{foreach from=$filters item=filter}
-		<div class="reportFilter">
-			<div class="filterLabel">{$filter.label}</div>
-			{foreach from=$filter.values item=label key=value}
-				<input type="checkbox" value="{$filter.field}_{$value}" class="{$filter.field}" id="{$filter.field}_{$value}" /><label for="{$filter.field}_{$value}">{$label}</label>
-				&nbsp;
+	<h3>Filter by</h3>
+	<form action="" method="get">
+		<div id="filters">
+			{* Display existing filters *}
+			{assign var=nextFilterIndex value=1}
+			{foreach from=$activeFilters item=filterInfo key=filterIndex}
+				<div class="filterSetting" id="filterSetting{$filterIndex}">
+					<select name="filter[{$filterIndex}]" id="filter{$filterIndex}" data-filter-index="{$filterIndex}" onchange="showFilterValues(this)">
+						<option value="">Select a value</option>
+						{foreach from=$filters item=filter}
+							<option value="{$filter.field}" {if $filterInfo.name == $filter.field}selected="selected"{/if}>{$filter.label}</option>
+						{/foreach}
+					</select>
+					{assign var=activeFilterName value=$filterInfo.name}
+					{assign var=activeFilterValues value=$filters.$activeFilterName}
+					<select class='filterValues' name='filterValue[{$filterIndex}]'>
+						{foreach from=$activeFilterValues.values item=label key=value}
+							<option value="{$value}" {if $filterInfo.value == $value}selected="selected"{/if}>{$label}</option>
+						{/foreach}
+					</select>
+				</div>
+				{assign var=nextFilterIndex value=$nextFilterIndex+1}
 			{/foreach}
+			<div class="filterSetting" id="filterSetting{$nextFilterIndex}">
+				<select name="filter[{$nextFilterIndex}]" id="filter{$nextFilterIndex}" data-filter-index="{$nextFilterIndex}" onchange="showFilterValues(this)">
+					<option value="">Select a value</option>
+					{foreach from=$filters item=filter}
+						<option value="{$filter.field}">{$filter.label}</option>
+					{/foreach}
+				</select>
+			</div>
 		</div>
-	{/foreach}
-	</div>
+		<div id="filterUpdate">
+			<input type="submit" id="refreshReport" value="Refresh Report"/>
+		</div>
+	</form>
 </div>
 {/strip}
+<script type="text/javascript">
+	var filterValues = {literal}{}{/literal};
+	{foreach from=$filters item=filter}
+		filterValues["{$filter.field}"] = {literal}{}{/literal};
+		{foreach from=$filter.values item=label key=value}
+			filterValues["{$filter.field}"]["{$value}"] = "{$label}";
+		{/foreach}
+	
+	{/foreach}
+	
+	var filterParams = "{$filterString}";
+</script>

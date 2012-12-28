@@ -2,6 +2,8 @@
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
 <script type="text/javascript" src="/js/analyticReports.js"></script>
 <div id="page-content" class="content">
+	{include file="Report/reportSwitcher.tpl"}
+	{include file="Report/analyticsFilters.tpl"}
 	<div id="topSearchesContainer" class="reportContainer">
 		<h2>Top Searches</h2>
 		<ol class='reportOrderedList'>

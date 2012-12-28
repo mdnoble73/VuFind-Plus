@@ -42,9 +42,18 @@ class PageViews extends AnalyticsReport{
 	function loadSlowestPageViews(){
 		global $interface;
 		global $user;
+		global $analytics;
+
+		$sessionFilterSQL = $analytics->getSessionFilterSQL();
+		$sessionJoin = "";
+		$sessionWhere = "";
+		if ($sessionFilterSQL != null){
+			$sessionJoin = " INNER JOIN analytics_session on analytics_session.id = analytics_page_view.sessionId";
+			$sessionWhere = " WHERE " . $sessionFilterSQL;
+		}
 
 		$pageView = new Analytics_PageView();
-		$pageView->query('select module, action, method, AVG(loadTime) as loadTime, count(id) as numViews FROM (SELECT id, module, action, method, pageEndTime-pageStartTime as loadTime FROM `analytics_page_view`) rawData group by module, action order by loadTime DESC LIMIT 0, 20');
+		$pageView->query("select rawData.module, rawData.action, rawData.method, AVG(rawData.loadTime) as loadTime, count(rawData.id) as numViews FROM (SELECT analytics_page_view.id, module, action, method, pageEndTime-pageStartTime as loadTime FROM `analytics_page_view` $sessionJoin $sessionWhere) rawData group by module, action order by loadTime DESC LIMIT 0, 20");
 		$slowPages = array();
 		while ($pageView->fetch()){
 			$slowPages[] = array(
