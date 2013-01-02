@@ -284,18 +284,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					//Record is eContent, but we have a print resource for it, transfer from the 
 					//Old to new and delete the resource
 					//Ignore this for now since it is bringing indexing to a crawl
-					/*getEContentRecordIdByIlsIds.setString(1, recordInfo.getId());
-					ResultSet eContentRecordIdRS = getEContentRecordIdByIlsIds.executeQuery();
-					if (eContentRecordIdRS.next()){
-						Long eContentRecordId = eContentRecordIdRS.getLong("id");
-						getEContentResource.setLong(1, eContentRecordId);
-						ResultSet getEContentResourceRS = getEContentResource.executeQuery();
-						if (getEContentResourceRS.next()){
-							Long econtentResourceId = getEContentResourceRS.getLong("id");
-							transferUserInfo(existingResourceId, econtentResourceId);
-							deleteResourcePermanently(existingResourceId);
-						}
-					}*/
 				}
 				return true;
 			}else{
@@ -457,8 +445,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				}
 			}
 			results.addNote("Finished deleting resources");
-			results.saveResults();
 		}
+		results.saveResults();
 	}
 
 	@Override

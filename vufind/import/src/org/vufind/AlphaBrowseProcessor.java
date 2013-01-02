@@ -192,10 +192,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					return true;
 				}
 			}
-			if (!recordInfo.isEContent()){
+			//Process all marc records together
+			//if (!recordInfo.isEContent()){
 				if (!clearAlphaBrowseAtStartOfIndex){
 					//logger.debug("Clearing browse info for " + recordInfo.getId());
-					clearBrowseInfoForRecord(recordInfo.getId());
+					clearBrowseInfoForRecord(recordInfo.getFullId());
 				}
 				HashMap<String, String> titles = recordInfo.getBrowseTitles();
 				HashMap<String, String> authors = recordInfo.getBrowseAuthors();
@@ -237,9 +238,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}else{
 					results.incUpdated();
 				}
-			}else{
+			/*}else{
 				results.incSkipped();
-			}
+			}*/
 			return true;
 		} catch (SQLException e) {
 			results.addNote("Error processing marc record " + e.toString());
@@ -250,26 +251,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			if (results.getRecordsProcessed() % 100 == 0){
 				results.saveResults();
 			}
-			/*if (results.getRecordsProcessed() % 10000 == 0){
-				optimizeTables();
-			}*/
 		}
 		
 	}
 	
-	/*private void optimizeTables(){
-		try {
-			optimizeTitleStmt.execute();
-			optimizeAuthorStmt.execute();
-			optimizeSubjectStmt.execute();
-			optimizeCallNumberStmt.execute();
-		} catch (SQLException e) {
-			results.addNote("Error processing optimizing tables " + e.toString());
-			results.incErrors();
-			logger.error("Error processing optimizing tables ", e);
-		}
-	}*/
-
 	private void clearBrowseInfoForRecord(String id) {
 		try {
 			for (PreparedStatement curStatement: clearAuthorBrowseRecordInfoStmts.values()){

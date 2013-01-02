@@ -65,6 +65,8 @@ public class MarcRecordDetails {
 	private long														checksum				= -1;
 
 	private boolean													allFieldsMapped	= false;
+	private String													externalId = null;
+	private Long														eContentRecordId = null;
 	
 	/**
 	 * Does basic mapping of fields to determine if the record has changed or not
@@ -1090,7 +1092,7 @@ public class MarcRecordDetails {
 					returnType = String.class;
 				}else if (functionName.equals("getRelativeTimeAdded") && parms.length == 2){
 					retval = getRelativeTimeAdded(parms[0], parms[1]);
-					returnType = String.class;
+					returnType = Set.class;
 				}else if (functionName.equals("getLibraryRelativeTimeAdded") && parms.length == 6){
 					retval = getLibraryRelativeTimeAdded(parms[0], parms[1], parms[2], parms[3], parms[4], parms[5]);
 					returnType = Set.class;
@@ -1427,6 +1429,15 @@ public class MarcRecordDetails {
 			return (String) (((Set<String>) mappedFields).iterator().next());
 		} else {
 			return null;
+		}
+	}
+	
+	public String getFullId(){
+		if (isEContent()){
+			//return the econtent id
+			return "econtentRecord" + eContentRecordId;
+		}else{
+			return getId();
 		}
 	}
 
@@ -2793,7 +2804,7 @@ public class MarcRecordDetails {
 		return null;
 	}
 
-	public String getRelativeTimeAdded(String dateFieldSpec, String dateFormat) {
+	public Set<String> getRelativeTimeAdded(String dateFieldSpec, String dateFormat) {
 		// Get the date the record was added from the 998b tag (should only be one).
 		String dateAdded = getDateAdded(dateFieldSpec, dateFormat);
 		if (dateAdded == null) return null;
@@ -2810,35 +2821,36 @@ public class MarcRecordDetails {
 		return null;
 	}
 
-	public String getTimeSinceAddedForDate(Date curDate) {
+	public Set<String> getTimeSinceAddedForDate(Date curDate) {
 		long timeDifferenceDays = (new Date().getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
+		Set<String> result = new LinkedHashSet<String>();
 		if (timeDifferenceDays <= 1) {
-			return "Day";
+			result.add("Day");
 		}
 		if (timeDifferenceDays <= 7) {
-			return "Week";
+			result.add("Week");
 		}
 		if (timeDifferenceDays <= 30) {
-			return "Month";
+			result.add("Month");
 		}
 		if (timeDifferenceDays <= 60) {
-			return "2 Months";
+			result.add("2 Months");
 		}
 		if (timeDifferenceDays <= 90) {
-			return "Quarter";
+			result.add("Quarter");
 		}
 		if (timeDifferenceDays <= 180) {
-			return "Six Months";
+			result.add("Six Months");
 		}
 		if (timeDifferenceDays <= 365) {
-			return "Year";
+			result.add("Year");
 		}
-		return null;
+		return result;
 	}
 
 	public void addTimeSinceAddedForDateToResults(Date curDate, Set<String> result) {
-		result.add(getTimeSinceAddedForDate(curDate));
+		result.addAll(getTimeSinceAddedForDate(curDate));
 	}
 
 	static HashMap<String, Pattern> libraryRelativeTimeAddedBranchPatterns = new HashMap<String, Pattern>();
@@ -3491,8 +3503,13 @@ public class MarcRecordDetails {
 	}
 
 	Pattern overdriveIdPattern = Pattern.compile("[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}", Pattern.CANON_EQ);
+	private boolean externalIdLoaded = false;
 	public String getExternalId() {
+		if (externalIdLoaded){
+			return externalId;
+		}
 		if (isEContent()){
+			externalIdLoaded = true;
 			//Get the overdrive id
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
 			if (curDetectionSetting.getSource().matches("(?i)^overdrive.*")){
@@ -3501,8 +3518,8 @@ public class MarcRecordDetails {
 					for(LibrarySpecificLink link : sourceUrls){
 						Matcher RegexMatcher = overdriveIdPattern.matcher(link.getUrl());
 						if (RegexMatcher.find()) {
-							String overDriveId = RegexMatcher.group();
-							return overDriveId.toLowerCase();
+							externalId = RegexMatcher.group();
+							return externalId.toLowerCase();
 						}
 					}
 				} catch (IOException e) {
@@ -3511,6 +3528,11 @@ public class MarcRecordDetails {
 			}
 		}
 		return null;
+	}
+	
+	public void setExternalId(String externalId){
+		this.externalId = externalId;
+		externalIdLoaded = true;
 	}
 
 	public int hasItemLevelOwnership() {
@@ -3548,6 +3570,7 @@ public class MarcRecordDetails {
 		Set<String> availableAt = new HashSet<String>();
 		Set<String> itemAvailability = new HashSet<String>();
 		Set<String> buildings = new HashSet<String>();
+		//Generate information based on items. 
 		while (itemInfo.next()){
 			String item_type = itemInfo.getString("item_type");
 			String externalFormat = itemInfo.getString("externalFormat");
@@ -3571,9 +3594,15 @@ public class MarcRecordDetails {
 			}
 		}
 		int numHoldings = 0;
+		//If we have availability information, use that. 
 		boolean hasAvailabilityInfo = false;
 		while (availabilityInfo.next()){
-			hasAvailabilityInfo = true;
+			if (hasAvailabilityInfo == false){
+				//This is the first availability line.  We may have information from the items 
+				//which need to be cleared so we can use availability. 
+				buildings.clear();
+				hasAvailabilityInfo = true;
+			}
 			int copiesOwned = availabilityInfo.getInt("copiesOwned");
 			int availableCopies = availabilityInfo.getInt("availableCopies");
 			long libraryId = availabilityInfo.getLong("libraryId");
@@ -3638,8 +3667,15 @@ public class MarcRecordDetails {
 		for (String fieldName : allFields.keySet()){
 			Object value = allFields.get(fieldName);
 			if (fieldName.equals("id")){
-				doc.addField(fieldName, "econtentRecord" + econtentRecordId);
-				doc.addField("id_alt", getId());
+				doc.addField(fieldName, getFullId());
+				Set<String> altIds = new LinkedHashSet<String>();
+				logger.debug("Added " + getId() + " as an alternate id");
+				altIds.add(getId());
+				if (getExternalId() != null){
+					logger.debug("Added " + getExternalId() + " as an alternate id");
+					altIds.add( getExternalId());
+				}
+				doc.addField("id_alt", altIds);
 			}else{
 				doc.addField(fieldName, value);
 			}
@@ -3708,5 +3744,13 @@ public class MarcRecordDetails {
 		//If we got this far we haven't found a match
 		logger.error("Did not find a bib id for the record");
 		return null;
+	}
+
+	public Long geteContentRecordId() {
+		return eContentRecordId;
+	}
+
+	public void seteContentRecordId(Long eContentRecordId) {
+		this.eContentRecordId = eContentRecordId;
 	}
 }

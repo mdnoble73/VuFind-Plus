@@ -322,7 +322,9 @@ public class ReindexProcess {
 				long minChangeTime = indexTime - (48 * 60 * 60);
 				dateChangedFilter = " AND date_updated >= " + minChangeTime;
 			}
-			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter + dateChangedFilter, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//Only reindex eContent that isn't part of the marc record indexing process
+			PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active' AND ilsId is NULL" + idFilter + dateChangedFilter, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			//PreparedStatement econtentRecordStatement = econtentConn.prepareStatement("SELECT * FROM econtent_record WHERE status = 'active'" + idFilter + dateChangedFilter, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			while (allEContent.next()){
 				for (IEContentProcessor econtentProcessor : econtentProcessors){
@@ -332,14 +334,20 @@ public class ReindexProcess {
 					String status = allEContent.getString("status");
 					long recordStatus = MarcProcessor.RECORD_UNCHANGED;
 					if (status.equals("deleted") || status.equals("archived")){
+						logger.debug("eContent record is deleted");
 						recordStatus = MarcProcessor.RECORD_DELETED;
 					}else{
 						if ((indexTime - dateAdded) < 24 * 60 * 60){
 							recordStatus = MarcProcessor.RECORD_NEW;
+							logger.debug("eContent record is new");
 						}else if ((indexTime - dateUpdated) < 24 * 60 * 60){
+							logger.debug("eContent record is changed primary");
 							recordStatus = MarcProcessor.RECORD_CHANGED_PRIMARY;
 						}else if ((indexTime - dateUpdated) < 48 * 60 * 60){
+							logger.debug("eContent record is changed secondary");
 							recordStatus = MarcProcessor.RECORD_CHANGED_SECONDARY;
+						}else{
+							logger.debug("eContent record is not changed");
 						}
 					}
 					econtentProcessor.processEContentRecord(allEContent, recordStatus);

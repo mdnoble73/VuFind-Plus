@@ -393,30 +393,33 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				apiKey = libToOverDriveAPIKeyMap.get(curCollection);
 			}
 			if (apiKey == null){
-				logger.error("Unable to get api key for colleciton " + curCollection);
+				logger.error("Unable to get api key for collection " + curCollection);
 			}
 			String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
 			JSONObject availability = callOverDriveURL(url);
-			
-			try {
-				OverDriveAvailabilityInfo availabilityInfo = new OverDriveAvailabilityInfo();
-				availabilityInfo.setLibraryId(curCollection);
-				if (availability.has("available")){
-					String availableField = availability.getString("available");
-					//logger.debug("Available = " + availableField);
-					availabilityInfo.setAvailable(availableField.equals("true"));
-				}else{
-					availabilityInfo.setAvailable(false);
+			if (availability != null){
+				//If availability is null, it isn't available for this collection
+				try {
+					OverDriveAvailabilityInfo availabilityInfo = new OverDriveAvailabilityInfo();
+					availabilityInfo.setLibraryId(curCollection);
+					if (availability.has("available")){
+						String availableField = availability.getString("available");
+						//logger.debug("Available = " + availableField);
+						availabilityInfo.setAvailable(availableField.equals("true"));
+					}else{
+						availabilityInfo.setAvailable(false);
+					}
+					
+					availabilityInfo.setCopiesOwned(availability.getInt("copiesOwned"));
+					availabilityInfo.setAvailableCopies(availability.getInt("copiesAvailable"));
+					availabilityInfo.setNumHolds(availability.getInt("numberOfHolds"));
+					logger.debug("  Available as part of collection " + curCollection);
+					overDriveInfo.getAvailabilityInfo().put(curCollection, availabilityInfo);
+				} catch (JSONException e) {
+					logger.error("Error loading availability for title ", e);
+					results.addNote("Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
+					results.incErrors();
 				}
-				
-				availabilityInfo.setCopiesOwned(availability.getInt("copiesOwned"));
-				availabilityInfo.setAvailableCopies(availability.getInt("copiesAvailable"));
-				availabilityInfo.setNumHolds(availability.getInt("numberOfHolds"));
-				overDriveInfo.getAvailabilityInfo().put(curCollection, availabilityInfo);
-			} catch (JSONException e) {
-				logger.error("Error loading availability for title ", e);
-				results.addNote("Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
-				results.incErrors();
 			}
 		}
 	}
@@ -527,8 +530,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 	
 	private JSONObject callOverDriveURL(String overdriveUrl) {
-		for (int connectTry = 1 ; connectTry < 5; connectTry++){
+		int maxConnectTries = 5;
+		for (int connectTry = 1 ; connectTry < maxConnectTries; connectTry++){
 			if (connectToOverDriveAPI(connectTry != 1)){
+				if (connectTry != 1){
+					logger.debug("Connecting to " + overdriveUrl + " try " + connectTry);
+				}
 				//Connect to the API to get our token
 				HttpURLConnection conn = null;
 				try {
@@ -560,7 +567,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						rd.close();
 						return new JSONObject(response.toString());
 					} else {
-						logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API" );
+						logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API try " + connectTry );
 						// Get any errors
 						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 						String line;
@@ -570,23 +577,15 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						logger.debug("  Finished reading response");
 	
 						rd.close();
-						return null;
 					}
 	
 				} catch (Exception e) {
-					if (connectTry == 3){
-						logger.error("Error loading data from overdrive API", e );
-						return null;
-					}
-				}
-			}else{
-				if (connectTry == 3){
-					return null;
+					logger.debug("Error loading data from overdrive API try " + connectTry, e );
 				}
 			}
 		}
-		logger.error("Failed to call overdrive url " +overdriveUrl + " in 3 calls");
-		results.addNote("Failed to call overdrive url " +overdriveUrl + " in 3 calls");
+		logger.error("Failed to call overdrive url " +overdriveUrl + " in " + maxConnectTries + " calls");
+		results.addNote("Failed to call overdrive url " +overdriveUrl + " in " + maxConnectTries + " calls");
 		return null;
 	}
 
@@ -638,7 +637,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				overDriveAPIExpiration = parser.getLong("expires_in") - 10000;
 				//logger.debug("OverDrive token is " + overDriveAPIToken);
 			} else {
-				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API" );
+				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service" );
 				// Get any errors
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 				String line;
@@ -702,34 +701,34 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Make sure that overdrive titles are updated if we need to check availability
 				if (source.matches("(?i)^overdrive.*") && checkOverDriveAvailability){
 					//Overdrive record, force processing to make sure we get updated availability
-					//logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
+					logger.debug("Record is overdrive, forcing reindex to check overdrive availability");
 				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
 					if (extractEContentFromUnchangedRecords){
-						//logger.debug("Record is unchanged, but reindex unchanged records is on");
+						logger.debug("Record is unchanged, but reindex unchanged records is on");
 					}else{
 						//Check to see if we have items for the record
 						if (!existingEcontentIlsIds.containsKey(recordInfo.getId())){
-							//logger.debug("Record is unchanged, but the record does not exist in the eContent database.");
+							logger.debug("Record is unchanged, but the record does not exist in the eContent database.");
 						}else{
 							EcontentRecordInfo existingRecordInfo = existingEcontentIlsIds.get(recordInfo.getId());
 							if (existingRecordInfo.getNumItems() == 0){
-								//logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
+								logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
 							}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
-								//logger.debug("Record is unchanged, is not active indexing to correct the status.");
+								logger.debug("Record is unchanged, is not active indexing to correct the status.");
 							}else{
 								existingEcontentIlsIds.remove(recordInfo.getId());
-								//logger.debug("Skipping because the record is not changed");
+								logger.debug("Skipping because the record is not changed");
 								results.incSkipped();
 								return false;
 							}
 						}
 					}
 				}else{
-					/*if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY){
+					if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY){
 						logger.debug("Record has changed");
 					}else{
 						logger.debug("Record is new");
-					}*/
+					}
 				}
 				
 				
@@ -745,6 +744,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						//The record already exists, check if it needs to be updated?
 						importRecordIntoDatabase = false;
 						eContentRecordId = eContentRecordInfo.getRecordId();
+						recordInfo.seteContentRecordId(eContentRecordId);
 						existingEcontentIlsIds.remove(recordInfo.getId());
 					}else{
 						//Add to database
@@ -775,6 +775,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				if (importRecordIntoDatabase){
 					//Add to database
 					eContentRecordId = addEContentRecordToDb(recordInfo, cover, logger, source, accessType, ilsId, eContentRecordId);
+					recordInfo.seteContentRecordId(eContentRecordId);
 					recordAdded = (eContentRecordId != -1);
 				}else{
 					//Update the record
@@ -1347,10 +1348,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		int numRecordsAdded = 0;
 		for (String overDriveId : overDriveTitles.keySet()){
 			OverDriveRecordInfo recordInfo = overDriveTitles.get(overDriveId);
-			//logger.debug("Adding OverDrive record " + recordInfo.getId());
+			logger.debug("Adding OverDrive record " + recordInfo.getId());
 			loadOverDriveMetaData(recordInfo);
 			try {
 				long econtentRecordId = -1;
+				results.incOverDriveNonMarcRecordsProcessed();
 				if (overDriveTitlesWithoutIlsId.containsKey(overDriveId)){
 					EcontentRecordInfo econtentInfo = overDriveTitlesWithoutIlsId.get(overDriveId);
 					econtentRecordId = econtentInfo.getRecordId();
@@ -1367,6 +1369,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Reindex the record
 				SolrInputDocument doc = createSolrDocForOverDriveRecord(recordInfo, econtentRecordId);
 				updateServer.add(doc);
+				//logger.debug(doc.toString());
 				numRecordsAdded++;
 				if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded >= numOverDriveTitlesToLoadFromAPI){
 					break;
@@ -1383,6 +1386,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		SolrInputDocument doc = new SolrInputDocument();
 		doc.addField("id", "econtentRecord" + econtentRecordId);
 		doc.addField("id_sort", "econtentRecord" + econtentRecordId);
+		doc.addField("id_alt", recordInfo.getId());
 		
 		doc.addField("collection", "Western Colorado Catalog");
 		int numHoldings = 0;
