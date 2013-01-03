@@ -3269,7 +3269,6 @@ public class MarcRecordDetails {
 						isEContent = true;
 					}else if (subfieldCVal.equalsIgnoreCase("Public Domain")){
 						tempDetectionSettings.setAccessType("free");
-						tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
 						isEContent = true;
 					}else if (subfieldCVal.equalsIgnoreCase("Single Use")){
 						tempDetectionSettings.setAccessType("singleUse");
