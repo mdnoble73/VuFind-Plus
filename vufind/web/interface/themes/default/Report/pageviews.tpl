@@ -8,6 +8,7 @@
 	<div id="pageViewsByModuleContainer" class="reportContainer">
 		<div id="pageViewsByModuleChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByModule{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 
 	<div id="slowestPageViewsContainer" class="reportContainer2">
@@ -27,21 +28,25 @@
 	<div id="pageViewsByThemeContainer" class="reportContainer">
 		<div id="pageViewsByThemeChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByTheme{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	
 	<div id="pageViewsByDeviceContainer" class="reportContainer">
 		<div id="pageViewsByDeviceChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByDevice{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	
 	<div id="pageViewsByHomeLocationContainer" class="reportContainer">
 		<div id="pageViewsByHomeLocationChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByHomeLocation{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	
 	<div id="pageViewsByPhysicalLocationContainer" class="reportContainer">
 		<div id="pageViewsByPhysicalLocationChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByPhysicalLocation{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 </div>
 <div class="clearer"></div>

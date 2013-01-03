@@ -264,6 +264,36 @@ class Analytics
 			$data['parentName'] = 'Searches';
 			$data['columns'] = array('Facet', 'Number of Searches', 'Percent Usage');
 			$data['data'] = $this->getFacetUsageByType($forGraph);
+		}elseif ($source == 'pageViewsByModule'){
+			$data['name'] = "Page Views By Module";
+			$data['parentLink'] = '/Report/PageViews';
+			$data['parentName'] = 'Page Views';
+			$data['columns'] = array('Module', 'Number of Page Views');
+			$data['data'] = $this->getPageViewsByModule($forGraph);
+		}elseif ($source == 'pageViewsByTheme'){
+			$data['name'] = "Page Views By Theme";
+			$data['parentLink'] = '/Report/PageViews';
+			$data['parentName'] = 'Page Views';
+			$data['columns'] = array('Theme', 'Number of Page Views');
+			$data['data'] = $this->getPageViewsByTheme($forGraph);
+		}elseif ($source == 'pageViewsByDevice'){
+			$data['name'] = "Page Views By Device";
+			$data['parentLink'] = '/Report/PageViews';
+			$data['parentName'] = 'Page Views';
+			$data['columns'] = array('Device', 'Number of Page Views');
+			$data['data'] = $this->getPageViewsByDevice($forGraph);
+		}elseif ($source == 'pageViewsByHomeLocation'){
+			$data['name'] = "Page Views By Home Location";
+			$data['parentLink'] = '/Report/PageViews';
+			$data['parentName'] = 'Page Views';
+			$data['columns'] = array('Patron Home Library', 'Number of Page Views');
+			$data['data'] = $this->getPageViewsByHomeLocation($forGraph);
+		}elseif ($source == 'pageViewsByPhysicalLocation'){
+			$data['name'] = "Page Views By Home Location";
+			$data['parentLink'] = '/Report/PageViews';
+			$data['parentName'] = 'Page Views';
+			$data['columns'] = array('Physical Location', 'Number of Page Views');
+			$data['data'] = $this->getPageViewsByPhysicalLocation($forGraph);
 		}
 		return $data;
 	}
@@ -343,11 +373,10 @@ class Analytics
 	}
 
 	function getSearchesWithFacets($forGraph){
-		global $analytics;
 		//load searches by type
 		$searches = new Analytics_Search();
 		$searches->selectAdd('count(analytics_search.id) as numSearches');
-		$session = $analytics->getSessionFilters();
+		$session = $this->getSessionFilters();
 		if ($session != null){
 			$searches->joinAdd($session);
 		}
@@ -368,15 +397,13 @@ class Analytics
 	}
 
 	function getFacetUsageByType($forGraph){
-
-		global $analytics;
 		//load searches by type
 		$events = new Analytics_Event();
 
 		$events->selectAdd('count(analytics_event.id) as numEvents');
 		$events->category = 'Apply Facet';
 		$events->selectAdd('action');
-		$session = $analytics->getSessionFilters();
+		$session = $this->getSessionFilters();
 		if ($session != null){
 			$events->joinAdd($session);
 		}
@@ -409,5 +436,130 @@ class Analytics
 		}
 
 		return $eventInfo;
+	}
+
+	function getPageViewsByDevice($forGraph){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $this->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('device');
+		$pageViews->groupBy('device');
+		$pageViews->orderBy('numViews DESC');
+		if ($forGraph){
+			$pageViews->limit(0, 10);
+		}
+		$pageViews->find();
+		$pageViewsByDeviceRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByDeviceRaw[] = array ($pageViews->device, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByDeviceRaw;
+	}
+
+	function getPageViewsByHomeLocation($forGraph){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$location = new Location();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $this->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
+		$session->joinAdd($location);
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('displayName');
+		$pageViews->groupBy('displayName');
+		$pageViews->orderBy('numViews DESC');
+		if ($forGraph){
+			$pageViews->limit(0, 10);
+		}
+		$pageViews->find();
+		$pageViewsByDeviceRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByDeviceRaw[] = array ($pageViews->displayName, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByDeviceRaw;
+	}
+
+	function getPageViewsByPhysicalLocation($forGraph){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $this->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('physicalLocation');
+		$pageViews->groupBy('physicalLocation');
+		$pageViews->orderBy('numViews DESC');
+		if ($forGraph){
+			$pageViews->limit(0, 5);
+		}
+		$pageViews->find();
+		$pageViewsByDeviceRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByDeviceRaw[] = array ($pageViews->physicalLocation, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByDeviceRaw;
+	}
+
+	function getPageViewsByTheme($forGraph){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$session = $this->getSessionFilters();
+		if ($session == null){
+			$session = new Analytics_Session();
+		}
+		$pageViews->joinAdd($session);
+		$pageViews->selectAdd('theme');
+		$pageViews->groupBy('theme');
+		$pageViews->orderBy('numViews DESC');
+		if ($forGraph){
+			$pageViews->limit(0, 10);
+		}
+		$pageViews->find();
+		$pageViewsByThemeRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByThemeRaw[] = array ($pageViews->theme, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByThemeRaw;
+	}
+
+	function getPageViewsByModule($forGraph){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$pageViews->selectAdd('module');
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$pageViews->joinAdd($session);
+		}
+		$pageViews->groupBy('module');
+		$pageViews->orderBy('numViews DESC');
+		if ($forGraph){
+			$pageViews->limit(0, 10);
+		}
+		$pageViews->find();
+		$pageViewsByModuleRaw = array();
+		while ($pageViews->fetch()){
+			$pageViewsByModuleRaw[] = array ($pageViews->module, (int)$pageViews->numViews);
+		}
+
+		return $pageViewsByModuleRaw;
 	}
 }

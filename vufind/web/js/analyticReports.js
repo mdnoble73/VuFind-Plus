@@ -336,7 +336,7 @@ function setupSearchesWithFacetsChart() {
 }
 function getSearchWithFacetsData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getSearchWithFacetsData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getSearchWithFacetsData&forGraph=true" + filterParms,
 		function(data) {
 			$.each(data, function(i, val){
 				searchesWithFacetsChart.series[0].addPoint(val, true, false);
@@ -438,7 +438,7 @@ function setupPageViewsByModuleChart() {
 }
 function getPageViewsByModuleData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByModuleData&forChart=1" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByModuleData&forGraph=true" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -487,7 +487,7 @@ function setupPageViewsByThemeChart() {
 }
 function getPageViewsByThemeData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByThemeData&forChart=1" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByThemeData&forGraph=true" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -537,7 +537,7 @@ function setupPageViewsByDeviceChart() {
 }
 function getPageViewsByDeviceData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByDeviceData&forChart=1" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByDeviceData&forGraph=true" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -586,7 +586,7 @@ function setupPageViewsByHomeLocationChart() {
 }
 function getPageViewsByHomeLocationData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByHomeLocationData&forChart=1" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByHomeLocationData&forGraph=true" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){
@@ -635,7 +635,7 @@ function setupPageViewsByPhysicalLocationChart() {
 }
 function getPageViewsByPhysicalLocationData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getPageViewsByPhysicalLocationData&forChart=1" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getPageViewsByPhysicalLocationData&forGraph=true" + filterParms,
 		function(data) {
 			var categories = new Array();
 			$.each(data, function(i, val){

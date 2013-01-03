@@ -146,132 +146,27 @@ class AJAX extends Action {
 
 	function getPageViewsByModuleData(){
 		global $analytics;
-		//load searches by type
-		$pageViews = new Analytics_PageView();
-		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
-		$pageViews->selectAdd('module');
-		$session = $analytics->getSessionFilters();
-		if ($session != null){
-			$pageViews->joinAdd($session);
-		}
-		$pageViews->groupBy('module');
-		$pageViews->orderBy('numViews DESC');
-		if (isset($_REQUEST['forChart'])){
-			$pageViews->limit(0, 10);
-		}
-		$pageViews->find();
-		$pageViewsByModuleRaw = array();
-		while ($pageViews->fetch()){
-			$pageViewsByModuleRaw[] = array ($pageViews->module, (int)$pageViews->numViews);
-		}
-
-		return $pageViewsByModuleRaw;
+		return $analytics->getPageViewsByModule(isset($_REQUEST['forGraph']));
 	}
 
 	function getPageViewsByThemeData(){
 		global $analytics;
-		//load searches by type
-		$pageViews = new Analytics_PageView();
-
-		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
-		$session = $analytics->getSessionFilters();
-		if ($session == null){
-			$session = new Analytics_Session();
-		}
-		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('theme');
-		$pageViews->groupBy('theme');
-		$pageViews->orderBy('numViews DESC');
-		if (isset($_REQUEST['forChart'])){
-			$pageViews->limit(0, 10);
-		}
-		$pageViews->find();
-		$pageViewsByThemeRaw = array();
-		while ($pageViews->fetch()){
-			$pageViewsByThemeRaw[] = array ($pageViews->theme, (int)$pageViews->numViews);
-		}
-
-		return $pageViewsByThemeRaw;
+		return $analytics->getPageViewsByTheme(isset($_REQUEST['forGraph']));
 	}
 
 	function getPageViewsByDeviceData(){
 		global $analytics;
-		//load searches by type
-		$pageViews = new Analytics_PageView();
-
-		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
-		$session = $analytics->getSessionFilters();
-		if ($session == null){
-			$session = new Analytics_Session();
-		}
-		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('device');
-		$pageViews->groupBy('device');
-		$pageViews->orderBy('numViews DESC');
-		if (isset($_REQUEST['forChart'])){
-			$pageViews->limit(0, 10);
-		}
-		$pageViews->find();
-		$pageViewsByDeviceRaw = array();
-		while ($pageViews->fetch()){
-			$pageViewsByDeviceRaw[] = array ($pageViews->device, (int)$pageViews->numViews);
-		}
-
-		return $pageViewsByDeviceRaw;
+		return $analytics->getPageViewsByDevice(isset($_REQUEST['forGraph']));
 	}
 
 	function getPageViewsByHomeLocationData(){
 		global $analytics;
-		//load searches by type
-		$pageViews = new Analytics_PageView();
-		$location = new Location();
-
-		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
-		$session->joinAdd($location);
-		$session = $analytics->getSessionFilters();
-		if ($session == null){
-			$session = new Analytics_Session();
-		}
-		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('displayName');
-		$pageViews->groupBy('displayName');
-		$pageViews->orderBy('numViews DESC');
-		if (isset($_REQUEST['forChart'])){
-			$pageViews->limit(0, 10);
-		}
-		$pageViews->find();
-		$pageViewsByDeviceRaw = array();
-		while ($pageViews->fetch()){
-			$pageViewsByDeviceRaw[] = array ($pageViews->displayName, (int)$pageViews->numViews);
-		}
-
-		return $pageViewsByDeviceRaw;
+		return $analytics->getPageViewsByHomeLocation(isset($_REQUEST['forGraph']));
 	}
 
 	function getPageViewsByPhysicalLocationData(){
 		global $analytics;
-		//load searches by type
-		$pageViews = new Analytics_PageView();
-
-		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
-		$session = $analytics->getSessionFilters();
-		if ($session == null){
-			$session = new Analytics_Session();
-		}
-		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('physicalLocation');
-		$pageViews->groupBy('physicalLocation');
-		$pageViews->orderBy('numViews DESC');
-		if (isset($_REQUEST['forChart'])){
-			$pageViews->limit(0, 5);
-		}
-		$pageViews->find();
-		$pageViewsByDeviceRaw = array();
-		while ($pageViews->fetch()){
-			$pageViewsByDeviceRaw[] = array ($pageViews->physicalLocation, (int)$pageViews->numViews);
-		}
-
-		return $pageViewsByDeviceRaw;
+		return $analytics->getPageViewsByPhysicalLocation(isset($_REQUEST['forGraph']));
 	}
 
 	function getFacetUsageByTypeData(){
