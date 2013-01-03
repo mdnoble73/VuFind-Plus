@@ -1852,6 +1852,23 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'analytics_3' => array(
+			'title' => 'Analytics Update 3',
+			'description' => 'Index filter information to improve loading seed for reports.',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `analytics_session` ADD INDEX ( `country`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `city`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `state`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `theme`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `mobile`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `device`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `physicalLocation`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `patronType`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `homeLocationId`)',
+			),
+		),
+
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
 			'description' => 'Add a field for whether or not the session was started with remember me on.',
