@@ -131,79 +131,17 @@ class AJAX extends Action {
 
 	function getSearchByTypeData(){
 		global $analytics;
-		//load searches by type
-		$searches = new Analytics_Search();
-		$searches->selectAdd('count(analytics_search.id) as numSearches');
-		$searches->selectAdd('searchType');
-		$session = $analytics->getSessionFilters();
-		if ($session != null){
-			$searches->joinAdd($session);
-		}
-		$searches->groupBy('searchType');
-		$searches->find();
-		$totalSearches = 0;
-		$searchByTypeRaw = array();
-		while ($searches->fetch()){
-			$searchByTypeRaw[$searches->searchType] = $searches->numSearches;
-			$totalSearches += $searches->numSearches;
-		}
-		$searchesByType = array();
-		foreach ($searchByTypeRaw as $searchName => $searchCount){
-			$searchesByType[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
-		}
-
-		return $searchesByType;
+		return $analytics->getSearchesByType(isset($_REQUEST['forGraph']));
 	}
 
 	function getSearchByScopeData(){
 		global $analytics;
-		//load searches by type
-		$searches = new Analytics_Search();
-		$searches->selectAdd('count(analytics_search.id) as numSearches');
-		$searches->selectAdd('scope');
-		$session = $analytics->getSessionFilters();
-		if ($session != null){
-			$searches->joinAdd($session);
-		}
-		$searches->groupBy('scope');
-		$searches->find();
-		$totalSearches = 0;
-		$searchByTypeRaw = array();
-		while ($searches->fetch()){
-			$searchByTypeRaw[$searches->scope] = $searches->numSearches;
-			$totalSearches += $searches->numSearches;
-		}
-		$searchesByType = array();
-		foreach ($searchByTypeRaw as $searchName => $searchCount){
-			$searchesByType[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
-		}
-
-		return $searchesByType;
+		return $analytics->getSearchesByScope(isset($_REQUEST['forGraph']));
 	}
 
 	function getSearchWithFacetsData(){
 		global $analytics;
-		//load searches by type
-		$searches = new Analytics_Search();
-		$searches->selectAdd('count(analytics_search.id) as numSearches');
-		$session = $analytics->getSessionFilters();
-		if ($session != null){
-			$searches->joinAdd($session);
-		}
-		$searches->groupBy('facetsApplied');
-		$searches->find();
-		$totalSearches = 0;
-		$searchByTypeRaw = array();
-		while ($searches->fetch()){
-			$searchByTypeRaw[$searches->facetsApplied == 0 ? 'No Facets' : 'Facets Applied'] = $searches->numSearches;
-			$totalSearches += $searches->numSearches;
-		}
-		$searchesByType = array();
-		foreach ($searchByTypeRaw as $searchName => $searchCount){
-			$searchesByType[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
-		}
-
-		return $searchesByType;
+		return $analytics->getSearchesWithFacets(isset($_REQUEST['forGraph']));
 	}
 
 	function getPageViewsByModuleData(){
@@ -338,25 +276,7 @@ class AJAX extends Action {
 
 	function getFacetUsageByTypeData(){
 		global $analytics;
-		//load searches by type
-		$events = new Analytics_Event();
-
-		$events->selectAdd('count(analytics_event.id) as numEvents');
-		$events->category = 'Apply Facet';
-		$events->selectAdd('action');
-		$session = $analytics->getSessionFilters();
-		if ($session != null){
-			$events->joinAdd($session);
-		}
-		$events->groupBy('action');
-		$events->orderBy('numEvents DESC');
-		$events->find();
-		$eventsByFacetTypeRaw = array();
-		while ($events->fetch()){
-			$eventsByFacetTypeRaw[] = array ($events->action, (int)$events->numEvents);
-		}
-
-		return $eventsByFacetTypeRaw;
+		return $analytics->getFacetUsageByType(isset($_REQUEST['forGraph']));
 	}
 
 

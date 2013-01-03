@@ -202,6 +202,16 @@ function setupSearchesByTypeChart() {
 		title: {
 			text: 'Searches By Type'
 		},
+		plotOptions: {
+			pie: {
+				allowPointSelect: true,
+				cursor: 'pointer',
+				dataLabels: {
+					enabled: false
+				},
+				showInLegend: false
+			}
+		},
 		xAxis: {
 			title: {
 				text: 'Type'
@@ -224,7 +234,7 @@ function setupSearchesByTypeChart() {
 
 function getSearchByTypeData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getSearchByTypeData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getSearchByTypeData&forGraph=true" + filterParms,
 		function(data) {
 			$.each(data, function(i, val){
 				searchesByTypeChart.series[0].addPoint(val, true, false);
@@ -249,6 +259,16 @@ function setupSearchesByScopeChart() {
 		title: {
 			text: 'Searches By Scope'
 		},
+		plotOptions: {
+			pie: {
+				allowPointSelect: true,
+				cursor: 'pointer',
+				dataLabels: {
+					enabled: false
+				},
+				showInLegend: false
+			}
+		},
 		xAxis: {
 			title: {
 				text: 'Scope'
@@ -270,7 +290,7 @@ function setupSearchesByScopeChart() {
 }
 function getSearchByScopeData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getSearchByScopeData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getSearchByScopeData&forGraph=true" + filterParms,
 		function(data) {
 			$.each(data, function(i, val){
 				searchesByScopeChart.series[0].addPoint(val, true, false);
@@ -341,6 +361,16 @@ function setupFacetUsageByTypeChart() {
 		title: {
 			text: 'Facets By Type'
 		},
+		plotOptions: {
+			pie: {
+				allowPointSelect: true,
+				cursor: 'pointer',
+				dataLabels: {
+					enabled: false
+				},
+				showInLegend: false
+			}
+		},
 		xAxis: {
 			title: {
 				text: 'Type'
@@ -362,7 +392,7 @@ function setupFacetUsageByTypeChart() {
 }
 function getFacetUsageByTypeData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getFacetUsageByTypeData" + filterParms,
+	$.getJSON(path + "/Report/AJAX?method=getFacetUsageByTypeData&forGraph=true" + filterParms,
 		function(data) {
 			$.each(data, function(i, val){
 				facetUsageByTypeChart.series[0].addPoint(val, true, false);

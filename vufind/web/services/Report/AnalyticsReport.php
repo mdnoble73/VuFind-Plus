@@ -4,6 +4,7 @@ class AnalyticsReport extends Report{
 	function setupFilters(){
 		global $interface;
 		global $user;
+		global $analytics;
 
 		$filters = array();
 		$filters['country'] = $this->getSessionFilter('Country', 'country');
@@ -34,7 +35,7 @@ class AnalyticsReport extends Report{
 			}
 		}
 		$interface->assign('activeFilters', $activeFilters);
-		$interface->assign('filterString', $filterParams);
+		$interface->assign('filterString', $analytics->getSessionFilterString());
 
 	}
 

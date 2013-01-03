@@ -2,6 +2,9 @@
 <div id="filtersContainer">
 	<h3>Filter by</h3>
 	<form action="" method="get">
+		{if $smarty.request.source}
+			<input type="hidden" name="source" value="{$smarty.request.source}"/>
+		{/if}
 		<div id="filters">
 			{* Display existing filters *}
 			{assign var=nextFilterIndex value=1}
@@ -48,5 +51,5 @@
 	
 	{/foreach}
 	
-	var filterParams = "{$filterString}";
+	var filterParams = "{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}";
 </script>

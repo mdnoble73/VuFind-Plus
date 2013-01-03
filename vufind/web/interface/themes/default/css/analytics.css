@@ -16,7 +16,7 @@
 	width: 250px;
 	border: 1px solid gray;
 	border-radius: 3px;
-	height: 250px;
+	height: 265px;
 	padding: 10px;
 	margin: 10px;
 	display: inline-block;
@@ -48,4 +48,9 @@
 .reportOrderedList li{
 	list-style-type: decimal;
 	list-style-position: outside;
+}
+.detailedReportLink{
+	font-size: 11px;
+	width: 100%;
+	text-align: center;
 }

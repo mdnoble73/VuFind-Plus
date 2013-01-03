@@ -192,17 +192,36 @@ class Analytics
 			$filterFields = $_REQUEST['filter'];
 			$filterValues = $_REQUEST['filterValue'];
 			foreach($filterFields as $index => $fieldName){
-				$value = $filterValues[$index];
-				if (in_array($fieldName, array('country', 'city', 'state', 'theme', 'mobile', 'device', 'physicalLocation', 'patronType', 'homeLocationId'))){
-					if ($session == null){
-						$session = new Analytics_Session();
-					}
+				if (isset($filterValues[$index])){
+					$value = $filterValues[$index];
+					if (in_array($fieldName, array('country', 'city', 'state', 'theme', 'mobile', 'device', 'physicalLocation', 'patronType', 'homeLocationId'))){
+						if ($session == null){
+							$session = new Analytics_Session();
+						}
 
-					$session->$fieldName = $value;
+						$session->$fieldName = $value;
+					}
 				}
 			}
 		}
 		return $session;
+	}
+
+	function getSessionFilterString(){
+		$filterParams = "";
+		if (isset($_REQUEST['filter'])){
+			foreach ($_REQUEST['filter'] as $index => $filterName){
+				if (isset($_REQUEST['filterValue'][$index])){
+					if (strlen($filterParams) > 0){
+						$filterParams .= "&";
+					}
+					$filterVal = $_REQUEST['filterValue'][$index];
+					$filterParams .= "filter[$index]={$filterName}";
+					$filterParams .= "&filterValue[$index]={$filterVal}";
+				}
+			}
+		}
+		return $filterParams;
 	}
 
 	function getSessionFilterSQL(){
@@ -223,5 +242,172 @@ class Analytics
 			}
 		}
 		return $sessionFilterSQL;
+	}
+
+	function getReportData($source, $forGraph = false){
+		$data = array();
+		if ($source == 'searchesByType'){
+			$data['name'] = "Searches By Type";
+			$data['parentLink'] = '/Report/Searches';
+			$data['parentName'] = 'Searches';
+			$data['columns'] = array('Search Type', 'Times Used', 'Percent Usage');
+			$data['data'] = $this->getSearchesByType($forGraph);
+		}elseif ($source == 'searchesByScope'){
+			$data['name'] = "Searches By Scope";
+			$data['parentLink'] = '/Report/Searches';
+			$data['parentName'] = 'Searches';
+			$data['columns'] = array('Scope', 'Number of Searches', 'Percent Usage');
+			$data['data'] = $this->getSearchesByScope($forGraph);
+		}elseif ($source == 'facetUsageByType'){
+			$data['name'] = "Facet Usage";
+			$data['parentLink'] = '/Report/Searches';
+			$data['parentName'] = 'Searches';
+			$data['columns'] = array('Facet', 'Number of Searches', 'Percent Usage');
+			$data['data'] = $this->getFacetUsageByType($forGraph);
+		}
+		return $data;
+	}
+
+	function getSearchesByType($forGraph){
+		$searches = new Analytics_Search();
+		$searches->selectAdd('count(analytics_search.id) as numSearches');
+		$searches->selectAdd('searchType');
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$searches->joinAdd($session);
+		}
+		$searches->groupBy('searchType');
+		$searches->orderBy('numSearches  DESC');
+		$searches->find();
+		$totalSearches = 0;
+		$searchByTypeRaw = array();
+		while ($searches->fetch()){
+			$searchByTypeRaw[$searches->searchType] = $searches->numSearches;
+			$totalSearches += $searches->numSearches;
+		}
+		$searchesByType = array();
+		$numSearchesReported = 0;
+		foreach ($searchByTypeRaw as $searchName => $searchCount){
+			$numSearchesReported += $searchCount;
+			if ($forGraph){
+				$searchesInfo[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
+			}else{
+				$searchesInfo[] = array($searchName, $searchCount, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
+			}
+			if ($forGraph && count($searchesInfo) >= 5){
+				break;
+			}
+		}
+		if ($forGraph){
+			$searchesInfo[] = array('Other', (float)sprintf('%01.2f', (($totalSearches - $numSearchesReported) / $totalSearches) * 100));
+		}
+		return $searchesInfo;
+	}
+
+	function getSearchesByScope($forGraph){
+		//load searches by type
+		$searches = new Analytics_Search();
+		$searches->selectAdd('count(analytics_search.id) as numSearches');
+		$searches->selectAdd('scope');
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$searches->joinAdd($session);
+		}
+		$searches->groupBy('scope');
+		$searches->orderBy('numSearches  DESC');
+		$searches->find();
+		$totalSearches = 0;
+		$searchByTypeRaw = array();
+		while ($searches->fetch()){
+			$searchByTypeRaw[$searches->scope] = $searches->numSearches;
+			$totalSearches += $searches->numSearches;
+		}
+		$searchesInfo = array();
+		$numSearchesReported = 0;
+		foreach ($searchByTypeRaw as $searchName => $searchCount){
+			$numSearchesReported += $searchCount;
+			if ($forGraph){
+				$searchesInfo[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
+			}else{
+				$searchesInfo[] = array($searchName, $searchCount, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
+			}
+			if ($forGraph && count($searchesInfo) >= 5){
+				break;
+			}
+		}
+		if ($forGraph){
+			$searchesInfo[] = array('Other', (float)sprintf('%01.2f', (($totalSearches - $numSearchesReported) / $totalSearches) * 100));
+		}
+
+		return $searchesInfo;
+	}
+
+	function getSearchesWithFacets($forGraph){
+		global $analytics;
+		//load searches by type
+		$searches = new Analytics_Search();
+		$searches->selectAdd('count(analytics_search.id) as numSearches');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$searches->joinAdd($session);
+		}
+		$searches->groupBy('facetsApplied');
+		$searches->find();
+		$totalSearches = 0;
+		$searchByTypeRaw = array();
+		while ($searches->fetch()){
+			$searchByTypeRaw[$searches->facetsApplied == 0 ? 'No Facets' : 'Facets Applied'] = $searches->numSearches;
+			$totalSearches += $searches->numSearches;
+		}
+		$searchesInfo = array();
+		foreach ($searchByTypeRaw as $searchName => $searchCount){
+			$searchesInfo[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalSearches) * 100));
+		}
+
+		return $searchesInfo;
+	}
+
+	function getFacetUsageByType($forGraph){
+
+		global $analytics;
+		//load searches by type
+		$events = new Analytics_Event();
+
+		$events->selectAdd('count(analytics_event.id) as numEvents');
+		$events->category = 'Apply Facet';
+		$events->selectAdd('action');
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$events->joinAdd($session);
+		}
+		$events->groupBy('action');
+		$events->orderBy('numEvents DESC');
+		$events->find();
+		$eventsByFacetTypeRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsByFacetTypeRaw[$events->action] = (int)$events->numEvents;
+			$totalEvents += $events->numEvents;
+		}
+		$numReported = 0;
+		foreach ($eventsByFacetTypeRaw as $searchName => $searchCount){
+			if ($forGraph && (float)($searchCount / $totalEvents) < .02){
+				break;
+			}
+			$numReported += $searchCount;
+			if ($forGraph){
+				$eventInfo[] = array($searchName, (float)sprintf('%01.2f', ($searchCount / $totalEvents) * 100));
+			}else{
+				$eventInfo[] = array($searchName, $searchCount, (float)sprintf('%01.2f', ($searchCount / $totalEvents) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($totalEvents - $numReported) / $totalEvents) * 100));
+		}
+
+		return $eventInfo;
 	}
 }

@@ -39,10 +39,12 @@
 	<div id="searchesByTypeContainer" class="reportContainer">
 		<div id="searchesByTypeChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=searchesByType{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	<div id="searchesByScopeContainer" class="reportContainer">
 		<div id="searchesByScopeChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=searchesByScope{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	<div id="searchesWithFacetsContainer" class="reportContainer">
 		<div id="searchesWithFacetsChart" class="dashboardChart">
@@ -51,6 +53,7 @@
 	<div id="facetUsageByTypeContainer" class="reportContainer">
 		<div id="facetUsageByTypeChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=facetUsageByType{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 </div>
 <div class="clearer"></div>
