@@ -99,9 +99,9 @@ class BookCoverProcessor{
 							exit();
 						}
 					}else{
-						$filename = $bookCoverPath . '/original/' . $epubFile->cover;
+						$filename = $this->bookCoverPath . '/original/' . $epubFile->cover;
 						global $localFile;
-						$localFile = $bookCoverPath . '/' . $this->size . '/' . $cacheName . '.png';
+						$localFile = $this->bookCoverPath . '/' . $this->size . '/' . $cacheName . '.png';
 						if (file_exists($filename)){
 
 							if ($this->processImageURL($filename, true)){
