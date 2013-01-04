@@ -258,18 +258,38 @@ class Analytics
 			$data['parentName'] = 'Searches';
 			$data['columns'] = array('Scope', 'Number of Searches', 'Percent Usage');
 			$data['data'] = $this->getSearchesByScope($forGraph);
+		}elseif ($source == 'searchesWithFacets'){
+			$data['name'] = "Searches with Facets";
+			$data['parentLink'] = '/Report/Searches';
+			$data['parentName'] = 'Searches';
+			$data['columns'] = array('Searches', 'Percent Usage');
+			$data['data'] = $this->getSearchesWithFacets($forGraph);
 		}elseif ($source == 'facetUsageByType'){
 			$data['name'] = "Facet Usage";
 			$data['parentLink'] = '/Report/Searches';
 			$data['parentName'] = 'Searches';
 			$data['columns'] = array('Facet', 'Number of Searches', 'Percent Usage');
 			$data['data'] = $this->getFacetUsageByType($forGraph);
+		}elseif ($source == 'topSearches'){
+			$data['name'] = "Top Searches";
+			$data['parentLink'] = '/Report/Searches';
+			$data['parentName'] = 'Searches';
+			$data['columns'] = array('Search Term', 'Number of Searches');
+			$data['paginate'] = true;
+			$data['data'] = $this->getTopSearches($forGraph);
+
 		}elseif ($source == 'pageViewsByModule'){
 			$data['name'] = "Page Views By Module";
 			$data['parentLink'] = '/Report/PageViews';
 			$data['parentName'] = 'Page Views';
 			$data['columns'] = array('Module', 'Number of Page Views');
 			$data['data'] = $this->getPageViewsByModule($forGraph);
+		}elseif ($source == 'pageViewsByModuleAction'){
+			$data['name'] = "Page Views By Module and Action";
+			$data['parentLink'] = '/Report/PageViews';
+			$data['parentName'] = 'Page Views';
+			$data['columns'] = array('Module', 'Action', 'Number of Page Views');
+			$data['data'] = $this->getPageViewsByModuleAction($forGraph);
 		}elseif ($source == 'pageViewsByTheme'){
 			$data['name'] = "Page Views By Theme";
 			$data['parentLink'] = '/Report/PageViews';
@@ -294,6 +314,20 @@ class Analytics
 			$data['parentName'] = 'Page Views';
 			$data['columns'] = array('Physical Location', 'Number of Page Views');
 			$data['data'] = $this->getPageViewsByPhysicalLocation($forGraph);
+
+		}elseif ($source == 'holdsByResult'){
+			$data['name'] = "Holds By Result";
+			$data['parentLink'] = '/Report/ILSIntegration';
+			$data['parentName'] = 'ILS Integration';
+			$data['columns'] = array('Hold Result', 'Times', '% Result');
+			$data['data'] = $this->getHoldsByResult($forGraph);
+		}elseif ($source == 'holdsPerSession'){
+			$data['name'] = "Holds Per Session";
+			$data['parentLink'] = '/Report/ILSIntegration';
+			$data['parentName'] = 'ILS Integration';
+			$data['columns'] = array('# Holds Placed', 'Number of Sessions', '% Result');
+			$data['data'] = $this->getHoldsPerSession($forGraph);
+
 		}
 		return $data;
 	}
@@ -438,6 +472,42 @@ class Analytics
 		return $eventInfo;
 	}
 
+	function getTopSearches($forGraph){
+		$search = new Analytics_Search();
+		$search->selectAdd();
+		$search->selectAdd("count(analytics_search.id) as timesSearched");
+		$search->selectAdd("lookfor");
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$search->joinAdd($session);
+		}
+		$search->whereAdd("numResults > 0");
+		$search->groupBy('lookfor');
+		$search->orderBy('timesSearched DESC');
+		if ($forGraph){
+			$search->limit(0, 20);
+		}else{
+
+			$search->limit(0, 50);
+		}
+		$search->find();
+		$topSearches = array();
+		while ($search->fetch()){
+			$searchTerm = "";
+			if (!is_null($search->lookfor) && strlen(trim($search->lookfor)) > 0){
+				$searchTerm = $search->lookfor;
+			}else{
+				$searchTerm = "&lt;blank&gt;";
+			}
+			if ($forGraph){
+				$topSearches[] = "$searchTerm ({$search->timesSearched})";
+			}else{
+				$topSearches[] = array($searchTerm, $search->timesSearched);
+			}
+		}
+		return $topSearches;
+	}
+
 	function getPageViewsByDevice($forGraph){
 		//load searches by type
 		$pageViews = new Analytics_PageView();
@@ -561,5 +631,110 @@ class Analytics
 		}
 
 		return $pageViewsByModuleRaw;
+	}
+
+	function getPageViewsByModuleAction($forGraph){
+		//load searches by type
+		$pageViews = new Analytics_PageView();
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$pageViews->selectAdd('module');
+		$pageViews->selectAdd('action');
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$pageViews->joinAdd($session);
+		}
+		$pageViews->groupBy('module');
+		$pageViews->groupBy('action');
+		$pageViews->orderBy('numViews DESC');
+		if ($forGraph){
+			$pageViews->limit(0, 10);
+		}
+		$pageViews->find();
+		$pageViewsByModuleRaw = array();
+		while ($pageViews->fetch()){
+			if ($forGraph){
+				$pageViewsByModuleRaw[] = array ($pageViews->module . ' - ' . $pageViews->action, (int)$pageViews->numViews);
+			}else{$pageViewsByModuleRaw[] = array ($pageViews->module, $pageViews->action, (int)$pageViews->numViews);
+
+			}
+		}
+
+		return $pageViewsByModuleRaw;
+	}
+
+	function getHoldsByResult($forGraph){
+		//load searches by type
+		$events = new Analytics_Event();
+
+		$events->selectAdd('data');
+		$events->selectAdd('count(analytics_event.id) as numEvents');
+		$events->category = 'ILS Integration';
+		$events->whereAdd("action in ('Failed Hold', 'Successful Hold')");
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$events->joinAdd($session);
+		}
+		$events->groupBy('action');
+		$events->orderBy('numEvents DESC');
+		$events->find();
+		$eventsInfoRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsInfoRaw[$events->action] = (int)$events->numEvents;
+			$totalEvents += $events->numEvents;
+		}
+		$numReported = 0;
+		foreach ($eventsInfoRaw as $name => $count){
+			if ($forGraph && (float)($count / $totalEvents) < .02){
+				break;
+			}
+			$numReported += $count;
+			if ($forGraph){
+				$eventInfo[] = array($name, (float)sprintf('%01.2f', ($count / $totalEvents) * 100));
+			}else{
+				$eventInfo[] = array($name, $count, (float)sprintf('%01.2f', ($count / $totalEvents) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph && ($totalEvents - $numReported > 0)){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($totalEvents - $numReported) / $totalEvents) * 100));
+		}
+
+		return $eventInfo;
+	}
+
+	function getHoldsPerSession($forGraph){
+		//load searches by type
+		$events = new Analytics_Event();
+
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Successful Hold' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventsInfoRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsInfoRaw[$events->numHolds . ' Holds'] = (int)$events->numSessions;
+			$totalEvents += $events->numSessions;
+		}
+		$numReported = 0;
+		foreach ($eventsInfoRaw as $name => $count){
+			if ($forGraph && (float)($count / $totalEvents) < .02){
+				break;
+			}
+			$numReported += $count;
+			if ($forGraph){
+				$eventInfo[] = array($name, (float)sprintf('%01.2f', ($count / $totalEvents) * 100));
+			}else{
+				$eventInfo[] = array($name, $count, (float)sprintf('%01.2f', ($count / $totalEvents) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph && ($totalEvents - $numReported > 0)){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($totalEvents - $numReported) / $totalEvents) * 100));
+		}
+
+		return $eventInfo;
 	}
 }

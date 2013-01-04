@@ -3,7 +3,7 @@
 <div id="page-content" class="content">
 	{include file="Report/analyticsFilters.tpl"}
 	<h3>{$reportData.name}</h3>
-	<table id="reportData" class="tablesorter">
+	<table id="reportData" class="tablesorter reportDataTable">
 		<thead>
 			<tr>
 				{foreach from=$reportData.columns item=columnName}

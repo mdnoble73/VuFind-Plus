@@ -118,6 +118,7 @@
 			<div class="adminMenuLink{if $action == "Dashboard"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
 			<div class="adminMenuLink{if $action == "Searches"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
 			<div class="adminMenuLink{if $action == "PageViews"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
+			<div class="adminMenuLink{if $action == "ILSIntegration"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
 			<div class="adminMenuLink{if $action == "ReportPurchase"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
 			<div class="adminMenuLink{if $action == "ReportExternalLinks"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
 		</div>

@@ -11,6 +11,7 @@
 			<li>{$searchTerm}</li>
 		{/foreach}
 		</ol>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=topSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	<div id="topNoHitSearchesContainer" class="reportContainer">
 		<h2>Top No Hit Searches</h2>
@@ -19,6 +20,7 @@
 			<li>{$searchTerm}</li>
 		{/foreach}
 		</ol>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=noHitSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	<div id="latestSearchesContainer" class="reportContainer">
 		<h2>Latest Searches</h2>
@@ -27,6 +29,7 @@
 			<li>{$searchTerm}</li>
 		{/foreach}
 		</ol>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=latestHitSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	<div id="latestNoHitSearchesContainer" class="reportContainer">
 		<h2>Latest No Hit Searches</h2>
@@ -35,6 +38,7 @@
 			<li>{$searchTerm}</li>
 		{/foreach}
 		</ol>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=latestNoHitSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	<div id="searchesByTypeContainer" class="reportContainer">
 		<div id="searchesByTypeChart" class="dashboardChart">
@@ -61,12 +65,11 @@
 {* Setup charts for rendering*}
 <script type="text/javascript">
 {literal}
-
 $(document).ready(function() {
-	setupSearchesByTypeChart();
-	setupSearchesByScopeChart();
-	setupSearchesWithFacetsChart();
-	setupFacetUsageByTypeChart();
+	setupPieChart("searchesByTypeChart", 'searchesByType', 'Searches By Type', '% Used');
+	setupPieChart("searchesByScopeChart", 'searchesByScope', 'Searches By Scope', '% Used');
+	setupPieChart("searchesWithFacetsChart", 'searchesWithFacets', 'Searches with Facets', '% Used');
+	setupPieChart("facetUsageByTypeChart", 'facetUsageByType', 'Facets By Type', '% Used');
 });
 {/literal}
 </script>

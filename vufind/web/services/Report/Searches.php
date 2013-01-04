@@ -32,29 +32,10 @@ class Searches extends AnalyticsReport{
 
 		//Setup filters
 		$this->setupFilters();
-
-		$search = new Analytics_Search();
-		$search->selectAdd();
-		$search->selectAdd("count(analytics_search.id) as timesSearched");
-		$search->selectAdd("lookfor");
-		$session = $analytics->getSessionFilters();
-		if ($session != null){
-			$search->joinAdd($session);
-		}
-		$search->whereAdd("numResults > 0");
-		$search->groupBy('lookfor');
-		$search->orderBy('timesSearched DESC');
-		$search->limit(0, 20);
-		$search->find();
-		$topSearches = array();
-		while ($search->fetch()){
-			if (!is_null($search->lookfor) || strlen(trim($search->lookfor)) > 0){
-				$topSearches[] = "{$search->lookfor} ({$search->timesSearched})";
-			}else{
-				$topSearches[] = "<blank> ({$search->timesSearched})";
-			}
-		}
+		$topSearches = $analytics->getTopSearches(true);
 		$interface->assign('topSearches', $topSearches);
+
+		$session = $analytics->getSessionFilters();
 
 		$search = new Analytics_Search();
 		$search->selectAdd();

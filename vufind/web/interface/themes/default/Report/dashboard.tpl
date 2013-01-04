@@ -26,11 +26,12 @@
 <script type="text/javascript">
 {literal}
 
+var activePageViewChart = setupInteractiveChart('activePageViewsChart', 'Page Views', 'Time', 'Count');
+var recentUsersChart = setupInteractiveChart('activeUsersChart', 'Users', 'Time', 'Count');
+var recentSearchesChart = setupInteractiveChart('activeSearchesChart', 'Searches', 'Time', 'Count');
+var recentEventsChart = setupInteractiveChart('activeEventsChart', 'Events', 'Time', 'Count');
+
 $(document).ready(function() {
-	setupRecentPageViewChart();
-	setupRecentUsersChart();
-	setupRecentSearchesChart();
-	setupRecentEventsChart();
 	getRecentActivity();
 });
 {/literal}

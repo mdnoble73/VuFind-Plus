@@ -24,6 +24,12 @@
 			</tbody>
 		</table>
 	</div>
+	
+	<div id="pageViewsByModuleActionContainer" class="reportContainer">
+		<div id="pageViewsByModuleActionChart" class="dashboardChart">
+		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByModuleAction{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
+	</div>
 
 	<div id="pageViewsByThemeContainer" class="reportContainer">
 		<div id="pageViewsByThemeChart" class="dashboardChart">
@@ -56,11 +62,12 @@
 {literal}
 
 $(document).ready(function() {
-	setupPageViewsByModuleChart();
-	setupPageViewsByThemeChart();
-	setupPageViewsByDeviceChart();
-	setupPageViewsByHomeLocationChart();
-	setupPageViewsByPhysicalLocationChart();
+	setupBarChart("pageViewsByModuleChart", "pageViewsByModule", "Page Views By Module", "Module", "Page Views");
+	setupBarChart("pageViewsByModuleActionChart", "pageViewsByModuleAction", "Page Views By Module & Action", "Module & Action", "Page Views");
+	setupBarChart("pageViewsByThemeChart", "pageViewsByTheme", "Page Views By Theme", "Theme", "Page Views");
+	setupPieChart("pageViewsByDeviceChart", "pageViewsByDevice", "Page Views By Device", "Device", "Page Views");
+	setupPieChart("pageViewsByHomeLocationChart", "pageViewsByHomeLocation", "Page Views By Home Location", "Home Location", "Page Views");
+	setupPieChart("pageViewsByPhysicalLocationChart", "pageViewsByPhysicalLocation", "Page Views By Physical Location", "Physical Location", "Page Views");
 });
 {/literal}
 </script>

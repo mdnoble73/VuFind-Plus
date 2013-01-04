@@ -2749,6 +2749,7 @@ class MillenniumDriver implements DriverInterface
 	public function renewItem($patronId, $itemId, $itemIndex){
 		global $logger;
 		global $configArray;
+		global $analytics;
 
 		//Setup the call to Millennium
 		$id2= $patronId;
@@ -2807,15 +2808,27 @@ class MillenniumDriver implements DriverInterface
 		if (preg_match('/<div id="renewfailmsg" style="display:none"  class="errormessage">(.*?)<\/div>.*?<font color="red">\\s*(.*?)<\/font>/si', $sresult, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item, ' . strtolower($matches[2]) . '.';
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Failed', strtolower($matches[2]));
+			}
 		}else if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $sresult, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item, ' . strtolower($matches[1]) . '.';
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Failed', strtolower($matches[1]));
+			}
 		}else if (preg_match('/Your record is in use/si', $sresult, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
+			}
 		}else{
 			$success = true;
 			$message = 'Your item was successfully renewed';
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Successful');
+			}
 		}
 		curl_close($curl_connection);
 		unlink($cookieJar);
@@ -2829,6 +2842,7 @@ class MillenniumDriver implements DriverInterface
 	public function updatePatronInfo($patronId){
 		global $user;
 		global $configArray;
+		global $analytics;
 
 		//Setup the call to Millennium
 		$id2= $patronId;
@@ -2901,8 +2915,14 @@ class MillenniumDriver implements DriverInterface
 			$user->update();
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Profile updated successfully');
+			}
 			return true;
 		}else{
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Profile update failed');
+			}
 			return false;
 		}
 

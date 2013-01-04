@@ -28,32 +28,16 @@ class AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array())){
-			//XML responses
-			header ('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
-	               "<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
-				$xml .= $this->$_GET['method']();
-			} else {
-				$xml .= '<Error>Invalid Method</Error>';
-			}
-			$xml .= '</AJAXResponse>';
-			echo $xml;
-		}else if (in_array($method, array())){
-			//HTML responses
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}else{
-			//JSON Responses
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+
+		//JSON Responses
+		header('Content-type: text/plain');
+		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+		if (method_exists($this, $method)){
 			echo json_encode($this->$method());
+		}else{
+			$data = $analytics->getReportData($method, isset($_REQUEST['forGraph']));
+			echo json_encode($data['data']);
 		}
 	}
 
@@ -127,51 +111,6 @@ class AJAX extends Action {
 		}
 
 		return $activityByMinute;
-	}
-
-	function getSearchByTypeData(){
-		global $analytics;
-		return $analytics->getSearchesByType(isset($_REQUEST['forGraph']));
-	}
-
-	function getSearchByScopeData(){
-		global $analytics;
-		return $analytics->getSearchesByScope(isset($_REQUEST['forGraph']));
-	}
-
-	function getSearchWithFacetsData(){
-		global $analytics;
-		return $analytics->getSearchesWithFacets(isset($_REQUEST['forGraph']));
-	}
-
-	function getPageViewsByModuleData(){
-		global $analytics;
-		return $analytics->getPageViewsByModule(isset($_REQUEST['forGraph']));
-	}
-
-	function getPageViewsByThemeData(){
-		global $analytics;
-		return $analytics->getPageViewsByTheme(isset($_REQUEST['forGraph']));
-	}
-
-	function getPageViewsByDeviceData(){
-		global $analytics;
-		return $analytics->getPageViewsByDevice(isset($_REQUEST['forGraph']));
-	}
-
-	function getPageViewsByHomeLocationData(){
-		global $analytics;
-		return $analytics->getPageViewsByHomeLocation(isset($_REQUEST['forGraph']));
-	}
-
-	function getPageViewsByPhysicalLocationData(){
-		global $analytics;
-		return $analytics->getPageViewsByPhysicalLocation(isset($_REQUEST['forGraph']));
-	}
-
-	function getFacetUsageByTypeData(){
-		global $analytics;
-		return $analytics->getFacetUsageByType(isset($_REQUEST['forGraph']));
 	}
 
 
