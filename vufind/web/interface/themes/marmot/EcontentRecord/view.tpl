@@ -381,11 +381,11 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="clearer">&nbsp;</div>
 			</div>
 			
-			{if $eContentRecord->description}
+			{if $cleanDescription}
 			<div class="resultInformation">
 				<div class="resultInformationLabel">{translate text='Description'}</div>
 				<div class="recordDescription">
-					{$eContentRecord->description|escape}
+					{$cleanDescription}
 				</div>
 			</div>
 			{/if}

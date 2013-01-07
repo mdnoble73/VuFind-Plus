@@ -169,6 +169,8 @@ class Home extends Action{
 			$interface->assign('eraList', $eContentRecord->getPropertyArray('era'));
 
 			$interface->assign('eContentRecord', $eContentRecord);
+			$interface->assign('cleanDescription', strip_tags($eContentRecord->description, '<p><br><b><i><em><strong>'));
+
 			$interface->assign('id', $eContentRecord->id);
 
 			require_once('sys/eContent/EContentRating.php');
