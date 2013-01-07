@@ -36,6 +36,9 @@ class Search extends Action {
 		//Check the search source
 		$searchSources = new SearchSources();
 		$searches = $searchSources->getSearchSources();
+		if (!isset($searches[$searchSource]) && $searchSource == 'marmot'){
+			$searchSource = 'local';
+		}
 		$searchInfo = $searches[$searchSource];
 		global $module;
 		global $action;

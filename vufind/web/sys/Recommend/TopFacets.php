@@ -51,7 +51,7 @@ class TopFacets implements RecommendationInterface
 		$iniFile = isset($params[1]) ? $params[1] : 'facets';
 
 		// Load the desired facet information:
-		$searchLibrary = Library::getSearchLibrary();
+		$searchLibrary = Library::getActiveLibrary();
 		$config = getExtraConfigArray($iniFile);
 		if ($searchLibrary == null || count($searchLibrary->facets) == 0){
 			$this->facets = isset($config[$section]) ? $config[$section] : array();

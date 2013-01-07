@@ -50,7 +50,7 @@ class SideFacets implements RecommendationInterface
 		$iniName = isset($params[2]) ? $params[2] : 'facets';
 
 		// Load the desired facet information:
-		$searchLibrary = Library::getSearchLibrary();
+		$searchLibrary = Library::getActiveLibrary();
 		if ($searchLibrary == null || count($searchLibrary->facets) == 0){
 			$config = getExtraConfigArray($iniName);
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();

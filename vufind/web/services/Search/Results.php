@@ -265,6 +265,9 @@ class Results extends Action {
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		$allSearchSources = SearchSources::getSearchSources();
+		if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
+			$searchSource = 'local';
+		}
 		$translatedSearch = $allSearchSources[$searchSource]['name'];
 		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
