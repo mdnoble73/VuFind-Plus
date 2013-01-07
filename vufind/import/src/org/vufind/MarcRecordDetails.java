@@ -1669,6 +1669,13 @@ public class MarcRecordDetails {
 				}
 			}
 		}
+		//Also add the current formats for the title
+		Set<String> formats = getFormat("false");
+		for (String format : formats){
+			if (buffer.length() > 0) buffer.append(" ");
+			buffer.append(format);
+		}
+		
 		return buffer.toString();
 	}
 
@@ -1978,6 +1985,34 @@ public class MarcRecordDetails {
 				Subfield subfield = (Subfield) subfieldObj;
 				allFieldData.append(subfield.getData()).append(" ");
 			}
+		}
+		
+		//Also add the current formats for the title
+		Object existingFormatsObj = Utils.remap(getFormat("false"), marcProcessor.findMap("format_map"), false);
+		Set<String> existingFormats;
+		if (existingFormatsObj instanceof String){
+			existingFormats = new LinkedHashSet<String>();
+			existingFormats.add((String)existingFormatsObj);
+		}else{
+			existingFormats = (Set<String>)existingFormatsObj;
+		}
+		for (String format : existingFormats){
+			if (allFieldData.length() > 0) allFieldData.append(" ");
+			allFieldData.append(format);
+		}
+		
+		//Also add the format category for the title.
+		Object formatCategoriesObj = Utils.remap(getFormat("false"), marcProcessor.findMap("format_category_map"), false);
+		Set<String> formatCategories;
+		if (formatCategoriesObj instanceof String){
+			formatCategories = new LinkedHashSet<String>();
+			formatCategories.add((String)formatCategoriesObj);
+		}else{
+			formatCategories = (Set<String>)formatCategoriesObj;
+		}
+		for (String format : formatCategories){
+			if (allFieldData.length() > 0) allFieldData.append(" ");
+			allFieldData.append(format);
 		}
 		return allFieldData.toString();
 	}
@@ -3554,6 +3589,7 @@ public class MarcRecordDetails {
 		return doc;
 	}
 
+	@SuppressWarnings("unchecked")
 	public SolrInputDocument getEContentSolrDocument(long econtentRecordId, ResultSet eContentInfo, ResultSet itemInfo, ResultSet availabilityInfo) throws SQLException {
 		SolrInputDocument doc = new SolrInputDocument();
 		
@@ -3662,7 +3698,7 @@ public class MarcRecordDetails {
 		
 		addField(mappedFields, "recordtype", "econtentRecord");
 		
-		HashMap <String, Object> allFields = getFields("getSolrDocument");
+		HashMap <String, Object> allFields = getFields("getEContentSolrDocument");
 		for (String fieldName : allFields.keySet()){
 			Object value = allFields.get(fieldName);
 			if (fieldName.equals("id")){
@@ -3675,6 +3711,34 @@ public class MarcRecordDetails {
 					altIds.add( getExternalId());
 				}
 				doc.addField("id_alt", altIds);
+			}else if (fieldName.equals("keywords") || fieldName.equals("allfields")){
+				//Add formats to keywords and allfields
+				String existingValues = (String)value;
+				Object existingFormatsObj = allFields.get("format");
+				Set<String> existingFormats;
+				if (existingFormatsObj instanceof String){
+					existingFormats = new LinkedHashSet<String>();
+					existingFormats.add((String)existingFormatsObj);
+				}else{
+					existingFormats = (Set<String>)existingFormatsObj;
+				}
+				
+				for (String format : existingFormats){
+					existingValues += " " + format;
+				}
+				//Add format category to keywords and allfields
+				Object formatCategoriesObj = allFields.get("format_category");
+				Set<String> formatCategories;
+				if (formatCategoriesObj instanceof String){
+					formatCategories = new LinkedHashSet<String>();
+					formatCategories.add((String)formatCategoriesObj);
+				}else{
+					formatCategories = (Set<String>)formatCategoriesObj;
+				}
+				for (String formatCategory : formatCategories){
+					existingValues += " " + formatCategory;
+				}
+				doc.addField(fieldName, existingValues);
 			}else{
 				doc.addField(fieldName, value);
 			}

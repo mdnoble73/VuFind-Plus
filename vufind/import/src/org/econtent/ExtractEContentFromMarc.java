@@ -36,6 +36,7 @@ import org.ini4j.Ini;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.solrmarc.tools.Utils;
 import org.vufind.LexileData;
 import org.vufind.MarcRecordDetails;
 import org.vufind.IMarcRecordProcessor;
@@ -1440,7 +1441,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		LexileData lexileData = null;
 		Set<String> econtentDevices = new HashSet<String>();
 		for (OverDriveItem curItem : recordInfo.getItems().values()){
-			doc.addField("format", curItem.getFormat());
+			String translatedFormats = Utils.remap(curItem.getFormat(), marcProcessor.findMap("format_map"), true);
+			doc.addField("format", translatedFormats);
 			if (firstFormat == null){
 				firstFormat = curItem.getFormat().replace(" ", "_");
 			}
