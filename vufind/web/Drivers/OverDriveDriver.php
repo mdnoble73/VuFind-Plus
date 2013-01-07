@@ -70,7 +70,9 @@ class OverDriveDriver {
 			$return = curl_exec($ch);
 			curl_close($ch);
 			$tokenData = json_decode($return);
-			$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+			if ($tokenData){
+				$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+			}
 		}
 		return $tokenData;
 	}
@@ -78,21 +80,23 @@ class OverDriveDriver {
 	public function _callUrl($url){
 		for ($i = 1; $i < 5; $i++){
 			$tokenData = $this->_connectToAPI($i != 1);
-			$ch = curl_init($url);
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-			$return = curl_exec($ch);
-			curl_close($ch);
-			$returnVal = json_decode($return);
-			//print_r($returnVal);
-			if ($returnVal != null){
-				if (!isset($returnVal->message) || $returnVal->message != 'An unexpected error has occurred.'){
-					return $returnVal;
+			if ($tokenData){
+				$ch = curl_init($url);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+				$return = curl_exec($ch);
+				curl_close($ch);
+				$returnVal = json_decode($return);
+				//print_r($returnVal);
+				if ($returnVal != null){
+					if (!isset($returnVal->message) || $returnVal->message != 'An unexpected error has occurred.'){
+						return $returnVal;
+					}
 				}
 			}
 			usleep(500);
