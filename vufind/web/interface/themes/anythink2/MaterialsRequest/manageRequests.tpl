@@ -44,6 +44,7 @@
 						<thead>
 							<tr>
 								<th><input type="checkbox" name="selectAll" id="selectAll" onchange="toggleCheckboxes('.select', $('#selectAll').attr('checked'));"/></th>
+								<th>ID&nbsp;&nbsp;</th>
 								<th>Title</th>
 								<th>Author</th>
 								<th>Format</th>
@@ -59,6 +60,7 @@
 							{foreach from=$allRequests item=request}
 								<tr>
 									<td><input type="checkbox" name="select[{$request->id}]" class="select"/></td>
+									<td>{$request->id}</td>
 									<td>{$request->title}</td>
 									<td>{$request->author}</td>
 									<td>{$request->format}</td>
@@ -101,7 +103,7 @@
 {literal}
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
-	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 5: {sorter : 'date'}, 6: { sorter: false} } });
+	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 6: {sorter : 'date'}, 7: { sorter: false} } });
 	setupFieldsetToggles();
 {/literal}
 </script>

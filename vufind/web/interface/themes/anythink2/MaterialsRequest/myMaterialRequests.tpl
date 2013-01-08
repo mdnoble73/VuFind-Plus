@@ -23,7 +23,6 @@
       <table id="requestedMaterials" class="tablesorter">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Title</th>
             <th>Author</th>
             <th>Format</th>
@@ -35,7 +34,6 @@
         <tbody>
           {foreach from=$allRequests item=request}
             <tr>
-              <td>{$request->id}</td>
               <td>{$request->title}</td>
               <td>{$request->author}</td>
               <td>{$request->format}</td>
@@ -59,6 +57,6 @@
 </div>
 <script type="text/javascript">
 {literal}
-$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 5: {sorter : 'date'}, 6: { sorter: false} } });
+$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 4: {sorter : 'date'}, 5: { sorter: false} } });
 {/literal}
 </script>
