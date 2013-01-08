@@ -327,7 +327,24 @@ class Analytics
 			$data['parentName'] = 'ILS Integration';
 			$data['columns'] = array('# Holds Placed', 'Number of Sessions', '% Result');
 			$data['data'] = $this->getHoldsPerSession($forGraph);
-
+		}elseif ($source == 'holdsCancelledPerSession'){
+			$data['name'] = "Holds Cancelled Per Session";
+			$data['parentLink'] = '/Report/ILSIntegration';
+			$data['parentName'] = 'ILS Integration';
+			$data['columns'] = array('# Holds Cancelled', 'Number of Sessions', '% Result');
+			$data['data'] = $this->getHoldsCancelledPerSession($forGraph);
+		}elseif ($source == 'holdsUpdatedPerSession'){
+			$data['name'] = "Holds Updated Per Session";
+			$data['parentLink'] = '/Report/ILSIntegration';
+			$data['parentName'] = 'ILS Integration';
+			$data['columns'] = array('# Holds Updated', 'Number of Sessions', '% Result');
+			$data['data'] = $this->getHoldsCancelledPerSession($forGraph);
+		}elseif ($source == 'holdsFailedPerSession'){
+			$data['name'] = "Holds Failed Per Session";
+			$data['parentLink'] = '/Report/ILSIntegration';
+			$data['parentName'] = 'ILS Integration';
+			$data['columns'] = array('# Holds Failed', 'Number of Sessions', '% Result');
+			$data['data'] = $this->getHoldsCancelledPerSession($forGraph);
 		}
 		return $data;
 	}
@@ -706,6 +723,9 @@ class Analytics
 	}
 
 	function getHoldsPerSession($forGraph){
+		$totalSessions = new Analytics_Session();
+		$numTotalSessions = $totalSessions->count('id');
+
 		//load searches by type
 		$events = new Analytics_Event();
 
@@ -716,7 +736,15 @@ class Analytics
 			$eventsInfoRaw[$events->numHolds . ' Holds'] = (int)$events->numSessions;
 			$totalEvents += $events->numSessions;
 		}
-		$numReported = 0;
+		$numZeroSessions = $numTotalSessions - $totalEvents;
+		if ($forGraph){
+			$eventInfo[] = array('0 Holds', (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}else{
+			$eventInfo[] = array('0 Holds', $numZeroSessions, (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}
+		$numReported = $numZeroSessions;
+
+		$totalEvents = $numTotalSessions;
 		foreach ($eventsInfoRaw as $name => $count){
 			if ($forGraph && (float)($count / $totalEvents) < .02){
 				break;
@@ -733,6 +761,135 @@ class Analytics
 		}
 		if ($forGraph && ($totalEvents - $numReported > 0)){
 			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($totalEvents - $numReported) / $totalEvents) * 100));
+		}
+
+		return $eventInfo;
+	}
+
+	function getHoldsCancelledPerSession($forGraph){
+		//load searches by type
+		$events = new Analytics_Event();
+
+		//Get total sessions from the databse
+		$totalSessions = new Analytics_Session();
+		$numTotalSessions = $totalSessions->count('id');
+
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Hold Cancelled' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventsInfoRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsInfoRaw[$events->numHolds . ' Holds'] = (int)$events->numSessions;
+			$totalEvents += $events->numSessions;
+		}
+		$numZeroSessions = $numTotalSessions - $totalEvents;
+		if ($forGraph){
+			$eventInfo[] = array('0 Holds', (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}else{
+			$eventInfo[] = array('0 Holds', $numZeroSessions, (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}
+		$numReported = $numZeroSessions;
+		foreach ($eventsInfoRaw as $name => $count){
+			if ($forGraph && (float)($count / $numTotalSessions) < .02){
+				break;
+			}
+			$numReported += $count;
+			if ($forGraph){
+				$eventInfo[] = array($name, (float)sprintf('%01.2f', ($count / $numTotalSessions) * 100));
+			}else{
+				$eventInfo[] = array($name, $count, (float)sprintf('%01.2f', ($count / $numTotalSessions) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph && ($numTotalSessions - $numReported > 0)){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($numTotalSessions - $numReported) / $numTotalSessions) * 100));
+		}
+
+		return $eventInfo;
+	}
+
+	function getHoldsUpdatedPerSession($forGraph){
+		//load searches by type
+		$events = new Analytics_Event();
+
+		//Get total sessions from the databse
+		$totalSessions = new Analytics_Session();
+		$numTotalSessions = $totalSessions->count('id');
+
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Hold Updated' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventsInfoRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsInfoRaw[$events->numHolds . ' Holds'] = (int)$events->numSessions;
+			$totalEvents += $events->numSessions;
+		}
+		$numZeroSessions = $numTotalSessions - $totalEvents;
+		if ($forGraph){
+			$eventInfo[] = array('0 Holds', (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}else{
+			$eventInfo[] = array('0 Holds', $numZeroSessions, (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}
+		$numReported = $numZeroSessions;
+		foreach ($eventsInfoRaw as $name => $count){
+			if ($forGraph && (float)($count / $numTotalSessions) < .02){
+				break;
+			}
+			$numReported += $count;
+			if ($forGraph){
+				$eventInfo[] = array($name, (float)sprintf('%01.2f', ($count / $numTotalSessions) * 100));
+			}else{
+				$eventInfo[] = array($name, $count, (float)sprintf('%01.2f', ($count / $numTotalSessions) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph && ($numTotalSessions - $numReported > 0)){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($numTotalSessions - $numReported) / $numTotalSessions) * 100));
+		}
+
+		return $eventInfo;
+	}
+
+	function getHoldsFailedPerSession($forGraph){
+		//load searches by type
+		$events = new Analytics_Event();
+
+		//Get total sessions from the databse
+		$totalSessions = new Analytics_Session();
+		$numTotalSessions = $totalSessions->count('id');
+
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Failed Hold' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventsInfoRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsInfoRaw[$events->numHolds . ' Holds'] = (int)$events->numSessions;
+			$totalEvents += $events->numSessions;
+		}
+		$numZeroSessions = $numTotalSessions - $totalEvents;
+		if ($forGraph){
+			$eventInfo[] = array('0 Holds', (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}else{
+			$eventInfo[] = array('0 Holds', $numZeroSessions, (float)sprintf('%01.2f', ($numZeroSessions / $numTotalSessions) * 100));
+		}
+		$numReported = $numZeroSessions;
+		foreach ($eventsInfoRaw as $name => $count){
+			if ($forGraph && (float)($count / $numTotalSessions) < .02){
+				break;
+			}
+			$numReported += $count;
+			if ($forGraph){
+				$eventInfo[] = array($name, (float)sprintf('%01.2f', ($count / $numTotalSessions) * 100));
+			}else{
+				$eventInfo[] = array($name, $count, (float)sprintf('%01.2f', ($count / $numTotalSessions) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph && ($numTotalSessions - $numReported > 0)){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($numTotalSessions - $numReported) / $numTotalSessions) * 100));
 		}
 
 		return $eventInfo;

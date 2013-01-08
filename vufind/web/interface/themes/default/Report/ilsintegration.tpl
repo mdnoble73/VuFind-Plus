@@ -18,8 +18,23 @@
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsPerSession{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	{* Sessions by number of holds canceled (1, 2, 3, 4, etc) *}
+	<div id="holdsCancelledPerSessionContainer" class="reportContainer">
+		<div id="holdsCancelledBySessionChart" class="dashboardChart">
+		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsCancelledPerSession{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
+	</div>
 	{* Sessions by number of holds updated (1, 2, 3, 4, etc) *}
+	<div id="holdsUpdatedPerSessionContainer" class="reportContainer">
+		<div id="holdsUpdatedBySessionChart" class="dashboardChart">
+		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsUpdatedPerSession{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
+	</div>
 	{* Sessions by number of holds failed holds (1, 2, 3, 4, etc) *}
+	<div id="holdsFailedPerSessionContainer" class="reportContainer">
+		<div id="holdsFailedBySessionChart" class="dashboardChart">
+		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsFailedPerSession{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
+	</div>
 	{* Top Titles with Failed Holds *}
 	{* Holds by Patron Type *}
 	{* Holds by Home Libary *}
@@ -46,6 +61,9 @@
 $(document).ready(function() {
 	setupPieChart("holdsByResultChart", "holdsByResult", "Holds By Result", "% Used");
 	setupPieChart("holdsBySessionChart", "holdsPerSession", "Holds Per Session", "% Used");
+	setupPieChart("holdsCancelledBySessionChart", "holdsCancelledPerSession", "Holds Cancelled Per Session", "% Used");
+	setupPieChart("holdsUpdatedBySessionChart", "holdsUpdatedPerSession", "Holds Updated Per Session", "% Used");
+	setupPieChart("holdsFailedBySessionChart", "holdsFailedPerSession", "Holds Failed Per Session", "% Used");
 });
 {/literal}
 </script>
