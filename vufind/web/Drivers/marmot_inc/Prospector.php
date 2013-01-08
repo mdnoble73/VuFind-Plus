@@ -97,8 +97,19 @@ class Prospector{
 			if (strlen($search) > 0){
 				$search .= ' ';
 			}
-			if (isset($term['lookfor'])){
-				$search .= $term['lookfor'];
+			if (is_array($term) && isset($term['group'])){
+				foreach ($term['group'] as $groupTerm){
+					if (strlen($search) > 0){
+						$search .= ' ';
+					}
+					if (isset($groupTerm['lookfor'])){
+						$search .= $groupTerm['lookfor'];
+					}
+				}
+			}else{
+				if (isset($term['lookfor'])){
+					$search .= $term['lookfor'];
+				}
 			}
 		}
 		//Setup the link to Prospector (search classic)

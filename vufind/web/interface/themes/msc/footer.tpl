@@ -13,6 +13,7 @@
     {if $user}
     <li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
     {/if}
+    <li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
     <li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
     <li><a href="http://millennium.marmot.org/search~S18/">Classic Catalog</a></li>
   </ul>
@@ -39,7 +40,7 @@
     <li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
   </ul>
 </div>
-<br style="clear:both;" />
+<br class="clearer" />
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

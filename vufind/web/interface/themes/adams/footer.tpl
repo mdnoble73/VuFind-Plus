@@ -15,6 +15,7 @@
 		{if $user}
 		<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
 		{/if}
+		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
 		<li><a href="https://www.millennium.marmot.org/search~S1/">{translate text='Classic Catalog'}</a></li>
 	</ul>
