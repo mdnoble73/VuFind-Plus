@@ -15,9 +15,9 @@
 		<a href="#" onclick="$('.titleSelect:checked').attr('checked', false).trigger('click').attr('checked', false);return false;">Deselect All</a>
 	</div>
 	
-{if !$enableBookCart}
+{if $showHoldButton}
 		<input type="hidden" name="type" value="hold" />
-		<input type="submit" name="placeHolds" value="Request Selected Items" class="requestSelectedItems"/>
+		<input type="submit" name="placeHolds" value="Request Selected Titles" class="requestSelectedItems"/>
 {/if}
 </form>
 
