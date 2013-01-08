@@ -10,6 +10,7 @@
 	<div id="holdsByResultContainer" class="reportContainer">
 		<div id="holdsByResultChart" class="dashboardChart">
 		</div>
+		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsByResult{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	{* Sessions by number of holds placed (1, 2, 3, 4, etc) *}
 	<div id="holdsPerSessionContainer" class="reportContainer">
