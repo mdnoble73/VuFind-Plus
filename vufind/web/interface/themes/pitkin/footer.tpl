@@ -15,7 +15,7 @@
 		{/if}
 		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
-		<li><a href="http://www.millennium.marmot.org/search~S21">Search Classic Catalog</a></li>
+		<li><a href="http://www.millennium.marmot.org/search~S21">Classic Catalog</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
@@ -61,7 +61,7 @@
 		<b>Sunday:</b><br/>
 		&nbsp;&nbsp;12 pm to 6 pm<br/>
 		</li>
-		<li><a href="http://www.pitcolib.org/page_21">We are closed on certain holidays</a></li> 
+		<li><a href="http://www.pitcolib.org/page_21">Closed on certain holidays</a></li> 
 	</ul>
 </div>
 <br class="clearer"/>
