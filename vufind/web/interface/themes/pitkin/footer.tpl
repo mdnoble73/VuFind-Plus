@@ -15,6 +15,7 @@
 		{/if}
 		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
+		<li><a href="http://www.millennium.marmot.org/search~S21">Search Classic Catalog</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
@@ -39,9 +40,28 @@
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>&nbsp;</strong></p>
+<div class="footerCol"><p><strong>{translate text='About us'}</strong></p>
 	<ul>
-		<li><a href="http://www.millennium.marmot.org/search~S21">Search Classic Catalog</a></li>
+		<li><a href="http://www.pitcolib.org">{translate text='Library Home'}</a></li>
+		<li>
+			120 North Mill St.<br/>
+			Aspen, CO 81611<br/>
+			<b>(970) 429-1900</b><br/>
+		</li>
+	</ul>
+</div>
+<div class="footerCol">
+	<p><strong>{translate text='Hours of Operation'}</strong></p>
+	<ul>
+		<li>
+		<b>Monday - Thursday: </b><br/>
+		&nbsp;&nbsp;10 am to 9pm<br/>
+		<b>Friday - Saturday: </b><br/>
+		&nbsp;&nbsp;10 am to 6 pm<br/>
+		<b>Sunday:</b><br/>
+		&nbsp;&nbsp;12 pm to 6 pm<br/>
+		</li>
+		<li><a href="http://www.englewoodgov.org/Index.aspx?page=1082">Days We're Closed</a></li> 
 	</ul>
 </div>
 <br class="clearer"/>
