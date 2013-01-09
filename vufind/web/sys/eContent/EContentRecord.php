@@ -1211,6 +1211,9 @@ class EContentRecord extends SolrDataObject {
 					$checkouts->recordId = $this->id;
 					$checkouts->find();
 					$curCheckouts = $checkouts->N;
+					if ($this->accessType == 'free'){
+						$this->availableCopies = 999999;
+					}
 					$eContentAvailability->availableCopies = $this->availableCopies - $curCheckouts;
 					$eContentAvailability->copiesOwned = $this->availableCopies;
 
