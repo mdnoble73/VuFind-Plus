@@ -61,7 +61,7 @@
 		<b>Sunday:</b><br/>
 		&nbsp;&nbsp;12 pm to 6 pm<br/>
 		</li>
-		<li><a href="http://www.englewoodgov.org/Index.aspx?page=1082">Days We're Closed</a></li> 
+		<li><a href="http://www.pitcolib.org/page_21">We are closed on certain holidays</a></li> 
 	</ul>
 </div>
 <br class="clearer"/>
