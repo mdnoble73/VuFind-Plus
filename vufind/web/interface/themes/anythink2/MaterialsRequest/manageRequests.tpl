@@ -44,7 +44,7 @@
 						<thead>
 							<tr>
 								<th><input type="checkbox" name="selectAll" id="selectAll" onchange="toggleCheckboxes('.select', $('#selectAll').attr('checked'));"/></th>
-								<th>ID&nbsp;&nbsp;</th>
+								<th>ID&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
 								<th>Title</th>
 								<th>Author</th>
 								<th>Format</th>
