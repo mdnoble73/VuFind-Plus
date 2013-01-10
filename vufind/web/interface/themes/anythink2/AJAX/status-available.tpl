@@ -1,1 +1,0 @@
-<span class="available">{translate text="Available"}</span>

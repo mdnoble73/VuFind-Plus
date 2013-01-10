@@ -233,7 +233,7 @@ body {
 }
 
 #main #search {
-  width: 500px;
+  width: 650px;
   margin: 20px auto 20px auto;
 }
 
@@ -716,6 +716,7 @@ body.Search--Results--0 #sidebar-wrapper {
 #results-bottom {
   width: 100%;
   float: left;
+  text-align: center;
 }
 
 #pagination-bottom {
@@ -797,15 +798,12 @@ body.Search--Results--0 #sidebar-wrapper {
 }
 
 div.result {
+  border-bottom: 0;
+  padding: 20px 0;
   background-color: #FFF;
   background-image: url(http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif);
   background-position: bottom left;
   background-repeat: repeat-x;
-  border-bottom: 0;
-  float: left;
-  margin: 0 0 20px 0;
-  padding: 20px 0;
-  width: 100%;
 }
 
 .resultDetails {
@@ -867,22 +865,6 @@ div.result {
 #sidebar .requestThisLink a:link {
   font-size: 1.333em;
   margin: 10px 0;
-}
-
-.status {
-  background-color: #9F9;
-}
-
-div.status {
-  border: 4px solid #9C9;
-  margin: 1em 0;
-  padding: 1em 2em;
-  text-align: center;
-}
-
-.minor {
-  border-width: 1px;
-  padding: .5em 1em;
 }
 
 div.record {
@@ -1233,16 +1215,7 @@ ul.inline li {
   list-style: none;
   list-style-type: none;
   list-style-image: none;
-  margin: 0 .75em 0 0;
-}
-
-ul.right {
-  float: right;
-  clear: right;
-}
-
-ul.right li {
-  margin: 0 0 0 .75em;
+  margin: 0 .75em;
 }
 
 .groupSearchHolder span.clearer {
@@ -1552,7 +1525,7 @@ div.popupBox {
 }
 
 div.popupBox .header,
-div.popupBox .contents {
+div.popupBox .content {
   padding: 20px;
 }
 
@@ -1786,60 +1759,26 @@ input.yearbox {
 
 /* eContent holdings */
 .eContentHolding{
-  width: 100%;
-  padding-bottom: 10px;
+	width: 100%;
+	padding-bottom: 10px;
 }
 .eContentHoldingHeader{
-  background-color: #EDEDED;
-  padding: 5px;
-  font-size: 12px;
+	background-color: #EDEDED;
+	padding: 5px;
+	font-size: 12px;
 }
 .eContentHoldingFormat{
-  font-weight: bold;
-  font-size: 14px;
+	font-weight: bold;
+	font-size: 14px;
 }
 .eContentHoldingUsage{
-  font-style: italic;
-  font-size: 12px;
+	font-style: italic;
+	font-size: 12px;
 }
 .eContentHoldingActions{
-  margin: 4px 10px;
+	margin: 4px 10px;
 }
 .eContentHoldingNotes{
-  font-size: 11px;
-  margin: 2px 10px;
-}
-
-ol.hold_result_details {
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.step {
-  background-color: #FFF1E4;
-  border-bottom: 1px solid #996;
-  -webkit-border-radius: 1em;
-  -moz-border-radius: 1em;
-  border-radius: 1em;
-  color: #444;
-  display: inline-block;
-  margin: 0 .5em;
-  padding: .5em .75em;
-  vertical-align: middle;
-  text-align: center;
-}
-
-.step-desc {
-  margin-left: 5em;
-}
-
-#messages {
-  margin: 1em 0;
-  padding: 1em;
-  background-color: #FFC;
-  border: 2px solid #FF8;
-}
-
-#messages a {
-  color: #00F;
+	font-size: 11px;
+	margin: 2px 10px;
 }

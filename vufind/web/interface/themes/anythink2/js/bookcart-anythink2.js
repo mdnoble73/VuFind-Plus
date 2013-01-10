@@ -11,15 +11,9 @@ $(document).ready(function() {
 
     // if we are printing, ignore update bag
     var url = window.location.href;
-    if (url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
-      // Print this window.
+    if(url.indexOf('?' + 'print' + '=') != -1  || url.indexOf('&' + 'print' + '=') != -1) {
       window.print();
-      // Confirm to empty the bag.
-      if (confirm("Click OK to empty your cart, or click Cancel to leave items in your cart.")) {
-        emptyBag();
-      };
-      // Close this window, as it is assumed to be invoked via JS. @see printBag();
-      window.close();
+      $("link[media='print']").attr("media", "all");
     } else {
       // run the first check to see if we have anything in the bag
       updateBag(true);
@@ -339,7 +333,9 @@ function emptyBag() {
   return false;
 }
 
-function getBag() {
+/* Update the bag */
+function updateBag(collapse){
+  // read from cookie
   var cookie = $.cookie(BAG_COOKIE);
   if (cookie != null) {
     bookBag = JSON.parse(cookie);
@@ -347,11 +343,6 @@ function getBag() {
   if (bookBag == null) {
     bookBag = new Array();
   }
-}
-
-/* Update the bag */
-function updateBag(collapse){
-  getBag();
   _updateBookCount();
   // update array view
   if (bookBag.length > 0) {
@@ -438,9 +429,6 @@ function saveToMyList() {
     // get the response, if good, return the user to the book bag
     // so they can do other stuff like placing holds, printing, etc.
     if (response.result.status  == "OK") {
-      if (confirm("Items have been added to list!\n\nClick OK to empty your cart, or click Cancel to leave items in your cart.")) {
-        emptyBag();
-      };
       $('#save_to_my_list_tags').hide();
       toggleBagActionItems();
     } else {
