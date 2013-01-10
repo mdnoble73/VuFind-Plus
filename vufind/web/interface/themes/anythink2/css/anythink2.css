@@ -1832,3 +1832,14 @@ ol.hold_result_details {
 .step-desc {
   margin-left: 5em;
 }
+
+#messages {
+  margin: 1em 0;
+  padding: 1em;
+  background-color: #FFC;
+  border: 2px solid #FF8;
+}
+
+#messages a {
+  color: #00F;
+}
