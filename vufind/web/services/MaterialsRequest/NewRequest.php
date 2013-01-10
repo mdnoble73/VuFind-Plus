@@ -71,9 +71,7 @@ class NewRequest extends Action
 		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
 		$interface->assign('showPlaceHoldField', $configArray['MaterialsRequest']['showPlaceHoldField']);
 		$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
-		if (isset($configArray['MaterialsRequest']['requireAboutField'])) {
-		  $interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
-		}
+		$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
 		
 		$useWorldCat = false;
 		if (isset($configArray['WorldCat']) && isset($configArray['WorldCat']['apiKey'])){

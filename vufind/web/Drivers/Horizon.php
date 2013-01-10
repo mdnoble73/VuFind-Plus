@@ -989,7 +989,7 @@ public function getMyHoldsViaDB($patron)
 				$timer->logTime('Checked for downloadable link in 856 tag');
 			}
 
-			$showItsHere = empty($ipLibrary) ? TRUE : ($ipLibrary->showItsHere == 1);
+			$showItsHere = ($ipLibrary == null) ? true : ($ipLibrary->showItsHere == 1);
 			if ($availableHere && $showItsHere){
 				$summaryInformation['status'] = "It's Here";
 				$summaryInformation['class'] = 'here';
