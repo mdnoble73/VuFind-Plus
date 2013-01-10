@@ -126,6 +126,7 @@ class BookCoverProcessor{
 		$options =& PEAR::getStaticProperty('DB_DataObject', 'options');
 		$options = $this->configArray['Database'];
 		$this->logTime("Connect to databse");
+		require_once 'Drivers/marmot_inc/Library.php';
 	}
 
 	private function initMemcache(){
@@ -310,47 +311,52 @@ class BookCoverProcessor{
 	}
 
 	private function getCoverFromMarc(){
-		if ($this->configArray['Content']['loadCoversFrom856'] && $id && is_numeric($id) && $category && strtolower($category) == 'other'){
-			$this->log("Looking for picture as part of 856 tag.", PEAR_LOG_INFO);
-			//Retrieve the marc record
-			require_once 'sys/SearchObject/Factory.php';
-			require_once 'sys/Solr.php';
+		$this->log("Looking for picture as part of 856 tag.", PEAR_LOG_INFO);
 
-			// Setup Search Engine Connection
-			$class = $this->configArray['Index']['engine'];
-			$url = $this->configArray['Index']['url'];
-			$db = new $class($url);
-			if ($this->configArray['System']['debug']) {
-				$db->debug = true;
-			}
-
-			// Retrieve Full Marc Record
-			if (!($record = $db->getRecord($id))) {
-				PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
-			}
-			//Process the marc record
-			require_once 'sys/MarcLoader.php';
-			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-			if ($marcRecord) {
-				PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record'));
-			}
-			//Get the 856 tags
-			$marcFields = $marcRecord->getFields('856');
-			if ($marcFields){
-				$links = array();
-				foreach ($marcFields as $marcField){
-					if ($marcField->getSubfield('y')){
-						$subfield_y = $marcField->getSubfield('y')->getData();
-						if (preg_match('/.*<img.*src=[\'"](.*?)[\'"].*>.*/i', $subfield_y, $matches)){
-							if ($this->processImageURL($matches[1], true)){
-								//We got a successful match
-								$this->timer->writeTimings();
-								exit;
-							}
+		$this->initDatabaseConnection();
+		//Process the marc record
+		require_once 'sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+		if (!$marcRecord) {
+			return false;
+		}
+		//Get the 856 tags
+		$marcFields = $marcRecord->getFields('856');
+		if ($marcFields){
+			$links = array();
+			foreach ($marcFields as $marcField){
+				if ($marcField->getSubfield('y')){
+					$subfield_y = $marcField->getSubfield('y')->getData();
+					if (preg_match('/.*<img.*src=[\'"](.*?)[\'"].*>.*/i', $subfield_y, $matches)){
+						if ($this->processImageURL($matches[1], true)){
+							//We got a successful match
+							return true;
 						}
-					}else{
-						//no image link available on this link
 					}
+				}else{
+					//no image link available on this link
+				}
+			}
+		}
+		//Check the 690 field to see if this is a seed catalog entry
+		$marcFields = $marcRecord->getFields('690');
+		if ($marcFields){
+			$this->log("Found 690 field", PEAR_LOG_INFO);
+			$links = array();
+			foreach ($marcFields as $marcField){
+				if ($marcField->getSubfield('a')){
+					$this->log("Found 690a subfield", PEAR_LOG_INFO);
+					$subfield_a = $marcField->getSubfield('a')->getData();
+					if (preg_match('/seed library.*/i', $subfield_a, $matches)){
+						$this->log("Title is a seed library title", PEAR_LOG_INFO);
+						$themeName = $this->configArray['Site']['theme'];
+						$filename = "interface/themes/{$themeName}/images/seed_library_logo.jpg";
+						if ($this->processImageURL($filename, true)){
+							return true;
+						}
+					}
+				}else{
+					//no image link available on this link
 				}
 			}
 		}
@@ -507,6 +513,11 @@ class BookCoverProcessor{
 				}
 
 				// save thumbnail into a file
+				if (file_exists($finalFile)){
+					$this->log("File $finalFile already exists, deleting");
+					unlink($finalFile);
+				}
+
 				if (!@imagepng( $tmp_img, $finalFile, 9)){
 					$this->log("Could not save resized file $localFile", PEAR_LOG_ERR);
 					return false;

@@ -151,7 +151,11 @@ class Solr implements IndexEngine {
 		$this->host = $host . '/' . $index;
 
 		global $memcache;
-		$pingDone = $memcache->get('solr_ping');
+		if ($memcache){
+			$pingDone = $memcache->get('solr_ping');
+		}else{
+			$pingDone = false;
+		}
 		if ($pingDone == false){
 			// Test to see solr is online
 			$test_url = $this->host . "/admin/ping";
@@ -167,7 +171,9 @@ class Solr implements IndexEngine {
 			} else {
 				PEAR::raiseError($result);
 			}
-			$pingDone = $memcache->set('solr_ping', true, 0, $configArray['Caching']['solr_ping']);
+			if ($memcache){
+				$pingDone = $memcache->set('solr_ping', true, 0, $configArray['Caching']['solr_ping']);
+			}
 			$timer->logTime('Ping Solr instance');
 		}
 

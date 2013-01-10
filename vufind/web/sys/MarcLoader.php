@@ -4,7 +4,11 @@ class MarcLoader{
 	public static function loadMarcRecordFromRecord($record){
 		global $memcache;
 		global $configArray;
-		$marcRecord = $memcache->get('marc_record_' . $record['id']);
+		if ($memcache){
+			$marcRecord = $memcache->get('marc_record_' . $record['id']);
+		}else{
+			$marcRecord = false;
+		}
 		if ($marcRecord == false){
 			require_once 'services/MyResearch/lib/Resource.php';
 			$resource = new Resource;
@@ -33,7 +37,9 @@ class MarcLoader{
 				if (!($marcRecord = $marc->next())) {
 					PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
 				}else{
-					$memcache->set('marc_record_' . $record['id'], $marcRecord, 0, $configArray['Caching']['marc_record']);
+					if ($memcache){
+						$memcache->set('marc_record_' . $record['id'], $marcRecord, 0, $configArray['Caching']['marc_record']);
+					}
 				}
 			}else{
 				return null;
@@ -66,7 +72,11 @@ class MarcLoader{
 	public static function loadMarcRecordByILSId($ilsId){
 		global $memcache;
 		global $configArray;
-		$marcRecord = $memcache->get('marc_record_' . $ilsId);
+		if ($memcache){
+			$marcRecord = $memcache->get('marc_record_' . $ilsId);
+		}else{
+			$marcRecord = false;
+		}
 		if ($marcRecord == false){
 			require_once 'services/MyResearch/lib/Resource.php';
 			$resource = new Resource;
@@ -81,7 +91,9 @@ class MarcLoader{
 				if (!($marcRecord = $marc->next())) {
 					PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
 				}else{
-					$memcache->set('marc_record_' . $ilsId, $marcRecord, 0, $configArray['Caching']['marc_record']);
+					if ($memcache){
+						$memcache->set('marc_record_' . $ilsId, $marcRecord, 0, $configArray['Caching']['marc_record']);
+					}
 				}
 			}else{
 				return null;
