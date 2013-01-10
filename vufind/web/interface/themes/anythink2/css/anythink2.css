@@ -1782,3 +1782,14 @@ input.yearbox {
 	font-size: 11px;
 	margin: 2px 10px;
 }
+
+#messages {
+  margin: 1em 0;
+  padding: 1em;
+  background-color: #FFC;
+  border: 2px solid #FF8;
+}
+
+#messages a {
+  color: #00F;
+}
