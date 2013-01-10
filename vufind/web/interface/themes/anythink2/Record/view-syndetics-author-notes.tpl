@@ -1,1 +1,0 @@
-<div class='summary'>{$authorData.summary}</div>
