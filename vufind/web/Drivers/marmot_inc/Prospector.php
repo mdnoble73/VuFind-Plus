@@ -28,7 +28,7 @@ class Prospector{
 			//Extract the titld and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
 
-			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?%7CR(.*?)%7C.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
+			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?C__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
 				$curTitleInfo['id'] = $titleMatches[1];
 				//Create the link to the title in Encore
 				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C|R" . urlencode($curTitleInfo['id']) ."?lang=eng&amp;suite=def";
@@ -114,7 +114,7 @@ class Prospector{
 		}
 		//Setup the link to Prospector (search classic)
 		//$prospectorUrl = "http://prospector.coalliance.org/search/?searchtype=X&searcharg=" . urlencode($search) . "&Da=&Db=&SORT=R";
-		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C|S" . urlencode($search) ."|Orightresult|U1?lang=eng&amp;suite=def";
+		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C__S" . urlencode($search) ."__Orightresult__U1?lang=eng&amp;suite=def";
 		return $prospectorUrl;
 	}
 
