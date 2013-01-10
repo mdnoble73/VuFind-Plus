@@ -2360,7 +2360,7 @@ public class MarcRecordDetails {
 		}
 		@SuppressWarnings("unchecked")
 		List<DataField> topicalTerm = record.getVariableFields("650");
-		if (physicalDescription != null) {
+		if (topicalTerm != null) {
 			Iterator<DataField> fieldsIter = topicalTerm.iterator();
 			DataField field;
 			while (fieldsIter.hasNext()) {
@@ -2374,6 +2374,21 @@ public class MarcRecordDetails {
 						result.add("LargePrint");
 						if (returnFirstValue) return result;
 					}
+				}
+			}
+		}
+		
+		@SuppressWarnings("unchecked")
+		List<DataField> localTopicalTerm = record.getVariableFields("690");
+		if (localTopicalTerm != null) {
+			Iterator<DataField> fieldsIter = localTopicalTerm.iterator();
+			DataField field;
+			while (fieldsIter.hasNext()) {
+				field = (DataField) fieldsIter.next();
+				Subfield subfieldA = field.getSubfield('a');
+				if (subfieldA.getData().toLowerCase().contains("seed library")) {
+					result.add("SeedPacket");
+					if (returnFirstValue) return result;
 				}
 			}
 		}
