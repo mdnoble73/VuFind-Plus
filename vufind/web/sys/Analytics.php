@@ -127,12 +127,14 @@ class Analytics
 		geoip_close($geoIP);
 	}
 
-	function addEvent($category, $action, $data = ''){
+	function addEvent($category, $action, $data1 = '', $data2 = '', $data3 = ''){
 		$event = new Analytics_Event();
 		$event->sessionId = $this->session->id;
 		$event->category = $category;
 		$event->action = $action;
-		$event->data = $data;
+		$event->data = substr($data1, 0, 256);
+		$event->data2 = substr($data2, 0, 256);
+		$event->data3 = substr($data3, 0, 256);
 		$event->eventTime = time();
 		$this->events[] = $event;
 	}

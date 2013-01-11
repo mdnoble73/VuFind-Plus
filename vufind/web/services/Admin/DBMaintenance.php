@@ -312,6 +312,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `payFinesLinkText` VARCHAR(512) DEFAULT 'Click to Pay Fines Online';",
 				),
 			),
+			'library_26' => array(
+				'title' => 'Library 26',
+				'description' => 'Add a support e-mail address for eContent problems.',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `eContentSupportAddress` VARCHAR(256) DEFAULT 'askmarmot@marmot.org';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
@@ -1866,6 +1875,19 @@ class DBMaintenance extends Admin {
 				'ALTER TABLE `analytics_session` ADD INDEX ( `physicalLocation`)',
 				'ALTER TABLE `analytics_session` ADD INDEX ( `patronType`)',
 				'ALTER TABLE `analytics_session` ADD INDEX ( `homeLocationId`)',
+			),
+		),
+
+		'analytics_4' => array(
+			'title' => 'Analytics Update 4',
+			'description' => 'Add additional data fields for events.',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE `analytics_event` ADD COLUMN data2 VARCHAR(256)',
+				'ALTER TABLE `analytics_event` ADD COLUMN data3 VARCHAR(256)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `data`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `data2`)',
+				'ALTER TABLE `analytics_session` ADD INDEX ( `data3`)',
 			),
 		),
 
