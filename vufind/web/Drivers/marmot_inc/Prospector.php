@@ -28,10 +28,10 @@ class Prospector{
 			//Extract the titld and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
 
-			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?%7CR(.*?)%7C.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
+			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
 				$curTitleInfo['id'] = $titleMatches[1];
 				//Create the link to the title in Encore
-				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C|R" . urlencode($curTitleInfo['id']) ."?lang=eng&amp;suite=def";
+				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($curTitleInfo['id']) ."__Orightresult?lang=eng&amp;suite=def";
 				$curTitleInfo['title'] = strip_tags($titleMatches[2]);
 			} else {
 				//Couldn't load information, skip to the next one.
@@ -103,7 +103,7 @@ class Prospector{
 		}
 		//Setup the link to Prospector (search classic)
 		//$prospectorUrl = "http://prospector.coalliance.org/search/?searchtype=X&searcharg=" . urlencode($search) . "&Da=&Db=&SORT=R";
-		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C|S" . urlencode($search) ."|Orightresult|U1?lang=eng&amp;suite=def";
+		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C__S" . urlencode($search) ."__Orightresult__U1?lang=eng&amp;suite=def";
 		return $prospectorUrl;
 	}
 
@@ -188,7 +188,7 @@ class Prospector{
 				$results['owningLibraries'] = $libraries;
 				$prospectorUrl = "http://prospector.coalliance.org/search~S0/.{$results['recordId']}/.{$results['recordId']}/1,1,1,B/frameset~.{$results['recordId']}";
 				$results['prospectorClassicUrl'] = $prospectorUrl;
-				$prospectorUrl = "http://encore.coalliance.org/iii/encore/record/C|R" . urlencode($results['recordId']) ."?lang=eng&amp;suite=def";
+				$prospectorUrl = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($results['recordId']) ."?lang=eng&amp;suite=def";
 				$results['prospectorEncoreUrl'] = $prospectorUrl;
 				$requestUrl = "http://encore.coalliance.org/iii/encore/InnreachRequestPage.external?lang=eng&sp=S" . urlencode($results['recordId']) ."&suite=def";
 				$results['requestUrl'] = $requestUrl;
