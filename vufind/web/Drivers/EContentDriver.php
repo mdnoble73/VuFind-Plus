@@ -406,12 +406,17 @@ class EContentDriver implements DriverInterface{
 			}
 		}
 		if ($eContentRecord->accessType == 'external'){
-			$statusSummary['showPlaceHold'] = false;
-			$statusSummary['showCheckout'] = false;
-			$statusSummary['showAddToWishlist'] = false;
-			$statusSummary['showAccessOnline'] = true;
 			if (strcasecmp($eContentRecord->source, 'OverDrive') ==0 ){
 				$statusSummary['holdQueueLength'] = $numHolds;
+				$statusSummary['showPlaceHold'] = $availableCopies == 0;
+				$statusSummary['showCheckout'] = $availableCopies > 0;
+				$statusSummary['showAddToWishlist'] = false;
+				$statusSummary['showAccessOnline'] = false;
+			}else{
+				$statusSummary['showPlaceHold'] = false;
+				$statusSummary['showCheckout'] = false;
+				$statusSummary['showAddToWishlist'] = false;
+				$statusSummary['showAccessOnline'] = true;
 			}
 		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;

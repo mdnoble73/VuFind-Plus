@@ -1365,10 +1365,11 @@ table.holdingsTable td {
 	padding: 5px 3px 3px 3px;
 }
 
-#staffView, #fullViewLink, #classicViewLink {
+#staffView, #fullViewLink, #classicViewLink, #econtentSource {
 	clear: both;
 	background: white;
 	padding: 4px;
+	font-size: 11px;
 }
 
 td.holdings-section {
@@ -1613,6 +1614,13 @@ table.adminTable tbody td.delete {
 }
 .objectLabel{
 	font-weight: bold;
+}
+.objectLabelInline{
+	width: 150px;
+	font-weight: bold;
+	display: inline-block;
+	zoom: 1;
+	*display: block;
 }
 .propertyInput{
 	margin-top: .75em;

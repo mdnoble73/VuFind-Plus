@@ -288,12 +288,6 @@ function redrawSaveStatus() {literal}{{/literal}
 				<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
 			</div>
 			
-			{if $showOtherEditionsPopup}
-				<div id="otherEditionCopies">
-					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>
-				</div>
-			{/if}
-		
 			{if $goldRushLink}
 			<div class ="titledetails">
 				<a href='{$goldRushLink}' >Check for online articles</a>

@@ -217,10 +217,6 @@
 #eContentStatus{
 	color: red;
 }
-#econtentSource{
-	font-size: 10px;
-	margin-top: 8px;
-}
 .sidebarSeparator{
 	border-bottom: 1px solid #CCCCCC;
 	width: 150px;
@@ -260,4 +256,11 @@
 	top: 5px;
 	right: 10px;
 	font-size:11px;
+}
+#additionalFormatActions{
+	margin-top: 40px;
+}
+#formatHelp{
+	margin-left: 20px;
+	font-size: 11px;
 }

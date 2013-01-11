@@ -35,6 +35,11 @@
 		</div>
 	</div>
 	{/foreach}
+	
+	<div id="formatHelp">
+		Need help?  We have <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">step by step instructions</a> for most devices <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
+		If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" onclick="return showEContentSupportForm()">support form</a>. 
+	</div>
 {else}
 	No Copies Found
 {/if}

@@ -73,6 +73,9 @@ class Novelist{
 			}catch (Exception $e) {
 				global $logger;
 				$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
+				if (isset($response)){
+					$logger->log($response, PEAR_LOG_DEBUG);
+				}
 				$enrichment = null;
 			}
 

@@ -725,6 +725,7 @@ class AJAX extends Action {
 
 	function getOtherEditions(){
 		global $interface;
+		global $analytics;
 		$id = $_REQUEST['id'];
 		$isEContent = $_REQUEST['isEContent'];
 
@@ -769,13 +770,18 @@ class AJAX extends Action {
 						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
 					}
 				}
+				$analytics->addEvent('Enrichment', 'Other Editions', count($otherEditions));
+			}else{
+				$analytics->addEvent('Enrichment', 'Other Editions Error');
 			}
 			$interface->assign('otherEditions', $editionResources);
 			echo $interface->fetch('Resource/otherEditions.tpl');
 		}elseif (isset($error)){
+			$analytics->addEvent('Enrichment', 'Other Editions Error', $error);
 			echo $error;
 		}else{
 			echo("There are no other editions for this title currently in the catalog.");
+			$analytics->addEvent('Enrichment', 'Other Editions', 0, 'No Other ISBNs');
 		}
 	}
 }

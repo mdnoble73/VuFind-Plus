@@ -228,6 +228,11 @@ function redrawSaveStatus() {literal}{{/literal}
 		{if $classicId}
 			<div id = "classicViewLink"><a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" rel="external" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">Classic View</a></div>
 		{/if}
+		{if $eContentRecord->sourceUrl}
+			<div id="econtentSource">
+				<a href="{$eContentRecord->sourceUrl|replace:'&':'&amp;'}">Access original files</a>
+			</div>
+		{/if}
 
 	</div> {* End sidebar *}
 	
@@ -309,12 +314,6 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
 			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
 		</div>
-		
-		{if $showOtherEditionsPopup}
-		<div class="otherEditionCopies">
-			<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>&nbsp;
-		</div>
-		{/if}
 
 			{if $goldRushLink}
 			<div class ="titledetails">
@@ -550,19 +549,17 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			<div id="formatstab">
 				<div id="formatsPlaceholder">Loading...</div>
-				{if $showOtherEditionsPopup}
-				<div class="otherEditionCopies button">
-					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
-				</div>
-				{/if}
-				{if $enablePurchaseLinks == 1}
-					<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-				{/if}
-			 {if $eContentRecord->sourceUrl}
-				<div id="econtentSource">
-					<a href="{$eContentRecord->sourceUrl|replace:'&':'&amp;'}">Access original files</a>
-				</div>
-				{/if}
+				
+				<div id="additionalFormatActions">
+					{if $showOtherEditionsPopup}
+					<div class="otherEditionCopies button">
+						<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+					</div>
+					{/if}
+					{if $enablePurchaseLinks == 1}
+						<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+					{/if}
+			 	</div>
 			</div>
 				
 			{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
