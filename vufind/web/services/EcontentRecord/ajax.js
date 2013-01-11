@@ -95,13 +95,22 @@ function GetEContentHoldingsInfo(id, type, callback) {
 	$.ajax( {
 		url : fullUrl,
 		success : function(data) {
-			var holdingsData = $(data).find("Holdings").text();
+			var holdingsData = $(data).find("Formats").text();
 			if (holdingsData) {
 				if (holdingsData.length > 0) {
-					$("#holdingsPlaceholder").html(holdingsData);
-					$("#holdingsPlaceholder").trigger("create");
+					$("#formatsPlaceholder").html(holdingsData);
+					$("#formatsPlaceholder").trigger("create");
 				}else{
-					$("#holdingsPlaceholder").html("No Holdings Information found, please try again later.");
+					$("#formatsPlaceholder").html("No Formats Information found, please try again later.");
+				}
+			}
+			var copiesData = $(data).find("Copies").text();
+			if (copiesData) {
+				if (copiesData.length > 0) {
+					$("#copiesPlaceholder").html(copiesData);
+					$("#copiesPlaceholder").trigger("create");
+				}else{
+					$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
 				}
 			}
 			var holdingsSummary = $(data).find("HoldingsSummary").text();

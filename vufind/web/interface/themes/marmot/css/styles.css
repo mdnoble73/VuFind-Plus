@@ -435,6 +435,14 @@ div.popupBox .header {
 	cursor: move;
 	background-color: #CCCCCC;
 	padding: 3px 0px 3px 10px;
+	font-weight: bold;
+}
+
+div.popupBox #popupTitle{
+	display: inline-block;
+	margin-right: 20px;
+	zoom:1;
+	*display: block;
 }
 
 div.popupBox .header a {
@@ -452,7 +460,11 @@ div.popupBox .content {
 	-webkit-transition-delay:0.25s;
 	border-bottom: none;
 }
-
+.helpText{
+	height: 500px;
+	width: 800px;
+	overflow: scroll;
+}
 
 div.popupBox a.close {
 	font-size: 8pt;
@@ -2154,4 +2166,19 @@ ul.hold_items li{
 }
 .facetDropDown{
 	width: 175px;
+}
+div.helpText ul li, div.helpText li ul li {
+	list-style: square inside none;
+	border: 0px solid black;
+}
+div.helpText ol li, div.helpText li ol li {
+	list-style: decimal inside none;
+	border: 0px solid black;
+}
+div.helpText li li,div.helpText li p{
+	margin-left: 30px;
+}
+div.popupBox ul li a {
+	color: #003399;
+	text-decoration: underline;
 }

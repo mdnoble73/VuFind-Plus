@@ -528,7 +528,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div id="moredetails-tabs">
 			{* Define tabs for the display *}
 			<ul>
-				<li><a href="#holdingstab">{translate text="Copies"}</a></li>
+				<li><a href="#formatstab">{translate text="Formats"}</a></li>
 				{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 					<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 				{/if}
@@ -542,14 +542,31 @@ function redrawSaveStatus() {literal}{{/literal}
 				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
+				<li><a href="#copiestab">{translate text="Copies"}</a></li>
 				{if $eContentRecord->marcRecord && $staffDetails != null}
 					<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 				{/if}
 			</ul>
 			
+			<div id="formatstab">
+				<div id="formatsPlaceholder">Loading...</div>
+				{if $showOtherEditionsPopup}
+				<div class="otherEditionCopies button">
+					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+				</div>
+				{/if}
+				{if $enablePurchaseLinks == 1}
+					<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+				{/if}
+			 {if $eContentRecord->sourceUrl}
+				<div id="econtentSource">
+					<a href="{$eContentRecord->sourceUrl|replace:'&':'&amp;'}">Access original files</a>
+				</div>
+				{/if}
+			</div>
+				
 			{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 				<div id="prospectorTab">
-					{* Display in Prospector Sidebar *}
 					<div id="inProspectorPlaceholder"></div>
 				</div>
 			{/if}
@@ -611,21 +628,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				{include file="Record/cite.tpl"}
 			</div>
 			
-			<div id = "holdingstab">
-				<div id="holdingsPlaceholder">Loading...</div>
-				{if $showOtherEditionsPopup}
-				<div class="otherEditionCopies button">
-					<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
-				</div>
-				{/if}
-				{if $enablePurchaseLinks == 1}
-					<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-				{/if}
-			 {if $eContentRecord->sourceUrl}
-				<div id="econtentSource">
-					<a href="{$eContentRecord->sourceUrl|replace:'&':'&amp;'}">Access original files</a>
-				</div>
-				{/if}
+			<div id = "copiestab">
+				<div id="copiesPlaceholder">Loading...</div>
 			</div>
 			
 			{if $eContentRecord->marcRecord && $staffDetails != null}

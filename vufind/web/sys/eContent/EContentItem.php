@@ -526,6 +526,70 @@ class EContentItem extends DB_DataObject {
 			return 'Unknown';
 		}
 	}
+
+	function getFormatNotes(){
+		$notes = '';
+		if ($this->item_type == 'mp3'){
+
+		}else if ($this->item_type == 'epub'){
+
+		}else if ($this->item_type == 'kindle'){
+
+		}else if ($this->item_type == 'plucker'){
+
+		}else if ($this->item_type == 'pdf'){
+
+		}else if ($this->item_type == 'externalMP3'){
+
+		}else if ($this->item_type == 'external_ebook'){
+
+		}else if ($this->item_type == 'externalLink'){
+
+		}else if ($this->item_type == 'overdrive'){
+			if ($this->externalFormatId == 'audiobook-mp3'){
+
+			}else if ($this->externalFormatId == 'audiobook-wma'){
+
+			}else if ($this->externalFormatId == 'video-wmv'){
+
+			}else if ($this->externalFormatId == 'music-wma'){
+
+			}else if ($this->externalFormatId == 'ebook-kindle'){
+				$notes = "Works on Kindles and devices with a Kindle app installed.";
+			}else if ($this->externalFormatId == 'ebook-epub-adobe'){
+				$notes = "Works on all eReaders (except Kindles), desktop computers and mobile devices with with reading apps installed.";
+			}else if ($this->externalFormatId == 'ebook-pdf-adobe'){
+
+			}else if ($this->externalFormatId == 'ebook-epub-open'){
+				$notes = "Works on all eReaders (except Kindles), desktop computers and mobile devices with with reading apps installed.";
+			}else if ($this->externalFormatId == 'ebook-pdf-open'){
+
+			}else{
+
+			}
+		}else if ($this->item_type == 'external_eaudio'){
+
+		}else if ($this->item_type == 'external_emusic'){
+
+		}else if ($this->item_type == 'text'){
+
+		}else if ($this->item_type == 'itunes'){
+
+		}else if ($this->item_type == 'gifs'){
+
+		}else{
+
+		}
+		return $notes;
+	}
+
+	function getDisplayFormat(){
+		if ($this->externalFormat){
+			return $this->externalFormat;
+		}else{
+			return translate($this->item_type);
+		}
+	}
 	function getUsageNotes(){
 		$notes = '';
 		if ($this->libraryId == -1){

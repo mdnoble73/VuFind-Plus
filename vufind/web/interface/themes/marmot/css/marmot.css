@@ -42,3 +42,9 @@ div.footerCol ul{
 #record-details-column{
 	width: 465px;
 }
+.ui-widget{
+	font-size: 1em;
+}
+.ui-tabs .ui-tabs-nav li.ui-state-active a{
+	font-weight: bold;
+} 
