@@ -1,6 +1,7 @@
 .searchHomeForm {
 	background-color: #99980A;
 	border-color: #7A1501;
+	margin-top: 30px;
 }
 .searchHomeContent{
 	padding: 0px;
@@ -73,4 +74,26 @@ html, body{
 #searchbar{
 	background-color:#C4C869;
 	color: #494A0C;
+}
+.bookletters-widget{
+	display: inline-block;
+	zoom:1;
+	*display: inline;
+	margin: 10px;
+	vertical-align: top;
+}
+.bookletters-title{
+	color: black;
+	font-family: Arial;
+	font-size: 15px;
+	font-weight: bold;
+	margin-bottom: 3px;
+}
+.bookletters-body{
+	width: 145px;
+	height: 210px;
+}
+.bookletters-body iframe{
+	width: 145px;
+	height: 210px;
 }
