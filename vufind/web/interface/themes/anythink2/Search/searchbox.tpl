@@ -16,7 +16,7 @@
         <option value="format_category:Music"{if $curFormatCategory == 'Music'} selected="selected"{/if}>Music</option>
       </select>
       <div id="search-input">
-        <input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" />
+        <input id="lookfor" type="text" name="lookfor" size="27" value="{$lookfor|escape:"html"}" />
         <input id="lookfor-submit" type="submit" name="submit" value="{translate text='Go'}" />
       </div>
     </div>

@@ -181,16 +181,26 @@ a.active {
   color: inherit;
 }
 
-.clearfix:before,
 .clearfix:after {
-    content: "";
-    display: table;
-} 
-.clearfix:after {
-    clear: both;
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
 }
+ 
 .clearfix {
-    zoom: 1; /* For IE 6/7 (trigger hasLayout) */
+  display: inline-block;
+  width: 100%;
+}
+ 
+html[xmlns] .clearfix {
+  display: block;
+}
+ 
+* html .clearfix {
+  height: 1%;
 }
 
 body {
@@ -233,8 +243,13 @@ body {
 }
 
 #main #search {
-  width: 500px;
-  margin: 20px auto 20px auto;
+  width: 67%;
+  float: left;
+}
+
+#main #search #search-inner {
+  margin-top: 20px;
+  margin-right: 20px;
 }
 
 #fixed-wrapper #search {
@@ -252,6 +267,7 @@ body {
 }
 
 .intro {
+  font-size: 1.167em;
   text-align: center;
 }
 
@@ -414,6 +430,7 @@ body.Search--Home #logo {
   background-color: #FFF;
   border-left: 1px solid #999;
   margin-left: 12px;
+  min-height: 800px;
   padding: 20px;
   position: relative;
 }
@@ -867,17 +884,6 @@ div.result {
 #sidebar .requestThisLink a:link {
   font-size: 1.333em;
   margin: 10px 0;
-}
-
-.status {
-  background-color: #9F9;
-}
-
-div.status {
-  border: 4px solid #9C9;
-  margin: 1em 0;
-  padding: 1em 2em;
-  text-align: center;
 }
 
 .minor {
@@ -1842,4 +1848,33 @@ ol.hold_result_details {
 
 #messages a {
   color: #00F;
+}
+
+.request-home {
+  background-color: #EAF0F8;
+  float: left;
+  width: 33%;
+}
+
+.request-home .inner {
+  padding: 20px;
+}
+
+.request-home .action {
+  text-align: center;
+}
+
+div.request-search {
+  border: 4px solid #9C9;
+  margin: 2em 0;
+  padding: 1em 2em;
+  text-align: center;
+}
+
+.request-header {
+  color: #999;
+}
+
+.request-header a {
+  color: #4888C9;
 }

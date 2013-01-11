@@ -157,7 +157,9 @@
                 <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyAccount/Logout">{translate text="Log Out"}</a></li>
               {/if}
-              <li class="status">{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></li>
+              {if !($module == 'Search' && $action == 'Home')}
+                <li class="request-header">{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></li>
+              {/if}
             </ul>
           </div>
           {if $useSolr || $useWorldcat || $useSummon}
@@ -185,7 +187,7 @@
           {/if}
           <div id="column-central">
             <h4 id="flag">{translate text="Catalog"}</h4>
-            <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate} clearfix">
+            <div id="main-wrapper"><div id="main" class="debug {$module}--{$pageTemplate}">
                 {if !($module == 'Search' && $action == 'Home')}
                   <div id="fixed-wrapper">
                     {include file="bookcart.tpl"}
