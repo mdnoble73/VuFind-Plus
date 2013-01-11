@@ -320,21 +320,23 @@ class BookCoverProcessor{
 		if (!$marcRecord) {
 			return false;
 		}
-		//Get the 856 tags
-		$marcFields = $marcRecord->getFields('856');
-		if ($marcFields){
-			$links = array();
-			foreach ($marcFields as $marcField){
-				if ($marcField->getSubfield('y')){
-					$subfield_y = $marcField->getSubfield('y')->getData();
-					if (preg_match('/.*<img.*src=[\'"](.*?)[\'"].*>.*/i', $subfield_y, $matches)){
-						if ($this->processImageURL($matches[1], true)){
-							//We got a successful match
-							return true;
+		if ($this->configArray['Content']['loadCoversFrom856'] && $this->category && strtolower($this->category) == 'other'){
+			//Get the 856 tags
+			$marcFields = $marcRecord->getFields('856');
+			if ($marcFields){
+				$links = array();
+				foreach ($marcFields as $marcField){
+					if ($marcField->getSubfield('y')){
+						$subfield_y = $marcField->getSubfield('y')->getData();
+						if (preg_match('/.*<img.*src=[\'"](.*?)[\'"].*>.*/i', $subfield_y, $matches)){
+							if ($this->processImageURL($matches[1], true)){
+								//We got a successful match
+								return true;
+							}
 						}
+					}else{
+						//no image link available on this link
 					}
-				}else{
-					//no image link available on this link
 				}
 			}
 		}
