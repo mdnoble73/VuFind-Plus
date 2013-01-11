@@ -15,14 +15,8 @@
 		{/if}
 		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
-		<li><a href="http://www.millennium.marmot.org/search~S21">Classic Catalog</a></li>
-	</ul>
-</div>
-<div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
-	<ul>
 		<li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
-		<!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li>
-		<li><a href="{$path}/Search/NewItem">{translate text='New Items'}</a></li> -->
+		<li><a href="http://www.millennium.marmot.org/search~S21">Classic Catalog</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
 	</ul>
 </div>
