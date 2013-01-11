@@ -249,8 +249,8 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 	}).error(function(){ 
 		$('#popupbox').html("There was an error loading this information, please try again later.")
 		$('#popupbox').show();
-	})
-	;
+	});
+	return false;
 }
 
 function showElementInLightbox(title, elementSelector){
@@ -499,7 +499,7 @@ function getOverDriveSummary(){
 var ajaxCallback = null;
 function ajaxLogin(callback){
 	ajaxCallback = callback;
-	ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
+	return ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
 }
 
 function processAjaxLogin(){
@@ -1056,4 +1056,11 @@ function changeDropDownFacet(dropDownId, facetLabel){
 function toggleSection(sectionName){
 	$("." + sectionName).toggle();
 	$("#holdings-section-" + sectionName).toggleClass('collapsed expanded');
+}
+function showEContentSupportForm(){
+	if (loggedIn){
+		return ajaxLightbox(path + '/Help/eContentSupport?lightbox=true');
+	}else{
+		return ajaxLogin(function (){showEContentSupportForm()});
+	}
 }

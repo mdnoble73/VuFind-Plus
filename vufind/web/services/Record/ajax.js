@@ -25,8 +25,6 @@ function SendSMS(id, to, provider, strings) {
 	sendAJAXSMS(url, params, strings);
 }
 
-
-
 function SaveComment(id, shortId, strings) {
 	if (loggedIn){
 		if (shortId == null || shortId == ''){
