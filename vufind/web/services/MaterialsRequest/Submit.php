@@ -145,7 +145,28 @@ class Submit extends Action
 						$materialsRequest->dateCreated = time();
 						$materialsRequest->createdBy = $user->id;
 						$materialsRequest->dateUpdated = time();
-							
+
+
+            // We'd like to search the catalog for this particular material. If
+            // it is available, we'll put it on hold for the user.
+
+            // Potentially save _REQUEST array during this period.
+            $original_request = $_REQUEST;
+            // @todo Build search $_REQUEST, because this class is poorly
+            // designed and thus requires superglobals.
+            $_REQUEST = array();
+            $searchObject = SearchObjectFactory::initSearchObject();
+            $searchObject->init($searchSource);
+            $result = $searchObject->processSearch();
+            if ($searchObject->getResultTotal() == 1) {
+              $recordSet = $searchObject->getResultRecordSet();
+              // @todo Figure out the status of the result.
+              // @todo If it is available, put it on hold, redirect to My Holds
+              // page, with messaging.
+            }
+            // Restore _REQUEST array.
+            $_REQUEST = $original_request;
+
 						if ($materialsRequest->insert()){
 							$interface->assign('success', true);
 							$interface->assign('materialsRequest', $materialsRequest);
