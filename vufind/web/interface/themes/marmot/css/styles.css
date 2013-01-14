@@ -2190,3 +2190,7 @@ div.popupBox ul li a {
 	color: #003399;
 	text-decoration: underline;
 }
+.helpTextStep{
+	font-size: 13px;
+	font-weight: bold;
+}

@@ -14,7 +14,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold', 'getHelpTopic'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -672,6 +672,17 @@ class AJAX extends Action {
 		}
 
 		echo $interface->fetch('EcontentRecord/ajax-purchase-options.tpl');
+	}
+
+	function getHelpTopic(){
+		global $interface;
+		$device = $_REQUEST['device'];
+		$format = $_REQUEST['format'];
+		$result = array();
+		if ($format == 'kindle'){
+			$result['helpText'] = $interface->fetch("Help/en/overdrive_kindle_help.tpl");
+		}
+		echo json_encode($result);
 	}
 
 	function getEContentFormatHelp(){

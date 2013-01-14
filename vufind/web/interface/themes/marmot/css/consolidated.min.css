@@ -307,7 +307,7 @@ solid black}div.helpText ol li, div.helpText li ol
 li{list-style:decimal inside none;border:0px
 solid black}div.helpText li li,div.helpText li
 p{margin-left:30px}div.popupBox ul li
-a{color:#039;text-decoration:underline}
+a{color:#039;text-decoration:underline}.helpTextStep{font-size:13px;font-weight:bold}
 /* book-bag.css */
 .hide{display:none}.save_export_checkboxes{display:block;margin-left:-60px;margin-top:5px;position:absolute}#book_bag{display:none}#existing_list_controls{padding:5px}.bag_box{padding:5px}#book_bag
 #bag_open_button{background-color:#132248;color:#fff;opacity:0.93;border-bottom-left-radius:20px 20px;border-bottom-right-radius:20px 20px;-moz-border-radius-bottomleft:20px 20px;-moz-border-radius-bottomright:20px 20px;border:none;font-family:verdana,helvetica,arial,sans-serif;font-size:14px;font-weight:700;left:0;letter-spacing:-1px;padding:2px
@@ -421,7 +421,7 @@ solid #A9A9A9;border-top:4px solid #00125E;margin-bottom:15px}.seriesLink{float:
 auto 6px}.eContentHolding{width:100%;border:1px
 solid #AAA;border-radius:3px;margin-bottom:10px;position:relative}.eContentHoldingHeader{background-color:#EDEDED;padding:5px;font-size:12px}.eContentHoldingFormat{font-weight:bold;font-size:14px}.eContentHoldingUsage{font-style:italic;font-size:12px}.eContentHoldingActions{margin:8px
 10px}.eContentHoldingNotes{font-size:11px;margin:2px
-10px}.eContentFormatUsage{position:absolute;top:5px;right:10px;font-size:11px}#additionalFormatActions{margin-top:40px}#formatHelp{margin-left:20px;font-size:11px}
+10px}.eContentFormatUsage{position:absolute;top:5px;right:10px;font-size:11px}#additionalFormatActions{margin-top:40px}#formatHelp{margin-left:20px;font-size:11px}#moredetails-tabs{margin-top:10px}
 /* search-results.css */
 .selectTitle{display:inline-block;vertical-align:top;width:17px;zoom:1;*display:inline}.imageColumn{display:inline-block;vertical-align:top;width:110px;text-align:center;zoom:1;*display:inline}.imageColumn
 .listResultImage{max-width:100px;padding-bottom:4px}.resultDetails{display:inline-block;vertical-align:top;width:405px;zoom:1;*display:inline}.resultActions{display:inline-block;vertical-align:top;zoom:1;*display:inline;position:relative;width:120px;text-align:center}#searchResultTopTools{max-width:50%;text-align:right;position:absolute;right:0px;top:25px}.searchtool-top{font-size:10px;display:inline-block;margin-top:1-px;zoom:1;*display:inline}#searchResultTopToolLinks{margin-top:40px}.holdingsSummary{min-height:4.5em}#formatCategories{min-height:60px;margin-top:20px}#noResultsSuggest

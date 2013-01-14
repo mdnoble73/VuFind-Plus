@@ -294,26 +294,26 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			
 			{* Place hold link *}
-		<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-		</div>
-		
-		{* Checkout link *}
-		<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
-		</div>
-		
-		{* Access online link *}
-		{*
-		<div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
-		</div>
-		*}
-		
-		{* Add to Wish List *}
-		<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
-		</div>
+			<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+			</div>
+			
+			{* Checkout link *}
+			<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
+			</div>
+			
+			{* Access online link *}
+			{*
+			<div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
+			</div>
+			*}
+			
+			{* Add to Wish List *}
+			<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
+			</div>
 
 			{if $goldRushLink}
 			<div class ="titledetails">

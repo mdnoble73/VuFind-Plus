@@ -1,11 +1,10 @@
 <div class="helpText">
-<h2>Getting started with Amazon&reg; Kindle</h2>
 <p>
 Reading Kindle eBooks from the library is easy. All you have to do is check out an eBook and deliver it to the Kindle device or Kindle reading app of your choice.
 </p>
 <h3>How it Works</h3>
 <ol>
-	<li>Get a Kindle (or Kindle Reading App)
+	<li><span class="helpTextStep">Get a Kindle (or Kindle Reading App)</span>
 		<p>
 		Kindle eBooks can be read on all Kindle devices. Kindles with a Wi-Fi internet connection can download most books directly from Amazon without using a computer.  
 		If your Kindle is not Wi-Fi capable you will need to transfer the Kindle Book to your computer before transferring it to your Kindle.
@@ -13,7 +12,7 @@ Reading Kindle eBooks from the library is easy. All you have to do is check out 
 		<p>
 		If you don't have a Kindle you can still read Kindle books, but you will need to install a <a href="http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000493771">free Kindle Reading App</a> to your computer, phone, or tablet.
 	</li>
-	<li>Find a book to read.
+	<li><span class="helpTextStep">Find a book to read.</span>
 		<p>
 		Find a title you want to read from the library catalog (this site). <em>Hint:  to find books compatible with Kindles, include the word "Kindle" in your search!</em>
 		<p>
@@ -32,7 +31,7 @@ Reading Kindle eBooks from the library is easy. All you have to do is check out 
 
     Kindle Books checked out from your library are saved to your Kindle account so that you can download them again whenever you need to during the lending period.
 	</li>
-	<li>Enjoy
+	<li><span class="helpTextStep">Enjoy</span>
 		<p>
 		Once you deliver a library book to your Kindle or Kindle reading app, it reads just like any other Kindle Book. Any notes you take, or bookmarks you make will be saved. If you ever check out the same title again, or buy it from the Kindle store, you'll find your notes safe and sound right where you left them.
 		</p>
@@ -42,4 +41,5 @@ Reading Kindle eBooks from the library is easy. All you have to do is check out 
 		</p>
 	</li>
 </ol>
+<a href="{$path}/files/econtent_help/overdrive_kindle.pdf" class="button"><img src="{$path}/images/pdficon_small.png"> Download these instructions</a>
 </div>
