@@ -19,7 +19,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions', 'getDescription', 'getEContentFormatHelp'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions', 'getDescription', 'getEContentFormatHelp', 'SelectOverDriveFormat'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -578,6 +578,27 @@ class AJAX extends Action {
 		$interface->assign('MobileTitle','{translate text="Loan Period"}');
 
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
+	}
+
+	function SelectOverDriveFormat(){
+		global $interface;
+		global $configArray;
+		$overDriveId = $_REQUEST['overDriveId'];
+		$nextAction = $_REQUEST['nextAction'];
+		$interface->assign('overDriveId', $overDriveId);
+		$interface->assign('nextAction', $nextAction);
+		$eContentRecord = new EContentRecord();
+		$eContentRecord->externalId = $overDriveId;
+		if ($eContentRecord->find(true)){
+			$items = $eContentRecord->getItems();
+			$interface->assign('items', $items);
+		}
+
+		//Var for the IDCLREADER TEMPLATE
+		$interface->assign('ButtonHome',true);
+		$interface->assign('MobileTitle','{translate text="Select a Format"}');
+
+		return $interface->fetch('EcontentRecord/ajax-select-format.tpl');
 	}
 
 	function AddOverDriveRecordToWishList(){

@@ -1230,102 +1230,6 @@ class EContentRecord extends SolrDataObject {
 		return $this->availability;
 	}
 
-	private function _getOverDriveItems($reload, $allowReindex = true){
-		//Check to see if we have cached any items
-		$dataChanged = false;
-		$eContentItems = $this->items;
-		$overDriveItemsForAllItems = array();
-		foreach ($eContentItems as $curItem){
-			$overDriveItems = array();
-
-			$overDriveItem = new OverdriveItem();
-
-			$overDriveItem->overDriveId = $curItem->overDriveId;
-			$overDriveItem->find();
-			$cachedItems = array();
-			if ($overDriveItem->N > 0){
-				while ($overDriveItem->fetch()){
-					$cachedItems[] = clone $overDriveItem;
-				}
-			}
-
-			if (count($cachedItems) == 0 || ($reload && !$this->_quickReindex)){
-				//For performance, need to store overdrive items since we fetch items
-				//to get common things like list the formats.
-				require_once 'Drivers/OverDriveDriver.php';
-				$overdriveDriver = new OverDriveDriver();
-				$currentItems = $overdriveDriver->getOverdriveHoldings($curItem->overDriveId, $curItem->link);
-
-				//Check each of the cached items to see if it has changed
-				foreach ($currentItems as $currentKey => $currentItem){
-					$currentItem->libraryId = $currentItem->libraryId;
-
-					$cachedItemFound = false;
-					/*foreach ($cachedItems as $cacheKey => $cachedItem){
-						if ($cachedItem->formatId = $currentItem->formatId){
-							if ($cachedItem->available != $currentItem->available){
-								$dataChanged = true;
-								$cachedItem->available = $currentItem->available;
-								$currentItem->update();
-							}
-							$cachedItem->availableCopies = $currentItem->availableCopies;
-							$cachedItem->totalCopies = $currentItem->totalCopies;
-							$cachedItem->numHolds = $currentItem->numHolds;
-							$overDriveItems[] = $cachedItem;
-							unset($currentItems[$currentKey]);
-							unset($cachedItems[$cacheKey]);
-							$cachedItemFound = true;
-							break;
-						}
-					}*/
-					if (!$cachedItemFound){
-						$overDriveItems[] = $currentItem;
-						$currentItem->insert();
-						$dataChanged = true;
-					}
-				}
-				//Delete any cached items that no longer exist
-				foreach ($cachedItems as $cachedKey => $cachedItem){
-					$cachedItem->delete();
-					$dataChanged = true;
-				}
-				//Mark that the record should be reindexed.
-				if ($dataChanged){
-					$this->updateDetailed($allowReindex);
-				}
-			}else{
-				$overDriveItems = $cachedItems;
-			}
-
-			$overDriveId = $curItem->overDriveId;
-			foreach ($overDriveItems as $itemKey => $item){
-				$links = array();
-				if ($item->available){
-					$links[] = array(
-								'onclick' => "return checkoutOverDriveItem('$overDriveId', '{$item->formatId}');",
-								'text' => 'Check Out',
-								'overDriveId' => $overDriveId,
-								'formatId' => $item->formatId,
-								'action' => 'CheckOut'
-								);
-				}else{
-					$links[] = array(
-								'onclick' => "return placeOverDriveHold('$overDriveId', '{$item->formatId}');",
-								'text' => 'Place Hold',
-								'overDriveId' => $overDriveId,
-								'formatId' => $item->formatId,
-								'action' => 'Hold'
-								);
-				}
-				$item->links = $links;
-				$item->libraryId = $curItem->libraryId;
-				$overDriveItems[$itemKey] = $item;
-			}
-			$overDriveItemsForAllItems = array_merge($overDriveItemsForAllItems, $overDriveItems);
-		}
-		return $overDriveItemsForAllItems;
-	}
-
 	function getNumItems(){
 		if ($this->items == null){
 			$this->items = array();
@@ -1342,6 +1246,9 @@ class EContentRecord extends SolrDataObject {
 		return count($this->items);
 	}
 
+	function isOverDrive(){
+		return strcasecmp($this->source, 'OverDrive') == 0;
+	}
 	function validateEpub(){
 		//Setup validation return array
 		$validationResults = array(

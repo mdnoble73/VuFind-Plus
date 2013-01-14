@@ -80,6 +80,7 @@ class EcontentRecordDriver extends IndexRecord
 			$this->eContentRecord->find(true);
 		}
 		$interface->assign('source', $this->eContentRecord->source);
+		$interface->assign('eContentRecord', $this->eContentRecord);
 		$searchResultTemplate = parent::getSearchResult();
 		$interface->assign('summAjaxStatus', true);
 		//Override fields as needed

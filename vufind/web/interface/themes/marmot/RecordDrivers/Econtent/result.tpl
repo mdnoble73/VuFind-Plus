@@ -5,31 +5,44 @@
 	</div>
 	
 	<div class="imageColumn"> 
-		{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}	
 		<div id='descriptionPlaceholder{$summId|escape}' style='display:none' class='descriptionTooltip'></div>
-		<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
-		<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
-		</a>
+		{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}	
+			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
+			<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+			</a>
 		{/if}
 		{if $showHoldButton}
-		{* Place hold link *}
-		<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-		</div>
+			{if $eContentRecord->isOverDrive()}
+				{* Place hold link *}
+				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
+					<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
+				</div>
+				
+				{* Checkout link *}
+				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
+					<a href="#" class="button" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+				</div>
+			{else}
+				
+				{* Place hold link *}
+				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+				</div>
+				
+				{* Checkout link *}
+				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
+				</div>
+			{/if}
 		
-		{* Checkout link *}
-		<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
-		</div>
-		
-		{* Access online link *}
-		<div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
-		</div>
-		{* Add to Wish List *}
-		<div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
-		</div>
+			{* Access online link *}
+			<div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
+			</div>
+			{* Add to Wish List *}
+			<div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
+			</div>
 		{/if}
 	</div>
 

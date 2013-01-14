@@ -28,8 +28,8 @@ class GoDeeperData{
 				try{
 					//Get the XML from the service
 					$ctx = stream_context_create(array(
-					  'http' => array(
-					    'timeout' => 5
+						'http' => array(
+						'timeout' => 5
 					)
 					));
 					$response =file_get_contents($requestUrl, 0, $ctx);

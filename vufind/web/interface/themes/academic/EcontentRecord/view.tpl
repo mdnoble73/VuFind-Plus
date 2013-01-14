@@ -154,27 +154,33 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				{/if}
 			
-				{* Place hold link *}
-				<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-				</div>
-			
-				{* Checkout link *}
-				<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
-				</div>
+				{if $eContentRecord->isOverDrive()}
+					{* Place hold link *}
+					<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+						<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
+					</div>
+					
+					{* Checkout link *}
+					<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+						<a href="#" class="button" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+					</div>
+				{else}
+					{* Place hold link *}
+					<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+					</div>
 				
-				{* Add to Wish List *}
-				<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
-				</div>
-				
-				{if $showOtherEditionsPopup}
-					<div class="otherEditionCopies">
-						<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+					{* Checkout link *}
+					<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
+					</div>
+					
+					{* Add to Wish List *}
+					<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
+						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
 					</div>
 				{/if}
-			
+				
 				{if $showRatings}
 					<div id="myrating" class="stat">
 						<div class="statVal">
@@ -386,7 +392,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="moredetails-tabs">
 					{* Define tabs for the display *}
 					<ul>
-						<li><a href="#holdingstab">{translate text="Copies"}</a></li>
+						<li><a href="#formatstab">{translate text="Formats"}</a></li>
 						{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 							<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 						{/if}
@@ -400,25 +406,24 @@ function redrawSaveStatus() {literal}{{/literal}
 						<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 						{/if}
 						<li><a href="#citetab">{translate text="Citation"}</a></li>
+						<li><a href="#copiestab">{translate text="Copies"}</a></li>
 						<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 					</ul>
 			
 					{* Display the content of individual tabs *}
-					<div id = "holdingstab">
-						<div id="holdingsPlaceholder">Loading...</div>
-						{if $showOtherEditionsPopup}
-						<div class="otherEditionCopies button">
-							<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
-						</div>
-						{/if}
-						{if $enablePurchaseLinks == 1}
-							<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-						{/if}
-					 {if $eContentRecord->sourceUrl}
-						<div id="econtentSource">
-							<a href="{$eContentRecord->sourceUrl}">Access original files</a>
-						</div>
-						{/if}
+					<div id="formatstab">
+						<div id="formatsPlaceholder">Loading...</div>
+						
+						<div id="additionalFormatActions">
+							{if $showOtherEditionsPopup}
+							<div class="otherEditionCopies button">
+								<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
+							</div>
+							{/if}
+							{if $enablePurchaseLinks == 1}
+								<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+							{/if}
+					 	</div>
 					</div>
 					
 					{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
@@ -485,7 +490,11 @@ function redrawSaveStatus() {literal}{{/literal}
 						{include file="Record/cite.tpl"}
 					</div>
 			
-					{if $eContentRecord->marcRecord}
+					<div id = "copiestab">
+						<div id="copiesPlaceholder">Loading...</div>
+					</div>
+			
+					{if $eContentRecord->marcRecord && $staffDetails != null}
 						<div id = "stafftab">
 							{include file=$staffDetails}
 						</div>

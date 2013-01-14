@@ -104,10 +104,11 @@ div#ft_contents {
 	margin: 0px;
 	padding: .5em;
 }
-
-.resultitem{
-	width: 540px;
+.result{
+	position: relative;
 }
+
+
 .resultLabel {
 	width: 110px;
 	color: graytext;
@@ -132,12 +133,16 @@ div#ft_contents {
 }
 
 .listResultImage {
-	float: right;
+	position: absolute;
+	right: 5px;
+	top: 5px;
+	width: 120px;
 	text-align: center;
 }
 
 .resultitem {
 	margin-left: 25px;
+	width: 450px;
 }
 
 .toolbar {
@@ -261,7 +266,7 @@ td {
 	vertical-align:top;
 }
 .resultsList{
-	width: 585px;
+	width: 465px;
 	display:inline-block;
 	zoom:1;
 	*display:inline;
