@@ -1,5 +1,5 @@
 <p>
-1) Please select the device you are trying to read or listen to a book on. 
+1) Please select the device you are trying to read or listen to a book on.
 <select name="device" id="device" onchange="loadEContentHelpTopic()">
 	<option value="selectone">Select One...</option>
 	<option value="pc">Windows PC</option>
@@ -15,11 +15,12 @@
 2) Please select the format you are trying to read or listen to.
 <select name="format" id="format" onchange="loadEContentHelpTopic()">
 	<option value="selectone">Select One...</option>
+	<option value="ebook">EPUB eBook</option>
 	<option value="kindle">Kindle eBook</option>
-	<option value="adobe_epub">Adobe EPUB eBook</option>
-	<option value="open_epub">Open EPUB eBook</option>
-	<option value="mp3">MP3 Audio Book</option>
+	<option value="mp3">MP3 Audiobook</option>
 	<option value="wma">WMA Audio Book</option>
+	<option value="eMusic">eMusic</option>
+	<option value="eVideo">eVideo</option>
 </select>
 </p>
 <div id="stepByStepInstructions" style="display:none">
