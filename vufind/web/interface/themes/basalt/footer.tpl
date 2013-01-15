@@ -4,7 +4,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Week"'>{translate text='New This Week'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;basicType=Keyword&amp;filter[]=format_category%3A"Video"&amp;filter[]=publishDate:[2012+TO+*]&amp;filter[]=local_time_since_added_basalt%3A"Six+Months"&amp;sort=year&amp;view=list&amp;searchSource=local'>{translate text='New DVDs'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=itype_basalt%3A"DVD+New"'>{translate text='New DVDs'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=format_category%3A"Audio"'>{translate text='New Audio Books &amp; CDs'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=Seed+Library&amp;type=Subject'>{translate text='Basalt Seed Library'}</a></li>
 	</ul>
@@ -37,6 +37,30 @@
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
 	</ul>
 </div>
+<div class="footerCol"><p><strong>{translate text='About us'}</strong></p>
+	<ul>
+		<li><a href="http://www.basaltrld.org">{translate text='Library Home'}</a></li>
+		<li>
+			14 Midland Ave.<br/>
+			Basalt, CO 81621<br/>
+			<b>(970) 927-4311</b><br/>
+		</li>
+	</ul>
+</div>
+<div class="footerCol">
+	<p><strong>{translate text='Hours of Operation'}</strong></p>
+	<ul>
+		<li>
+		<b>Monday - Thursday: </b><br/>
+		&nbsp;&nbsp;10 am to 7 pm<br/>
+		<b>Friday - Saturday: </b><br/>
+		&nbsp;&nbsp;10 am to 5 pm<br/>
+		<b>Sunday:</b><br/>
+		&nbsp;&nbsp;12 pm to 5 pm<br/>
+		</li>
+	</ul>
+</div>
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}

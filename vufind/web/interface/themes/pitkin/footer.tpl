@@ -49,7 +49,7 @@
 	<ul>
 		<li>
 		<b>Monday - Thursday: </b><br/>
-		&nbsp;&nbsp;10 am to 9pm<br/>
+		&nbsp;&nbsp;10 am to 9 pm<br/>
 		<b>Friday - Saturday: </b><br/>
 		&nbsp;&nbsp;10 am to 6 pm<br/>
 		<b>Sunday:</b><br/>
