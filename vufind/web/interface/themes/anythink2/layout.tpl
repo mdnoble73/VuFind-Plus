@@ -54,6 +54,10 @@
       <script src="{$path}/interface/themes/anythink2/js/jquery.formalize.min.js" type="text/javascript"></script>
       <script src="{$path}/interface/themes/anythink2/js/anythink2.js" type="text/javascript"></script>
     {/if}
+    {* Files that should not be combined *}
+    {if $includeAutoLogoutCode == true}
+      <script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
+    {/if}
     {if isset($theme_css)}
     <link rel="stylesheet" type="text/css" href="{$theme_css}" />
     {/if}
@@ -66,34 +70,11 @@
         anythink.settings.hold_message = '{/literal}{if $hold_message}{$hold_message|escape:"javascript"}{/if}{literal}';
         // Renew message.
         anythink.settings.renew_message = '{/literal}{if $renew_message}{$renew_message|escape:"javascript"}{/if}{literal}';
-
-        anythink.settings.autologout = {/literal}{if $includeAutoLogoutCode}true{else}false{/if}{literal};
-
         $(document).ready(function(){
           // Show hold message if set.
           if (anythink.settings.hold_message != '') {
             lightbox();
             $('#popupbox').html(anythink.settings.hold_message);
-            // If we succesfully placed holds, and we have items in our cart,
-            // prompt to clear the cart.
-            var successful = $('#js-hold-result-successful');
-            if (successful.length > 0) {
-              getBag();
-              if (bookBag.length) {
-                // Add button to clear cart.
-                var button = $('<a />')
-                  .attr('href', '#')
-                  .html('Empty book cart')
-                  .addClass('button')
-                  .bind('click', function() {
-                    if (bookBag.length) {
-                      emptyBag();
-                      $(this).fadeOut();
-                    }
-                  });
-                successful.append(button);
-              };
-            };
           };
           // Show renew message if set.
           if (anythink.settings.renew_message != '') {
@@ -149,7 +130,7 @@
             {/if}
           {/if}
           <div id="header-utility-bottom">
-            <ul class="inline right">
+            <ul class="inline">
               {if !$user}
                 <li><a href="{$path}/MyAccount/Home">{translate text="My Account"}</a></li>
                 <li><a href="{$path}/MyAccount/GetCard">{translate text="Get a Card"}</a></li>

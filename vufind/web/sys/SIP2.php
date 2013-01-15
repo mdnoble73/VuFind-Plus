@@ -399,7 +399,7 @@ class sip2
 
 	}
 
-	function msgRenew($item = '', $title = '', $nbDateDue = '', $itmProp = '', $fee= 'N', $noBlock = 'N', $thirdParty = 'N')
+	function msgRenew($item = '', $title = '', $nbDueDate = '', $itmProp = '', $fee= 'N', $noBlock = 'N', $thirdParty = 'N')
 	{
 		/* renew a single item (29) - untested */
 		$this->_newMessage('29');
