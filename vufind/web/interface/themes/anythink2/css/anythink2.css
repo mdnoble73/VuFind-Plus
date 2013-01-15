@@ -733,7 +733,6 @@ body.Search--Results--0 #sidebar-wrapper {
 #results-bottom {
   width: 100%;
   float: left;
-  text-align: center;
 }
 
 #pagination-bottom {
@@ -815,12 +814,15 @@ body.Search--Results--0 #sidebar-wrapper {
 }
 
 div.result {
-  border-bottom: 0;
-  padding: 20px 0;
   background-color: #FFF;
   background-image: url(http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif);
   background-position: bottom left;
   background-repeat: repeat-x;
+  border-bottom: 0;
+  float: left;
+  margin: 0 0 20px 0;
+  padding: 20px 0;
+  width: 100%;
 }
 
 .resultDetails {
@@ -882,6 +884,22 @@ div.result {
 #sidebar .requestThisLink a:link {
   font-size: 1.333em;
   margin: 10px 0;
+}
+
+.minor {
+  border-width: 1px;
+  padding: .5em 1em;
+}
+
+.status {
+  background-color: #9F9;
+}
+
+div.status {
+  border: 4px solid #9C9;
+  margin: 1em 0;
+  padding: 1em 2em;
+  text-align: center;
 }
 
 .minor {
@@ -1237,7 +1255,16 @@ ul.inline li {
   list-style: none;
   list-style-type: none;
   list-style-image: none;
-  margin: 0 .75em;
+  margin: 0 .75em 0 0;
+}
+
+ul.right {
+  float: right;
+  clear: right;
+}
+
+ul.right li {
+  margin: 0 0 0 .75em;
 }
 
 .groupSearchHolder span.clearer {
@@ -1547,7 +1574,7 @@ div.popupBox {
 }
 
 div.popupBox .header,
-div.popupBox .content {
+div.popupBox .contents {
   padding: 20px;
 }
 

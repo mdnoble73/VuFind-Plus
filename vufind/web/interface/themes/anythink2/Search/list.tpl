@@ -20,7 +20,6 @@
     {/foreach}
   {/if}
 </div></div>
-
 <div id="main-content">
   <div id="results-header">
     {if $recordCount}
@@ -50,7 +49,6 @@
       </ul>
     </div>
   </div>
-
   <div id="results-facets">
     {if $topRecommendations}
       {foreach from=$topRecommendations item="recommendations"}
@@ -58,7 +56,6 @@
       {/foreach}
     {/if}
   </div>
-
   <div id="results-list">
   {if $subpage}
     {include file=$subpage}

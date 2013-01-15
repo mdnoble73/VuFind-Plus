@@ -50,7 +50,7 @@
           {foreach from=$listList item=list}
             <div id="list{$list->id}" class="titleScrollerWrapper">
               <div id="list{$list->id}Header" class="titleScrollerHeader">
-                <span class="listTitle"><a href="{$url}/MyResearch/MyList/{$list->id}">{$list->title|escape:"html"}</a></span>
+                <strong class="listTitle">{$list->title|escape:"html"}</strong>
                 <span class="list-edit"><a href='{$url}/MyResearch/MyList/{$list->id}'>View and Edit List</a></span>
               </div>
               <div id="titleScrollerList{$list->id}" class="titleScrollerBody">
