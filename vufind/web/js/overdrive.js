@@ -11,6 +11,7 @@ function checkoutOverDriveItem(overdriveId, formatId){
 			checkoutOverDriveItem(overdriveId, formatId);
 		});
 	}
+	return false;
 }
 
 function selectOverDriveFormat(overdriveId, nextAction){
@@ -78,6 +79,7 @@ function placeOverDriveHold(overDriveId, formatId){
 			placeOverDriveHold(overDriveId, formatId);
 		});
 	}
+	return false;
 }
 
 function addOverDriveRecordToWishList(recordId){

@@ -3,7 +3,7 @@
 	<a href="#" onclick='hideLightbox();return false;' class="closeIcon">Close <img src="{$path}/images/silk/cancel.png" alt="close" /></a>
 </div>
 <div id="popupboxContent" class="content">
-	<form method="post" action="">
+	<form method="post" data-ajax="false" action="">
 		<div>
 			<input type="hidden" name="overdriveId" value="{$overDriveId}"/>
 			<label for="loanPeriod">{translate text="Which format would you like?"}</label>

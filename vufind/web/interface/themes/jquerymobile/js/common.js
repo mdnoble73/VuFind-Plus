@@ -98,9 +98,11 @@ function processAjaxLogin(){
 					$('#loginOptions').hide();
 					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
-					hideLightbox();
+					
 					if (ajaxCallback  && typeof(ajaxCallback) === "function"){
 						ajaxCallback();
+					}else{
+						hideLightbox();
 					}
 				}else{
 					alert("That login information was not recognized.  Please try again.");
@@ -117,10 +119,10 @@ function processAjaxLogin(){
 }
 
 function showProcessingIndicator(message){
-	if (message != undefined){
-		$.mobile.loadingMessage = message;
-	}
-	$.mobile.showPageLoadingMsg();
+	$.mobile.loading('show', {
+		text: message,
+		textVisible: true
+	});
 }
 
 function getQuerystringParameters(){

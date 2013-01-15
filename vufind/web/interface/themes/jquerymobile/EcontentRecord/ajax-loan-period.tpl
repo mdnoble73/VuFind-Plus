@@ -5,7 +5,7 @@
 		</h1>
 	</div>
 	<div data-role="content">
-		<form method="post" action=""> 
+		<form method="post" action="">
 			<div>
 				<input type="hidden" name="overdriveId" value="{$overDriveId}"/>
 				<input type="hidden" name="formatId" value="{$formatId}"/>
@@ -14,10 +14,10 @@
 					{foreach from=$loanPeriods item=loanPeriod}
 						<option value="{$loanPeriod}">{$loanPeriod} days</option>
 					{/foreach}
-				</select> 
-				<input type="submit" name="submit" value="Check Out" onclick="return checkoutOverDriveItemStep2('{$overDriveId}', '{$formatId}')"/>
+				</select>
+				<input type="submit" name="submit" value="Check Out" onclick="return checkoutOverDriveItemStep2('{$overDriveId}', '{$formatId}')" data-ajax="false" data-rel="external"/>
 				<a href="#" data-rel="back" class="closeIcon" data-role="button">Cancel</a>
-				
+
 			</div>
 		</form>
 	</div>

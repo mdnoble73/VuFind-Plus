@@ -5,7 +5,7 @@
 			{if $eContentRecord->subTitle}{$eContentRecord->subTitle|escape}{/if}
 		</h3>
 
-		{if $eContentRecord->description}<p>{$eContentRecord->description|truncate:200:"..."|escape}</p>{/if}
+		{if $cleanDescription}<p>{$cleanDescription|truncate:800:"..."}</p>{/if}
 		
 		<dl class="biblio" title="{translate text='Bibliographic Details'}">
 		{if !empty($coreMainAuthor)}
@@ -95,20 +95,32 @@
 		</dl>
 		
 		<div data-role="controlgroup">
-		{* Place hold link *}
-		<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold">Place Hold</a>
-		</div>
-		
-		{* Checkout link *}
-		<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external">Checkout</a>
-		</div>
-		
-		{* Add to Wish List *}
-		<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external">Add To Wish List</a>
-		</div>
+			{if $eContentRecord->isOverDrive()}
+				{* Place hold link *}
+				<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+					<a href="#" data-role="button" rel="external" data-ajax="false" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
+				</div>
+				
+				{* Checkout link *}
+				<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+					<a href="#" data-role="button" rel="external" data-ajax="false" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+				</div>
+			{else}
+				{* Place hold link *}
+				<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" data-role="button" rel="external">Place Hold</a>
+				</div>
+				
+				{* Checkout link *}
+				<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" data-role="button" rel="external">Checkout</a>
+				</div>
+				
+				{* Add to Wish List *}
+				<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" data-role="button" rel="external">Add To Wish List</a>
+				</div>
+			{/if}
 			<a href="{$path}/EcontentRecord/{$id}/Save" data-role="button" rel="external">{translate text="Add to favorites"}</a>
 			<a href="{$path}/EcontentRecord/{$id}/AddTag" data-role="button" rel="external">{translate text="Add Tag"}</a>
 		</div>
@@ -116,7 +128,7 @@
 		{if $subTemplate}
 		{include file="EContentRecord/$subTemplate"}
 		{else}
-		<div id="holdingsPlaceholder">Loading...</div>
+		<div id="formatsPlaceholder">Loading...</div>
 		{/if}
 						
 	</div>
