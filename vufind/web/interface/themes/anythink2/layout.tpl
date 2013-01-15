@@ -200,6 +200,7 @@
                     {include file="$module/breadcrumbs.tpl"}
                   </div>
                 {/if}
+                <!-- <div id="messages"></div> -->
               {include file="$module/$pageTemplate"}
             </div></div>
           </div>
