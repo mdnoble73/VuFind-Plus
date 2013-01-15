@@ -533,6 +533,7 @@ class OverDriveDriver {
 	public function placeOverDriveHold($overDriveId, $format, $user){
 		global $memcache;
 		global $configArray;
+    global $logger;
 
 		$holdResult = array();
 		$holdResult['result'] = false;
