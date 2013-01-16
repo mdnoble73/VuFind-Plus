@@ -6,7 +6,7 @@
 			<span class="eContentHoldingFormat">{$eContentItem->getDisplayFormat()}</span>{if $showEContentNotes} {$eContentItem->notes}{/if}
 			<div class="eContentFormatUsage">
 				{assign var="displayFormat" value=$eContentItem->getDisplayFormat()|substr:0:1}
-				<a href="#" onclick="return ajaxLightbox('EcontentRecord/{$id}/AJAX?method=getEContentFormatHelp&itemId={$eContentItem->id}');">How to use a{if preg_match("/[aeiou]/i", $displayFormat)}n{/if} {$eContentItem->getDisplayFormat()}</a>
+				<a href="#" onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">How to use a{if preg_match("/[aeiou]/i", $displayFormat)}n{/if} {$eContentItem->getDisplayFormat()}</a>
 			</div>
 			<div class="eContentHoldingUsage">
 				{$eContentItem->getFormatNotes()}
