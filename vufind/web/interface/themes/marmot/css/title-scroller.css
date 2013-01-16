@@ -45,6 +45,10 @@
 	background-color: #011753;
 }
 
+#list-series.titleScroller{
+	border: 1px solid #949494;
+}
+
 .titleScrollerHeader{
 	background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left;
 	padding: 2px;
