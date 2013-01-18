@@ -175,26 +175,31 @@ class EContentDriver implements DriverInterface{
 						}
 					}
 				}
-				foreach ($items as $key => $item){
+				foreach ($items as $key => $item) {
 					$item->links = array();
-					if ($addCheckoutLink){
-						$item->links[] = array(
+					if (!empty($eContentRecord->externalId) && !empty($item->externalFormatNumeric)) {
+						if ($addCheckoutLink){
+							$item->links[] = array(
 								'onclick' => "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
 								'text' => 'Check Out',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,
-								'action' => 'CheckOut'
-						);
-					}else if ($addPlaceHoldLink){
-						$item->links[] = array(
+								'action' => 'CheckOut',
+							);
+						}
+						elseif ($addPlaceHoldLink) {
+							$item->links[] = array(
 								'onclick' => "return placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
 								'text' => 'Place Hold',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,
-								'action' => 'Hold'
-						);
+								'action' => 'Hold',
+							);
+						}
 					}
-					$items[$key] = $item;
+					if (!empty($item->links)) {
+						$items[$key] = $item;
+					}
 				}
 			}else{
 				foreach ($items as $key => $item){
