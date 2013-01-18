@@ -200,7 +200,7 @@
                     {include file="$module/breadcrumbs.tpl"}
                   </div>
                 {/if}
-                <!-- <div id="messages"></div> -->
+                <div id="messages">Due to a high volume of downloads, you may receive an error when attempting to download digital content from our catalog. If this occurs, please download your desired item directly from OverDrive <a href="http://anythinklibraries.lib.overdrive.com/71467B63-6F1B-4397-AB09-B478CFF9C47B/10/667/en/Default.htm">here</a>. We apologize for the inconvenience.</div>
               {include file="$module/$pageTemplate"}
             </div></div>
           </div>
