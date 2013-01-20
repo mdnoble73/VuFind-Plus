@@ -489,6 +489,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					OverDriveItem curItem = new OverDriveItem();
 					curItem.setFormatId(format.getString("id"));
 					curItem.setFormat(format.getString("name"));
+					Long numericFormat = overDriveFormatMap.get(curItem.getFormat());
+					if (numericFormat == null){
+						logger.error("Could not find numeric format for format " + curItem.getFormat());
+						results.addNote("Could not find numeric format for format " + curItem.getFormat());
+						results.incErrors();
+						System.out.println("Warning: new format for OverDrive found " + curItem.getFormat());
+						continue;
+					}
 					curItem.setFormatNumeric(overDriveFormatMap.get(curItem.getFormat()));
 					curItem.setFilename(format.getString("fileName"));
 					curItem.setPartCount(format.has("partCount") ? format.getLong("partCount") : 0L);

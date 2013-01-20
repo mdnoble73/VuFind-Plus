@@ -73,7 +73,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			results.incErrors();
 		}
 		//Make sure that the index is good and swap indexes
-		results.addNote("calling final commit on index");
+		//Removing these steps because they are redundant to the steps above.
+		/*results.addNote("calling final commit on index");
 		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit expungeDeletes=\"true\"/>", logger);
 		if (!response.isSuccess()){
 			results.addNote("Error committing changes " + response.getMessage());
@@ -82,10 +83,10 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<optimize />", logger);
 		if (!response.isSuccess()){
 			results.addNote("Error optimizing index " + response.getMessage());
-		}
+		}*/
 		if (checkMarcImport()){
 			results.addNote("index passed checks, swapping cores so new index is active.");
-			response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
+			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
 			if (!response.isSuccess()){
 				results.addNote("Error swapping cores " + response.getMessage());
 			}else{
