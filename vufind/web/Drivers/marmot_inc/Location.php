@@ -231,20 +231,20 @@ class Location extends DB_DataObject
 	 *
 	 * @return Location
 	 */
-	private $activeLocation = 'unset';
+	private static $activeLocation = 'unset';
 	function getActiveLocation(){
-		if ($this->activeLocation != 'unset') {
-			return $this->activeLocation;
+		if (Location::$activeLocation != 'unset') {
+			return Location::$activeLocation;
 		}
 
 		//default value
-		$this->activeLocation = null;
+		Location::$activeLocation = null;
 
 		//load information about the library we are in.
 		global $library;
 		if (is_null($library)){
 			//If we are not in a library, then do not allow branch scoping, etc.
-			$this->activeLocation = null;
+			Location::$activeLocation = null;
 		}else{
 
 			//Check to see if a branch location has been specified.
@@ -256,23 +256,23 @@ class Location extends DB_DataObject
 				if ($activeLocation->find(true)){
 					//Only use the location if we are in the subdomain for the parent library
 					if ($library->libraryId == $activeLocation->libraryId){
-						$this->activeLocation = clone($activeLocation);
+						Location::$activeLocation = clone($activeLocation);
 					}
 				}
 			}else{
 				$physicalLocation = $this->getPhysicalLocation();
 				if ($physicalLocation != null){
-					$this->activeLocation = $physicalLocation;
+					Location::$activeLocation = $physicalLocation;
 				}
 			}
 			global $timer;
 			$timer->logTime('Finished getActiveLocation');
 		}
 
-		return $this->activeLocation;
+		return Location::$activeLocation;
 	}
 	function setActiveLocation($location){
-		$this->activeLocation = $location;
+		Location::$activeLocation = $location;
 	}
 
 	private $userHomeLocation = 'unset';

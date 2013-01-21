@@ -227,11 +227,22 @@ class EContentDriver implements DriverInterface{
 	}
 
 	public function getLibraryScopingId(){
+		//For econtent, we need to be more specific when restricting copies
+		//since patrons can't use copies that are only available to other libraries.
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
+		$activeLibrary = Library::getActiveLibrary();
+		$activeLocation = Location::getActiveLocation();
+		$homeLibrary = Library::getPatronHomeLibrary();
 
 		//Load the holding label for the branch where the user is physically.
-		if (!is_null($searchLocation)){
+		if (!is_null($homeLibrary)){
+			return $homeLibrary->libraryId;
+		}else if (!is_null($activeLocation)){
+			return $activeLocation->libraryId;
+		}else if (isset($activeLibrary)) {
+			return $activeLibrary->libraryId;
+		}else if (!is_null($searchLocation)){
 			return $searchLocation->libraryId;
 		}else if (isset($searchLibrary)) {
 			return $searchLibrary->libraryId;
