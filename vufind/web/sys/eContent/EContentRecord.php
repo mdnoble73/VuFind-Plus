@@ -1291,7 +1291,8 @@ class EContentRecord extends SolrDataObject {
 	}
 
 	function insert(){
-		$ret = parent::insert();
+		//Update Solr only on insert since if we are inserting it needs to be in the index to view it again.
+		$ret = parent::insertDetailed();
 		if ($ret){
 			$this->clearCachedCover();
 		}
@@ -1307,7 +1308,8 @@ class EContentRecord extends SolrDataObject {
 		$currentValue->id = $this->id;
 		$currentValue->find(true);
 
-		$ret = parent::update();
+		//Don't update solr, rely on the nightly reindex
+		$ret = parent::updateDetailed(false);
 		if ($ret){
 			$this->clearCachedCover();
 			if ($currentValue->N == 1 && $currentValue->availableCopies != $this->availableCopies){
