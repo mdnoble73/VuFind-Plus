@@ -74,7 +74,7 @@
 				{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
 					{if $index == 0}
 						listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, {if $widget->showMultipleTitles==1}true{else}false{/if});
-						listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}', false);
+						listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id={$list->source|escape:url}%26scrollerName={$listName}', false);
 					{/if}
 					{assign var=index value=$index+1}
 				{/if}
