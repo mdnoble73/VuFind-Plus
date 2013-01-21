@@ -511,8 +511,9 @@ class Home extends Action
 
 		$body = preg_replace($pattern, $replacement, $body);
 
-		$tidy = new tidy();
-		$body = $tidy->repairString($body, array('doctype' => 'omit', 'show-body-only' => true));
+		//Clean up spaces within hrefs
+		$body = preg_replace_callback('/href="(.*?)"/si', array($this, 'fix_whitespace'), $body);
+
 		$body = str_replace('<br>', '<br/>', $body);
 
 		if (isset($imageUrl) && $imageUrl != false) {
@@ -525,6 +526,12 @@ class Home extends Action
 
 		return $info;
 	}
-
+	function fix_whitespace($matches)
+	{
+		// as usual: $matches[0] is the complete match
+		// $matches[1] the match for the first subpattern
+		// enclosed in '(...)' and so on
+		return str_replace(' ', '+', $matches[0]);
+	}
 }
 ?>
