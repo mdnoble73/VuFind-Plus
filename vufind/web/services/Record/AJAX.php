@@ -427,7 +427,6 @@ class AJAX extends Action {
 		if (!isset($enrichmentData['novelist']['series']) || count($enrichmentData['novelist']['series']) == 0){
 			$interface->assign('seriesInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
 		}else{
-
 			foreach ($enrichmentData['novelist']['series'] as $record){
 				$isbn = $record['isbn'];
 				if (strpos($isbn, ' ') > 0){
@@ -443,10 +442,18 @@ class AJAX extends Action {
 				if (isset($record['format_category'])){
 					$cover .= "&category=" . $record['format_category'][0];
 				}
+				$title = $record['title'];
+				if (isset($record['series'])){
+					$title .= ' (' . $record['series'] ;
+					if (isset($record['volume'])){
+						$title .= ' Volume ' . $record['volume'];
+					}
+					$title .= ')';
+				}
 				$titles[] = array(
 	        	  'id' => isset($record['id']) ? $record['id'] : '',
 			    		'image' => $cover,
-			    		'title' => $record['title'],
+			    		'title' => $title,
 			    		'author' => $record['author']
 				);
 			}

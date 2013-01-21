@@ -22,7 +22,7 @@ class Novelist{
 		}
 
 		$enrichment = $memcache->get("novelist_enrichment_$isbn");
-		if ($enrichment == false){
+		if ($enrichment == false  || isset($_REQUEST['reload'])){
 
 			//$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/SeriesTitles?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$this->isbn}";
 			$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/AllContent?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$isbn}";
@@ -99,11 +99,12 @@ class Novelist{
 	}
 
 	function loadSeriesInfo($originalIsbn, $feature, &$enrichment){
+		$seriesName = (string)$feature->MetaData->Name;
 		$seriesTitles = array();
 		$items = $feature->Item;
 		$titlesOwned = 0;
 		foreach ($items as $item){
-			$this->loadNoveListTitle($originalIsbn, $item, $seriesTitles, $titlesOwned);
+			$this->loadNoveListTitle($originalIsbn, $item, $seriesTitles, $titlesOwned, $seriesName);
 		}
 		$enrichment['series'] = $seriesTitles;
 		$enrichment['seriesCount'] = count($items);
@@ -132,8 +133,7 @@ class Novelist{
 		$enrichment['similarTitleCountOwned'] = $titlesOwned;
 	}
 
-	function loadNoveListTitle($originalIsbn, $item, &$titleList, &$titlesOwned){
-
+	function loadNoveListTitle($originalIsbn, $item, &$titleList, &$titlesOwned, $seriesName = ''){
 		$isbnList = array();
 		foreach($item->TitleList->TitleItem as $titleItem){
 			$tmpIsbn = (string)$titleItem->attributes()->value;
@@ -154,6 +154,13 @@ class Novelist{
 		$searchObj->processSearch(false, false);
 		$matchingRecords = $searchObj->getResultRecordSet();
 		$isCurrent = in_array($originalIsbn, $isbnList);
+		if (isset($seriesName)){
+			$series = $seriesName;
+		}
+		$volume = '';
+		if ($item->Volume){
+			$volume = (string)$item->Volume;
+		}
 		if (count($matchingRecords) > 0){
 			$ownedRecord = $matchingRecords[0];
 			if (strpos($ownedRecord['isbn'][0], ' ') > 0){
@@ -164,12 +171,12 @@ class Novelist{
 			}
 			$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
 			$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
-			//See if we can get the series title from the record
-			if (isset($ownedRecord['series'])){
-				$series = $ownedRecord['series'][0];
-			}else{
-				$series = '';
+			if (!isset($series)){
+				if (isset($ownedRecord['series'])){
+					$series = $ownedRecord['series'][0];
+				}
 			}
+			//See if we can get the series title from the record
 			$titleList[] = array(
                 'title' => $ownedRecord['title'],
                 'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
@@ -186,6 +193,7 @@ class Novelist{
                 'format_category' => $ownedRecord['format_category'],
                 'format' => $ownedRecord['format'],
                 'series' => $series,
+			          'volume' => $volume,
 			);
 			$titlesOwned++;
 		}else{
@@ -201,6 +209,8 @@ class Novelist{
                 'recordId' => -1,
                 'libraryOwned' => false,
                 'isCurrent' => $isCurrent,
+                'series' => $series,
+                'volume' => $volume,
 			);
 		}
 	}
