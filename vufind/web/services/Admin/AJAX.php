@@ -68,7 +68,7 @@ class AJAX extends Action {
 			if (strlen(trim($reindexProcess->notes)) == 0){
 				$interface->assign('popupContent', "No notes have been entered yet");
 			}else{
-				$interface->assign('popupContent', $reindexProcess->notes);
+				$interface->assign('popupContent', "<div class='helpText'>{$reindexProcess->notes}</div>");
 			}
 		}else{
 			$interface->assign('popupTitle', "Error");
@@ -88,7 +88,7 @@ class AJAX extends Action {
 			if (strlen(trim($reindexProcess->notes)) == 0){
 				$interface->assign('popupContent', "No notes have been entered for this process");
 			}else{
-				$interface->assign('popupContent', $reindexProcess->notes);
+				$interface->assign('popupContent', "<div class='helpText'>{$reindexProcess->notes}</div>");
 			}
 		}else{
 			$interface->assign('popupTitle', "Error");
@@ -108,7 +108,7 @@ class AJAX extends Action {
 			if (strlen($cronProcess->notes) == 0){
 				$interface->assign('popupContent', "No notes have been entered for this process");
 			}else{
-				$interface->assign('popupContent', $cronProcess->notes);
+				$interface->assign('popupContent', "<div class='helpText'>{$cronProcess->notes}</div>");
 			}
 		}else{
 			$interface->assign('popupTitle', "Error");
@@ -128,7 +128,7 @@ class AJAX extends Action {
 			if (strlen($cronLog->notes) == 0){
 				$interface->assign('popupContent', "No notes have been entered for this cron run");
 			}else{
-				$interface->assign('popupContent', $cronLog->notes);
+				$interface->assign('popupContent', "<div class='helpText'>{$cronLog->notes}</div>");
 			}
 		}else{
 			$interface->assign('popupTitle', "Error");

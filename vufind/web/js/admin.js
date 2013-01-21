@@ -1,9 +1,9 @@
 function showReindexNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getReindexNotes&amp;id=" + id);
+	ajaxLightbox("/Admin/AJAX?method=getReindexNotes&id=" + id);
 	return false;
 }
 function showReindexProcessNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&amp;id=" + id);
+	ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
 	return false;
 }
 function toggleReindexProcessInfo(id){
