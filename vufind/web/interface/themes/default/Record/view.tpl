@@ -599,30 +599,30 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 				
 			{foreach from=$editorialReviews key=key item=reviewTabInfo}
-			<div id="{$key}">
-				{if $showAmazonReviews || $showStandardReviews || $showComments}
-					{if $key == 'reviews'} 
-						<div id = "staffReviewtab" >
-						{include file="$module/view-staff-reviews.tpl"}
-						</div>
-						
-						<div id='reviewPlaceholder'></div>
+				<div id="{$key}">
+					{if $showAmazonReviews || $showStandardReviews || $showComments}
+						{if $key == 'reviews'} 
+							<div id = "staffReviewtab" >
+							{include file="$module/view-staff-reviews.tpl"}
+							</div>
+							
+							<div id='reviewPlaceholder'></div>
+						{/if}
 					{/if}
-				{/if}
-				
-				{if $showComments}
-					{foreach from=$reviewTabInfo.reviews item=review}
-						{assign var=review value=$review}
-						{include file="Resource/view-review.tpl"}
-					{/foreach}
 					
-					{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
-						<div>
-							<span class="button"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
-						</div>
+					{if $showComments}
+						{foreach from=$reviewTabInfo.reviews item=review}
+							{assign var=review value=$review}
+							{include file="Resource/view-review.tpl"}
+						{/foreach}
+						
+						{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+							<div>
+								<span class="button"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
+							</div>
+						{/if}
 					{/if}
-				{/if}
-			</div>
+				</div>
 			{foreachelse}
 				<div id="reviewtab">
 					{if $showComments}

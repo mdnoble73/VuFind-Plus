@@ -35,7 +35,7 @@ class Reviews extends Record
 		$interface->setPageTitle('Reviews: ' . $this->record['title_short']);
 
 		//Load the data for the reviews and populate in the user interface
-		$this->loadReviews($this->id, $this->isbn);
+		$this->loadReviews($this->id, $this->isbn, true);
 
 		$interface->assign('subTemplate', 'view-reviews.tpl');
 		$interface->setTemplate('view.tpl');
@@ -50,7 +50,7 @@ class Reviews extends Record
 	 * @return array       Returns array with review data, otherwise a
 	 *                      PEAR_Error.
 	 */
-	function loadReviews($id, $isbn) {
+	function loadReviews($id, $isbn, $includeEditorial = false) {
 		global $interface;
 		global $configArray;
 		global $memcache;
@@ -84,31 +84,33 @@ class Reviews extends Record
 		}
 
 		//Load Editorial Reviews
-		if (isset($_REQUEST['id'])){
-			$recordId = $_REQUEST['id'];
-		}
-		$editorialReview = new EditorialReview();
-		$editorialReviewResults = array();
-		$editorialReview->whereAdd("recordId = '{$recordId}'");
-		$editorialReview->find();
-		if ($editorialReview->N > 0){
-			while ($editorialReview->fetch()){
-				$editorialReviewResults[] = clone $editorialReview;
+		if ($includeEditorial){
+			if (isset($_REQUEST['id'])){
+				$recordId = $_REQUEST['id'];
 			}
-		}
+			$editorialReview = new EditorialReview();
+			$editorialReviewResults = array();
+			$editorialReview->whereAdd("recordId = '{$recordId}'");
+			$editorialReview->find();
+			if ($editorialReview->N > 0){
+				while ($editorialReview->fetch()){
+					$editorialReviewResults[] = clone $editorialReview;
+				}
+			}
 
-		//$reviews["editorialReviews"] = array();
-		if (count($editorialReviewResults) > 0) {
-			foreach ($editorialReviewResults AS $key=>$result ){
-				$reviews["editorialReviews"][$key]["Content"] = $result->review;
-				$reviews["editorialReviews"][$key]["Copyright"] = $result->source;
-				$reviews["editorialReviews"][$key]["Source"] = $result->source;
-				$reviews["editorialReviews"][$key]["ISBN"] = null;
-				$reviews["editorialReviews"][$key]["username"] = null;
+			//$reviews["editorialReviews"] = array();
+			if (count($editorialReviewResults) > 0) {
+				foreach ($editorialReviewResults AS $key=>$result ){
+					$reviews["editorialReviews"][$key]["Content"] = $result->review;
+					$reviews["editorialReviews"][$key]["Copyright"] = $result->source;
+					$reviews["editorialReviews"][$key]["Source"] = $result->source;
+					$reviews["editorialReviews"][$key]["ISBN"] = null;
+					$reviews["editorialReviews"][$key]["username"] = null;
 
-				$reviews["editorialReviews"][$key] = Reviews::cleanupReview($reviews["editorialReviews"][$key]);
-				if ($result->teaser){
-					$reviews["editorialReviews"][$key]["Teaser"] = $result->teaser;
+					$reviews["editorialReviews"][$key] = Reviews::cleanupReview($reviews["editorialReviews"][$key]);
+					if ($result->teaser){
+						$reviews["editorialReviews"][$key]["Teaser"] = $result->teaser;
+					}
 				}
 			}
 		}

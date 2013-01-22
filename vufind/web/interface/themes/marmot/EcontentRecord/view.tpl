@@ -281,15 +281,14 @@ function redrawSaveStatus() {literal}{{/literal}
 			 
 				<div id = "recordcover">	
 					<div class="recordcoverWrapper">
-					
-					<a href="{$bookCoverUrl}">
-						<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
-					</a>
-					<div id="goDeeperLink" class="godeeper" style="display:none">
-						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-						<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+						<a href="{$bookCoverUrl}">
+							<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
+						</a>
+						<div id="goDeeperLink" class="godeeper" style="display:none">
+							<a href="{$path}/EcontentRecord/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+							<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
+						</div>
 					</div>
-				</div>
 				</div>	
 			{/if}
 			
@@ -547,7 +546,11 @@ function redrawSaveStatus() {literal}{{/literal}
 					<li><a href="#notestab">{translate text="Notes"}</a></li>
 				{/if}
 				{if $showAmazonReviews || $showStandardReviews || $showComments}
-					<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+					{foreach from=$editorialReviews key=key item=reviewTabInfo}
+						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
+					{foreachelse}
+						<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
+					{/foreach}
 				{/if}
 				{if $showComments}
 				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
@@ -591,19 +594,44 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 			{/if}
 			
-			{if $showAmazonReviews || $showStandardReviews || $showComments}
-			<div id="reviewtab">
-				{if $showComments}
-				<div id = "staffReviewtab" >
-				{include file="Record/view-staff-reviews.tpl"}
+			{foreach from=$editorialReviews key=key item=reviewTabInfo}
+				<div id="{$key}">
+					{if $showAmazonReviews || $showStandardReviews || $showComments}
+						{if $key == 'reviews'} 
+							<div id = "staffReviewtab" >
+							{include file="Record/view-staff-reviews.tpl"}
+							</div>
+							
+							<div id='reviewPlaceholder'></div>
+						{/if}
+					{/if}
+					
+					{if $showComments}
+						{foreach from=$reviewTabInfo.reviews item=review}
+							{assign var=review value=$review}
+							{include file="Resource/view-review.tpl"}
+						{/foreach}
+						
+						{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+							<div>
+								<span class="button"><a href='{$path}/EditorialReview/Edit?recordId=econtentRecord{$id}'>Add Editorial Review</a></span>
+							</div>
+						{/if}
+					{/if}
 				</div>
-				{/if}
-				 
-				{if $showAmazonReviews || $showStandardReviews}
-				<div id='reviewPlaceholder'></div>
-				{/if}
-			</div>
-			{/if}
+			{foreachelse}
+				<div id="reviewtab">
+					{if $showComments}
+					<div id = "staffReviewtab" >
+					{include file="$module/view-staff-reviews.tpl"}
+					</div>
+					{/if}
+						
+					{if $showAmazonReviews || $showStandardReviews}
+					<div id='reviewPlaceholder'></div>
+					{/if}
+				</div>
+			{/foreach}
 			
 			{if $showComments == 1}
 				<div id = "readertab" >

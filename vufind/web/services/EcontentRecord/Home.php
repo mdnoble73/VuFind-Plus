@@ -280,14 +280,27 @@ class Home extends Action{
 			//Populate an array of editorialReviewIds that match up with the recordId
 			$editorialReview = new EditorialReview();
 			$editorialReviewResults = array();
-			$editorialReview->recordId = $this->id;
+			$editorialReview->recordId = 'econtentRecord' . $eContentRecord->id;
 			$editorialReview->find();
+			$reviewTabs = array();
+			$editorialReviewResults['reviews'] = array(
+				'tabName' => 'Reviews',
+				'reviews' => array()
+			);
 			if ($editorialReview->N > 0){
+				$ctr = 0;
 				while ($editorialReview->fetch()){
-					$editorialReviewResults[] = clone $editorialReview;
+					$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
+					if (!array_key_exists($reviewKey, $editorialReviewResults)){
+						$editorialReviewResults[$reviewKey] = array(
+							'tabName' => $editorialReview->tabName,
+							'reviews' => array()
+						);
+					}
+					$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
 				}
 			}
-			$interface->assign('editorialReviewResults', $editorialReviewResults);
+			$interface->assign('editorialReviews', $editorialReviewResults);
 
 			//Build the actual view
 			$interface->setTemplate('view.tpl');

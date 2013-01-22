@@ -64,15 +64,16 @@ class Home extends Record{
 			'reviews' => array()
 		);
 		if ($editorialReview->N > 0){
+			$ctr = 0;
 			while ($editorialReview->fetch()){
 				$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
-				if (!array_key_exists($editorialReview->tabName, $reviewTabs)){
+				if (!array_key_exists($reviewKey, $editorialReviewResults)){
 					$editorialReviewResults[$reviewKey] = array(
 						'tabName' => $editorialReview->tabName,
 						'reviews' => array()
 					);
 				}
-				$editorialReviewResults[$reviewKey]['reviews'][] = get_object_vars($editorialReview);
+				$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
 			}
 		}
 		$interface->assign('editorialReviews', $editorialReviewResults);

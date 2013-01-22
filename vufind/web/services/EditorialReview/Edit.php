@@ -50,7 +50,7 @@ class Edit extends Admin {
 			}
 		}
 
-		if (isset($_REQUEST['submit']) || isset($_REQUEST['submitStay'])){
+		if (isset($_REQUEST['submit']) || isset($_REQUEST['submitStay']) || isset($_REQUEST['submitReturnToList']) || isset($_REQUEST['submitAddAnother'])){
 			//Save the object
 			$results = DataObjectUtil::saveObject($structure, 'EditorialReview');
 			$editorialReview = $results['object'];
@@ -59,11 +59,23 @@ class Edit extends Admin {
 				//Display the errors for the user.
 				$interface->assign('errors', $results['errors']);
 				$interface->assign('object', $editorialReview);
+
 				$_REQUEST['id'] = $editorialReview->editorialReviewId;
 			}else{
 				//Show the new tip that was created
-				header('Location:' . $configArray['Site']['path'] . "/EditorialReview/{$editorialReview->editorialReviewId}/View");
-				exit();
+				if (isset($_REQUEST['submitReturnToList'])){
+					if (strstr($editorialReview->recordId, 'econtentRecord') == 0){
+						$shortId = str_replace('econtentRecord', '', $editorialReview->recordId);
+						header('Location:' . $configArray['Site']['path'] . "/EcontentRecord/{$shortId}/Home");
+					}else{
+						header('Location:' . $configArray['Site']['path'] . "/Record/{$editorialReview->recordId}/Home");
+					}
+				}elseif (isset($_REQUEST['submitAddAnother'])){
+					header('Location:' . $configArray['Site']['path'] . "/EditorialReview/Edit?recordId={$editorialReview->recordId}");
+				}else{
+					header('Location:' . $configArray['Site']['path'] . "/EditorialReview/{$editorialReview->editorialReviewId}/View");
+					exit();
+				}
 			}
 		}
 
