@@ -107,7 +107,7 @@
 			<input type="button" id="suggestIdentifiers" value="Lookup Details" onclick="return getWorldCatIdentifiers();"/>
 		</div>
 		{/if}
-		<div id="suggestedIdentifiers" style="display:none"></div>
+		<div id="suggestedIdentifiers" style="display:none" class="clearfix"></div>
 		<div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
 			<label for="isbn">ISBN:</label>
 			<input name="isbn" id="isbn" size="15" maxlength="15" value="{$materialsRequest->isbn}"/>
