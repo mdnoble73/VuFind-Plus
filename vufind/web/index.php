@@ -30,7 +30,7 @@ require_once 'sys/Timer.php';
 global $timer;
 $timer = new Timer($startTime);
 $timer->logTime("Read Config");
-$configArray['System']['debug'] = TRUE;
+
 if ($configArray['System']['debug']) {
 	ini_set('display_errors', true);
 	error_reporting(E_ALL & ~E_DEPRECATED);
