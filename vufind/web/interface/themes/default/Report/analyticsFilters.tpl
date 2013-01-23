@@ -51,5 +51,6 @@
 	
 	{/foreach}
 	
-	var filterParams = "{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}";
+	{* Cannot replace & since that causes the data to not load properly *}
+	var filterParams = "{if $filterString}&{$filterString}{/if}";
 </script>
