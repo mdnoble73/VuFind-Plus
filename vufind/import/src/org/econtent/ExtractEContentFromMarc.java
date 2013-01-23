@@ -377,7 +377,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			curRecord.getFormats().add(curProduct.getJSONArray("formats").getJSONObject(k).getString("id"));
 		}
 		if (curProduct.has("images")){
-			curRecord.setCoverImage(curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href"));
+			if (curProduct.getJSONObject("images").has("thumbnail")){
+				curRecord.setCoverImage(curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href"));
+			}
 		}
 		curRecord.getCollections().add(getLibraryIdForOverDriveAccount(libraryName));
 		return curRecord;
