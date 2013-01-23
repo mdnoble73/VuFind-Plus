@@ -64,7 +64,7 @@ class Edit extends Admin {
 			}else{
 				//Show the new tip that was created
 				if (isset($_REQUEST['submitReturnToList'])){
-					if (strstr($editorialReview->recordId, 'econtentRecord') == 0){
+					if (strpos($editorialReview->recordId, 'econtentRecord') === 0){
 						$shortId = str_replace('econtentRecord', '', $editorialReview->recordId);
 						header('Location:' . $configArray['Site']['path'] . "/EcontentRecord/{$shortId}/Home");
 					}else{
