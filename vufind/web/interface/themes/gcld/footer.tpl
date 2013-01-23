@@ -40,8 +40,7 @@
 </div>
 <div class="footerCol"><p><strong>{translate text='About Us'}</strong></p>
 	<ul>
-		<li><a href="http://gcld.org/content/pages/hours">{translate text='Hours'}</a></li>
-		<li><a href="http://gcld.org/content/pages/hours">{translate text='Holiday Closures'}</a></li>
+		<li><a href="http://gcld.org/content/pages/hours">{translate text='Hours &amp; Holiday Closures'}</a></li>
 		<li><a href="http://gcld.org/content/locations/landing-page">{translate text="Locations"}</a></li>
 	</ul>
 </div>
