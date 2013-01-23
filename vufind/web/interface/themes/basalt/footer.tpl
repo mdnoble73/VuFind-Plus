@@ -6,7 +6,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=itype_basalt%3A"DVD+New"'>{translate text='New DVDs'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_basalt%3A"Month"&amp;filter[]=format_category%3A"Audio"'>{translate text='New Audio Books &amp; CDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=Seed+Library&amp;type=Subject'>{translate text='Basalt Seed Library'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor="Seed+Library"&amp;type=Subject'>{translate text='Basalt Seed Library'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
