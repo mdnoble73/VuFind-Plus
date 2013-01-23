@@ -120,7 +120,7 @@ div#ft_contents {
 .resultValue {
 	display: inline-block;
 	vertical-align: top;
-	width: 330px;
+	width: 305px;
 }
 
 .boldedResultValue {
@@ -142,7 +142,7 @@ div#ft_contents {
 
 .resultitem {
 	margin-left: 25px;
-	width: 450px;
+	width: 425px;
 }
 
 .toolbar {
@@ -267,6 +267,7 @@ td {
 }
 .resultsList{
 	width: 465px;
+	min-height: 175px;
 	display:inline-block;
 	zoom:1;
 	*display:inline;
