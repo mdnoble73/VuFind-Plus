@@ -69,7 +69,7 @@ class Profile extends MyResearch
 			$locationList[$locationSingleton->locationId] = $locationSingleton->displayName;
 		}
 		$interface->assign('locationList', $locationList);
-		
+
 		if ($this->catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $this->catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);

@@ -108,7 +108,10 @@ class MillenniumDriver implements DriverInterface
 
 	public function isUserStaff(){
 		global $configArray;
-		if (isset($configArray['Staff P-Types'])){
+		global $user;
+		if (count($user->roles) > 0){
+			return true;
+		}else if (isset($configArray['Staff P-Types'])){
 			$staffPTypes = $configArray['Staff P-Types'];
 			$pType = $this->getPType();
 			if (array_key_exists($pType, $staffPTypes)){
