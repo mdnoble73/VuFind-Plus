@@ -239,7 +239,10 @@
       $.getJSON(requestUrl, function(data){
         if (data.success == true){
           // Dislay the results of the suggestions
-          suggested_ids.html(data.formattedSuggestions);
+          var div = $('<div>')
+                      .attr('id', 'identifiers')
+                      .append(data.formattedSuggestions);
+          suggested_ids.empty().append(div);
         }
         else {
           alert(data.error);
