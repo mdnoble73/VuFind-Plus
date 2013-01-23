@@ -1804,18 +1804,27 @@ input.yearbox {
 	border-bottom: 1px solid #CCC;
 }
 
-.eContentHoldingFormat{
-	font-weight: bold;
-	font-size: 14px;
+ol.hold_result_details {
+  margin-left: 0;
+  margin-right: 0;
 }
 
-.eContentHoldingUsage{
-	font-style: italic;
-	font-size: 12px;
+.step {
+  background-color: #FFF1E4;
+  border-bottom: 1px solid #996;
+  -webkit-border-radius: 1em;
+  -moz-border-radius: 1em;
+  border-radius: 1em;
+  color: #444;
+  display: inline-block;
+  margin: 0 .5em;
+  padding: .5em .75em;
+  vertical-align: middle;
+  text-align: center;
 }
 
-.eContentHoldingNotes{
-	font-size: 11px;
+.step-desc {
+  margin-left: 5em;
 }
 
 #messages {

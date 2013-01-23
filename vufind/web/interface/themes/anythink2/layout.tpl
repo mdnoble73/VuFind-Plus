@@ -160,7 +160,6 @@
               {if !($module == 'Search' && $action == 'Home')}
                 <li class="request-header">{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></li>
               {/if}
-              <li class="status">{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></li>
             </ul>
           </div>
           {if $useSolr || $useWorldcat || $useSummon}
