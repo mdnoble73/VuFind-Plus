@@ -1348,7 +1348,7 @@ ul.right li {
 }
 
 fieldset {
-  margin-bottom: 10px;
+  padding: 5px 10px;
 }
 
 legend {
