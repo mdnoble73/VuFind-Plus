@@ -1708,13 +1708,17 @@ div.popupBox ul li a {
   margin-left: 140px;
 }
 
+#identifiers-wrapper {
+  padding: 10px;
+}
+
 #suggestedIdentifiers {
   border: 2px solid #CCC;
   -webkit-border-radius: 20px;
   -moz-border-radius: 20px;
   border-radius: 20px;
-  margin: 10px;
   padding: 10px;
+  width: auto;
 }
 
 .survey-container {
