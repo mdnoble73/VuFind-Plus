@@ -546,7 +546,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<li><a href="#notestab">{translate text="Notes"}</a></li>
 				{/if}
 				{if $showAmazonReviews || $showStandardReviews || $showComments}
-					{foreach from=$editorialReviews key=key item=reviewTabInfo}
+					{foreach from=$reviews key=key item=reviewTabInfo}
 						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
 					{foreachelse}
 						<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
@@ -594,7 +594,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 			{/if}
 			
-			{foreach from=$editorialReviews key=key item=reviewTabInfo}
+			{foreach from=$reviews key=key item=reviewTabInfo}
 				<div id="{$key}">
 					{if $showAmazonReviews || $showStandardReviews || $showComments}
 						{if $key == 'reviews'} 
@@ -623,7 +623,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="reviewtab">
 					{if $showComments}
 					<div id = "staffReviewtab" >
-					{include file="$module/view-staff-reviews.tpl"}
+					{include file="Record/view-staff-reviews.tpl"}
 					</div>
 					{/if}
 						

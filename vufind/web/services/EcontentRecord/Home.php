@@ -28,6 +28,7 @@ class Home extends Action{
 	private $id;
 	private $isbn;
 	private $issn;
+	private $recordDriver;
 
 	function launch(){
 		global $interface;
@@ -114,6 +115,9 @@ class Home extends Action{
 		if (!$eContentRecord->find(true)){
 			//TODO: display record not found error
 		}else{
+			$this->recordDriver = new EcontentRecordDriver();
+			$this->recordDriver->setDataObject($eContentRecord);
+
 			if ($configArray['Catalog']['ils'] == 'Millennium'){
 				if (isset($eContentRecord->ilsId) && strlen($eContentRecord->ilsId) > 0){
 					$interface->assign('classicId', substr($eContentRecord->ilsId, 1, strlen($eContentRecord->ilsId) -2));
@@ -276,32 +280,17 @@ class Home extends Action{
 				}
 			}
 
-			//Load the Editorial Reviews
-			//Populate an array of editorialReviewIds that match up with the recordId
-			$editorialReview = new EditorialReview();
-			$editorialReviewResults = array();
-			$editorialReview->recordId = 'econtentRecord' . $eContentRecord->id;
-			$editorialReview->find();
-			$reviewTabs = array();
-			$editorialReviewResults['reviews'] = array(
-				'tabName' => 'Reviews',
-				'reviews' => array()
-			);
-			if ($editorialReview->N > 0){
-				$ctr = 0;
-				while ($editorialReview->fetch()){
-					$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
-					if (!array_key_exists($reviewKey, $editorialReviewResults)){
-						$editorialReviewResults[$reviewKey] = array(
-							'tabName' => $editorialReview->tabName,
-							'reviews' => array()
-						);
-					}
-					$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
+			$this->loadReviews($eContentRecord);
+
+			if (isset($_REQUEST['subsection'])){
+				$subsection = $_REQUEST['subsection'];
+				if ($subsection == 'Description'){
+					$interface->assign('extendedMetadata', $this->recordDriver->getExtendedMetadata());
+					$interface->assign('subTemplate', 'view-description.tpl');
+				}elseif ($subsection == 'Reviews'){
+					$interface->assign('subTemplate', 'view-reviews.tpl');
 				}
 			}
-			$interface->assign('editorialReviews', $editorialReviewResults);
-
 			//Build the actual view
 			$interface->setTemplate('view.tpl');
 
@@ -340,6 +329,69 @@ class Home extends Action{
 		}
 	}
 
+	function loadReviews($eContentRecord){
+		global $interface;
+
+		//Load the Editorial Reviews
+		//Populate an array of editorialReviewIds that match up with the recordId
+		$editorialReview = new EditorialReview();
+		$editorialReviewResults = array();
+		$editorialReview->recordId = 'econtentRecord' . $eContentRecord->id;
+		$editorialReview->find();
+		$reviewTabs = array();
+		$editorialReviewResults['reviews'] = array(
+			'tabName' => 'Reviews',
+			'reviews' => array()
+		);
+		if ($editorialReview->N > 0){
+			$ctr = 0;
+			while ($editorialReview->fetch()){
+				$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
+				if (!array_key_exists($reviewKey, $editorialReviewResults)){
+					$editorialReviewResults[$reviewKey] = array(
+						'tabName' => $editorialReview->tabName,
+						'reviews' => array()
+					);
+				}
+				$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
+			}
+		}
+
+		if ($interface->isMobile()){
+			//If we are in mobile interface, load standard reviews
+			$reviews = array();
+			require_once 'sys/Reviews.php';
+			if ($eContentRecord->getIsbn()){
+				$externalReviews = new ExternalReviews($eContentRecord->getIsbn());
+				$reviews = $externalReviews->fetch();
+			}
+
+			if (count($editorialReviewResults) > 0) {
+				foreach ($editorialReviewResults as $tabName => $reviewsList){
+					foreach ($reviewsList['reviews'] as $key=>$result ){
+						$reviews["editorialReviews"][$key]["Content"] = $result['review'];
+						$reviews["editorialReviews"][$key]["Copyright"] = $result['source'];
+						$reviews["editorialReviews"][$key]["Source"] = $result['source'];
+						$reviews["editorialReviews"][$key]["ISBN"] = null;
+						$reviews["editorialReviews"][$key]["username"] = null;
+
+
+						$reviews["editorialReviews"][$key] = ExternalReviews::cleanupReview($reviews["editorialReviews"][$key]);
+						if ($result['teaser']){
+							$reviews["editorialReviews"][$key]["Teaser"] = $result['teaser'];
+						}
+					}
+				}
+			}
+			$interface->assign('reviews', $reviews);
+			$interface->assign('editorialReviews', $editorialReviewResults);
+		}else{
+			$interface->assign('reviews', $editorialReviewResults);
+		}
+
+
+	}
+
 	/**
 	 * Load information from the review provider and update the interface with the data.
 	 *
@@ -376,14 +428,10 @@ class Home extends Action{
 	{
 		global $interface;
 
-		//instantiate the record driver
-		$recordDriver = new EcontentRecordDriver();
-		$recordDriver->setDataObject($eContentRecord);
-
 		$citationCount = 0;
-		$formats = $recordDriver->getCitationFormats();
+		$formats = $this->recordDriver->getCitationFormats();
 		foreach($formats as $current) {
-			$interface->assign(strtolower($current), $recordDriver->getCitation($current));
+			$interface->assign(strtolower($current), $this->recordDriver->getCitation($current));
 			$citationCount++;
 		}
 		$interface->assign('citationCount', $citationCount);

@@ -8,7 +8,7 @@
 		<span class="ui-li-aside">{$comment->created|date_format:'%D'|escape:"html"}</span>
 		</a>
 		{if $user && $comment->user_id == $user->id}
-			<a rel="external" href="{$path}/Record/{$id|escape}/UserComments?delete={$comment->id}" data-comment-id="{$comment->id|escape}" class="deleteRecordComment">
+			<a rel="external" href="{$path}/EcontentRecord/{$id|escape}/UserComments?delete={$comment->id}" data-comment-id="{$comment->id|escape}" class="deleteRecordComment">
 				{translate text="Delete"}
 			</a>
 		{/if}

@@ -32,6 +32,7 @@ require_once 'sys/Proxy_Request.php';
 class ExternalReviews
 {
 	private $isbn;
+	private $results;
 
 	/**
 	 * Constructor
@@ -60,12 +61,19 @@ class ExternalReviews
 				$provider = explode(':', trim($provider));
 				$func = strtolower($provider[0]);
 				$key = $provider[1];
-				$this->results[$func] = method_exists($this, $func) ?
-				$this->$func($key) : false;
+				$this->results[$func] = method_exists($this, $func) ? $this->$func($key) : false;
 
 				// If the current provider had no valid reviews, store nothing:
 				if (empty($this->results[$func]) || PEAR::isError($this->results[$func])) {
 					unset($this->results[$func]);
+				}else{
+					if (is_array($this->results[$func])){
+						foreach ($this->results[$func] as $key => $reviewData){
+							$this->results[$func][$key] = self::cleanupReview($this->results[$func][$key]);
+						}
+					}else{
+						$this->results[$func] = self::cleanupReview($this->results[$func]);
+					}
 				}
 			}
 		}
@@ -107,25 +115,51 @@ class ExternalReviews
 	 */
 	private function syndetics($id)
 	{
+		global $library;
+		global $locationSingleton;
 		global $configArray;
+		global $timer;
+		global $logger;
+
+		$review = array();
+		$location = $locationSingleton->getActiveLocation();
+		if (isset($library) && $location != null){
+			if ($library->showStandardReviews == 0 || $location->showStandardReviews == 0){
+				return $review;
+			}
+		}else if ($location != null && ($location->showStandardReviews == 0)){
+			//return an empty review
+			return $review;
+		}else if (isset($library) && ($library->showStandardReviews == 0)){
+			//return an empty review
+			return $review;
+		}
 
 		//list of syndetic reviews
-		$sourceList = array(/*'CHREVIEW' => array('title' => 'Choice Review',
-		'file' => 'CHREVIEW.XML'),*/
-                            'BLREVIEW' => array('title' => 'Booklist Review',
-                                                'file' => 'BLREVIEW.XML'),
-                            'PWREVIEW' => array('title' => "Publisher's Weekly Review",
-                                                'file' => 'PWREVIEW.XML'),
-		/*'SLJREVIEW' => array('title' => 'School Library Journal Review',
-		 'file' => 'SLJREVIEW.XML'),*/
-                            'LJREVIEW' => array('title' => 'Library Journal Review',
-                                                'file' => 'LJREVIEW.XML'),
-		/*'HBREVIEW' => array('title' => 'Horn Book Review',
-		 'file' => 'HBREVIEW.XML'),
-		 'KIREVIEW' => array('title' => 'Kirkus Book Review',
-		 'file' => 'KIREVIEW.XML'),
-		 'CRITICASEREVIEW' => array('title' => 'Criti Case Review',
-		 'file' => 'CRITICASEREVIEW.XML')*/);
+		if (isset($configArray['SyndeticsReviews']['SyndeticsReviewsSources'])){
+			$sourceList = array();
+			foreach ($configArray['SyndeticsReviews']['SyndeticsReviewsSources'] as $key => $label){
+				$sourceList[$key] = array('title' => $label, 'file' => "$key.XML");
+			}
+		}else{
+			$sourceList = array(/*'CHREVIEW' => array('title' => 'Choice Review',
+			'file' => 'CHREVIEW.XML'),*/
+	                            'BLREVIEW' => array('title' => 'Booklist Review',
+	                                                'file' => 'BLREVIEW.XML'),
+	                            'PWREVIEW' => array('title' => "Publisher's Weekly Review",
+	                                                'file' => 'PWREVIEW.XML'),
+			/*'SLJREVIEW' => array('title' => 'School Library Journal Review',
+			 'file' => 'SLJREVIEW.XML'),*/
+	                            'LJREVIEW' => array('title' => 'Library Journal Review',
+	                                                'file' => 'LJREVIEW.XML'),
+			/*'HBREVIEW' => array('title' => 'Horn Book Review',
+			 'file' => 'HBREVIEW.XML'),
+			 'KIREVIEW' => array('title' => 'Kirkus Book Review',
+			 'file' => 'KIREVIEW.XML'),
+			 'CRITICASEREVIEW' => array('title' => 'Criti Case Review',
+			 'file' => 'CRITICASEREVIEW.XML')*/);
+		}
+		$timer->logTime("Got list of syndetic reviews to show");
 
 		//first request url
 		$baseUrl = isset($configArray['Syndetics']['url']) ?
@@ -139,6 +173,8 @@ class ExternalReviews
 		$client->setURL($url);
 		if (PEAR::isError($http = $client->sendRequest())) {
 			// @codeCoverageIgnoreStart
+			$logger->log("Error connecting to $url", PEAR_LOG_ERR);
+			$logger->log("$http", PEAR_LOG_ERR);
 			return $http;
 			// @codeCoverageIgnoreEnd
 		}
@@ -146,6 +182,7 @@ class ExternalReviews
 		// Test XML Response
 		if (!($xmldoc = @DOMDocument::loadXML($client->getResponseBody()))) {
 			// @codeCoverageIgnoreStart
+			$logger->log("Did not receive XML from $url", PEAR_LOG_ERR);
 			return new PEAR_Error('Invalid XML');
 			// @codeCoverageIgnoreEnd
 		}
@@ -161,7 +198,9 @@ class ExternalReviews
 				$client->setURL($url);
 				if (PEAR::isError($http = $client->sendRequest())) {
 					// @codeCoverageIgnoreStart
-					return $http;
+					$logger->log("Error connecting to $url", PEAR_LOG_ERR);
+					$logger->log("$http", PEAR_LOG_ERR);
+					continue;
 					// @codeCoverageIgnoreEnd
 				}
 
@@ -182,6 +221,8 @@ class ExternalReviews
 					// @codeCoverageIgnoreEnd
 				}
 				$review[$i]['Content'] = html_entity_decode($xmldoc2->saveXML($nodes->item(0)));
+				$review[$i]['Content'] = str_replace("<a>","<p>",$review[$i]['Content']);
+				$review[$i]['Content'] = str_replace("</a>","</p>",$review[$i]['Content']);
 
 				// Get the marc field for copyright (997)
 				$nodes = $xmldoc2->GetElementsbyTagName("Fld997");
@@ -213,5 +254,29 @@ class ExternalReviews
 		}
 
 		return $review;
+	}
+
+	function cleanupReview($reviewData){
+		//Cleanup the review data
+		$fullReview = strip_tags($reviewData['Content'], '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe><div>');
+		$reviewData['Content'] = $fullReview;
+		$reviewData['Copyright'] = strip_tags($reviewData['Copyright'], '<a><p><b><em>');
+		//Trim the review to the first paragraph or 240 characters whichever comes first.
+		//Make sure we get at least 140 characters
+		//Get rid of all tags for the teaser so we don't risk broken HTML
+		$fullReview = strip_tags($fullReview, '<p>');
+		if (strlen($fullReview) > 280){
+			$matches = array();
+			$numMatches = preg_match_all('/<\/p>|\\r|\\n|[.,:;]/', substr($fullReview, 180, 60), $matches, PREG_OFFSET_CAPTURE);
+			if ($numMatches > 0){
+				$teaserBreakPoint = $matches[0][$numMatches - 1][1] + 181;
+			}else{
+				//Did not find a match at a paragraph or sentence boundary, just trim to the closest word.
+				$teaserBreakPoint = strrpos(substr($fullReview, 0, 240), ' ');
+			}
+			$teaser = substr($fullReview, 0, $teaserBreakPoint);
+			$reviewData['Teaser'] = strip_tags($teaser);
+		}
+		return $reviewData;
 	}
 }

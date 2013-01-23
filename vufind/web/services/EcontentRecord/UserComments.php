@@ -38,7 +38,7 @@ class UserComments extends Action{
 				}
 			}
 		}
-		
+
 		$interface->assign('id', $_GET['id']);
 
 		if (isset($_REQUEST['comment'])) {
@@ -58,11 +58,11 @@ class UserComments extends Action{
 		}
 
 		$interface->assign('user', $user);
-		
+
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $_GET['id'];
 		$eContentRecord->find(true);
-		
+
 		$recordDriver = new EcontentRecordDriver();
 		$recordDriver->setDataObject($eContentRecord);
 
@@ -71,7 +71,7 @@ class UserComments extends Action{
 		$this->loadEContentComments();
 
 		$interface->assign('subTemplate', 'view-comments.tpl');
-		$interface->setTemplate('view-alt.tpl');
+		$interface->setTemplate('view.tpl');
 
 		// Display Page
 		$interface->display('layout.tpl'/*, $cacheId */);

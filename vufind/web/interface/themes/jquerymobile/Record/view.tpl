@@ -19,7 +19,7 @@
 			</div>
 		{/if}
 		{if $subTemplate}
-		{include file="Record/$subTemplate"}
+			{include file="Record/$subTemplate"}
 		{/if}
 	</div>		
 	{include file="footer.tpl"}
