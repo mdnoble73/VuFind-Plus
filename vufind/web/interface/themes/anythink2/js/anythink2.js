@@ -234,14 +234,14 @@
     }
     else {
       var requestUrl = path + "/MaterialsRequest/AJAX?method=GetWorldCatIdentifiers&title=" + encodeURIComponent(title) + "&author=" + encodeURIComponent(author)  + "&format=" + encodeURIComponent(format);
-      var suggested_ids = $('#suggestedIdentifiers');
+      var suggested_ids = $('#identifiers-wrapper');
       suggested_ids.html('<div class="loading">Loading...</div>');
-      suggested_ids.slideDown();
       $.getJSON(requestUrl, function(data){
         if (data.success == true){
           // Dislay the results of the suggestions
           suggested_ids.html(data.formattedSuggestions);
-        }else{
+        }
+        else {
           alert(data.error);
         }
       });

@@ -67,7 +67,7 @@
       <input type="button" id="suggestIdentifiers" value="Find exact match" onclick="return getWorldCatIdentifiersAnythink();"/>
     </div>
     {/if}
-    <div id="identifiers-wrapper"><div id="suggestedIdentifiers" style="display:none" class="clearfix form-item"></div></div>
+    <div id="identifiers-wrapper" class="clearfix"></div>
     {if !$materialsRequest || $new}
       {if $showPlaceHoldField || $showIllField}
       <fieldset>
