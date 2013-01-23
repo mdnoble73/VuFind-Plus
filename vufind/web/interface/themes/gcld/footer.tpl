@@ -22,7 +22,6 @@
 		<li><a href="http://www.gcld.org/online-resources">{translate text='Online Resources'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
 		<li><a href="http://www.gcld.org/content/pages/readers-advisory-tools">{translate text="Reader's Advisory Tools"}</a></li>
-		<li><a href="http://www.gcld.org/content/pages/hours">{translate text='Locations, Hours &amp; Events'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
@@ -37,6 +36,13 @@
 		{/if}
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
 		<li><a href="http://www.gcld.org/content/locations/district-office">{translate text='Contact Us'}</a></li>
+	</ul>
+</div>
+<div class="footerCol"><p><strong>{translate text='About Us'}</strong></p>
+	<ul>
+		<li><a href="http://gcld.org/content/pages/hours">{translate text='Hours'}</a></li>
+		<li><a href="http://gcld.org/content/pages/hours">{translate text='Holiday Closures'}</a></li>
+		<li><a href="http://gcld.org/content/locations/landing-page">{translate text="Locations"}</a></li>
 	</ul>
 </div>
 <br class="clearer"/>
