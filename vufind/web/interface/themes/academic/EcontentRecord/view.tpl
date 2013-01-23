@@ -240,13 +240,15 @@ function redrawSaveStatus() {literal}{{/literal}
 				
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Format'}:</span>
-					{if is_array($eContentRecord->format())}
-						{foreach from=$eContentRecord->format() item=displayFormat name=loop}
-							<span class="resultValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></span>
-						{/foreach}
-					{else}
-						<span class="resultValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></span>
-					{/if}
+					<span class="resultValue">
+						{if is_array($eContentRecord->format())}
+							{foreach from=$eContentRecord->format() item=displayFormat name=loop}
+								<span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span>{if !$smarty.foreach.loop.last}, <br/>{/if}
+							{/foreach}
+						{else}
+							<span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span>
+						{/if}
+					</span>
 				</div>
 				
 				{if $eContentRecord->physicalDescription}

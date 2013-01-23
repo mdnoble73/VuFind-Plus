@@ -160,11 +160,11 @@ div#ft_contents {
 }
 
 #fullRecordTitleDetails {
-	width: 475px;
+	width: 405px;
 }
 
 #fullRecordTitleDetails .resultValue {
-	max-width: 365px;
+	max-width: 295px;
 }
 
 .recordcover {
