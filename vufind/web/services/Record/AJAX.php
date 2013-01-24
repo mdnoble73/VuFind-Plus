@@ -596,8 +596,8 @@ class AJAX extends Action {
 			$memcache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}
 		$interface->assign('description', $descriptionArray['description']);
-		$interface->assign('length', $descriptionArray['length']);
-		$interface->assign('publisher', $descriptionArray['publisher']);
+		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
+		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
 
 		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
