@@ -203,6 +203,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		overDriveFormatMap.put("Disney Online Book", 302L);
 		overDriveFormatMap.put("Open PDF eBook", 450L);
 		overDriveFormatMap.put("Open EPUB eBook", 810L);
+		overDriveFormatMap.put("OverDrive Read", 610L);
 		
 		try {
 			//Connect to the vufind database

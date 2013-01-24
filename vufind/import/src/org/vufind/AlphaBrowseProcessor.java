@@ -511,6 +511,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, Map<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		try {
 			browseValue = Util.trimTo(255, browseValue);
+			if (browseValue.length() == 0){
+				//Do not insert browse values for empty values
+				return null;
+			}
 			Long existingBrowseValueId = getExistingBrowseValueId(browseValue, sortValue, existingValues, getExistingBrowseValueStatement);
 			if (existingBrowseValueId != null){
 				return existingBrowseValueId;
