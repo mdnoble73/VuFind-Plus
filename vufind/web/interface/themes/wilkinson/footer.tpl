@@ -62,13 +62,13 @@
 							<div class="jbmoduleBody">
 								<div class="custom">
 									<p>
-										<span style="color: #acacac;">Monday: 10:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Tuesday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Wednesday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Thursday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Friday:&nbsp;10:00am &ndash; 6:00pm</span><br/>
+										<span style="color: #acacac;">Monday: 9:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Tuesday:&nbsp;9:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Wednesday:&nbsp;9:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Thursday:&nbsp;9:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Friday:&nbsp;9:00am &ndash; 6:00pm</span><br/>
 										<span style="color: #acacac;">Saturday:&nbsp;10:00am &ndash; 6:00pm</span><br/>
-										<span style="color: #acacac;">Sunday: 12:00pm &ndash; 5:00pm</span>
+										<span style="color: #acacac;">Sunday: Closed</span>
 									</p>
 								</div>
 							</div>

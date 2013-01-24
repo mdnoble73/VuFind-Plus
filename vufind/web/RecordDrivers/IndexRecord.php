@@ -1409,8 +1409,7 @@ class IndexRecord implements RecordInterface
 	 */
 	protected function getPrimaryAuthor()
 	{
-		return isset($this->fields['author']) ?
-		$this->fields['author'] : '';
+		return isset($this->fields['author']) ? $this->fields['author'] : '';
 	}
 
 	/**
