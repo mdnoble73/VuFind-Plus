@@ -1365,11 +1365,12 @@ div.popupBox {
 }
 
 .anythink-collapsed {
-  height: 0;
-  overflow: hidden;
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
+  height: 0;
+  overflow: hidden;
+  padding-bottom: 20px;
 }
 
 .anythink-collapsed div,
