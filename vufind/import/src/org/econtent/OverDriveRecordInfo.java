@@ -45,7 +45,7 @@ public class OverDriveRecordInfo {
 		return title;
 	}
 	public void setTitle(String title) {
-		this.title = title;
+		this.title = title.replaceAll("&#174;", "®");
 	}
 	public String getSeries() {
 		return series;

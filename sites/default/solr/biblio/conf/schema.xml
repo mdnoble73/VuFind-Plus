@@ -102,7 +102,7 @@
              
              http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/package-summary.html
           -->
-				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z])" replacement="" replace="all" />
+				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z1-9\s])" replacement="" replace="all" />
 			</analyzer>
 		</fieldType>
 		<fieldType name="callnumber-search" class="solr.TextField" sortMissingLast="true" omitNorms="true">

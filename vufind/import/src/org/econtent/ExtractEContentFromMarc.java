@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1358,7 +1359,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		int numRecordsAdded = 0;
 		for (String overDriveId : overDriveTitles.keySet()){
 			OverDriveRecordInfo recordInfo = overDriveTitles.get(overDriveId);
-			logger.debug("Adding OverDrive record " + recordInfo.getId());
+			logger.debug("Adding OverDrive record " + recordInfo.getId() +  " " + recordInfo.getTitle());
 			loadOverDriveMetaData(recordInfo);
 			try {
 				long econtentRecordId = -1;
@@ -1379,6 +1380,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Reindex the record
 				SolrInputDocument doc = createSolrDocForOverDriveRecord(recordInfo, econtentRecordId);
 				updateServer.add(doc);
+				
 				//logger.debug(doc.toString());
 				numRecordsAdded++;
 				if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded >= numOverDriveTitlesToLoadFromAPI){
@@ -1394,70 +1396,79 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private SolrInputDocument createSolrDocForOverDriveRecord(OverDriveRecordInfo recordInfo, long econtentRecordId) {
 		SolrInputDocument doc = new SolrInputDocument();
-		doc.addField("id", "econtentRecord" + econtentRecordId);
-		doc.addField("id_sort", "econtentRecord" + econtentRecordId);
-		doc.addField("id_alt", recordInfo.getId());
+		addFieldToDoc(doc, "id", "econtentRecord" + econtentRecordId);
+		addFieldToDoc(doc, "id_sort", "econtentRecord" + econtentRecordId);
+		addFieldToDoc(doc, "id_alt", recordInfo.getId());
 		
-		doc.addField("collection", "Western Colorado Catalog");
+		addFieldToDoc(doc, "collection", "Western Colorado Catalog");
 		int numHoldings = 0;
 		for (Long systemId : recordInfo.getAvailabilityInfo().keySet()){
 			OverDriveAvailabilityInfo curAvailability = recordInfo.getAvailabilityInfo().get(systemId);
 			numHoldings += curAvailability.getCopiesOwned();
 			if (systemId == -1){
-				doc.addField("institution", "Digital Collection");
-				doc.addField("building", "Digital Collection");
+				addFieldToDoc(doc, "institution", "Digital Collection");
+				addFieldToDoc(doc, "building", "Digital Collection");
 				for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
-					doc.addField("institution", libraryFacet + " Online");
-					doc.addField("building", libraryFacet + " Online");
+					addFieldToDoc(doc, "institution", libraryFacet + " Online");
+					addFieldToDoc(doc, "building", libraryFacet + " Online");
 				}
 				if (curAvailability.isAvailable()){
-					doc.addField("available_at", "Digital Collection");
+					addFieldToDoc(doc, "available_at", "Digital Collection");
 					for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
-						doc.addField("available_at", libraryFacet + " Online");
+						addFieldToDoc(doc, "available_at", libraryFacet + " Online");
 					}
 				}
 				
 			}else{
 				String libraryName = marcProcessor.getLibrarySystemFacetForId(systemId);
-				doc.addField("institution", libraryName + " Online");
-				doc.addField("building", libraryName + " Online");
+				addFieldToDoc(doc, "institution", libraryName + " Online");
+				addFieldToDoc(doc, "building", libraryName + " Online");
 				if (curAvailability.isAvailable()){
-					doc.addField("available_at", libraryName + " Online");
+					addFieldToDoc(doc, "available_at", libraryName + " Online");
 				}
 			}
 		}
-		doc.addField("collection_group", "Electronic Access");
+		addFieldToDoc(doc, "collection_group", "Electronic Access");
 		if (recordInfo.getLanguages().size() == 0){
-			doc.addField("language_boost", "0");
-			doc.addField("language_boost_es", "0");
+			addFieldToDoc(doc, "language_boost", "0");
+			addFieldToDoc(doc, "language_boost_es", "0");
 		}else{
-			for (String curLanguage : recordInfo.getLanguages()){
-				doc.addField("language", curLanguage);
-				if (curLanguage.equalsIgnoreCase("English")){
-					doc.addField("language_boost", "300");
-					doc.addField("language_boost_es", "0");
-				}else if (curLanguage.equalsIgnoreCase("Spanish")){
-					doc.addField("language_boost", "0");
-					doc.addField("language_boost_es", "300");
+			Set<String> languages = recordInfo.getLanguages();
+			addFieldToDoc(doc, "language", languages);
+			if (languages.size() >= 1){
+				String firstLanguage = languages.iterator().next();
+				if (firstLanguage.equalsIgnoreCase("English")){
+					addFieldToDoc(doc, "language_boost", "300");
+					addFieldToDoc(doc, "language_boost_es", "0");
+				}else if (firstLanguage.equalsIgnoreCase("Spanish")){
+					addFieldToDoc(doc, "language_boost", "0");
+					addFieldToDoc(doc, "language_boost_es", "300");
 				}else{
-					doc.addField("language_boost", "0");
-					doc.addField("language_boost_es", "0");
+					addFieldToDoc(doc, "language_boost", "0");
+					addFieldToDoc(doc, "language_boost_es", "0");
 				}
 			}
 		}
 		
 		String firstFormat = null;
 		LexileData lexileData = null;
-		Set<String> econtentDevices = new HashSet<String>();
+		Set<String> econtentDevices = new LinkedHashSet<String>();
+		Set<String> formats = new LinkedHashSet<String>();
+		Set<String> isbns = new LinkedHashSet<String>();
 		for (OverDriveItem curItem : recordInfo.getItems().values()){
-			String translatedFormats = Utils.remap(curItem.getFormat(), marcProcessor.findMap("format_map"), true);
-			doc.addField("format", translatedFormats);
+			String formatValue = curItem.getFormat().replace(" ", "_");
+			String translatedFormat = Utils.remap(formatValue, marcProcessor.findMap("format_map"), true);
+			if (translatedFormat != null){
+				formats.add(translatedFormat);
+			}else{
+				logger.debug("Did not find format translation for " + formatValue);
+			}
 			if (firstFormat == null){
 				firstFormat = curItem.getFormat().replace(" ", "_");
 			}
 			
 			if (curItem.getIdentifier() != null){
-				doc.addField("isbn", curItem.getIdentifier());
+				isbns.add(curItem.getIdentifier());
 				if (lexileData == null){
 					String isbn = curItem.getIdentifier();
 					if (isbn.indexOf(" ") > 0) {
@@ -1479,52 +1490,49 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				}
 			}
 		}
+		addFieldToDoc(doc, "isbn", isbns);
+		addFieldToDoc(doc, "format", formats);
 		if (firstFormat != null){
-			doc.addField("format_boost", marcProcessor.findMap("format_boost_map").get(firstFormat));
-			doc.addField("format_category", marcProcessor.findMap("format_category_map").get(firstFormat));
+			addFieldToDoc(doc, "format_boost", marcProcessor.findMap("format_boost_map").get(firstFormat));
+			addFieldToDoc(doc, "format_category", marcProcessor.findMap("format_category_map").get(firstFormat));
 		}
-		doc.addField("author", recordInfo.getAuthor());
-		for (String curContributor : recordInfo.getContributors()){
-			doc.addField("author2", curContributor);
-		}
-		doc.addField("title", recordInfo.getTitle());
-		doc.addField("title_full", recordInfo.getTitle());
-		for (String curSubject : recordInfo.getSubjects()){
-			doc.addField("subject_facet", curSubject);
-			doc.addField("topic", curSubject);
-			doc.addField("topic_facet", curSubject);
-		}
-		doc.addField("publisher", recordInfo.getPublisher());
-		doc.addField("publishDate", recordInfo.getPublishDate());
-		doc.addField("publishDateSort", recordInfo.getPublishDate());
-		doc.addField("edition", recordInfo.getEdition());
-		doc.addField("description", recordInfo.getDescription());
-		doc.addField("series", recordInfo.getSeries());
+		addFieldToDoc(doc, "author", recordInfo.getAuthor());
+		addFieldToDoc(doc, "author2", recordInfo.getContributors());
+		addFieldToDoc(doc, "title", recordInfo.getTitle());
+		addFieldToDoc(doc, "title_full", recordInfo.getTitle());
+		addFieldToDoc(doc, "title_sort", Util.makeValueSortable(recordInfo.getTitle()));
+		Set<String> subjects = recordInfo.getSubjects();
+		addFieldToDoc(doc, "subject_facet", subjects);
+		addFieldToDoc(doc, "topic", subjects);
+		addFieldToDoc(doc, "topic_facet", subjects);
+		
+		addFieldToDoc(doc, "publisher", recordInfo.getPublisher());
+		addFieldToDoc(doc, "publishDate", recordInfo.getPublishDate());
+		addFieldToDoc(doc, "publishDateSort", recordInfo.getPublishDate());
+		addFieldToDoc(doc, "edition", recordInfo.getEdition());
+		addFieldToDoc(doc, "description", recordInfo.getDescription());
+		addFieldToDoc(doc, "series", recordInfo.getSeries());
 		//Deal with always available titles by reducing hold count
 		if (numHoldings > 1000){
 			numHoldings = 5;
 		}
-		doc.addField("num_holdings", Integer.toString(numHoldings));
+		addFieldToDoc(doc, "num_holdings", Integer.toString(numHoldings));
 		
 		if (lexileData != null){
-			doc.addField("lexile_score", lexileData.getLexileScore());
-			doc.addField("lexile_code", lexileData.getLexileCode());
+			addFieldToDoc(doc, "lexile_score", lexileData.getLexileScore());
+			addFieldToDoc(doc, "lexile_code", lexileData.getLexileCode());
 		}
-		for (String curDevice : econtentDevices){
-			doc.addField("econtent_device", curDevice);
-		}
-		doc.addField("econtent_source", "OverDrive");
-		doc.addField("econtent_protection_type", "external");
-		doc.addField("recordtype", "econtentRecord");
+		addFieldToDoc(doc, "econtent_device", econtentDevices);
+		addFieldToDoc(doc, "econtent_source", "OverDrive");
+		addFieldToDoc(doc, "econtent_protection_type", "Externally Validated");
+		addFieldToDoc(doc, "recordtype", "econtentRecord");
 		Float rating = marcProcessor.getEcontentRatings().get(econtentRecordId);
 		if (rating == null) {
 			rating = -2.5f;
 		}
-		doc.addField("rating", Float.toString(rating));
+		addFieldToDoc(doc, "rating", Float.toString(rating));
 		Set<String> ratingFacets = marcProcessor.getGetRatingFacet(rating);
-		for (String ratingFacet : ratingFacets){
-			doc.addField("rating_facet", ratingFacet);
-		}
+		addFieldToDoc(doc, "rating_facet", ratingFacets);
 		
 		Collection<String> allFieldNames = doc.getFieldNames();
 		StringBuffer fieldValues = new StringBuffer();
@@ -1532,10 +1540,26 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			if (fieldValues.length() > 0) fieldValues.append(" ");
 			fieldValues.append(doc.getFieldValue(fieldName));
 		}
-		doc.addField("allfields", fieldValues.toString());
-		doc.addField("keywords", fieldValues.toString());
+		addFieldToDoc(doc, "allfields", fieldValues.toString());
+		addFieldToDoc(doc, "keywords", fieldValues.toString());
 		
 		return doc;
+	}
+	
+	private void addFieldToDoc(SolrInputDocument doc, String fieldName, String fieldVal){
+		if (fieldVal != null && fieldVal.length() > 0){
+			doc.addField(fieldName, fieldVal);
+		}
+	}
+	
+	private void addFieldToDoc(SolrInputDocument doc, String fieldName, Set<String> fieldVals){
+		if (!fieldVals.isEmpty()) {
+			if (fieldVals.size() == 1) {
+				String value = fieldVals.iterator().next();
+				doc.addField(fieldName, value);
+			} else
+				doc.addField(fieldName, fieldVals);
+		}
 	}
 
 	private boolean updateOverDriveRecordWithoutMarcRecordInDb(OverDriveRecordInfo recordInfo, long eContentRecordId) throws SQLException, IOException {
