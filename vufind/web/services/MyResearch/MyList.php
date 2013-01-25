@@ -104,7 +104,7 @@ class MyList extends Action {
 				$userCanEdit = true;
 			}elseif ($user->hasRole('opacAdmin')){
 				$userCanEdit = true;
-			}elseif ($user->hasRole('libraryAdmin')){
+			}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
 				$listUser = new User();
 				$listUser->id = $list->user_id;
 				$listUser->find(true);

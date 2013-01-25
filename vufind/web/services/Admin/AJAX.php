@@ -146,7 +146,7 @@ class AJAX extends Action {
 		$interface->assign('popupTitle', 'Create a Widget');
 		$existingWidgets = array();
 		$listWidget = new ListWidget();
-		if ($user->hasRole('libraryAdmin')){
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
 			//Get all widgets for the library
 			$userLibrary = Library::getPatronHomeLibrary();
 			$listWidget->libraryId = $userLibrary->libraryId;

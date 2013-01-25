@@ -343,7 +343,10 @@ class User_list extends SolrDataObject
 				$this->description = $descriptionText;
 			}else{
 				//Check for bad words in the title or description
-				$titleText = $resource->title . ' ' . $resource->description;
+				$titleText = $resource->title;
+				if (isset($resource->description)){
+					$titleText .= ' ' . $resource->description;
+				}
 				foreach ($badWordsList as $badWord){
 					if (preg_match($badWord,$titleText)){
 						return false;

@@ -42,7 +42,7 @@ class ListWidget extends DB_DataObject
 			while ($library->fetch()){
 				$libraryList[$library->libraryId] = $library->displayName;
 			}
-		}elseif ($user->hasRole('libraryAdmin')){
+		}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
 			$libraryList = array();
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$libraryList[$homeLibrary->libraryId] = $homeLibrary->displayName;

@@ -1031,6 +1031,15 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'contentEditor' => array(
+				'title' => 'Create Content Editor role',
+				'description' => 'Create Content Editor Role to allow entering of editorial reviews and creation of widgets.',
+				'dependencies' => array(),
+				'sql' => array(
+					"INSERT INTO `roles` (`name`, `description`) VALUES ('contentEditor', 'Allows entering of editorial reviews and creation of widgets.')",
+				),
+			),
+
 			'ip_lookup_1' => array(
 				'title' => 'IP Lookup Update 1',
 				'description' => 'Add start and end ranges for IP Lookup table to improve performance.',

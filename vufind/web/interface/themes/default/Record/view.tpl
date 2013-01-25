@@ -616,7 +616,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							{include file="Resource/view-review.tpl"}
 						{/foreach}
 						
-						{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+						{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 							<div>
 								<span class="button"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
 							</div>

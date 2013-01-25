@@ -41,7 +41,7 @@
 								<button value="makePublic" id="FavPublic" class="listButton" onclick='return makeListPublicAction()'>Make Public</button>
 							{else}
 								<button value="makePrivate" id="FavPrivate" class="listButton" onclick='return makeListPrivateAction()'>Make Private</button>
-								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 									&nbsp;&nbsp;<a href="#" class="button listButton" id="FavCreateWidget" onclick="return createWidgetFromList('{$favList->id}')">Create Widget</a>
 								{/if}
 							{/if}

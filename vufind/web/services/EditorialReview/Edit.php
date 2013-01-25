@@ -94,6 +94,6 @@ class Edit extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'contentEditor');
 	}
 }

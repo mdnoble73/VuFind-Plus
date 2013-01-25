@@ -7,7 +7,7 @@
 	
 	<div id="main-content">
 		<h1>Editorial Review: {$editorialReview->title}</h1>
-		{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') )}
+		{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') || $user->hasRole('contentEditor'))}
 		<div id='actions'>
 			<div class='button'><a href='{$path}/EditorialReview/{$editorialReview->editorialReviewId}/Edit'>Edit</a></div>
 			{if $user->hasRole('opacAdmin')}
