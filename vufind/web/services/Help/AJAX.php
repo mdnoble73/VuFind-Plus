@@ -66,7 +66,7 @@ class AJAX extends Action {
 				if ($format == 'mp3' ){
 					$result['helpText'] = $interface->fetch("Help/en/mp3_kindle_fire.tpl");
 				}else{
-					$result['helpText'] = $interface->fetch("Help/en/econtent_unsupported.tpl");
+					$result['helpText'] = $interface->fetch("Help/en/wma_kindle_fire.tpl");
 				}
 			}else{
 				$result['helpText'] = $interface->fetch("Help/en/audiobook_mobile.tpl");

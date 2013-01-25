@@ -547,9 +547,9 @@ class EContentItem extends DB_DataObject {
 
 		}else if ($this->item_type == 'overdrive'){
 			if ($this->externalFormatId == 'audiobook-mp3'){
-
+				$notes = "Works on MP3 Players, PCs, and Macs. Some mobile devices may require an application to be installed.";
 			}else if ($this->externalFormatId == 'audiobook-wma'){
-
+				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
 			}else if ($this->externalFormatId == 'video-wmv'){
 
 			}else if ($this->externalFormatId == 'music-wma'){

@@ -19,7 +19,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions', 'getDescription', 'getEContentFormatHelp', 'SelectOverDriveFormat'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'AddItem', 'EditItem', 'GetOverDriveLoanPeriod', 'getPurchaseOptions', 'getDescription', 'SelectOverDriveFormat'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -693,90 +693,5 @@ class AJAX extends Action {
 		}
 
 		echo $interface->fetch('EcontentRecord/ajax-purchase-options.tpl');
-	}
-
-	function getEContentFormatHelp(){
-		global $interface;
-		if (isset($_REQUEST['id'])){
-			$id = $_REQUEST['id'];
-			$interface->assign('id', $id);
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $id;
-			if ($eContentRecord->find(true)){
-				require_once 'sys/eContent/EContentItem.php';
-				$eContentItem = new EContentItem();
-				$eContentItem->id = $_REQUEST['itemId'];
-				if ($eContentItem->find(true)){
-					$displayFormat = $eContentItem->getDisplayFormat();
-					if (preg_match('/^[aeiou].*/i', $displayFormat)){
-						$interface->assign('popupTitle', "How to use an " . $displayFormat);
-					}else{
-						$interface->assign('popupTitle', "How to use a " . $displayFormat);
-					}
-
-					$popupContent = "Sorry, there is not detailed help available for this format yet.";
-					if ($eContentItem->item_type == 'mp3'){
-
-					}else if ($eContentItem->item_type == 'epub'){
-
-					}else if ($eContentItem->item_type == 'kindle'){
-
-					}else if ($eContentItem->item_type == 'plucker'){
-
-					}else if ($eContentItem->item_type == 'pdf'){
-
-					}else if ($eContentItem->item_type == 'externalMP3'){
-
-					}else if ($eContentItem->item_type == 'external_ebook'){
-
-					}else if ($eContentItem->item_type == 'externalLink'){
-
-					}else if ($eContentItem->item_type == 'overdrive'){
-						if ($eContentItem->externalFormatId == 'audiobook-mp3'){
-
-						}else if ($eContentItem->externalFormatId == 'audiobook-wma'){
-
-						}else if ($eContentItem->externalFormatId == 'video-wmv'){
-
-						}else if ($eContentItem->externalFormatId == 'music-wma'){
-
-						}else if ($eContentItem->externalFormatId == 'ebook-kindle'){
-							$popupContent = $interface->fetch("Help/en/overdrive_kindle_help.tpl");
-						}else if ($eContentItem->externalFormatId == 'ebook-epub-adobe'){
-
-						}else if ($eContentItem->externalFormatId == 'ebook-pdf-adobe'){
-
-						}else if ($eContentItem->externalFormatId == 'ebook-epub-open'){
-
-						}else if ($eContentItem->externalFormatId == 'ebook-pdf-open'){
-
-						}else{
-
-						}
-					}else if ($eContentItem->item_type == 'external_eaudio'){
-
-					}else if ($eContentItem->item_type == 'external_emusic'){
-
-					}else if ($eContentItem->item_type == 'text'){
-
-					}else if ($eContentItem->item_type == 'itunes'){
-
-					}else if ($eContentItem->item_type == 'gifs'){
-
-					}else{
-
-					}
-
-					$interface->assign('popupContent', $popupContent);
-					return $interface->fetch('popup-wrapper.tpl');
-				}else{
-					echo("Could not find the item for this id.");
-				}
-			}else{
-				echo("Could not find a record for this id.");
-			}
-		}else{
-			echo("No id was provided.");
-		}
 	}
 }

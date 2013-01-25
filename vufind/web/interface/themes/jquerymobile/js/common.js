@@ -190,3 +190,18 @@ function getOverDriveSummary(){
 		}
 	});
 }
+
+function loadEContentHelpTopic(){
+	var selectedDevice = $("#device :selected").val();
+	var selectedFormat = $("#format :selected").val();
+	
+	if (selectedDevice != "selectone" && selectedFormat != "selectone"){
+		$.getJSON(
+			path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
+			function (data){
+				$("#stepByStepInstructions").show()
+				$("#helpInstructions").html(data.helpText);
+			}
+		);
+	}
+}
