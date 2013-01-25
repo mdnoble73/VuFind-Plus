@@ -1,0 +1,1 @@
+<div class='excerpt'>{$excerptData.excerpt}</div>
