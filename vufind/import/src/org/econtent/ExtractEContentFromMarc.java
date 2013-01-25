@@ -193,6 +193,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		overDriveFormatMap.put("Disney Online Book", 302L);
 		overDriveFormatMap.put("Open PDF eBook", 450L);
 		overDriveFormatMap.put("Open EPUB eBook", 810L);
+		overDriveFormatMap.put("OverDrive Read", 610L);
 		
 		try {
 			//Connect to the vufind database
@@ -479,7 +480,18 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				OverDriveItem curItem = new OverDriveItem();
 				curItem.setFormatId(format.getString("id"));
 				curItem.setFormat(format.getString("name"));
-				curItem.setFormatNumeric(overDriveFormatMap.get(curItem.getFormat()));
+				Long numericFormat = overDriveFormatMap.get(curItem.getFormat());
+				if (numericFormat == null){
+					logger.error("Could not find numeric format for format " + curItem.getFormat());
+					results.addNote("Could not find numeric format for format " + curItem.getFormat());
+					results.incErrors();
+					System.out.println("Warning: new format for OverDrive found " + curItem.getFormat());
+					continue;
+				}else if (numericFormat == 610){
+				//Do not index OverDrive Ead for now since we don't have access right now.
+				continue;
+				}
+				curItem.setFormatNumeric(numericFormat);
 				curItem.setFilename(format.getString("fileName"));
 				curItem.setPartCount(format.has("partCount") ? format.getLong("partCount") : 0L);
 				curItem.setSize(format.has("fileSize") ? format.getLong("fileSize") : 0L);
