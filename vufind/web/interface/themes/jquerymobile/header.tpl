@@ -1,5 +1,8 @@
 {strip}
 <div data-role="header" data-theme="b">
+	{if $lastsearch}
+		<a id="returnToSearchButton" rel="external" href="{$lastsearch|escape}#record{$id|escape:"url"}" data-icon="search" class="ui-btn-left">{translate text="Last Search"}</a>
+	{/if}
 	<h1>{$pageTitle|trim:':/'|escape}</h1>
 	{if $mainAuthor}
 	<h2>{$mainAuthor}</h2>
@@ -8,9 +11,6 @@
 	{/if}
 		
 	{* display the search button everywhere except /Search/Home *}
-	{if $lastsearch}
-		<a id="returnToSearchButton" rel="external" href="{$lastsearch|escape}#record{$id|escape:"url"}" data-icon="search" class="ui-btn-left">{translate text="Return to Search Results"}</a>
-	{/if}
 	{if !($module == 'Search' && $pageTemplate == 'home.tpl') }
 		<a id="newSearchButton" rel="external" href="{$path}/Search/Home" data-icon="search" class="ui-btn-right">
 		{translate text="New Search"}

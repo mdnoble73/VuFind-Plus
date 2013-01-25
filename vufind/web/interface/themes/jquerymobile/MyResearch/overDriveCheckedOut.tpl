@@ -15,7 +15,7 @@
 			<ul class="results checkedout-list" data-role="listview">
 			{foreach from=$overDriveCheckedOutItems item=record}
 				<li>
-					{if !empty($record.recordId)}<a rel="external" href="{$path}/EcontentRecord/{$record.recordId|escape}">{/if}
+					{if !empty($record.recordId) && $record.recordId != -1}<a rel="external" href="{$path}/EcontentRecord/{$record.recordId|escape}">{/if}
 					<div class="result">
 						<h3>
 							{$record.title|escape}
