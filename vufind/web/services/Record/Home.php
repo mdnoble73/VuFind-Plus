@@ -48,7 +48,10 @@ class Home extends Record{
 			$response = file_get_contents($url);
 		}
 
-		if (isset($_SESSION['searchId'])){
+		if (isset($_REQUEST['searchId'])){
+			$_SESSION['searchId'] = $_REQUEST['searchId'];
+			$interface->assign('searchId', $_SESSION['searchId']);
+		}else if (isset($_SESSION['searchId'])){
 			$interface->assign('searchId', $_SESSION['searchId']);
 		}
 

@@ -588,7 +588,11 @@ class Record extends Action
 		$interface->assign('ratingData', $ratingData);
 		$timer->logTime('Got 5 star data');
 
-		$this->getNextPrevLinks();
+		//Get Next/Previous Links
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init($searchSource);
+		$searchObject->getNextPrevLinks();
 
 		//Load Staff Details
 		$interface->assign('staffDetails', $this->recordDriver->getStaffView());
@@ -626,114 +630,6 @@ class Record extends Action
 			}
 		}
 		return $notes;
-	}
-
-	function getNextPrevLinks(){
-		global $interface;
-		global $timer;
-		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId'])){
-			//rerun the search
-			$s = new SearchEntry();
-			$s->id = $_REQUEST['searchId'];
-			$interface->assign('searchId', $_REQUEST['searchId']);
-			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-			$interface->assign('page', $currentPage);
-
-			$s->find();
-			if ($s->N > 0){
-				$s->fetch();
-				$minSO = unserialize($s->search_object);
-				$searchObject = SearchObjectFactory::deminify($minSO);
-				$searchObject->setPage($currentPage);
-				//Run the search
-				$result = $searchObject->processSearch(true, false, false);
-
-				//Check to see if we need to run a search for the next or previous page
-				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
-				$recordsPerPage = $searchObject->getLimit();
-
-				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
-					//Need to run a search for the previous page
-					$interface->assign('previousPage', $currentPage - 1);
-					$previousSearchObject = clone $searchObject;
-					$previousSearchObject->setPage($currentPage - 1);
-					$previousSearchObject->processSearch(true, false, false);
-					$previousResults = $previousSearchObject->getResultRecordSet();
-				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
-					//Need to run a search for the next page
-					$nextSearchObject = clone $searchObject;
-					$interface->assign('nextPage', $currentPage + 1);
-					$nextSearchObject->setPage($currentPage + 1);
-					$nextSearchObject->processSearch(true, false, false);
-					$nextResults = $nextSearchObject->getResultRecordSet();
-				}
-
-				if (PEAR::isError($result)) {
-					//If we get an error excuting the search, just eat it for now.
-				}else{
-					if ($searchObject->getResultTotal() < 1) {
-						//No results found
-					}else{
-						$recordSet = $searchObject->getResultRecordSet();
-						//Record set is 0 based, but we are passed a 1 based index
-						if ($currentResultIndex > 0){
-							if (isset($previousResults)){
-								$previousRecord = $previousResults[count($previousResults) -1];
-							}else{
-								$previousId = $currentResultIndex - 1;
-								if (isset($recordSet[$previousId])){
-									$previousRecord = $recordSet[$previousId];
-								}
-							}
-							//Convert back to 1 based index
-							if (isset($previousRecord)){
-								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-								$interface->assign('previousTitle', $previousRecord['title']);
-								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('previousType', 'EcontentRecord');
-									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-								}elseif (strpos($previousRecord['id'], 'list') === 0){
-									$interface->assign('previousType', 'MyResearch/MyList');
-									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
-								}else{
-									$interface->assign('previousType', 'Record');
-									$interface->assign('previousId', $previousRecord['id']);
-								}
-							}
-						}
-						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
-
-							if (isset($nextResults)){
-								$nextRecord = $nextResults[0];
-							}else{
-								$nextRecordIndex = $currentResultIndex + 1;
-								if (isset($recordSet[$nextRecordIndex])){
-									$nextRecord = $recordSet[$nextRecordIndex];
-								}
-							}
-							//Convert back to 1 based index
-							if (isset($nextRecord)){
-								$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-								$interface->assign('nextTitle', isset($nextRecord['title']) ? $nextRecord['title'] : '');
-								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('nextType', 'EcontentRecord');
-									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-								}elseif (strpos($nextRecord['id'], 'list') === 0){
-									$interface->assign('nextType', 'MyResearch/MyList');
-									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
-								}else{
-									$interface->assign('nextType', 'Record');
-									$interface->assign('nextId', $nextRecord['id']);
-								}
-							}
-						}
-
-					}
-				}
-			}
-			$timer->logTime('Got next/previous links');
-		}
 	}
 
 	/**

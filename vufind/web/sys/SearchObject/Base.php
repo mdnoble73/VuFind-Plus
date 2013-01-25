@@ -873,6 +873,7 @@ abstract class SearchObject_Base
 	public function getSearchId()       {return $this->searchId;}
 	public function getSearchTerms()    {return $this->searchTerms;}
 	public function getSearchType()     {return $this->searchType;}
+	public function getSort()           {return $this->sort;}
 	public function getFullSearchType() {
 		if ($this->isAdvanced){
 			return $this->searchType;
@@ -1168,6 +1169,7 @@ abstract class SearchObject_Base
 		$this->resultsTotal = $minified->r;
 		$this->filterList   = $minified->f;
 		$this->searchType   = $minified->ty;
+		$this->sort         = $minified->sr;
 
 		// Search terms, we need to expand keys
 		$tempTerms = $minified->t;
@@ -1883,6 +1885,112 @@ abstract class SearchObject_Base
 	 * @return  mixed       false if no error, error string otherwise.
 	 */
 	abstract public function getIndexError();
+
+public function getNextPrevLinks(){
+		global $interface;
+		global $timer;
+		//Setup next and previous links based on the search results.
+		if (isset($_REQUEST['searchId'])){
+			//rerun the search
+			$s = new SearchEntry();
+			$s->id = $_REQUEST['searchId'];
+			$interface->assign('searchId', $_REQUEST['searchId']);
+			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$interface->assign('page', $currentPage);
+
+			$s->find();
+			if ($s->N > 0){
+				$s->fetch();
+				$minSO = unserialize($s->search_object);
+				$searchObject = SearchObjectFactory::deminify($minSO);
+				$searchObject->setPage($currentPage);
+				//Run the search
+				$result = $searchObject->processSearch(true, false, false);
+
+				//Check to see if we need to run a search for the next or previous page
+				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
+				$recordsPerPage = $searchObject->getLimit();
+				$adjustedResultIndex = $currentResultIndex - ($recordsPerPage * ($currentPage -1));
+
+				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
+					//Need to run a search for the previous page
+					$interface->assign('previousPage', $currentPage - 1);
+					$previousSearchObject = clone $searchObject;
+					$previousSearchObject->setPage($currentPage - 1);
+					$previousSearchObject->processSearch(true, false, false);
+					$previousResults = $previousSearchObject->getResultRecordSet();
+				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
+					//Need to run a search for the next page
+					$nextSearchObject = clone $searchObject;
+					$interface->assign('nextPage', $currentPage + 1);
+					$nextSearchObject->setPage($currentPage + 1);
+					$nextSearchObject->processSearch(true, false, false);
+					$nextResults = $nextSearchObject->getResultRecordSet();
+				}
+
+				if (PEAR::isError($result)) {
+					//If we get an error excuting the search, just eat it for now.
+				}else{
+					if ($searchObject->getResultTotal() < 1) {
+						//No results found
+					}else{
+						$recordSet = $searchObject->getResultRecordSet();
+						//Record set is 0 based, but we are passed a 1 based index
+						if ($currentResultIndex > 0){
+							if (isset($previousResults)){
+								$previousRecord = $previousResults[count($previousResults) -1];
+							}else{
+								$previousId = $adjustedResultIndex - 1;
+								if (isset($recordSet[$previousId])){
+									$previousRecord = $recordSet[$previousId];
+								}
+							}
+
+							//Convert back to 1 based index
+							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+							$interface->assign('previousTitle', $previousRecord['title']);
+							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
+								$interface->assign('previousType', 'EcontentRecord');
+								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+							}elseif (strpos($previousRecord['id'], 'list') === 0){
+								$interface->assign('previousType', 'MyResearch/MyList');
+								$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
+							}else{
+								$interface->assign('previousType', 'Record');
+								$interface->assign('previousId', $previousRecord['id']);
+							}
+						}
+						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
+
+							if (isset($nextResults)){
+								$nextRecord = $nextResults[0];
+							}else{
+								$nextRecordIndex = $adjustedResultIndex + 1;
+								if (isset($recordSet[$nextRecordIndex])){
+									$nextRecord = $recordSet[$nextRecordIndex];
+								}
+							}
+							//Convert back to 1 based index
+							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
+							$interface->assign('nextTitle', $nextRecord['title']);
+							if (strpos($nextRecord['id'], 'econtentRecord') === 0){
+								$interface->assign('nextType', 'EcontentRecord');
+								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
+							}elseif (strpos($nextRecord['id'], 'list') === 0){
+								$interface->assign('nextType', 'MyResearch/MyList');
+								$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
+							}else{
+								$interface->assign('nextType', 'Record');
+								$interface->assign('nextId', $nextRecord['id']);
+							}
+						}
+
+					}
+				}
+			}
+			$timer->logTime('Got next/previous links');
+		}
+	}
 }
 
 /**
@@ -1910,7 +2018,7 @@ class minSO
 {
 	public $t = array();
 	public $f = array();
-	public $id, $i, $s, $r, $ty;
+	public $id, $i, $s, $r, $ty, $sr;
 
 	/**
 	 * Constructor. Building minified object from the
@@ -1928,6 +2036,7 @@ class minSO
 		$this->s  = $searchObject->getQuerySpeed();
 		$this->r  = $searchObject->getResultTotal();
 		$this->ty = $searchObject->getSearchType();
+		$this->sr = $searchObject->getSort();
 
 		// Search terms, we'll shorten keys
 		$tempTerms = $searchObject->getSearchTerms();
@@ -1960,7 +2069,9 @@ class minSO
 		// It would be nice to shorten filter fields too, but
 		//      it would be a nightmare to maintain.
 		$this->f = $searchObject->getFilters();
-	}
 
+		//Minify sort
+
+	}
 }
 ?>
