@@ -4,7 +4,6 @@
 {else}
 <h1>{translate text='Materials Request Found - Place a Hold'}</h1>
 <div>
-  <h4>{translate text='Good news, we already have this title.'}</h4>
   <p>{translate text='This title is already available in our catalog. Place a hold on this item by selecting your pick-up location.'}</p>
 </div>
 {/if}
