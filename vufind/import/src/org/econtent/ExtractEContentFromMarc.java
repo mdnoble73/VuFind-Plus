@@ -901,7 +901,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecord.setString(curField++, source);
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
-		createEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("author"));
+		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("author")));
 		createEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
 		createEContentRecord.setString(curField++, recordInfo.getDescription());
 		createEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
@@ -912,7 +912,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("publisher")));
 		createEContentRecord.setString(curField++, Util.trimTo(100, recordInfo.getPublicationLocation()));
 		createEContentRecord.setString(curField++, Util.trimTo(100, recordInfo.getEContentPhysicalDescription()));
-		createEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("edition"));
+		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("edition")));
 		createEContentRecord.setString(curField++, Util.trimTo(500, Util.getCRSeparatedString(recordInfo.getMappedField("isbn"))));
 		createEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("issn")));
 		createEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("language"));

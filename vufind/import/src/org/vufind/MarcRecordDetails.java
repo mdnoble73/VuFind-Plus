@@ -231,7 +231,7 @@ public class MarcRecordDetails {
 				addSourceUrl(allITypes, url, text, notesField);
 			}else if (indicator2 == '2'){
 				//Related resource (enrichment)
-				if (text.matches("(?i).*?purchase|buy.*?")) {
+				if (text != null && text.matches("(?i).*?purchase|buy.*?")) {
 					// System.out.println("Found purchase URL");
 					purchaseUrl = url;
 				}
