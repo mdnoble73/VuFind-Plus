@@ -63,7 +63,11 @@ class AJAX extends Action {
 			}elseif ($device == 'mac'){
 				$result['helpText'] = $interface->fetch("Help/en/audiobook_mac.tpl");
 			}elseif ($device == 'kindle_fire'){
-				$result['helpText'] = $interface->fetch("Help/en/audiobook_kindle_fire.tpl");
+				if ($format == 'mp3' ){
+					$result['helpText'] = $interface->fetch("Help/en/mp3_kindle_fire.tpl");
+				}else{
+					$result['helpText'] = $interface->fetch("Help/en/econtent_unsupported.tpl");
+				}
 			}else{
 				$result['helpText'] = $interface->fetch("Help/en/audiobook_mobile.tpl");
 			}
