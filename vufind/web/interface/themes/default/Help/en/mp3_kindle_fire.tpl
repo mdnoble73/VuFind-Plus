@@ -24,7 +24,4 @@
 	</ol>
 <li>If the book is not currently available to check out, you may place a hold on the title. You will receive an email when the book becomes available to download.</li>
 </ol>
-<p><em>Note:
-You cannot use WMA audiobooks with the Kindle Fire. The WMA audiobooks have DRM (security) developed by Microsoft. The DRM requires Windows Media Player (WMP) to unlock the security. There is no WMP available for the Kindle Fire.
-</em></p>
 </div>
