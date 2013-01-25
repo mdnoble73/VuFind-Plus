@@ -181,16 +181,26 @@ a.active {
   color: inherit;
 }
 
-.clearfix:before,
 .clearfix:after {
-    content: "";
-    display: table;
-} 
-.clearfix:after {
-    clear: both;
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
 }
+ 
 .clearfix {
-    zoom: 1; /* For IE 6/7 (trigger hasLayout) */
+  display: inline-block;
+  width: 100%;
+}
+ 
+html[xmlns] .clearfix {
+  display: block;
+}
+ 
+* html .clearfix {
+  height: 1%;
 }
 
 body {
@@ -233,8 +243,13 @@ body {
 }
 
 #main #search {
-  width: 650px;
-  margin: 20px auto 20px auto;
+  width: 67%;
+  float: left;
+}
+
+#main #search #search-inner {
+  margin-top: 20px;
+  margin-right: 20px;
 }
 
 #fixed-wrapper #search {
@@ -252,6 +267,7 @@ body {
 }
 
 .intro {
+  font-size: 1.167em;
   text-align: center;
 }
 
@@ -414,6 +430,7 @@ body.Search--Home #logo {
   background-color: #FFF;
   border-left: 1px solid #999;
   margin-left: 12px;
+  min-height: 800px;
   padding: 20px;
   position: relative;
 }
@@ -716,7 +733,6 @@ body.Search--Results--0 #sidebar-wrapper {
 #results-bottom {
   width: 100%;
   float: left;
-  text-align: center;
 }
 
 #pagination-bottom {
@@ -798,12 +814,15 @@ body.Search--Results--0 #sidebar-wrapper {
 }
 
 div.result {
-  border-bottom: 0;
-  padding: 20px 0;
   background-color: #FFF;
   background-image: url(http://www.anythinklibraries.org/sites/all/themes/anythink/images/dots.gif);
   background-position: bottom left;
   background-repeat: repeat-x;
+  border-bottom: 0;
+  float: left;
+  margin: 0 0 20px 0;
+  padding: 20px 0;
+  width: 100%;
 }
 
 .resultDetails {
@@ -865,6 +884,27 @@ div.result {
 #sidebar .requestThisLink a:link {
   font-size: 1.333em;
   margin: 10px 0;
+}
+
+.minor {
+  border-width: 1px;
+  padding: .5em 1em;
+}
+
+.status {
+  background-color: #9F9;
+}
+
+div.status {
+  border: 4px solid #9C9;
+  margin: 1em 0;
+  padding: 1em 2em;
+  text-align: center;
+}
+
+.minor {
+  border-width: 1px;
+  padding: .5em 1em;
 }
 
 div.record {
@@ -1215,7 +1255,16 @@ ul.inline li {
   list-style: none;
   list-style-type: none;
   list-style-image: none;
-  margin: 0 .75em;
+  margin: 0 .75em 0 0;
+}
+
+ul.right {
+  float: right;
+  clear: right;
+}
+
+ul.right li {
+  margin: 0 0 0 .75em;
 }
 
 .groupSearchHolder span.clearer {
@@ -1299,7 +1348,7 @@ ul.inline li {
 }
 
 fieldset {
-  margin-bottom: 10px;
+  padding: 5px 10px;
 }
 
 legend {
@@ -1316,11 +1365,12 @@ div.popupBox {
 }
 
 .anythink-collapsed {
-  height: 0;
-  overflow: hidden;
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
+  height: 0;
+  overflow: hidden;
+  padding-bottom: 20px;
 }
 
 .anythink-collapsed div,
@@ -1525,7 +1575,7 @@ div.popupBox {
 }
 
 div.popupBox .header,
-div.popupBox .content {
+div.popupBox .contents {
   padding: 20px;
 }
 
@@ -1659,15 +1709,6 @@ div.popupBox ul li a {
   margin-left: 140px;
 }
 
-#suggestedIdentifiers {
-  border: 2px solid #CCC;
-  -webkit-border-radius: 20px;
-  -moz-border-radius: 20px;
-  border-radius: 20px;
-  margin: 10px;
-  padding: 10px;
-}
-
 .survey-container {
   font-size: 1.2em;
   position: relative;
@@ -1764,18 +1805,27 @@ input.yearbox {
 	border-bottom: 1px solid #CCC;
 }
 
-.eContentHoldingFormat{
-	font-weight: bold;
-	font-size: 14px;
+ol.hold_result_details {
+  margin-left: 0;
+  margin-right: 0;
 }
 
-.eContentHoldingUsage{
-	font-style: italic;
-	font-size: 12px;
+.step {
+  background-color: #FFF1E4;
+  border-bottom: 1px solid #996;
+  -webkit-border-radius: 1em;
+  -moz-border-radius: 1em;
+  border-radius: 1em;
+  color: #444;
+  display: inline-block;
+  margin: 0 .5em;
+  padding: .5em .75em;
+  vertical-align: middle;
+  text-align: center;
 }
 
-.eContentHoldingNotes{
-	font-size: 11px;
+.step-desc {
+  margin-left: 5em;
 }
 
 #messages {
@@ -1787,4 +1837,33 @@ input.yearbox {
 
 #messages a {
   color: #00F;
+}
+
+.request-home {
+  background-color: #EAF0F8;
+  float: left;
+  width: 33%;
+}
+
+.request-home .inner {
+  padding: 20px;
+}
+
+.request-home .action {
+  text-align: center;
+}
+
+div.request-search {
+  border: 4px solid #9C9;
+  margin: 2em 0;
+  padding: 1em 2em;
+  text-align: center;
+}
+
+.request-header {
+  color: #999;
+}
+
+.request-header a {
+  color: #4888C9;
 }

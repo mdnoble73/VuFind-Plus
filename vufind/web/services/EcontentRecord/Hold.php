@@ -31,7 +31,8 @@ class Hold extends Action{
 		$driver = new EContentDriver();
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		
+    $interface->assign('materials_request', !empty($_GET['mr']));
+
 		global $logger;
 		
 		//Get title information for the record.

@@ -185,7 +185,29 @@
         left: position.left + 'px'
       });
     });
+
+
+    // Auto-logout and auto cart-clear.
+    startIdleTimer();
+
+    $(document).bind('idle.idleTimer', function(){
+      // Whether to show the autologout message.
+      if (anythink.settings.autologout) {
+        showLogoutMessage();
+      }
+      else {
+        // Assume this is for anon users and empty the bag. No confirmation.
+        emptyBag();
+      }
+    });
+
   });
+
+  function startIdleTimer() {
+    // Idle time in seconds.
+    var timeout = 90;
+    $.idleTimer(timeout * 1000);
+  }
 
   // Resize the fixed-position element.
   function anythinkResize() {
@@ -212,14 +234,17 @@
     }
     else {
       var requestUrl = path + "/MaterialsRequest/AJAX?method=GetWorldCatIdentifiers&title=" + encodeURIComponent(title) + "&author=" + encodeURIComponent(author)  + "&format=" + encodeURIComponent(format);
-      var suggested_ids = $('#suggestedIdentifiers');
+      var suggested_ids = $('#identifiers-wrapper');
       suggested_ids.html('<div class="loading">Loading...</div>');
-      suggested_ids.slideDown();
       $.getJSON(requestUrl, function(data){
         if (data.success == true){
           // Dislay the results of the suggestions
-          suggested_ids.html(data.formattedSuggestions);
-        }else{
+          var div = $('<div>')
+                      .attr('id', 'identifiers')
+                      .append(data.formattedSuggestions);
+          suggested_ids.empty().append(div);
+        }
+        else {
           alert(data.error);
         }
       });
@@ -227,8 +252,8 @@
   }
 
   setIsbnAndOclcNumberAnythink = function(title, author, isbn, oclcNumber) {
-  	$("#title").val(title);
-  	$("#author").val(author);
+    $("#title").val(title);
+    $("#author").val(author);
     $("#isbn").val(isbn);
     $("#oclcNumber").val(oclcNumber);
     var item = $('[data-isbn_oclc="' + isbn + '--' + oclcNumber +'"]').clone();
@@ -310,6 +335,57 @@
     }
   }
 
+  // Redefine this function from title-scroller.js The original AJAX calls
+  // appear to be unnecessary.
+  TitleScroller.prototype.finishLoadingScroller = function() {
+    $(".scrollerLoadingContainer").hide();
+    var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
+    scrollerBody.show();
+    TitleScroller.prototype.activateCurrentTitle.call(this);
+    var curScroller = this;
+
+    // Whether we are hovering over an individual title or not.
+    $('.scrollerTitle').bind('mouseover', {scroller: curScroller}, function() {
+      curScroller.hovered = true;
+      //console.log('over');
+    }).bind('mouseout', {scroller: curScroller}, function() {
+      curScroller.hovered = false;
+      //console.log('out');
+    });
+
+    // Set initial state.
+    curScroller.hovered = false;
+
+    if (this.autoScroll && this.scrollInterval == 0){
+      this.scrollInterval = setInterval(function() {
+        // Only proceed if not hovering.
+        if (!curScroller.hovered) {
+          curScroller.scrollToRight();
+        }
+      }, 5000);
+    }
+    if (this.enableDescription) {
+      for ( var i in this.scrollerTitles) {
+        // Get desc data, and build tooltip, including title.
+        var id = this.scrollerTitles[i]['id'];
+        var title = this.scrollerTitles[i]['title'];
+        var description = this.scrollerTitles[i]['description'];
+        var length = this.scrollerTitles[i]['length'];
+        var publisher = this.scrollerTitles[i]['length'];
+        var toolTip = "<h2>" + title + "</h2><h3>Description</h3> <div class='description-element'>" + description + "</div><div class='description-element'><div class='description-element-label'>Length: </div>" + length + "</div><div class='description-element'><div class='description-element-label'>Publisher: </div>" + publisher + "</div>";
+        $("#descriptionTrigger" + id).data('toolTip', toolTip).tooltip({
+          track: false,
+          delay: 250,
+          showURL: false,
+          extraClass: "descriptionTooltip",
+          top: 0,
+          bodyHandler: function() {
+            return $(this).data('toolTip');
+          }
+        });
+      }
+    }
+  };
 
   bookInBagAnythink = function(book) {
     var bookInBag = false;
@@ -431,6 +507,30 @@
         GetAddTagFormAnythink(id, source);
       });
     }
+  }
+
+
+  var autoLogoutTimer;
+  function showLogoutMessage() {
+   lightbox('33%', '33%', 100, 100);
+   var message = "<div id='autoLogoutMessage'>Are you still there?  Click Continue to keep using the catalog or Logout to end your session immediately.</div>";
+   message += "<div id='autoLogoutActions'>";
+   message += "<div id='continueSession' class='autoLogoutButton' onclick='continueSession();'>Continue</div>";
+   message += "<div id='endSession' class='autoLogoutButton' onclick='endSession();'>Logout</div>";
+   message += "</div>";
+   $("#popupbox").html(message);
+   autoLogoutTimer = setTimeout("endSession()", 10000);
+  }
+
+  function continueSession() {
+   clearTimeout(autoLogoutTimer);
+   hideLightbox();
+   startIdleTimer();
+  }
+
+  function endSession() {
+   // Redirect to logout. Bag is cleared.
+   window.location = path + "/MyResearch/Logout";
   }
 
   // // Reimplement doGetRatings().
