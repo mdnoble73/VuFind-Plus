@@ -498,6 +498,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						results.incErrors();
 						System.out.println("Warning: new format for OverDrive found " + curItem.getFormat());
 						continue;
+					}else if (numericFormat == 610){
+						//Do not index OverDrive Ead for now since we don't have access right now. 
+						continue;
 					}
 					curItem.setFormatNumeric(numericFormat);
 					curItem.setFilename(format.getString("fileName"));
