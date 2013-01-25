@@ -61,6 +61,7 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 	try {
 		if (data.titles.length == 0){
 			scrollerBody.html("No titles were found for this list. Please try again later.");
+			$('#' + this.scrollerId + " .scrollerBodyContainer .scrollerLoadingContainer").hide();
 			scrollerBody.show();
 		}else{
 			scroller.scrollerTitles = new Array();
