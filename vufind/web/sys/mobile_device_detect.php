@@ -31,6 +31,8 @@ function get_device_name()
 	$mobile = new uagent_info();
 	if ($mobile->DetectKindle()){
 		return 'Kindle';
+	}elseif ($mobile->DetectKindleFire() || $mobile->DetectAmazonSilk()){
+		return 'Kindle Fire';
 	}elseif ($mobile->DetectIpad()){
 		return 'iPad';
 	}elseif ($mobile->DetectIphone()){

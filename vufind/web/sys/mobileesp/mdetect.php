@@ -728,6 +728,18 @@ class uagent_info
    }
 
    //**************************
+   // Detects if the current device is an Amazon Kindle (eInk devices only).
+   // Note: For the Kindle Fire, use the normal Android methods.
+   function DetectKindleFire()
+   {
+      if (stripos($this->useragent, $this->deviceKindle) > -1 &&
+          $this->DetectAndroid() == $this->true)
+         return $this->true;
+      else
+         return $this->false;
+   }
+
+   //**************************
    // Detects if the current Amazon device is using the Silk Browser.
    // Note: Typically used by the the Kindle Fire.
    function DetectAmazonSilk()
