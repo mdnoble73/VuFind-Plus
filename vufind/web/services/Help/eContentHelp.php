@@ -104,6 +104,8 @@ class eContentHelp extends Action
 		$defaultDevice = '';
 		if ($device == 'Kindle'){
 			$defaultDevice = 'kindle';
+		}elseif ($device == 'Kindle Fire'){
+			$defaultDevice = 'kindle_fire';
 		}elseif ($device == 'iPad' || $device == 'iPhone'){
 			$defaultDevice = 'ios';
 		}elseif ($device == 'Android Phone' || $device == 'Android Tablet'){
