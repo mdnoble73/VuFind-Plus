@@ -113,7 +113,9 @@ function handlePEARError($error, $method = null){
 		$interface = new UInterface();
 	}
 	global $analytics;
-	$analytics->addEvent('Unexpected Error', 'Unexpected Error', $error, $method);
+	if ($analytics){
+		$analytics->addEvent('Unexpected Error', 'Unexpected Error', $error, $method);
+	}
 
 	$interface->assign('error', $error);
 	$interface->assign('debug', $configArray['System']['debug']);
