@@ -46,7 +46,7 @@
 </div>
 
 {if !$productionServer}
-<div class='location_info'>{$physicalLocation} ({$activeIp})</div>
+<div class='location_info'>{$physicalLocation} ({$activeIp}) - $deviceName</div>
 {/if}
 <div class='version_info'>v. {$gitBranch}</div>
 {/strip}

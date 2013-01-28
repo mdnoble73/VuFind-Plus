@@ -241,6 +241,9 @@ $action = preg_replace('/[^\w]/', '', $action);
 $interface->assign('module', $module);
 $interface->assign('action', $action);
 
+$deviceName = get_device_name();
+$interface->assign('deviceName', $deviceName);
+
 if ($analytics){
 	$analytics->setModule($module);
 	$analytics->setAction($action);

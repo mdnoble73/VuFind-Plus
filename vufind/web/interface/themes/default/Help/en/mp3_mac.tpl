@@ -1,13 +1,12 @@
 <div class="helpText">
-<h3>
-Step-by-step, one-time setup instructions for downloading Audiobooks for MAC
-</h3>
+<h3>To download MP3 audiobooks to your MAC:</h3>
 <ol>
-<li>First time users of library audiobooks need to download the OverDrive Media Console (OMC) free software onto their computer. Either click the link at the bottom of the page containing the desired audiobook
- 
- or navigate to the following address:
-http://www.overdrive.com/software/omc/</li>
-<li>Select the MAC version and click "Download Now" and follow the prompts to install the OMC software</li>
+<li>Install the <a href="http://www.overdrive.com/software/omc/">OverDrive Media Console</a> to your Mac.  You can download the OverDrive Media Console from <a href="http://www.overdrive.com/software/omc/">here</a>.
+	<ol>
+		<li>Select the <b>Mac</b> option, click the <b>Download Now</b> button and follow the prompts to install the OMC software.</li>
+	</ol>
+</li>
+<li>Now you can search the library's catalog for MP3 audiobooks to download onto your Mac.</li>
 <li>Once OMC is installed on the computer, return to the library's catalog click "Check Out" (or "Place Hold") under MP3 audiobook (the WMA format will not work on a MAC computer)</li>
 <li>You will be prompted to enter your name and library card number</li>
 <li>Click - Login</li>
