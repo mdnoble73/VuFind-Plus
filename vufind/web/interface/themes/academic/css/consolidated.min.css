@@ -110,7 +110,7 @@ img{vertical-align:middle}.error{color:#C00}#tagForm{display:none}#narrowLoading
 #popupTitle{display:inline-block;margin-right:20px;zoom:1;*display:block}div.popupBox .header
 a{float:right;text-decoration:none;font-weight:bold}div.popupBox
 .content{padding:5px
-20px 20px 20px;max-height:100%;overflow:auto;-webkit-transition-property:height;-webkit-transition-duration:0.25s;-webkit-transition-delay:0.25s;border-bottom:none}.helpText{height:500px;width:800px;overflow:scroll}div.popupBox
+20px 20px 20px;max-height:100%;overflow:auto;-webkit-transition-property:height;-webkit-transition-duration:0.25s;-webkit-transition-delay:0.25s;border-bottom:none}.helpText{height:350px;width:800px;overflow:scroll}div.popupBox
 a.close{font-size:8pt;font-weight:bold;padding:2px;color:#000;float:right;border:outset 1px}div.popupBox
 ul{list-style:none;padding:0px;margin:0px}div.popupBox ul
 li{border-bottom:solid 1px #CCC;padding:4px}div.popupBox ul

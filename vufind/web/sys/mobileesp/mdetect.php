@@ -328,16 +328,18 @@ class uagent_info
 	function DetectAndroidPhone()
 	{
 		if (($this->DetectAndroid() == $this->true) &&
-		(stripos($this->useragent, $this->mobile) > -1))
-		return $this->true;
+				(stripos($this->useragent, $this->mobile) > -1)){
+			return $this->true;
+		}
 		//Special check for Android phones with Opera Mobile. They should report here.
 		if (($this->DetectOperaAndroidPhone() == $this->true))
 		return $this->true;
 		//Special check for the HTC Flyer 7" tablet. It should report here.
-		if ((stripos($this->useragent, $this->deviceHtcFlyer) > -1))
-		return $this->true;
-		else
-		return $this->false;
+		if ((stripos($this->useragent, $this->deviceHtcFlyer) > -1)){
+			return $this->true;
+		}else{
+			return $this->false;
+		}
 	}
 
 	//**************************
@@ -357,10 +359,11 @@ class uagent_info
 		return $this->false;
 
 		//Otherwise, if it's Android and does NOT have 'mobile' in it, Google says it's a tablet.
-		if (stripos($this->useragent, $this->mobile) > -1)
-		return $this->false;
-		else
-		return $this->true;
+		if (stripos($this->useragent, $this->mobile) > -1){
+			return $this->false;
+		}else{
+			return $this->true;
+		}
 	}
 
 	//**************************
