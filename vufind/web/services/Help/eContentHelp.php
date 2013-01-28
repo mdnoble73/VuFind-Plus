@@ -114,7 +114,7 @@ class eContentHelp extends Action
 			$defaultDevice = 'android';
 		}elseif ($device == 'BlackBerry'){
 			$defaultDevice = 'other';
-		}elseif ($device == 'iOS'){
+		}elseif ($device == 'Mac'){
 			$defaultDevice = 'mac';
 		}elseif ($device == 'PC'){
 			$defaultDevice = 'pc';
