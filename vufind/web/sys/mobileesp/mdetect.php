@@ -95,6 +95,9 @@ class uagent_info
    var $deviceIpad = 'ipad';
    var $deviceMacPpc = 'macintosh'; //Used for disambiguation
 
+   //Macintiosh OS X
+   var $deviceMacOSX = 'max os x';
+
    var $deviceAndroid = 'android';
    var $deviceGoogleTV = 'googletv';
    var $deviceXoom = 'xoom'; //Motorola Xoom
@@ -853,6 +856,13 @@ class uagent_info
          return $this->false;
    }
 
+   function DetectMac(){
+     if (stripos($this->useragent, $this->deviceMacOSX) > -1){
+       return $this->true;
+     }else{
+       return $this->false;
+     }
+   }
    //**************************
    // Detects if the current device is on one of the Maemo-based Nokia Internet Tablets.
    function DetectMaemoTablet()

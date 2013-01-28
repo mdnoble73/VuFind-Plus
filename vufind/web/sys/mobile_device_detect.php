@@ -37,6 +37,8 @@ function get_device_name()
 		return 'iPad';
 	}elseif ($mobile->DetectIphone()){
 		return 'iPhone';
+	}elseif ($mobile->DetectMac()){
+		return 'Mac';
 	}elseif ($mobile->DetectAndroidPhone()){
 		return 'Android Phone';
 	}elseif ($mobile->DetectAndroidTablet()){
