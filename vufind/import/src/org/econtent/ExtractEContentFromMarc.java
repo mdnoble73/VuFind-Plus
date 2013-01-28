@@ -845,7 +845,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecord.setString(curField++, source);
 		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
 		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
-		updateEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("author"));
+		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("author")));
 		updateEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("author2")));
 		updateEContentRecord.setString(curField++, recordInfo.getDescription());
 		updateEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
@@ -1570,7 +1570,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecordForOverDrive.setString(1, recordInfo.getCoverImage());
 		updateEContentRecordForOverDrive.setString(2, "OverDrive");
 		updateEContentRecordForOverDrive.setString(3, recordInfo.getTitle());
-		updateEContentRecordForOverDrive.setString(4, recordInfo.getAuthor());
+		updateEContentRecordForOverDrive.setString(4, Util.trimTo(255, recordInfo.getAuthor()));
 		updateEContentRecordForOverDrive.setString(5, Util.getCRSeparatedString(recordInfo.getContributors()));
 		updateEContentRecordForOverDrive.setString(6, recordInfo.getDescription());
 		updateEContentRecordForOverDrive.setString(7, Util.getCRSeparatedString(recordInfo.getSubjects()));
@@ -1609,7 +1609,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecordForOverDrive.setString(1, recordInfo.getCoverImage());
 		createEContentRecordForOverDrive.setString(2, "OverDrive");
 		createEContentRecordForOverDrive.setString(3, Util.trimTo(255, recordInfo.getTitle()));
-		createEContentRecordForOverDrive.setString(4, recordInfo.getAuthor());
+		createEContentRecordForOverDrive.setString(4, Util.trimTo(255, recordInfo.getAuthor()));
 		createEContentRecordForOverDrive.setString(5, Util.getCRSeparatedString(recordInfo.getContributors()));
 		createEContentRecordForOverDrive.setString(6, recordInfo.getDescription());
 		createEContentRecordForOverDrive.setString(7, Util.getCRSeparatedString(recordInfo.getSubjects()));
