@@ -16,7 +16,7 @@
           <h3><span class="step">3</span> Confirm your contact info</h3>
           <p class="step-desc">Want email updates on the status of your request? Confirm your email address under "Contact info" before clicking the "Submit Request" button.</p>
           <h3><span class="step">4</span> We'll borrow or buy</h3>
-          <p class="step-desc">We may borrow the item for you from another library or purchase a copy for the Anythink collection.  Either way, it can take two to eight weeks for your item to arrive. We'll notify you when it's in and ready for pickup. </p>
+          <p class="step-desc">We may borrow the item for you from another library or purchase a copy for the Anythink collection.  Either way, it can take two to eight weeks for your item to arrive. We'll notify you when it's in and ready for pickup. You can request up to 60 items per year.</p>
         {/if}
       </div>
       <form id="materialsRequestForm" action="{$path}/MaterialsRequest/Submit" method="post">
