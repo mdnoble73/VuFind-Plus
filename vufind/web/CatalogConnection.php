@@ -239,9 +239,9 @@ class CatalogConnection
 	 * failure, a PEAR_Error.
 	 * @access public
 	 */
-	public function getStatus($recordId)
+	public function getStatus($recordId, $forSearch = false)
 	{
-		return $this->driver->getStatus($recordId);
+		return $this->driver->getStatus($recordId, $forSearch);
 	}
 
 	/**
@@ -257,9 +257,9 @@ class CatalogConnection
 	 * @access public
 	 * @author Chris Delis <cedelis@uillinois.edu>
 	 */
-	public function getStatuses($recordIds)
+	public function getStatuses($recordIds, $forSearch = false)
 	{
-		return $this->driver->getStatuses($recordIds);
+		return $this->driver->getStatuses($recordIds, $forSearch);
 	}
 
 	/**

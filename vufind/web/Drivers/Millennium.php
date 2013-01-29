@@ -677,7 +677,7 @@ class MillenniumDriver implements DriverInterface
 	 * @param string $id the id of the bid to load holdings for
 	 * @return array an associative array with a summary of the holdings.
 	 */
-	public function getStatusSummary($id){
+	public function getStatusSummary($id, $forSearch = false){
 		global $timer;
 		$holdings = $this->getStatus($id);
 
@@ -686,6 +686,26 @@ class MillenniumDriver implements DriverInterface
 		$summaryInformation['recordId'] = $id;
 		$summaryInformation['shortId'] = substr($id, 1);
 		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
+
+		global $library;
+		global $locationSingleton;
+		$location = $locationSingleton->getActiveLocation();
+		$canShowHoldButton = true;
+		if ($library){
+			if ($forSearch){
+				$canShowHoldButton = ($library->showHoldButtonInSearchResults != 0);
+			}else{
+				$canShowHoldButton = ($library->showHoldButton != 0);
+			}
+		}
+		if ($location){
+			if ($forSearch){
+				$canShowHoldButton = ($location->showHoldButtonInSearchResults != 0);
+			}else{
+				$canShowHoldButton = ($location->showHoldButton != 0);
+			}
+		}
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
 
 		//Check to see if we are getting issue summaries or actual holdings
 		$isIssueSummary = false;
@@ -708,6 +728,7 @@ class MillenniumDriver implements DriverInterface
                             'location' => $issueSummary['location'],
                             'libraryDisplayName' => $issueSummary['location'],
                             'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
+                            'showPlaceHold' => $canShowHoldButton,
 						);
 						$summaryInformation['status'] = 'Available';
 						$summaryInformation['statusfull'] = 'Available';
@@ -716,18 +737,6 @@ class MillenniumDriver implements DriverInterface
 				}
 			}
 		}
-
-		global $library;
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		$canShowHoldButton = true;
-		if ($library && $library->showHoldButton == 0){
-			$canShowHoldButton = false;
-		}
-		if ($location != null && $location->showHoldButton == 0){
-			$canShowHoldButton = false;
-		}
-		$physicalLocation = $locationSingleton->getPhysicalLocation();
 
 		//Valid statuses are:
 		//It's here
@@ -898,84 +907,6 @@ class MillenniumDriver implements DriverInterface
 			$summaryInformation['unavailableStatus'] = $unavailableStatus;
 		}
 
-		//Status is not set, check to see if the item is downloadable
-		/*
-		 if (!isset($summaryInformation['status'])){
-			//Check to see if there is a download link in the 856 field
-			//Make sure that the search engine has been setup.  It may not be if the
-			//this is an AJAX request where the search engine is not needed otherwise.
-			$searchObject = SearchObjectFactory::initSearchObject();
-			global $configArray;
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			$this->db = new $class($url);
-			if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-			}
-
-			// Retrieve Full Marc Record
-			$recordURL = null;
-			if (!($record = $this->db->getRecord($id))) {
-			//Must not be a MARC record. Ignore it for now.
-			}else{
-			// Process MARC Data
-			require_once 'sys/MarcLoader.php';
-			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-			if ($marcRecord) {
-			//Check the 856 tag to see if there is a URL
-			if ($linkField = $marcRecord->getField('856')) {
-			if ($linkURLField = $linkField->getSubfield('u')) {
-			$linkURL = $linkURLField->getData();
-			}
-			if ($linkTextField = $linkField->getSubfield('y')) {
-			$linkText = $linkTextField->getData();
-			}else if ($linkTextField = $linkField->getSubfield('z')) {
-			$linkText = $linkTextField->getData();
-			}else if ($linkTextField = $linkField->getSubfield('3')) {
-			$linkText = $linkTextField->getData();
-			}
-			}
-			} else {
-			//Can't process the marc record, ignore it.
-			}
-			}
-
-			//If there is a link, add that status information.
-			if (isset($linkURL) && !preg_match('/.*\.(?:gif|jpg|jpeg|tif|tiff)/', $linkURL)){
-			$linkTestText = $linkURL;
-			if (isset($linkText)){
-			$linkTestText .= ' ' . $linkText;
-			}
-			$isDownload = preg_match('/SpringerLink|NetLibrary|digital media|Online version\.|ebrary|gutenberg/i', $linkTestText);
-			if ($linkTestText == 'digital media') $linkText = 'OverDrive';
-			if (preg_match('/netlibrary/i', $linkURL)){
-			$isDownload = true;
-			$linkText = 'NetLibrary';
-			}elseif(preg_match('/ebscohost/i', $linkURL)){
-			$isDownload = true;
-			$linkText = 'Ebsco';
-			}elseif(preg_match('/overdrive/i', $linkURL)){
-			$isDownload = true;
-			$linkText = 'OverDrive';
-			}elseif(preg_match('/ebrary/i', $linkURL)){
-			$isDownload = true;
-			$linkText = 'ebrary';
-			}elseif(preg_match('/gutenberg/i', $linkURL)){
-			$isDownload = true;
-			$linkText = 'Gutenberg Project';
-			}elseif(preg_match('/.*\.[pdf]/', $linkURL)){
-			$isDownload = true;
-			}
-			if ($isDownload){
-			$summaryInformation['status'] = "Available for Download";
-			$summaryInformation['class'] = 'here';
-			$summaryInformation['isDownloadable'] = true;
-			$summaryInformation['downloadLink'] = $linkURL;
-			$summaryInformation['downloadText'] = isset($linkText)? $linkText : 'Download';
-			}
-			}
-			}*/
-
 		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
 			//Replace all spaces in the name of a location with no break spaces
 			foreach ($availableLocations as $key => $location){
@@ -1051,6 +982,7 @@ class MillenniumDriver implements DriverInterface
 		if (!is_null($firstLocation) && !isset($summaryInformation['location'])){
 			$summaryInformation['location'] = $firstLocation;
 		}
+
 		return $summaryInformation;
 	}
 
@@ -1061,11 +993,11 @@ class MillenniumDriver implements DriverInterface
 	 * @param array $ids an array ids to load summary information for.
 	 * @return array an associative array containing a second array with summary information.
 	 */
-	public function getStatusSummaries($ids){
+	public function getStatusSummaries($ids, $forSearch = false){
 		$items = array();
 		$count = 0;
 		foreach ($ids as $id) {
-			$items[$count] = $this->getStatusSummary($id);
+			$items[$count] = $this->getStatusSummary($id, $forSearch);
 			$count++;
 		}
 		return $items;

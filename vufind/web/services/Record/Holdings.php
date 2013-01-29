@@ -113,7 +113,7 @@ class Holdings extends Record
 			$holdingData->history = $result;
 
 			//Holdings summary
-			$result = $catalog->getStatusSummary($id);
+			$result = $catalog->getStatusSummary($id, false);
 			if (PEAR::isError($result)) {
 				PEAR::raiseError($result);
 			}

@@ -217,7 +217,7 @@ class AJAX extends Action {
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 		$timer->logTime("Initialized Catalog Connection");
 
-		$summaries = $catalog->getStatusSummaries($_GET['id']);
+		$summaries = $catalog->getStatusSummaries($_GET['id'], true);
 		$timer->logTime("Retrieved status summaries");
 
 		$result = array();
