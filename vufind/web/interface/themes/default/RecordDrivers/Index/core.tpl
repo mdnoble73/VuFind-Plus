@@ -169,8 +169,8 @@
     <th>{translate text='Tags'}: </th>
     <td>
       <span style="float:right;">
-        <a href="{$path}/Record/{$id|escape:"url"}/AddTag" class="tool add"
-           onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
+        <a href="{$path}/Record/{$id|escape:"url"}/AddTag" 
+           onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;"><span class="silk add">&nbsp;</span>{translate text="Add"}</a>
       </span>
       <div id="tagList">
         {if $tagList}

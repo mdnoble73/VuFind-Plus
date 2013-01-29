@@ -35,7 +35,7 @@
 								<b>{translate text=$field|escape}</b>: {$filter.display|escape}<br/>
 							{/foreach}{/foreach}</td>
 							<td>{$info.hits}</td>
-							<td><a href="{$path}/MyResearch/SaveSearch?delete={$info.searchId|escape:"url"}&amp;mode=history" class="delete">{translate text="history_delete_link"}</a></td>
+							<td><a href="{$path}/MyResearch/SaveSearch?delete={$info.searchId|escape:"url"}&amp;mode=history"><span class="silk delete">&nbsp;</span>{translate text="history_delete_link"}</a></td>
 						</tr>
 						{/foreach}
 					</table>
@@ -67,11 +67,11 @@
 									{/foreach}
 								{/foreach}</td>
 								<td>{$info.hits}</td>
-								<td><a href="{$path}/MyResearch/SaveSearch?save={$info.searchId|escape:"url"}&amp;mode=history" class="add">{translate text="history_save_link"}</a></td>
+								<td><a href="{$path}/MyResearch/SaveSearch?save={$info.searchId|escape:"url"}&amp;mode=history"><span class="silk add">&nbsp;</span>{translate text="history_save_link"}</a></td>
 							</tr>
 						{/foreach}
 					</table>
-					<br/><a href="{$path}/Search/History?purge=true" class="delete">{translate text="history_purge"}</a>
+					<br/><a href="{$path}/Search/History?purge=true"><span class="silk delete">&nbsp;</span>{translate text="history_purge"}</a>
 				{/if}
 	
 			{else}

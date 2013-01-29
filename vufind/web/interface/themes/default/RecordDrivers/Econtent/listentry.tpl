@@ -60,7 +60,7 @@
   <div class="rateEContent{$listId|escape} stat">
     <div id="saveLink{$listId|escape}">
       {if $listEditAllowed}
-          <a href="{$path}/MyResearch/Edit?id={$listId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="edit tool">{translate text='Edit'}</a>
+          <a href="{$path}/MyResearch/Edit?id={$listId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}"><span class="silk edit">&nbsp;</span>{translate text='Edit'}</a>
           {* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
           <a
           {if is_null($listSelected)}
@@ -68,7 +68,7 @@
           {else}
             href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$listId|escape:"url"}"
           {/if}
-          class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
+          onclick="return confirm('Are you sure you want to delete this?');"><span class="silk delete">&nbsp;</span>{translate text='Delete'}</a>
       {/if}
     </div>
 	  <div class="statVal">

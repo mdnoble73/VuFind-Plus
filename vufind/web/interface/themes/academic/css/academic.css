@@ -272,3 +272,8 @@ td {
 	zoom:1;
 	*display:inline;
 }
+
+.recordTitle{
+	font-weight: bold;
+	font-size: 18px;
+}

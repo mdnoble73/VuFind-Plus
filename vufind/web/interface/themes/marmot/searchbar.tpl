@@ -39,7 +39,7 @@
 			{* Link to Search Tips Help *}
 			&nbsp;
 			<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">
-				<img src="{$path}/images/silk/help.png" alt="{translate text='Search Tips'}" />
+				<span class="silk help">&nbsp;</span>
 			</a>
 
 			{* Do we have any checkbox filters? *}

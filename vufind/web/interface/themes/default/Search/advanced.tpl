@@ -36,7 +36,7 @@
     {/if}
     {* An empty div. This is the target for the javascript that builds this screen *}
     <div id="searchHolder"></div>
-    <div><a href="#" class="add" onclick="addGroup(); return false;">{translate text="add_search_group"}</a></div>
+    <div><a href="#" onclick="addGroup(); return false;"><span class="silk add">&nbsp;</span>{translate text="add_search_group"}</a></div>
     <div id="groupJoin" class="searchGroups">
       <div class="searchGroupDetails">
         {translate text="search_match"}:

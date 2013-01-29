@@ -21,6 +21,6 @@
 </ul>
 
 <div data-role="controlgroup" data-type="horizontal" style="textalign:center">
-{if $pageLinks.back} {$pageLinks.back|replace:' href=':' class="prevLink" data-role="button" data-rel="back" href='} {/if} 
-{if $pageLinks.next} {$pageLinks.next|replace:' href=':' class="nextLink" rel="external" data-role="button" href='} {/if}
+{if $pageLinks.back} {$pageLinks.back|replace:' href=':' data-role="button" data-rel="back" href='} {/if} 
+{if $pageLinks.next} {$pageLinks.next|replace:' href=':' rel="external" data-role="button" href='} {/if}
 </div>

@@ -52,10 +52,10 @@ function redrawSaveStatus() {literal}{{/literal}
 			<div class="sidebarLabel">{translate text='Format'}:</div>
 			{if is_array($eContentRecord->format())}
 			 {foreach from=$eContentRecord->format() item=displayFormat name=loop}
-				 <div class="sidebarValue"><span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span></div>
+				 <div class="sidebarValue"><span class="icon {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$displayFormat}</span></div>
 			 {/foreach}
 			{else}
-				<div class="sidebarValue"><span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span></div>
+				<div class="sidebarValue"><span class="icon {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$eContentRecord->format}</span></div>
 			{/if}
 			
 			{if $eContentRecord->physicalDescription}
@@ -137,30 +137,8 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if} 
 		</div>
 		
-		{if $showTagging == 1}
-			<div class="sidegroup" id="tagsSidegroup">
-				<h4>{translate text="Tags"}</h4>
-				<div id="tagList">
-				{if $tagList}
-					{foreach from=$tagList item=tag name=tagLoop}
-						<div class="sidebarValue">
-							<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
-							{if $tag->userAddedThis}
-								<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
-									<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">
-								</a>
-							{/if} 
-						</div>
-					{/foreach}
-				{else}
-					<div class="sidebarValue">{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</div>
-				{/if}
-				</div>
-				<div class="sidebarValue">
-					<a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=eContent" class="tool add" onclick="GetAddTagForm('{$id|escape}', 'eContent'); return false;">{translate text="Add Tag"}</a>
-				</div>
-			</div>
-		{/if}
+		{include file="EcontentRecord/tag_sidegroup.tpl"}
+		
 		
 		<div class="sidegroup" id="similarTitlesSidegroup">
 			{* Display either similar tiles from novelist or from the catalog*}
@@ -358,17 +336,17 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="recordTools">
 					<ul>
 						{if !$tabbedDetails}
-							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" class="cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'>{translate text="Cite this"}</a></li>
+							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'><span class="silk report">&nbsp;</span>{translate text="Cite this"}</a></li>
 						{/if}
 						{if $showTextThis == 1}
-							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" class="sms" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;">{translate text="Text this"}</a></li>
+							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;"><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
 						{/if}
 						{if $showEmailThis == 1}
-							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" class="mail" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;">{translate text="Email this"}</a></li>
+							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;"><span class="silk email">&nbsp;</span>{translate text="Email this"}</a></li>
 						{/if}
 						{if is_array($exportFormats) && count($exportFormats) > 0}
 							<li>
-								<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+								<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" onclick="toggleMenu('exportMenu'); return false;"><span class="silk application_add">&nbsp;</span>{translate text="Export Record"}</a><br />
 								<ul class="menu" id="exportMenu">
 									{foreach from=$exportFormats item=exportFormat}
 										<li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
@@ -377,13 +355,13 @@ function redrawSaveStatus() {literal}{{/literal}
 							</li>
 						{/if}
 						{if $showFavorites == 1}
-							<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" class="fav" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;">{translate text="Add to favorites"}</a></li>
+							<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;"><span class="silk star_gold">&nbsp;</span>{translate text="Add to favorites"}</a></li>
 						{/if}
 						{if $enableBookCart == 1}
-							<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$eContentRecord->title|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+							<li id="bookCartLink"><a href="#" onclick="addToBag('{$id|escape}', '{$eContentRecord->title|replace:'"':''|escape:'javascript'}', this);"><span class="silk cart">&nbsp;</span>{translate text="Add to book cart"}</a></li>
 						{/if}
 						{if !empty($addThis)}
-							<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
+							<li id="addThis"><a href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}"><span class="silk tag_yellow">&nbsp;</span>{translate text='Bookmark'}</a></li>
 						{/if}
 					</ul>
 				</div>
@@ -635,7 +613,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			
 			{if $showComments == 1}
 				<div id = "readertab" >
-					<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$id}').slideDown();">Add a Review</span></div>
+					<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" onclick="$('#userreview{$id}').slideDown();"><span class="silk add">&nbsp;</span>Add a Review</span></div>
 					<div id="userreview{$id}" class="userreview">
 						<span class ="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
 						<div class='addReviewTitle'>Add your Review</div>

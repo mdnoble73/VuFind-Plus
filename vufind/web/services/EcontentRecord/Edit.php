@@ -37,7 +37,7 @@ class Edit extends Action {
 
 		//Make sure the user has permission to access the page
 		if (!$user->hasRole('epubAdmin')){
-			$interface->setTemplate('noPermission.tpl');
+			$interface->setTemplate('../Admin/noPermission.tpl');
 			$interface->display('layout.tpl');
 			exit();
 		}

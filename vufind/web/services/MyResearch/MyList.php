@@ -56,6 +56,23 @@ class MyList extends Action {
 			$interface->assign('allLists', $allLists);
 		}
 
+		//Figure out if we should show a link to classic opac to pay holds.
+		$ecommerceLink = $configArray['Site']['ecommerceLink'];
+		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
+			$interface->assign('showEcommerceLink', true);
+			$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
+			if ($homeLibrary->payFinesLink == 'default' || strlen($homeLibrary->payFinesLink) == 0){
+				$interface->assign('ecommerceLink', $ecommerceLink);
+			}else{
+				$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
+			}
+			$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
+		}else{
+			$interface->assign('showEcommerceLink', false);
+			$interface->assign('minimumFineAmount', 0);
+		}
+
 		// Fetch List object
 		if (isset($_GET['id'])){
 			$list = User_list::staticGet($_GET['id']);

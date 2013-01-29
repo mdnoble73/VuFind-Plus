@@ -11,7 +11,7 @@
 			<div>
 			<input type="hidden" name="myListActionHead" id="myListActionHead"/>
 		{/if}
-		<h3 class="list" id='listTitle'>{$favList->title|escape:"html"}</h3>
+		<h3 id='listTitle'><span class="silk list">&nbsp;</span>{$favList->title|escape:"html"}</h3>
 		{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
 		{if $allowEdit}
 			<div id='listEditControls' style="display:none">
@@ -80,7 +80,7 @@
 
 	<div class="yui-u">
 		{if $tagList}
-		<h3 class="tag">{translate text='Your Tags'}</h3>
+		<h3><span class="silk tag_blue">{translate text='Your Tags'}</h3>
 
 		<ul>
 		{foreach from=$tags item=tag}

@@ -68,7 +68,7 @@
 		<div class="rate{$resource->record_id|regex_replace:"/\./":""|escape} stat">
 			<div id="saveLink{$resource->record_id|regex_replace:"/\./":""|escape}">
 				{if $allowEdit}
-						<a href="{$path}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}" class="edit tool">{translate text='Edit'}</a>
+						<a href="{$path}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}">{translate text='Edit'}</a>
 						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
 						<a
 						{if is_null($listSelected)}
@@ -76,7 +76,7 @@
 						{else}
 							href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
 						{/if}
-						class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
+						onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
 				{/if}
 			</div>
 			<div class="statVal">

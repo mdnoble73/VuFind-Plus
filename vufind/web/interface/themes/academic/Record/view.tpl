@@ -33,17 +33,17 @@ function redrawSaveStatus() {literal}{{/literal}
 	<div class="toolbar">
 		<ul>
 			{if isset($previousId)}
-				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" class="previousLink" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}">{translate text="Previous"}</a></li>
+				<li><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Title not available'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><span class="silk resultset_previous">&nbsp;</span>{translate text="Previous"}</a></li>
 			{/if}
 			{if $showTextThis == 1}
-				<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" class="sms" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'>{translate text="Text this"}</a></li>
+				<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
 			{/if}
 			{if $showEmailThis == 1}
-				<li><a href="{$path}/Record/{$id|escape:"url"}/Email" class="mail" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'>{translate text="Email this"}</a></li>
+				<li><a href="{$path}/Record/{$id|escape:"url"}/Email" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'><span class="silk email">&nbsp;</span>{translate text="Email this"}</a></li>
 			{/if}
 			{if is_array($exportFormats) && count($exportFormats) > 0}
 				<li>
-					<a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" class="export" onclick="toggleMenu('exportMenu'); return false;">{translate text="Export Record"}</a><br />
+					<a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" onclick="toggleMenu('exportMenu'); return false;"><span class="silk application_add">&nbsp;</span>{translate text="Export Record"}</a><br />
 					<ul class="menu" id="exportMenu">
 					{foreach from=$exportFormats item=exportFormat}
 						<li><a {if $exportFormat=="RefWorks"}target="{$exportFormat}Main" {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
@@ -52,17 +52,17 @@ function redrawSaveStatus() {literal}{{/literal}
 				</li>
 			{/if}
 			{if $showFavorites == 1}
-				<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" class="fav" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add to favorites"}</a></li>
+				<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;"><span class="silk star_gold"></span>{translate text="Add to favorites"}</a></li>
 			{/if}
 			{if $enableBookCart == 1}
-				<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$recordTitleSubtitle|replace:'"':''|escape:'javascript'}', this);">{translate text="Add to book cart"}</a></li>
+				<li id="bookCartLink"><a href="#" onclick="addToBag('{$id|escape}', '{$recordTitleSubtitle|replace:'"':''|escape:'javascript'}', this);"><span class="silk cart">&nbsp;</span>{translate text="Add to book cart"}</a></li>
 			{/if}
 			{if !empty($addThis)}
 				<li id="addThis"><a class="addThis addthis_button"" href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}">{translate text='Bookmark'}</a></li>
 			{/if}
-			<li id="HoldingsLink"><a href="#holdings" class ="holdings">{translate text="Holdings"}</a></li>
+			<li id="HoldingsLink"><a href="#" onclick="return showElementInLightbox('Copies', '#holdingsPlaceholder');"><span class="silk book_address">&nbsp;</span>{translate text="Holdings"}</a></li>
 			{if isset($nextId)}
-				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" class="nextLink" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}">{translate text="Next"}</a></li>
+				<li><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Title not available'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><span class="silk resultset_next">&nbsp;</span>{translate text="Next"}</a></li>
 			{/if}
 		</ul>
 	</div>
@@ -74,6 +74,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="inProspectorPlaceholder"></div>
 			</div>
 		{/if}
+		
+		{include file="Record/tag_sidegroup.tpl"}
 	
 		{if is_array($editions) && !$showOtherEditionsPopup}
 			<div class="sidegroup">
@@ -82,10 +84,11 @@ function redrawSaveStatus() {literal}{{/literal}
 					{foreach from=$editions item=edition}
 					<li>
 						{if is_array($edition.format)}
-							<span class="{$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+							<span class="icon {$edition.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span>
 						{else}
-							<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+							<span class="icon {$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span>
 						{/if}
+						<span>
 						<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
 						</span>
 						{$edition.edition|escape}
@@ -112,10 +115,11 @@ function redrawSaveStatus() {literal}{{/literal}
 					{foreach from=$similarRecords item=similar}
 					<li>
 						{if is_array($similar.format)}
-							<span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
+							<span class="icon {$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span>
 						{else}
-							<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
+							<span class="icon {$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span>
 						{/if}
+						<span>
 						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
 						</span>
 						{if $similar.author}
@@ -129,9 +133,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 		{/if}
 	
-		<div id = "classicViewLink">
-			<a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">Classic View</a>
-		</div>
+		
 	</div>
 	{if $error}<p class="error">{$error}</p>{/if} 
 				
@@ -186,7 +188,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			<div id='fullRecordTitleDetails'>	
 				{* Display Title *}
-				<h1 class='recordTitle'>{$recordTitleWithAuth|regex_replace:"/(\/|:)$/":""|escape}</h1>
+				<div class='recordTitle'>{$recordTitleWithAuth|regex_replace:"/(\/|:)$/":""|escape}</div>
 				
 				{* Display more information about the title*}
 				{if $mainAuthor}
@@ -215,8 +217,16 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultLabel">{translate text='Contributors'}:</span>
 					<span class="resultValue">
 						{foreach from=$contributors item=contributor name=loop}
+							{if $smarty.foreach.loop.index == 5}
+								<span id="contributorsMoreLink"><a href="#" onclick="$('#contributorsMoreSection').toggle();$('#contributorsMoreLink').toggle();">{translate text="more"}...</a><br/></span>
+								<span id="contributorsMoreSection" style="display:none">
+							{/if}
 							<a href="{$path}/Author/Home?author={$contributor|escape:"url"}">{$contributor|escape}</a>{if !$smarty.foreach.loop.last}, <br/>{/if}
 						{/foreach}
+						{if $smarty.foreach.loop.index > 5}
+							<br/><span id="contributorsLessLink"><a href="#" onclick="$('#contributorsMoreSection').toggle();$('#contributorsMoreLink').toggle();">{translate text="less"}</a><br/></span>
+							</span>
+						{/if}
 					</span>
 				</div>
 				{/if}
@@ -238,10 +248,10 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultValue">
 						{if is_array($recordFormat)}
 							{foreach from=$recordFormat item=displayFormat name=loop}
-								<span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span>{if !$smarty.foreach.loop.last}, <br/>{/if}
+								<span class="icon {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$displayFormat}</span>{if !$smarty.foreach.loop.last}, <br/>{/if}
 							{/foreach}
 						{else}
-							<span class="iconlabel {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$recordFormat}</span>
+							<span class="icon {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$recordFormat}</span>
 						{/if}
 					</span>
 				</div>
@@ -358,37 +368,6 @@ function redrawSaveStatus() {literal}{{/literal}
 					{if $marcField|getvalue:'p'}{$marcField|getvalue:'p'|regex_replace:"/(\/|:)$/":""|escape}{/if}
 					</div>
 				{/if}
-					
-				{if $showTagging == 1}
-					<div id="tagdetail">
-						<table>
-							<tr valign="top">
-								<th>{translate text='Tags'}: </th>
-								<td>
-									<span style="float:right;">
-										<a href="{$path}/Record/{$id|escape:"url"}/AddTag" class="tool add"
-												onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;">{translate text="Add"}</a>
-									</span>
-									<div id="tagList">
-										{if $tagList}
-											{foreach from=$tagList item=tag name=tagLoop}
-												<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
-												{if $tag->userAddedThis}
-												<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
-													<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png">
-												</a>
-												{/if} 
-												{if !$smarty.foreach.tagLoop.last}, {/if}
-											{/foreach}
-										{else}
-											{translate text='No Tags'}, {translate text='Be the first to tag this record'}!
-										{/if}
-									</div>
-								</td>
-							</tr>
-						</table>
-					</div>
-				{/if}
 			</div>
 			<div>
 				<div class="clearer">&nbsp;</div>
@@ -501,7 +480,7 @@ function redrawSaveStatus() {literal}{{/literal}
 										
 					{if $showComments == 1}
 						<div id = "readertab" >
-							<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" class="add" onclick="$('#userreview{$shortId}').slideDown();">Add a Review</span></div>
+							<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" onclick="$('#userreview{$shortId}').slideDown();"><span class="silk add">&nbsp;</span>Add a Review</span></div>
 							<div id="userreview{$shortId}" class="userreview">
 								<span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
 								<div class='addReviewTitle'>Add your Review</div>
@@ -522,6 +501,10 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div id = "stafftab">
 						{include file=$staffDetails}
 					</div>
+				</div>
+				
+				<div id = "classicViewLink">
+					<a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">Classic View</a>
 				</div>
 			</div>
 		</div>

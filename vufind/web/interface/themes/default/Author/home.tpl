@@ -74,8 +74,8 @@
 	
 		<div class="searchtools">
 			<strong>{translate text='Search Tools'}:</strong>
-			<a href="{$rssLink|escape}" class="feed">{translate text='Get RSS Feed'}</a>
-			<a href="{$path}/Search/Email" class="mail" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;">{translate text='Email this Search'}</a>
+			<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
+			<a href="{$path}/Search/Email" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
 		</div>
 	</div>
 </div>

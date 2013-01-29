@@ -8,7 +8,7 @@
 				
 				{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
 				<span style="color:red; font-weight:bold;">Your account has {$profile.fines} in fines.</span>
-				<a href='{$ecommerceLink}' ><br/>{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a>
+					<a href='{$ecommerceLink}' ><br/>{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a>
 				{else}
 					<span title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</span>
 				{/if}

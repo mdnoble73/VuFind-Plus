@@ -234,10 +234,9 @@ function _addToBag(book) {
 	
 	if (bookInBag == false){
 	// add to bag 
-	bookBag.push(book);				
+	bookBag.push(book);
 }
 }
-
 
 // Remove a Book From Bag
 function _removeFromBag(book) {	
@@ -330,7 +329,7 @@ function updateBag(){
 			// update the list of bag items
 			var bagItem = "<div class=\"bag_book_title\">" +
 					"<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a>" +
-					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\"><img src='" + path + "/images/silk/delete.png' alt='Remove' title='Remove from book cart'></a>" +
+					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\" title='Remove from book cart'><span class='silk delete'>&nbsp;</span</a>" +
 					"</div></div>";
 			$("#bag_items").append(bagItem);
 		}				

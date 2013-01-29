@@ -51,12 +51,12 @@
 	z-index: 20000;
 }
 
-#book_bag #bag_open_button .plus {
-	background-image: url(../../../../images/silk/img_icon_plus.png);
-	background-repeat: no-repeat;
-	background-position: 20px;
-	padding-left: 35px;
+#book_bag #bag_open_button {
 	text-align: center;
+}
+#bag_open_button_icon{
+	margin-left: 15px;
+	float: left;
 }
 
 #book_bag #bag_open_button #bag_summary,#bag_summary_holder {
@@ -180,50 +180,10 @@
 
 /* END BOOK BAG BUTTONS */
 
-/* BOOK BAG ICONS */
-#book_bag .icon {
-	background-repeat: no-repeat;
-	background-position: left;
-	/*padding:.5em .5em .5em 20px;*/
-	padding-left: 20px;
-}
 
-#book_bag .login_bag {
-	background-image: url(../../../../images/silk/user_go.png);
-}
-
-#book_bag .fav_bag {
-	background-image: url(../../../../images/silk/star_gold.png);
-}
-
-#book_bag .bag_clear_button {
-	background-image: url(../../../../images/silk/bin_empty.png);
-}
-#book_bag .bag_hide_button {
-	background-image: url(../../../../images/silk/list.png);
-}
-
-#book_bag .empty_bin_bag:hover {
+#bag_empty_button:hover {
 	text-decoration: underline;
 }
-
-#book_bag .email_bag {
-	background-image: url(../../../../images/silk/email.png);
-}
-
-#book_bag .print_bag {
-	background-image: url(../../../../images/silk/printer.png);
-}
-
-#book_bag .export_bag {
-	background-image: url(../../../../images/silk/application_add.png);
-}
-
-#book_bag .request_bag {
-	background-image: url(../../../../images/silk/book_next.png);
-}
-
-/* END BOOK BAG ICONS */
 
 /* BOOK BAG ACTIONS */
 .bag_button_group{

@@ -28,7 +28,3 @@ AJAX Login
   </tr>
 </table>
 </form>
-
-{if $authMethod == 'DB'}
-<a href="{$path}/MyResearch/Account">{translate text='Create New Account'}</a>
-{/if}

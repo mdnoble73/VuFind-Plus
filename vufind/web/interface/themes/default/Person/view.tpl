@@ -26,8 +26,8 @@
 		<h1>
 			{$record.firstName|escape} {$record.middleName|escape}{if $record.nickName} "{$record.nickName|escape}"{/if}{if $record.maidenName} ({$record.maidenName}){/if} {$record.lastName|escape}
 			{if $userIsAdmin}
-				<a href='{$path}/Admin/People?objectAction=edit&amp;id={$id}' ><img alt='Edit this person' src='{$path}/images/silk/user_edit.png' /></a>
-				<a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' onclick='return confirm("Removing this person will permanently remove them from the system.	Are you sure?")'><img alt='Delete this person' src='{$path}/images/silk/user_delete.png' /></a>
+				<a href='{$path}/Admin/People?objectAction=edit&amp;id={$id}' ><span title='Edit this person' class='silk user_edit'>&nbsp;</span></a>
+				<a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' onclick='return confirm("Removing this person will permanently remove them from the system.	Are you sure?")'><span title='Delete this person' class='silk user_delete'>&nbsp;</span></a>
 			{/if}
 		</h1>
 		{if $record.otherName}
@@ -50,15 +50,15 @@
 		{if count($marriages) > 0 || $userIsAdmin}
 			<div class="blockhead">Marriages
 			{if $userIsAdmin}
-				<a href='{$path}/Admin/Marriages?objectAction=add&amp;personId={$id}' title='Add a Marriage'><img src='{$path}/images/silk/group_add.png' alt='Add a Marriage' /></a>
+				<a href='{$path}/Admin/Marriages?objectAction=add&amp;personId={$id}' title='Add a Marriage'><span class='silk group_add' title='Add a Marriage'>&nbsp;</span></a>
 			{/if}
 			</div>
 			{foreach from=$marriages item=marriage}
 				<div class="marriageTitle">
 					 {$marriage.spouseName}{if $marriage.formattedMarriageDate} - {$marriage.formattedMarriageDate}{/if}
 					 {if $userIsAdmin}
-							<a href='{$path}/Admin/Marriages?objectAction=edit&amp;id={$marriage.marriageId}' title='Edit this Marriage'><img src='{$path}/images/silk/group_edit.png' alt='Edit this Marriage' /></a>
-							<a href='{$path}/Admin/Marriages?objectAction=delete&amp;id={$marriage.marriageId}' title='Delete this Marriage' onclick='return confirm("Removing this marriage will permanently remove it from the system.	Are you sure?")'><img src='{$path}/images/silk/group_delete.png' alt='Delete this Marriage' /></a>
+							<a href='{$path}/Admin/Marriages?objectAction=edit&amp;id={$marriage.marriageId}' title='Edit this Marriage'><span class='silk group_edit' title='Edit this Marriage'>&nbsp;</span></a>
+							<a href='{$path}/Admin/Marriages?objectAction=delete&amp;id={$marriage.marriageId}' title='Delete this Marriage' onclick='return confirm("Removing this marriage will permanently remove it from the system.	Are you sure?")'><span class='silk group_delete' title='Delete this Marriage'>&nbsp;</span></a>
 					 {/if}
 				</div>
 				{if $marriage.comments}
@@ -98,8 +98,8 @@
 				<div class="obituaryTitle">
 				{$obituary.source}{if $obituary.sourcePage} page {$obituary.sourcePage}{/if}{if $obituary.formattedObitDate} - {$obituary.formattedObitDate}{/if}
 				{if $userIsAdmin}
-					 <a href='{$path}/Admin/Obituaries?objectAction=edit&amp;id={$obituary.obituaryId}' title='Edit this Obituary'><img src='{$path}/images/silk/report_edit.png' alt='Edit this Obituary' /></a>
-					 <a href='{$path}/Admin/Obituaries?objectAction=delete&amp;id={$obituary.obituaryId}' title='Delete this Obituary' onclick='return confirm("Removing this obituary will permanently remove it from the system.	Are you sure?")'><img src='{$path}/images/silk/report_delete.png' alt='Delete this Obituary' /></a>
+					 <a href='{$path}/Admin/Obituaries?objectAction=edit&amp;id={$obituary.obituaryId}' title='Edit this Obituary'><span class='silk report_edit' title='Edit this Obituary'>&nbsp;</span></a>
+					 <a href='{$path}/Admin/Obituaries?objectAction=delete&amp;id={$obituary.obituaryId}' title='Delete this Obituary' onclick='return confirm("Removing this obituary will permanently remove it from the system.	Are you sure?")'><span class='silk report_delete' title='Delete this Obituary'>&nbsp;</span></a>
 				{/if}
 				</div>
 				{if $obituary.contents && $obituary.picture}

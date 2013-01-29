@@ -53,7 +53,7 @@
 						{* An empty div. This is the target for the javascript that builds this screen *}
 						<div id="searchHolder"></div>
 	
-						<a href="#" class="add" onclick="addGroup(); return false;">{translate text="add_search_group"}</a>
+						<a href="#" onclick="addGroup(); return false;"><span class="silk add">&nbsp;</span>{translate text="add_search_group"}</a>
 						<br /><br />
 						<input type="submit" name="submit" value="{translate text="Find"}" /><br /><br />
 					 {if $facetList || $illustratedLimit || $showPublicationDate}
