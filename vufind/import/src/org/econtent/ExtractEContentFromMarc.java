@@ -725,6 +725,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							logger.debug("Record is unchanged, but the record does not exist in the eContent database.");
 						}else{
 							EcontentRecordInfo existingRecordInfo = existingEcontentIlsIds.get(recordInfo.getId());
+							recordInfo.seteContentRecordId(existingRecordInfo.getRecordId());
 							if (existingRecordInfo.getNumItems() == 0){
 								logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
 							}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
@@ -850,7 +851,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecord.setString(curField++, recordInfo.getDescription());
 		updateEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
 		HashMap<String, String> subjects = recordInfo.getBrowseSubjects(false);
-		logger.debug("Found " + subjects.size() + " subjects");
+		//logger.debug("Found " + subjects.size() + " subjects");
 		for (String subject : subjects.values()){
 			logger.debug(subject);
 		}
@@ -909,7 +910,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecord.setString(curField++, recordInfo.getDescription());
 		createEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
 		HashMap<String, String> subjects = recordInfo.getBrowseSubjects(false);
-		logger.debug("Found " + subjects.size() + " subjects");
+		//logger.debug("Found " + subjects.size() + " subjects");
 		createEContentRecord.setString(curField++, Util.getCRSeparatedString(subjects.values()));
 		createEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("language"));
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("publisher")));

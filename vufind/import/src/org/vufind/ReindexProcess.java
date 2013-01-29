@@ -209,16 +209,6 @@ public class ReindexProcess {
 				System.exit(1);
 			}
 		}
-		if (updateResources){
-			addNoteToCronLog("Initializing UpdateResourceInformation");
-			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
-			if (resourceUpdater.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
-				supplementalProcessors.add(resourceUpdater);
-			}else{
-				logger.error("Could not initialize resourceUpdater");
-				System.exit(1);
-			}
-		}
 		if (loadEContentFromMarc){
 			addNoteToCronLog("Initializing ExtractEContentFromMarc");
 			ExtractEContentFromMarc econtentExtractor = new ExtractEContentFromMarc();
@@ -226,6 +216,16 @@ public class ReindexProcess {
 				supplementalProcessors.add(econtentExtractor);
 			}else{
 				logger.error("Could not initialize econtentExtractor");
+				System.exit(1);
+			}
+		}
+		if (updateResources){
+			addNoteToCronLog("Initializing UpdateResourceInformation");
+			UpdateResourceInformation resourceUpdater = new UpdateResourceInformation();
+			if (resourceUpdater.init(configIni, serverName, reindexLogId, vufindConn, econtentConn, logger)){
+				supplementalProcessors.add(resourceUpdater);
+			}else{
+				logger.error("Could not initialize resourceUpdater");
 				System.exit(1);
 			}
 		}

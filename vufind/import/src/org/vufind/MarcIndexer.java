@@ -101,7 +101,11 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
-			results.incRecordsProcessed();
+			if (recordInfo.isEContent()){
+				results.incEContentRecordsProcessed();
+			}else{
+				results.incRecordsProcessed();
+			}
 			if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
 				//logger.info("Skipping record because it hasn't changed");
 				results.incSkipped();
