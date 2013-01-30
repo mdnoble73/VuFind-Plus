@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,7 +86,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			// Setup prepared statements
 			resourceUpdateStmt = vufindConn.prepareStatement("UPDATE resource SET title = ?, title_sort = ?, author = ?, isbn = ?, upc = ?, format = ?, format_category = ?, marc_checksum=?, marc = ?, shortId = ?, date_updated=?, deleted=0 WHERE id = ?");
 			resourceInsertStmt = vufindConn.prepareStatement("INSERT INTO resource (title, title_sort, author, isbn, upc, format, format_category, record_id, shortId, marc_checksum, marc, source, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
-			//deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			deleteResourceStmt = vufindConn.prepareStatement("UPDATE resource SET deleted = 1 WHERE id IN (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			deleteResoucePermanentStmt = vufindConn.prepareStatement("DELETE from resource where id = ?");
 			
 			getLocationsStmt = vufindConn.prepareStatement("SELECT locationId, code FROM location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -154,8 +155,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				Long resourceId = existingEContentWithMarcResourceRS.getLong("id");
 				existingEContentWithMarcResourceIds.put(ilsId, resourceId);
 				existingEContentWithMarcResourceChecksums.put(ilsId, existingEContentWithMarcResourceRS.getLong("marc_checksum"));
-				int deleted = existingEContentWithMarcResourceRS.getInt("deleted");
-				if (deleted != 0){
+				Integer deleted = existingEContentWithMarcResourceRS.getInt("deleted");
+				if (deleted != new Integer(0)){
 					deletedEContentWithMarcResources.add(resourceId);
 				}
 				if (++numEContentWithMarcResourcesRead % 100000 == 0){
@@ -326,31 +327,48 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		try {
 			//Get the existing resource if any
 			//logger.debug("Checking to see if we have an existing resource for the record.");
+			Long existingResourceId;
+			Long existingChecksum;
+			Long recordChecksum = recordInfo.getChecksum();
+			boolean deleted;
 			if (recordInfo.isEContent()){
 				results.incEContentRecordsProcessed();
-				Long existingResourceId = existingEContentWithMarcResourceIds.get(recordInfo.getId());
-				Long existingChecksum = existingResourceChecksums.get(recordInfo.getId());
-				Long recordChecksum = recordInfo.getChecksum();
-				boolean deleted = deletedEContentWithMarcResources.contains(existingResourceId);
-				
-				boolean okToSkip = true;
-				if (existingResourceId != null && deleted){
-					okToSkip = false;
-				}else if (existingChecksum == null || existingChecksum == -1) {
-					okToSkip = false;
-				}else if (recordChecksum != existingChecksum){
-					okToSkip = false;
-				}else if (!(recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
-					okToSkip = false;
-				}else if (updateUnchangedResources){
-					okToSkip = false;
-				}
-				if (okToSkip){
-					logger.debug("Skipping record because it hasn't changed");
-					results.incSkipped();
-					return true;
-				}
-				
+				existingResourceId = existingEContentWithMarcResourceIds.get(recordInfo.getId());
+				existingChecksum = existingEContentWithMarcResourceChecksums.get(recordInfo.getId());
+				deleted = deletedEContentWithMarcResources.contains(existingResourceId);
+			}else{
+				results.incRecordsProcessed();
+				existingResourceId = existingResourceIds.get(recordInfo.getId());
+				existingChecksum = existingResourceChecksums.get(recordInfo.getId());
+				deleted = deletedEContentWithMarcResources.contains(existingResourceId);
+			}
+			
+			boolean okToSkip = true;
+			if (existingResourceId == null){
+				okToSkip = false;
+			}else if (existingResourceId != null && deleted){
+				logger.debug("Updating resource because resource is currently deleted");
+				okToSkip = false;
+			}else if (existingChecksum == null || existingChecksum.equals(-1L)) {
+				logger.debug("Updating resource because resource checksum is not valid");
+				okToSkip = false;
+			}else if (!recordChecksum.equals(existingChecksum)){
+				logger.debug("Updating resource because checksum has changed recordChecksum = " + recordChecksum + " existingChecksum = " + existingChecksum);
+				okToSkip = false;
+			}else if (!(recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
+				logger.debug("Updating resource because record is changed");
+				okToSkip = false;
+			}else if (updateUnchangedResources){
+				logger.debug("Updating resource because updateUnchangedResources is on");
+				okToSkip = false;
+			}
+			if (okToSkip){
+				logger.debug("Skipping record because it hasn't changed");
+				results.incSkipped();
+				return true;
+			}
+			
+			if (recordInfo.isEContent()){
 				//Check to see if we have an existing resource
 				//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 				if (existingResourceId != null){
@@ -363,30 +381,6 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					addResourceToDb(recordInfo, logger);
 				}
 			}else{
-				results.incRecordsProcessed();
-				Long existingResourceId = existingResourceIds.get(recordInfo.getId());
-				Long existingChecksum = existingResourceChecksums.get(recordInfo.getId());
-				Long recordChecksum = recordInfo.getChecksum();
-				boolean deleted = deletedEContentWithMarcResources.contains(existingResourceId);
-				//Check to see if we can skip the record
-				boolean okToSkip = true;
-				if (existingResourceId != null && deleted){
-					okToSkip = false;
-				}else if (existingChecksum == null || existingChecksum == -1) {
-					okToSkip = false;
-				}else if (recordChecksum != existingChecksum){
-					okToSkip = false;
-				}else if (!(recordStatus == MarcProcessor.RECORD_UNCHANGED || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
-					okToSkip = false;
-				}else if (updateUnchangedResources){
-					okToSkip = false;
-				}
-				if (okToSkip){
-					logger.debug("Skipping record because it hasn't changed");
-					results.incSkipped();
-					return true;
-				}
-			
 				//Check to see if we have an existing resource
 				//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 				if (existingResourceId != null){
@@ -489,20 +483,26 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 
 	@Override
 	public void finish() {
+		//Cleanup any resources that were not reindexed
 		if (removeTitlesNotInMarcExport){
-			if (existingResourceIds.size() > 10000){
+			long totalRecordsToDelete = existingResourceIds.size() + existingEContentWithMarcResourceIds.size() + existingEContentResourceIds.size();
+			if (totalRecordsToDelete > 10000){
 				results.addNote("There are " + existingResourceIds.size() + " resources to be deleted, not deleting because something may have gone wrong.");
 				results.saveResults();
 				return;
 			}
-			results.addNote("Deleting resources that no longer exist from resources table, there are " + existingResourceIds.size() + " resources to be deleted.");
+			results.addNote("Deleting resources that no longer exist from resources table, there are " + totalRecordsToDelete + " resources to be deleted.");
 			results.saveResults();
 			
 			//Mark any resources that no longer exist as deleted.
-			logger.info("Deleting resources that no longer from resources table, there are " + existingResourceIds.size() + " resources to be deleted.");
+			logger.info("Deleting resources that no longer exist from resources table, there are " + totalRecordsToDelete + " resources to be deleted.");
 			int maxResourcesToDelete = 100;
 			int numResourcesAdded = 0;
-			for (Long resourceId : existingResourceIds.values()){
+			ArrayList<Long> resourceIdsToDelete = new ArrayList<Long>();
+			resourceIdsToDelete.addAll(existingResourceIds.values());
+			resourceIdsToDelete.addAll(existingEContentWithMarcResourceIds.values());
+			resourceIdsToDelete.addAll(existingEContentResourceIds.values());
+			for (Long resourceId : resourceIdsToDelete){
 				try {
 					deleteResourceStmt.setLong(++numResourcesAdded, resourceId);
 					if (numResourcesAdded == maxResourcesToDelete){
