@@ -112,10 +112,12 @@ function GetEContentHoldingsInfo(id, type, callback) {
 				}else{
 					$("#copiestabLink").hide();
 					$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
+					$("#formatstabLink a").text("Copies");
 				}
 			}else{
 				$("#copiestabLink").hide();
 				$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
+				$("#formatstabLink a").text("Copies");
 			}
 			
 			var holdingsSummary = $(data).find("HoldingsSummary").text();

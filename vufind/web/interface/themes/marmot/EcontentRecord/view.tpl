@@ -516,7 +516,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div id="moredetails-tabs">
 			{* Define tabs for the display *}
 			<ul>
-				<li><a href="#formatstab">{translate text="Formats"}</a></li>
+				<li id="formatstabLink"><a href="#formatstab">{translate text="Formats"}</a></li>
 				{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 					<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 				{/if}
