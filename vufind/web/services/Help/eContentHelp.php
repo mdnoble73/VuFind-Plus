@@ -59,6 +59,8 @@ class eContentHelp extends Action
 					}else if ($eContentItem->item_type == 'external_ebook'){
 						if ($eContentItem->getSource() == 'SpringerLink'){
 							$defaultFormat = 'springerlink';
+						}elseif (preg_match('/ebsco/i', $eContentItem->getSource())){
+							$defaultFormat = 'ebsco';
 						}else{
 							$defaultFormat = 'other';
 						}

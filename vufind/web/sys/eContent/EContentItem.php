@@ -546,7 +546,7 @@ class EContentItem extends DB_DataObject {
 			if ($source == 'SpringerLink'){
 				//$notes = "May be read online or downloaded as a PDF";
 			}elseif (preg_match('/ebsco/i', $source)){
-				$notes = "May be read online or downloaded as a PDF";
+				$notes = "May be read online. Portions can be printed as a PDF.";
 			}
 
 		}else if ($this->item_type == 'externalLink'){
@@ -615,6 +615,8 @@ class EContentItem extends DB_DataObject {
 			$source = $this->getSource();
 			if ($source == 'SpringerLink'){
 				//$helpText = "How to use SpringerLink eBooks";
+			}elseif (preg_match('/ebsco/i', $source)){
+				$helpText = "How to use an EBSCO eBook";
 			}
 		}else if ($this->item_type == 'externalLink'){
 

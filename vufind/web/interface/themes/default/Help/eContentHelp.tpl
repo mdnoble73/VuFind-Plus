@@ -19,6 +19,7 @@
 	<option value="ebook" {if $defaultFormat == 'ebook'}selected="selected"{/if}>EPUB eBook</option>
 	<option value="kindle" {if $defaultFormat == 'kindle'}selected="selected"{/if}>Kindle eBook</option>
 	{* <option value="springerlink" {if $defaultFormat == 'springerlink'}selected="selected"{/if}>SpringerLink eBook</option> *}
+	<option value="ebsco" {if $defaultFormat == 'ebsco'}selected="selected"{/if}>EBSCO eBook</option>
 	<option value="mp3" {if $defaultFormat == 'mp3'}selected="selected"{/if}>MP3 Audiobook</option>
 	<option value="wma" {if $defaultFormat == 'wma'}selected="selected"{/if}>WMA Audio Book</option>
 	<option value="eMusic" {if $defaultFormat == 'eMusic'}selected="selected"{/if}>eMusic</option>
