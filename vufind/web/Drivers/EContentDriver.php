@@ -427,7 +427,15 @@ class EContentDriver implements DriverInterface{
 				$statusSummary['showPlaceHold'] = false;
 				$statusSummary['showCheckout'] = false;
 				$statusSummary['showAddToWishlist'] = false;
-				$statusSummary['showAccessOnline'] = true;
+				$statusSummary['showAccessOnline'] = count($holdings) >= 1;
+				if (count($holdings) == 1){
+					$firstHolding = reset($holdings);
+					if (isset($firstHolding->links[0])){
+						$firstLink = $firstHolding->links[0];
+						$statusSummary['accessOnlineUrl'] = $firstLink['url'];
+						$statusSummary['accessOnlineText'] = $firstLink['text'];
+					}
+				}
 			}
 		}elseif ($isFreeExternalLink){
 			$statusSummary['showPlaceHold'] = false;

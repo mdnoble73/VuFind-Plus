@@ -290,10 +290,14 @@ class AJAX extends Action {
 			echo '	<showplacehold>' . ($record['showPlaceHold'] ? '1' : '0') . '</showplacehold>';
 			echo '	<showcheckout>' . ($record['showCheckout'] ? '1' : '0') . '</showcheckout>';
 			echo '	<showaccessonline>' . ($record['showAccessOnline'] ? '1' : '0') . '</showaccessonline>';
+			if (isset($record['accessOnlineUrl'])){
+				echo '	<accessonlineurl>' . htmlspecialchars($record['accessOnlineUrl']) . '</accessonlineurl>';
+				echo '	<accessonlinetext>' . htmlspecialchars($record['accessOnlineText']) . '</accessonlinetext>';
+			}
 			echo '	<showaddtowishlist>' . ($record['showAddToWishlist'] ? '1' : '0') . '</showaddtowishlist>';
 			echo '	<availablecopies>' . htmlspecialchars($record['showAccessOnline']) . '</availablecopies>';
 			echo '	<numcopies>' . htmlspecialchars($record['totalCopies']) . '</numcopies>';
-			echo '	<holdQueueLength>' . htmlspecialchars($record['holdQueueLength']) . '</holdQueueLength>';
+			echo '	<holdQueueLength>' . (isset($record['holdQueueLength']) ? htmlspecialchars($record['holdQueueLength']) : '') . '</holdQueueLength>';
 			echo '	<isDownloadable>1</isDownloadable>';
 			echo '	<formattedHoldingsSummary>' . htmlspecialchars($formattedHoldingsSummary) . '</formattedHoldingsSummary>';
 			echo ' </item>';

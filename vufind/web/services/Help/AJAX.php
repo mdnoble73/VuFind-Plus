@@ -57,6 +57,8 @@ class AJAX extends Action {
 			}else{
 				$result['helpText'] = $interface->fetch("Help/en/ebook_pc_mac.tpl");
 			}
+		}elseif ($format == 'springerlink'){
+			$result['helpText'] = $interface->fetch("Help/en/springerlink.tpl");
 		}elseif ($format == 'mp3' || $format == 'wma' ){
 			if ($device == 'pc'){
 				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");

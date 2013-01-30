@@ -857,13 +857,15 @@ table.datagrid tr.oddrow {
 	zoom: 1;
 	*display: block;
 	margin-right: 5px;
+	width: 16px; height: 16px;
 }
+.dvd {
+	background: url('/images/silk/silk_sprites.png') no-repeat top left;
+	background-position: -774px 0px; width: 16px; height: 16px;
+} 
 .electronic {
-	background-image:url(/images/tango/www.png);
+	background-image:url(/images/tango/www.png) no-repeat top left;
 	background-repeat:no-repeat;
-	background-position: left top;
-	padding:0 .5em .5em 20px;
-	margin-right:1em;
 }
 .map {
 	background: url('/images/silk/silk_sprites.png') no-repeat top left;
@@ -886,11 +888,8 @@ table.datagrid tr.oddrow {
 	background-position: -1151px 0px; width: 16px; height: 16px;
 }
 .video {
-	background-image:url(/images/tango/video.png);
+	background-image:url(/images/tango/video.png) no-repeat top left;
 	background-repeat:no-repeat;
-	background-position: left top;
-	padding:0 .5em .5em 20px;
-	margin-right:1em;
 }
 .kit {
 	background: url('/images/silk/silk_sprites.png') no-repeat top left;
@@ -902,11 +901,8 @@ table.datagrid tr.oddrow {
 }
 
 .audio {
-	background-image:url(/images/tango/audio-volume-high.png);
+	background-image:url(/images/tango/audio-volume-high.png) no-repeat top left;
 	background-repeat:no-repeat;
-	background-position: left top;
-	padding:0 .5em .5em 20px;
-	margin-right:1em;
 }
 
 .manuscript {
@@ -916,9 +912,6 @@ table.datagrid tr.oddrow {
 .ebook {
 	background-image:url(/interface/themes/default/images/ebook_icon.png);
 	background-repeat:no-repeat;
-	background-position: left top;
-	padding:0 .5em .5em 20px;
-	margin-right:1em;
 }
 .book {
 	background: url('/images/silk/silk_sprites.png') no-repeat top left;

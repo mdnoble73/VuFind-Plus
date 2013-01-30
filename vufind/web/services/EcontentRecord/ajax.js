@@ -110,9 +110,14 @@ function GetEContentHoldingsInfo(id, type, callback) {
 					$("#copiesPlaceholder").html(copiesData);
 					$("#copiesPlaceholder").trigger("create");
 				}else{
+					$("#copiestabLink").hide();
 					$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
 				}
+			}else{
+				$("#copiestabLink").hide();
+				$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
 			}
+			
 			var holdingsSummary = $(data).find("HoldingsSummary").text();
 			if (holdingsSummary) {
 				if (holdingsSummary.length > 0) {
@@ -135,6 +140,12 @@ function GetEContentHoldingsInfo(id, type, callback) {
 			var showAccessOnline = $(data).find("ShowAccessOnline").text();
 			if (showAccessOnline) {
 				if (showAccessOnline.length > 0 && showAccessOnline == 1) {
+					if ($(data).find('AccessOnlineUrl').length > 0){
+						var url = $(data).find('AccessOnlineUrl').text();
+						var text = $(data).find('AccessOnlineText').text();
+						$("#accessOnline" + id + " a").attr("href", url);
+						$("#accessOnline" + id + " a").text($("<div/>").html(text).text());
+					}
 					$(".accessOnlineLink").show();
 				}
 			}

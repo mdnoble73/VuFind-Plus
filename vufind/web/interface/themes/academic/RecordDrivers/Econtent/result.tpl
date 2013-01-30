@@ -13,39 +13,37 @@
 				<img src="{$bookCoverUrl}" alt="{translate text='Cover Image'}"/>
 				</a>
 			{/if}
-			{if $showHoldButton}
-				{if $eContentRecord->isOverDrive()}
-					{* Place hold link *}
-					<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-						<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
-					</div>
-					
-					{* Checkout link *}
-					<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-						<a href="#" class="button" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
-					</div>
-				{else}
-					
-					{* Place hold link *}
-					<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-						<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-					</div>
-					
-					{* Checkout link *}
-					<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-						<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
-					</div>
-				{/if}
-			
-				{* Access online link *}
-				<div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
+			{if $eContentRecord->isOverDrive()}
+				{* Place hold link *}
+				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
+					<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
 				</div>
-				{* Add to Wish List *}
-				<div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
+				
+				{* Checkout link *}
+				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
+					<a href="#" class="button" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+				</div>
+			{else}
+				
+				{* Place hold link *}
+				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
+				</div>
+				
+				{* Checkout link *}
+				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
+					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
 				</div>
 			{/if}
+		
+			{* Access online link *}
+			<div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=formatstab" class="button">{translate text="Access Online"}</a>
+			</div>
+			{* Add to Wish List *}
+			<div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
+				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
+			</div>
 		</div>
 		
 		<div class="resultitem">
@@ -114,15 +112,15 @@
 					{if is_array($summFormats)}
 						{foreach from=$summFormats item=format name=formatLoop}
 							{if $smarty.foreach.formatLoop.index != 0}, {/if}
-							<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+							<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$format}</span>
 						{/foreach}
 					{else}
-						<span class="iconlabel {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$summFormats}</span>
+						<span class="icon {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$summFormats}</span>
 					{/if}
 					</span>
 				</div>
 			{/if}
-			{if $summPhysical}
+			{if $summPhysical.0}
 			<div class="resultInformation" id="resultInformationPhysicalDesc{$summId|escape}"><span class="resultLabel">{translate text='Physical Desc'}:</span><span class="resultValue">{$summPhysical.0|escape}</span></div>
 			{/if}
 			<div class="resultInformation" id="resultInformationLocation{$summId|escape}"><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue" id="locationValue{$summId|escape}">Online</span></div>

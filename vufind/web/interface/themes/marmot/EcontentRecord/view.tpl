@@ -534,7 +534,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
-				<li><a href="#copiestab">{translate text="Copies"}</a></li>
+				<li id="copiestabLink"><a href="#copiestab">{translate text="Copies"}</a></li>
 				{if $eContentRecord->marcRecord && $staffDetails != null}
 					<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 				{/if}

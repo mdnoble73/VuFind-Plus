@@ -3,13 +3,20 @@
 	{foreach from=$holdings item=eContentItem key=index}
 	<div class="eContentHolding">
 		<div class="eContentHoldingHeader">
-			<span class="eContentHoldingFormat">{$eContentItem->getDisplayFormat()}</span>{if $showEContentNotes} {$eContentItem->notes}{/if}
+			<span class="eContentHoldingFormat">{$eContentItem->getDisplayFormat()}</span>
+			{if $showEContentNotes} {$eContentItem->notes}{/if}
 			<div class="eContentFormatUsage">
 				{assign var="displayFormat" value=$eContentItem->getDisplayFormat()|substr:0:1}
-				<a href="#" onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">How to use a{if preg_match("/[aeiou]/i", $displayFormat)}n{/if} {$eContentItem->getDisplayFormat()}</a>
+				<a href="#" onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">
+					{$eContentItem->getHelpText()}
+				</a>
 			</div>
 			<div class="eContentHoldingUsage">
-				{$eContentItem->getFormatNotes()}
+				{assign var="formatNotes" value=$eContentItem->getFormatNotes()}
+				{assign var="usageNotes" value=$eContentItem->getUsageNotes()}
+				{$formatNotes}
+				{if $formatNotes && $usageNotes}<br/>{/if}
+				{$usageNotes}
 			</div>
 		</div>
 		<div class="eContentHoldingNotes">
@@ -37,7 +44,7 @@
 	{/foreach}
 	
 	<div id="formatHelp">
-		Need help?  We have <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">step by step instructions</a> for most devices <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
+		Need help?  We have <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">step by step instructions</a> for most formats and devices <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
 		If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" onclick="return showEContentSupportForm()">support form</a>. 
 	</div>
 {else}

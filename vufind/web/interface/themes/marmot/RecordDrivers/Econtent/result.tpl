@@ -83,11 +83,11 @@
 		{strip}
 		{foreach from=$summFormats item=format name=formatLoop}
 			{if $smarty.foreach.formatLoop.index != 0}, {/if}
-			<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+			<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
 		{/foreach}
 		{/strip}
 	{else}
-		<span class="iconlabel {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$summFormats}</span>
+		<span class="icon {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$summFormats}</span>
 	{/if}
 	</div>
 	

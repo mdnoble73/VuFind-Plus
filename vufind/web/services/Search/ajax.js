@@ -236,7 +236,14 @@ function doGetStatusSummaries()
 					}else if ($(item).find('showcheckout').text() == 1){
 						$("#checkout" + elemId).show();
 					}else if ($(item).find('showaccessonline').text() == 1){
+						if ($(item).find('accessonlineurl').length > 0){
+							var url = $(item).find('accessonlineurl').text();
+							var text = $(item).find('accessonlinetext').text();
+							$("#accessOnline" + elemId + " a").attr("href", url);
+							$("#accessOnline" + elemId + " a").text($("<div/>").html(text).text());
+						}
 						$("#accessOnline" + elemId).show();
+						
 					}else if ($(item).find('showaddtowishlist').text() == 1){
 						$("#addToWishList" + elemId).show();
 					}

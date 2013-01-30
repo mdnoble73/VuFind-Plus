@@ -57,7 +57,12 @@ class eContentHelp extends Action
 					}else if ($eContentItem->item_type == 'externalMP3'){
 						$defaultFormat = 'mp3';
 					}else if ($eContentItem->item_type == 'external_ebook'){
-						$defaultFormat = 'ebook';
+						if ($eContentItem->getSource() == 'SpringerLink'){
+							$defaultFormat = 'springerlink';
+						}else{
+							$defaultFormat = 'other';
+						}
+
 					}else if ($eContentItem->item_type == 'externalLink'){
 						$defaultFormat = 'other';
 					}else if ($eContentItem->item_type == 'overdrive'){

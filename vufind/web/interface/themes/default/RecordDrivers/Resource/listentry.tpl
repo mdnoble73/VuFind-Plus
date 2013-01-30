@@ -38,10 +38,10 @@
 	
 		{if is_array($resource->format)}
 			{foreach from=$resource->format item=format}
-				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+				<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
 			{/foreach}
 		{elseif strlen($resource->format) > 0}
-			<span class="iconlabel {$resource->format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$resource->format}</span>
+			<span class="icon {$resource->format|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$resource->format}</span>
 		{/if}
 		<br/>
 		{if $resource->tags}

@@ -21,7 +21,7 @@ Code developed by Marmot is contributed back to the Open Source Community whenev
 <div class='faqQuestion'>Q. What other Open Source libraries does Marmot's VuFind implementation use?</div>
 <div class='faqAnswer'>A. We use several other open source libraries and utilities including: 
 <ul>
-<li><a href='http://www.famfamfam.com/archive/silk-icons-thats-your-lot/' target='_blank'>FamFamFam Silk Icons</a></li>
-<li><a href='http://jquery.com' target='_blank'>jQuery</a></li>
+<li><a href='http://www.famfamfam.com/archive/silk-icons-thats-your-lot/'>FamFamFam Silk Icons</a></li>
+<li><a href='http://jquery.com'>jQuery</a></li>
 </ul>
 </div>

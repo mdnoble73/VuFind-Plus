@@ -214,12 +214,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				
 				$(function() {
 					$("#relatedTitleInfo").tabs();
-					$("#moredetails-tabs").tabs();
 					
 					{/literal}
-					{if $defaultDetailsTab}
-						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-					{/if}
 					
 					similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
 					similarTitleScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
@@ -268,12 +264,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				
 				$(function() {
 					$("#relatedTitleInfo").tabs();
-					$("#moredetails-tabs").tabs();
 					
 					{/literal}
-					{if $defaultDetailsTab}
-						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-					{/if}
 					
 					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
 					similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);

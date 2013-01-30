@@ -172,6 +172,11 @@ function redrawSaveStatus() {literal}{{/literal}
 						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
 					</div>
 					
+					{* Access Online link *}
+					<div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
+						<a href="{$path}/EcontentRecord/{$id|escape:"url"}" class="button">{translate text="Access Online"}</a>
+					</div>
+					
 					{* Add to Wish List *}
 					<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
 						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
@@ -240,10 +245,10 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultValue">
 						{if is_array($eContentRecord->format())}
 							{foreach from=$eContentRecord->format() item=displayFormat name=loop}
-								<span class="iconlabel {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$displayFormat}</span>{if !$smarty.foreach.loop.last}, <br/>{/if}
+								<span class="icon {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$displayFormat}</span>{if !$smarty.foreach.loop.last}, <br/>{/if}
 							{/foreach}
 						{else}
-							<span class="iconlabel {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$eContentRecord->format}</span>
+							<span class="icon {$eContentRecord->format()|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$eContentRecord->format}</span>
 						{/if}
 					</span>
 				</div>
@@ -385,12 +390,13 @@ function redrawSaveStatus() {literal}{{/literal}
 						<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 						{/if}
 						<li><a href="#citetab">{translate text="Citation"}</a></li>
-						<li><a href="#copiestab">{translate text="Copies"}</a></li>
+						<li id="copiestabLink"><a href="#copiestab">{translate text="Copies"}</a></li>
 						<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 					</ul>
 			
 					{* Display the content of individual tabs *}
 					<div id="formatstab">
+						<a name="formats"></a>
 						<div id="formatsPlaceholder">Loading...</div>
 						
 						<div id="additionalFormatActions">

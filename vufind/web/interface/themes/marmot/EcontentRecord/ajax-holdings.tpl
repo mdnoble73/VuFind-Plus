@@ -6,6 +6,10 @@
 {if isset($holdingsSummary.showAccessOnline)}
 <ShowAccessOnline>{$holdingsSummary.showAccessOnline}</ShowAccessOnline>
 {/if}
+{if $holdingsSummary.accessOnlineUrl}
+<AccessOnlineUrl>{$holdingsSummary.accessOnlineUrl|escape:html}</AccessOnlineUrl>
+<AccessOnlineText>{$holdingsSummary.accessOnlineText|escape:html}</AccessOnlineText>
+{/if}
 {if isset($holdingsSummary.showAddToWishlist)}
 <ShowAddToWishlist>{$holdingsSummary.showAddToWishlist}</ShowAddToWishlist>
 {/if}
