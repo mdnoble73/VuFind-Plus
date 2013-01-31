@@ -1,4 +1,4 @@
-<div id="record{$summId|escape}">
+<div id="record{$summShortId|escape}">
 	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
 		<input type="checkbox" name="selected[{$summShortId|escape:"url"}]" id="selected{$summShortId|escape:"url"}" class="titleSelect" {if $enableBookCart}onclick="toggleInBag('{$summId|escape:"url"}', '{$summTitle|regex_replace:"/(\/|:)$/":""|regex_replace:"/\"/":"&quot;"|escape:'javascript'}', this);"{/if} />&nbsp;
@@ -6,10 +6,17 @@
 					
 	<div class="resultsList">
 		<div id='descriptionPlaceholder{$summShortId|escape}'	style='display:none'></div>
-		<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
-			<img src="{$path}/bookcover.php?id={$summId}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
-		</a>
-		
+		<div class="listResultImage">
+			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
+				<img src="{$path}/bookcover.php?id={$summId}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" class="alignleft listResultImage" alt="{translate text='Cover Image'}"/>
+			</a>
+			{* Place hold link *}
+			{if $showHoldButton}
+			<div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
+				<a href="{$path}/Record/{$summId|escape:"url"}/Hold" class="button">{translate text="Request This"}</a>
+			</div>
+			{/if}
+		</div>
 	 
 		<div class="resultitem">
 			<div class="resultItemLine1">
@@ -26,7 +33,7 @@
 				{/if}
 			</div>
 			{if $summEditions}
-			<div class="resultInformation"><span class="resultLabel">{translate text='Edition'}:</span><span class="resultValue">{$summEditions.0|escape}</span></div>
+			<div class="resultInformation" id="resultInformationEdition{$summShortId|escape}"><span class="resultLabel">{translate text='Edition'}:</span><span class="resultValue">{$summEditions.0|escape}</span></div>
 			{/if}
 			
 			{if $summAuthor}
@@ -49,7 +56,7 @@
 			<div class="resultInformation"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 			{if is_array($summFormats)}
 				{foreach from=$summFormats item=format}
-					<span class="icon {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
+					<span class="icon {$f|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
 				{/foreach}
 			{else}
 				<span class="icon {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}"><span class="iconlabel">{translate text=$summFormats}</span>
