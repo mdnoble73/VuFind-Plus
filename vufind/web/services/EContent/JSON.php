@@ -89,6 +89,7 @@ class JSON extends Action
 	function getComponent($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
+		$component = stripslashes($component);
 		if (strpos($component, "#") > 0){
 			$component = substr($component, 0, strpos($component, "#"));
 		}
@@ -107,7 +108,6 @@ class JSON extends Action
 			$manifestId = $ebook->getManifestItem($i, 'id');
 			$manifestHref= $ebook->getManifestItem($i, 'href');
 			$manifestType= $ebook->getManifestItem($i, 'type');
-
 			if ($manifestId == $component){
 				$componentType = $manifestType;
 			}
@@ -155,6 +155,7 @@ class JSON extends Action
 	function getComponentCustom($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
+		$component = stripslashes($component);
 		if (strpos($component, "#") > 0){
 			$component = substr($component, 0, strpos($component, "#"));
 		}
@@ -197,7 +198,7 @@ class JSON extends Action
 						//Ignore css for now
 						$replacement = '';
 					}else{
-						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId) . "&item=" . $item;
+						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&item=" . $item . "&component=" . preg_quote($manifestId);
 					}
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
 				}else{
