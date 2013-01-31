@@ -1,5 +1,12 @@
 <script type="text/javascript" src="{$path}/services/Record/ajax.js"></script>
+{if !$materials_request}
 <h1>{translate text='Place a Hold'}</h1>
+{else}
+<h1>{translate text='Materials Request Found - Place a Hold'}</h1>
+<div>
+  <p>{translate text='This title is already available in our catalog. Place a hold on this item by selecting your pick-up location.'}</p>
+</div>
+{/if}
 <div id="loginFormWrapper">
   <form id='placeHoldForm' action="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" method="post">
     <div>

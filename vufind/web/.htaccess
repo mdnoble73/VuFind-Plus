@@ -1,2 +1,1 @@
 redirect 301 /card /MyResearch/GetCard
-php_flag display_errors 0

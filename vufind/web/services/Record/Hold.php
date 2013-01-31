@@ -70,6 +70,7 @@ class Hold extends Action {
 			$recordId = $_REQUEST['id'];
 		}
 		$interface->assign('id', $recordId);
+    $interface->assign('materials_request', !empty($_GET['mr']));
 
 		//Get title information for the record.
 		$holding = $this->catalog->getHolding($recordId);
