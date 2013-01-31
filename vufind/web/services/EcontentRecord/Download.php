@@ -56,7 +56,7 @@ class Download extends Action {
 			$epubFile = new EContentItem();
 			$epubFile->id = $itemId;
 			$bookFile = null;
-				
+
 			if ($epubFile->find(true)){
 				$eContentRecord = new EContentRecord();
 				$eContentRecord->id = $epubFile->recordId;
@@ -83,37 +83,41 @@ class Download extends Action {
 					$errorOccurred = true;
 					$interface->assign('errorMessage', "Sorry, you do not have access to that title, please <a href='{$configArray['Site']['path']}/Record/{$id}/Hold'>place a hold</a> on the title and you will be notified when it is ready for pickup.");
 				}
-				
+
 				if (!$errorOccurred){
 					//Record that the e-pub file is being opened.
 					$driver->recordEContentAction($id, 'Download', $eContentRecord->accessType);
-						
+
 					if (strcasecmp($epubFile->item_type, 'epub') == 0){
 						require_once('sys/eReader/ebook.php');
 						$ebook = new ebook($bookFile);
 
 						//Return the contents of the epub file
 						header("Content-Type: application/epub+zip;\n");
-						header('Content-Length: ' . filesize($bookFile));
+						//header('Content-Length: ' . filesize($bookFile));
 						header('Content-Description: ' . $ebook->getTitle());
+						//header('Content-Transfer-Encoding: binary');
 						header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-						echo readfile($bookFile);
-						exit();
+						readfile($bookFile);
+						die();
 					}else if (strcasecmp($epubFile->item_type, 'pdf') == 0){
 						header("Content-Type: application/pdf;\n");
 						header('Content-Length: ' . filesize($bookFile));
+						header('Content-Transfer-Encoding: binary');
 						header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-						echo readfile($bookFile);
+						readfile($bookFile);
 						exit();
 					}else if (strcasecmp($epubFile->item_type, 'kindle') == 0){
 						header('Content-Length: ' . filesize($bookFile));
+						header('Content-Transfer-Encoding: binary');
 						header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-						echo readfile($bookFile);
+						readfile($bookFile);
 						exit();
 					}else if (strcasecmp($epubFile->item_type, 'plucker') == 0){
 						header('Content-Length: ' . filesize($bookFile));
+						header('Content-Transfer-Encoding: binary');
 						header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
-						echo readfile($bookFile);
+						readfile($bookFile);
 						exit();
 					}else if (strcasecmp($epubFile->item_type, 'mp3') == 0){
 						$id = $_REQUEST['id'];
@@ -146,8 +150,8 @@ class Download extends Action {
 				$interface->assign('errorMessage', 'Sorry, we could not find that book in our online library.');
 			}
 		}
-		$interface->assign('errorOccurred', $errorOccurred);
 
+		$interface->assign('errorOccurred', $errorOccurred);
 		$interface->display('EcontentRecord/download.tpl');
 	}
 }
