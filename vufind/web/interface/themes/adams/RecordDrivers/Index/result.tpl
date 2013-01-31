@@ -56,7 +56,7 @@
 			<div class="resultInformation"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 			{if is_array($summFormats)}
 				{foreach from=$summFormats item=format}
-					<span class="icon {$f|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
+					<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
 				{/foreach}
 			{else}
 				<span class="icon {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}"><span class="iconlabel">{translate text=$summFormats}</span>
