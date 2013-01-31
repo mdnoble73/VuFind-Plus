@@ -557,9 +557,9 @@ class EContentItem extends DB_DataObject {
 			}else if ($this->externalFormatId == 'audiobook-wma'){
 				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
 			}else if ($this->externalFormatId == 'video-wmv'){
-
+				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
 			}else if ($this->externalFormatId == 'music-wma'){
-
+				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
 			}else if ($this->externalFormatId == 'ebook-kindle'){
 				$notes = "Works on Kindles and devices with a Kindle app installed.";
 			}else if ($this->externalFormatId == 'ebook-epub-adobe'){
