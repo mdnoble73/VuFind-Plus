@@ -204,7 +204,10 @@ class JSON extends Action
 				}else{
 					//Link to another location within the document
 					//convert to a window.reader.moveTo(componentId, location)
-					//$componentText = preg_replace('/<a href=["\']#'. preg_quote($manifestHref) . '["\']/', "<a onclick=\"window.parent.reader.moveTo({componentId: '{$escapedManifestId}', xpath:'//a[@id={$escapedManifestId}]'})\" href=\"#\"", $componentText);
+					//echo("Replacing links to $manifestHref - $manifestId type: $manifestType\r\n");
+					//$componentText = preg_replace('/<a href=["\']#'. preg_quote($manifestHref) . '["\']/', "<a onclick=\"window.parent.reader.moveTo({componentId: '{$manifestId}', xpath:'//a[@id={$manifestId}]'})\" href=\"#\"", $componentText);
+					$componentText = preg_replace('/<a href=["\']'. preg_quote($manifestHref) . '["\']/', "<a onclick=\"return showTocEntry('{$manifestId}');\" href=\"#\"", $componentText);
+					$componentText = preg_replace('/<a href=["\']'. preg_quote($manifestHref) . '#(.*?)["\']/', "<a onclick=\"return showTocEntry('{$manifestId}#\\1');\" href=\"#\"", $componentText);
 					/*$pattern = str_replace("~", "\~", '<a (.*?)href=["\']'. preg_quote($manifestHref) . '#(.*?)["\']');
 					$replacement = '<a \\1 onclick=\"window.parent.reader.moveTo({componentId: \'' . addslashes($manifestId) . '\', xpath:\'//a[@id=\\2]\'});return false;" href="#"';
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);*/

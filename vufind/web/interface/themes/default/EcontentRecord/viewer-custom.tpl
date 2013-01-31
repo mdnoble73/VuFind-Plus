@@ -175,6 +175,7 @@
 							saveCurrentPosition();
 						}
 					}
+					return false;
 				}
 
 				var ebookCookie = 'vufind_epub_{/literal}{$id}{literal}';
@@ -252,36 +253,6 @@
 				}
 				
 				$(document).ready(function(){
-					$('#reader').click(function (e){
-						//check to see where the user clicked 
-						var y = e.pageY - this.offsetTop;
-						var height = $('#reader').height();
-						if (y < height / 6){
-							prevPage();
-						}else if (y > 5 * height / 6){
-							nextPage();
-						}
-						
-						var x = e.pageX - this.offsetLeft;
-						var width = $('#reader').width();
-						if (x < width / 6){
-							prevPage();
-						}else if (x > 5 * width / 6){
-							nextPage();
-						}
-					});
-					$('#reader a').live('click', function (e){
-						//Split the link on the # symbol
-						var href = $(this).attr('href');
-						componentParts = href.split('#', 2);
-						component = componentParts[0];
-						//Strip of the current page url if it exists. 
-						anchor = componentParts[1];
-						//Translate the component based on the manifest
-						component = manifest[component];
-						showTocEntry(component + "#" + anchor);
-						return false;
-					});
 					$('#reader').mousewheel(function(event, delta){
 						if (delta > 0){
 							prevPage();
