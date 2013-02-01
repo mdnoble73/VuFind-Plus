@@ -51,7 +51,7 @@ class SideFacets implements RecommendationInterface
 
 		// Load the desired facet information:
 		$searchLibrary = Library::getActiveLibrary();
-		if ($searchLibrary == null || count($searchLibrary->facets) == 0){
+		if ($searchObject->getSearchType() == 'genealogy' || $searchLibrary == null || count($searchLibrary->facets) == 0){
 			$config = getExtraConfigArray($iniName);
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
 			foreach ($this->mainFacets as $name => $desc){

@@ -215,8 +215,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		//********************
 		// Adjust facet options to use advanced settings
-		$this->facetConfig = isset($this->allFacetSettings['Advanced']) ?
-		$this->allFacetSettings['Advanced'] : array();
+		$this->facetConfig = isset($this->allFacetSettings['Advanced']) ? $this->allFacetSettings['Advanced'] : array();
 		$facetLimit = $this->getFacetSetting('Advanced_Settings', 'facet_limit');
 		if (is_numeric($facetLimit)) {
 			$this->facetLimit = $facetLimit;
@@ -790,7 +789,11 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$this->stopQueryTimer();
 
 		// How many results were there?
-		$this->resultsTotal = $this->indexResult['response']['numFound'];
+		if (isset($this->indexResult['response']['numFound'])){
+			$this->resultsTotal = $this->indexResult['response']['numFound'];
+		}else{
+			$this->resultsTotal = 0;
+		}
 
 		// Process spelling suggestions if no index error resulted from the query
 		if ($this->spellcheck && !isset($this->indexResult['error'])) {

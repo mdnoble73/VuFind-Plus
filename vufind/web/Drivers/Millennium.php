@@ -700,7 +700,11 @@ class MillenniumDriver implements DriverInterface
 		}
 		if ($location){
 			if ($forSearch){
-				$canShowHoldButton = ($location->showHoldButtonInSearchResults != 0);
+				if ($library){
+					$canShowHoldButton = ($library->showHoldButtonInSearchResults != 0);
+				}else{
+					$canShowHoldButton = ($location->showHoldButton != 0);
+				}
 			}else{
 				$canShowHoldButton = ($location->showHoldButton != 0);
 			}
