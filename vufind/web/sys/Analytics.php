@@ -35,7 +35,7 @@ class Analytics
 		}
 
 		//Check to see if analytics is enabled
-		if (!isset($configArray['System']['enableAnalytics']) || $configArray['System']['enableAnalytics'] == false){
+		if (isset($configArray['System']['enableAnalytics']) && $configArray['System']['enableAnalytics'] == false){
 			return;
 		}
 
