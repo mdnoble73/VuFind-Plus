@@ -20,6 +20,7 @@ class Analytics
 		if (!isset($configArray)){
 			die("You must load configuration before creating a tracker");
 		}
+
 		global $interface;
 		global $user;
 		if (!isset($interface)){
@@ -31,6 +32,11 @@ class Analytics
 			//$logger->log("Disabling logging because the request is from a bot", PEAR_LOG_DEBUG);
 			$this->trackingDisabled = true;
 			$this->finished = true;
+		}
+
+		//Check to see if analytics is enabled
+		if (!isset($configArray['System']['enableAnalytics']) || $configArray['System']['enableAnalytics'] == false){
+			return;
 		}
 
 		//disable error handler since the tables may not be installed yet.
