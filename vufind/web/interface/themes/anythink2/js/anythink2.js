@@ -251,13 +251,15 @@
     }
   }
 
+  // Populate the rest of the form, remove other results, remove button from
+  // record.
   setIsbnAndOclcNumberAnythink = function(title, author, isbn, oclcNumber) {
     $("#title").val(title);
     $("#author").val(author);
     $("#isbn").val(isbn);
     $("#oclcNumber").val(oclcNumber);
     var item = $('[data-isbn_oclc="' + isbn + '--' + oclcNumber +'"]').clone();
-    $("#suggestedIdentifiers").empty().append(item);
+    $("#identifiers .suggestedIdentifier").empty().append(item);
     item.find('input').remove();
   }
 
