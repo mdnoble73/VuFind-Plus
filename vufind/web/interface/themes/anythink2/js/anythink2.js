@@ -259,7 +259,7 @@
     $("#isbn").val(isbn);
     $("#oclcNumber").val(oclcNumber);
     var item = $('[data-isbn_oclc="' + isbn + '--' + oclcNumber +'"]').clone();
-    $("#suggestedIdentifier").empty().append(item);
+    $("#identifiers .suggestedIdentifier").empty().append(item);
     item.find('input').remove();
   }
 
