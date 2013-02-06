@@ -90,10 +90,52 @@ class Locations extends ObjectEditor
 				'text' => 'Reset Facets To Default',
 				'url' => '/Admin/Locations?objectAction=resetFacetsToDefault&amp;id=' . $existingObject->locationId,
 			);
+			$objectActions[] = array(
+				'text' => 'Copy Location Facets',
+				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyFacetsFromLocation',
+			);
 		}else{
 			echo("Existing object is null");
 		}
 		return $objectActions;
+	}
+
+	function copyFacetsFromLocation(){
+		$locationId = $_REQUEST['id'];
+		if (isset($_REQUEST['submit'])){
+			$location = new Location();
+			$location->locationId = $locationId;
+			$location->find(true);
+			$location->clearFacets();
+
+			$locationToCopyFromId = $_REQUEST['locationToCopyFrom'];
+			$locationToCopyFrom = new Location();
+			$locationToCopyFrom->locationId = $locationToCopyFromId;
+			$location->find(true);
+
+			$facetsToCopy = $locationToCopyFrom->facets;
+			foreach ($facetsToCopy as $facetKey => $facet){
+				$facet->locationId = $locationId;
+				$facetsToCopy[$facetKey] = $facet;
+			}
+			$location->facets = $facetsToCopy;
+			$location->update();
+			header("Location: /Admin/Locations?objectAction=edit&id=" . $locationId);
+		}else{
+			//Prompt user for the location to copy from
+			$allLocations = $this->getAllObjects();
+
+			unset($allLocations[$locationId]);
+			foreach ($allLocations as $key => $location){
+				if (count($location->facets) == 0){
+					unset($allLocations[$key]);
+				}
+			}
+			global $interface;
+			$interface->assign('allLocations', $allLocations);
+			$interface->assign('id', $locationId);
+			$interface->setTemplate('../Admin/copyLocationFacets.tpl');
+		}
 	}
 
 	function resetFacetsToDefault(){
