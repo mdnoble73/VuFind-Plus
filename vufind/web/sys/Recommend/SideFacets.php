@@ -51,7 +51,10 @@ class SideFacets implements RecommendationInterface
 
 		// Load the desired facet information:
 		$searchLibrary = Library::getActiveLibrary();
-		if ($searchObject->getSearchType() == 'genealogy' || $searchLibrary == null || count($searchLibrary->facets) == 0){
+		$searchLocation = Location::getActiveLocation();
+		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
+		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
+		if ($searchObject->getSearchType() == 'genealogy' || !($hasSearchLibraryFacets || $hasSearchLocationFacets)){
 			$config = getExtraConfigArray($iniName);
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
 			foreach ($this->mainFacets as $name => $desc){
@@ -78,6 +81,35 @@ class SideFacets implements RecommendationInterface
 					if ($searchLibrary != null){
 						unset ($this->mainFacets[$name]);
 						$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] = $desc;
+					}
+				}
+			}
+		}elseif ($hasSearchLocationFacets){
+			$this->mainFacets = array();
+			foreach ($searchLocation->facets as $facet){
+				if ($mainSection == 'Results'){
+					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
+						if ($facet->facetName == 'time_since_added'){
+							//Check to see if we have an active library
+							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}elseif ($facet->facetName == 'itype'){
+							//Check to see if we have an active library
+							$this->mainFacets['itype_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}elseif ($facet->facetName == 'detailed_location'){
+							//Check to see if we have an active library
+							$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}else{
+							$this->mainFacets[$facet->facetName] = $facet->displayName;
+						}
+					}
+				}elseif ($mainSection == 'Author'){
+					if ($facet->showInAuthorResults == 1 && $facet->showAboveResults == 0){
+						if ($facet->facetName == 'time_since_added'){
+							//Check to see if we have an active library
+							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
+						}else{
+							$this->mainFacets[$facet->facetName] = $facet->displayName;
+						}
 					}
 				}
 			}
@@ -245,7 +277,20 @@ class SideFacets implements RecommendationInterface
 		}
 
 		$searchLibrary = Library::getSearchLibrary();
-		if ($searchLibrary != null && count($searchLibrary->facets) > 0){
+		$searchLocation = Location::getSearchLocation();
+		if ($searchLocation != null && count($searchLocation->facets) > 0){
+			foreach ($searchLocation->facets as $facet){
+				if (array_key_exists($facet->facetName, $sideFacets)){
+					if ($facet->sortMode == 'alphabetically'){
+						asort($sideFacets[$facet->facetName]['list']);
+					}
+					$sideFacets[$facet->facetName]['valuesToShow'] = $facet->numEntriesToShowByDefault;
+					if ($facet->showAsDropDown){
+						$sideFacets[$facet->facetName]['showAsDropDown'] = $facet->showAsDropDown;
+					}
+				}
+			}
+		}else if ($searchLibrary != null && count($searchLibrary->facets) > 0){
 			foreach ($searchLibrary->facets as $facet){
 				if (array_key_exists($facet->facetName, $sideFacets)){
 					if ($facet->sortMode == 'alphabetically'){
@@ -256,7 +301,6 @@ class SideFacets implements RecommendationInterface
 						$sideFacets[$facet->facetName]['showAsDropDown'] = $facet->showAsDropDown;
 					}
 				}
-
 			}
 		}
 

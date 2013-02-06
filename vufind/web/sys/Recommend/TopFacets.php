@@ -52,9 +52,19 @@ class TopFacets implements RecommendationInterface
 
 		// Load the desired facet information:
 		$searchLibrary = Library::getActiveLibrary();
+		$searchLocation = Location::getActiveLocation();
 		$config = getExtraConfigArray($iniFile);
-		if ($searchObject->getSearchType() == 'genealogy' || $searchLibrary == null || count($searchLibrary->facets) == 0){
+		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
+		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
+		if ($searchObject->getSearchType() == 'genealogy' || !($hasSearchLibraryFacets || $hasSearchLocationFacets)){
 			$this->facets = isset($config[$section]) ? $config[$section] : array();
+		}elseif ($hasSearchLocationFacets){
+			$this->facets = array();
+			foreach ($searchLocation->facets as $facet){
+				if ($facet->showAboveResults == 1){
+					$this->facets[$facet->facetName] = $facet->displayName;
+				}
+			}
 		}else{
 			$this->facets = array();
 			foreach ($searchLibrary->facets as $facet){

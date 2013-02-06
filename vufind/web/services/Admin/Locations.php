@@ -79,4 +79,350 @@ class Locations extends ObjectEditor
 		global $user;
 		return $user->hasRole('opacAdmin');
 	}
+	function getAdditionalObjectActions($existingObject){
+		$objectActions = array();
+		if ($existingObject != null){
+			$objectActions[] = array(
+				'text' => 'Edit Facets',
+				'url' => '/Admin/LocationFacetSettings?locationId=' . $existingObject->locationId,
+			);
+			$objectActions[] = array(
+				'text' => 'Reset Facets To Default',
+				'url' => '/Admin/Locations?objectAction=resetFacetsToDefault&amp;id=' . $existingObject->locationId,
+			);
+		}else{
+			echo("Existing object is null");
+		}
+		return $objectActions;
+	}
+
+	function resetFacetsToDefault(){
+		$location = new Location();
+		$locationId = $_REQUEST['id'];
+		$location->locationId = $locationId;
+		if ($location->find(true)){
+			$location->clearFacets();
+
+			$defaultFacets = array();
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Format Category";
+			$facet->facetName = 'format_category';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = true;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Available Now At";
+			$facet->facetName = 'available_at';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Location";
+			$facet->facetName = 'detailed_location';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Rating";
+			$facet->facetName = 'rating_facet';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Publication Year";
+			$facet->facetName = 'publishDate';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Format";
+			$facet->facetName = 'format';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Compatible Device";
+			$facet->facetName = 'econtent_device';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "eContent Collection";
+			$facet->facetName = 'econtent_source';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = false;
+			$facet->showInAuthorResults = false;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "eContent Protection";
+			$facet->facetName = 'econtent_protection_type';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = false;
+			$facet->showInAuthorResults = false;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Topics";
+			$facet->facetName = 'topic_facet';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Audience";
+			$facet->facetName = 'target_audience';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = false;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Movie Rating";
+			$facet->facetName = 'mpaa_rating';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Form";
+			$facet->facetName = 'literary_form';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = false;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Author";
+			$facet->facetName = 'authorStr';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Language";
+			$facet->facetName = 'language';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Genre";
+			$facet->facetName = 'genre_facet';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Era";
+			$facet->facetName = 'era';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Region";
+			$facet->facetName = 'geographic_facet';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Reading Level";
+			$facet->facetName = 'target_audience_full';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = false;
+			$facet->showInAuthorResults = false;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Literary Form";
+			$facet->facetName = 'literary_form_full';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = false;
+			$facet->showInAuthorResults = false;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Lexile Code";
+			$facet->facetName = 'lexile_code';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Lexile Score";
+			$facet->facetName = 'lexile_score';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Item Type";
+			$facet->facetName = 'itype';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$facet = new LocationFacetSetting();
+			$facet->locationId = $locationId;
+			$facet->displayName = "Added In The Last";
+			$facet->facetName = 'time_since_added';
+			$facet->weight = count($defaultFacets) + 1;
+			$facet->showAsDropDown = false;
+			$facet->sortMode = 1;
+			$facet->showAboveResults = false;
+			$facet->showInResults = true;
+			$facet->showInAuthorResults = true;
+			$facet->showInAdvancedSearch = true;
+			$defaultFacets[] = $facet;
+
+			$location->facets = $defaultFacets;
+			$location->update();
+
+			$_REQUEST['objectAction'] = 'edit';
+		}
+		$structure = $this->getObjectStructure();
+		$this->viewIndividualObject($structure);
+	}
 }

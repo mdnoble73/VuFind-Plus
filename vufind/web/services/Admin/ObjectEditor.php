@@ -179,6 +179,7 @@ abstract class ObjectEditor extends Admin
 			}
 		}
 		$interface->assign('contentType', $contentType);
+
 		$interface->assign('additionalObjectActions', $this->getAdditionalObjectActions($existingObject));
 		$interface->setTemplate('../Admin/objectEditor.tpl');
 	}
@@ -420,23 +421,23 @@ abstract class ObjectEditor extends Admin
 		return $filters;
 	}
 
-	function canAddNew(){
+	public function canAddNew(){
 		return true;
 	}
 
-	function canDelete(){
+	public function canDelete(){
 		return true;
 	}
 
-	function customListActions(){
+	public function customListActions(){
 		return array();
 	}
 
-	function showExportAndCompare(){
+	public function showExportAndCompare(){
 		return true;
 	}
 
-	function getAdditionalObjectActions($object){
+	function getAdditionalObjectActions($existingObject){
 		return array();
 	}
 }

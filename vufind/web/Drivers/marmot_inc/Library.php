@@ -241,6 +241,11 @@ class Library extends DB_DataObject
 				'overdriveAdvantageProductsKey' => array('property'=>'overdriveAdvantageProductsKey', 'type'=>'text', 'label'=>'Overdrive Advantage Products Key', 'description'=>'The products key for use when building urls to the API from the advantageAccounts call.', 'size'=>'80', 'hideInLists' => false,),
 			)),
 
+			array('property'=>'indexingOptions', 'type' => 'section', 'label' =>'Indexing Options', 'hideInLists' => true, 'properties' => array(
+				//'overdriveAdvantageName' => array('property'=>'overdriveAdvantageName', 'type'=>'text', 'label'=>'Overdrive Advantage Name', 'description'=>'The name of the OverDrive Advantage account if any.', 'size'=>'80', 'hideInLists' => true,),
+
+			)),
+
 			'holidays' => array(
 				'property' => 'holidays',
 				'type'=> 'oneToMany',
@@ -474,6 +479,13 @@ class Library extends DB_DataObject
 			}
 			unset($this->facets);
 		}
+	}
+
+	public function clearFacets(){
+		$facets = new LibraryFacetSetting();
+		$facets->libraryId = $this->libraryId;
+		$facets->delete();
+		$this->facets = array();
 	}
 
 	public function saveHolidays(){

@@ -5,6 +5,7 @@
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 require_once 'Drivers/marmot_inc/LocationHours.php';
+require_once 'Drivers/marmot_inc/LocationFacetSetting.php';
 
 class Location extends DB_DataObject
 {
@@ -81,52 +82,57 @@ class Location extends DB_DataObject
 		// because it is associated with this location only
 		unset($hoursStructure['locationId']);
 
+		$facetSettingStructure = LocationFacetSetting::getObjectStructure();
+		unset($facetSettingStructure['weight']);
+		unset($facetSettingStructure['locationId']);
+		unset($facetSettingStructure['numEntriesToShowByDefault']);
+		unset($facetSettingStructure['showAsDropDown']);
+		unset($facetSettingStructure['sortMode']);
+
 		$structure = array(
-		array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
-		array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user'),
-		array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
-		array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
-		array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
-		array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8'),
-		array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8'),
+			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
+			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user'),
+			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
+			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
+			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8'),
+			array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8'),
 
-		array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
-			array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true),
-			array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
-		)),
+			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
+				array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true),
+				array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
+			)),
 
-		array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'holdingBranchLabel', 'type'=>'text', 'label'=>'Holding Branch Label', 'description'=>'The label used within the holdings table in Millennium'),
-			array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings to the branch.  If there is no scope defined for the branch, this can be set to 0.'),
-			array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope?', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true),
-			array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.'),
-			array('property'=>'validHoldPickupBranch', 'type'=>'checkbox', 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true),
-			array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true),
-			array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
-		)),
+			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'holdingBranchLabel', 'type'=>'text', 'label'=>'Holding Branch Label', 'description'=>'The label used within the holdings table in Millennium'),
+				array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings to the branch.  If there is no scope defined for the branch, this can be set to 0.'),
+				array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope?', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true),
+				array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.'),
+				array('property'=>'validHoldPickupBranch', 'type'=>'checkbox', 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true),
+				array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true),
+				array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
+			)),
 
-		array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
-			array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true, 'size'=>'40'),
-			array('property'=>'facetFile', 'type'=>'text', 'label'=>'Facet File', 'description'=>'The name of the facet file which should be used while searching', 'hideInLists' => true),
-			array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true),
-			array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
-			array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
-			array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true),
-			array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true),
-			array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true),
-			array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
-		)),
+			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
+				array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true, 'size'=>'40'),
+				array('property'=>'facetFile', 'type'=>'text', 'label'=>'Facet File', 'description'=>'The name of the facet file which should be used while searching', 'hideInLists' => true),
+				array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true),
+				array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
+				array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
+				array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true),
+				array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true),
+				array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true),
+				array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
+			)),
 
-		array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
-		array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true),
-		array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true),
-		)),
+			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true),
+				array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true),
+			)),
 
-
-
-		array(
+			array(
 				'property' => 'hours',
 				'type'=> 'oneToMany',
 				'keyThis' => 'locationId',
@@ -138,7 +144,23 @@ class Location extends DB_DataObject
 				'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
-		),
+			),
+
+			'facets' => array(
+				'property'=>'facets',
+				'type'=>'oneToMany',
+				'label'=>'Facets',
+				'description'=>'A list of facets to display in search results',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationFacetSetting',
+				'structure' => $facetSettingStructure,
+				'hideInLists' => true,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => true,
+				'canEdit' => true,
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -406,39 +428,7 @@ class Location extends DB_DataObject
 				}
 				enableErrorHandler();
 			}
-			/*require_once './Drivers/marmot_inc/ipcalc.php';
 
-			$subnets = $memcache->get('ip_addresses');
-			if ($subnets == false){
-			$timer->logTime('Starting to load subnets');
-			$subnetSql = new subnet();
-			$subnetSql->find();
-			$subnets = array();
-			while ($subnetSql->fetch()) {
-			$subnets[] = clone $subnetSql;
-			}
-			$timer->logTime('finished loadin subnets');
-			$memcache->set('ip_addresses', $subnets, 0, $configArray['Caching']['ip_addresses']);
-			}
-			$timer->logTime('Starting FindBestMatch');
-			$bestmatch=FindBestMatch($activeIp,$subnets);
-			$timer->logTime('Finished FindBestMatch');
-			//Get the locationId for the subnet.
-			if (isset($bestmatch) && $bestmatch != null){
-			//echo("Best match Location is {$bestmatch->locationid}");
-
-			$matchedLocation = $this->staticGet('locationId', $bestmatch->locationid);
-			//Only use the physical location regardless of where we are
-			//echo("Active location is {$matchedLocation->displayName}");
-			$this->ipLocation = clone($matchedLocation);
-			$this->ipId = $bestmatch->id;
-			} else {
-			//echo("Did not get a location for $activeIp");
-			//Clear the cookie if we don't get a match.
-			$this->activeIp = '';
-			$this->ipLocation = null;
-			$this->ipId = -1;
-			}*/
 			$memcache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
 			$memcache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
 			$timer->logTime('Finished getIPLocation');
@@ -516,12 +506,26 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->hours;
+		}elseif ($name == "facets") {
+			if (!isset($this->facets)){
+				$this->facets = array();
+				$facet = new LocationFacetSetting();
+				$facet->locationId = $this->locationId;
+				$facet->orderBy('weight');
+				$facet->find();
+				while($facet->fetch()){
+					$this->facets[$facet->id] = clone($facet);
+				}
+			}
+			return $this->facets;
 		}
 	}
 
 	public function __set($name, $value){
 		if ($name == "hours") {
 			$this->hours = $value;
+		}elseif ($name == "facets") {
+			$this->facets = $value;
 		}
 	}
 
@@ -536,6 +540,7 @@ class Location extends DB_DataObject
 			return $ret;
 		}else{
 			$this->saveHours();
+			$this->saveFacets();
 		}
 	}
 
@@ -550,7 +555,33 @@ class Location extends DB_DataObject
 			return $ret;
 		}else{
 			$this->saveHours();
+			$this->saveFacets();
 		}
+	}
+
+	public function saveFacets(){
+		if (isset ($this->facets) && is_array($this->facets)){
+			foreach ($this->facets as $facet){
+				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
+					$facet->delete();
+				}else{
+					if (isset($facet->id) && is_numeric($facet->id)){
+						$ret = $facet->update();
+					}else{
+						$facet->locationId = $this->locationId;
+						$facet->insert();
+					}
+				}
+			}
+			unset($this->facets);
+		}
+	}
+
+	public function clearFacets(){
+		$facets = new LocationFacetSetting();
+		$facets->locationId = $this->locationId;
+		$facets->delete();
+		$this->facets = array();
 	}
 
 	public function saveHours(){
