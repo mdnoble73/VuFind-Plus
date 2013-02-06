@@ -2023,15 +2023,15 @@ ul.hold_items li{
 .facetDropDown{
 	width: 175px;
 }
-div.helpText ul li, div.helpText li ul li {
+div.helpText ul li, div.helpText li ul li, div.helpTextUnsized ul li, div.helpTextnsized li ul li {
 	list-style: square inside none;
 	border: 0px solid black;
 }
-div.helpText ol li, div.helpText li ol li {
+div.helpText ol li, div.helpText li ol li, div.helpTextUnsized ol li, div.helpTextUnsized li ol li {
 	list-style: decimal inside none;
 	border: 0px solid black;
 }
-div.helpText li li,div.helpText li p{
+div.helpText li li,div.helpText li p, div.helpTextUnsized li li,div.helpTextUnsized li p{
 	margin-left: 30px;
 }
 div.popupBox ul li a {

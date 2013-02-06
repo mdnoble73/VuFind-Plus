@@ -42,6 +42,7 @@ abstract class ObjectEditor extends Admin
 		$interface->assign('structure', $structure);
 		$objectAction = isset($_REQUEST['objectAction']) ? $_REQUEST['objectAction'] : null;
 		$customListActions = $this->customListActions();
+		$interface->assign('customListActions', $customListActions);
 		if (is_null($objectAction) || $objectAction == 'list'){
 			$this->viewExistingObjects();
 		}elseif ($objectAction == 'export'){
@@ -62,7 +63,6 @@ abstract class ObjectEditor extends Admin
 				$this->viewIndividualObject($structure);
 			}
 		}
-		$interface->assign('customListActions', $customListActions);
 		$interface->setPageTitle($this->getPageTitle());
 		$interface->display('layout.tpl');
 
@@ -436,7 +436,7 @@ abstract class ObjectEditor extends Admin
 		return true;
 	}
 
-	function getAdditionalObjectActions($existingObject){
+	function getAdditionalObjectActions($object){
 		return array();
 	}
 }

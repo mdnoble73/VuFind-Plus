@@ -268,11 +268,11 @@ th{border:1px
 solid black;border-collapse:collapse;padding:2px}.logEntryProcessDetails{width:97%;border-collapse:collapse;margin-left:16px}#otherEditionsPopup{min-width:530px}#eContentImportDetails
 dt{font-weight:bold}#eContentImportDetails
 dd{margin-left:10px}.advancedSearchFacetDetails{display:inline-block;margin:5px}.advancedSearchFacetHeader{font-weight:bold}.advancedSearchFacetFormatCategory{display:inline-block;margin:5px}#lexile-range{margin:5px
-3px 8px}#digitalEditionsInfo{padding-top:20px}.facetDropDown{width:175px}div.helpText ul li, div.helpText li ul
+3px 8px}#digitalEditionsInfo{padding-top:20px}.facetDropDown{width:175px}div.helpText ul li, div.helpText li ul li, div.helpTextUnsized ul li, div.helpTextnsized li ul
 li{list-style:square inside none;border:0px
-solid black}div.helpText ol li, div.helpText li ol
+solid black}div.helpText ol li, div.helpText li ol li, div.helpTextUnsized ol li, div.helpTextUnsized li ol
 li{list-style:decimal inside none;border:0px
-solid black}div.helpText li li,div.helpText li
+solid black}div.helpText li li,div.helpText li p, div.helpTextUnsized li li,div.helpTextUnsized li
 p{margin-left:30px}div.popupBox ul li
 a{color:#039;text-decoration:underline}.helpTextStep{font-size:13px;font-weight:bold}
 /* book-bag.css */

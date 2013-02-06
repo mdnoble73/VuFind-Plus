@@ -43,8 +43,8 @@
 		{if $ils == 'Millennium' && $user->hasRole('opacAdmin')}
 			<div class="adminMenuLink {if $action == "PTypes"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
 			<div class="adminMenuLink {if $action == "CirculationStatuses"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
-			<div class="adminMenuLink {if $action == "NonHoldableLocations"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/NonHoldableLocations">Non-Holdable Locations</a></div>
-			<div class="adminMenuLink {if $action == "PTypeRestrictedLocations"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/PTypeRestrictedLocations">PType Restricted Locations</a></div>
+			<div class="adminMenuLink {if $action == "LoanRules"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>
+			<div class="adminMenuLink {if $action == "LoanRuleDeterminers"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/LoanRuleDeterminers">Loan Rule Determiners</a></div>
 		{/if}
 	</div>
 	{/if}

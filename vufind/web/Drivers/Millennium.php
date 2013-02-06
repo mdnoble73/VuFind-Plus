@@ -19,8 +19,8 @@
  */
 require_once 'sys/Proxy_Request.php';
 require_once 'Drivers/marmot_inc/CirculationStatus.php';
-require_once 'Drivers/marmot_inc/NonHoldableLocation.php';
-require_once 'Drivers/marmot_inc/PTypeRestrictedLocation.php';
+require_once 'Drivers/marmot_inc/LoanRule.php';
+require_once 'Drivers/marmot_inc/LoanRuleDeterminer.php';
 require_once 'Interface.php';
 require_once 'Innovative.php';
 
@@ -78,31 +78,35 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
-	var $nonHoldableLocations = null;
-	private function loadNonHoldableLocations(){
-		if (is_null($this->nonHoldableLocations)){
-			$nonHoldableLocation = new NonHoldableLocation();
-			$nonHoldableLocation->find();
-			$this->nonHoldableLocations = array();
-			if ($nonHoldableLocation->N > 0){
-				while ($nonHoldableLocation->fetch()){
-					$this->nonHoldableLocations[trim($nonHoldableLocation->holdingDisplay)] = clone $nonHoldableLocation;
+	var $loanRules = null;
+	var $loanRuleDeterminers = null;
+	private function loadLoanRules(){
+		if (is_null($this->loanRules)){
+			global $memcache;
+			global $configArray;
+			$this->loanRules = $memcache->get('loan_rules');
+			if (!$this->loanRules){
+				$this->loanRules = array();
+				$loanRule = new LoanRule();
+				$loanRule->find();
+				while ($loanRule->fetch()){
+					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-		}
-	}
+			$memcache->set('loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
 
-	var $ptypeRestrictedLocations;
-	private function loadPtypeRestrictedLocations(){
-		if (is_null($this->ptypeRestrictedLocations)){
-			$ptypeRestrictedLocation = new PTypeRestrictedLocation();
-			$ptypeRestrictedLocation->find();
-			$this->ptypeRestrictedLocations = array();
-			if ($ptypeRestrictedLocation->N > 0){
-				while ($ptypeRestrictedLocation->fetch()){
-					$this->ptypeRestrictedLocations[trim($ptypeRestrictedLocation->holdingDisplay)] = clone $ptypeRestrictedLocation;
+			$this->loanRuleDeterminers = $memcache->get('loan_rule_determiners');
+			if (!$this->loanRuleDeterminers){
+				$this->loanRuleDeterminers = array();
+				$loanRuleDeterminer = new LoanRuleDeterminer();
+				//$loanRuleDeterminer->active = 1;
+				$loanRuleDeterminer->orderBy('rowNumber DESC');
+				$loanRuleDeterminer->find();
+				while ($loanRuleDeterminer->fetch()){
+					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
+			$memcache->set('loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
 		}
 	}
 
@@ -151,14 +155,22 @@ class MillenniumDriver implements DriverInterface
 
 	public function getMillenniumRecordInfo($id){
 		require_once 'Drivers/marmot_inc/MillenniumCache.php';
+		global $memcache;
+		global $configArray;
 		$scope = $this->getMillenniumScope();
-		//global $logger;
-		//$logger->log('Loaded millennium info for id ' . $id . ' scope ' . $scope, PEAR_LOG_INFO);
-		$millenniumCache = new MillenniumCache();
-		//First clean out any records that are more than 5 minutes old
-		$cacheExpirationTime = time() - 5 * 60;
-		$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
-		$millenniumCache->delete(true);
+		//Clear millennium cache once per minute
+		$lastCacheClear = $memcache->get('millennium_cache_interval');
+		if (!$lastCacheClear){
+			//Get rid of anything in the cache older than 5 minutes
+			//global $logger;
+			//$logger->log('Loaded millennium info for id ' . $id . ' scope ' . $scope, PEAR_LOG_INFO);
+			$millenniumCache = new MillenniumCache();
+			//First clean out any records that are more than 5 minutes old
+			$cacheExpirationTime = time() - 5 * 60;
+			$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
+			$millenniumCache->delete(true);
+			$memcache->set('millennium_cache_interval', true, $configArray['Caching']['millennium_cache_interval']);
+		}
 		//Now see if the record already exists in our cache.
 		$millenniumCache = new MillenniumCache();
 		$millenniumCache->recordId = $id;
@@ -218,9 +230,8 @@ class MillenniumDriver implements DriverInterface
 		//Load circulation status information so we can use it later on to
 		//determine what is holdable and what is not.
 		self::loadCircStatusInfo();
-		self::loadNonHoldableLocations();
-		self::loadPtypeRestrictedLocations();
-		$timer->logTime('loadCircStatusInfo, loadNonHoldableLocations, loadPtypeRestrictedLocations');
+		self::loadLoanRules();
+		$timer->logTime('loadCircStatusInfo, loadLoanRules');
 
 		//Get information about holdings, order information, and issue information
 		$millenniumInfo = $this->getMillenniumRecordInfo($id);
@@ -506,33 +517,7 @@ class MillenniumDriver implements DriverInterface
 				$holding['holdable'] = 0;
 				$holding['nonHoldableReason'] = "This item is not currently available for Patron Holds";
 			}
-			//Now check the location
-			if (array_key_exists($holding['location'], $this->nonHoldableLocations)){
-				$holding['holdable'] = 0;
-				if ($this->nonHoldableLocations[$holding['location']]->availableAtCircDesk == 1){
-					$holding['nonHoldableReason'] = "To place a hold for this item, please see the Circulation Desk.";
-				}else{
-					$holding['nonHoldableReason'] = "This item is not available for Patron Holds";
-				}
-			}
-			//Now check location and Ptype
-			if (array_key_exists($holding['location'], $this->ptypeRestrictedLocations)){
-				$ptypeLocation = $this->ptypeRestrictedLocations[$holding['location']];
-				$allowablePtypes = $ptypeLocation->allowablePtypes;
-				if (preg_match("~$allowablePtypes~", $pType)){
-					//Allow the holding?
-				}else{
-					$holding['holdable'] = 0;
-					$holding['nonHoldableReason'] = "This item is only available to local library patrons.";
-				}
-			}
-			//Get the library display name for the holding location
-			/*foreach ($locationLabels as $holdingLabel => $displayName){
-			 if (strpos($holding['location'], $holdingLabel) !== false){
-			 $holding['libraryDisplayName'] = $displayName;
-			 break;
-			 }
-			 }*/
+
 			if (!isset($holding['libraryDisplayName'])){
 				$holding['libraryDisplayName'] = $holding['location'];
 			}
@@ -574,6 +559,14 @@ class MillenniumDriver implements DriverInterface
 			$i++;
 		}
 		$timer->logTime('finished processing holdings');
+
+		//Check to see if the title is holdable
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		$holdable = $this->isRecordHoldable($marcRecord, $id);
+		foreach ($sorted_array as $key => $holding){
+			$holding['holdable'] = $holdable ? 1 : 0;
+			$sorted_array[$key] = $holding;
+		}
 
 		//Load order records, these only show in the full page view, not the item display
 		$orderMatches = array();
@@ -2963,12 +2956,6 @@ class MillenniumDriver implements DriverInterface
 		global $user;
 		global $configArray;
 
-		//Load circulation status information so we can use it later on to
-		//determine what is holdable and what is not.
-		self::loadCircStatusInfo();
-		self::loadNonHoldableLocations();
-		self::loadPtypeRestrictedLocations();
-
 		if (preg_match('/class\\s*=\\s*\\"bibHoldings\\"/s', $millenniumInfo->framesetInfo)){
 			//There are issue summaries available
 			//Extract the table with the holdings
@@ -3024,6 +3011,62 @@ class MillenniumDriver implements DriverInterface
 		}else{
 			return null;
 		}
+	}
+
+	function isRecordHoldable($marcRecord, $id){
+		global $logger;
+		$pType = $this->getPType();
+		$items = $marcRecord->getFields('989');
+		$holdable = false;
+		//$logger->log("Checking Holdablity for $id, patron type is $pType", PEAR_LOG_DEBUG);
+		//$logger->log("Found " . count($items) . " items", PEAR_LOG_DEBUG);
+		$holdable = false;
+		$itemNumber = 0;
+		foreach ($items as $item){
+			$itemNumber++;
+			$subfield_j = $item->getSubfield('j');
+			if (is_object($subfield_j) && !$subfield_j->isEmpty()){
+				$iType = $subfield_j->getData();
+			}else{
+				$iType = '0';
+			}
+			$subfield_d = $item->getSubfield('d');
+			if (is_object($subfield_d) && !$subfield_d->isEmpty()){
+				$locationCode = $subfield_d->getData();
+			}else{
+				$locationCode = '?????';
+			}
+			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
+
+			//Check the determiner table to see if this matches
+			foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
+				//Check the location to be sure the determiner applies to this item
+				if ($loanRuleDeterminer->matchesLocation($locationCode) ){
+					//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
+					//Check that the iType is correct
+					if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
+						//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
+						if ($loanRuleDeterminer->patronType == '999' || in_array($iType, $loanRuleDeterminer->pTypeArray())){
+							//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
+							$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
+							//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
+							$holdable = ($loanRule->holdable == 1);
+							break;
+						}else{
+							//$logger->log("PType incorect", PEAR_LOG_DEBUG);
+						}
+					}else{
+						//$logger->log("IType incorect", PEAR_LOG_DEBUG);
+					}
+				}else{
+					//$logger->log("Location incorect {$loanRuleDeterminer->location} != {$location}", PEAR_LOG_DEBUG);
+				}
+			}
+			if ($holdable){
+				break;
+			}
+		}
+		return $holdable;
 	}
 
 	function getCheckInGrid($id, $checkInGridId){

@@ -1681,9 +1681,54 @@ class DBMaintenance extends Admin {
 					`availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
 					PRIMARY KEY (`locationId`)
 				) ENGINE=MyISAM"
+			),
 		),
 
+		'loan_rule_determiners_1' => array(
+			'title' => 'Loan Rule Determiners',
+			'description' => 'Create tables to store loan rule determiners',
+			'dependencies' => array(),
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS loan_rules (" .
+					"`id` INT NOT NULL AUTO_INCREMENT, " .
+					"`loanRuleId` INT NOT NULL COMMENT 'The location id', " .
+					"`name` varchar(50) NOT NULL COMMENT 'The location code the rule applies to', " .
+					"`code` char(1) NOT NULL COMMENT '', ".
+					"`normalLoanPeriod` INT(4) NOT NULL COMMENT 'Number of days the item checks out for', " .
+					"`holdable` TINYINT NOT NULL DEFAULT '0', ".
+					"`bookable` TINYINT NOT NULL DEFAULT '0', ".
+					"`homePickup` TINYINT NOT NULL DEFAULT '0', ".
+					"`shippable` TINYINT NOT NULL DEFAULT '0', ".
+					"PRIMARY KEY ( `id` ), " .
+					"INDEX ( `loanRuleId` ), " .
+					"INDEX (`holdable`) " .
+				") ENGINE=InnoDB",
+				"CREATE TABLE IF NOT EXISTS loan_rule_determiners (" .
+					"`id` INT NOT NULL AUTO_INCREMENT, " .
+					"`rowNumber` INT NOT NULL COMMENT 'The row of the determiner.  Rules are processed in reverse order', " .
+					"`location` varchar(10) NOT NULL COMMENT '', " .
+					"`patronType` VARCHAR(50) NOT NULL COMMENT 'The patron types that this rule applies to', " .
+					"`itemType` VARCHAR(255) NOT NULL DEFAULT '0' COMMENT 'The item types that this rule applies to', ".
+					"`ageRange` varchar(10) NOT NULL COMMENT '', " .
+					"`loanRuleId` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
+					"`active` TINYINT NOT NULL DEFAULT '0', ".
+					"PRIMARY KEY ( `id` ), " .
+					"INDEX ( `rowNumber` ), " .
+					"INDEX (`active`) " .
+				") ENGINE=InnoDB",
+			),
 		),
+
+		'remove_old_millennium_hold_logic' => array(
+			'title' => 'Remove Old Millennium Hold Logic',
+			'description' => 'Create tables to store loan rule determiners',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE ptype_restricted_locations",
+				"DROP TABLE non_holdable_locations",
+			),
+		),
+
 		'location_hours' => array(
 			'title' => 'Location Hours',
 			'description' => 'Create table to store hours for a location',
