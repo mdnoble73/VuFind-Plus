@@ -45,7 +45,7 @@ class User_list extends SolrDataObject
 		return $this->title;
 	}
 	function format_category(){
-		return 'Lists';
+		return '';
 	}
 	function format(){
 		return 'List';

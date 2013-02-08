@@ -273,7 +273,11 @@ function showElementInLightbox(title, elementSelector){
 	lightboxContents += "<div class='content'>" + $(elementSelector).html() + "</div>";
 	
 	$('#popupbox').html(lightboxContents);
-	
+	$('#popupbox').position({
+		my: "center",
+		of: "window",
+		collision: "fit"
+	});
 }
 
 function hideLightbox(){
@@ -865,7 +869,12 @@ function moreFacets(name)
 	document.getElementById("more" + name).style.display="none";
 	document.getElementById("narrowGroupHidden_" + name).style.display="block";
 }
-								
+
+function moreFacetPopup(title, name)
+{
+	showElementInLightbox(title, "#moreFacetPopup_" + name);
+}
+
 function lessFacets(name)
 {
 	document.getElementById("more" + name).style.display="block";

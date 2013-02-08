@@ -28,6 +28,7 @@ require_once 'sys/Recommend/Interface.php';
 class SideFacets implements RecommendationInterface
 {
 	private $searchObject;
+	private $facetSettings;
 	private $mainFacets;
 	private $checkboxFacets;
 
@@ -49,98 +50,48 @@ class SideFacets implements RecommendationInterface
 		$checkboxSection = isset($params[1]) ? $params[1] : false;
 		$iniName = isset($params[2]) ? $params[2] : 'facets';
 
-		// Load the desired facet information:
-		$searchLibrary = Library::getActiveLibrary();
-		$searchLocation = Location::getActiveLocation();
-		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
-		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
-		if ($searchObject->getSearchType() == 'genealogy' || !($hasSearchLibraryFacets || $hasSearchLocationFacets)){
+		if ($searchObject->getSearchType() == 'genealogy'){
 			$config = getExtraConfigArray($iniName);
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
-			foreach ($this->mainFacets as $name => $desc){
-				if ($name == 'time_since_added'){
-					//Check to see if we have an active library
-					global $librarySingleton;
-					$searchLibrary = $librarySingleton->getSearchLibrary();
-					if ($searchLibrary != null){
-						unset ($this->mainFacets[$name]);
-						$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] = $desc;
-					}
-				}elseif ($name == 'itype'){
-					//Check to see if we have an active library
-					global $librarySingleton;
-					$searchLibrary = $librarySingleton->getSearchLibrary();
-					if ($searchLibrary != null){
-						unset ($this->mainFacets[$name]);
-						$this->mainFacets['itype_' . $searchLibrary->subdomain] = $desc;
-					}
-				}elseif ($name == 'detailed_location'){
-					//Check to see if we have an active library
-					global $librarySingleton;
-					$searchLibrary = $librarySingleton->getSearchLibrary();
-					if ($searchLibrary != null){
-						unset ($this->mainFacets[$name]);
-						$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] = $desc;
-					}
-				}
-			}
-		}elseif ($hasSearchLocationFacets){
-			$this->mainFacets = array();
-			foreach ($searchLocation->facets as $facet){
-				if ($mainSection == 'Results'){
-					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
-						if ($facet->facetName == 'time_since_added'){
-							//Check to see if we have an active library
-							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}elseif ($facet->facetName == 'itype'){
-							//Check to see if we have an active library
-							$this->mainFacets['itype_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}elseif ($facet->facetName == 'detailed_location'){
-							//Check to see if we have an active library
-							$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}else{
-							$this->mainFacets[$facet->facetName] = $facet->displayName;
-						}
-					}
-				}elseif ($mainSection == 'Author'){
-					if ($facet->showInAuthorResults == 1 && $facet->showAboveResults == 0){
-						if ($facet->facetName == 'time_since_added'){
-							//Check to see if we have an active library
-							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}else{
-							$this->mainFacets[$facet->facetName] = $facet->displayName;
-						}
-					}
-				}
-			}
 		}else{
+			$searchLibrary = Library::getActiveLibrary();
+			$searchLocation = Location::getActiveLocation();
+			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
+			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
+			if ($hasSearchLocationFacets){
+				$facets = $searchLocation->facets;
+			}elseif ($hasSearchLibraryFacets){
+				$facets = $searchLibrary->facets;
+			}else{
+				$facets = Library::getDefaultFacets();
+			}
+			$this->facetSettings = array();
 			$this->mainFacets = array();
-			foreach ($searchLibrary->facets as $facet){
+			foreach ($facets as $facet){
+				$facetName = $facet->facetName;
+				//Adjust facet name for local scoping
+				if (isset($searchLibrary)){
+					if ($facet->facetName == 'time_since_added'){
+						$facetName = 'local_time_since_added_' . $searchLibrary->subdomain;
+					}elseif ($facet->facetName == 'itype'){
+						$facetName = 'itype_' . $searchLibrary->subdomain;
+					}elseif ($facet->facetName == 'detailed_location'){
+						$facetName = 'detailed_location_' . $searchLibrary->subdomain;
+					}
+				}
+				//Figure out if the facet should be included
 				if ($mainSection == 'Results'){
 					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
-						if ($facet->facetName == 'time_since_added'){
-							//Check to see if we have an active library
-							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}elseif ($facet->facetName == 'itype'){
-							//Check to see if we have an active library
-							$this->mainFacets['itype_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}elseif ($facet->facetName == 'detailed_location'){
-							//Check to see if we have an active library
-							$this->mainFacets['detailed_location_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}else{
-							$this->mainFacets[$facet->facetName] = $facet->displayName;
-						}
+						$this->facetSettings[$facetName] = $facet;
+						$this->mainFacets[$facetName] = $facet->displayName;
 					}
 				}elseif ($mainSection == 'Author'){
 					if ($facet->showInAuthorResults == 1 && $facet->showAboveResults == 0){
-						if ($facet->facetName == 'time_since_added'){
-							//Check to see if we have an active library
-							$this->mainFacets['local_time_since_added_' . $searchLibrary->subdomain] =  $facet->displayName;
-						}else{
-							$this->mainFacets[$facet->facetName] = $facet->displayName;
-						}
+						$this->facetSettings[$facetName] = $facet;
+						$this->mainFacets[$facetName] = $facet->displayName;
 					}
 				}
+
 			}
 		}
 
@@ -176,6 +127,20 @@ class SideFacets implements RecommendationInterface
 	public function process() {
 		global $interface;
 		global $configArray;
+
+		//Get Facet settings for processing display
+		$searchLibrary = Library::getActiveLibrary();
+		$searchLocation = Location::getActiveLocation();
+		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
+		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
+		if ($hasSearchLocationFacets){
+			$facets = $searchLocation->facets;
+		}elseif ($hasSearchLibraryFacets){
+			$facets = $searchLibrary->facets;
+		}else{
+			$facets = Library::getDefaultFacets();
+		}
+
 		$interface->assign('checkboxFilters', $this->searchObject->getCheckboxFacets());
 		$interface->assign('filterList', $this->searchObject->getFilterList(true));
 		//Process the side facet set to handle the Added In Last facet which we only want to be
@@ -183,128 +148,146 @@ class SideFacets implements RecommendationInterface
 		$sideFacets = $this->searchObject->getFacetList($this->mainFacets);
 		global $librarySingleton;
 		$searchLibrary = $librarySingleton->getSearchLibrary();
-		$timeSinceAddedFacet = 'time_since_added';
-		if ($searchLibrary != null){
-			$timeSinceAddedFacet = 'local_time_since_added_' . $searchLibrary->subdomain;
-		}
-		if (isset($sideFacets[$timeSinceAddedFacet])){
-			//See if there is a value selected
-			$valueSelected = false;
-			foreach ($sideFacets[$timeSinceAddedFacet]['list'] as $facetKey => $facetValue){
-				if (isset($facetValue['isApplied']) && $facetValue['isApplied'] == true){
-					$valueSelected = true;
-				}
-			}
-			if ($valueSelected){
-				//Get rid of all values except the selected value which will allow the value to be removed
-				foreach ($sideFacets[$timeSinceAddedFacet]['list'] as $facetKey => $facetValue){
-					if (!isset($facetValue['isApplied']) || $facetValue['isApplied'] == false){
-						unset($sideFacets[$timeSinceAddedFacet]['list'][$facetKey]);
-					}
-				}
-			}else{
-				//Make sure to show all values
-				$sideFacets[$timeSinceAddedFacet]['valuesToShow'] = count($sideFacets[$timeSinceAddedFacet]['list']);
-				//Reverse the display of the list so Day is first and year is last
-				$sideFacets[$timeSinceAddedFacet]['list'] = array_reverse($sideFacets[$timeSinceAddedFacet]['list']);
-			}
-		}
-
-		//Check to see if there is a facet for ratings
-		if (isset($sideFacets['rating_facet'])){
-			$ratingApplied = false;
-			foreach ($sideFacets['rating_facet']['list'] as $facetValue ){
-				if ($facetValue['isApplied']){
-					$ratingApplied = true;
-					$ratingLabels = array($facetValue['value']);
-				}
-			}
-
-			if (!$ratingApplied){
-				$ratingLabels =array('fiveStar','fourStar','threeStar','twoStar','oneStar', 'Unrated');
-			}
-			$interface->assign('ratingLabels', $ratingLabels);
-		}
-
-		if (isset($sideFacets['available_at'])){
-			//Mangle the availability facets
-			$oldFacetValues = $sideFacets['available_at']['list'];
-			ksort($oldFacetValues);
-
-			//print_r($sideFacets['available_at']['list']);
-			global $locationSingleton;
-			global $user;
-			global $library;
-			$filters = $this->searchObject->getFilterList();
-			//print_r($filters);
-			$appliedAvailability = array();
-			foreach ($filters as $appliedFilters){
-				foreach ($appliedFilters as $filter){
-					if ($filter['field'] == 'available_at'){
-						$appliedAvailability[$filter['value']] = $filter['removalUrl'];
-					}
-				}
-			}
-
-			$availableAtFacets = array();
-			foreach ($oldFacetValues as $facetKey => $facetInfo){
-				if (strlen($facetKey) > 1){
-					$sortIndicator = substr($facetKey, 0, 1);
-					if ($sortIndicator >= '1' && $sortIndicator <= '4'){
-						$availableAtFacets[$facetKey] = $facetInfo;
-					}
-				}
-			}
-
-			$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
-			//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
-			if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
-				$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
-				//print_r ("anyLocationLabel = $anyLocationLabel");
-				$availableAtFacets['*'] = array(
-					'value' => '*',
-					'display' => $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel,
-					'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
-					'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
-					'isApplied' => array_key_exists('*', $appliedAvailability),
-					'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
-				);
-			}
-
-			$sideFacets['available_at']['list'] = $availableAtFacets;
-
-			//print_r($sideFacets['available_at']);
-		}
-
-		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
-		if ($searchLocation != null && count($searchLocation->facets) > 0){
-			foreach ($searchLocation->facets as $facet){
-				if (array_key_exists($facet->facetName, $sideFacets)){
-					if ($facet->sortMode == 'alphabetically'){
-						asort($sideFacets[$facet->facetName]['list']);
+
+		//Do additional processing of facets for non-genealogy searches
+		if ($this->searchObject->getSearchType() != 'genealogy'){
+			foreach ($sideFacets as $facetKey => $facet){
+
+				$facetSetting = $this->facetSettings[$facetKey];
+
+				//Do special processing of facets
+				if (preg_match('/time_since_added/i', $facetKey)){
+					$timeSinceAddedFacet = $this->updateTimeSinceAddedFacet($facet);
+					$sideFacets[$facetKey] = $timeSinceAddedFacet;
+				}elseif ($facetKey == 'available_at'){
+					$availableAtFacet = $this->updateAvailabilityFacet($facet);
+					$sideFacets[$facetKey] = $availableAtFacet;
+				}elseif ($facetKey == 'rating_facet'){
+					$userRatingFacet = $this->updateUserRatingsFacet($facet);
+					$sideFacets[$facetKey] = $userRatingFacet;
+				}else{
+					//Do other handling of the display
+					if ($facetSetting->sortMode == 'alphabetically'){
+						asort($sideFacets[$facetKey]['list']);
 					}
-					$sideFacets[$facet->facetName]['valuesToShow'] = $facet->numEntriesToShowByDefault;
-					if ($facet->showAsDropDown){
-						$sideFacets[$facet->facetName]['showAsDropDown'] = $facet->showAsDropDown;
+					if ($facetSetting->numEntriesToShowByDefault > 0){
+						$sideFacets[$facetKey]['valuesToShow'] = $facetSetting->numEntriesToShowByDefault;
+					}
+					if ($facetSetting->showAsDropDown){
+						$sideFacets[$facetKey]['showAsDropDown'] = $facetSetting->showAsDropDown;
+					}
+					if ($facetSetting->useMoreFacetPopup && count($sideFacets[$facetKey]['list']) > 12){
+						$sideFacets[$facetKey]['showMoreFacetPopup'] = true;
+						$facetsList = $sideFacets[$facetKey]['list'];
+						$sideFacets[$facetKey]['list'] = array_slice($facetsList, 0, 5);
+						$sortedList = array();
+						foreach ($facetsList as $key => $value){
+							$sortedList[strtolower($key)] = $value;
+						}
+						ksort($sortedList);
+						$sideFacets[$facetKey]['sortedList'] = $sortedList;
+					}else{
+						$sideFacets[$facetKey]['showMoreFacetPopup'] = false;
 					}
 				}
-			}
-		}else if ($searchLibrary != null && count($searchLibrary->facets) > 0){
-			foreach ($searchLibrary->facets as $facet){
-				if (array_key_exists($facet->facetName, $sideFacets)){
-					if ($facet->sortMode == 'alphabetically'){
-						asort($sideFacets[$facet->facetName]['list']);
-					}
-					$sideFacets[$facet->facetName]['valuesToShow'] = $facet->numEntriesToShowByDefault;
-					if ($facet->showAsDropDown){
-						$sideFacets[$facet->facetName]['showAsDropDown'] = $facet->showAsDropDown;
-					}
-				}
+				$sideFacets[$facetKey]['collapseByDefault'] = $facetSetting->collapseByDefault;
 			}
 		}
 
 		$interface->assign('sideFacetSet', $sideFacets);
+	}
+
+	private function updateTimeSinceAddedFacet($timeSinceAddedFacet){
+		//See if there is a value selected
+		$valueSelected = false;
+		foreach ($timeSinceAddedFacet['list'] as $facetKey => $facetValue){
+			if (isset($facetValue['isApplied']) && $facetValue['isApplied'] == true){
+				$valueSelected = true;
+			}
+		}
+		if ($valueSelected){
+			//Get rid of all values except the selected value which will allow the value to be removed
+			//We remove the other values because it is confusing to have results both longer and shorter than the current value.
+			foreach ($timeSinceAddedFacet['list'] as $facetKey => $facetValue){
+				if (!isset($facetValue['isApplied']) || $facetValue['isApplied'] == false){
+					unset($timeSinceAddedFacet['list'][$facetKey]);
+				}
+			}
+		}else{
+			//Make sure to show all values
+			$timeSinceAddedFacet['valuesToShow'] = count($timeSinceAddedFacet['list']);
+			//Reverse the display of the list so Day is first and year is last
+			$timeSinceAddedFacet['list'] = array_reverse($timeSinceAddedFacet['list']);
+		}
+		return $timeSinceAddedFacet;
+	}
+
+	private function updateAvailabilityFacet($availabilityFacet){
+		global $interface;
+		//Mangle the availability facets
+		$oldFacetValues = $availabilityFacet['list'];
+		ksort($oldFacetValues);
+
+		//print_r($sideFacets['available_at']['list']);
+		global $locationSingleton;
+		global $user;
+		global $library;
+		$filters = $this->searchObject->getFilterList();
+		//print_r($filters);
+		$appliedAvailability = array();
+		foreach ($filters as $appliedFilters){
+			foreach ($appliedFilters as $filter){
+				if ($filter['field'] == 'available_at'){
+					$appliedAvailability[$filter['value']] = $filter['removalUrl'];
+				}
+			}
+		}
+
+		$availableAtFacets = array();
+		foreach ($oldFacetValues as $facetKey => $facetInfo){
+			if (strlen($facetKey) > 1){
+				$sortIndicator = substr($facetKey, 0, 1);
+				if ($sortIndicator >= '1' && $sortIndicator <= '4'){
+					$availableAtFacets[$facetKey] = $facetInfo;
+				}
+			}
+		}
+
+		$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
+		//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
+		if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
+			$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
+			//print_r ("anyLocationLabel = $anyLocationLabel");
+			$availableAtFacets['*'] = array(
+				'value' => '*',
+				'display' => $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel,
+				'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
+				'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
+				'isApplied' => array_key_exists('*', $appliedAvailability),
+				'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
+			);
+		}
+
+		$availabilityFacet['list'] = $availableAtFacets;
+
+		return $availabilityFacet;
+	}
+
+	private function updateUserRatingsFacet($userRatingFacet){
+		global $interface;
+		$ratingApplied = false;
+		foreach ($userRatingFacet['list'] as $facetValue ){
+			if ($facetValue['isApplied']){
+				$ratingApplied = true;
+				$ratingLabels = array($facetValue['value']);
+			}
+		}
+		if (!$ratingApplied){
+			$ratingLabels =array('fiveStar','fourStar','threeStar','twoStar','oneStar', 'Unrated');
+		}
+		$interface->assign('ratingLabels', $ratingLabels);
+		return $userRatingFacet;
 	}
 
 	/* getTemplate

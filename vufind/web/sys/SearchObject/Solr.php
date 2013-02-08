@@ -325,44 +325,36 @@ class SearchObject_Solr extends SearchObject_Base
 		// Call the standard initialization routine in the parent:
 		parent::init();
 
-		$searchLibrary = Library::getSearchLibrary();
-		$searchLocation = Location::getSearchLocation();
+		$searchLibrary = Library::getActiveLibrary();
+		$searchLocation = Location::getActiveLocation();
 		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
-		if (!$hasSearchLibraryFacets && !$hasSearchLocationFacets){
-			// Adjust facet options to use advanced settings
-			$this->facetConfig = isset($this->allFacetSettings['Advanced']) ? $this->allFacetSettings['Advanced'] : array();
-		}elseif ($hasSearchLocationFacets){
-			$this->facetConfig=array();
-			foreach ($searchLocation->facets as $facet){
-				if ($facet->showInAdvancedSearch == 1){
-					if ($facet->facetName == 'time_since_added'){
-						$this->facetConfig['local_time_since_added_' . $searchLibrary->subdomain] = $facet->displayName;
-					}elseif ($facet->facetName == 'itype'){
-						$this->facetConfig['itype_' . $searchLibrary->subdomain] = $facet->displayName;
-					}elseif ($facet->facetName == 'detailed_location'){
-						$this->facetConfig['detailed_location_' . $searchLibrary->subdomain] = $facet->displayName;
-					}else{
-						$this->facetConfig[$facet->facetName] = $facet->displayName;
-					}
+		if ($hasSearchLocationFacets){
+			$facets = $searchLocation->facets;
+		}elseif ($hasSearchLibraryFacets){
+			$facets = $searchLibrary->facets;
+		}else{
+			$facets = Library::getDefaultFacets();
+		}
+
+		$this->facetConfig = array();
+		foreach ($facets as $facet){
+			$facetName = $facet->facetName;
+			//Adjust facet name for local scoping
+			if (isset($searchLibrary)){
+				if ($facet->facetName == 'time_since_added'){
+					$facetName = 'local_time_since_added_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'itype'){
+					$facetName = 'itype_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'detailed_location'){
+					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
 				}
 			}
-		}else{
-			$this->facetConfig=array();
-			foreach ($searchLibrary->facets as $facet){
-				if ($facet->showInAdvancedSearch == 1){
-					if ($facet->facetName == 'time_since_added'){
-						$this->facetConfig['local_time_since_added_' . $searchLibrary->subdomain] = $facet->displayName;
-					}elseif ($facet->facetName == 'itype'){
-						$this->facetConfig['itype_' . $searchLibrary->subdomain] = $facet->displayName;
-					}elseif ($facet->facetName == 'detailed_location'){
-						$this->facetConfig['detailed_location_' . $searchLibrary->subdomain] = $facet->displayName;
-					}else{
-						$this->facetConfig[$facet->facetName] = $facet->displayName;
-					}
-				}
+			if ($facet->showInAdvancedSearch){
+				$this->facetConfig[$facetName] = $facet->displayName;
 			}
 		}
+
 		//********************
 
 		$facetLimit = $this->getFacetSetting('Advanced_Settings', 'facet_limit');

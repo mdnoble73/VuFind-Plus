@@ -1,21 +1,9 @@
 <?php
-require_once 'DB/DataObject.php';
-require_once 'DB/DataObject/Cast.php';
+require_once 'Drivers/marmot_inc/FacetSetting.php';
 
-class LibraryFacetSetting extends DB_DataObject {
+class LibraryFacetSetting extends FacetSetting {
 	public $__table = 'library_facet_setting';    // table name
-	public $id;                      //int(25)
 	public $libraryId;
-	public $displayName;                    //varchar(255)
-	public $facetName;
-	public $weight;
-	public $numEntriesToShowByDefault; //
-	public $showAsDropDown;   //True or false
-	public $sortMode;         //0 = alphabetically, 1 = by number of results
-	public $showAboveResults;
-	public $showInResults;
-	public $showInAuthorResults;
-	public $showInAdvancedSearch;
 
 	public function getAvailableFacets(){
 		$availableFacets = array(
@@ -69,20 +57,9 @@ class LibraryFacetSetting extends DB_DataObject {
 			$libraryList[$library->libraryId] = $library->displayName;
 		}
 
-		$structure = array(
-			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),
-			'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'The id of a library'),
-			'weight' => array('property'=>'weight', 'type'=>'integer', 'label'=>'Weight', 'description'=>'The sort order of the book store', 'default' => 0),
-			'facetName' => array('property'=>'facetName', 'type'=>'enum', 'label'=>'Facet', 'values' => LibraryFacetSetting::getAvailableFacets(), 'description'=>'The facet to include'),
-			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the facet for display to the user'),
-			'numEntriesToShowByDefault' => array('property'=>'numEntriesToShowByDefault', 'type'=>'integer', 'label'=>'Num Entries', 'description'=>'The number of values to show by default.', 'default' => '5'),
-			'showAsDropDown' => array('property' => 'showAsDropDown', 'type' => 'checkbox', 'label' => 'Drop Down?', 'description'=>'Whether or not the facets should be shown in a drop down list', 'default'=>'0'),
-			'sortMode' => array('property'=>'sortMode', 'type'=>'enum', 'label'=>'Sort', 'values' => array('alphabetically' => 'Alphabetically', 'num_results' => 'By number of results'), 'description'=>'How the facet values should be sorted.', 'default'=>'num_results'),
-			'showAboveResults' => array('property' => 'showAboveResults', 'type' => 'checkbox', 'label' => 'Show Above Results', 'description'=>'Whether or not the facets should be shown above the results', 'default'=>0),
-			'showInResults' => array('property' => 'showInResults', 'type' => 'checkbox', 'label' => 'Show on Results Page', 'description'=>'Whether or not the facets should be shown in regular search results', 'default'=>1),
-			'showInAuthorResults' => array('property' => 'showInAuthorResults', 'type' => 'checkbox', 'label' => 'Show for Author Searches', 'description'=>'Whether or not the facets should be shown when searching by author', 'default'=>1),
-			'showInAdvancedSearch' => array('property' => 'showInAdvancedSearch', 'type' => 'checkbox', 'label' => 'Show on Advanced Search', 'description'=>'Whether or not the facet should be an option on the Advanced Search Page', 'default'=>1),
-		);
+		$structure = super::getObjectStructure();
+		$structure['libraryId'] = array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'The id of a library');
+
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
 			$structure[$fieldName] = $field;

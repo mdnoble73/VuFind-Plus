@@ -28,6 +28,7 @@ require_once 'sys/Recommend/Interface.php';
 class TopFacets implements RecommendationInterface
 {
 	private $searchObject;
+	private $facetSettings;
 	private $facets;
 	private $baseSettings;
 
@@ -54,22 +55,25 @@ class TopFacets implements RecommendationInterface
 		$searchLibrary = Library::getActiveLibrary();
 		$searchLocation = Location::getActiveLocation();
 		$config = getExtraConfigArray($iniFile);
-		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
-		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
-		if ($searchObject->getSearchType() == 'genealogy' || !($hasSearchLibraryFacets || $hasSearchLocationFacets)){
-			$this->facets = isset($config[$section]) ? $config[$section] : array();
-		}elseif ($hasSearchLocationFacets){
-			$this->facets = array();
-			foreach ($searchLocation->facets as $facet){
-				if ($facet->showAboveResults == 1){
-					$this->facets[$facet->facetName] = $facet->displayName;
-				}
-			}
+		if ($searchObject->getSearchType() == 'genealogy'){
+			$config = getExtraConfigArray($iniName);
+			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
 		}else{
-			$this->facets = array();
-			foreach ($searchLibrary->facets as $facet){
+			$searchLibrary = Library::getActiveLibrary();
+			$searchLocation = Location::getActiveLocation();
+			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
+			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
+			if ($hasSearchLocationFacets){
+				$facets = $searchLocation->facets;
+			}elseif ($hasSearchLibraryFacets){
+				$facets = $searchLibrary->facets;
+			}else{
+				$facets = Library::getDefaultFacets();
+			}
+			foreach ($facets as $facet){
 				if ($facet->showAboveResults == 1){
 					$this->facets[$facet->facetName] = $facet->displayName;
+					$this->facetSettings[$facet->facetName] = $facet;
 				}
 			}
 		}
@@ -119,12 +123,12 @@ class TopFacets implements RecommendationInterface
 				//add an image name for display in the template
 				foreach ($facetSet['list'] as $facetKey => $facet){
 					$facet['imageName'] = strtolower(str_replace(' ', '', $facet['value']));
-					if ($facetKey != 'Other' || !$library || $library->showOtherFormatCategory == 1){
-						$facetSet['list'][$facetKey] = $facet;
-					}else{
-						unset($facetSet['list'][$facetKey]);
-					}
+					$facetSet['list'][$facetKey] = $facet;
 				}
+
+				uksort($facetSet['list'], "format_category_comparator");
+
+
 				$facetList[$facetSetkey] = $facetSet;
 			}
 		}
@@ -147,4 +151,18 @@ class TopFacets implements RecommendationInterface
 	}
 }
 
+function format_category_comparator($a, $b){
+	$formatCategorySortOrder = array(
+		'Books' => 1,
+		'eBook' => 2,
+		'Audio Books' => 3,
+		'eAudio' => 4,
+		'Music' => 5,
+		'Movies' => 6,
+	);
+
+	$a = $formatCategorySortOrder[$a];
+	$b = $formatCategorySortOrder[$b];
+	if ($a==$b){return 0;}else{return ($a > $b ? 1 : -1);}
+};
 ?>

@@ -260,16 +260,6 @@ class EContentRecord extends SolrDataObject {
 			'storeDb' => true,
 			'storeSolr' => false,
 		),
-		'collection' => array(
-			'property' => 'collection',
-			'type' => 'enum',
-			'values' => array_merge(array('' => 'Unknown'), EContentRecord::getCollectionValues()),
-			'label' => 'Collection',
-			'description' => 'The cover of the item.',
-			'required'=> false,
-			'storeDb' => true,
-			'storeSolr' => false,
-		),
 		'collection_group' => array(
 			'property' => 'collection_group',
 			'type' => 'method',
@@ -890,37 +880,6 @@ class EContentRecord extends SolrDataObject {
 		}
 	}
 
-	static function getCollectionValues(){
-		return array(
-			'aebf' => 'Adult ebook fiction',
-			'aebnf' => 'Adult ebook nonfiction',
-			'eaeb' => 'Easy ebook (fiction & nonfiction)',
-			'jebf' => 'Juv. ebook fiction',
-			'jebnf' => 'Juv. ebook nonfiction',
-			'yebf' => 'Ya ebook fiction',
-			'yebnf' => 'Ya ebook nonfiction',
-
-			'aeaf' => 'Adult eaudio fiction',
-			'aeanf' => 'Adult eaudio nonfiction',
-			'eaea' => 'Easy eaudio (fiction & nonfiction)',
-			'jeaf' => 'Juv. eaudio fiction',
-			'jeanf' => 'Juv. eaudio nonfiction',
-			'yeaf' => 'Ya eaudio fiction',
-			'yeanf' => 'Ya eaudio nonfiction',
-
-			'aevf' => 'Adult evideo fiction',
-			'aevnf' => 'Adult evideo nonfiction',
-			'eaev' => 'Easy evideo (fiction & nonfiction)',
-			'jevf' => 'Juv. evideo fiction',
-			'jeavf' => 'Juv. evideo nonfiction',
-			'yevf' => 'Ya evideo fiction',
-			'yevnf' => 'Ya evideo nonfiction',
-
-			'aem' => 'Adult emusic',
-			'jem' => 'Juv. emusic',
-			'yem' => 'Ya emusic',
-		);
-	}
 	function genre_facet(){
 		return $this->genre;
 	}

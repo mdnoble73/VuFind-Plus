@@ -305,6 +305,38 @@ div.record {
 	padding: 1em;
 	font-size: 90%;
 }
+
+.facetList{
+}
+
+.facetTitle{
+	margin: 15px 10px 0px;
+	font-weight: bold;
+	text-align: left;
+}
+.facetDetails{
+	padding: .1em 0 .1em 10px;
+	text-align: left;
+	text-indent: -10px;
+	margin: 0px 10px 0px 20px;
+}
+.facetCol{
+	display: inline-block;
+	padding: 15px;
+	width: 120px;
+	vertical-align: top;
+}
+li.facetValue{
+	list-style: disc outside !important;
+	border-bottom: 0px solid black !important;
+	padding: 0px !important;
+}
+li.facetValue a{
+	text-decoration: none !important;
+}
+li.facetValue a :hover{
+	text-decoration: none !important;
+}
 .navmenu {
 	margin:0;
 }
@@ -1283,92 +1315,28 @@ background-image:url(/interface/themes/marmot/images/update.png);
 }
 #categoryValues{
 	text-align: center;
-	padding-bottom: 10px;
+	padding-bottom: 2px;
 }
+
 .categoryValue{
 	margin-left: 10px;
 	margin-right: 10px;
 	display: inline-block;
 	height: 16px;
-	width: 64px;
+	width: 74px;
 	vertical-align: top;
 	padding-top: 64px;
-	margin-bottom: 22px;
+	margin-bottom: 2px;
 	background: url('/interface/themes/marmot/images/formatImages.png') no-repeat top left;
 }
-.categoryValue_audio { background-position: 0px 0px; width: 64px;} 
-.categoryValue_books { background-position: -74px 0px; width: 64px;} 
-.categoryValue_downloadable { background-position: -148px 0px; width: 64px;} 
-.categoryValue_eaudio { background-position: -222px 0px; width: 64px;} 
-.categoryValue_ebook { background-position: -296px 0px; width: 64px;} 
-.categoryValue_emusic { background-position: -370px 0px; width: 64px;} 
-.categoryValue_evideo { background-position: -444px 0px; width: 64px;} 
-.categoryValue_list { background-position: -518px 0px; width: 64px;} 
-.categoryValue_lists { background-position: -592px 0px; width: 64px;} 
-.categoryValue_other { background-position: -666px 0px; width: 58px;} 
-.categoryValue_periodicals { background-position: -734px 0px; width: 64px;} 
-.categoryValue_video { background-position: -808px 0px; width: 64px;} 
+.categoryValue_books { background-position: 5px 0px; width: 74px; height: 64px;  } 
+.categoryValue_ebook { background-position: -69px 0px; width: 74px; height: 64px;  } 
+.categoryValue_audiobooks { background-position: -143px 0px; width: 74px; height: 64px;  } 
+.categoryValue_eaudio { background-position: -217px 0px; width: 74px; height: 64px;  } 
+.categoryValue_music { background-position: -291px 0px; width: 74px; height: 64px;  } 
+.categoryValue_movies { background-position: -365px 0px; width: 74px; height: 57px;  } 
 
-.categoryValueEMedia{
-	background-image:url(/interface/themes/marmot/images/emedia.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueBooks{
-	background-image:url(/interface/themes/marmot/images/books.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueeBook{
-	background-image:url(/interface/themes/marmot/images/ebook.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueeMusic{
-	background-image:url(/interface/themes/marmot/images/emusic.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueAudio{
-	background-image:url(/interface/themes/marmot/images/audio.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueeAudio{
-	background-image:url(/interface/themes/marmot/images/eaudio.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueVideo{
-	background-image:url(/interface/themes/marmot/images/video.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueeVideo{
-	background-image:url(/interface/themes/marmot/images/evideo.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueDownloadable{
-	background-image:url(/interface/themes/marmot/images/downloadable.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValuePeriodicals, .categoryValueMagazines{
-	background-image:url(/interface/themes/marmot/images/periodicals.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueOther{
-	background-image:url(/interface/themes/marmot/images/other.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
-.categoryValueLists{
-	background-image:url(/interface/themes/marmot/images/list.png);
-	background-repeat:no-repeat;
-	background-position: center top;
-}
+
 .loginLink{
 	font-size: 14px;
 	font-weight: bold;

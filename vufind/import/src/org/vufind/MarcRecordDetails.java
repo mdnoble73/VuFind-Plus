@@ -101,6 +101,10 @@ public class MarcRecordDetails {
 			String fieldVal[] = marcProcessor.getMarcFieldProps().get(fieldName);
 			mapField(fieldName, fieldVal);
 		}
+		
+		//mapLibrarySpecificFields();
+		//mapLocationSpecificFields();
+		
 		return true;
 	}
 
@@ -2271,6 +2275,18 @@ public class MarcRecordDetails {
 		if (returnFirst.equals("true")) {
 			returnFirstValue = true;
 		}
+		
+		// check for music recordings quickly so we can figure out if it is music 
+		// for category (needto do here since checking what is on the Compact Disc/Phonograph, etc is difficult).
+		if (leader.length() >= 6) {
+			leaderBit = leader.charAt(6);
+			switch (Character.toUpperCase(leaderBit)) {
+			case 'J':
+				result.add("MusicRecording");
+				break;
+			}
+		}
+		if (result.size() >= 1 && returnFirstValue) return result;
 
 		// check for playaway in 260|b
 		DataField sysDetailsNote = (DataField) record.getVariableField("260");

@@ -36,10 +36,11 @@ class LibraryFacetSettings extends ObjectEditor
 	}
 	function getAllObjects(){
 		$facetsList = array();
-		$libraryId = $_REQUEST['libraryId'];
-
 		$library = new LibraryFacetSetting();
-		$library->libraryId = $libraryId;
+		if (isset($_REQUEST['libraryId'])){
+			$libraryId = $_REQUEST['libraryId'];
+			$library->libraryId = $libraryId;
+		}
 		$library->orderBy('weight');
 		$library->find();
 		while ($library->fetch()){

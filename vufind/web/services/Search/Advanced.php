@@ -51,12 +51,7 @@ class Advanced extends Action {
 			$label = $facetList['format_category']['label'];
 			foreach ($facets[$label]['values'] as $key => $optionInfo){
 				$optionInfo['imageName'] = str_replace(" ", "", strtolower($key)) . '.png';
-				if ($key != 'Other' || !$library || $library->showOtherFormatCategory == 1){
-					$facets[$label]['values'][$key] = $optionInfo;
-				}else{
-					unset($facets[$label]['values'][$key]);
-				}
-
+				$facets[$label]['values'][$key] = $optionInfo;
 			}
 			$interface->assign('formatCategoryLimit', $facets[$label]['values']);
 			unset($facets[$label]);

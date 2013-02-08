@@ -702,4 +702,117 @@ class Location extends DB_DataObject
 		}
 		return $libraryHoursMessage;
 	}
+	static function getDefaultFacets($locationId = -1){
+		$defaultFacets = array();
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('authorStr', 'Author', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('awards_facet', 'Awards', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('econtent_device', 'Compatible Device', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('econtent_source', 'eContent Source', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('econtent_protection_type', 'eContent Protection', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('era', 'Era', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('genre_facet', 'Genre', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('itype', 'Item Type', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('language', 'Language', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile COde', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('mpaa_rating', 'Movie Rating', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('institution', 'Owning System', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('building', 'Owning Branch', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('publishDate', 'Publication Date', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('geographic_facet', 'Region', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('rating_facet', 'User Rating', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		return $defaultFacets;
+	}
 }

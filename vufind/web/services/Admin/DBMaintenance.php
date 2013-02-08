@@ -321,6 +321,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `eContentSupportAddress` VARCHAR(256) DEFAULT 'askmarmot@marmot.org';",
 				),
 			),
+			'library_27' => array(
+				'title' => 'Library 27',
+				'description' => 'Remove showOtherFormatCategory.',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` DROP `showOtherFormatCategory`;",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
@@ -356,6 +365,17 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'library_facets_2' => array(
+				'title' => 'Library Facets Update 2',
+				'description' => 'Add collapsing of facets and more values popup. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE library_facet_setting ADD collapseByDefault TINYINT DEFAULT '0'",
+					"ALTER TABLE library_facet_setting ADD useMoreFacetPopup TINYINT DEFAULT '1'",
+				),
+			),
+
 			'location_facets' => array(
 				'title' => 'Location Facets',
 				'description' => 'Create Location Facets table to allow library admins to customize their own facets. ',
@@ -378,6 +398,17 @@ class DBMaintenance extends Admin {
 						"INDEX (locationId) " .
 					") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
 					"ALTER TABLE `location_facet_setting` ADD UNIQUE `locationFacet` (`locationID`, `facetName`)",
+				),
+			),
+
+			'location_facets_1' => array(
+				'title' => 'Location Facets Update 1',
+				'description' => 'Add collapsing of facets and more values popup. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE location_facet_setting ADD collapseByDefault TINYINT DEFAULT '0'",
+					"ALTER TABLE location_facet_setting ADD useMoreFacetPopup TINYINT DEFAULT '1'",
 				),
 			),
 

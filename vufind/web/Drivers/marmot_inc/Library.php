@@ -96,7 +96,6 @@ class Library extends DB_DataObject
 	public $showCheckInGrid;
 	public $boostByLibrary;
 	public $recordsToBlackList;
-	public $showOtherFormatCategory;
 	public $showWikipediaContent;
 	public $eContentSupportAddress;
 
@@ -184,9 +183,9 @@ class Library extends DB_DataObject
 				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link next to the search box.  It will still appear in the footer.', 'hideInLists' => true,),
 				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true,),
 				'repeatInAmazon'  => array('property'=>'repeatInAmazon', 'type'=>'checkbox', 'label'=>'Repeat In Amazon', 'description'=>'Turn on to allow repeat search in Amazon functionality.', 'hideInLists' => true),
-				'showOtherFormatCategory' => array('property'=>'showOtherFormatCategory', 'type'=>'checkbox', 'label'=>'Show Other Format Category', 'description'=>'Whether or not the Other Format Category Icon should be shown while searching.', 'default'=>'1', 'hideInLists' => true,),
 				'recordsToBlackList' => array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
 			)),
+
 			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
 				'showAmazonReviews'  => array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true,),
 				'linkToAmazon'  => array('property'=>'linkToAmazon', 'type'=>'checkbox', 'label'=>'Link To Amazon', 'description'=>'Whether or not a purchase on Amazon link should be shown.  Should generally match showAmazonReviews setting', 'hideInLists' => true,),
@@ -272,6 +271,7 @@ class Library extends DB_DataObject
 				'sortable' => true,
 				'storeDb' => true
 			),
+
 			'facets' => array(
 				'property'=>'facets',
 				'type'=>'oneToMany',
@@ -531,5 +531,156 @@ class Library extends DB_DataObject
 		} else {
 			return NearbyBookStore::getDefaultBookStores();
 		}
+	}
+
+	static function getDefaultFacets($libraryId = -1){
+		$defaultFacets = array();
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupTopFacet('format_category', 'Format Category');
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('available_at', 'Available Now At', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('format', 'Format', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('literary_form_full', 'Literary Form', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('target_audience_full', 'Reading Level', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$facet->numEntriesToShowByDefault = 8;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('topic_facet', 'Subject', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('authorStr', 'Author', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('awards_facet', 'Awards', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('econtent_device', 'Compatible Device', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('econtent_source', 'eContent Source', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('econtent_protection_type', 'eContent Protection', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('era', 'Era', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('genre_facet', 'Genre', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('itype', 'Item Type', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('language', 'Language', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile COde', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('mpaa_rating', 'Movie Rating', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('institution', 'Owning System', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('building', 'Owning Branch', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('publishDate', 'Publication Date', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupAdvancedFacet('geographic_facet', 'Region', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LibraryFacetSetting();
+		$facet->setupSideFacet('rating_facet', 'User Rating', true);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		return $defaultFacets;
 	}
 }
