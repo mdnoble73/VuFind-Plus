@@ -287,7 +287,7 @@ public class MarcRecordDetails {
 							}
 							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
 							locationAvailability.add("Any Marmot Library");
-							if (libraryIndexingInfo != null & libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)){
+							if (libraryIndexingInfo != null && libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)){
 								if (libraryIndexingInfo.getLocations().size() == 1){
 									locationAvailability.add(libraryIndexingInfo.getFacetLabel());
 								}else{
@@ -308,7 +308,7 @@ public class MarcRecordDetails {
 							}
 							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
 							locationAvailability.add("Any Marmot Library");
-							if (libraryIndexingInfo != null & libraryIndexingInfo.hasCode(curCode)){
+							if (libraryIndexingInfo != null && libraryIndexingInfo.hasCode(curCode)){
 								if (libraryIndexingInfo.getLocations().size() == 1){
 									locationAvailability.add(libraryIndexingInfo.getFacetLabel());
 								}else{
