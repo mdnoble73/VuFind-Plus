@@ -114,7 +114,9 @@ class Prospector{
 		}
 		//Setup the link to Prospector (search classic)
 		//$prospectorUrl = "http://prospector.coalliance.org/search/?searchtype=X&searcharg=" . urlencode($search) . "&Da=&Db=&SORT=R";
-		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C__S" . urlencode($search) ."__Orightresult__U1?lang=eng&amp;suite=def";
+		//Fix prospector url issue
+		$search = str_replace('+', '%20', urlencode($search));
+		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C__S" . $search ."__Orightresult__U1?lang=eng&amp;suite=def";
 		return $prospectorUrl;
 	}
 

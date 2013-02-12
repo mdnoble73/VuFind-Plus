@@ -261,7 +261,8 @@ class SearchSources{
 			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookfor);
 		}else if ($searchSource == 'prospector'){
 			//$prospectorSearchType = $this->getProspectorSearchType($searchObject);
-			return "http://encore.coalliance.org/iii/encore/search/C|S" . urlencode($lookfor) ."|Orightresult|U1?lang=eng&amp;suite=def";
+			$lookfor = str_replace('+', '%20', rawurlencode($lookfor));
+			return "http://encore.coalliance.org/iii/encore/search/C|S" . $lookfor ."|Orightresult|U1?lang=eng&amp;suite=def";
 		}else if ($searchSource == 'amazon'){
 			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookfor);
 		}else if ($searchSource == 'course-reserves-course-name'){
