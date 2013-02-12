@@ -176,6 +176,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				if (existingEContentResourceRS.getString("record_id").matches("\\d+")){
 					Long econtentId = existingEContentResourceRS.getLong("record_id");
 					Long resourceId = existingEContentResourceRS.getLong("id");
+					//System.out.println("Found eContent resource " + econtentId + " - resourceId" + resourceId);
 					existingEContentResourceIds.put(econtentId, resourceId);
 					existingEContentResourceDateUpdated.put(resourceId, existingEContentResourceRS.getLong("date_updated"));
 					int deleted = existingEContentResourceRS.getInt("deleted");
