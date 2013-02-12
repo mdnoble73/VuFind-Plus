@@ -362,7 +362,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				okToSkip = false;
 			}
 			if (okToSkip){
-				logger.debug("Skipping record because it hasn't changed");
+				//logger.debug("Update Resource Skipping record because it hasn't changed");
 				results.incSkipped();
 				return true;
 			}
@@ -548,7 +548,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				boolean updateResource = false; 
 				//BasicResourceInfo basicResourceInfo = existingResources.get(recordInfo.getId());
 				if (!updateResource){
-					logger.debug("Skipping record because it hasn't changed");
+					//logger.debug("Update eContentRecord resource Skipping record because it hasn't changed");
 					results.incSkipped();
 					return true;
 				}

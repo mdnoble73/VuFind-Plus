@@ -17,6 +17,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -59,7 +60,6 @@ public class MarcProcessor {
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
 	
-	private boolean useThreads = false;
 	private String idsToProcess = null;
 	
 	public HashMap<String, String[]> getMarcFieldProps() {
@@ -89,14 +89,21 @@ public class MarcProcessor {
 	private PreparedStatement							insertMarcInfoStmt;
 	private PreparedStatement							updateMarcInfoStmt;
 
-	private Set<String>								existingEContentIds	= Collections.synchronizedSet(new HashSet<String>());
-	private Map<String, Float>				printRatings				= Collections.synchronizedMap(new HashMap<String, Float>());
-	private Map<Long, Float>					econtentRatings			= Collections.synchronizedMap(new HashMap<Long, Float>());
-	private Map<String, Long>					librarySystemFacets	= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Set<String>								existingEContentIds			= Collections.synchronizedSet(new HashSet<String>());
+	private Map<String, Float>				printRatings						= Collections.synchronizedMap(new HashMap<String, Float>());
+	private Map<Long, Float>					econtentRatings					= Collections.synchronizedMap(new HashMap<Long, Float>());
+	private Map<String, Long>					librarySystemFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<Long, String>					libraryIdToSystemFacets	= Collections.synchronizedMap(new HashMap<Long, String>());
-	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
-	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
-	private ArrayList<String>					advantageLibraryFacets = new ArrayList<String>();
+	private Map<String, Long>					locationFacets					= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Map<String, Long>					eContentLinkRules				= Collections.synchronizedMap(new HashMap<String, Long>());
+	private ArrayList<String>					advantageLibraryFacets	= new ArrayList<String>();
+	private ArrayList<String>					locationCodes						= new ArrayList<String>();
+	private ArrayList<String>					librarySubdomains				= new ArrayList<String>();
+	private HashMap<Long, LibraryIndexingInfo> libraryIndexingInfo = new HashMap<Long, LibraryIndexingInfo>();
+	
+	private HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
+	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
+	
 	private boolean useEContentDetectionSettings = true;
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
@@ -128,14 +135,6 @@ public class MarcProcessor {
 		if (marcEncoding == null || marcEncoding.length() == 0) {
 			logger.error("Marc Encoding not found in Reindex Settings.  Please specify the path as the defaultEncoding key.");
 			return false;
-		}
-		
-		//Determine whether or not we should use threads to reduce processing time
-		String useThreadsStr = configIni.get("Reindex", "useThreads");
-		if (marcEncoding == null || marcEncoding.length() == 0) {
-			useThreads = false;
-		}else{
-			useThreads = Boolean.parseBoolean(useThreadsStr);
 		}
 		
 		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
@@ -284,11 +283,22 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, defaultLibraryFacet, eContentLinkRules, overdriveAdvantageProductsKey from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
+				Long libraryId = librarySystemFacetRS.getLong("libraryId");
 				String facetLabel = librarySystemFacetRS.getString("facetLabel");
-				librarySystemFacets.put(facetLabel, librarySystemFacetRS.getLong("libraryId"));
+				String defaultLibraryFacet = librarySystemFacetRS.getString("defaultLibraryFacet");
+				String librarySubdomain = librarySystemFacetRS.getString("subdomain");
+				LibraryIndexingInfo libraryInfo = new LibraryIndexingInfo();
+				librarySubdomains.add(librarySubdomain);
+				libraryInfo.setLibraryId(libraryId);
+				libraryInfo.setSubdomain(librarySubdomain);
+				libraryInfo.setScoped(defaultLibraryFacet.length() > 0);
+				libraryInfo.setFacetLabel(facetLabel);
+				libraryIndexingInfo.put(libraryId, libraryInfo);
+				
+				librarySystemFacets.put(facetLabel, libraryId);
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
 				if (eContentLinkRulesStr != null && eContentLinkRulesStr.length() > 0) {
 					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
@@ -300,18 +310,37 @@ public class MarcProcessor {
 					advantageLibraryFacets.add(facetLabel);
 				}
 			}
+			logger.debug("Loaded " + librarySubdomains.size() + " librarySubdomains");
 		} catch (SQLException e) {
 			logger.error("Unable to load library System Facet information", e);
 			return false;
 		}
 		
 		try {
-			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, facetLabel from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, libraryId, facetLabel, defaultLocationFacet, code from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
 			while (locationFacetRS.next()) {
+				Long libraryId = locationFacetRS.getLong("libraryId");
+				Long locationId = locationFacetRS.getLong("locationId");
+				String facetLabel = locationFacetRS.getString("facetLabel");
+				String code = locationFacetRS.getString("code").trim();
+				locationCodes.add(code);
+				String defaultLocationFacet = locationFacetRS.getString("defaultLocationFacet");
 				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
-				locationFacets.put(locationFacetRS.getString("facetLabel"), locationFacetRS.getLong("locationId"));
+				locationFacets.put(facetLabel, locationId);
+				//Load information for indexing items
+				LibraryIndexingInfo libraryInfo = libraryIndexingInfo.get(libraryId);
+				
+				LocationIndexingInfo locationInfo = new LocationIndexingInfo();
+				locationInfo.setLibraryId(libraryId);
+				locationInfo.setLocationId(locationId);
+				locationInfo.setFacetLabel(facetLabel);
+				locationInfo.setScoped(defaultLocationFacet.length() > 0);
+				locationInfo.setCode(code);
+				libraryInfo.addLocation(locationInfo);
+				
 			}
+			logger.debug("Loaded " + locationCodes.size() + " locations");
 		} catch (SQLException e) {
 			logger.error("Unable to load location Facet information", e);
 			return false;
@@ -663,27 +692,8 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			if (useThreads){
-				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
-				for (final File marcFile : marcFiles) {
-					MarcProcessorThread marcFileProcess = new MarcProcessorThread(recordProcessors, logger, marcFile);
-					indexingThreads.add(marcFileProcess);
-					marcFileProcess.start();
-				}
-				
-				//Wait for the processes to stop
-				while (true){
-					for(MarcProcessorThread indexThread : indexingThreads){
-						if (!indexThread.isFinished()){
-							Thread.yield();
-							Thread.sleep(500);
-						}
-					}
-				}
-			}else{
-				for (final File marcFile : marcFiles) {
-					processMarcFile(recordProcessors, logger, marcFile);
-				}
+			for (final File marcFile : marcFiles) {
+				processMarcFile(recordProcessors, logger, marcFile);
 			}
 			return true;
 		} catch (Exception e) {
@@ -880,25 +890,6 @@ public class MarcProcessor {
 	public boolean isScrapeItemsForLinks() {
 		return scrapeItemsForLinks;
 	}
-	
-	private class MarcProcessorThread extends Thread {
-		private ArrayList<IMarcRecordProcessor> recordProcessors;
-		private Logger logger;
-		private File marcFile;
-		private boolean finished;
-		public MarcProcessorThread(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
-			this.recordProcessors = recordProcessors;
-			this.logger = logger;
-			this.marcFile = marcFile;
-		}
-		public void run(){
-			MarcProcessor.this.processMarcFile(recordProcessors, logger, marcFile);
-			this.finished = true;
-		}
-		public boolean isFinished(){
-			return finished;
-		}
-	}
 
 	public String getCatalogUrl() {
 		return catalogUrl;
@@ -934,4 +925,42 @@ public class MarcProcessor {
 	public ArrayList<String> getAdvantageLibraryFacets() {
 		return advantageLibraryFacets;
 	}
+
+	public LibraryIndexingInfo getLibraryIndexingInfo(Long libraryId) {
+		return libraryIndexingInfo.get(libraryId);
+	}
+
+	private HashMap<String, LocationIndexingInfo> locationIndexingInfoByCode = new HashMap<String, LocationIndexingInfo>();
+	public LocationIndexingInfo getLocationIndexingInfo(String locationCode) {
+		if (locationIndexingInfoByCode.containsKey(locationCode)){
+			return locationIndexingInfoByCode.get(locationCode);
+		}
+		for (LibraryIndexingInfo libraryInfo : libraryIndexingInfo.values()){
+			LocationIndexingInfo locationInfo = libraryInfo.getLocationIndexingInfo(locationCode);
+			if (locationInfo != null){
+				locationIndexingInfoByCode.put(locationCode, locationInfo);
+				return locationInfo;
+			}
+		}
+		return null;
+	}
+
+	public ArrayList<String> getLocationCodes() {
+		return locationCodes;
+	}
+	
+	public ArrayList<String> getLibrarySubdomains() {
+		return librarySubdomains;
+	}
+
+	public boolean isUsableByPType(String iType, String pType) {
+		//TODO: Check loan rules to see if the iType is available to the specified ptype
+		return true;
+	}
+
+	public LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
+		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		return result;
+	}
+
 }

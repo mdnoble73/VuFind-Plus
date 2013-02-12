@@ -68,6 +68,10 @@ public class MarcRecordDetails {
 	private String													externalId = null;
 	private Long														eContentRecordId = null;
 	
+	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
+	private static Date indexDate = new Date();
+	private static String availableStatus = "-dowju";
+	
 	/**
 	 * Does basic mapping of fields to determine if the record has changed or not
 	 * 
@@ -102,10 +106,267 @@ public class MarcRecordDetails {
 			mapField(fieldName, fieldVal);
 		}
 		
-		//mapLibrarySpecificFields();
-		//mapLocationSpecificFields();
+		mapItemBasedFields();
 		
 		return true;
+	}
+
+	private void mapItemBasedFields() {
+		//Load all items 
+		@SuppressWarnings("unchecked")
+		
+		List<DataField> itemFields = record.getVariableFields("989");
+		Set<String> librarySystems = new LinkedHashSet<String>();
+		Set<String> locations = new LinkedHashSet<String>();
+		Set<String> barcodes = new LinkedHashSet<String>();
+		Set<String> iTypes = new LinkedHashSet<String>();
+		HashMap<String, LinkedHashSet<String>> iTypesBySystem = new HashMap<String, LinkedHashSet<String>>();
+		Set<String> locationCodes = new LinkedHashSet<String>();
+		HashMap<String, LinkedHashSet<String>> locationsCodesBySystem = new HashMap<String, LinkedHashSet<String>>();
+		HashMap<String, LinkedHashSet<String>> locationsCodesByLocation = new HashMap<String, LinkedHashSet<String>>();
+		Set<String> timeSinceAdded = new LinkedHashSet<String>();
+		HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem = new HashMap<String, LinkedHashSet<String>>();
+		HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation = new HashMap<String, LinkedHashSet<String>>();
+		Set<String> availableAt = new LinkedHashSet<String>();
+		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
+		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
+		boolean bibSuppressed = true;
+		boolean manuallySuppressed = false;
+		//Check the 907c field for manual suppresion
+		String manualSuppression = getFirstFieldVal("907c");
+		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")){
+			//logger.debug("The record is manually suppressed.");
+			manuallySuppressed = true;
+		}
+		//logger.debug("Found " + itemFields.size() + " items");
+		for (DataField itemField : itemFields){
+			boolean itemSuppressed = false;
+			if (itemField.getSubfield('d') == null){
+				//logger.debug("Did not find location code for item ");
+			}else{
+				String locationCode = itemField.getSubfield('d').getData().trim();
+				//logger.debug("Processing locationCode " + locationCode);
+				//Figure out which location and library this item belongs to. 
+				LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(locationCode);
+				LibraryIndexingInfo libraryIndexingInfo = null;
+				if (locationIndexingInfo == null){
+					logger.debug("Warning, did not find location info for location " + locationCode);
+					if (locationCode.equalsIgnoreCase("zzzz")){
+						//logger.debug("suppressing item because location code is zzzz");
+						itemSuppressed = true;
+					}
+				}else{
+					libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
+				}
+				//Map library system (institution)
+				if (libraryIndexingInfo != null){
+					librarySystems.add(libraryIndexingInfo.getFacetLabel());
+				}
+				
+				//Map location (building)
+				if (locationIndexingInfo != null){
+					locations.add(locationIndexingInfo.getFacetLabel());
+				}
+				
+				//Barcodes
+				@SuppressWarnings("unchecked")
+				List<Subfield> barcodeFields = itemField.getSubfields('b');
+				for (Subfield curSubfield : barcodeFields){
+					String barcode = curSubfield.getData();
+					if (digitPattern.matcher(barcode).matches()) {
+						barcodes.add(barcode);
+					}
+				}
+				
+				//Map iTypes
+				Subfield iTypeSubfield = itemField.getSubfield('j');
+				String iType = "0";
+				if (iTypeSubfield != null){
+					iType = iTypeSubfield.getData();
+					iTypes.add(iType);
+					if (libraryIndexingInfo != null){
+						LinkedHashSet<String> iTypesBySystemVals;
+						if (iTypesBySystem.containsKey(libraryIndexingInfo.getSubdomain())){
+							iTypesBySystemVals = iTypesBySystem.get(libraryIndexingInfo.getSubdomain());
+						}else{
+							iTypesBySystemVals = new LinkedHashSet<String>();
+							iTypesBySystem.put(libraryIndexingInfo.getSubdomain(), iTypesBySystemVals);
+						}
+						
+						iTypesBySystemVals.add(iType);
+					}
+				}
+				
+				//Get Location Codes
+				locationCodes.add(locationCode);
+				//Get Location Codes By System
+				if (libraryIndexingInfo != null){
+					LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(libraryIndexingInfo.getSubdomain());
+					if (detailedLocationVals == null){
+						detailedLocationVals = new LinkedHashSet<String>();
+						locationsCodesBySystem.put(libraryIndexingInfo.getSubdomain(), detailedLocationVals);
+					}
+					detailedLocationVals.add(locationCode);
+				}
+				
+				//Get Location Codes By Location
+				if (locationIndexingInfo != null){
+					LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(locationIndexingInfo.getCode());
+					if (detailedLocationVals == null){
+						detailedLocationVals = new LinkedHashSet<String>();
+						locationsCodesBySystem.put(locationIndexingInfo.getCode(), detailedLocationVals);
+					}
+					detailedLocationVals.add(locationCode);
+				}
+				
+				//Map time since added (library & location)
+				Subfield dateAddedField = itemField.getSubfield('k');
+				if (dateAddedField != null){
+					String dateAddedStr = dateAddedField.getData();
+					try {
+						Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
+						LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
+						if (itemTimeSinceAdded.size() > timeSinceAdded.size()){
+							timeSinceAdded = itemTimeSinceAdded;
+						}
+						//Check library specific time since added
+						if (libraryIndexingInfo != null){
+							LinkedHashSet<String> timeSinceAddedBySystemVals = timeSinceAddedBySystem.get(libraryIndexingInfo.getSubdomain());
+							if (timeSinceAddedBySystemVals == null || itemTimeSinceAdded.size() > timeSinceAddedBySystemVals.size()){
+								timeSinceAddedBySystem.put(libraryIndexingInfo.getSubdomain(), itemTimeSinceAdded);
+							}
+						}
+						//Check location specific time since added
+						if (locationIndexingInfo != null){
+							LinkedHashSet<String> timeSinceAddedByLocationVals = timeSinceAddedByLocation.get(locationIndexingInfo.getCode());
+							if (timeSinceAddedByLocationVals == null || itemTimeSinceAdded.size() > timeSinceAddedByLocationVals.size()){
+								timeSinceAddedByLocation.put(locationIndexingInfo.getCode(), itemTimeSinceAdded);
+							}
+						}
+					} catch (ParseException e) {
+						logger.error("Error processing date added", e);
+					} 
+				}
+				
+				//Load availability (local, system, marmot) 
+				Subfield statusSubfield = itemField.getSubfield('g');
+				Subfield dueDateField = itemField.getSubfield('m');
+				Subfield icode2Subfield = itemField.getSubfield('o');
+				boolean available = false;
+				if (statusSubfield != null){
+					String status = statusSubfield.getData();
+					String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
+					if (availableStatus.indexOf(status.charAt(0)) >= 0){
+						if (dueDate.length() == 0){
+							if (icode2Subfield != null){
+								String icode2 = icode2Subfield.getData().toLowerCase().trim();
+								if (icode2.equals("n") || icode2.equals("d") || icode2.equals("x")){
+									logger.debug("Suppressing item because icode2 is " + icode2);
+									itemSuppressed = true;
+								}else{
+									available = true;
+									//The item is available
+									if (locationIndexingInfo != null){
+										availableAt.add(locationIndexingInfo.getFacetLabel());
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				//Add availability
+				if (!itemSuppressed && !manuallySuppressed){
+					if (available){
+						//logger.debug("item is available at " + locationCode);
+						//Loop through all libraries
+						for (String curSubdomain : marcProcessor.getLibrarySubdomains()){
+							LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curSubdomain);
+							if (existingAvailability != null && existingAvailability.size() == 2){
+								continue;
+							}
+							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
+							locationAvailability.add("Any Marmot Library");
+							if (libraryIndexingInfo != null & libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)){
+								if (libraryIndexingInfo.getLocations().size() == 1){
+									locationAvailability.add(libraryIndexingInfo.getFacetLabel());
+								}else{
+									locationAvailability.add("Any " + libraryIndexingInfo.getFacetLabel() + " Library");
+								}
+							}
+							if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()){
+								availableAtBySystemOrLocation.put(curSubdomain, locationAvailability);
+							}
+						}
+	
+						//Loop through all locations
+						for (String curCode : marcProcessor.getLocationCodes()){
+							LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curCode);
+							if (existingAvailability != null && existingAvailability.size() == 3){
+								//Can't get better availability
+								continue;
+							}
+							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
+							locationAvailability.add("Any Marmot Library");
+							if (libraryIndexingInfo != null & libraryIndexingInfo.hasCode(curCode)){
+								if (libraryIndexingInfo.getLocations().size() == 1){
+									locationAvailability.add(libraryIndexingInfo.getFacetLabel());
+								}else{
+									locationAvailability.add("Any " + libraryIndexingInfo.getFacetLabel() + " Library");
+								}
+							}
+							if (locationIndexingInfo != null && locationIndexingInfo.getCode().equalsIgnoreCase(curCode)){
+								locationAvailability.add(locationIndexingInfo.getFacetLabel());
+							}
+							if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()){
+								availableAtBySystemOrLocation.put(curCode, locationAvailability);
+							}
+						}
+					}
+					
+					LinkedHashSet<String> itemUsableByPTypes = marcProcessor.getCompatiblePTypes(iType, locationCode); 
+					usableByPTypes.addAll(itemUsableByPTypes);
+				}else{
+					//logger.debug("Item/Bib is suppressed.");
+				}
+			}
+			if (!itemSuppressed){
+				bibSuppressed = false;
+			}
+		}
+		if (manuallySuppressed){
+			bibSuppressed = true;
+		}
+		
+		addField(mappedFields, "bib_suppression", bibSuppressed ? "suppressed" : "notsuppressed");
+		addFields(mappedFields, "institution", null, librarySystems);
+		addFields(mappedFields, "building", null, locations);
+		addFields(mappedFields, "barcode", null, barcodes);
+		addFields(mappedFields, "itype", "itype_map", iTypes);
+		for (String subdomain : iTypesBySystem.keySet()){
+			LinkedHashSet<String> values = iTypesBySystem.get(subdomain);
+			addFields(mappedFields, "itype_" + subdomain, "itype_map", values);
+		}
+		addFields(mappedFields, "detailed_location", "detailed_location_map", locationCodes);
+		addFields(mappedFields, "available_at", null, availableAt);
+		for (String subdomain : locationsCodesBySystem.keySet()){
+			LinkedHashSet<String> values = locationsCodesBySystem.get(subdomain);
+			addFields(mappedFields, "detailed_location_" + subdomain, "detailed_location_map", values);
+			if (values.size() > 0){
+				addField(mappedFields, "lib_boost_" + subdomain, "500");
+			}
+		}
+		for (String location : locationsCodesByLocation.keySet()){
+			LinkedHashSet<String> values = locationsCodesByLocation.get(location);
+			//Add location boosting
+			if (values.size() > 0){
+				addField(mappedFields, "loc_boost_" + location, "750");
+			}
+		}
+		for (String code : availableAtBySystemOrLocation.keySet()){
+			addFields(mappedFields, "available_" + code, null, availableAtBySystemOrLocation.get(code));
+		}
+		addFields(mappedFields, "usable_by", null, usableByPTypes);
 	}
 
 	private void mapField(String fieldName, String[] fieldVal) {
@@ -1067,12 +1328,6 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getLocationCodes") && parms.length == 2){
 					retval = getLocationCodes(parms[0], parms[1]);
 					returnType = Set.class;
-				}else if (functionName.equals("getLibrarySystemBoost") && parms.length == 4){
-					retval = getLibrarySystemBoost(parms[0], parms[1], parms[2], parms[3]);
-					returnType = String.class;
-				}else if (functionName.equals("getLocationBoost") && parms.length == 3){
-					retval = getLocationBoost(parms[0], parms[1], parms[2]);
-					returnType = String.class;
 				}else if (functionName.equals("getLiteraryForm")){
 					retval = getLiteraryForm();
 					returnType = Set.class;
@@ -1103,9 +1358,6 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("checkSuppression") && parms.length == 4){
 					retval = checkSuppression(parms[0], parms[1], parms[2], parms[3]);
 					returnType = String.class;
-				}else if (functionName.equals("getAvailableLocations") && parms.length == 4){
-					retval = getAvailableLocations(parms[0], parms[1], parms[2], parms[3]);
-					returnType = Set.class;
 				}else if (functionName.equals("getAvailableLocationsMarmot")){
 					retval = getAvailableLocationsMarmot();
 					returnType = Set.class;
@@ -1118,9 +1370,6 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getLexileCode") ){
 					retval = getLexileCode();
 					returnType = String.class;
-				}else if (functionName.equals("getBarcode") && parms.length == 1){
-					retval = getBarcode(parms[0]);
-					returnType = Set.class;
 				}else if (functionName.equals("getLocalItemTypes") && parms.length == 4){
 					retval = getLocalItemTypes(parms[0], parms[1], parms[2], parms[3]);
 					returnType = Set.class;
@@ -2192,59 +2441,8 @@ public class MarcRecordDetails {
 		}
 	}
 
-	public String getLibrarySystemBoost(String locationSpecifier, String locationSpecifier2, String activeSystem, String branchCodes) {
-		Set<String> locationCodes = getLocationCodes(locationSpecifier, locationSpecifier2);
-
-		StringBuffer branchString = new StringBuffer();
-		for (String curBranch : locationCodes) {
-			branchString.append(curBranch + " ");
-		}
-		// System.out.println(activeSystem + " regex = (?:\\(\\d+\\))?(" +
-		// branchCodes + ")(\\s.*|$)");
-		boolean FoundMatch = false;
-		try {
-			Pattern Regex = Pattern.compile("(?:\\(\\d+\\))?(" + branchCodes + ")(\\s|$)");
-			Matcher RegexMatcher = Regex.matcher(branchString);
-			FoundMatch = RegexMatcher.find();
-		} catch (PatternSyntaxException ex) {
-			// Syntax error in the regular expression
-		}
-		if (FoundMatch) {
-			// System.out.println(activeSystem + " boost = 500");
-			return "500";
-		} else {
-			return "0";
-		}
-	}
-
 	static HashMap<String, Pattern> activeLocationPatterns = new HashMap<String, Pattern>();
-	public String getLocationBoost(String locationSpecifier, String locationSpecifier2, String activeLocation) {
-		Set<String> locationCodes = getLocationCodes(locationSpecifier, locationSpecifier2);
-
-		StringBuffer branchString = new StringBuffer();
-		for (String curBranch : locationCodes) {
-			branchString.append(curBranch + " ");
-		}
-
-		boolean FoundMatch = false;
-		try {
-			if (!activeLocationPatterns.containsKey(activeLocation)){
-				activeLocationPatterns.put(activeLocation, Pattern.compile("(?:\\(\\d+\\))?(" + activeLocation + ".*?)(\\s|$)"));
-			}
-			Pattern activeLocationPattern = activeLocationPatterns.get(activeLocation);
-			Matcher RegexMatcher = activeLocationPattern.matcher(branchString);
-			FoundMatch = RegexMatcher.find();
-		} catch (PatternSyntaxException ex) {
-			// Syntax error in the regular expression
-		}
-		if (FoundMatch) {
-			// System.out.println(activeLocation + " boost = 750");
-			return "750";
-		} else {
-			return "0";
-		}
-	}
-
+	
 	public Set<String> getFormatFromCollectionOrStd(String collectionFieldSpec, String returnFirst) {
 		String collection = getFirstFieldVal(collectionFieldSpec);
 		if (collection != null) {
@@ -2887,10 +3085,10 @@ public class MarcRecordDetails {
 		return null;
 	}
 
-	public Set<String> getTimeSinceAddedForDate(Date curDate) {
-		long timeDifferenceDays = (new Date().getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
+	public LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
+		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
-		Set<String> result = new LinkedHashSet<String>();
+		LinkedHashSet<String> result = new LinkedHashSet<String>();
 		if (timeDifferenceDays <= 1) {
 			result.add("Day");
 		}
@@ -3150,42 +3348,6 @@ public class MarcRecordDetails {
 		}
 	}
 
-	/**
-	 * Determine Record Format(s)
-	 * 
-	 * @param Record
-	 *          record
-	 * @return Set format of record
-	 */
-	public Set<String> getAvailableLocations(String itemField, String statusSubFieldIndicator, String availableStatus, String locationSubField) {
-		Set<String> result = new LinkedHashSet<String>();
-		@SuppressWarnings("unchecked")
-		List<VariableField> itemRecords = record.getVariableFields(itemField);
-		char statusSubFieldChar = statusSubFieldIndicator.charAt(0);
-		char locationSubFieldChar = locationSubField.charAt(0);
-		for (int i = 0; i < itemRecords.size(); i++) {
-			Object field = itemRecords.get(i);
-			if (field instanceof DataField) {
-				DataField dataField = (DataField) field;
-				// Get subfield u (status)
-				Subfield statusSubfield = dataField.getSubfield(statusSubFieldChar);
-				if (statusSubfield != null) {
-					String status = statusSubfield.getData().trim();
-					if (status.equals("online")) {
-						// If the tile is available online, force the location to be online
-						result.add("online");
-					} else if (status.matches(availableStatus)) {
-						// If the book is checked in, show it as available
-						// Get subfield m (location)
-						Subfield subfieldM = dataField.getSubfield(locationSubFieldChar);
-						result.add(subfieldM.getData().toLowerCase());
-					}
-				}
-			}
-		}
-		return result;
-	}
-	
 	/**
 	 * Determine Available Locations for Marmot
 	 * 
@@ -3738,7 +3900,7 @@ public class MarcRecordDetails {
 				logger.debug("Added " + getId() + " as an alternate id");
 				altIds.add(getId());
 				if (getExternalId() != null){
-					logger.debug("Added " + getExternalId() + " as an alternate id");
+					//logger.debug("Added " + getExternalId() + " as an alternate id");
 					altIds.add( getExternalId());
 				}
 				doc.addField("id_alt", altIds);
@@ -3801,22 +3963,6 @@ public class MarcRecordDetails {
 	}
 	
 	Pattern digitPattern = Pattern.compile("^\\d+$");
-	public Set<String> getBarcode(String fieldSpec){
-		Set<String> result = new LinkedHashSet<String>();
-		// Loop through the specified MARC fields:
-		Set<String> input = getFieldList(record, fieldSpec);
-		Iterator<String> iter = input.iterator();
-		while (iter.hasNext()) {
-			// Get the current string to work on:
-			String current = iter.next();
-
-			// Make sure the barcode is numeric since we also get call numbers in the barcode field.
-			if (digitPattern.matcher(current).matches()) {
-				result.add(current);
-			}
-		}
-		return result;
-	}
 	
 	private String recordId = null;
 	public String getMillenniumId(String fieldSpec){

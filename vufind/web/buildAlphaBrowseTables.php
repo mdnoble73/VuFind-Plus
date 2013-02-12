@@ -9,7 +9,11 @@ if (!isset($_REQUEST['subdomain'])){
 }
 ini_set('display_errors', true);
 error_reporting(E_ALL & ~E_DEPRECATED);
-$subdomain = $_REQUEST['subdomain'];
+$subdomain = strip_tags($_REQUEST['subdomain']);
+if (strpos($subdomain, ' ')){
+	echo("Invalid subdomain");
+}
+$subdomain = mysql_escape_string($subdomain);
 
 runSQLStatement(
 	"CREATE TABLE `title_browse_scoped_results_library_{$subdomain}` (

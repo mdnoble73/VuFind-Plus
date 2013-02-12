@@ -634,7 +634,7 @@ class Library extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupAdvancedFacet('lexile_code', 'Lexile COde', true);
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

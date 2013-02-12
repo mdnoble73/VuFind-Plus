@@ -56,6 +56,7 @@ class SideFacets implements RecommendationInterface
 		}else{
 			$searchLibrary = Library::getActiveLibrary();
 			$searchLocation = Location::getActiveLocation();
+			$userLocation = Location::getUserHomeLocation();
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 			if ($hasSearchLocationFacets){
@@ -77,8 +78,23 @@ class SideFacets implements RecommendationInterface
 						$facetName = 'itype_' . $searchLibrary->subdomain;
 					}elseif ($facet->facetName == 'detailed_location'){
 						$facetName = 'detailed_location_' . $searchLibrary->subdomain;
+					}elseif ($facet->facetName == 'available_at'){
+						$facetName = 'available_' . $searchLibrary->subdomain;
 					}
 				}
+				if (isset($userLocation)){
+					if ($facet->facetName == 'available_at'){
+						$facetName = 'available_' . $userLocation->code;
+					}
+				}
+				if (isset($searchLocation)){
+					if ($facet->facetName == 'time_since_added'){
+						$facetName = 'local_time_since_added_' . $searchLocation->code;
+					}elseif ($facet->facetName == 'available_at'){
+						$facetName = 'available_' . $searchLocation->code;
+					}
+				}
+
 				//Figure out if the facet should be included
 				if ($mainSection == 'Results'){
 					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){

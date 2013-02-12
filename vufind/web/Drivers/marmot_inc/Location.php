@@ -297,23 +297,23 @@ class Location extends DB_DataObject
 		Location::$activeLocation = $location;
 	}
 
-	private $userHomeLocation = 'unset';
-	function getUserHomeLocation(){
-		if (isset($this->userHomeLocation) && $this->userHomeLocation != 'unset') return $this->userHomeLocation;
+	private static $userHomeLocation = 'unset';
+	static function getUserHomeLocation(){
+		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 
 		//default value
-		$this->userHomeLocation = null;
+		Location::$userHomeLocation = null;
 
 		global $user;
 		if (isset($user) && $user != false){
 			$homeLocation = new Location();
 			$homeLocation->locationId = $user->homeLocationId;
 			if ($homeLocation->find(true)){
-				$this->userHomeLocation = clone($homeLocation);
+				Location::$userHomeLocation = clone($homeLocation);
 			}
 		}
 
-		return $this->userHomeLocation;
+		return Location::$userHomeLocation;
 	}
 
 
@@ -766,7 +766,7 @@ class Location extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupAdvancedFacet('lexile_code', 'Lexile COde', true);
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

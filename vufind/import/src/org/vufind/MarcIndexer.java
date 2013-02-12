@@ -107,7 +107,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 				results.incRecordsProcessed();
 			}
 			if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
-				//logger.info("Skipping record because it hasn't changed");
+				//logger.info("MarcProcessor Skipping record because it hasn't changed");
 				results.incSkipped();
 				return true;
 			}
