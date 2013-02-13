@@ -366,6 +366,7 @@ public class MarcRecordDetails {
 		for (String code : availableAtBySystemOrLocation.keySet()){
 			addFields(mappedFields, "available_" + code, null, availableAtBySystemOrLocation.get(code));
 		}
+		//logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
 	}
 

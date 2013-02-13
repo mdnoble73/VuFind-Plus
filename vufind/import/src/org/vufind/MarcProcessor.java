@@ -103,6 +103,7 @@ public class MarcProcessor {
 	
 	private HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
+	private ArrayList<Long> pTypes = new ArrayList<Long>();
 	
 	private boolean useEContentDetectionSettings = true;
 	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
@@ -350,6 +351,45 @@ public class MarcProcessor {
 		String lexileExportPath = configIni.get("Reindex", "lexileExportPath");
 		if (lexileExportPath != null && lexileExportPath.length() > 0){
 			loadLexileInfo(lexileExportPath);
+		}
+		
+		//Load loan rules
+		try {
+			PreparedStatement pTypesStmt = vufindConn.prepareStatement("SELECT pType from ptype", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet pTypesRS = pTypesStmt.executeQuery();
+			while (pTypesRS.next()) {
+				pTypes.add(pTypesRS.getLong("pType"));
+			}
+			
+			PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet loanRulesRS = loanRuleStmt.executeQuery();
+			while (loanRulesRS.next()) {
+				LoanRule loanRule = new LoanRule();
+				loanRule.setLoanRuleId(loanRulesRS.getLong("loanRuleId"));
+				loanRule.setName(loanRulesRS.getString("name"));
+				loanRule.setHoldable(loanRulesRS.getBoolean("holdable"));
+				
+				loanRules.put(loanRule.getLoanRuleId(), loanRule);
+			}
+			logger.debug("Loaded " + loanRules.size() + " loan rules");
+			
+			PreparedStatement loanRuleDeterminersStmt = vufindConn.prepareStatement("SELECT * from loan_rule_determiners where active = 1 order by rowNumber DESC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet loanRuleDeterminersRS = loanRuleDeterminersStmt.executeQuery();
+			while (loanRuleDeterminersRS.next()) {
+				LoanRuleDeterminer loanRuleDeterminer = new LoanRuleDeterminer();
+				loanRuleDeterminer.setLocation(loanRuleDeterminersRS.getString("location"));
+				loanRuleDeterminer.setPatronType(loanRuleDeterminersRS.getString("patronType"));
+				loanRuleDeterminer.setItemType(loanRuleDeterminersRS.getString("itemType"));
+				loanRuleDeterminer.setLoanRuleId(loanRuleDeterminersRS.getLong("loanRuleId"));
+				loanRuleDeterminer.setRowNumber(loanRuleDeterminersRS.getLong("rowNumber"));
+				
+				loanRuleDeterminers.add(loanRuleDeterminer);
+			}
+			
+			logger.debug("Loaded " + loanRuleDeterminers.size() + " loan rule determiner");
+		} catch (SQLException e) {
+			logger.error("Unable to load loan rules", e);
+			return false;
 		}
 
 		// Setup additional statements
@@ -958,8 +998,42 @@ public class MarcProcessor {
 		return true;
 	}
 
+	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<String, LinkedHashSet<String>>();
 	public LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
+		String cacheKey = iType + ":" + locationCode;
+		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
+			return ptypesByItypeAndLocation.get(cacheKey);
+		}
+		//logger.debug("getCompatiblePTypes for " + cacheKey);
 		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		Long iTypeLong = Long.parseLong(iType);
+		//Loop through all patron types to see if the item is holdable
+		for (Long pType : pTypes){
+			//logger.debug("  Checking pType " + pType);
+			//Loop through the loan rules to see if this itype can be used based on the location code
+			for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers){
+				//logger.debug("   Checking determiner " + curDeterminer.getRowNumber() + " " + curDeterminer.getLocation());
+				//Make sure the location matchs
+				if (curDeterminer.matchesLocation(locationCode)){
+					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
+					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)){
+						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
+						if (curDeterminer.getPatronType().equals("999") || curDeterminer.getPatronTypes().contains(pType)){
+							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
+							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
+							if (loanRule.getHoldable().equals(Boolean.TRUE)){
+								result.add(pType.toString());
+							}
+							//We got a match, stop processig
+							//logger.debug("    using determiner " + curDeterminer.getRowNumber() + " for ptype " + pType);
+							break;
+						}
+					}
+				}
+			}
+		}
+		//logger.debug("  " + result.size() + " ptypes can use this");
+		ptypesByItypeAndLocation.put(cacheKey, result);
 		return result;
 	}
 

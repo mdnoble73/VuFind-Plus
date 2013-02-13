@@ -1043,6 +1043,12 @@ class Solr implements IndexEngine {
 				$boostFactors[] = "loc_boost_{$searchLocation->code}";
 			}
 
+			//Remove any titles that we can't use
+			global $user;
+			if ($user){
+
+			}
+
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
 				if (count($boostFactors) > 0){
@@ -1069,6 +1075,30 @@ class Solr implements IndexEngine {
 			if (!isset($configArray['Index']['ignoreBibSuppression']) || $configArray['Index']['ignoreBibSuppression'] == false){
 				$filter[] = '-bib_suppression:suppressed';
 			}
+			//Only include titles that the user has access to based on pType
+			global $user;
+			$pType = 0;
+			$owningSystem = '';
+			if ($user){
+				$pType = $user->patronType;
+			}elseif (isset($searchLocation) && $searchLocation->defaultPType > 0){
+				$pType = $searchLocation->defaultPType;
+				$owningSystem = $searchLibrary->facetLabel;
+			}elseif (isset($searchLibrary) && $searchLibrary->defaultPType > 0){
+				$pType = $searchLibrary->defaultPType;
+				$owningSystem = $searchLibrary->facetLabel;
+			}
+			if ($pType > 0){
+				//echo("Filtering for patron type $pType");
+
+				if (strlen($owningSystem) > 0){
+					$filter[] = "(usable_by:$pType OR institution:\"$owningSystem\")";
+				}else{
+					$filter[] = 'usable_by:'.$pType;
+				}
+			}
+
+
 			$blacklistRecords = null;
 			if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
 				$blacklistRecords = $searchLocation->recordsToBlackList;
