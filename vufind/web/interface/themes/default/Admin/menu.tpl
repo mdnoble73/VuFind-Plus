@@ -62,7 +62,6 @@
 		<div id="epubMenu">
 			<div class="adminMenuLink{if $action == "ListEPub"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Search/Results?type=Keyword&shard[]=eContent&lookfor=">Search Existing eContent</a></div>
 			<div class="adminMenuLink{if $action == "NewEPub"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EcontentRecord/Edit">New eContent</a></div>
-			<div class="adminMenuLink{if $action == "RecordDetectionSettings"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/RecordDetectionSettings">Automatic Import Settings</a></div>
 			<div class="adminMenuLink{if $action == "ImportMarc"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/ImportEContentMarc">Import Marc Records</a></div>
 			<div class="adminMenuLink{if $action == "MarcImportLog"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/EContent/MarcImportLog">Marc Record Import Log</a></div>
 			{if $user->hasRole('epubAdmin')}

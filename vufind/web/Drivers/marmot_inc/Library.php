@@ -15,6 +15,7 @@ class Library extends DB_DataObject
 	public $subdomain; 				//varchar(15)
 	public $displayName; 			//varchar(50)
 	public $abbreviatedDisplayName; 			//varchar(50)
+	public $ilsCode;
 	public $themeName; 				//varchar(15)
 	public $searchesFile;        //varchar(15)
 	public $facetFile; 				//varchar(15)
@@ -150,6 +151,7 @@ class Library extends DB_DataObject
 			)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
+				'ilsCode' => array('property'=>'ilsCode', 'type'=>'text', 'label'=>'ILS Code', 'description'=>'The location code that all items for this location start with.', 'size'=>'4', 'hideInLists' => false,),
 				'scope'  => array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings for the user.', 'size'=>'4', 'hideInLists' => true,),
 				'useScope'  => array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true,),
 				'defaultPType'  => array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.'),

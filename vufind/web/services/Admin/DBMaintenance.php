@@ -330,6 +330,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` DROP `showOtherFormatCategory`;",
 				),
 			),
+			'library_28' => array(
+				'title' => 'Library 28',
+				'description' => 'Add ilsCode.',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `ilsCode` VARCHAR(5) DEFAULT '';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',

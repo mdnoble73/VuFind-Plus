@@ -566,6 +566,15 @@ class DBMaintenanceEContent extends Admin {
 			),
 		),
 
+		'econtent_record_detection_settings_remove' => array(
+			'title' => 'EContent Record Detection Settings Removal',
+			'description' => 'Remove record detection settings since we can now use 037 field or item based field.',
+			'dependencies' => array(),
+			'sql' => array(
+				"DROP TABLE IF EXISTS econtent_record_detection_settings;",
+			),
+		),
+
 		'econtent_availability' => array(
 			'title' => 'EContent Availability Update',
 			'description' => 'Update eContent titles to separate availability from items',
