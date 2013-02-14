@@ -749,6 +749,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				
 				//Check to see if the record already exists
 				String ilsId = recordInfo.getId();
+				//Make sure to map the record before we change id based on eContent record id!
+				recordInfo.mapRecord("ExtractEContent");
 				boolean importRecordIntoDatabase = true;
 				long eContentRecordId = -1;
 				if (ilsId.length() == 0){
@@ -832,7 +834,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
 		}
 		if (itemsAdded){
-			logger.info("Items added successfully.");
+			//logger.info("Items added successfully, reindexing. " + recordInfo.geteContentRecordId() + " " + recordInfo.getId());
 			reindexRecord(recordInfo, eContentRecordId, logger);
 		};
 	}
@@ -851,10 +853,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecord.setString(curField++, recordInfo.getDescription());
 		updateEContentRecord.setString(curField++, Util.getCRSeparatedString(recordInfo.getMappedField("contents")));
 		HashMap<String, String> subjects = recordInfo.getBrowseSubjects(false);
-		//logger.debug("Found " + subjects.size() + " subjects");
-		for (String subject : subjects.values()){
-			logger.debug(subject);
-		}
 		updateEContentRecord.setString(curField++, Util.getCRSeparatedString(subjects.values()));
 		updateEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("language"));
 		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("publisher")));

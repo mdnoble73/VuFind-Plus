@@ -96,7 +96,7 @@ public class MarcRecordDetails {
 	 * 
 	 * @return
 	 */
-	private boolean mapRecord(String source) {
+	public boolean mapRecord(String source) {
 		if (allFieldsMapped) return true;
 		allFieldsMapped = true;
 
@@ -156,10 +156,12 @@ public class MarcRecordDetails {
 		Set<String> availableAt = new LinkedHashSet<String>();
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
-		boolean bibSuppressed = true;
+		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
+		boolean allItemsSuppressed = true;
 		//Check the 907c field for manual suppresion
 		String manualSuppression = getFirstFieldVal("907c");
+		int numItems = itemFields.size();
 		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")){
 			//logger.debug("The record is manually suppressed.");
 			manuallySuppressed = true;
@@ -357,10 +359,14 @@ public class MarcRecordDetails {
 				}
 			}
 			if (!itemSuppressed){
-				bibSuppressed = false;
+				allItemsSuppressed = false;
 			}
 		}
 		if (manuallySuppressed){
+			logger.debug("Suppressing bib due to manual suppression");
+			bibSuppressed = true;
+		}else if (allItemsSuppressed && numItems > 0){
+			logger.debug("Suppressing bib because all items are suppressed.");
 			bibSuppressed = true;
 		}
 		
@@ -1717,7 +1723,9 @@ public class MarcRecordDetails {
 		if (idField instanceof String) {
 			return (String) idField;
 		} else if (idField instanceof Set) {
-			return (String) (((Set<String>) mappedFields).iterator().next());
+			Set<String> idFieldSet = (Set<String>)idField;
+			logger.warn("Warning, there are multiple ids " + idFieldSet.size() + " for the record");
+			return idFieldSet.iterator().next();
 		} else {
 			return null;
 		}
@@ -3892,10 +3900,13 @@ public class MarcRecordDetails {
 			addFields(mappedFields, "institution", null, buildings);
 			addFields(mappedFields, "building", null, buildings);
 		}
+		//mappedFields.remove("format");
 		addFields(mappedFields, "format", "format_map", formats);
 		if (formats.size() > 0){
 			String firstFormat = formats.iterator().next();
+			mappedFields.remove("format_category");
 			addField(mappedFields, "format_category", "format_category_map", firstFormat);
+			mappedFields.remove("format_boost");
 			addField(mappedFields, "format_boost", "format_boost_map", firstFormat);
 		}
 		//Load device compatibility
