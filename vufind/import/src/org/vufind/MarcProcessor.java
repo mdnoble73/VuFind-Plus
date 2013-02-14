@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.econtent.DetectionSettings;
 import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
@@ -105,8 +104,6 @@ public class MarcProcessor {
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
 	private ArrayList<Long> pTypes = new ArrayList<Long>();
 	
-	private boolean useEContentDetectionSettings = true;
-	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
 	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
 	
 	private String												itemTag;
@@ -227,34 +224,6 @@ public class MarcProcessor {
 			return false;
 		}
 		
-		String useEContentDetectionSettingsStr = configIni.get("Reindex", "useEContentDetectionSettings");
-		if (useEContentDetectionSettingsStr != null){
-			useEContentDetectionSettings = Boolean.parseBoolean(useEContentDetectionSettingsStr);
-		}
-
-		// Load detection settings to determine if a record is eContent.
-		if (useEContentDetectionSettings){
-			logger.info("Loading record detection settings");
-			ReindexProcess.addNoteToCronLog("Loading record detection settings");
-			try {
-				PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
-				while (eContentDetectionSettingsRS.next()) {
-					DetectionSettings settings = new DetectionSettings();
-					settings.setFieldSpec(eContentDetectionSettingsRS.getString("fieldSpec"));
-					settings.setValueToMatch(eContentDetectionSettingsRS.getString("valueToMatch"));
-					settings.setSource(eContentDetectionSettingsRS.getString("source"));
-					settings.setAccessType(eContentDetectionSettingsRS.getString("accessType"));
-					settings.setItem_type(eContentDetectionSettingsRS.getString("item_type"));
-					settings.setAdd856FieldsAsExternalLinks(eContentDetectionSettingsRS.getBoolean("add856FieldsAsExternalLinks"));
-					detectionSettings.add(settings);
-				}
-			} catch (SQLException e) {
-				logger.error("Unable to load detection settings for eContent.", e);
-				return false;
-			}
-		}
-
 		// Load ratings for print and eContent titles
 		logger.info("Loading ratings");
 		ReindexProcess.addNoteToCronLog("Loading ratings");
@@ -284,19 +253,21 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, defaultLibraryFacet, eContentLinkRules, overdriveAdvantageProductsKey from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, defaultLibraryFacet, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
 				Long libraryId = librarySystemFacetRS.getLong("libraryId");
 				String facetLabel = librarySystemFacetRS.getString("facetLabel");
 				String defaultLibraryFacet = librarySystemFacetRS.getString("defaultLibraryFacet");
 				String librarySubdomain = librarySystemFacetRS.getString("subdomain");
+				String ilsCode = librarySystemFacetRS.getString("ilsCode");
 				LibraryIndexingInfo libraryInfo = new LibraryIndexingInfo();
 				librarySubdomains.add(librarySubdomain);
 				libraryInfo.setLibraryId(libraryId);
 				libraryInfo.setSubdomain(librarySubdomain);
 				libraryInfo.setScoped(defaultLibraryFacet.length() > 0);
 				libraryInfo.setFacetLabel(facetLabel);
+				libraryInfo.setIlsCode(ilsCode);
 				libraryIndexingInfo.put(libraryId, libraryInfo);
 				
 				librarySystemFacets.put(facetLabel, libraryId);
@@ -447,10 +418,6 @@ public class MarcProcessor {
 
 	public Map<Long, Float> getEcontentRatings() {
 		return econtentRatings;
-	}
-
-	public ArrayList<DetectionSettings> getDetectionSettings() {
-		return detectionSettings;
 	}
 
 	/**
@@ -1035,6 +1002,18 @@ public class MarcProcessor {
 		//logger.debug("  " + result.size() + " ptypes can use this");
 		ptypesByItypeAndLocation.put(cacheKey, result);
 		return result;
+	}
+
+	private HashSet<String> allPtypes;
+	public Set<String> getAllPTypes() {
+		if (allPtypes != null){
+			return allPtypes;
+		}
+		allPtypes = new LinkedHashSet<String>();
+		for (Long pType : pTypes){
+			allPtypes.add(pType.toString());
+		}
+		return allPtypes;
 	}
 
 }

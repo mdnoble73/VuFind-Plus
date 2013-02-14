@@ -7,6 +7,7 @@ public class LibraryIndexingInfo {
 	private String subdomain;
 	private boolean scoped;
 	private String facetLabel;
+	private String ilsCode;
 	private HashMap<Long, LocationIndexingInfo> locations = new HashMap<Long, LocationIndexingInfo>();
 	public Long getLibraryId() {
 		return libraryId;
@@ -55,5 +56,18 @@ public class LibraryIndexingInfo {
 		}
 		return false;
 	}
+	public void setIlsCode(String ilsCode) {
+		this.ilsCode = ilsCode;
+		LocationIndexingInfo defaultIndexingInfo = new LocationIndexingInfo();
+		defaultIndexingInfo.setCode(ilsCode);
+		defaultIndexingInfo.setFacetLabel(facetLabel);
+		defaultIndexingInfo.setLibraryId(libraryId);
+		defaultIndexingInfo.setScoped(scoped);
+		addLocation(defaultIndexingInfo);
+	}
+	public String getIlsCode() {
+		return ilsCode;
+	}
+	
 	
 }

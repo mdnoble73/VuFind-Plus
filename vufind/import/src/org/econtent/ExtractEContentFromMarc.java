@@ -1289,6 +1289,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			ResultSet eContentAvailabilityRS = getAvailabilityForEContentRecordStmt.executeQuery();
 			
 			SolrInputDocument doc = recordInfo.getEContentSolrDocument(eContentRecordId, eContentRecordRS, eContentItemsRS, eContentAvailabilityRS);
+			//SolrInputDocument doc = recordInfo.getSolrDocument();
 			if (doc != null){
 				//Post to the Solr instance
 				//logger.debug("Added document to solr");

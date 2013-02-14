@@ -107,8 +107,34 @@ public class MarcRecordDetails {
 		}
 		
 		mapItemBasedFields();
+		if (isEContent()){
+			mapEContentFields();
+		}
 		
 		return true;
+	}
+
+	private void mapEContentFields() {
+		//Detection based info
+		Set<String> accessTypes = new LinkedHashSet<String>();
+		Set<String> sources = new LinkedHashSet<String>();
+		boolean overridePTypes = false;
+		for (DetectionSettings detectionSetting : eContentDetectionSettings.values()){
+			accessTypes.add(detectionSetting.getAccessType());
+			sources.add(detectionSetting.getSource());
+			
+			//Check to see if we need to override ptypes that can access the content
+			if (detectionSetting.getAccessType().equalsIgnoreCase("acs") || detectionSetting.getAccessType().equalsIgnoreCase("free") || detectionSetting.getSource().equals("OverDrive")){
+				overridePTypes = true;
+			}
+		}
+		if (overridePTypes){
+			Set<String> pTypes = marcProcessor.getAllPTypes();
+			addFields(mappedFields, "usable_by", null, pTypes);
+		}
+		addFields(mappedFields, "econtent_source", null,  sources);
+		addFields(mappedFields, "econtent_protection_type", "econtent_protection_type_map", accessTypes);
+		
 	}
 
 	private void mapItemBasedFields() {
@@ -261,7 +287,7 @@ public class MarcRecordDetails {
 							if (icode2Subfield != null){
 								String icode2 = icode2Subfield.getData().toLowerCase().trim();
 								if (icode2.equals("n") || icode2.equals("d") || icode2.equals("x")){
-									logger.debug("Suppressing item because icode2 is " + icode2);
+									//logger.debug("Suppressing item because icode2 is " + icode2);
 									itemSuppressed = true;
 								}else{
 									available = true;
@@ -1380,6 +1406,9 @@ public class MarcRecordDetails {
 				}else if (functionName.equals("getMillenniumId") && parms.length == 1){
 					retval = getMillenniumId(parms[0]);
 					returnType = String.class;
+				}else if (functionName.equals("getRecordType")){
+					retval = getRecordType();
+					returnType = String.class;
 				}else{
 					logger.debug("Using reflection to invoke custom method " + functionName);
 					method = marcProcessor.getCustomMethodMap().get(functionName);
@@ -1407,7 +1436,7 @@ public class MarcRecordDetails {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
 			// e.getCause());
-			logger.error("NoSuchMethodException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause());
+			logger.error("NoSuchMethodException while indexing " + indexField + " for record " + (id != null ? id : "") + " -- " + e.getCause(), e);
 		} catch (IllegalArgumentException e) {
 			// e.printStackTrace();
 			// logger.error(record.getControlNumber() + " " + indexField + " " +
@@ -1431,6 +1460,14 @@ public class MarcRecordDetails {
 		if (indexType.startsWith("customDeleteRecordIfFieldEmpty")) deleteIfEmpty = true;
 		boolean result = finishCustomOrScript(indexMap, indexField, mapName, returnType, retval, deleteIfEmpty);
 		if (result == true) throw new SolrMarcIndexerException(SolrMarcIndexerException.DELETE);
+	}
+
+	public String getRecordType() {
+		if (isEContent()){
+			return "econtentRecord";
+		}else{
+			return "marc";
+		}
 	}
 
 	/**
@@ -3473,7 +3510,28 @@ public class MarcRecordDetails {
 		if (isEContent == null) {
 			//logger.debug("Checking if record is eContent");
 			isEContent = false;
-			// Check the 037 field first
+			// Check the items 
+			@SuppressWarnings("unchecked")
+			List<DataField> itemFields = (List<DataField>)record.getVariableFields("989");
+			for (DataField itemField : itemFields){
+				Subfield subFieldW = itemField.getSubfield('w');
+				if (subFieldW != null){
+					String[] parts = subFieldW.getData().split(":");
+					if (parts.length > 0){
+						String source = parts[0].trim();
+						String protectionType = parts[1].trim();
+						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
+						if (tempDetectionSettings != null){
+							eContentDetectionSettings.put(source, tempDetectionSettings);
+							isEContent = true;
+						}
+					}
+				}
+			}
+			if (isEContent){
+				return isEContent;
+			}
+			// Check the 037 second
 			@SuppressWarnings("unchecked")
 			List<DataField> oh37Fields = (List<DataField>)record.getVariableFields("037");
 			for (DataField oh37 : oh37Fields){
@@ -3482,79 +3540,42 @@ public class MarcRecordDetails {
 				if (subFieldB != null && subFieldC != null){
 					String subfieldBVal = subFieldB.getData().trim();
 					String subfieldCVal = subFieldC.getData().trim();
-					DetectionSettings tempDetectionSettings = new DetectionSettings();
-					//Normalize Overdrive since we do specific things with that. 
-					if (subfieldBVal.matches("(?i)overdrive.*")){
-						subfieldBVal = "OverDrive";
-					}
-					tempDetectionSettings.setSource(subfieldBVal);
-					if (subfieldCVal.equalsIgnoreCase("External")){
-						tempDetectionSettings.setAccessType("external");
-						tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
-						tempDetectionSettings.setItem_type("externalLink");
-						isEContent = true;
-					}else if (subfieldCVal.equalsIgnoreCase("DRM")){
-						tempDetectionSettings.setAccessType("acs");
-						isEContent = true;
-					}else if (subfieldCVal.equalsIgnoreCase("Public Domain")){
-						tempDetectionSettings.setAccessType("free");
-						isEContent = true;
-					}else if (subfieldCVal.equalsIgnoreCase("Single Use")){
-						tempDetectionSettings.setAccessType("singleUse");
-						isEContent = true;
-					}
-					if (isEContent){
+					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(subfieldBVal, subfieldCVal);
+					if (tempDetectionSettings != null){
 						eContentDetectionSettings.put(subfieldBVal, tempDetectionSettings);
+						isEContent = true;
 						return isEContent;
 					}
 				}
 			}
 			
-			// Treat the record as eContent if the records is:
-			// 1) It is already in the eContent database
-			// 2) It matches criteria in EContentRecordDetectionSettings
-			for (DetectionSettings curSettings : marcProcessor.getDetectionSettings()) {
-				Set<String> fieldData = getFieldList(curSettings.getFieldSpec());
-				boolean isMatch = false;
-				// logger.debug("Found " + fieldData.size() + " fields matching " +
-				// curSettings.getFieldSpec());
-				for (String curField : fieldData) {
-					// logger.debug("Testing if value " + curField.toLowerCase() +
-					// " matches " + curSettings.getValueToMatch());
-					isMatch = ((String) curField.toLowerCase()).matches(".*" + curSettings.getValueToMatch().toLowerCase() + ".*");
-					if (isMatch) break;
-				}
-				if (isMatch) {
-					DetectionSettings detectionSettingsForSource = eContentDetectionSettings.get(curSettings.getSource());
-					if (detectionSettingsForSource == null){
-						detectionSettingsForSource = curSettings;
-					}
-					
-					if (detectionSettingsForSource.getAccessType().equalsIgnoreCase("external")){
-						//if the record is eContent and the protection type is external, make sure we get at least one url
-						try {
-							ArrayList<LibrarySpecificLink> urls = this.getSourceUrls();
-							if (urls.size() == 0){
-								logger.debug("Marking record as not eContent because we did not find any source urls for the external content");
-								isEContent = false;
-								isMatch = false;
-							}
-						} catch (IOException e) {
-							logger.error("Error getting source urls, not procesing as eContent");
-							isEContent = false;
-							isMatch = false;
-						}
-					}
-					isEContent = isMatch;
-					if (isMatch){
-						eContentDetectionSettings.put(curSettings.getSource(), curSettings);
-					}
-				}
-			}
 			return isEContent;
 		} else {
 			return isEContent;
 		}
+	}
+
+	private DetectionSettings getDetectionSettingsForSourceAndProtectionType(String source, String protectionType) {
+		DetectionSettings tempDetectionSettings = new DetectionSettings();
+		//Normalize Overdrive since we do specific things with that. 
+		if (source.matches("(?i)overdrive.*")){
+			source = "OverDrive";
+		}
+		tempDetectionSettings.setSource(source);
+		if (protectionType.equalsIgnoreCase("External")){
+			tempDetectionSettings.setAccessType("external");
+			tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
+			tempDetectionSettings.setItem_type("externalLink");
+		}else if (protectionType.equalsIgnoreCase("DRM")){
+			tempDetectionSettings.setAccessType("acs");
+		}else if (protectionType.equalsIgnoreCase("Public Domain")){
+			tempDetectionSettings.setAccessType("free");
+		}else if (protectionType.equalsIgnoreCase("Single Use")){
+			tempDetectionSettings.setAccessType("singleUse");
+		}else{
+			return null;
+		}
+		return tempDetectionSettings;
 	}
 
 	public HashMap<String, DetectionSettings> getEContentDetectionSettings() {
@@ -3789,7 +3810,6 @@ public class MarcRecordDetails {
 		
 		//Process availability and items
 		eContentInfo.next();
-		String accessType = eContentInfo.getString("accessType");
 		String source = eContentInfo.getString("source");
 		int availableCopiesRecord = eContentInfo.getInt("availableCopies");
 		int itemLevelOwnership = eContentInfo.getInt("itemLevelOwnership");
@@ -3879,9 +3899,6 @@ public class MarcRecordDetails {
 			addField(mappedFields, "format_boost", "format_boost_map", firstFormat);
 		}
 		//Load device compatibility
-		addFields(mappedFields, "econtent_device", "device_compatibility_map", formats);
-		addField(mappedFields, "econtent_source", source);
-		addField(mappedFields, "econtent_protection_type", "econtent_protection_type_map", accessType);
 		addField(mappedFields, "num_holdings", Integer.toString(numHoldings));
 		//TODO: Index eContent Text? econtentText
 		//logger.debug("The record is available at " + availableAt.size() + " libraries");
@@ -3890,22 +3907,12 @@ public class MarcRecordDetails {
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
 		addFields(mappedFields, "rating_facet", null, getEContentRatingFacet(econtentRecordId));
 		
-		addField(mappedFields, "recordtype", "econtentRecord");
+		//addField(mappedFields, "recordtype", "econtentRecord");
 		
 		HashMap <String, Object> allFields = getFields("getEContentSolrDocument");
 		for (String fieldName : allFields.keySet()){
 			Object value = allFields.get(fieldName);
-			if (fieldName.equals("id")){
-				doc.addField(fieldName, getFullId());
-				Set<String> altIds = new LinkedHashSet<String>();
-				logger.debug("Added " + getId() + " as an alternate id");
-				altIds.add(getId());
-				if (getExternalId() != null){
-					//logger.debug("Added " + getExternalId() + " as an alternate id");
-					altIds.add( getExternalId());
-				}
-				doc.addField("id_alt", altIds);
-			}else if (fieldName.equals("keywords") || fieldName.equals("allfields")){
+			if (fieldName.equals("keywords") || fieldName.equals("allfields")){
 				//Add formats to keywords and allfields
 				String existingValues = (String)value;
 				Object existingFormatsObj = allFields.get("format");
@@ -3922,6 +3929,9 @@ public class MarcRecordDetails {
 				}
 				//Add format category to keywords and allfields
 				Object formatCategoriesObj = allFields.get("format_category");
+				if (formatCategoriesObj == null){
+					formatCategoriesObj = new LinkedHashSet<String>();
+				}
 				Set<String> formatCategories;
 				if (formatCategoriesObj instanceof String){
 					formatCategories = new LinkedHashSet<String>();
@@ -3993,5 +4003,9 @@ public class MarcRecordDetails {
 
 	public void seteContentRecordId(Long eContentRecordId) {
 		this.eContentRecordId = eContentRecordId;
+		String curId = (String)mappedFields.get("id");
+		mappedFields.remove("id");
+		addField(mappedFields, "id", eContentRecordId.toString());
+		addField(mappedFields, "id_alt", curId);
 	}
 }
