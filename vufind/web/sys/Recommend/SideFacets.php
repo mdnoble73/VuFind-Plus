@@ -41,6 +41,7 @@ class SideFacets implements RecommendationInterface
 	 * @param   string  $params         Additional settings from the searches.ini.
 	 */
 	public function __construct($searchObject, $params) {
+		global $configArray;
 		// Save the passed-in SearchObject:
 		$this->searchObject = $searchObject;
 
@@ -78,19 +79,19 @@ class SideFacets implements RecommendationInterface
 						$facetName = 'itype_' . $searchLibrary->subdomain;
 					}elseif ($facet->facetName == 'detailed_location'){
 						$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-					}elseif ($facet->facetName == 'available_at'){
+					}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
 						$facetName = 'available_' . $searchLibrary->subdomain;
 					}
 				}
 				if (isset($userLocation)){
-					if ($facet->facetName == 'available_at'){
+					if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
 						$facetName = 'available_' . $userLocation->code;
 					}
 				}
 				if (isset($searchLocation)){
 					if ($facet->facetName == 'time_since_added'){
 						$facetName = 'local_time_since_added_' . $searchLocation->code;
-					}elseif ($facet->facetName == 'available_at'){
+					}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
 						$facetName = 'available_' . $searchLocation->code;
 					}
 				}
