@@ -1043,12 +1043,6 @@ class Solr implements IndexEngine {
 				$boostFactors[] = "loc_boost_{$searchLocation->code}";
 			}
 
-			//Remove any titles that we can't use
-			global $user;
-			if ($user){
-
-			}
-
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
 				if (count($boostFactors) > 0){
@@ -1089,8 +1083,6 @@ class Solr implements IndexEngine {
 				$owningSystem = $searchLibrary->facetLabel;
 			}
 			if ($pType > 0){
-				//echo("Filtering for patron type $pType");
-
 				if (strlen($owningSystem) > 0){
 					$filter[] = "(usable_by:$pType OR institution:\"$owningSystem\")";
 				}else{
@@ -1168,7 +1160,18 @@ class Solr implements IndexEngine {
 				}
 			}
 
-			$options['facet.field'] = (isset($facet['field'])) ? $facet['field'] : null;
+			if (isset($facet['field'])){
+				$options['facet.field'] = $facet['field'];
+				foreach($options['facet.field'] as $key => $facetName){
+					if (strpos($facetName, 'available_') === 0){
+						$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
+					}
+				}
+			}else{
+				$options['facet.field'] = null;
+			}
+			//$options['facet.field'] = (isset($facet['field'])) ? $facet['field'] : null;
+
 			unset($facet['field']);
 			$options['facet.prefix'] = (isset($facet['prefix'])) ? $facet['prefix'] : null;
 			unset($facet['prefix']);
@@ -1178,13 +1181,20 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
-			$options['f.available_at.facet.missing'] = 'true';
+			$options['f.available_at.facet'] = 'true';
 
 			foreach($facet as $param => $value) {
 				$options[$param] = $value;
 			}
 		}
 		$timer->logTime("build facet options");
+
+		//Check to see if there are filters we want to show all values for
+		foreach ($filter as $key => $value){
+			if (strpos($value, 'available') === 0){
+				$filter[$key] = '{!tag=avail}' . $value;
+			}
+		}
 
 		// Build Filter Query
 		if (is_array($filter) && count($filter)) {

@@ -203,7 +203,12 @@ div.breadcrumbinner {width:73.076em;*width:71.25em;margin:0 auto;}
 }
 .removeFacetLink{
 	font-size: 10px;
-}	
+}
+#availabilityControl{
+	text-align: center;
+	margin: 5px 0px 10px;
+}
+
 /*********** Toolbar (Record View) ************/
 .toolbar{border-bottom:1px solid #eee;text-align:right;font-size:90%;min-height:2em;padding-left:1em;}
 .toolbar ul {display:inline;height:23px;}
@@ -1322,7 +1327,7 @@ background-image:url(/interface/themes/marmot/images/update.png);
 	margin-left: 10px;
 	margin-right: 10px;
 	display: inline-block;
-	height: 16px;
+	height: 3em !important;
 	width: 74px;
 	vertical-align: top;
 	padding-top: 64px;

@@ -98,6 +98,7 @@ public class MarcProcessor {
 	private ArrayList<String>					advantageLibraryFacets	= new ArrayList<String>();
 	private ArrayList<String>					locationCodes						= new ArrayList<String>();
 	private ArrayList<String>					librarySubdomains				= new ArrayList<String>();
+	private ArrayList<Long>						libraryIds				= new ArrayList<Long>();
 	private HashMap<Long, LibraryIndexingInfo> libraryIndexingInfo = new HashMap<Long, LibraryIndexingInfo>();
 	
 	private HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
@@ -269,6 +270,7 @@ public class MarcProcessor {
 				libraryInfo.setFacetLabel(facetLabel);
 				libraryInfo.setIlsCode(ilsCode);
 				libraryIndexingInfo.put(libraryId, libraryInfo);
+				libraryIds.add(libraryId);
 				
 				librarySystemFacets.put(facetLabel, libraryId);
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
@@ -956,6 +958,10 @@ public class MarcProcessor {
 	
 	public ArrayList<String> getLibrarySubdomains() {
 		return librarySubdomains;
+	}
+	
+	public ArrayList<Long> getLibraryIds() {
+		return libraryIds;
 	}
 
 	public boolean isUsableByPType(String iType, String pType) {

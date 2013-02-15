@@ -154,6 +154,7 @@ public class MarcRecordDetails {
 		HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem = new HashMap<String, LinkedHashSet<String>>();
 		HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation = new HashMap<String, LinkedHashSet<String>>();
 		Set<String> availableAt = new LinkedHashSet<String>();
+		availableAt.add("Entire Collection");
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
@@ -293,10 +294,6 @@ public class MarcRecordDetails {
 									itemSuppressed = true;
 								}else{
 									available = true;
-									//The item is available
-									if (locationIndexingInfo != null){
-										availableAt.add(locationIndexingInfo.getFacetLabel());
-									}
 								}
 							}
 						}
@@ -306,49 +303,43 @@ public class MarcRecordDetails {
 				//Add availability
 				if (!itemSuppressed && !manuallySuppressed){
 					if (available){
-						//logger.debug("item is available at " + locationCode);
-						//Loop through all libraries
-						for (String curSubdomain : marcProcessor.getLibrarySubdomains()){
-							LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curSubdomain);
-							if (existingAvailability != null && existingAvailability.size() == 2){
-								continue;
-							}
-							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
-							locationAvailability.add("Any Marmot Library");
+						availableAt.add("Available Now");
+					}
+					//logger.debug("item is available at " + locationCode);
+					//Loop through all libraries
+					for (String curSubdomain : marcProcessor.getLibrarySubdomains()){
+						LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curSubdomain);
+						if (existingAvailability != null && existingAvailability.size() == 2){
+							continue;
+						}
+						LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+						libraryAvailability.add("Entire Collection");
+						if (available){
 							if (libraryIndexingInfo != null && libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)){
-								if (libraryIndexingInfo.getLocations().size() == 1){
-									locationAvailability.add(libraryIndexingInfo.getFacetLabel());
-								}else{
-									locationAvailability.add("Any " + libraryIndexingInfo.getFacetLabel() + " Library");
-								}
-							}
-							if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()){
-								availableAtBySystemOrLocation.put(curSubdomain, locationAvailability);
+								libraryAvailability.add("Available Now");
 							}
 						}
+						if (existingAvailability == null || libraryAvailability.size() > existingAvailability.size()){
+							availableAtBySystemOrLocation.put(curSubdomain, libraryAvailability);
+						}
+					}
 	
-						//Loop through all locations
-						for (String curCode : marcProcessor.getLocationCodes()){
-							LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curCode);
-							if (existingAvailability != null && existingAvailability.size() == 3){
-								//Can't get better availability
-								continue;
-							}
-							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
-							locationAvailability.add("Any Marmot Library");
-							if (libraryIndexingInfo != null && libraryIndexingInfo.hasCode(curCode)){
-								if (libraryIndexingInfo.getLocations().size() == 1){
-									locationAvailability.add(libraryIndexingInfo.getFacetLabel());
-								}else{
-									locationAvailability.add("Any " + libraryIndexingInfo.getFacetLabel() + " Library");
-								}
-							}
+					//Loop through all locations
+					for (String curCode : marcProcessor.getLocationCodes()){
+						LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curCode);
+						if (existingAvailability != null && existingAvailability.size() == 2){
+							//Can't get better availability
+							continue;
+						}
+						LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
+						locationAvailability.add("Entire Collection");
+						if (available){
 							if (locationIndexingInfo != null && locationIndexingInfo.getCode().equalsIgnoreCase(curCode)){
-								locationAvailability.add(locationIndexingInfo.getFacetLabel());
+								locationAvailability.add("Available Now");
 							}
-							if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()){
-								availableAtBySystemOrLocation.put(curCode, locationAvailability);
-							}
+						}
+						if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()){
+							availableAtBySystemOrLocation.put(curCode, locationAvailability);
 						}
 					}
 					
@@ -3825,8 +3816,10 @@ public class MarcRecordDetails {
 		Set<String> formats = new HashSet<String>();
 		int numItems = 0;
 		Set<String> availableAt = new HashSet<String>();
-		Set<String> itemAvailability = new HashSet<String>();
+		HashMap<String, HashSet<String>> availableAtBySystemOrLocation = new HashMap<String, HashSet<String>>();
+		availableAt.add("Entire Collection");
 		Set<String> buildings = new HashSet<String>();
+		
 		//Generate information based on items. 
 		while (itemInfo.next()){
 			String item_type = itemInfo.getString("item_type");
@@ -3840,16 +3833,39 @@ public class MarcRecordDetails {
 			}
 			//TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L){
-				itemAvailability.add("Digital Collection");
-				itemAvailability = addSharedAvailability(source, itemAvailability);
-				logger.debug("Available at " + itemAvailability.size() + " locations");
+				availableAt.add("Available Now");
+				//Loop through all libraries and mark this title as available
+				for (Long curLibraryId : marcProcessor.getLibraryIds()){
+					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
+					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+					libraryAvailability.add("Entire Collection");
+					//TODO: determine if acs and single use titles are actually available
+					libraryAvailability.add("Available Now");
+					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
+					//Since we don't have availability by location for online titles, add the same availability to all locations
+					for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()){
+						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+					}
+				}
+				
 				buildings.add("Digital Collection");
 				buildings = addSharedAvailability(source, buildings);
 			}else{
-				itemAvailability.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+				availableAt.add("Available Now");
 				buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+				LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
+				LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+				libraryAvailability.add("Entire Collection");
+				//TODO: determine if acs and single use titles are actually available
+				libraryAvailability.add("Available Now");
+				availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
+				//Since we don't have availability by location for online titles, add the same availability to all locations
+				for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()){
+					availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+				}
 			}
-		}
+		}//end processing items
+		
 		int numHoldings = 0;
 		//If we have availability information, use that. 
 		boolean hasAvailabilityInfo = false;
@@ -3858,20 +3874,41 @@ public class MarcRecordDetails {
 				//This is the first availability line.  We may have information from the items 
 				//which need to be cleared so we can use availability. 
 				buildings.clear();
+				availableAtBySystemOrLocation.clear();
+				availableAt.clear();
+				availableAt.add("Entire Collection");
 				hasAvailabilityInfo = true;
 			}
 			int copiesOwned = availabilityInfo.getInt("copiesOwned");
 			int availableCopies = availabilityInfo.getInt("availableCopies");
 			long libraryId = availabilityInfo.getLong("libraryId");
 			if (availableCopies > 0){
+				availableAt.add("Available Now");
 				if (libraryId == -1L){
-					availableAt.add("Digital Collection");
-					addSharedAvailability(source, availableAt);
 					buildings.add("Digital Collection");
 					buildings = addSharedAvailability(source, buildings);
+					for (Long curLibraryId : marcProcessor.getLibraryIds()){
+						LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
+						LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+						libraryAvailability.add("Entire Collection");
+						libraryAvailability.add("Available Now");
+						availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
+						//Since we don't have availability by location for online titles, add the same availability to all locations
+						for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()){
+							availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+						}
+					}
 				}else{
-					availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
+					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+					libraryAvailability.add("Entire Collection");
+					libraryAvailability.add("Available Now");
+					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
+					//Since we don't have availability by location for online titles, add the same availability to all locations
+					for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()){
+						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+					}
 				}
 			}else{
 				if (libraryId == -1L){
@@ -3890,7 +3927,6 @@ public class MarcRecordDetails {
 			}else{
 				numHoldings = availableCopiesRecord;
 			}
-			availableAt = itemAvailability;
 		}
 		//Limit always available titles to 5 holdings so hey don't dominate search results.
 		if (numHoldings > 1000){
@@ -3913,7 +3949,13 @@ public class MarcRecordDetails {
 		addField(mappedFields, "num_holdings", Integer.toString(numHoldings));
 		//TODO: Index eContent Text? econtentText
 		//logger.debug("The record is available at " + availableAt.size() + " libraries");
+		//Add availability
+		mappedFields.remove("available_at");
 		addFields(mappedFields, "available_at", null, availableAt);
+		for (String code : availableAtBySystemOrLocation.keySet()){
+			mappedFields.remove("available_" + code);
+			addFields(mappedFields, "available_" + code, null, availableAtBySystemOrLocation.get(code));
+		}
 		
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
 		addFields(mappedFields, "rating_facet", null, getEContentRatingFacet(econtentRecordId));

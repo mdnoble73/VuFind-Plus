@@ -39,6 +39,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.solrmarc.tools.Utils;
 import org.vufind.LexileData;
+import org.vufind.LibraryIndexingInfo;
+import org.vufind.LocationIndexingInfo;
 import org.vufind.MarcRecordDetails;
 import org.vufind.IMarcRecordProcessor;
 import org.vufind.IRecordProcessor;
@@ -1405,6 +1407,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		addFieldToDoc(doc, "collection", "Western Colorado Catalog");
 		int numHoldings = 0;
+		Set<String> availableAt = new LinkedHashSet<String>();
+		availableAt.add("Entire Collection");
 		for (Long systemId : recordInfo.getAvailabilityInfo().keySet()){
 			OverDriveAvailabilityInfo curAvailability = recordInfo.getAvailabilityInfo().get(systemId);
 			numHoldings += curAvailability.getCopiesOwned();
@@ -1416,10 +1420,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					addFieldToDoc(doc, "building", libraryFacet + " Online");
 				}
 				if (curAvailability.isAvailable()){
-					addFieldToDoc(doc, "available_at", "Digital Collection");
-					for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
-						addFieldToDoc(doc, "available_at", libraryFacet + " Online");
-					}
+					availableAt.add("Available Now");
 				}
 				
 			}else{
@@ -1427,9 +1428,39 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				addFieldToDoc(doc, "institution", libraryName + " Online");
 				addFieldToDoc(doc, "building", libraryName + " Online");
 				if (curAvailability.isAvailable()){
-					addFieldToDoc(doc, "available_at", libraryName + " Online");
+					availableAt.add("Available Now");
 				}
 			}
+		}
+		addFieldToDoc(doc, "available_at", availableAt);
+		//Process availability for libraries
+		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
+		for (Long libraryId : marcProcessor.getLibraryIds()){
+			LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
+			LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+			libraryAvailability.add("Entire Collection");
+			//Check for availability in the shared Collection 
+			OverDriveAvailabilityInfo sharedAvailabilityInfo = recordInfo.getAvailabilityInfo().get(-1);
+			if (sharedAvailabilityInfo != null){
+				if (sharedAvailabilityInfo.isAvailable()){
+					libraryAvailability.add("Available Now");
+				}
+			}else{
+				//Check for loacal availability
+				OverDriveAvailabilityInfo localAvailabilityInfo = recordInfo.getAvailabilityInfo().get(libraryId);
+				if (localAvailabilityInfo != null && localAvailabilityInfo.isAvailable()){
+					libraryAvailability.add("Available Now");
+				}
+			}
+			availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
+			//Since we don't have availability by location for online titles, add the same availability to all locations
+			for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()){
+				availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+			}
+		}
+		//Add library specific availability
+		for (String code : availableAtBySystemOrLocation.keySet()){
+			addFieldToDoc(doc, "available_" + code, availableAtBySystemOrLocation.get(code));
 		}
 		addFieldToDoc(doc, "collection_group", "Electronic Access");
 		if (recordInfo.getLanguages().size() == 0){

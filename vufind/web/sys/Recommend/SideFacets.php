@@ -176,9 +176,6 @@ class SideFacets implements RecommendationInterface
 				if (preg_match('/time_since_added/i', $facetKey)){
 					$timeSinceAddedFacet = $this->updateTimeSinceAddedFacet($facet);
 					$sideFacets[$facetKey] = $timeSinceAddedFacet;
-				}elseif ($facetKey == 'available_at'){
-					$availableAtFacet = $this->updateAvailabilityFacet($facet);
-					$sideFacets[$facetKey] = $availableAtFacet;
 				}elseif ($facetKey == 'rating_facet'){
 					$userRatingFacet = $this->updateUserRatingsFacet($facet);
 					$sideFacets[$facetKey] = $userRatingFacet;
@@ -237,57 +234,6 @@ class SideFacets implements RecommendationInterface
 			$timeSinceAddedFacet['list'] = array_reverse($timeSinceAddedFacet['list']);
 		}
 		return $timeSinceAddedFacet;
-	}
-
-	private function updateAvailabilityFacet($availabilityFacet){
-		global $interface;
-		//Mangle the availability facets
-		$oldFacetValues = $availabilityFacet['list'];
-		ksort($oldFacetValues);
-
-		//print_r($sideFacets['available_at']['list']);
-		global $locationSingleton;
-		global $user;
-		global $library;
-		$filters = $this->searchObject->getFilterList();
-		//print_r($filters);
-		$appliedAvailability = array();
-		foreach ($filters as $appliedFilters){
-			foreach ($appliedFilters as $filter){
-				if ($filter['field'] == 'available_at'){
-					$appliedAvailability[$filter['value']] = $filter['removalUrl'];
-				}
-			}
-		}
-
-		$availableAtFacets = array();
-		foreach ($oldFacetValues as $facetKey => $facetInfo){
-			if (strlen($facetKey) > 1){
-				$sortIndicator = substr($facetKey, 0, 1);
-				if ($sortIndicator >= '1' && $sortIndicator <= '4'){
-					$availableAtFacets[$facetKey] = $facetInfo;
-				}
-			}
-		}
-
-		$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
-		//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
-		if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
-			$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
-			//print_r ("anyLocationLabel = $anyLocationLabel");
-			$availableAtFacets['*'] = array(
-				'value' => '*',
-				'display' => $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel,
-				'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
-				'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
-				'isApplied' => array_key_exists('*', $appliedAvailability),
-				'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
-			);
-		}
-
-		$availabilityFacet['list'] = $availableAtFacets;
-
-		return $availabilityFacet;
 	}
 
 	private function updateUserRatingsFacet($userRatingFacet){

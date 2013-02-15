@@ -291,6 +291,14 @@ abstract class SearchObject_Base
 		// Stash our old data for a minute
 		$oldFilterList = $this->filterList;
 		$oldPage       = $this->page;
+		// Availability facet can have only one item selected at a time
+		if (strpos($newFilter, 'available_') === 0){
+			foreach ($this->filterList as $name => $value){
+				if (strpos($name, 'available_') === 0){
+					unset ($this->filterList[$name]);
+				}
+			}
+		}
 		// Add the new filter
 		$this->addFilter($newFilter);
 		// Remove page number

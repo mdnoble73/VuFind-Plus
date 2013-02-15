@@ -9,6 +9,7 @@ public class LibraryIndexingInfo {
 	private String facetLabel;
 	private String ilsCode;
 	private HashMap<Long, LocationIndexingInfo> locations = new HashMap<Long, LocationIndexingInfo>();
+	private LocationIndexingInfo defaultLocation;
 	public Long getLibraryId() {
 		return libraryId;
 	}
@@ -46,13 +47,19 @@ public class LibraryIndexingInfo {
 				return locationInfo;
 			}
 		}
+		if (defaultLocation != null && locationCode.equals(defaultLocation.getCode())){
+			return defaultLocation;
+		}
 		return null;
 	}
 	public boolean hasCode(String curCode) {
 		for (LocationIndexingInfo locationInfo : locations.values()){
-			if (curCode.equals(locationInfo.getCode())){
+			if (curCode.startsWith(locationInfo.getCode())){
 				return true;
 			}
+		}
+		if (defaultLocation != null && curCode.startsWith(defaultLocation.getCode())){
+			return true;
 		}
 		return false;
 	}
@@ -63,7 +70,7 @@ public class LibraryIndexingInfo {
 		defaultIndexingInfo.setFacetLabel(facetLabel);
 		defaultIndexingInfo.setLibraryId(libraryId);
 		defaultIndexingInfo.setScoped(scoped);
-		addLocation(defaultIndexingInfo);
+		defaultLocation = defaultIndexingInfo;
 	}
 	public String getIlsCode() {
 		return ilsCode;

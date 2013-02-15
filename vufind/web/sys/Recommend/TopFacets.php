@@ -61,6 +61,7 @@ class TopFacets implements RecommendationInterface
 		}else{
 			$searchLibrary = Library::getActiveLibrary();
 			$searchLocation = Location::getActiveLocation();
+			$userLocation = Location::getUserHomeLocation();
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 			if ($hasSearchLocationFacets){
@@ -72,8 +73,24 @@ class TopFacets implements RecommendationInterface
 			}
 			foreach ($facets as $facet){
 				if ($facet->showAboveResults == 1){
-					$this->facets[$facet->facetName] = $facet->displayName;
-					$this->facetSettings[$facet->facetName] = $facet;
+					$facetName = $facet->facetName;
+					if (isset($searchLibrary)){
+						if ($facet->facetName == 'available_at'){
+							$facetName = 'available_' . $searchLibrary->subdomain;
+						}
+					}
+					if (isset($userLocation)){
+						if ($facet->facetName == 'available_at'){
+							$facetName = 'available_' . $userLocation->code;
+						}
+					}
+					if (isset($searchLocation)){
+						if ($facet->facetName == 'available_at'){
+							$facetName = 'available_' . $searchLocation->code;
+						}
+					}
+					$this->facets[$facetName] = $facet->displayName;
+					$this->facetSettings[$facetName] = $facet;
 				}
 			}
 		}
@@ -128,7 +145,25 @@ class TopFacets implements RecommendationInterface
 
 				uksort($facetSet['list'], "format_category_comparator");
 
+				$facetList[$facetSetkey] = $facetSet;
+			}elseif (preg_match('/available/i', $facetSet['label'])){
+				$numSelected = 0;
+				foreach ($facetSet['list'] as $facetKey => $facet){
+					if ($facet['isApplied']){
+						$numSelected++;
+					}
+				}
 
+				if ($numSelected == 0){
+					//If nothing is selected, select entire collection by default
+					foreach ($facetSet['list'] as $facetKey => $facet){
+						if ($facet['value'] == 'Entire Collection'){
+							$facet['isApplied'] = true;
+							$facetSet['list'][$facetKey] = $facet;
+							break;
+						}
+					}
+				}
 				$facetList[$facetSetkey] = $facetSet;
 			}
 		}

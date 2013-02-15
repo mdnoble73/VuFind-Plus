@@ -67,15 +67,13 @@
 }
 #formatCategories{
   min-height: 60px;
-  margin-top: 20px;
 }
 
 #noResultsSuggest ul {
   margin-left:20px;
   list-style-type:disc
-  }
+}
 #noResultsSuggest li {
   margin-left:20px;
   list-style-type:disc
-  }
-
+}
