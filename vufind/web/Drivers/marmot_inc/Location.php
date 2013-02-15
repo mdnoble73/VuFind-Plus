@@ -703,7 +703,50 @@ class Location extends DB_DataObject
 		return $libraryHoursMessage;
 	}
 	static function getDefaultFacets($locationId = -1){
+		global $configArray;
 		$defaultFacets = array();
+
+		$facet = new LocationFacetSetting();
+		$facet->setupTopFacet('format_category', 'Format Category');
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		if ($configArray['Index']['enableDetailedAvailability']){
+			$facet->setupTopFacet('available_at', 'Available Now At', false);
+		}else{
+			$facet->setupSideFacet('available_at', 'Available Now At', false);
+		}
+
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('format', 'Format', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('literary_form_full', 'Literary Form', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('target_audience_full', 'Reading Level', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$facet->numEntriesToShowByDefault = 8;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('topic_facet', 'Subject', false);
+		$facet->libraryId = $libraryId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);

@@ -536,6 +536,7 @@ class Library extends DB_DataObject
 	}
 
 	static function getDefaultFacets($libraryId = -1){
+		global $configArray;
 		$defaultFacets = array();
 
 		$facet = new LibraryFacetSetting();
@@ -545,7 +546,12 @@ class Library extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupTopFacet('available_at', 'Available Now At', false);
+		if ($configArray['Index']['enableDetailedAvailability']){
+			$facet->setupTopFacet('available_at', 'Available Now At', false);
+		}else{
+			$facet->setupSideFacet('available_at', 'Available Now At', false);
+		}
+
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
