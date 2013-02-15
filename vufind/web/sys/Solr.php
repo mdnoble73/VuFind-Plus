@@ -1082,7 +1082,7 @@ class Solr implements IndexEngine {
 				$pType = $searchLibrary->defaultPType;
 				$owningSystem = $searchLibrary->facetLabel;
 			}
-			if ($pType > 0){
+			if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 				if (strlen($owningSystem) > 0){
 					$filter[] = "(usable_by:$pType OR institution:\"$owningSystem\")";
 				}else{
