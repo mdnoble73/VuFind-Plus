@@ -333,8 +333,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			boolean deleted;
 			if (recordInfo.isEContent()){
 				results.incEContentRecordsProcessed();
-				existingResourceId = existingEContentWithMarcResourceIds.get(recordInfo.getId());
-				existingChecksum = existingEContentWithMarcResourceChecksums.get(recordInfo.getId());
+				existingResourceId = existingEContentWithMarcResourceIds.get(recordInfo.getIlsId());
+				existingChecksum = existingEContentWithMarcResourceChecksums.get(recordInfo.getIlsId());
 				deleted = deletedEContentWithMarcResources.contains(existingResourceId);
 			}else{
 				results.incRecordsProcessed();
@@ -374,7 +374,8 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				if (existingResourceId != null){
 					//Remove the resource from the existingResourcesList so 
 					//We can determine which resources no longer exist
-					existingEContentWithMarcResourceIds.remove(recordInfo.getId());
+					existingEContentWithMarcResourceIds.remove(recordInfo.getIlsId());
+					existingEContentWithMarcResourceChecksums.remove(recordInfo.getIlsId());
 					updateResourceInDb(recordInfo, logger, existingResourceId);
 				} else {
 					//logger.debug("This is a brand new record, adding to resources table");
