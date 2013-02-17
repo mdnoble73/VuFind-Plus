@@ -13,7 +13,11 @@ class MarcLoader{
 			require_once 'services/MyResearch/lib/Resource.php';
 			$resource = new Resource;
 			$resource->record_id = $record['id'];
-			$resource->source = 'VuFind';
+			if ($record['recordtype'] == 'marc'){
+				$resource->source = 'VuFind';
+			}elseif ($record['recordtype'] == 'econtentRecord'){
+				$resource->source = 'eContent';
+			}
 			//$resource->deleted = 0;
 			$resource->selectAdd("marc");
 			$resource->whereAdd('marc is not null');
