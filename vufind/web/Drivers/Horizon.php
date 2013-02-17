@@ -183,6 +183,23 @@ class Horizon implements DriverInterface{
 								$firstItemWithSIPdata = $itemSip2Data;
 							}
 							$itemData = array_merge($itemData, $itemSip2Data);
+
+              // We don't want to use the SIP information for holdQueueLength.
+
+              // From Sirsi:
+              // I assume you are looking at the CF field in the sip message to
+              // get your number. The intent for that field is not to show the
+              // number of requests on the item but the number of holds in the
+              // hold queue. SIP assumes that if a hold is "on hold shelf" then
+              // that hold is no longer in the hold queue but waiting to be picked
+              // up so it is not counted.
+
+              // So we'll look this up from the db.
+              $result = $this->_query("SELECT count(*) AS count FROM request WHERE bib# = $id AND (request_status = 0 OR request_status = 1 OR request_status = 2)");
+              while ($count_row = $this->_fetch_assoc($result)) {
+                $itemData['holdQueueLength'] = (int) $count_row['count'];
+              }
+
 						}
 					}
 
