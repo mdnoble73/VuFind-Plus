@@ -3992,7 +3992,8 @@ public class MarcRecordDetails {
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
 		addFields(mappedFields, "rating_facet", null, getEContentRatingFacet(econtentRecordId));
 
-		// addField(mappedFields, "recordtype", "econtentRecord");
+		mappedFields.remove("recordtype");
+		addField(mappedFields, "recordtype", "econtentRecord");
 
 		HashMap<String, Object> allFields = getFields("getEContentSolrDocument");
 		for (String fieldName : allFields.keySet()) {
