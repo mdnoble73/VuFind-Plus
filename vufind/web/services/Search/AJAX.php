@@ -565,7 +565,15 @@ class AJAX extends Action {
 		if ($searchSuggestions == false){
 			$suggestions = new SearchSuggestions();
 			$commonSearches = $suggestions->getAllSuggestions($searchTerm, $searchType);
-			$searchSuggestions = json_encode($commonSearches);
+			$commonSearchTerms = array();
+			foreach ($commonSearches as $searchTerm){
+				if (is_array($searchTerm)){
+					$commonSearchTerms[] = $searchTerm['phrase'];
+				}else{
+					$commonSearchTerms[] = $searchTerm;
+				}
+			}
+			$searchSuggestions = json_encode($commonSearchTerms);
 			$memcache->set($cacheKey, $searchSuggestions, 0, $configArray['Caching']['search_suggestions'] );
 			$timer->logTime("Loaded search suggestions $cacheKey");
 		}

@@ -29,10 +29,10 @@
 				{include file=$recommendations}
 			{/foreach}
 		{/if}
-		<div class="resulthead"><h3>{translate text='nohit_heading'}</h3></div>
+		<h2>{translate text='nohit_heading'}</h2>
 			
 		<p class="error">{translate text='nohit_prefix'} - <b>{if $lookfor}{$lookfor|escape:"html"}{else}&lt;empty&gt;{/if}</b> - {translate text='nohit_suffix'}</p>
-
+		
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 			<div class="unscopedResultCount">
 				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <span style="font-size:15px"><a href="{$unscopedSearchUrl}">Search the entire collection.</a></span>
@@ -45,6 +45,7 @@
 			</ul>
 
 			{if $parseError}
+				{$parseError}
 			{/if}
 			
 			{if $spellingSuggestions}
@@ -56,7 +57,19 @@
 				<br/>
 			{/if}
 			
-			{if $unscopedResults > 0}
+			{if $searchSuggestions}
+				<div id="searchSuggestions">
+					<h2>Similar Searches</h2>
+					<p>These searches are similar to the search you tried. Would you like to try one of these instead?</p> 
+					<ul> 
+					{foreach from=$searchSuggestions item=suggestion}
+						<li class="searchSuggestion"><a href="/Search/Results?lookfor={$suggestion.phrase|escape:url}&basicType={$searchIndex|escape:url}">{$suggestion.phrase}</a></li>
+					{/foreach}
+					</ul>
+				</div>
+			{/if}
+			
+			{if $unscopedResults}
 				<h2>Sample Results from the entire Marmot Catalog</h2>
 				{foreach from=$unscopedResults item=record name="recordLoop"}
 					<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">

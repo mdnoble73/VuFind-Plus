@@ -40,6 +40,19 @@ class Results extends Action {
 
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
 
+		if (isset($_REQUEST['replacementTerm'])){
+			$replacementTerm = $_REQUEST['replacementTerm'];
+			$interface->assign('replacementTerm', $replacementTerm);
+			$oldTerm = $_REQUEST['lookfor'];
+			$interface->assign('oldTerm', $oldTerm);
+			$_REQUEST['lookfor'] = $replacementTerm;
+			$_GET['lookfor'] = $replacementTerm;
+			$oldSearchUrl = $_SERVER['REQUEST_URI'];
+			$oldSearchUrl = str_replace('replacementTerm=' . urlencode($replacementTerm), 'disallowReplacements', $oldSearchUrl);
+			$interface->assign('oldSearchUrl', $oldSearchUrl);
+
+		}
+
 		// Include Search Engine Class
 		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
@@ -271,6 +284,39 @@ class Results extends Action {
 		$translatedSearch = $allSearchSources[$searchSource]['name'];
 		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
+			//We didn't find anything.  Look for search Suggestions
+			//Don't try to find suggestions if facets were applied
+			$autoSwitchSearch = false;
+			$disallowReplacements = isset($_REQUEST['disallowReplacements']);
+			if (!$disallowReplacements && (!isset($facetSet) || count($facetSet) == 0)){
+				require_once 'services/Search/lib/SearchSuggestions.php';
+				$searchSuggestions = new SearchSuggestions();
+				$commonSearches = $searchSuggestions->getCommonSearchesMySql($searchObject->displayQuery(), $searchObject->getSearchIndex());
+				//If the first search in the list is used 10 times more than the next, just show results for that
+				$numSuggestions = count($commonSearches);
+				if ($numSuggestions == 1){
+					$autoSwitchSearch = true;
+				}elseif ($numSuggestions >= 2){
+					$firstTimesSearched = $commonSearches[0]['numSearches'];
+					$secondTimesSearched = $commonSearches[1]['numSearches'];
+					if ($firstTimesSearched / $secondTimesSearched > 10){
+						$autoSwitchSearch = true;
+					}
+				}
+
+				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
+				if ($autoSwitchSearch){
+					//Get search results for the new search
+					$interface->assign('oldTerm', $searchObject->displayQuery());
+					$interface->assign('newTerm', $commonSearches[0]['phrase']);
+					$thisUrl = $_SERVER['REQUEST_URI'];
+					$thisUrl = $_SERVER['REQUEST_URI'];
+					$thisUrl = $thisUrl . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
+					header("Location: " . $thisUrl);
+				}
+
+				$interface->assign('searchSuggestions', $commonSearches);
+			}
 
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);

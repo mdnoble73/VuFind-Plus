@@ -26,32 +26,36 @@
 
 			{* Listing Options *}
 			<div class="resulthead">
-				<div class="yui-u first">
-					{if $recordCount}
-						{translate text="Showing"}
-						<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-						{translate text='of'} <b>{$recordCount}</b>
-						{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
-					{/if}
-					{translate text='query time'}: {$qtime}s
-					
-					{if $numUnscopedResults && $numUnscopedResults != $recordCount}
-						<br />
-						<div class="unscopedResultCount">
-							There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
-						</div>
-					{/if}
-					
-					{if $spellingSuggestions}
-					<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
-					{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-						{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
-					{/foreach}
+				{if $replacementTerm}
+					<div id="replacementSearchInfo">
+						<div style="font-size:120%">Showing Results for: <strong><em>{$replacementTerm}</em></strong></div> 
+						<div style="font-size:95%">Search instead for: <a href="{$oldSearchUrl}">{$oldTerm}</a></div>
 					</div>
-					{/if}
+				{/if}
+				{if $recordCount}
+					{translate text="Showing"}
+					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
+					{translate text='of'} <b>{$recordCount}</b>
+					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
+				{/if}
+				{translate text='query time'}: {$qtime}s
+				
+				{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+					<br />
+					<div class="unscopedResultCount">
+						There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+					</div>
+				{/if}
+				
+				{if $spellingSuggestions}
+				<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
+				{foreach from=$spellingSuggestions item=details key=term name=termLoop}
+					{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
+				{/foreach}
 				</div>
+				{/if}
 
-				<div class="yui-u toggle">
+				<div class="toggle">
 					{if $recordCount}
 						{translate text='Sort'}
 						<select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
@@ -61,7 +65,7 @@
 						</select>
 					{/if}
 				</div>
-
+				<div class="clearer"></div>
 			</div>
 			{* End Listing Options *}
 

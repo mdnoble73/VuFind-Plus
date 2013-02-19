@@ -27,6 +27,12 @@
 			{* Listing Options *}
 			<div class="resulthead">
 				<div id="searchResultSummary" >
+				{if $replacementTerm}
+						<div id="replacementSearchInfo">
+							<div style="font-size:120%">Showing Results for: <strong><em>{$replacementTerm}</em></strong></div> 
+							<div style="font-size:95%">Search instead for: <a href="{$oldSearchUrl}">{$oldTerm}</a></div>
+						</div>
+					{/if}
 				{if $recordCount}
 					{translate text="Showing"}
 					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
@@ -61,8 +67,8 @@
 			</div>
 
 			{if $pageLinks.all}<div class="top pagination">{$pageLinks.all}</div>{/if}
+			<div class="clearer"></div>
 		</div>
-		<div class="clearer"></div>
 		{* End Listing Options *}
 
 		{if $subpage}

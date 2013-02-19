@@ -16,7 +16,7 @@ class SearchStat extends DB_DataObject
 	public $numSearches;      //int(16)
 	public $locationId;      //int(16)
 	public $libraryId;      //int(16)
-	 
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('SearchStat',$k,$v); }
 
@@ -53,14 +53,14 @@ class SearchStat extends DB_DataObject
 		}
 		//Don't suggest things to users that will result in them not getting any results
 		$searchStat->whereAdd("numResults > 0");
-		$searchStat->whereAdd("phrase like '" . mysql_escape_string($phrase) ."%' and type='$type'");
+		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($phrase) ."%' or phrase sounds like '" . mysql_escape_string($phrase) ."') and type='$type'");
 		$searchStat->orderBy("numSearches DESC");
 		$searchStat->limit(0, 10);
 		$searchStat->find();
 		$results = array();
 		if ($searchStat->N > 0){
 			while($searchStat->fetch()){
-				$results[] = $searchStat->phrase;
+				$results[] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
 			}
 		}
 		return $results;
@@ -68,7 +68,7 @@ class SearchStat extends DB_DataObject
 
 	function saveSearch($phrase, $type, $numResults){
 		if (!isset($numResults)){
-			//This only happens if there is an error parsing the query. 
+			//This only happens if there is an error parsing the query.
 			return;
 		}
 		$activeLibrary = Library::getActiveLibrary();
