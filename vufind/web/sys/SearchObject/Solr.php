@@ -556,15 +556,31 @@ class SearchObject_Solr extends SearchObject_Base
 		return $html;
 	}
 
-	public function getSupplementalResultRecordHTML(){
+	public function getSupplementalResultRecordHTML($mainResults, $maxResultsToShow){
 		global $interface;
 		$html = array();
+		$numResultsShown = 0;
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
-			$interface->assign('recordIndex', $x + 1);
-			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			//Check to make sure this id is not in the main results
+			$supplementalInMainResults = false;
+			foreach ($mainResults as $mainResult){
+				if ($mainResult['id'] == $current['id']){
+					$supplementalInMainResults = true;
+					break;
+				}
+			}
+			if ($supplementalInMainResults){
+				continue;
+			}
+			$interface->assign('recordIndex', $numResultsShown + 1);
+			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit));
 			$record = RecordDriverFactory::initRecordDriver($current);
+			$numResultsShown++;
 			$html[] = $interface->fetch($record->getSupplementalSearchResult());
+			if ($numResultsShown >= $maxResultsToShow){
+				break;
+			}
 		}
 		return $html;
 	}

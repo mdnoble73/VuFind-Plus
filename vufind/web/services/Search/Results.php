@@ -347,7 +347,7 @@ class Results extends Action {
 			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
-		} else if ($searchObject->getResultTotal() == 1){
+		/*} else if ($searchObject->getResultTotal() == 1){
 			//Redirect to the home page for the record
 			$recordSet = $searchObject->getResultRecordSet();
 			$record = reset($recordSet);
@@ -363,7 +363,7 @@ class Results extends Action {
 			}else{
 				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");
 				//exit();
-			}
+			}*/
 
 		} else {
 			$timer->logTime('save search');
@@ -434,7 +434,7 @@ class Results extends Action {
 		}
 
 		if ($enableUnscopedSearch){
-			$unscopedSearch->setLimit($numUnscopedTitlesToLoad);
+			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
 			$unscopedSearch->disableScoping();
 			$unscopedSearch->processSearch(false, false);
 			$numUnscopedResults = $unscopedSearch->getResultTotal();
@@ -449,7 +449,7 @@ class Results extends Action {
 			$unscopedSearchUrl .= "&amp;shard=";
 			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
 			if ($numUnscopedTitlesToLoad > 0){
-				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML();
+				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad);
 				$interface->assign('unscopedResults', $unscopedResults);
 			}
 		}
