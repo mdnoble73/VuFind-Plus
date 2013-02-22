@@ -1208,20 +1208,27 @@ public function getMyHoldsViaDB($patron)
 			$patron = get_object_vars($patron);
 		}
 		global $user;
-		$sql = "select title_inverted.title as TITLE, item.bib# as BIB_NUM, item.item# as ITEM_NUM, " .
-               "burb.borrower# as BORROWER_NUM, burb.amount as AMOUNT, burb.comment, " .
-               "burb.date as DUEDATE, " .
-               "burb.block as FINE, burb.amount as BALANCE from burb " .
-               "left join item on item.item#=burb.item# " .
-		           "left join title_inverted on title_inverted.bib# = item.bib# " .
-               "join borrower on borrower.borrower#=burb.borrower# " .
-               "join borrower_barcode on borrower_barcode.borrower#=burb.borrower# " .
-               "where borrower_barcode.bbarcode='" . $user->cat_username . "'" ;
+    $sql = "SELECT
+      title.processed AS TITLE,
+      item.bib# AS BIB_NUM,
+      item.item# AS ITEM_NUM,
+      burb.borrower# AS BORROWER_NUM,
+      burb.amount AS AMOUNT,
+      burb.comment,
+      burb.date as DUEDATE,
+      burb.block as FINE,
+      burb.amount as BALANCE
+      FROM burb
+      LEFT JOIN item ON item.item#=burb.item#
+      LEFT JOIN title ON title.bib# = item.bib#
+      JOIN borrower ON borrower.borrower#=burb.borrower#
+      JOIN borrower_barcode ON borrower_barcode.borrower#=burb.borrower#
+      WHERE borrower_barcode.bbarcode='" . $user->cat_username . "'" ;
 
 		if ($includeMessages == false){
 			$sql .= " and amount != 0";
 		}
-		//$sql .= " ORDER BY burb.date ASC";
+		$sql .= " ORDER BY burb.date ASC";
 
 		//print_r($sql);
 		try {
