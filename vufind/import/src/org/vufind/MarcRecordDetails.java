@@ -367,6 +367,7 @@ public class MarcRecordDetails {
 		addFields(mappedFields, "institution", null, librarySystems);
 		addFields(mappedFields, "building", null, locations);
 		addFields(mappedFields, "barcode", null, barcodes);
+		addFields(mappedFields, "time_since_added", null, timeSinceAdded);
 		addFields(mappedFields, "itype", "itype_map", iTypes);
 		for (String subdomain : iTypesBySystem.keySet()) {
 			LinkedHashSet<String> values = iTypesBySystem.get(subdomain);
@@ -380,6 +381,10 @@ public class MarcRecordDetails {
 			if (values.size() > 0) {
 				addField(mappedFields, "lib_boost_" + subdomain, "500");
 			}
+			LinkedHashSet<String> timesAddedBySystem = timeSinceAddedBySystem.get(subdomain);
+			if (timesAddedBySystem != null && timesAddedBySystem.size() > 0){
+				addFields(mappedFields, "local_time_since_added_" + subdomain, null, timesAddedBySystem);
+			}
 		}
 		for (String location : locationsCodesByLocation.keySet()) {
 			LinkedHashSet<String> values = locationsCodesByLocation.get(location);
@@ -387,12 +392,18 @@ public class MarcRecordDetails {
 			if (values.size() > 0) {
 				addField(mappedFields, "loc_boost_" + location, "750");
 			}
+			LinkedHashSet<String> timesAddedByLocation = timeSinceAddedBySystem.get(location);
+			if (timesAddedByLocation != null && timesAddedByLocation.size() > 0){
+				addFields(mappedFields, "local_time_since_added_" + location, null, timesAddedByLocation);
+			}
 		}
 		for (String code : availableAtBySystemOrLocation.keySet()) {
 			addFields(mappedFields, "available_" + code, null, availableAtBySystemOrLocation.get(code));
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
+		
+		
 	}
 
 	private void mapField(String fieldName, String[] fieldVal) {
