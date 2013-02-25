@@ -28,8 +28,8 @@ require_once 'sys/Recommend/Interface.php';
 class TopFacets implements RecommendationInterface
 {
 	private $searchObject;
-	private $facetSettings;
-	private $facets;
+	private $facetSettings = array();
+	private $facets = array();
 	private $baseSettings;
 
 	/* Constructor
