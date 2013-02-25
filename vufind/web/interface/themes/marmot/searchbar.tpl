@@ -28,6 +28,24 @@
 				<option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 			{/foreach}
 			</select>
+			
+			{if $filterList || $hasCheckboxFilters}
+				<div id="keepFilters">
+					<input id="keepFiltersSwitch" type="checkbox" onclick="filterAll(this);" /> <label for="keepFiltersSwitch">{translate text="basic_search_keep_filters"}</label>
+					<div style="display:none;">
+					{foreach from=$filterList item=data key=field}
+						{foreach from=$data item=value}
+							<input type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
+						{/foreach}
+					{/foreach}
+					{foreach from=$checkboxFilters item=current}
+						{if $current.selected}
+							<input type="checkbox" name="filter[]" value="{$current.filter|escape}" />
+						{/if}
+					{/foreach}
+					</div>
+				</div>
+			{/if}
 
 			{*
 			<input type="image" name="submit" id='searchBarFind' value="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/find.png" />
@@ -51,23 +69,7 @@
 					{/if}
 				{/foreach}
 			{/if}
-			{if $filterList || $hasCheckboxFilters}
-				<div class="keepFilters">
-					<input type="checkbox" onclick="filterAll(this);" /> {translate text="basic_search_keep_filters"}
-					<div style="display:none;">
-					{foreach from=$filterList item=data key=field}
-						{foreach from=$data item=value}
-							<input type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
-						{/foreach}
-					{/foreach}
-					{foreach from=$checkboxFilters item=current}
-						{if $current.selected}
-							<input type="checkbox" name="filter[]" value="{$current.filter|escape}" />
-						{/if}
-					{/foreach}
-					</div>
-				</div>
-			{/if}
+			
 			</div>
 		</form>
 	{/if}

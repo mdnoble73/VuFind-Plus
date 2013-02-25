@@ -122,6 +122,14 @@ height: 2em;
 }
 
 /*****************Breadcrumbs*******************/
+.home-icon{
+	display: inline-block;
+	zoom:1;
+	*display:inline;
+	width: 24px;
+	height: 24px;
+	background: url('/images/home_icon.png') no-repeat top left;
+}
 div.breadcrumbs {
 	overflow:hidden;
 	margin:0;
@@ -146,8 +154,6 @@ div.breadcrumbs span {
 	width:10px;
 	font-size: 0pt;
 	line-height: 0px;
-
-	/* Internet explorer does not display the image correctly filter:alpha(opacity=40); */
 	opacity:0.4;
 }
 div.breadcrumbinner {width:73.076em;*width:71.25em;margin:0 auto;}
@@ -169,6 +175,12 @@ div.breadcrumbinner {width:73.076em;*width:71.25em;margin:0 auto;}
 	padding-bottom: 4px;
 	background-color: #ACB4C5;
 	color: #003399;
+}
+#keepFilters{
+	display:inline-block;
+	zoom:1;
+	*display:inline;
+	margin: 0px 6px;
 }
 .within {font-size:90%;position: relative;}
 .within input {position: absolute;top:0;}

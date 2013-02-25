@@ -503,6 +503,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			<div id="relatedTitleInfo" style="display:none">
 				
 				{assign var="scrollerName" value="Series"}
+				{assign var="scrollerTitle" value="Also in this Series"}
 				{assign var="wrapperId" value="series"}
 				{assign var="scrollerVariable" value="seriesScroller"}
 				{assign var="fullListLink" value="$path/Record/$id/Series"}

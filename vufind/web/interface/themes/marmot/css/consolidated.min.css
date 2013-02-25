@@ -131,12 +131,13 @@ h2{font-size:110%;color:#6b8f24}.searchHomeBrowseHeader
 div{float:left;margin-right:1em;padding:1em
 2em 1em 0;width:12em}.searchHomeBrowseHeader div.searchHomeBrowseExtraWide,
 .searchHomeBrowseInner
-div.searchHomeBrowseExtraWide{width:27em}div.breadcrumbs{overflow:hidden;margin:0;padding:0;height:30px;line-height:30px;border-bottom:1px solid #ccc}div.breadcrumbs a, div.breadcrumbs em, div.breadcrumbs
+div.searchHomeBrowseExtraWide{width:27em}.home-icon{display:inline-block;zoom:1;*display:inline;width:24px;height:24px;background:url('/images/home_icon.png') no-repeat top left}div.breadcrumbs{overflow:hidden;margin:0;padding:0;height:30px;line-height:30px;border-bottom:1px solid #ccc}div.breadcrumbs a, div.breadcrumbs em, div.breadcrumbs
 span{float:left;overflow:hidden;height:30px;padding:0
 8px;font-style:normal;font-size:90%}div.breadcrumbs
 span{background:url(/interface/themes/default/images/bg-breadcrumb.png) no-repeat left center;overflow:hidden;padding:0;width:10px;font-size:0pt;line-height:0px;opacity:0.4}div.breadcrumbinner{width:73.076em;*width:71.25em;margin:0
 auto}.searchheader{padding:15px
-0 0 0;background-color:#e7e7e7;border-bottom:solid 1px #c5c5c5;text-align:left}.searchform{padding-top:7px}#searchbar{padding-left:7px;padding-bottom:4px;background-color:#ACB4C5;color:#039}.within{font-size:90%;position:relative}.within
+0 0 0;background-color:#e7e7e7;border-bottom:solid 1px #c5c5c5;text-align:left}.searchform{padding-top:7px}#searchbar{padding-left:7px;padding-bottom:4px;background-color:#ACB4C5;color:#039}#keepFilters{display:inline-block;zoom:1;*display:inline;margin:0px
+6px}.within{font-size:90%;position:relative}.within
 input{position:absolute;top:0}.within
 label{margin:0
 0 0 1.5em;position:absolute;top:2px;width:300px}.submenu{padding-left:1em;border-left:1px solid #eee;margin-top:1em}.submenu
@@ -552,4 +553,4 @@ ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-de
 a{font-weight:bold}
 /* extra_styles.css */
 .searchheader{padding:15px
-0 0 0;background-color:#255A8B;border-bottom:solid 1px #c5c5c5;text-align:left;color:#FBEADE}.searchheader a, .searchheader a:visited{color:#FBEADE}#searchbar{padding-left:7px;padding-bottom:4px;background-color:#91C05F;color:#039}
+0 0 0;background-color:#255A8B;border-bottom:solid 1px #c5c5c5;text-align:left;color:#FBEADE}.searchheader a, .searchheader a:visited{color:#FBEADE}#searchbar{padding-left:7px;padding-bottom:4px;background-color:#EEEDF2;color:#039}

@@ -65,7 +65,7 @@
 					{if $showBreadcrumbs}
 					<div class="breadcrumbs">
 						<div class="breadcrumbinner">
-							<a href="{$homeBreadcrumbLink}">{translate text=$homeLinkText}</a> <span>&gt;</span>
+							<a href="{$homeBreadcrumbLink}"><div class="home-icon">&nbsp;</div> {translate text=$homeLinkText}</a> <span>&gt;</span>
 							{include file="$module/breadcrumbs.tpl"}
 						</div>
 					</div>
@@ -104,7 +104,7 @@
 						document.getElementById('popupbox').innerHTML = "{$renew_message|escape:'javascript'}";
 						</script>
 					{/if}
-					
+
 					{if $checkout_message}
 						<script type="text/javascript">
 						lightbox();
