@@ -210,72 +210,74 @@ class AJAX extends Action {
 	}
 
 	function GetListTitles(){
-		require_once('RecordDrivers/MarcRecord.php');
-		global $interface;
+		global $memcache;
 		global $configArray;
-		global $library;
-
-		//Make sure to initialize solr
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
+		global $timer;
 
 		$listId = $_REQUEST['listId'];
+		$_REQUEST['id'] = 'list:' . $listId;
+		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $listId);
+		$scrollerName = isset($_GET['scrollerName']) ? strip_tags($_GET['scrollerName']) : $listName;
 
-		//Get the actual titles for the list
-		$list = User_list::staticGet('id', $listId);
-		$listTitles = $list->getResources();
+		//Determine the caching parameters
+		require_once('services/API/ListAPI.php');
+		$listAPI = new ListAPI();
+		$cacheInfo = $listAPI->getCacheInfoForList();
 
-		$titles = array();
-		foreach ($listTitles as $title){
-			if ($title->source == 'VuFind'){
-				$upc = $title->upc;
-				$formatCategory = $title->format_category;
+		$listData = $memcache->get($cacheInfo['cacheName']);
 
-				$titles[] = array(
-						'id' => $title->record_id,
-						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $title->record_id . "&isn=" . $title->isbn . "&size=small&upc=" . $upc . "&category=" . $formatCategory,
-						'title' => $title->title,
-						'author' => $title->author,
-						'source' => 'VuFind',
-						'link' => $configArray['Site']['path'] . "/Record/" . $title->record_id,
-				);
-			}else{
-				require_once('sys/eContent/EContentRecord.php');
-				$record = new EContentRecord();
-				$record->id = $title->record_id;
-				if ($record->find(true)){
-					$titles[] = array(
-						'id' => $record->id,
-						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record->id . "&isn=" . $record->getIsbn() . "&size=small&upc=" . $record->upc . "&category=EMedia",
-						'title' => $record->title,
-						'author' => $record->author,
-						'source' => 'eContent',
-						'link' => $configArray['Site']['path'] . "/EcontentRecord/" . $record->id,
-					);
+		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
+			global $interface;
+
+			$titles = $listAPI->getListTitles();
+			$timer->logTime("getListTitles");
+			$addStrandsTracking = false;
+			if ($titles['success'] == true){
+				if (isset($titles['strands'])){
+					$addStrandsTracking = true;
+					$strandsInfo = $titles['strands'];
 				}
+				$titles = $titles['titles'];
+				if (is_array($titles)){
+					foreach ($titles as $key => $rawData){
+
+						$interface->assign('description', $rawData['description']);
+						$interface->assign('length', $rawData['length']);
+						$interface->assign('publisher', $rawData['publisher']);
+						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
+
+						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+						$shortId = $rawData['id'];
+						if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+							$recordId = substr($rawData['id'], 14);
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+						}else{
+							$shortId = str_replace('.b', 'b', $shortId);
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
+						}
+						$formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
+									$descriptionInfo .
+								"</div>";
+						$rawData['formattedTitle'] = $formattedTitle;
+						$titles[$key] = $rawData;
+					}
+				}
+				$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
+
+				$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
+				$listData = json_encode($return);
+			}else{
+				$return = array('titles' => array(), 'currentIndex' =>0);
+				$listData = json_encode($return);
 			}
+
+			$memcache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
+
 		}
 
-		foreach ($titles as $key => $rawData){
-			$formattedTitle = "<div id=\"scrollerTitleList{$listId}{$key}\" class=\"scrollerTitle\">" .
-					'<a href="' . $rawData['link'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-					"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-					"</a></div>" .
-					"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
-			$rawData['formattedTitle'] = $formattedTitle;
-			$titles[$key] = $rawData;
-		}
-
-		$return = array('titles' => $titles, 'currentIndex' => 0);
-		return json_encode($return);
+		return $listData;
 	}
 
 	function getOverDriveSummary(){

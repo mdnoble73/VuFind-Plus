@@ -376,6 +376,7 @@ class ListAPI extends Action {
 	}
 
 	private function _getUserListTitles($listId){
+		global $user;
 		//The list is a patron generated list
 		$list = new User_list();
 		$list->id = $listId;
@@ -384,7 +385,7 @@ class ListAPI extends Action {
 			if ($list->public == 0){
 				if (!$user){
 					return array('success'=>false, 'message'=>'The user was invalid.  A valid user must be provided for private lists.');
-				}elseif ($list->user_id != $userId){
+				}elseif ($list->user_id != $user->id){
 					return array('success'=>false, 'message'=>'The user does not have access to this list.');
 				}
 			}
@@ -394,7 +395,11 @@ class ListAPI extends Action {
 			$ids = array();
 			$datesSaved = array();
 			foreach ($listResources as $resource){
-				$ids[] = $resource->record_id;
+				if ($resource->source == 'VuFind'){
+					$ids[] = $resource->record_id;
+				}else{
+					$ids[] = 'econtentRecord' . $resource->record_id;
+				}
 				$datesSaved[$resource->record_id] = $resource->saved;
 			}
 			$titles = $this->loadTitleInformationForIds($ids, array(), $datesSaved);
@@ -461,7 +466,6 @@ class ListAPI extends Action {
 				$listId = $listInfo[1];
 			}
 			return $this->_getUserListTitles($listId);
-
 		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
 			$strandsTemplate = $strandsInfo[1];
 			$results = $this->loadDataFromStrands($strandsTemplate, $user);
@@ -940,13 +944,14 @@ class ListAPI extends Action {
 				}
 
 				$listTitles[] = array(
-	          'id' => $record['id'],
-	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-	          'title' => $record['title'],
-	          'author' => isset($record['author']) ? $record['author'] : '',
-				    'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
-	          'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
-	          'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
+					'id' => $record['id'],
+					'recordtype' => $record['recordtype'],
+					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+					'title' => $record['title'],
+					'author' => isset($record['author']) ? $record['author'] : '',
+					'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
+					'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
+					'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
 				);
 			}
 
