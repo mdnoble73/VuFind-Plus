@@ -4106,7 +4106,7 @@ public class MarcRecordDetails {
 			String curId = (String) mappedFields.get("id");
 			this.ilsId = curId;
 			mappedFields.remove("id");
-			addField(mappedFields, "id", eContentRecordId.toString());
+			addField(mappedFields, "id", "econtentRecord" + eContentRecordId.toString());
 			addField(mappedFields, "id_alt", curId);
 		}
 	}
