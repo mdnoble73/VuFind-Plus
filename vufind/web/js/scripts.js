@@ -270,7 +270,30 @@ function showElementInLightbox(title, elementSelector){
 	$('#popupbox').css('height', 'auto');
 	
 	var lightboxContents = "<div class='header'>" + title + "<a href='#' onclick='hideLightbox();return false;' class='closeIcon'>Close <img src='" + path + "/images/silk/cancel.png' alt='close' /></a></div>";
-	lightboxContents += "<div class='content'>" + $(elementSelector).html() + "</div>";
+	lightboxContents += "<div id='popupboxContent' class='content'>" + $(elementSelector).html() + "</div>";
+	
+	$('#popupbox').html(lightboxContents);
+	
+}
+
+function showHtmlInLightbox(title, htmlSnippet){
+	// Find out how far down the screen the user has scrolled.
+	var new_top =  document.body.scrollTop;
+
+	// Get the height of the document
+	var documentHeight = $(document).height();
+
+	$('#lightbox').show();
+	$('#lightbox').css('height', documentHeight + 'px');
+
+	$('#popupbox').show();
+	$('#popupbox').css('top', '100px');
+	$('#popupbox').css('left', '100px');
+	$('#popupbox').css('width', 'auto');
+	$('#popupbox').css('height', 'auto');
+	
+	var lightboxContents = "<div class='header'>" + title + "<a href='#' onclick='hideLightbox();return false;' class='closeIcon'>Close <img src='" + path + "/images/silk/cancel.png' alt='close' /></a></div>";
+	lightboxContents += "<div id='popupboxContent' class='content'>" + htmlSnippet + "</div>";
 	
 	$('#popupbox').html(lightboxContents);
 	$('#popupbox').position({

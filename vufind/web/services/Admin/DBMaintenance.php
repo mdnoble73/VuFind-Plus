@@ -488,23 +488,35 @@ class DBMaintenance extends Admin {
 		),
 
 		'user_phone' => array(
-				'title' => 'User phone',
-				'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
-				'continueOnError' => true,
-				'dependencies' => array(),
-				'sql' => array(
-					"ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
-		),
+			'title' => 'User phone',
+			'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
+			'continueOnError' => true,
+			'dependencies' => array(),
+			'sql' => array(
+				"ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
+			),
 		),
 
 		'user_ilsType' => array(
-				'title' => 'User Type',
-				'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
-				'dependencies' => array(),
-				'continueOnError' => true,
-				'sql' => array(
-					"ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
+			'title' => 'User Type',
+			'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
+			),
 		),
+
+		'user_overdrive_email' => array(
+			'title' => 'User OverDrive Email',
+			'description' => 'Add overdriveEmail field to User table to allow for patrons to use a different email fo notifications when their books are ready',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE user ADD overdriveEmail VARCHAR( 250 ) NOT NULL DEFAULT ''",
+				"ALTER TABLE user ADD promptForOverdriveEmail TINYINT DEFAULT 1",
+				"UPDATE user set overdriveEmail = email"
+			),
 		),
 
 			'list_widgets' => array(

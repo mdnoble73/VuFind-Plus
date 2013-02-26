@@ -409,7 +409,8 @@ solid #949494;padding:2px
 th{padding-right:20px}.myAccountTable
 thead{border-bottom:2px solid #949494;text-align:center;vertical-align:bottom}.unsortedHeader{background-image:url(/images/unsorted_icon.gif);cursor:pointer;font-weight:bold;background-repeat:no-repeat;background-position:center right;padding-right:20px}.sortDescHeader{background-image:url(/images/sort_desc_icon.gif);background-color:#39F}.sortAscHeader{background-image:url(/images/sort_asc_icon.gif);background-color:#39F}#notice{border:1px
 solid #949494;;border-radius:5px;margin:5px
-15px;padding:4px;font-size:11px}.noticeTitle{font-size:13px;font-weight:bold}#pager{margin:5px;font-size:11px}.myAccountPagination{display:inline-block;zoom:1;*display:inline}#recordsPerPage,#sortOptions{margin-left:5px}.adminMenuLink{font-size:12px;color:#256292;margin-bottom:6px;margin-left:10px;text-indent:-10px}.adminMenuHeader{padding-top:5px;font-size:13px;display:block}.adminMenuLink
+15px;padding:4px;font-size:11px}.noticeTitle{font-size:13px;font-weight:bold}#pager{margin:5px;font-size:11px}.myAccountPagination{display:inline-block;zoom:1;*display:inline}#recordsPerPage,#sortOptions{margin-left:5px}.adminMenuLink{font-size:12px;color:#256292;margin-bottom:6px}.adminMenuLink
+.adminMenuLink{margin-left:20px;text-indent:-10px}.adminMenuHeader{padding-top:5px;font-size:13px;display:block}.adminMenuLink
 .adminMenuHeader:first{padding-top:0px}#web_note{text-align:center;margin:8px;padding:8px;background-color:#EDEDED;border:1px
 solid #949494;border-radius:4px;font-weight:bold;font-family:sans-serif;color:darkblue}
 /* holdingsSummary.css */
