@@ -1290,8 +1290,15 @@ class IndexRecord implements RecordInterface
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
-		return isset($this->fields['isbn']) && is_array($this->fields['isbn']) ?
-		$this->fields['isbn'] : array();
+		if (isset($this->fields['isbn'])){
+			if (is_array($this->fields['isbn'])){
+				return $this->fields['isbn'];
+			}else{
+				return array($this->fields['isbn']);
+			}
+		}else{
+			return array();
+		}
 	}
 
 	/**
@@ -1303,16 +1310,22 @@ class IndexRecord implements RecordInterface
 	{
 		// If UPCs is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
-		return isset($this->fields['upc']) && is_array($this->fields['upc']) ?
-		$this->fields['upc'] : array();
+		if (isset($this->fields['upc'])){
+			if (is_array($this->fields['upc'])){
+				return $this->fields['upc'];
+			}else{
+				return array($this->fields['upc']);
+			}
+		}else{
+			return array();
+		}
 	}
 
 	public function getUPC()
 	{
 		// If UPCs is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
-		return isset($this->fields['upc']) && is_array($this->fields['upc']) ?
-		$this->fields['upc'][0] : '';
+		return isset($this->fields['upc']) && is_array($this->fields['upc']) ? $this->fields['upc'][0] : '';
 	}
 
 	/**

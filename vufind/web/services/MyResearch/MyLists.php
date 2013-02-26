@@ -20,6 +20,7 @@
 
 require_once 'Action.php';
 require_once 'services/MyResearch/lib/FavoriteHandler.php';
+require_once 'services/MyResearch/MyResearch.php';
 
 
 /**

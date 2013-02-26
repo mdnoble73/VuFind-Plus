@@ -705,15 +705,17 @@ class AJAX extends Action {
 						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
 
 						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+						$shortId = $rawData['id'];
 						if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
 							$recordId = substr($rawData['id'], 14);
 							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
 						}else{
-							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+							$shortId = str_replace('.b', 'b', $shortId);
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
 						}
 						$formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
 								"</a></div>" .
-								"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none' class='loaded'>" .
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
 									$descriptionInfo .
 								"</div>";
 						$rawData['formattedTitle'] = $formattedTitle;

@@ -24,9 +24,7 @@ class Novelist{
 		$enrichment = $memcache->get("novelist_enrichment_$isbn");
 		if ($enrichment == false  || isset($_REQUEST['reload'])){
 
-			//$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/SeriesTitles?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$this->isbn}";
 			$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/AllContent?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$isbn}";
-
 			try{
 				//Get the XML from the service
 				disableErrorHandler();
@@ -186,6 +184,7 @@ class Novelist{
                 'isbn10' => $isbn10,
                 'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
                 'recordId' => $ownedRecord['id'],
+                'recordtype' => $ownedRecord['recordtype'],
                 'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
                 'libraryOwned' => true,
                 'isCurrent' => $isCurrent,

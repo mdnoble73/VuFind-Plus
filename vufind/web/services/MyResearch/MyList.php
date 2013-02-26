@@ -23,6 +23,7 @@ require_once 'services/MyResearch/lib/FavoriteHandler.php';
 require_once 'services/MyResearch/lib/Resource.php';
 require_once 'services/MyResearch/lib/User_resource.php';
 require_once 'services/MyResearch/lib/Resource_tags.php';
+require_once 'services/MyResearch/MyResearch.php';
 
 /**
  * This class does not use MyResearch base class (we don't need to connect to
@@ -30,9 +31,7 @@ require_once 'services/MyResearch/lib/Resource_tags.php';
  * allow public lists to work properly).
  * @version  $Revision$
  */
-class MyList extends Action {
-	private $db;
-	var $catalog;
+class MyList extends MyResearch {
 
 	function launch() {
 		global $configArray;

@@ -56,7 +56,7 @@
 				
 		<div class="yui-u">
 		
-			{if $showRatings == 1 && $user->disableRecommendations == 0}
+			{if $showRatings == 1 && $user->disableRecommendations == 0 && $hasRatings}
 				<div id="titleScrollerSuggestion" class="titleScrollerWrapper">
 					<div id="titleScrollerSuggestionHeader" class="titleScrollerHeader">
 						<span class="listTitle resultInformationLabel">Suggested Titles</span>

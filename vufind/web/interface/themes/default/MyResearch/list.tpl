@@ -78,29 +78,6 @@
 		{/if}
 	</div>
 
-	<div class="yui-u">
-		{if $tagList}
-		<h3><span class="silk tag_blue">{translate text='Your Tags'}</h3>
-
-		<ul>
-		{foreach from=$tags item=tag}
-			<li>{translate text='Tag'}: {$tag|escape:"html"}
-			<a href="{$path}/MyResearch/MyList/{$favList->id}&amp;{foreach from=$tags item=mytag}{if $tag != $mytag}tag[]={$mytag|escape:"url"}&amp;{/if}{/foreach}">X</a>
-			</li>
-		{/foreach}
-		</ul>
-
-		<ul>
-		{foreach from=$tagList item=tag}
-			<li>
-				<a href="{$path}/MyResearch/MyList/{$favList->id}&amp;tag[]={$tag->tag|escape:"url"}{foreach from=$tags item=mytag}&amp;tag[]={$mytag|escape:"url"}{/foreach}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
-			</li>
-		{/foreach}
-		</ul>
-		{/if}
-	
-	</div>
-
 </div>
 
 <script type="text/javascript">

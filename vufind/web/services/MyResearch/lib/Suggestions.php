@@ -27,9 +27,12 @@ class Suggestions{
 		$ratings->whereAdd("userId = $userId", 'AND');
 		$ratings->whereAdd('rating >= 3', 'AND');
 		$ratings->orderBy('rating DESC');
+		//Use the 20 highest ratings to make real-time recommendations faster
+		$ratings->limit(0, 20);
 
 		$ratings->find();
 		$suggestions = array();
+		//echo("User as rated {$ratings->N} titles<br/>");
 		if ($ratings->N > 0){
 			while($ratings->fetch()){
 				$resourceId = $ratings->resourceid;
@@ -37,87 +40,23 @@ class Suggestions{
 				$resource = new Resource();
 				$resource->id = $resourceId;
 				$resource->find();
-				if ($resource->N == 1){
+				if ($resource->N != 1){
+					//echo("Did not find resource for $resourceId<br/>");
+				}else{
 					$resource->fetch();
+					//echo("Found resource for $resourceId - {$resource->title}<br/>");
 					$ratedTitles[$resource->record_id] = clone $ratings;
-
+					$numRecommendations = 0;
 					if ($resource->isbn){
 						//If there is an isbn for the title, we can load similar titles based on Novelist.
 						$isbn = $resource->isbn;
-						//We now have the title, we can get the related titles from Novelist
-						$novelist = new Novelist();
-						//Use loadEnrichmentInfo even though there is more data than we need since it uses caching.
-						$enrichmentInfo = $novelist->loadEnrichment($isbn);
+						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $ratedTitles, $suggestions);
+						//echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
 
-						if ($enrichmentInfo['similarTitleCountOwned'] > 0){
-							//For each related title
-							foreach ($enrichmentInfo['similarTitles'] as $similarTitle){
-								if ($similarTitle['libraryOwned']){
-									Suggestions::addTitleToSuggestions($ratings, $resource->title, $resource->record_id, $similarTitle, $ratedTitles, $suggestions);
-								}
-							}
-						}
-					}else{
-						//If there is no ISBN, can we come up with an alternative algorithm?
-						//Possibly using common ratings with other patrons?
-						//Get a list of other patrons that have rated this title and that like it as much or more than the active user..
-						$otherRaters = new UserRating();
-						//Query the database to get items that other users who rated this liked.
-						$sqlStatement = ("SELECT resourceid, record_id, " .
-		                    " sum(case rating when 5 then 10 when 4 then 6 end) as rating " . //Scale the ratings similar to the above.
-		                    " FROM `user_rating` inner join resource on resource.id = user_rating.resourceid WHERE userId in " .
-		                    " (select userId from user_rating where resourceId = " . $ratings->resourceid . //Get other users that have rated this title.
-		                    " and rating >= " . $ratings->rating . //Make sure that the other users rated the title the same or higher than this title.
-		                    " and userid != " . $userId . ") " . //Make sure that we don't include this user in the results.
-		                    " and rating >= 4 " . //Only include ratings that are 4 or 5 star so we don't get books the other user didn't like.
-		                    " and resourceId != " . $ratings->resourceid . //Make sure we don't get back this title as a recommendation.
-		                    " and deleted = 0 " . //Ignore deleted resources
-		                    " group by resourceid order by rating desc limit 10"); //Sort so the highest titles are on top and limit to 10 suggestions.
-						$otherRaters->query($sqlStatement);
-						if ($otherRaters->N > 0){
-							//Other users have also rated this title.
-							while ($otherRaters->fetch()){
-								//Process the title
-								disableErrorHandler();
-
-								if (!($ownedRecord = $db->getRecord($otherRaters->record_id))) {
-									//Old record which has been removed? Ignore for purposes of suggestions.
-									continue;
-								}
-								enableErrorHandler();
-								//get the title from the Solr Index
-								if (strpos($ownedRecord['isbn'][0], ' ') > 0){
-									$isbnInfo = explode(' ', $ownedRecord['isbn'][0]);
-									$isbn = $isbnInfo[0];
-								}else{
-									$isbn = $ownedRecord['isbn'][0];
-								}
-								$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
-								$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
-								//See if we can get the series title from the record
-								if (isset($ownedRecord['series'])){
-									$series = $ownedRecord['series'][0];
-								}
-								$similarTitle = array(
-		                            'title' => $ownedRecord['title'],
-		                            'title_short' => $ownedRecord['title_short'],
-		                            'author' => $ownedRecord['author'],
-		                            'publicationDate' => (string)$item->PublicationDate,
-		                            'isbn' => $isbn13,
-		                            'isbn10' => $isbn10,
-		                            'upc' => $ownedRecord['upc'][0],
-		                            'recordId' => $ownedRecord['id'],
-		                            'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
-		                            'libraryOwned' => true,
-		                            'isCurrent' => $isCurrent,
-		                            'shortId' => substr($ownedRecord['id'], 1),
-		                            'format_category' => $ownedRecord['format_category'],
-		                            'format' => $ownedRecord['format'],
-		                            'series' => $series,
-								);
-								Suggestions::addTitleToSuggestions($ratedTitle, $record['title'], $recordId, $similarTitle, $ratedTitles, $suggestions);
-							}
-						}
+					}
+					if ($numRecommendations == 0){
+						$numRecommendations = Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $ratedTitles, $suggestions);
+						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 					}
 				}
 			}
@@ -129,6 +68,97 @@ class Suggestions{
 		$suggestions = array_slice($suggestions, 0, 30, true);
 		//Return suggestions for use in the user interface.
 		return $suggestions;
+	}
+
+	static function getSimilarlyRatedTitles($db, $ratedTitle, $userId, $ratedTitles, &$suggestions){
+		$numRecommendations = 0;
+		//If there is no ISBN, can we come up with an alternative algorithm?
+		//Possibly using common ratings with other patrons?
+		//Get a list of other patrons that have rated this title and that like it as much or more than the active user..
+		$otherRaters = new UserRating();
+		//Query the database to get items that other users who rated this liked.
+		$sqlStatement = ("SELECT resourceid, record_id, " .
+                    " sum(case rating when 5 then 10 when 4 then 6 end) as rating " . //Scale the ratings similar to the above.
+                    " FROM `user_rating` inner join resource on resource.id = user_rating.resourceid WHERE userId in " .
+                    " (select userId from user_rating where resourceId = " . $ratedTitle->resourceid . //Get other users that have rated this title.
+                    " and rating >= 4 " . //Make sure that other users liked the book.
+                    " and userid != " . $userId . ") " . //Make sure that we don't include this user in the results.
+                    " and rating >= 4 " . //Only include ratings that are 4 or 5 star so we don't get books the other user didn't like.
+                    " and resourceId != " . $ratedTitle->resourceid . //Make sure we don't get back this title as a recommendation.
+                    " and deleted = 0 " . //Ignore deleted resources
+                    " group by resourceid order by rating desc limit 10"); //Sort so the highest titles are on top and limit to 10 suggestions.
+		$otherRaters->query($sqlStatement);
+		if ($otherRaters->N > 0){
+			//Other users have also rated this title.
+			while ($otherRaters->fetch()){
+				//Process the title
+				disableErrorHandler();
+
+				if (!($ownedRecord = $db->getRecord($otherRaters->record_id))) {
+					//Old record which has been removed? Ignore for purposes of suggestions.
+					continue;
+				}
+				enableErrorHandler();
+				//get the title from the Solr Index
+				if (isset($ownedRecord['isbn'])){
+					if (strpos($ownedRecord['isbn'][0], ' ') > 0){
+						$isbnInfo = explode(' ', $ownedRecord['isbn'][0]);
+						$isbn = $isbnInfo[0];
+					}else{
+						$isbn = $ownedRecord['isbn'][0];
+					}
+					$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
+					$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
+				}else{
+					$isbn13 = '';
+					$isbn10 = '';
+				}
+				//See if we can get the series title from the record
+				if (isset($ownedRecord['series'])){
+					$series = $ownedRecord['series'][0];
+				}
+				$similarTitle = array(
+						'title' => $ownedRecord['title'],
+						'title_short' => $ownedRecord['title_short'],
+						'author' => $ownedRecord['author'],
+						'publicationDate' => $ownedRecord['publishDate'],
+						'isbn' => $isbn13,
+						'isbn10' => $isbn10,
+						'upc' => isset($ownedRecord['upc']) ? $ownedRecord['upc'][0] : '',
+						'recordId' => $ownedRecord['id'],
+						'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
+						'libraryOwned' => true,
+						'isCurrent' => false,
+						'shortId' => substr($ownedRecord['id'], 1),
+						'format_category' => $ownedRecord['format_category'],
+						'format' => $ownedRecord['format'],
+						'recordtype' => $ownedRecord['recordtype'],
+						'series' => $series,
+				);
+				$numRecommendations++;
+				Suggestions::addTitleToSuggestions($ratedTitle, $similarTitle['title'], $similarTitle['recordId'], $similarTitle, $ratedTitles, $suggestions);
+			}
+		}
+		return $numRecommendations;
+	}
+
+	static function getNovelistRecommendations($userRating, $isbn, $resource, $ratedTitles, &$suggestions){
+		//We now have the title, we can get the related titles from Novelist
+		$novelist = new Novelist();
+		//Use loadEnrichmentInfo even though there is more data than we need since it uses caching.
+		$enrichmentInfo = $novelist->loadEnrichment($isbn);
+		$numRecommendations = 0;
+
+		if ($enrichmentInfo['similarTitleCountOwned'] > 0){
+			//For each related title
+			foreach ($enrichmentInfo['similarTitles'] as $similarTitle){
+				if ($similarTitle['libraryOwned']){
+					Suggestions::addTitleToSuggestions($userRating, $resource->title, $resource->record_id, $similarTitle, $ratedTitles, $suggestions);
+					$numRecommendations++;
+				}
+			}
+		}
+		return $numRecommendations;
 	}
 
 	static function addTitleToSuggestions($userRating, $sourceTitle, $sourceId, $similarTitle, $ratedTitles, &$suggestions){
