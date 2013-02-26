@@ -24,6 +24,8 @@
 				<tr><th>{translate text='Zip'}:</th><td>{if $edit == true}<input name='zip' value='{$profile.zip|escape}' size='50' maxlength='75' />{else}{$profile.zip|escape}{/if}</td></tr>
 				<tr><th>{translate text='Phone Number'}:</th><td>{if $edit == true}<input name='phone' value='{$profile.phone|escape}' size='50' maxlength='75' />{else}{$profile.phone|escape}{/if}</td></tr>
 				<tr><th>{translate text='E-mail'}:</th><td>{if $edit == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</td></tr>
+				<tr><th>{translate text='OverDrive Hold e-mail'}:</th><td>{if $edit == true}<input name='overdriveEmail' value='{$profile.overdriveEmail|escape}' size='50' maxlength='75' />{else}{$profile.overdriveEmail|escape}{/if}</td></tr>
+				<tr><th>{translate text='Prompt for OverDrive e-mail'}:</th><td>{if $edit == true}<input type='radio' name="promptForOverdriveEmail" value='yes' {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}/>Yes&nbsp;&nbsp;<input type='radio' name="promptForOverdriveEmail" value='no' {if $profile.promptForOverdriveEmail==0}checked='checked'{/if}/>No{else}{if $profile.promptForOverdriveEmail==0}No{else}Yes{/if}{/if}</td></tr>
 				<tr><th>{translate text='Fines'}:</th><td>{$profile.fines|escape}</td></tr>
 				<tr><th>{translate text='Expiration Date'}:</th><td>{$profile.expires|escape}</td></tr>
 				<tr><th>{translate text='Home Library'}:</th><td>{$profile.homeLocation|escape}</td></tr>

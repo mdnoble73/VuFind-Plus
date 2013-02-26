@@ -14,7 +14,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -530,6 +530,21 @@ class AJAX extends Action {
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['formatId'];
+		$overdriveEmail = isset($_REQUEST['overdriveEmail']) ? $_REQUEST['overdriveEmail'] : $user->overdriveEmail;
+		if (isset($_REQUEST['overdriveEmail'])){
+			if ($_REQUEST['overdriveEmail'] != $user->overdriveEmail){
+				$user->overdriveEmail = $_REQUEST['overdriveEmail'];
+				$user->update();
+				//Update the serialized instance stored in the session
+				$_SESSION['userinfo'] = serialize($user);
+			}
+		}
+		if (isset($_REQUEST['promptForOverdriveEmail'])){
+			$user->promptForOverdriveEmail = $_REQUEST['promptForOverdriveEmail'];
+			$user->update();
+			//Update the serialized instance stored in the session
+			$_SESSION['userinfo'] = serialize($user);
+		}
 		if ($user && !PEAR::isError($user)){
 			require_once('Drivers/OverDriveDriver.php');
 			$driver = new OverDriveDriver();
@@ -578,6 +593,56 @@ class AJAX extends Action {
 		$interface->assign('MobileTitle','{translate text="Loan Period"}');
 
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
+	}
+
+	function GetOverDriveHoldPrompts(){
+		global $configArray;
+		global $user;
+		global $interface;
+		$formatId = isset($_REQUEST['formatId']) ? $_REQUEST['formatId'] : null;
+		$interface->assign('formatId', $formatId);
+		$overDriveId = $_REQUEST['overDriveId'];
+		$interface->assign('overDriveId', $overDriveId);
+		$promptForEmail = false;
+		if (strlen($user->overdriveEmail) == 0 || $user->promptForOverdriveEmail == 1){
+			$promptForEmail = true;
+		}
+		$interface->assign('overdriveEmail', $user->overdriveEmail);
+		$interface->assign('promptForEmail', $promptForEmail);
+		$promptForFormat = false;
+		if (!isset($configArray['OverDrive']) || $configArray['OverDrive']['interfaceVersion'] < 2){
+			if (strlen($formatId) == 0){
+				$promptForFormat = true;
+			}
+		}
+		if ($promptForFormat){
+			$eContentRecord = new EContentRecord();
+			$eContentRecord->externalId = $overDriveId;
+			if ($eContentRecord->find(true)){
+				$items = $eContentRecord->getItems();
+				$interface->assign('items', $items);
+			}
+		}
+		$interface->assign('promptForFormat', $promptForFormat);
+		if ($promptForFormat || $promptForEmail){
+			if ($promptForFormat && $promptForEmail){
+				$promptTitle = 'Additional information needed';
+			}elseif($promptForFormat){
+				$promptTitle = 'Select a format';
+			}else{
+				$promptTitle = 'Enter an e-mail';
+			}
+			return json_encode(
+				array(
+					'promptNeeded' => true,
+					'promptTitle' => $promptTitle,
+					'prompts' => $interface->fetch('EcontentRecord/ajax-overdrive-hold-prompt.tpl'),
+				)
+			);
+		}else{
+			return json_encode(array('promptNeeded' => false));
+		}
+
 	}
 
 	function SelectOverDriveFormat(){

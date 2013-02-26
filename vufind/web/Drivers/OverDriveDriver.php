@@ -610,8 +610,8 @@ class OverDriveDriver {
 						'ID' => $overDriveId,
 						'Format' => $format,
 						'URL' => 'WaitingListConfirm.htm',
-						'Email' => $user->email,
-						'Email2' => $user->email,
+						'Email' => $user->overdriveEmail,
+						'Email2' => $user->overdriveEmail,
 					);
 					foreach ($postParams as $key => $value) {
 						$post_items[] = $key . '=' . urlencode($value);
@@ -1066,6 +1066,12 @@ class OverDriveDriver {
 		));
 		$initialPage = curl_exec($ch);
 		$pageInfo = curl_getinfo($ch);
+
+		if (isset($configArray['OverDrive']['uiLogin']) && isset($configArray['OverDrive']['uiPwd']) &&
+				strlen($configArray['OverDrive']['uiLogin']) > 0  && strlen($configArray['OverDrive']['uiPwd']) > 0){
+			//Need to login to the overdrive site.
+
+		}
 
 		$urlWithSession = $pageInfo['url'];
 

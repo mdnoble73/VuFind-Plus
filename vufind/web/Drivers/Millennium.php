@@ -1229,6 +1229,8 @@ class MillenniumDriver implements DriverInterface
 				'state' => $State,
 				'zip'=> $Zip,
 				'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
+				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
+				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
 				'phone' => isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : '',
 				'fines' => $patronDump['MONEY_OWED'],
 				'finesval' =>$finesVal,
@@ -2884,6 +2886,16 @@ class MillenniumDriver implements DriverInterface
 			}else{
 				$user->bypassAutoLogout = 0;
 			}
+		}
+		if (isset($_REQUEST['promptForOverdriveEmail'])){
+			if ($_REQUEST['promptForOverdriveEmail'] == 'yes'){
+				$user->promptForOverdriveEmail = 1;
+			}else{
+				$user->promptForOverdriveEmail = 0;
+			}
+		}
+		if (isset($_REQUEST['overdriveEmail'])){
+			$user->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
 		}
 		//Make sure the selected location codes are in the database.
 		if (isset($_POST['myLocation1'])){
