@@ -1867,3 +1867,7 @@ div.request-search {
 .request-header a {
   color: #4888C9;
 }
+
+.lexile-wrapper {
+  margin-bottom: 8px;
+}
