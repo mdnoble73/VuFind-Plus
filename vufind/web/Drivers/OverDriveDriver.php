@@ -1069,8 +1069,22 @@ class OverDriveDriver {
 
 		if (isset($configArray['OverDrive']['uiLogin']) && isset($configArray['OverDrive']['uiPwd']) &&
 				strlen($configArray['OverDrive']['uiLogin']) > 0  && strlen($configArray['OverDrive']['uiPwd']) > 0){
-			//Need to login to the overdrive site.
 
+			//Need to login to the overdrive site.
+			//http://mydigitallibrary.lib.overdrive.com/E59371AB-BE51-40A1-800A-5FC62E634B4C/10/50/en/BANGAuthenticate.dll?Action=AuthTestMode
+			$postParams = array(
+				'LoginID' => $configArray['OverDrive']['uiLogin'],
+				'Password' => $configArray['OverDrive']['uiPwd'],
+			);
+			$testLoginUrl = str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthTestMode&URL=MyAccount.htm&ForceLoginFlag=0',  $urlWithSession);
+			curl_setopt($ch, CURLOPT_URL, $testLoginUrl);
+			$post_items = array();
+			foreach ($postParams as $key => $value) {
+				$post_items[] = $key . '=' . urlencode($value);
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
+			$loginContent = curl_exec($ch);
 		}
 
 		$urlWithSession = $pageInfo['url'];
@@ -1098,6 +1112,7 @@ class OverDriveDriver {
 		if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
 			$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
 		}
+		$post_items = array();
 		foreach ($postParams as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
