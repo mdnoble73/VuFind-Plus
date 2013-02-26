@@ -143,8 +143,23 @@ public class ReindexProcess {
 			}
 			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/econtent2/conf/schema.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/econtent2/conf/schema.xml"))){
-				logger.info("Unable to copy schema to econtent");
-				addNoteToCronLog("Unable to copy schema to econtent");
+				logger.info("Unable to copy schema to econtent2");
+				addNoteToCronLog("Unable to copy schema to econtent2");
+			}
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/biblio2/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/biblio2/conf/synonyms.txt"))){
+				logger.info("Unable to copy synonyms.txt to biblio2");
+				addNoteToCronLog("Unable to copy synonyms.txt to biblio2");
+			}
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/econtent/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/econtent/conf/synonyms.txt"))){
+				logger.info("Unable to copy synonyms.txt to econtent");
+				addNoteToCronLog("Unable to copy synonyms.txt to econtent");
+			}
+			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/econtent2/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/econtent2/conf/synonyms.txt"))){
+				logger.info("Unable to copy synonyms.txt to econtent2");
+				addNoteToCronLog("Unable to copy synonyms.txt to econtent2");
 			}
 		} catch (IOException e) {
 			logger.error("error reloading copying default scehmas", e);
@@ -179,6 +194,11 @@ public class ReindexProcess {
 			}
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
+				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+			}
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/synonyms.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/synonyms.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt"))){
 				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
