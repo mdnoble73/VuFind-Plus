@@ -107,6 +107,41 @@
           </div>
         </div>
       {/if}
+      {if $showLexileScore}
+        <div class="advancedSearchFacetDetails">
+          <div class="advancedSearchFacetHeader">{translate text="Lexile Score"}:</div>
+          <div class="advancedSearchFacetList">
+            <div id="lexile-range"></div>
+            <label for="lexile_scorefrom" class='yearboxlabel'>From:</label>
+            <input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scorefrom" id="lexile_scorefrom" value="" />
+            <label for="lexile_scoreto" class='yearboxlabel'>To:</label>
+            <input type="text" size="4" maxlength="4" class="yearbox" name="lexile_scoreto" id="lexile_scoreto" value="" />
+            <script type="text/javascript">
+            {literal}
+            $(function() {
+              $('#lexile-range').slider({
+                range: true,
+                min: 0,
+                max: 2500,
+                step: 10,
+                values: [ 0, 2500 ],
+                slide: function( event, ui ) {
+                  $('#lexile_scorefrom').val(ui.values[0]);
+                  $('#lexile_scoreto').val(ui.values[1]);
+                }
+              });
+              $('#lexile_scorefrom').change(function (){
+                $('#lexile-range').slider('values',0,$('#lexile_scorefrom').val());
+              });
+              $('#lexile_scoreto').change(function (){
+                $('#lexile-range').slider('values',1,$('#lexile_scoreto').val());
+              });
+            });
+            {/literal}
+            </script>
+          </div>
+        </div>
+      {/if}
     {/if}
     </div>
     <div class="advanced-search-button">
