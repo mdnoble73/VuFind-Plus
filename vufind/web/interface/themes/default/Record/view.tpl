@@ -241,26 +241,29 @@ function redrawSaveStatus() {literal}{{/literal}
 		{elseif $showSimilarTitles}
 			<div id="relatedTitleInfo" class="ui-tabs">
 				<ul>
-					<li><a href="#list-similar-titles">Similar Titles</a></li>
 					<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
+					<li><a href="#list-similar-titles">Similar Titles</a></li>
 				</ul>
 				
-				{assign var="scrollerName" value="SimilarTitlesVuFind"}
-				{assign var="wrapperId" value="similar-titles-vufind"}
-				{assign var="scrollerVariable" value="similarTitleVuFindScroller"}
-				{include file=titleScroller.tpl}
+				<div id="list-similar-titles" style="display:none">
+					{assign var="scrollerName" value="SimilarTitlesVuFind"}
+					{assign var="wrapperId" value="similar-titles-vufind"}
+					{assign var="scrollerVariable" value="similarTitleVuFindScroller"}
+					{include file=titleScroller.tpl}
+				</div>
 
-				{assign var="scrollerName" value="Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/Record/$id/Series"}
-				{include file=titleScroller.tpl}
+				<div id="list-series-tab">
+					{assign var="scrollerName" value="Series"}
+					{assign var="wrapperId" value="series"}
+					{assign var="scrollerVariable" value="seriesScroller"}
+					{assign var="fullListLink" value="$path/Record/$id/Series"}
+					{include file=titleScroller.tpl}
+				</div>
 				
 			</div>
 			{literal}
 			<script type="text/javascript">
 				var similarTitleScroller;
-				var alsoViewedScroller;
 				
 				$(function() {
 					$("#relatedTitleInfo").tabs();
@@ -268,7 +271,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/literal}
 					
 					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
+					//similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
 		
 					{literal}
 					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {

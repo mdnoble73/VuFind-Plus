@@ -139,10 +139,10 @@ class AJAX extends Action {
 						$fullId = $rawData['id'];
 						$shortId = str_replace('econtentRecord', '', $rawData['id']);
 						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
+								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $shortId . '">' .
 								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
 								"</a></div>" .
-								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
 					}else{
 						$shortId = str_replace('.', '', $rawData['id']);
 						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
