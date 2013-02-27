@@ -19,7 +19,6 @@
  */
 
 require_once 'services/MyResearch/MyResearch.php';
-require_once 'Drivers/OverDriveDriver.php';
 require_once 'sys/eContent/EContentRecord.php';
 
 class OverdriveHolds extends MyResearch {
@@ -29,7 +28,8 @@ class OverdriveHolds extends MyResearch {
 		global $user;
 		global $timer;
 
-		$overDriveDriver = new OverDriveDriver();
+		require_once 'Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveHolds = $overDriveDriver->getOverDriveHolds($user);
 		//Load the full record for each item in the wishlist
 		foreach ($overDriveHolds['holds'] as $sectionKey => $sectionData){

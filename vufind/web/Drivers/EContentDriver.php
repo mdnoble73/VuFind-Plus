@@ -669,8 +669,8 @@ class EContentDriver implements DriverInterface{
 
 			//If the source is overdrive, process it as an overdrive title
 			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-				require_once 'Drivers/OverDriveDriver.php';
-				$overDriveDriver = new OverDriveDriver();
+				require_once 'Drivers/OverDriveDriverFactory.php';
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$overDriveId = substr($eContentRecord->sourceUrl, -36);
 				//Get holdings for the record
 				$holdings = $overDriveDriver->getOverdriveHoldings($eContentRecord);

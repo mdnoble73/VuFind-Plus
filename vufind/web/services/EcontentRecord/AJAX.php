@@ -14,7 +14,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'AddOverDriveRecordToWishList', 'RemoveOverDriveRecordFromWishList', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -546,8 +546,8 @@ class AJAX extends Action {
 			$_SESSION['userinfo'] = serialize($user);
 		}
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
 			return json_encode($holdMessage);
 		}else{
@@ -563,8 +563,8 @@ class AJAX extends Action {
 		//global $logger;
 		//$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
 			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
 			return json_encode($result);
@@ -583,8 +583,8 @@ class AJAX extends Action {
 		$formatId = $_REQUEST['formatId'];
 		$interface->assign('overDriveId', $overDriveId);
 		$interface->assign('formatId', $formatId);
-		require_once 'Drivers/OverDriveDriver.php';
-		$overDriveDriver = new OverDriveDriver();
+		require_once 'Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
 
@@ -666,35 +666,12 @@ class AJAX extends Action {
 		return $interface->fetch('EcontentRecord/ajax-select-format.tpl');
 	}
 
-	function AddOverDriveRecordToWishList(){
-		global $user;
-		if (isset($_REQUEST['recordId'])){
-			//TODO: get the overdrive id from the EContent REcord
-			require_once 'sys/eContent/EContentRecord.php';
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$overDriveId = $eContentRecord->getOverDriveId();
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
-			$result = $driver->addItemToOverDriveWishList($overDriveId, $user);
-			return json_encode($result);
-		}else{
-			return json_encode(array('result'=>false, 'message'=>'You must be logged in to add an item to your wish list.'));
-		}
-	}
-
 	function RemoveOverDriveRecordFromWishList(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->removeOverDriveItemFromWishlist($overDriveId, $user);
 			return json_encode($result);
 		}else{
@@ -707,8 +684,8 @@ class AJAX extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['formatId'];
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);
 			return json_encode($result);
 		}else{

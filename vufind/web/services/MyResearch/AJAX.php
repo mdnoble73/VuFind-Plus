@@ -281,8 +281,8 @@ class AJAX extends Action {
 	function getOverDriveSummary(){
 		global $user;
 		if ($user){
-			require_once 'Drivers/OverDriveDriver.php';
-			$overDriveDriver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$summary = $overDriveDriver->getOverDriveSummary($user);
 			return json_encode($summary);
 		}else{

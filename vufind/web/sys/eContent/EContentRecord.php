@@ -1167,8 +1167,8 @@ class EContentRecord extends SolrDataObject {
 				$this->availability[] = clone $eContentAvailability;
 			}
 			if (strcasecmp($this->source, "OverDrive") == 0 ){
-				require_once 'Drivers/OverDriveDriver.php';
-				$driver = new OverDriveDriver();
+				require_once 'Drivers/OverDriveDriverFactory.php';
+				$driver = OverDriveDriverFactory::getDriver();
 				foreach ($this->availability as $key => $tmpAvailability){
 					//Get updated availability for each library from overdrive
 					$productKey = $configArray['OverDrive']['productsKey'];

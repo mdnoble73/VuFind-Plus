@@ -19,7 +19,6 @@
  */
 
 require_once 'services/MyResearch/MyResearch.php';
-require_once 'Drivers/OverDriveDriver.php';
 require_once 'sys/eContent/EContentRecord.php';
 
 class OverdriveCheckedOut extends MyResearch {
@@ -29,7 +28,8 @@ class OverdriveCheckedOut extends MyResearch {
 		global $user;
 		global $timer;
 
-		$overDriveDriver = new OverDriveDriver();
+		require_once 'Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($user);
 		//Load the full record for each item in the wishlist
 		foreach ($overDriveCheckedOutItems['items'] as $key => $item){
@@ -44,12 +44,12 @@ class OverdriveCheckedOut extends MyResearch {
 			$overDriveCheckedOutItems['items'][$key] = $item;
 		}
 		$interface->assign('overDriveCheckedOutItems', $overDriveCheckedOutItems['items']);
-	
+
 		$interface->assign('ButtonBack',true);
 		$interface->assign('ButtonHome',true);
 		$interface->assign('MobileTitle','OverDrive Checked Out Items');
-		
-		
+
+
 		$interface->setTemplate('overDriveCheckedOut.tpl');
 		$interface->setPageTitle('OverDrive Checked Out Items');
 		$interface->display('layout.tpl');
