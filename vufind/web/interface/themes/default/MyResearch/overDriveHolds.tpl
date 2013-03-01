@@ -47,7 +47,7 @@
 								<tr>
 									<td colspan="2">{$format.name}</td>
 									<td>
-										<a href="#" onclick="checkoutOverDriveItem('{$format.overDriveId}','{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
+										<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$format.overDriveId}','{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
 									</td>
 								</tr>
 							{/foreach}

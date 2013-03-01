@@ -1169,7 +1169,9 @@ class EContentRecord extends SolrDataObject {
 			if (strcasecmp($this->source, "OverDrive") == 0 ){
 				require_once 'Drivers/OverDriveDriverFactory.php';
 				$driver = OverDriveDriverFactory::getDriver();
+				//echo("Loading availablity from overdrive, part of " . count($this->availability) . " collections");
 				foreach ($this->availability as $key => $tmpAvailability){
+					//echo("\r\n{$tmpAvailability->libraryId}");
 					//Get updated availability for each library from overdrive
 					$productKey = $configArray['OverDrive']['productsKey'];
 					if ($tmpAvailability->libraryId != -1){
@@ -1186,7 +1188,7 @@ class EContentRecord extends SolrDataObject {
 				}
 			}
 
-			if (count($this->availability == 0)){
+			if (count($this->availability) == 0){
 				//Did not get availability from the Availability table
 				if ($this->itemLevelOwnership){
 					//Ownership is determined at the item level based on library ids set for the item.  Assume unlimited availability

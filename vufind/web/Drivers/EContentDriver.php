@@ -254,14 +254,14 @@ class EContentDriver implements DriverInterface{
 	public function getScopedAvailability($eContentRecord){
 		$availability = $eContentRecord->getAvailability();
 		$scopingId = $this->getLibraryScopingId();
-		if ($scopingId == -1){
-			return $availability;
-		}
-		foreach ($availability as $key => $availabilityItem){
-			if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
-				unset($availability[$key]);
+		if ($scopingId != -1){
+			foreach ($availability as $key => $availabilityItem){
+				if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
+					unset($availability[$key]);
+				}
 			}
 		}
+		//print_r($availability);
 		return $availability;
 	}
 

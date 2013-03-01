@@ -30,6 +30,10 @@ class ILSAuthentication implements Authentication {
 		return $user;
 	}
 
+	public function validateAccount($username, $password) {
+		return $this->authenticate();
+	}
+
 	private function processILSUser($info){
 		require_once "services/MyResearch/lib/User.php";
 

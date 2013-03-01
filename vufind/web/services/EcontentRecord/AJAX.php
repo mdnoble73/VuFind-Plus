@@ -558,8 +558,8 @@ class AJAX extends Action {
 	function CheckoutOverDriveItem(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
-		$format = $_REQUEST['formatId'];
-		$lendingPeriod = $_REQUEST['lendingPeriod'];
+		$format = isset($_REQUEST['formatId']) ? $_REQUEST['formatId'] : null;
+		$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : null;
 		//global $logger;
 		//$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
 		if ($user && !PEAR::isError($user)){
@@ -603,10 +603,14 @@ class AJAX extends Action {
 		$interface->assign('formatId', $formatId);
 		$overDriveId = $_REQUEST['overDriveId'];
 		$interface->assign('overDriveId', $overDriveId);
+		if ($user->overdriveEmail == 'undefined'){
+			$user->overdriveEmail = '';
+		}
 		$promptForEmail = false;
 		if (strlen($user->overdriveEmail) == 0 || $user->promptForOverdriveEmail == 1){
 			$promptForEmail = true;
 		}
+
 		$interface->assign('overdriveEmail', $user->overdriveEmail);
 		$interface->assign('promptForEmail', $promptForEmail);
 		$promptForFormat = false;
@@ -640,7 +644,13 @@ class AJAX extends Action {
 				)
 			);
 		}else{
-			return json_encode(array('promptNeeded' => false));
+			return json_encode(
+				array(
+					'promptNeeded' => false,
+					'overdriveEmail' => $user->overdriveEmail,
+					'promptForOverdriveEmail' => $promptForEmail,
+				)
+			);
 		}
 
 	}

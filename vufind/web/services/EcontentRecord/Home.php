@@ -109,6 +109,7 @@ class Home extends Action{
 		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
 		$timer->logTime('Configure UI for library and location');
 
+		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 		UserComments::loadEContentComments();
 		$timer->logTime('Loaded Comments');
 

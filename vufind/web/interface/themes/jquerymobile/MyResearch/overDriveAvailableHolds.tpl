@@ -30,7 +30,7 @@
 						{if !empty($record.recordId)}</a>{/if}
 						<div data-role="controlgroup">
 							{foreach from=$record.formats item=format}
-								<a href="#" onclick="checkoutOverDriveItem('{$format.overDriveId}','{$format.formatId}')" data-role="button" rel="external" data-ajax="false">Check&nbsp;Out {$format.name}</a>
+								<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$format.overDriveId}','{$format.formatId}')" data-role="button" rel="external" data-ajax="false">Check&nbsp;Out {$format.name}</a>
 							{/foreach}
 						</div>
 					</li>

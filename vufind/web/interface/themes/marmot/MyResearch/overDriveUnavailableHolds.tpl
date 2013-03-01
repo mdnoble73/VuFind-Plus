@@ -44,7 +44,7 @@
 							</td>
 							<td>{$record.holdQueuePosition} out of {$record.holdQueueLength}</td>
 							<td>
-								<a href="#" onclick="cancelOverDriveHold('{$record.overDriveId}','{$record.formatId}')" class="button">Remove</a><br/>
+								<a href="#" onclick="cancelOverDriveHold('{$record.overDriveId}','{$record.formatId}')" class="button">Cancel&nbsp;Hold</a><br/>
 							</td>
 						</tr>
 					{/foreach}

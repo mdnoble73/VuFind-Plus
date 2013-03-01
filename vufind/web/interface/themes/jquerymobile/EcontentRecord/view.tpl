@@ -106,7 +106,7 @@
 					
 					{* Checkout link *}
 					<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-						<a href="#" data-role="button" rel="external" data-ajax="false" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+						<a href="#" data-role="button" rel="external" data-ajax="false" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
 					</div>
 				{else}
 					{* Place hold link *}

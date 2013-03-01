@@ -19,6 +19,37 @@ function selectOverDriveFormat(overdriveId, nextAction){
 	ajaxLightbox(ajaxUrl);
 }
 
+function checkoutOverDriveItemOneClick(overdriveId){
+	showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
+	var ajaxUrl = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId;
+	$.ajax({
+		url: ajaxUrl,
+		cache: false,
+		success: function(data){
+			hideLightbox();
+			if (data.result == true){
+				alert(data.message);
+				window.location.href = path + "/MyResearch/OverdriveCheckedOut";
+			}else{
+				if (data.noCopies == true){
+					ret = confirm(data.message)
+					if (ret == true){
+						placeOverDriveHold(overdriveId, formatId);
+					}
+				}else{
+					alert(data.message);
+				}
+			}
+		},
+		dataType: 'json',
+		async: false,
+		error: function(jqXHR, textStatus, errorThrown){
+			alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+			alert("ajaxUrl = " + ajaxUrl);
+			hideLightbox();
+		}
+	});
+}
 function checkoutOverDriveItemStep2(overdriveId, formatId){
 	var lendingPeriod = $("#loanPeriod option:selected").val();
 	showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
@@ -72,11 +103,12 @@ function processOverDriveHoldPrompts(){
 	doOverDriveHold(overdriveId, formatId, overdriveEmail, promptForOverdriveEmail);
 }
 
-function placeOverDriveHold(overDriveId, formatId, overdriveEmail, promptForOverdriveEmail){
+function placeOverDriveHold(overDriveId, formatId){
 	if (loggedIn){
 		//Get any prompts needed for placing holds (e-mail and format depending on the interface.
-		if (!getOverDriveHoldPrompts(overDriveId, formatId, 'hold')){
-			doOverDriveHold(overDriveId, formatId, overdriveEmail, promptForOverdriveEmail);
+		var promptInfo = getOverDriveHoldPrompts(overDriveId, formatId, 'hold');
+		if (!promptInfo.promptNeeded){
+			doOverDriveHold(overDriveId, formatId, promptInfo.overdriveEmail, promptInfo.promptForOverdriveEmail);
 		}
 	}else{
 		ajaxLogin(function(){
@@ -93,8 +125,12 @@ function doOverDriveHold(overDriveId, formatId, overdriveEmail, promptForOverdri
 		url: url,
 		cache: false,
 		success: function(data){
-			alert(data.message);
-			hideLightbox();
+			if (data.availableForCheckout){
+				checkoutOverDriveItem(overdriveId, formatId);
+			}else{
+				alert(data.message);
+				hideLightbox();
+			}
 		},
 		dataType: 'json',
 		async: false,
@@ -115,11 +151,9 @@ function getOverDriveHoldPrompts(overDriveId, formatId, nextAction){
 		url: url,
 		cache: false,
 		success: function(data){
+			result = data;
 			if (data.promptNeeded){
 				showHtmlInLightbox(data.promptTitle, data.prompts);
-				result = true;
-			}else{
-				result = false;
 			}
 		},
 		dataType: 'json',

@@ -14,7 +14,7 @@
 		{if $profile.web_note}
 			<div id="web_note">{$profile.web_note}</div>
 		{/if}
-			
+
 		<div class="myAccountTitle">{translate text='Available Holds From OverDrive'}</div>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
@@ -41,15 +41,13 @@
 							</td>
 							<td>{$record.notificationDate|date_format:"%a $b %e, %Y %I:%M%p"}</td>
 							<td>{$record.expirationDate|date_format:"%a $b %e, %Y %I:%M%p"}</td>
+							{* Allow borrow and cancel hold *}
+							<td>
+								<a href="" class="button">Check Out</a>
+								<br/><br/>
+								<a href="#" class="button" onclick="cancelOverDriveHold('{$record.overDriveId}','{$record.formatId}')">Cancel Hold</a>
+							</td>
 						</tr>
-						{foreach from=$record.formats item=format}
-							<tr>
-								<td colspan="2">{$format.name}</td>
-								<td>
-									<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$format.overDriveId}','{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
-								</td>
-							</tr>
-						{/foreach}
 					{/foreach}
 					</tbody>
 				</table>
