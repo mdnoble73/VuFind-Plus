@@ -43,7 +43,7 @@
 							<td>{$record.expirationDate|date_format:"%a $b %e, %Y %I:%M%p"}</td>
 							{* Allow borrow and cancel hold *}
 							<td>
-								<a href="" class="button">Check Out</a>
+								<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$record.overDriveId}','{$record.formatId}')" class="button">Check Out</a>
 								<br/><br/>
 								<a href="#" class="button" onclick="cancelOverDriveHold('{$record.overDriveId}','{$record.formatId}')">Cancel Hold</a>
 							</td>

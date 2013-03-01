@@ -194,3 +194,62 @@ function cancelOverDriveHold(overDriveId, formatId){
 		});
 	}
 }
+
+function returnOverDriveTitle(overDriveId, transactionId){
+	if (confirm('Are you sure you want to return this title?')){
+		showProcessingIndicator("Returning your title in OverDrive.  This may take a minute.");
+		var ajaxUrl = path + "/EcontentRecord/AJAX?method=ReturnOverDriveItem&overDriveId=" + overDriveId + "&transactionId=" + transactionId;
+		$.ajax({
+			url: ajaxUrl,
+			cache: false,
+			success: function(data){
+				alert(data.message);
+				if (data.result){
+					//Reload the page
+					window.location.href = window.location.href ;
+				}else{
+					hideLightbox();
+				}
+			},
+			dataType: 'json',
+			async: false,
+			error: function(){
+				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+				hideLightbox();
+			}
+		});
+	}
+	return false;
+}
+
+function selectOverDriveDownloadFormat(overDriveId){
+	var selectedFormatId = $("#downloadFormat_" + overDriveId + " option:selected").val();
+	var selectedFormatText = $("#downloadFormat_" + overDriveId + " option:selected").text();
+	if (selectedFormatId == -1){
+		alert("Please select a format to download.");
+	}else{
+		if (confirm("Are you sure you want to download the " + selectedFormatText + " format? You cannot change format after downloading.")){
+			var ajaxUrl = path + "/EcontentRecord/AJAX?method=SelectOverDriveDownloadFormat&overDriveId=" + overDriveId + "&formatId=" + selectedFormatId;
+			$.ajax({
+				url: ajaxUrl,
+				cache: false,
+				success: function(data){
+					if (data.result){
+						//Reload the page
+						window.location.href = data.downloadUrl;
+					}else{
+						alert(data.message);
+						hideLightbox();
+					}
+				},
+				dataType: 'json',
+				async: false,
+				error: function(){
+					alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+					hideLightbox();
+				}
+			});
+		}
+	}
+	return false;
+}

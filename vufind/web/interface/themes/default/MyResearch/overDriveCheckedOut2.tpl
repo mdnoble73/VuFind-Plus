@@ -44,7 +44,7 @@
 							{if $record.subTitle}<br/>{$record.subTitle}{/if}
 							{if strlen($record.record->author) > 0}<br/>by: {$record.record->author}{/if}
 						</td>
-						<td>{$record.expiresOn}</td>
+						<td>{$record.expiresOn|replace:' ':'&nbsp;'}</td>
 						<td>{* Ratings cell*}
 							{if $record.recordId != -1}
 							<div id ="searchStars{$record.recordId|escape}" class="resultActions">
@@ -83,7 +83,31 @@
 							{/if}
 						</td>
 						<td>
-							<a href="{$record.downloadLink|replace:'&':'&amp;'}" class="button">Download</a>
+							{if $record.formatSelected}
+								You downloaded the <strong>{$record.selectedFormat.name}</strong> format of this title.
+								<br/>
+								<a href="{$record.downloadUrl|replace:'&':'&amp;'}" class="button">Download&nbsp;Again</a>
+							{else}
+								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
+								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}">
+									<option value="-1">Select a Format</option>
+									{foreach from=$record.formats item=format}
+										<option value="{$format.id}">{$format.name}</option>
+									{/foreach}
+								</select>
+								<a href="#" onclick="selectOverDriveDownloadFormat('{$record.overDriveId}')" class="button">Download</a>
+							{/if}
+
+							{if $record.earlyreturn}
+								<br/>
+								<br/>
+								<a href="#" onclick="returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" class="button">Return&nbsp;Now</a>
+							{/if}
+							{if $record.overdriveRead}
+								<br/>
+								<br/>
+								<a href="{$record.overdriveReadUrl}" class="button">Read&nbsp;Online with OverDrive&nbsp;Read</a>
+							{/if}
 						</td>
 					</tr>
 				{/foreach}
