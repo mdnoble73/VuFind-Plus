@@ -28,7 +28,7 @@
 						<a href="#" onclick="removeOverDriveRecordFromWishList('{$record.overDriveId}')" data-role="button" rel="external">Remove</a>
 						{foreach from=$record.formats item=format}
 							{if $format.available}
-							<a href="#" onclick="checkoutOverDriveItem('{$record.overDriveId}', '{$format.formatId}')" data-role="button" rel="external">Check&nbsp;Out {$format.name}</a>
+							<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$record.overDriveId}', '{$format.formatId}')" data-role="button" rel="external">Check&nbsp;Out {$format.name}</a>
 							{else}
 							<a href="#" onclick="placeOverDriveHold('{$record.overDriveId}', '{$format.formatId}')" data-role="button" rel="external">Place&nbsp;Hold on {$format.name}</a>
 							{/if}

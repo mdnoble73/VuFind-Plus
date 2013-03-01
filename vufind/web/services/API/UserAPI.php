@@ -624,8 +624,8 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentHolds = $eContentDriver->getOverDriveHolds($user);
 			return array('success'=>true, 'holds'=>$eContentHolds['holds']);
 		}else{
@@ -662,64 +662,10 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentCartItems = $eContentDriver->getOverDriveCart($user);
 			return array('success'=>true, 'items'=>$eContentCartItems['items']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Get a list of items in the user's OverDrive wishlist.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronWishListOverDrive&username=23025003575917&password=7604
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "items":[
-	 *     {"overDriveId":"47BCED53-7AEC-47A2-A5D9-75D493196095",
-	 *      "imageUrl":"http:\/\/images.contentreserve.com\/ImageType-200\/1191-1\/%7B47BCED53-7AEC-47A2-A5D9-75D493196095%7DImg200.jpg",
-	 *      "title":"The Return of Depression Economics and the Crisis of 2008",
-	 *      "subTitle":"",
-	 *      "author":"Paul Krugman",
-	 *      "dateAdded":"Apr 19, 2009\r\n",
-	 *      "formats":[
-	 *        {"name":"OverDrive WMA Audiobook",
-	 *         "available":true,
-	 *         "formatId":"25"
-	 *        }
-	 *      ],
-	 *      "recordId":"13233"
-	 *     }
-	 *   ]
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function getPatronWishListOverDrive(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
-			$eContentWishListItems = $eContentDriver->getOverDriveWishList($user);
-			return array('success'=>true, 'items'=>$eContentWishListItems['items']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -769,8 +715,8 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentCheckedOutItems = $eContentDriver->getOverDriveCheckedOutItems($user);
 			return array('success'=>true, 'items'=>$eContentCheckedOutItems['items']);
 		}else{
@@ -818,8 +764,8 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$overDriveSummary = $eContentDriver->getOverDriveSummary($user);
 			return array('success'=>true, 'summary'=>$overDriveSummary);
 		}else{
@@ -954,7 +900,7 @@ class UserAPI extends Action {
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
 			$checkedOutItems = $this->catalog->getMyTransactions($user);
-				
+
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once('Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
@@ -1334,7 +1280,7 @@ class UserAPI extends Action {
 			if (!$driver->isRecordCheckedOutToUser($recordId)){
 				return array('success'=>false, 'message'=>'The record is not checked out to you.');
 			}
-				
+
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $recordId;
 			$eContentItem->id = $itemId;
@@ -1435,8 +1381,8 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
 		}else{
@@ -1496,68 +1442,9 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);
-			return array('success'=> $result['result'], 'message'=>$result['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Remove an item from the OverDrive WishList
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * <li>or overdriveId - The id of the record in OverDrive.</li>
-	 * </ul>
-	 *
-	 * Returns JSON encoded data as follows:
-	 * <ul>
-	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
-	 * <li>message – information about the process for display to the user.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=removeOverDriveItemFromWishlist&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "message":"The title was successfully removed from your wishlist."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function removeOverDriveItemFromWishlist(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
-
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
-			$result = $driver->removeOverDriveItemFromWishlist($overDriveId, $user);
 			return array('success'=> $result['result'], 'message'=>$result['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1626,69 +1513,10 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->addItemToOverDriveCart($overDriveId, $format, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Add an item to the wishlist in OverDrive
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * <li>or overdriveId - The id of the record in OverDrive.</li>
-	 * </ul>
-	 *
-	 * Returns JSON encoded data as follows:
-	 * <ul>
-	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
-	 * <li>message – information about the process for display to the user.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=addItemToOverDriveWishList&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "message":"The title was added to your wishlist."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function addItemToOverDriveWishList(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
-
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
-			$message = $driver->addItemToOverDriveWishList($overDriveId, $user);
-			return array('success'=> $message['result'], 'message'=>$message['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1746,8 +1574,8 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
 			$holdMessage = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
@@ -1794,8 +1622,8 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
 			$processCartResult = $driver->processOverDriveCart($user, $lendingPeriod);
 			return array('success'=> $processCartResult['result'], 'message'=>$processCartResult['message']);

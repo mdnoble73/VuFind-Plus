@@ -254,14 +254,14 @@ class EContentDriver implements DriverInterface{
 	public function getScopedAvailability($eContentRecord){
 		$availability = $eContentRecord->getAvailability();
 		$scopingId = $this->getLibraryScopingId();
-		if ($scopingId == -1){
-			return $availability;
-		}
-		foreach ($availability as $key => $availabilityItem){
-			if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
-				unset($availability[$key]);
+		if ($scopingId != -1){
+			foreach ($availability as $key => $availabilityItem){
+				if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
+					unset($availability[$key]);
+				}
 			}
 		}
+		//print_r($availability);
 		return $availability;
 	}
 
@@ -669,8 +669,8 @@ class EContentDriver implements DriverInterface{
 
 			//If the source is overdrive, process it as an overdrive title
 			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-				require_once 'Drivers/OverDriveDriver.php';
-				$overDriveDriver = new OverDriveDriver();
+				require_once 'Drivers/OverDriveDriverFactory.php';
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$overDriveId = substr($eContentRecord->sourceUrl, -36);
 				//Get holdings for the record
 				$holdings = $overDriveDriver->getOverdriveHoldings($eContentRecord);

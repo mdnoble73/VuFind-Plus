@@ -245,6 +245,7 @@ class Results extends Action {
 		}
 		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
+		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 
 		//Check to see if we should show unscoped results
 		$enableUnscopedSearch = false;

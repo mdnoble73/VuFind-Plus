@@ -171,8 +171,7 @@ function Login(elems, salt, module, action, id, lookfor, message) {
 }
 
 function lightbox(left, width, top, height){
-	if (!left) left = '100px';
-	if (!top) top = '100px';
+	
 	if (!width) width = 'auto';
 	if (!height) height = 'auto';
 	
@@ -192,10 +191,24 @@ function lightbox(left, width, top, height){
 	$('#lightbox').css('height', documentHeight + 'px');
 
 	$('#popupbox').show();
-	$('#popupbox').css('top', top);
-	$('#popupbox').css('left', left);
 	$('#popupbox').css('width', width);
 	$('#popupbox').css('height', height);
+	if (left != undefined && top != undefined){
+		$('#popupbox').position({
+			'my': 'top left',
+			'at': top + " " + left,
+			'collision': 'fit'
+		});
+	}else{
+		$('#popupbox').position({
+			my: 'center center',
+			at: 'center center',
+			collision: 'fit',
+			of: window
+		});
+	}
+	//$('#popupbox').css('top', top);
+	//$('#popupbox').css('left', left);
 }
 
 function ajaxLightbox(urlToLoad, parentId, left, width, top, height){

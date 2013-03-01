@@ -50,7 +50,7 @@
 						<td colspan="3">{$format.name|escape}</td>
 						<td>
 							{if $format.available}
-							<a href="#" onclick="checkoutOverDriveItem('{$record.overDriveId}', '{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
+							<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$record.overDriveId}', '{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
 							{else}
 							<a href="#" onclick="placeOverDriveHold('{$record.overDriveId}', '{$format.formatId}')" class="button">Place&nbsp;Hold</a><br/>
 							{/if}

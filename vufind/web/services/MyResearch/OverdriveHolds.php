@@ -19,7 +19,6 @@
  */
 
 require_once 'services/MyResearch/MyResearch.php';
-require_once 'Drivers/OverDriveDriver.php';
 require_once 'sys/eContent/EContentRecord.php';
 
 class OverdriveHolds extends MyResearch {
@@ -29,7 +28,8 @@ class OverdriveHolds extends MyResearch {
 		global $user;
 		global $timer;
 
-		$overDriveDriver = new OverDriveDriver();
+		require_once 'Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveHolds = $overDriveDriver->getOverDriveHolds($user);
 		//Load the full record for each item in the wishlist
 		foreach ($overDriveHolds['holds'] as $sectionKey => $sectionData){
@@ -43,7 +43,9 @@ class OverdriveHolds extends MyResearch {
 					$item['record'] = null;
 				}
 				if ($sectionKey == 'available'){
-					$item['numRows'] = count($item['formats']) + 1;
+					if (isset($item['formats'])){
+						$item['numRows'] = count($item['formats']) + 1;
+					}
 				}
 				$overDriveHolds['holds'][$sectionKey][$key] = $item;
 			}
@@ -59,7 +61,11 @@ class OverdriveHolds extends MyResearch {
 			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
 			if ($section == 'available'){
 				$interface->setPageTitle('Available Holds from OverDrive');
-				$interface->setTemplate('overDriveAvailableHolds.tpl');
+				if (!isset($configArray['OverDrive']['interfaceVersion']) || $configArray['OverDrive']['interfaceVersion'] == 1){
+					$interface->setTemplate('overDriveAvailableHolds.tpl');
+				}else{
+					$interface->setTemplate('overDriveAvailableHolds2.tpl');
+				}
 			}else{
 				$interface->setPageTitle('On Hold in OverDrive');
 				$interface->setTemplate('overDriveUnavailableHolds.tpl');

@@ -20,7 +20,7 @@
 				
 				{* Checkout link *}
 				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-					<a href="#" class="button" onclick="return checkoutOverDriveItem('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+					<a href="#" class="button" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
 				</div>
 			{else}
 				

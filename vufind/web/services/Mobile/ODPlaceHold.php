@@ -36,15 +36,12 @@ class ODPlaceHold extends Action {
 
 		if ($user)
 		{
-			if ( 
-					(isset($_GET['overDriveId']) && isset($_GET['formatId'])) 
+			if (
+					(isset($_GET['overDriveId']) && isset($_GET['formatId']))
 					||
 					(isset($_POST['overDriveId']) && isset($_POST['formatId']))
 				)
 			{
-				require_once('Drivers/OverDriveDriver.php');
-			
-				
 				$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 				$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
 				$profile = $catalog->getMyProfile($patron);
@@ -52,15 +49,16 @@ class ODPlaceHold extends Action {
 				{
 					$interface->assign('profile', $profile);
 				}
-				
+
 				$overDriveId = (isset($_GET['overDriveId']) ? $_GET['overDriveId'] : $_POST['overDriveId']);
 				$formatId = (isset($_GET['formatId']) ? $_GET['formatId'] : $_POST['formatId']);
-				
-				$driver = new OverDriveDriver();
+
+				require_once 'Drivers/OverDriveDriverFactory.php';
+				$driver = OverDriveDriverFactory::getDriver();
 				$holdMessage = $driver->placeOverDriveHold($overDriveId, $formatId, $user);
-				
+
 				$interface->assign('message',$holdMessage['message']);
-				
+
 				$interface->assign('MobileTitle','OverDrive Place Hold');
 				$interface->assign('ButtonBack',false);
 				$interface->assign('ButtonHome',true);

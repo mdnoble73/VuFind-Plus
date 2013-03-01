@@ -69,8 +69,8 @@ class BookCoverProcessor{
 				if ((strcasecmp($epubFile->source, 'OverDrive') == 0) && ($epubFile->cover == null || strlen($epubFile->cover) == 0)){
 					$this->log("Record is an OverDrive record that needs cover information fetched.", PEAR_LOG_INFO);
 					//Get the image from OverDrive
-					require_once('Drivers/OverDriveDriver.php');
-					$overDriveDriver = new OverDriveDriver();
+					require_once 'Drivers/OverDriveDriverFactory.php';
+					$overDriveDriver = OverDriveDriverFactory::getDriver();
 					$filename = $overDriveDriver->getCoverUrl($epubFile);
 					$this->log("Got OverDrive cover information for $epubFile->id $epubFile->sourceUrl", PEAR_LOG_INFO);
 					$this->log("Received filename $filename", PEAR_LOG_INFO);

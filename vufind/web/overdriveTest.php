@@ -17,9 +17,8 @@ if (!$memcache->pconnect($host, $port, $timeout)) {
 	PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
 }
 
-require_once 'Drivers/OverDriveDriver.php';
-
-$driver = new OverDriveDriver();
+require_once 'Drivers/OverDriveDriverFactory.php';
+$driver = OverDriveDriverFactory::getDriver();
 
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
