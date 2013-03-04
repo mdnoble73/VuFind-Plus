@@ -19,7 +19,7 @@
 				{/if}
 				<div class="sidebarValue"><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></div>
 			{/foreach}
-			{if $smarty.foreach.loop.index > 5}
+			{if $smarty.foreach.loop.index >= 5}
 				<div class="sidebarValue" id="contributorsLessLink"><a href="#" onclick="$('#contributorsMoreSection').toggle();$('#contributorsMoreLink').toggle();">{translate text="less"}</a></div>
 				</div>
 			{/if}
