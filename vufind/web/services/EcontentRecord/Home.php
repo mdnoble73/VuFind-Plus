@@ -256,7 +256,7 @@ class Home extends Action{
 				}else{
 					$interface->assign('tableOfContents', $tableOfContents);
 				}
-				if (isset($library)){
+				if (isset($library) && strlen($library->notesTabName) > 0){
 					$interface->assign('notesTabName', $library->notesTabName);
 				}else{
 					$interface->assign('notesTabName', 'Notes');

@@ -404,7 +404,7 @@ class JSON extends Action {
 			$result = $searchObject->processSearch();
 			$matchingRecords = $searchObject->getResultRecordSet();
 			foreach ($matchingRecords as $record){
-				$record['url'] = $configArray['Site']['path'] . "/Record/{$record['id']}/Home";
+				$record['url'] = $configArray['Site']['url'] . "/Record/{$record['id']}/Home";
 				$cartContents[] = $record;
 
 			}
