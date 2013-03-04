@@ -15,6 +15,7 @@
 		<li><a href="http://www.steamboatlibrary.org/about-us/history">{translate text='History'}</a></li>
 		<li><a href="http://www.steamboatlibrary.org/about-us/building">{translate text='Building'}</a></li>
 		<li><a href="http://www.steamboatlibrary.org/about-us/mission">{translate text='Mission'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/building-cafe/coffee-bar">{translate text='Coffee Bar'}</a></li>
 		<li><a href="http://www.steamboatlibrary.org/about-us/policies">{translate text='Policies'}</a></li>
 		<li><a href="http://www.steamboatlibrary.org/about-us/jobs">{translate text='Jobs'}</a></li>
 	</ul>
@@ -25,6 +26,7 @@
 		<li><a href="http://www.steamboatlibrary.org/find-us/hours/driving-directions">{translate text='Driving Directions'}</a></li>
 		<li><a href="http://www.steamboatlibrary.org/find-us/hours/driving-directions/book-drop-locations">{translate text='Book Drop Locations'}</a></li>
 		<li><a href="http://www.steamboatlibrary.org/downloads/mobile-app">{translate text='Mobile App'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org">{translate text='Library Website'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Support Us'}</strong></p>
