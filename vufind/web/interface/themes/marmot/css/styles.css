@@ -122,14 +122,7 @@ height: 2em;
 }
 
 /*****************Breadcrumbs*******************/
-.home-icon{
-	display: inline-block;
-	zoom:1;
-	*display:inline;
-	width: 24px;
-	height: 24px;
-	background: url('/images/home_icon.png') no-repeat top left;
-}
+
 div.breadcrumbs {
 	overflow:hidden;
 	margin:0;
@@ -148,14 +141,22 @@ div.breadcrumbs a, div.breadcrumbs em, div.breadcrumbs span {
 	font-size: 90%;
 }
 div.breadcrumbs span {
-	background:url(/interface/themes/default/images/bg-breadcrumb.png) no-repeat left center;
-	overflow:hidden;
 	padding:0;
-	width:10px;
-	font-size: 0pt;
-	line-height: 0px;
-	opacity:0.4;
+	font-size: 20pt;
+	line-height: 24px;
+	opacity:0.2;
 }
+div.breadcrumbs span.home-icon{
+	width: 24px;
+	height: 24px;
+	opacity:0.75;
+	background: url('/images/home_icon.png') no-repeat top left;
+	margin-right:5px;
+}
+div.breadcrumbs span.home-icon:hover{
+	opacity:1;
+}
+
 div.breadcrumbinner {width:73.076em;*width:71.25em;margin:0 auto;}
 
 /******** Main Header *********/

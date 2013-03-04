@@ -472,9 +472,9 @@ class CatalogConnection
 		return $this->driver->getHoldLink($recordId);
 	}
 
-	function updatePatronInfo($patronId)
+	function updatePatronInfo($patronId, $canUpdateContactInfo)
 	{
-		return $this->driver->updatePatronInfo($patronId);
+		return $this->driver->updatePatronInfo($patronId, $canUpdateContactInfo);
 	}
 
 	function selfRegister(){

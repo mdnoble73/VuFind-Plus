@@ -3,4 +3,4 @@
 {else}
 <em>{$pageTemplate|replace:'.tpl':''|capitalize|translate}</em>
 {/if}
-<span>&gt;</span>
+<span class="divider">&raquo;</span>

@@ -259,7 +259,7 @@ class User extends DB_DataObject
 					$this->roles = array();
 					while ($role->fetch()){
 						$this->roles[$role->roleId] = $role->name;
-						if (in_array($role->name, array('userAdmin'))){
+						if ($role->name == 'userAdmin'){
 							$canMasquerade = true;
 						}
 					}

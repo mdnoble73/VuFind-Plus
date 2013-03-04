@@ -65,7 +65,7 @@
 					{if $showBreadcrumbs}
 					<div class="breadcrumbs">
 						<div class="breadcrumbinner">
-							<a href="{$homeBreadcrumbLink}"><div class="home-icon">&nbsp;</div> {translate text=$homeLinkText}</a> <span>&gt;</span>
+							<a href="{$homeBreadcrumbLink}"><span class="home-icon">&nbsp;</span> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span>
 							{include file="$module/breadcrumbs.tpl"}
 						</div>
 					</div>

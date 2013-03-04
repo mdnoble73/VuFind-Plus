@@ -28,9 +28,21 @@ class Profile extends MyResearch
 		global $interface;
 		global $user;
 
+		global $librarySingleton;
+		$activeLibrary = $librarySingleton->getActiveLibrary();
+		if ($activeLibrary == null || $activeLibrary->allowProfileUpdates){
+			$canUpdateContactInfo = true;
+		}else{
+			$canUpdateContactInfo = false;
+		}
+		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
+
 		if (isset($_POST['update'])) {
-			$result = $this->catalog->updatePatronInfo($user->cat_password);
+			$result = $this->catalog->updatePatronInfo($user->cat_password, $canUpdateContactInfo);
 			$_SESSION['profileUpdateErrors'] = $result;
+			require_once 'Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
+			$result = $overDriveDriver->updateLendingOptions();
 
 			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
@@ -46,17 +58,17 @@ class Profile extends MyResearch
 			$interface->assign('edit', false);
 		}
 
+		require_once 'Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		if ($overDriveDriver->version >= 2){
+			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+			$interface->assign('overDriveLendingOptions', $overDriveSummary['lendingOptions']);
+		}
+
+
 		if (isset($_SESSION['profileUpdateErrors'])){
 			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
 			unset($_SESSION['profileUpdateErrors']);
-		}
-
-		global $librarySingleton;
-		$activeLibrary = $librarySingleton->getActiveLibrary();
-		if ($activeLibrary == null || $activeLibrary->allowProfileUpdates){
-			$interface->assign('canUpdate', true);
-		}else{
-			$interface->assign('canUpdate', false);
 		}
 
 		//Get the list of locations for display in the user interface.

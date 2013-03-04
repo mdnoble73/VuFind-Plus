@@ -26,6 +26,7 @@ require_once 'sys/eContent/EContentRecord.php';
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class OverDriveDriver2 {
+	public $version = 2;
 
 	private $maxAccountCacheMin = 14400; //Allow caching of overdrive account information for 4 hours
 	private $maxCheckedOutCacheMin = 3600; //Only cache the checked out page for an hour.
@@ -266,6 +267,32 @@ class OverDriveDriver2 {
 		return $holds;
 	}
 
+	private function _parseLendingOptions($lendingPeriods){
+		$lendingOptions = array();
+		//print_r($lendingPeriods);
+		if (preg_match('/<script>.*?var hazVariableLending.*?<\/script>.*?<noscript>(.*?)<\/noscript>/si', $lendingPeriods, $matches)){
+			preg_match_all('/<li>\\s?\\d+\\s-\\s(.*?)<select name="(.*?)">(.*?)<\/select><\/li>/si', $matches[1], $lendingPeriodInfo, PREG_SET_ORDER);
+			for ($i = 0; $i < count($lendingPeriodInfo); $i++){
+				$lendingOption = array();
+				$lendingOption['name'] = $lendingPeriodInfo[$i][1];
+				$lendingOption['id'] = $lendingPeriodInfo[$i][2];
+				$options = $lendingPeriodInfo[$i][3];
+				$lendingOption['options']= array();
+				preg_match_all('/<option value="(.*?)".*?(selected="selected")?>(.*?)<\/option>/si', $options, $optionInfo, PREG_SET_ORDER);
+				for ($j = 0; $j < count($optionInfo); $j++){
+					$option = array();
+					$option['value'] = $optionInfo[$j][1];
+					$option['selected'] = strlen($optionInfo[$j][2]) > 0;
+					$option['name'] = $optionInfo[$j][3];
+					$lendingOption['options'][] = $option;
+				}
+				$lendingOptions[] = $lendingOption;
+			}
+		}
+		//print_r($lendingOptions);
+		return $lendingOptions;
+	}
+
 	/**
 	 * Loads information about items that the user has checked out in OverDrive
 	 *
@@ -343,6 +370,13 @@ class OverDriveDriver2 {
 				$summary['numAvailableHolds'] = count($holds['available']);
 				$summary['numUnavailableHolds'] = count($holds['unavailable']);
 				$summary['holds'] = $holds;
+			}
+
+			//Get lending options
+			if (preg_match('/<li .*?id="myAccount4Tab".*?>(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
+				$lendingOptionsSection = $matches[1];
+				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
+				$summary['lendingOptions'] = $lendingOptions;
 			}
 
 			curl_close($ch);
@@ -558,119 +592,6 @@ class OverDriveDriver2 {
 		return $cancelHoldResult;
 	}
 
-	public function processOverDriveCart($user, $lendingPeriod, $overDriveInfo = null){
-		global $logger;
-		$processCartResult = array();
-		$processCartResult['result'] = false;
-		$processCartResult['message'] = '';
-
-		$closeSession = false;
-		if ($overDriveInfo == null){
-			$ch = curl_init();
-			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-			$closeSession = true;
-		}
-
-		if ($overDriveInfo['result'] != false){
-			//Switch back to get method
-			curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
-
-			//Navigate to the Cart page
-			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['cartUrl']);
-			$cartPage = curl_exec($overDriveInfo['ch']);
-			$cartPageInfo = curl_getinfo($overDriveInfo['ch']);
-
-			//Remove any duplicate titles
-			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['removeDupUrl']);
-			$removeDupsPage = curl_exec($overDriveInfo['ch']);
-			preg_match('/BEGIN PAGE CONTENT(.*?)END PAGE CONTENT/s', $removeDupsPage, $content);
-			$removeDupsPage = $content[1];
-			//$logger->log("Cleared duplicate titles", PEAR_LOG_INFO);
-			//$logger->log($removeDupsPage, PEAR_LOG_INFO);
-
-			if (preg_match('/your book (bag|cart) is currently empty/i', $removeDupsPage)){
-				//$logger->log("Book bag is currently empty", PEAR_LOG_INFO);
-				$processCartResult['result'] = false;
-				$processCartResult['message'] = "This title is already checked out to you.";
-				return $processCartResult;
-			}
-
-			//Navigate to Proceed to checkout page
-			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['checkoutUrl']);
-			$checkoutPage = curl_exec($overDriveInfo['ch']);
-			$checkoutPageInfo = curl_getinfo($overDriveInfo['ch']);
-			if (preg_match('/exceeded your checkout limit/si', $checkoutPage)){
-				$processCartResult['result'] = false;
-				$processCartResult['message'] = "We're sorry, you have exceeded your checkout limit. Until one or more digital titles are removed from your account (i.e., a checkout expires so that you can check out another title, or you remove a title from your cart if you are not already at your checkout limit), you will be unable to check out additional titles.";
-				return $processCartResult;
-			}
-
-			//Set the lending period and confirm the checkout
-			$secureBaseUrl = preg_replace('/Checkout.htm.*/', '', $checkoutPageInfo['url']);
-			curl_setopt($overDriveInfo['ch'], CURLOPT_POST, true);
-			//Extract the lending periods for the items in the cart
-			$postParams = array(
-				'x' => 'y',
-			);
-			if ($lendingPeriod == -1){
-				preg_match_all('/<select size="1" name="([^"]+)" class="lendingperiodcombo">.*?<option value="([^"]*)" selected>/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
-				for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
-					$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriodInfo[$matchi][2];
-				}
-			}else{
-				preg_match_all('/<select size="1" name="([^"]+)" class="lendingperiodcombo">/si', $checkoutPage, $lendingPeriodInfo, PREG_SET_ORDER);
-				for ($matchi = 0; $matchi < count($lendingPeriodInfo); $matchi++) {
-					$postParams[$lendingPeriodInfo[$matchi][1]] = $lendingPeriod;
-				}
-			}
-			//Get the submit url if any
-			if (preg_match('/<input type="submit" value="(.*?)" label="(.*?)"><\/input>/i', $checkoutPage, $submitInfo)){
-				$postParams['submit'] = $submitInfo[1];
-			}
-
-			foreach ($postParams as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
-			curl_setopt($overDriveInfo['ch'], CURLOPT_POSTFIELDS, $post_string);
-			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $secureBaseUrl . 'BANGPurchase.dll?Action=LibraryCheckout');
-			$processCartConfirmation =  curl_exec($overDriveInfo['ch']);
-			$processCartConfirmationInfo =  curl_getinfo($overDriveInfo['ch']);
-
-			if (preg_match('/now available for download/si', $processCartConfirmation) || preg_match('/<td class="collhead">Download<\/td>/si', $processCartConfirmation) || preg_match('/<h1>Digital Media - Download<\/h1>/si', $processCartConfirmation)){
-				$processCartResult['result'] = true;
-				$processCartResult['message'] = "Your titles were checked out successfully. You may now download the titles from your Account.";
-				//Remove all cached account information since th user can checkout from holds or wishlist page
-				global $memcache;
-				$memcache->delete('overdrive_summary_' . $user->id);
-			}else if (preg_match('/exceeded your checkout limit/si', $processCartConfirmation) ){
-				$processCartResult['result'] = false;
-				$processCartResult['message'] = "We're sorry, you have exceeded your checkout limit. Until one or more digital titles are removed from your account (i.e., a checkout expires so that you can check out another title, or you remove a title from your cart if you are not already at your checkout limit), you will be unable to check out additional titles.";
-			}else if (preg_match('/You already have one or more titles currently in your Book Bag checked out/si', $processCartConfirmation)){
-				$processCartResult['result'] = true;
-				$processCartResult['message'] = "This title is already checked out to you.";
-			}else if (preg_match('/You are barred from borrowing/si', $processCartConfirmation)){
-				$processCartResult['result'] = true;
-				$processCartResult['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
-			}else{
-				$processCartResult['result'] = false;
-				$processCartResult['message'] = 'There was an error processing your cart.';
-
-				$logger->log("Error processing your cart {$secureBaseUrl}BANGPurchase.dll?Action=LibraryCheckout $post_string", PEAR_LOG_INFO);
-
-				$logger->log("$processCartConfirmation", PEAR_LOG_INFO);
-			}
-		}else{
-			$processCartResult['result'] = false;
-			$processCartResult['message'] = $overDriveInfo['message'];
-		}
-		if ($closeSession){
-			curl_close($ch);
-		}
-
-		return $processCartResult;
-	}
-
 	/**
 	 *
 	 * Add an item to the cart in overdrive and then process the cart so it is checked out.
@@ -712,6 +633,7 @@ class OverDriveDriver2 {
 			$result['result'] = false;
 			$result['message'] = 'Sorry, we could not checkout this title to you.  Please try again later';
 		}
+		curl_close($ch);
 		return $result;
 	}
 
@@ -916,7 +838,6 @@ class OverDriveDriver2 {
 		global $memcache;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-		$closeSession = true;
 
 		//Switch back to get method
 		curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
@@ -947,6 +868,7 @@ class OverDriveDriver2 {
 			$result['result'] = false;
 			$result['message'] = 'Sorry, we could not return this title for you.  Please try again later';
 		}
+		curl_close($ch);
 		return $result;
 	}
 
@@ -955,7 +877,6 @@ class OverDriveDriver2 {
 		global $memcache;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-		$closeSession = true;
 
 		//Switch back to get method
 		curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
@@ -965,7 +886,43 @@ class OverDriveDriver2 {
 			'downloadUrl' => $overDriveInfo['baseLoginUrl'] . 'BANGPurchase.dll?Action=Download&ReserveID=' . $overDriveId . '&FormatID=' . $formatId . '&url=MyAccount.htm'
 		);
 		$memcache->delete('overdrive_summary_' . $user->id);
-
+		curl_close($ch);
 		return $result;
+	}
+
+	public function updateLendingOptions(){
+		global $memcache;
+		global $user;
+		global $logger;
+		$ch = curl_init();
+		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
+		$closeSession = true;
+
+		$updateSettingsUrl = $overDriveInfo['baseLoginUrl']  . 'BANGAuthenticate.dll?Action=EditUserLendingPeriodsFormatClass';
+		$postParams = array(
+			'URL' => 'MyAccount.htm?PerPage=80#myAccount4',
+		);
+
+		//Load settings
+		foreach ($_REQUEST as $key => $value){
+			if (preg_match('/class_\d+_preflendingperiod/i', $key)){
+				$postParams[$key] = $value;
+			}
+		}
+
+		$post_items = array();
+		foreach ($postParams as $key => $value) {
+			$post_items[] = $key . '=' . urlencode($value);
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($overDriveInfo['ch'], CURLOPT_POSTFIELDS, $post_string);
+		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $updateSettingsUrl);
+
+		$logger->log("Updating user lending options $updateSettingsUrl $post_string", PEAR_LOG_DEBUG);
+		$lendingOptionsPage = curl_exec($overDriveInfo['ch']);
+		//$logger->log($lendingOptionsPage, PEAR_LOG_DEBUG);
+
+		$memcache->delete('overdrive_summary_' . $user->id);
+		return true;
 	}
 }

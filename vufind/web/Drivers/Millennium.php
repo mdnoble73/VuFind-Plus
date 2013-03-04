@@ -2356,7 +2356,7 @@ class MillenniumDriver implements DriverInterface
                     'message' => $message);
 	}
 
-	public function updatePatronInfo($patronId){
+	public function updatePatronInfo($patronId, $canUpdateContactInfo){
 		global $user;
 		global $configArray;
 		global $analytics;
@@ -2367,69 +2367,74 @@ class MillenniumDriver implements DriverInterface
 
 		$this->_updateVuFindPatronInfo($patronId);
 
-		//Update profile information
-		$extraPostInfo = array();
-		if (isset($_REQUEST['address1'])){
-			$extraPostInfo['addr1a'] = $_REQUEST['address1'];
-			$extraPostInfo['addr1b'] = $_REQUEST['city'] . ', ' . $_REQUEST['state'] . ' ' . $_REQUEST['zip'];
-			$extraPostInfo['addr1c'] = '';
-			$extraPostInfo['addr1d'] = '';
+		if ($canUpdateContactInfo){
+			$scope = $this->getMillenniumScope();
+			//Update profile information
+			$extraPostInfo = array();
+			if (isset($_REQUEST['address1'])){
+				$extraPostInfo['addr1a'] = $_REQUEST['address1'];
+				$extraPostInfo['addr1b'] = $_REQUEST['city'] . ', ' . $_REQUEST['state'] . ' ' . $_REQUEST['zip'];
+				$extraPostInfo['addr1c'] = '';
+				$extraPostInfo['addr1d'] = '';
+			}
+			$extraPostInfo['tele1'] = $_REQUEST['phone'];
+			$extraPostInfo['email'] = $_REQUEST['email'];
+
+			if (isset($_REQUEST['notices'])){
+				$extraPostInfo['notices'] = $_REQUEST['notices'];
+			}
+
+			//Login to the patron's account
+			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+			$success = false;
+
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+
+			$curl_connection = curl_init($curl_url);
+			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+			$post_data = $this->_getLoginFormValues($patronDump);
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . urlencode($value);
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sresult = curl_exec($curl_connection);
+
+			//Issue a post request to update the patron information
+			$post_items = array();
+			foreach ($extraPostInfo as $key => $value) {
+				$post_items[] = $key . '=' . urlencode($value);
+			}
+			$patronUpdateParams = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+			$sresult = curl_exec($curl_connection);
+
+			curl_close($curl_connection);
+			unlink($cookieJar);
+
+			//Make sure to clear any cached data
+			global $memcache;
+			$memcache->delete("patron_dump_{$this->_getBarcode()}");
+			usleep(250);
 		}
-		$extraPostInfo['tele1'] = $_REQUEST['phone'];
-		$extraPostInfo['email'] = $_REQUEST['email'];
-
-		if (isset($_REQUEST['notices'])){
-			$extraPostInfo['notices'] = $_REQUEST['notices'];
-		}
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-		$success = false;
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->_getLoginFormValues($patronDump);
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
-
-		//Issue a post request to update the patron information
-		$post_items = array();
-		foreach ($extraPostInfo as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$patronUpdateParams = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		$sresult = curl_exec($curl_connection);
-
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
-		//Make sure to clear any cached data
-		global $memcache;
-		$memcache->delete("patron_dump_{$this->_getBarcode()}");
-		usleep(250);
 
 		//Should get Patron Information Updated on success
 		if (preg_match('/Patron information updated/', $sresult)){
-			$user->phone = $_REQUEST['phone'];
-			$user->email = $_REQUEST['email'];
-			$user->update();
+			if ($canUpdateContactInfo){
+				$user->phone = $_REQUEST['phone'];
+				$user->email = $_REQUEST['email'];
+				$user->update();
+			}
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
 			if ($analytics){

@@ -26,6 +26,7 @@ require_once 'sys/eContent/EContentRecord.php';
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class OverDriveDriver {
+	public $version = 1;
 
 	private $maxAccountCacheMin = 14400; //Allow caching of overdrive account information for 4 hours
 	private $maxCheckedOutCacheMin = 3600; //Only cache the checked out page for an hour.
