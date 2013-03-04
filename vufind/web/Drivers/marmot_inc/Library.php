@@ -15,6 +15,7 @@ class Library extends DB_DataObject
 	public $subdomain; 				//varchar(15)
 	public $displayName; 			//varchar(50)
 	public $abbreviatedDisplayName; 			//varchar(50)
+	public $systemMessage;
 	public $ilsCode;
 	public $themeName; 				//varchar(15)
 	public $searchesFile;        //varchar(15)
@@ -131,6 +132,7 @@ class Library extends DB_DataObject
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'A name to identify the library within the system', 'size'=>'40'),
 			'abbreviatedDisplayName' => array('property'=>'abbreviatedDisplayName', 'type'=>'text', 'label'=>'Abbreviated Display Name', 'description'=>'An abbreviated display name for use when the full name causes wrapping', 'size'=>'40', 'maxLength' =>'20'),
+			'systemMessage' => array('property'=>'systemMessage', 'type'=>'html', 'label'=>'System Message', 'description'=>'A message to be displayed at the top of the screen', 'size'=>'80', 'maxLength' =>'512', 'allowableTags' => '<a><b><em>', 'hideInLists' => true),
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				'themeName' => array('property'=>'themeName', 'type'=>'text', 'label'=>'Theme Name', 'description'=>'The name of the theme which should be used for the library', 'hideInLists' => true,),
 				'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'size'=>'40', 'hideInLists' => true,),

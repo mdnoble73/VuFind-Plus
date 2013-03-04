@@ -5,7 +5,7 @@ html, body {
 .center{
 	text-align: center;
 }
-#systemMessage{
+div#systemMessage{
 	width: 100%;
 	background-color: yellow;
 	color: black;

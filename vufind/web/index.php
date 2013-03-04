@@ -66,9 +66,15 @@ $analytics = new Analytics($active_ip, $startTime);
 $googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
 $interface->assign('googleAnalyticsId', $googleAnalyticsId);
 
+global $library;
+
 //Set System Message
 if ($configArray['System']['systemMessage']){
 	$interface->assign('systemMessage', $configArray['System']['systemMessage']);
+}else{
+	if (strlen($library->systemMessage) > 0){
+		$interface->assign('systemMessage', $library->systemMessage);
+	}
 }
 
 //Get the name of the active instance
@@ -91,7 +97,6 @@ $interface->assign('physicalLocation', $physicalLocation);
 $productionServer = $configArray['Site']['isProduction'];
 $interface->assign('productionServer', $productionServer);
 
-global $library;
 //Set default Ask a Librarian link
 if (isset($library) && strlen($library->askALibrarianLink) > 0){
 	$interface->assign('askALibrarianLink', $library->askALibrarianLink);

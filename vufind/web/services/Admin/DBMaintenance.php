@@ -339,6 +339,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `ilsCode` VARCHAR(5) DEFAULT '';",
 				),
 			),
+			'library_29' => array(
+				'title' => 'Library 29',
+				'description' => 'Add systemMessage.',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `systemMessage` VARCHAR(512) DEFAULT '';",
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
