@@ -101,6 +101,12 @@
 			{if $enableMaterialsRequest}
 				Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</div>
 			{/if}
+			
+			<div class="searchtools">
+				<strong>{translate text='Search Tools'}:</strong>
+				<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
+				{if $savedSearch}<a href="{$path}/MyResearch/SaveSearch?delete={$searchId}"><span class="silk delete">&nbsp;</span>{translate text='save_search_remove'}</a>{else}<a href="{$path}/MyResearch/SaveSearch?save={$searchId}"><span class="silk add">&nbsp;</span>{translate text='save_search'}</a>{/if}
+			</div>
 		</div>
 	</div>
 </div>
