@@ -195,6 +195,11 @@ function doGetStatusSummaries()
 						}else{
 							statusSpan.html("Unknown");
 						}
+						
+						var statusClass = items[i]['class'];
+						if (statusClass){
+							statusSpan.addClass(statusClass);
+						}
 					}
 					
 					// Load Download Link
@@ -251,6 +256,10 @@ function doGetStatusSummaries()
 					if ($("#statusValue" + elemId).length > 0){
 						var status = $(item).find('status').text();
 						$("#statusValue" + elemId).text(status);
+						var statusClass = $(item).find('class').text();
+						if (statusClass){
+							$("#statusValue" + elemId).addClass(statusClass);
+						}
 					}
 					$('#holdingsEContentSummary' + elemId).addClass('loaded');
 				});
@@ -282,6 +291,10 @@ function doGetStatusSummaries()
 					if ($("#statusValue" + elemId).length > 0){
 						var status = $(item).find('status').text();
 						$("#statusValue" + elemId).text(status);
+						var statusClass = $(item).find('class').text();
+						if (statusClass){
+							$("#statusValue" + elemId).addClass(statusClass);
+						}
 					}
 					$('#holdingsEContentSummary' + elemId).addClass('loaded');
 				});

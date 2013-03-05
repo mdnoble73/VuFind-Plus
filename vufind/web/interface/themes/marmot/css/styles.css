@@ -878,10 +878,10 @@ table.datagrid tr.oddrow {
 	vertical-align: text-bottom;
 }
 
-.holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby, .holdingsSummaryStatusLine.here{
+.holdingsSummaryStatusLine.here{
 	color:#009900;
 }
-.holdingsSummaryStatusLine.availableOther{
+.holdingsSummaryStatusLine.available, .holdingsSummaryStatusLine.nearby, .holdingsSummaryStatusLine.availableOther{
 	color: #BB0099;
 }
 .holdingsSummaryStatusLine.unavailable {

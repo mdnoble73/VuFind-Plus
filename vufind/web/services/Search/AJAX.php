@@ -287,6 +287,7 @@ class AJAX extends Action {
 
 			echo ' <item id="' . htmlspecialchars($record['recordId']) . '">';
 			echo '	<status>' . htmlspecialchars($record['status']) . '</status>';
+			echo '	<class>' . htmlspecialchars($record['class']) . '</class>';
 			echo '	<showplacehold>' . ($record['showPlaceHold'] ? '1' : '0') . '</showplacehold>';
 			echo '	<showcheckout>' . ($record['showCheckout'] ? '1' : '0') . '</showcheckout>';
 			echo '	<showaccessonline>' . ($record['showAccessOnline'] ? '1' : '0') . '</showaccessonline>';

@@ -41,7 +41,10 @@ function initMemcache(){
 	// Connect to Memcache:
 	$memcache = new Memcache();
 	if (!$memcache->pconnect($host, $port, $timeout)) {
-		PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+		//Try again with a non-persistent connection
+		if (!$memcache->connect($host, $port, $timeout)) {
+			PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+		}
 	}
 	$timer->logTime("Initialize Memcache");
 }

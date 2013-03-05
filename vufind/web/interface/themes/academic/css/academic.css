@@ -277,3 +277,16 @@ td {
 	font-weight: bold;
 	font-size: 18px;
 }
+
+.resultValue.available, .resultValue.here{
+	color:#009900;
+	font-weight: bold;
+}
+.resultValue.nearby, .holdingsSummaryStatusLine.availableOther{
+	color: #BB0099;
+	font-weight: bold;
+}
+.resultValue.unavailable, .resultValue.checkedOut,.resultValue.checkedout,.resultValue.reserve{
+	color:#cc0000;
+	font-weight: bold;
+}
