@@ -2,11 +2,11 @@
 	<h3>
 	Step-by-step, one-time setup instructions for downloading Audiobooks to PC
 	</h3>
-	<a href='{$path}/files/econtent_help/audiobook_pc.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+	<a target='_blank' href='{$path}/files/econtent_help/audiobook_pc.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 	<ol>
 	<li>First time users of library audiobooks need to download the OverDrive Media Console (OMC) free software onto their computer. Either click the link at the bottom of the page containing the desired audiobook
 	 or navigate to the following address:
-	<a href="http://www.overdrive.com/software/omc/">http://www.overdrive.com/software/omc/</a></li>
+	<a target='_blank' href="http://www.overdrive.com/software/omc/">http://www.overdrive.com/software/omc/</a></li>
 	<li>Select the PC version and click "Download Now" and follow the prompts to install the OMC software</li>
 	<li>Once OMC is installed on the computer, within the software, click "Tools &gt; Windows Media Player Security Upgrade &gt; OK &gt; Play"</li>
 	<li>Return to the library's catalog click "Check Out" (or "Place Hold") under either WMA or MP3 audiobook formats</li>

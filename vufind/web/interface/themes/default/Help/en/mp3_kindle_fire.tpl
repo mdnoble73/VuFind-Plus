@@ -1,7 +1,7 @@
 {strip}
 <div class="helpText">
 	<h3>To download MP3 audiobooks to your Kindle Fire:</h3>
-	<a href='{$path}/files/econtent_help/mp3_kindle_fire.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+	<a target='_blank' href='{$path}/files/econtent_help/mp3_kindle_fire.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 	<ol>
 		<li>Install the OverDrive Media Console (OMC) App on your Kindle Fire.  It is available in the App Store.
 			<ol>

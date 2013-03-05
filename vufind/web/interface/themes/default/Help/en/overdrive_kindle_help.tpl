@@ -1,11 +1,11 @@
 <div class="helpText">
-<a href='{$path}/files/econtent_help/overdrive_kindle.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+<a target='_blank' href='{$path}/files/econtent_help/overdrive_kindle.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <p>
 Reading Kindle eBooks from the library is easy. All you have to do is check out an eBook and deliver it to the Kindle device or Kindle reading app of your choice.
 </p>
 <h3>What you need</h3>
 <ol>
-	<li>A <a href="https://kindle.amazon.com/">Kindle</a> or a computer or mobile device with a free <a href="http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000493771">Kindle Reading app</a> installed.</li>
+	<li>A <a target='_blank' href="https://kindle.amazon.com/">Kindle</a> or a computer or mobile device with a free <a target='_blank' href="http://www.amazon.com/gp/feature.html?ie=UTF8&docId=1000493771">Kindle Reading app</a> installed.</li>
 	<li>A checked out eBook in Kindle format.</li>
 </ol>
 <h3>Steps to Start Reading</h3>

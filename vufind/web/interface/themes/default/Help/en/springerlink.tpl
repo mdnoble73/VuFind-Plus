@@ -1,7 +1,7 @@
 {strip}
 <div class="helpText">
 	<h3>To use Springer Link eBooks:</h3>
-	<a href='{$path}/files/econtent_help/springerlink.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+	<a target='_blank' href='{$path}/files/econtent_help/springerlink.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 	<ol>
 		<li>Search the library's catalog for Springer Link eBooks you want to read.</li>
 		<li>Click the <b>Access EBook</b> button for the book.</li>

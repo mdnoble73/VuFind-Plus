@@ -2,7 +2,7 @@
 <h3>
 Step-by-Step Instructions for Downloading Library eBooks onto a Kindle
 </h3>
-<a href='{$path}/files/econtent_help/ebook_kindle.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+<a target='_blank' href='{$path}/files/econtent_help/ebook_kindle.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
 <li>"Place a Hold" means you will have to enter your email address and wait for an email that says the title is available</li>
 <li>"Check Out" means the title is currently available</li>

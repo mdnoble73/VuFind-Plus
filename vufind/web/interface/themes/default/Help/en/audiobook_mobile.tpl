@@ -3,7 +3,7 @@
 Step-by-step one-time setup instructions for downloading audiobooks to a
 mobile device such as a phone or tablet
 </h3>
-<a href='{$path}/files/econtent_help/audiobook_mobile.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+<a target='_blank' href='{$path}/files/econtent_help/audiobook_mobile.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
 <li>Navigate to your App store on your device</li>
 <li>Search for "overdrive"</li>

@@ -3,11 +3,11 @@
 Step-by-step, one-time setup instructions for downloading eBooks to a
 PC or MAC computer to transfer to a NOOK, Sony, Kobo or other eReader:
 </h3>
-<a href='{$path}/files/econtent_help/ebook_pc_mac.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+<a target='_blank' href='{$path}/files/econtent_help/ebook_pc_mac.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
 <li>First time users of ePUB eBooks need to download Adobe Digital Editions (ADE) free software onto their computer. Either click the link at the bottom of the page containing the desired eBook
  or navigate to the following address:
-http://www.adobe.com/products/digital-editions.html#fp </li>
+<a href="http://www.adobe.com/products/digital-editions.html#fp" target='_blank'>http://www.adobe.com/products/digital-editions.html#fp</a> </li>
 <li>Click "Download Now" and follow the prompts to install the ADE software</li>
 <li>Once ADE is installed on the computer,  you will be prompted to "Authorize" the software</li>
 <li>Either enter your email address and password for your Adobe ID or if you do not have an Adobe ID click "get an Adobe ID"</li>

@@ -1,7 +1,7 @@
 {strip}
 <div class="helpText">
 	<h3>To download MP3 audiobooks to your MAC:</h3>
-	<a href='{$path}/files/econtent_help/mp3_mac.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
+	<a target='_blank' href='{$path}/files/econtent_help/mp3_mac.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 	<ol>
 		<li>Install the <a href="http://www.overdrive.com/software/omc/">OverDrive Media Console</a> to your Mac.  You can download the OverDrive Media Console from <a href="http://www.overdrive.com/software/omc/">here</a>.
 			<ol>
