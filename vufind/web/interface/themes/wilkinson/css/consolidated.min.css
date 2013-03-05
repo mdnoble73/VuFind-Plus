@@ -555,6 +555,56 @@ div.footerCol{padding:0
 0.75em 0.75em 0;margin-right:0.5em}div.footerCol
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
+/* superfish.css */
+.navRow
+.row{overflow:visible}#nav ul,.moduletable-superfish ul,
+#nav ul *,.moduletable-superfish ul *,
+#nav ul.nav_menu,.moduletable-superfish
+ul.nav_menu{margin:0;padding:0;list-style:none}#nav ul,
+.moduletable-superfish
+ul{line-height:1.0;display:inline}#nav ul ul,.moduletable-superfish ul
+ul{position:absolute;top:-999em;width:10em}#nav ul ul li,.moduletable-superfish ul ul
+li{width:100%}#nav ul li:hover,.moduletable-superfish ul li:hover{visibility:inherit}#nav ul li,.moduletable-superfish ul
+li{float:left;margin-right:0 !important}#nav ul a, .moduletable-superfish ul a,
+#nav span.separator, .moduletable-superfish span.separator,
+#nav span.mainlevel
+span{display:block;padding: 		.75em 1em;text-decoration:none}#nav ul ul,.moduletable-superfish ul li:hover
+ul{left:10px;top:24px;z-index:99}#nav ul.nav_menu>li>ul{visibility:hidden}#nav ul li li span.mainlevel span,#nav ul li li
+span.separator{display:block;padding:8px
+0 8px 20px}#nav.centered ul li li span.mainlevel
+span{padding:0;text-indent:0}#nav ul li.sfHover ul ul,
+.moduletable-superfish ul.li.sfHover ul
+ul{top:-9px}#nav ul ul li:hover li ul,.moduletable-superfish ul ul li:hover li ul,
+#nav ul ul li.sfHover li ul,.moduletable-superfish ul ul li.sfHover li
+ul{top:-999em}#nav ul ul li li:hover ul,.moduletable-superfish  ul ul li li:hover ul,
+#nav ul ul li li.sfHover ul,.moduletable-superfish ul ul li li.sfHover
+ul{left:10em;top:0}#nav ul li li:hover li ul,.moduletable-superfish  ul ul li li:hover li ul,
+#nav ul li li.sfHover li ul,.moduletable-superfish  ul ul li li.sfHover li
+ul{top:-999em;margin-top:-20px}#nav ul li li li:hover ul,.moduletable-superfish  ul li li li:hover ul,
+#nav ul li li li.sfHover ul,.modueltable-superfish  ul li li li.sfHover
+ul{left:10em;top:0}#nav li span.separator,.moduletable-superfish  li span.separator,
+#nav li.parent li span.separator,.moduletable-superfish li.parent li span.separator,
+#nav li.parent li.parent li span.separator,.moduletable-superfish  li.parent li.parent li
+span.separator{background:none}#nav li.parent span.separator,.moduletable-superfish  li.parent
+span.separator{cursor:pointer;padding-right:20px}#nav ul a.sf-with-ul,.moduletable-superfish  ul a.sf-with-ul{min-width:1px}#nav.navleft
+ul{float:left;margin:0}#nav.navleft a,#nav.navleft span.mainlevel
+span{padding:0;margin-right:20px}#nav ul a.sf-with-ul,.moduletable-superfish  ul a.sf-with-ul{}#nav.navleft span.mainlevel span,
+#nav.navright span.mainlevel
+span{display:block}#nav.right
+ul{float:right}#nav.right a,#nav.right span.mainlevel
+span{margin-leftt:20px}#nav.centered{text-align:center;margin-top:-8px;text-align:center}#nav.centered
+ul{display:inline-block;list-style:none}* html #nav.centered
+ul{display:inline}*+html #nav.centered
+ul{display:inline}#nav.centered
+li{display:inline;padding:8px
+0 0 10px}#nav.centered li
+a{float:left}#nav.centered li li,#nav.centered li li
+a{text-align:left;display:block;padding:0px
+4px 0px 0}#nav.centered
+span.centered{float:left}#nav li,.moduletable-superfish
+li{float:left;list-style-type:none;position:relative}#nav ul li li:last-child
+a{border-bottom:0}#nav ul li li:first-child
+a{border-top:0}
 /* extra_styles.css */
 .searchHome{margin-top:0px;padding:30px
 0px 125px}.searchHomeForm{background-color:#404040;border-color:#242424}#searchbar{background-color:#404040;color:white}#searchbar
@@ -646,53 +696,3 @@ h3{color:#fff}#footerwrap
 auto;width:400px;padding:0
 20px}#footer .moduletable
 div{text-align:center;margin:-8px auto;float:none}
-/* superfish.css */
-.navRow
-.row{overflow:visible}#nav ul,.moduletable-superfish ul,
-#nav ul *,.moduletable-superfish ul *,
-#nav ul.nav_menu,.moduletable-superfish
-ul.nav_menu{margin:0;padding:0;list-style:none}#nav ul,
-.moduletable-superfish
-ul{line-height:1.0;display:inline}#nav ul ul,.moduletable-superfish ul
-ul{position:absolute;top:-999em;width:10em}#nav ul ul li,.moduletable-superfish ul ul
-li{width:100%}#nav ul li:hover,.moduletable-superfish ul li:hover{visibility:inherit}#nav ul li,.moduletable-superfish ul
-li{float:left;margin-right:0 !important}#nav ul a, .moduletable-superfish ul a,
-#nav span.separator, .moduletable-superfish span.separator,
-#nav span.mainlevel
-span{display:block;padding: 		.75em 1em;text-decoration:none}#nav ul ul,.moduletable-superfish ul li:hover
-ul{left:10px;top:24px;z-index:99}#nav ul.nav_menu>li>ul{visibility:hidden}#nav ul li li span.mainlevel span,#nav ul li li
-span.separator{display:block;padding:8px
-0 8px 20px}#nav.centered ul li li span.mainlevel
-span{padding:0;text-indent:0}#nav ul li.sfHover ul ul,
-.moduletable-superfish ul.li.sfHover ul
-ul{top:-9px}#nav ul ul li:hover li ul,.moduletable-superfish ul ul li:hover li ul,
-#nav ul ul li.sfHover li ul,.moduletable-superfish ul ul li.sfHover li
-ul{top:-999em}#nav ul ul li li:hover ul,.moduletable-superfish  ul ul li li:hover ul,
-#nav ul ul li li.sfHover ul,.moduletable-superfish ul ul li li.sfHover
-ul{left:10em;top:0}#nav ul li li:hover li ul,.moduletable-superfish  ul ul li li:hover li ul,
-#nav ul li li.sfHover li ul,.moduletable-superfish  ul ul li li.sfHover li
-ul{top:-999em;margin-top:-20px}#nav ul li li li:hover ul,.moduletable-superfish  ul li li li:hover ul,
-#nav ul li li li.sfHover ul,.modueltable-superfish  ul li li li.sfHover
-ul{left:10em;top:0}#nav li span.separator,.moduletable-superfish  li span.separator,
-#nav li.parent li span.separator,.moduletable-superfish li.parent li span.separator,
-#nav li.parent li.parent li span.separator,.moduletable-superfish  li.parent li.parent li
-span.separator{background:none}#nav li.parent span.separator,.moduletable-superfish  li.parent
-span.separator{cursor:pointer;padding-right:20px}#nav ul a.sf-with-ul,.moduletable-superfish  ul a.sf-with-ul{min-width:1px}#nav.navleft
-ul{float:left;margin:0}#nav.navleft a,#nav.navleft span.mainlevel
-span{padding:0;margin-right:20px}#nav ul a.sf-with-ul,.moduletable-superfish  ul a.sf-with-ul{}#nav.navleft span.mainlevel span,
-#nav.navright span.mainlevel
-span{display:block}#nav.right
-ul{float:right}#nav.right a,#nav.right span.mainlevel
-span{margin-leftt:20px}#nav.centered{text-align:center;margin-top:-8px;text-align:center}#nav.centered
-ul{display:inline-block;list-style:none}* html #nav.centered
-ul{display:inline}*+html #nav.centered
-ul{display:inline}#nav.centered
-li{display:inline;padding:8px
-0 0 10px}#nav.centered li
-a{float:left}#nav.centered li li,#nav.centered li li
-a{text-align:left;display:block;padding:0px
-4px 0px 0}#nav.centered
-span.centered{float:left}#nav li,.moduletable-superfish
-li{float:left;list-style-type:none;position:relative}#nav ul li li:last-child
-a{border-bottom:0}#nav ul li li:first-child
-a{border-top:0}

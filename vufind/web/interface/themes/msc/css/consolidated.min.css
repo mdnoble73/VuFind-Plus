@@ -555,8 +555,6 @@ div.footerCol{padding:0
 0.75em 0.75em 0;margin-right:0.5em}div.footerCol
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
-/* extra_styles.css */
-#content_span{padding-top:0px}
 /* academic.css */
 .searchHomeForm{background-color:#603;border-top:#494949 2px solid}html,body{background-color:#B5A899}#searchbar,.searchHomeForm{color:white;background-color:#5D0022;margin:0px
 -20px}#searchbar
@@ -624,3 +622,5 @@ a{font-size:11px;font-weight:normal;text-decoration:none}ul#topNavLinks li ul.mm
 .subNavArrow{left:580px}#menu8
 .subNavArrow{left:635px}.column{position:relative;float:left;height:auto;width:auto;overflow:visible;padding-bottom:5px;margin-right:20px;border:0}.column_feature{position:relative;float:left;height:360;color:#6D5E51;overflow:visible;margin-top:12px;padding-left:10px;padding-bottom:5px;margin-right:20px;border-left:1px #8C7F70 solid}#container{margin:0
 auto;position:relative}
+/* extra_styles.css */
+#content_span{padding-top:0px}

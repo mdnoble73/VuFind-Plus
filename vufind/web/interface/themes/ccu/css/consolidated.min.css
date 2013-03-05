@@ -555,8 +555,6 @@ div.footerCol{padding:0
 0.75em 0.75em 0;margin-right:0.5em}div.footerCol
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
-/* extra_styles.css */
-html,body{background-color:#8398B1}.searchHomeForm{background-color:#002B55;border-top:black 2px solid}#searchbar,.breadcrumbs{background-color:#D0DCE6;color:#152E49}#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{color:white}#searchbar a:hover, .breadcrumbs a:hover{color:#C59019}.searchheader{background-color:#013565;color:white;height:107px;padding:0px}#header_logo{position:absolute;left:auto;top:0px}#loginBlock{z-index:20;position:absolute;right:0px;bottom:10px}.searchheader a, .searchheader a:visited{color:white}.searchheader a:hover{color:#C59019}div.breadcrumbs{border-top:thin solid #B0B0B0}
 /* academic.css */
 .searchHomeForm{background-color:#603;border-top:#494949 2px solid}html,body{background-color:#B5A899}#searchbar,.searchHomeForm{color:white;background-color:#5D0022;margin:0px
 -20px}#searchbar
@@ -577,3 +575,5 @@ auto 15px auto}td{background-color:white}.jcarousel-skin-tango .jcarousel-clip-h
 40px;width:625px}#prospectorAvailabilityTitle{font-size:110%}#sidebar{width:170px}.sidegroup{margin-top:15px;border:thin solid #B0B0B0;width:170px}.sidegroup
 h4{width:170px}.callNumber{font-weight:bold}.result.alt{background-color:#ECEAE8}.full-result-content{border:thin solid #B0B0B0;width:726px}.searchcontent{width:1000px;margin:0px
 auto}.resultIndex{width:20px;display:inline-block;zoom:1;*display:inline;font-weight:bold;vertical-align:top}.resultsList{width:465px;min-height:175px;display:inline-block;zoom:1;*display:inline}.recordTitle{font-weight:bold;font-size:18px}.resultValue.available,.resultValue.here{color:#090;font-weight:bold}.resultValue.nearby,.holdingsSummaryStatusLine.availableOther{color:#B09;font-weight:bold}.resultValue.unavailable,.resultValue.checkedOut,.resultValue.checkedout,.resultValue.reserve{color:#c00;font-weight:bold}
+/* extra_styles.css */
+html,body{background-color:#8398B1}.searchHomeForm{background-color:#002B55;border-top:black 2px solid}#searchbar,.breadcrumbs{background-color:#D0DCE6;color:#152E49}#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{color:white}#searchbar a:hover, .breadcrumbs a:hover{color:#C59019}.searchheader{background-color:#013565;color:white;height:107px;padding:0px}#header_logo{position:absolute;left:auto;top:0px}#loginBlock{z-index:20;position:absolute;right:0px;bottom:10px}.searchheader a, .searchheader a:visited{color:white}.searchheader a:hover{color:#C59019}div.breadcrumbs{border-top:thin solid #B0B0B0}

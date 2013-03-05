@@ -96,6 +96,9 @@ function consolidateFiles($info, $themes, $minify){
 	$fileGeneratedFile = $info['path'] . 'css/consolidated.min.css';
 	$fileGeneratedFileHnd = fopen($fileGeneratedFile, 'w');
 	foreach ($info['settings']['css'] as $filename => $scope){
+		if ($filename == 'extra_styles.css'){
+			continue;
+		}
 		//Load contents from the search file
 		$fileContents = loadCss($filename, $info['searchPaths']);
 		if ($fileContents != null){
@@ -110,6 +113,19 @@ function consolidateFiles($info, $themes, $minify){
 		}else{
 			echo("Could not find file $filename");
 		}
+	}
+	//Add extra_styles.css at the very end
+	$filename = 'extra_styles.css';
+	$fileContents = loadCss($filename, $info['searchPaths']);
+	if ($fileContents != null){
+		fwrite($fileGeneratedFileHnd, "/* $filename */\r\n");
+		//minify the css
+		if ($minify && !preg_match('/.*\.min\.css$/i', $filename)){
+			$minifiedCss = Minify_CSS::minify($fileContents, array());
+		}else{
+			$minifiedCss = $fileContents;
+		}
+		fwrite($fileGeneratedFileHnd, "$minifiedCss\r\n");
 	}
 	fclose($fileGeneratedFileHnd);
 
