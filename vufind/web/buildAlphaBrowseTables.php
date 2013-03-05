@@ -59,3 +59,12 @@ function runSQLStatement($sql){
 	}
 	return $updateOk;
 }
+
+function disableErrorHandler(){
+	global $errorHandlingEnabled;
+	$errorHandlingEnabled = false;
+}
+function enableErrorHandler(){
+	global $errorHandlingEnabled;
+	$errorHandlingEnabled = true;
+}
