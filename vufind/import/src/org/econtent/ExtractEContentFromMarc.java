@@ -418,7 +418,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					availabilityInfo.setCopiesOwned(availability.getInt("copiesOwned"));
 					availabilityInfo.setAvailableCopies(availability.getInt("copiesAvailable"));
 					availabilityInfo.setNumHolds(availability.getInt("numberOfHolds"));
-					logger.debug("  Available as part of collection " + curCollection);
+					//logger.debug("  Available as part of collection " + curCollection);
 					overDriveInfo.getAvailabilityInfo().put(curCollection, availabilityInfo);
 				} catch (JSONException e) {
 					logger.error("Error loading availability for title ", e);

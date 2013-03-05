@@ -99,6 +99,7 @@ public class MarcRecordDetails {
 	 */
 	public boolean mapRecord(String source) {
 		if (allFieldsMapped) return true;
+		//logger.debug("Mapping record " + source + " " + marcProcessor.getMarcFieldProps().size() + " fields");
 		allFieldsMapped = true;
 
 		// Map all fields for the record
@@ -542,7 +543,7 @@ public class MarcRecordDetails {
 				if (text != null && url != null) {
 					boolean isSourceUrl = false;
 					// boolean isEnrichmentUrl = false;
-					if (text.matches("(?i).*?(?:cover|review).*?")) {
+					if (text.matches("(?i).*?(?:cover|review|excerpt).*?")) {
 						// File is an enrichment url
 						// isEnrichmentUrl = true;
 					} else if (text.matches("(?i).*?(?:download|access online|electronic book|access digital media|access title|online version|summary).*?")) {
@@ -2325,44 +2326,66 @@ public class MarcRecordDetails {
 		return allFieldData.toString();
 	}
 
+	private Set<String> literaryForms = null;
 	public Set<String> getLiteraryForm() {
+		if (literaryForms != null){
+			return literaryForms;
+		}
+		//logger.debug("mapping literary form");
 		Set<String> result = new LinkedHashSet<String>();
-		String leader = record.getLeader().toString();
+		try {
+			String leader = record.getLeader().toString();
 
-		ControlField ohOhEightField = (ControlField) record.getVariableField("008");
-		ControlField ohOhSixField = (ControlField) record.getVariableField("006");
+			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
+			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
 
-		// check the Leader at position 6 to determine the type of field
-		char recordType = Character.toUpperCase(leader.charAt(6));
-		char bibLevel = Character.toUpperCase(leader.charAt(7));
-		// Figure out what material type the record is
-		if ((recordType == 'A' || recordType == 'T') && (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
-				|| (recordType == 'M') /* Computer Files */
-				|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
-				|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
-																																															 * Visual
-																																															 * Materials
-																																															 */
-		) {
-			char targetAudienceChar;
-			if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
-				targetAudienceChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
-				result.add(Character.toString(targetAudienceChar));
-			} else if (ohOhEightField != null && ohOhEightField.getData().length() > 33) {
-				targetAudienceChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
-				result.add(Character.toString(targetAudienceChar));
+			// check the Leader at position 6 to determine the type of field
+			char recordType = Character.toUpperCase(leader.charAt(6));
+			char bibLevel = Character.toUpperCase(leader.charAt(7));
+			// Figure out what material type the record is
+			if ((recordType == 'A' || recordType == 'T') && (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
+					|| (recordType == 'M') /* Computer Files */
+					|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
+					|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
+																																																 * Visual
+																																																 * Materials
+																																																 */
+			) {
+				char literaryFormChar;
+				if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
+					literaryFormChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
+					if (literaryFormChar != ' '){
+						result.add(Character.toString(literaryFormChar));
+					}
+				}
+				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() > 33) {
+					literaryFormChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
+					if (literaryFormChar != ' '){
+						result.add(Character.toString(literaryFormChar));
+						logger.debug("Literary Form is " + Character.toString(literaryFormChar));
+					}
+				}
+				if (result.size() == 0 ){
+					result.add(" ");
+					logger.debug("Literary Form is <blank>");
+				}
 			} else {
+				logger.debug("Not a valid type to determine literary form");
 				result.add("Unknown");
 			}
-		} else {
-			result.add("Unknown");
+			//logger.debug("Finished mapping literary form " + result.size());
+			
+			//Iterator<String> iter = result.iterator(); while (iter.hasNext()){
+			//System.out.println("Literary Form: " + iter.next().toString()); }
+		} catch (Exception e) {
+			logger.error("Unexpected error", e);
 		}
-
+		
+		literaryForms = result;
 		return result;
 	}
 
 	Set<LocalCallNumber>	localCallnumbers	= null;
-
 	public Set<LocalCallNumber> getLocalCallNumbers(String itemTag, String callNumberSubfield, String locationSubfield) {
 		if (localCallnumbers != null) {
 			return localCallnumbers;
@@ -2974,6 +2997,7 @@ public class MarcRecordDetails {
 		return Integer.toString(numHoldings);
 	}
 
+	private Set<String> targetAudiences = null;
 	/**
 	 * Determine Record Format(s)
 	 * 
@@ -2982,6 +3006,9 @@ public class MarcRecordDetails {
 	 * @return Set format of record
 	 */
 	public Set<String> getTargetAudience() {
+		if (targetAudiences != null){
+			return targetAudiences;
+		}
 		Set<String> result = new LinkedHashSet<String>();
 		try {
 			String leader = record.getLeader().toString();
@@ -3033,7 +3060,7 @@ public class MarcRecordDetails {
 		 * Iterator iter = result.iterator(); while (iter.hasNext()){
 		 * System.out.println("Audience: " + iter.next().toString()); }
 		 */
-
+		targetAudiences = result;
 		return result;
 	}
 
