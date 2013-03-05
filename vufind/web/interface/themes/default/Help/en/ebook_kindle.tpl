@@ -2,6 +2,7 @@
 <h3>
 Step-by-Step Instructions for Downloading Library eBooks onto a Kindle
 </h3>
+<a href='{$path}/files/econtent_help/ebook_kindle.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
 <li>"Place a Hold" means you will have to enter your email address and wait for an email that says the title is available</li>
 <li>"Check Out" means the title is currently available</li>
@@ -11,7 +12,7 @@ Step-by-Step Instructions for Downloading Library eBooks onto a Kindle
 <li>Select a checkout period (7, 14, or 21 days) and click - "Check Out"</li>
 <li>You will be taken to your account where you can click - "Download"</li>
 <li>You will be taken to Amazon - sign in</li>
-<li>Click the yellow box on the right side of the screen that says "Get Library Book"</li> 
+<li>Click the yellow box on the right side of the screen that says "Get Library Book"</li>
 <li>Select the Kindle device to which you want to send the book</li>
 <li>Turn on your Kindle device</li>
 <li>If the new title does not appear, click - "Menu" from the homepage</li>

@@ -1,4 +1,5 @@
 <div class="helpText">
+<a href='{$path}/files/econtent_help/overdrive_kindle.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <p>
 Reading Kindle eBooks from the library is easy. All you have to do is check out an eBook and deliver it to the Kindle device or Kindle reading app of your choice.
 </p>

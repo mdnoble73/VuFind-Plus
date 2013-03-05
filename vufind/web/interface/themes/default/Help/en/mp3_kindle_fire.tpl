@@ -1,6 +1,7 @@
 {strip}
 <div class="helpText">
 	<h3>To download MP3 audiobooks to your Kindle Fire:</h3>
+	<a href='{$path}/files/econtent_help/mp3_kindle_fire.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 	<ol>
 		<li>Install the OverDrive Media Console (OMC) App on your Kindle Fire.  It is available in the App Store.
 			<ol>
@@ -25,7 +26,7 @@
 			</ol>
 		</li>
 		<li>If the book is not currently available to check out, you may place a hold on the title. You will receive an email when the book becomes available to download.</li>
-		<li>If you want to return the title early select the <b>+ icon</b> in your bookshelf and then select <b>Return/Delete</b> from the popup menu.</li> 
+		<li>If you want to return the title early select the <b>+ icon</b> in your bookshelf and then select <b>Return/Delete</b> from the popup menu.</li>
 	</ol>
 	<p><em>
 		*Note - Books return automatically on the due date. At this time there are no overdue fines and no renewals on items.

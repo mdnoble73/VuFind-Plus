@@ -1,8 +1,9 @@
 <div class="helpText">
 <h3>Step-by-step, one-time setup instructions for downloading eMusic to PC</h3>
+<a href='{$path}/files/econtent_help/emusic_pc.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
 <li>First time users of library eMusic need to download the OverDrive Media Console (OMC) free software onto their computer. Either click the link at the bottom of the page containing the desired eMusic
- 
+
  or navigate to the following address:
 http://www.overdrive.com/software/omc/</li>
 <li>Select the PC version and click "Download Now" and follow the prompts to install the OMC software</li>
