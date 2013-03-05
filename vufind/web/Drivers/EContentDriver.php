@@ -291,7 +291,9 @@ class EContentDriver implements DriverInterface{
 				$availableCopies += $curAvailability->availableCopies;
 				$totalCopies += $curAvailability->copiesOwned;
 				$onOrderCopies += $curAvailability->onOrderCopies;
-				$numHolds += $curAvailability->numberOfHolds;
+				if ($curAvailability->numberOfHolds > $numHolds){
+					$numHolds = $curAvailability->numberOfHolds;
+				}
 			}
 		}elseif ($eContentRecord->itemLevelOwnership == 0) {
 			$totalCopies = $eContentRecord->availableCopies;
