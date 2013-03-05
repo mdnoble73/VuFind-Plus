@@ -7,7 +7,7 @@
 				<div id='categoryValues'>
 				{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 				{if $thisFacet.isApplied}
-					<span class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''}'>{$thisFacet.value|escape} <img src="{$path}/images/silk/tick.png" alt="Selected"/> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');"><br/>(remove filter)</a></span>
+					<span class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''}'>{$thisFacet.value|escape}<br/><a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');">(remove filter)</a></span>
 				{else}
 					<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', 'formatCategory', '{$thisFacet.value|escape}');"><span class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''}' >{translate text=$thisFacet.value|escape}<br/>({$thisFacet.count})</span></a>
 				{/if}
