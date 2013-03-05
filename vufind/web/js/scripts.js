@@ -286,7 +286,11 @@ function showElementInLightbox(title, elementSelector){
 	lightboxContents += "<div id='popupboxContent' class='content'>" + $(elementSelector).html() + "</div>";
 	
 	$('#popupbox').html(lightboxContents);
-	
+	$('#popupbox').position({
+		my: "center",
+		of: "window",
+		collision: "fit"
+	});
 }
 
 function showHtmlInLightbox(title, htmlSnippet){
