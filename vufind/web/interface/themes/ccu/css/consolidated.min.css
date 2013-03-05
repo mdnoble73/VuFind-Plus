@@ -556,7 +556,7 @@ div.footerCol{padding:0
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
 /* extra_styles.css */
-html,body{background-color:#8398B1}.searchHomeForm{background-color:#002B55;border-top:black 2px solid}#searchbar,.breadcrumbs{background-color:#D0DCE6;color:#152E49}#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{color:#00F}#searchbar a:hover, .breadcrumbs a:hover{color:#C59019}.searchheader{background-color:#013565;color:white;height:107px;padding:0px}#header_logo{position:absolute;left:auto;top:0px}#loginBlock{z-index:20;position:absolute;right:0px;bottom:10px}.searchheader a, .searchheader a:visited{color:white}.searchheader a:hover{color:#C59019}div.breadcrumbs{border-top:thin solid #B0B0B0}
+html,body{background-color:#8398B1}.searchHomeForm{background-color:#002B55;border-top:black 2px solid}#searchbar,.breadcrumbs{background-color:#D0DCE6;color:#152E49}#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{color:white}#searchbar a:hover, .breadcrumbs a:hover{color:#C59019}.searchheader{background-color:#013565;color:white;height:107px;padding:0px}#header_logo{position:absolute;left:auto;top:0px}#loginBlock{z-index:20;position:absolute;right:0px;bottom:10px}.searchheader a, .searchheader a:visited{color:white}.searchheader a:hover{color:#C59019}div.breadcrumbs{border-top:thin solid #B0B0B0}
 /* academic.css */
 .searchHomeForm{background-color:#603;border-top:#494949 2px solid}html,body{background-color:#B5A899}#searchbar,.searchHomeForm{color:white;background-color:#5D0022;margin:0px
 -20px}#searchbar

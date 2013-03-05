@@ -72,7 +72,7 @@ global $library;
 if ($configArray['System']['systemMessage']){
 	$interface->assign('systemMessage', $configArray['System']['systemMessage']);
 }else{
-	if (strlen($library->systemMessage) > 0){
+	if ($library && strlen($library->systemMessage) > 0){
 		$interface->assign('systemMessage', $library->systemMessage);
 	}
 }
