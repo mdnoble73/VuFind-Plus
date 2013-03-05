@@ -308,8 +308,6 @@ function updateBag(){
 		
 	// update array view
 	if (bookBag.length > 0) {		
-		// show array view
-		$("#book_bag").show();
 		
 		// update book count
 		_updateBookCount();
@@ -332,9 +330,10 @@ function updateBag(){
 					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\" title='Remove from book cart'><span class='silk delete'>&nbsp;</span</a>" +
 					"</div></div>";
 			$("#bag_items").append(bagItem);
-		}				
+		}
 		
-		
+		// show array view
+		$("#book_bag").fadeIn('slow');
 	} else {	
 		$("#bag_summary").text("0 items");
 		$("#bag_summary_header").text("0 items");

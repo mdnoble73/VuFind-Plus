@@ -7,7 +7,7 @@ html, body {
 }
 div#systemMessage{
 	width: 100%;
-	background-color: yellow;
+	background-color: #FF6;
 	color: black;
 	text-align: center;
 	padding: 3px;

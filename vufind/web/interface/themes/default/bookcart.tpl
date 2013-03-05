@@ -4,7 +4,7 @@
 	<div id="bag_open_button">
 		<div id="bag_summary_holder">
 			<span class="silk img_icon_plus" id="bag_open_button_icon">&nbsp;</span>
-			<span id ="bag_summary"></span> 
+			<span class="silk cart">&nbsp;</span><span id ="bag_summary"></span> 
 			<a href="#" id="bag_empty_button" class="empty_cart">empty cart&nbsp;&nbsp;<span class="silk bin_empty">&nbsp;</span></a> 
 		</div>
 	</div>
