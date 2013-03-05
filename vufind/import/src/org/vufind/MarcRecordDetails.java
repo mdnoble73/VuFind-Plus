@@ -2836,6 +2836,16 @@ public class MarcRecordDetails {
 						break;
 					}
 					break;
+				case 'T':
+					switch (formatField.getData().toUpperCase().charAt(1)) {
+					case 'A':
+						result.add("Book");
+						break;
+					case 'B':
+						result.add("LargePrint");
+						break;
+					}
+					break;
 				case 'V':
 					switch (formatField.getData().toUpperCase().charAt(1)) {
 					case 'C':
