@@ -227,9 +227,16 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 	$('#lightbox').css('height', documentHeight + 'px');
 	
 	$('#popupbox').html('<img src="' + path + '/images/loading.gif" /><br />' + loadMsg);
+	
 	$('#popupbox').show();
-	$('#popupbox').css('top', '50%');
-	$('#popupbox').css('left', '50%');
+	$('#popupbox').width('auto');
+	$('#popupbox').height('auto');
+	$('#popupbox').position({
+		my: 'center center',
+		at: 'center center',
+		of: window,
+		collision: 'fit'
+	});
 	
 	$.get(urlToLoad, function(data) {
 		$('#popupbox').html(data);
@@ -238,10 +245,10 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 		if (parentId){
 			//Automatically position the lightbox over the cursor
 			$("#popupbox").position({
-				my: "top right",
-				at: "top right",
+				my: 'top right',
+				at: 'top right',
 				of: parentId,
-				collision: "flip"
+				collision: "fit"
 			});
 		}else{
 			if (!left) left = '100px';
@@ -251,8 +258,8 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 			
 			$('#popupbox').css('top', top);
 			$('#popupbox').css('left', left);
-			$('#popupbox').css('width', width);
-			$('#popupbox').css('height', height);
+			$('#popupbox').width(width);
+			$('#popupbox').height(height);
 			
 			$(document).scrollTop(0);
 		}
@@ -279,17 +286,18 @@ function showElementInLightbox(title, elementSelector){
 	$('#popupbox').show();
 	$('#popupbox').css('top', '100px');
 	$('#popupbox').css('left', '100px');
-	$('#popupbox').css('width', 'auto');
-	$('#popupbox').css('height', 'auto');
+	$('#popupbox').width('auto');
+	$('#popupbox').height('auto');
 	
 	var lightboxContents = "<div class='header'>" + title + "<a href='#' onclick='hideLightbox();return false;' class='closeIcon'>Close <img src='" + path + "/images/silk/cancel.png' alt='close' /></a></div>";
 	lightboxContents += "<div id='popupboxContent' class='content'>" + $(elementSelector).html() + "</div>";
 	
 	$('#popupbox').html(lightboxContents);
 	$('#popupbox').position({
-		my: "center",
-		of: "window",
-		collision: "fit"
+		my: 'center center',
+		at: 'center center',
+		of: window,
+		collision: 'fit'
 	});
 }
 
@@ -306,17 +314,18 @@ function showHtmlInLightbox(title, htmlSnippet){
 	$('#popupbox').show();
 	$('#popupbox').css('top', '100px');
 	$('#popupbox').css('left', '100px');
-	$('#popupbox').css('width', 'auto');
-	$('#popupbox').css('height', 'auto');
+	$('#popupbox').width('auto');
+	$('#popupbox').height('auto');
 	
 	var lightboxContents = "<div class='header'>" + title + "<a href='#' onclick='hideLightbox();return false;' class='closeIcon'>Close <img src='" + path + "/images/silk/cancel.png' alt='close' /></a></div>";
 	lightboxContents += "<div id='popupboxContent' class='content'>" + htmlSnippet + "</div>";
 	
 	$('#popupbox').html(lightboxContents);
 	$('#popupbox').position({
-		my: "center",
-		of: "window",
-		collision: "fit"
+		my: 'center center',
+		at: 'center center',
+		of: window,
+		collision: 'fit'
 	});
 }
 

@@ -29,7 +29,7 @@
 				</div>
 				{/if}
 				<div id='loginSubmitButtonRow' class='loginFormRow'>
-					<input onclick="return processAjaxLogin()" id="loginButton" type="image" name="submit" value="Login" src='{$path}/interface/themes/default/images/login.png' alt='{translate text="Login to your account"}' />
+					<input onclick="return processAjaxLogin()" id="loginButton" type="submit" name="submit" value="Login" src='{$path}/interface/themes/default/images/login.png' alt='{translate text="Login to your account"}' />
 					{if $comment}
 						<input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>
 					{/if}
