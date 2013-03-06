@@ -159,7 +159,15 @@ class SideFacets implements RecommendationInterface
 		}
 
 		$interface->assign('checkboxFilters', $this->searchObject->getCheckboxFacets());
-		$interface->assign('filterList', $this->searchObject->getFilterList(true));
+		//Get applied facets
+		$filterList = $this->searchObject->getFilterList(true);
+		foreach ($filterList as $facetKey => $facet){
+			//Remove any top facets since the removal links are displayed above results
+			if (!isset($this->facetSettings[$facet[0]['field']])){
+				unset($filterList[$facetKey]);
+			}
+		}
+		$interface->assign('filterList', $filterList);
 		//Process the side facet set to handle the Added In Last facet which we only want to be
 		//visible if there is not a value selected for the facet (makes it single select
 		$sideFacets = $this->searchObject->getFacetList($this->mainFacets);
