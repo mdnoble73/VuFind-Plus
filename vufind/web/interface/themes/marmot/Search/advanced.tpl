@@ -65,8 +65,7 @@
 									{foreach from=$formatCategoryLimit item="value" key="display"}
 										{if $value.filter != ""}
 										<div class="advancedSearchFacetFormatCategory">
-											<div><img src="{img filename=$value.imageName}" alt="{translate text=$display}"/></div>
-											<div><input type="radio" name="filter[]" value="{$value.filter|escape}"{if $value.selected} checked="checked"{/if} /> <label>{translate text=$display}</label></div>
+											<div><input id="categoryValue_{$display|lower|replace:' ':''}" type="radio" name="filter[]" value="{$value.filter|escape}"{if $value.selected} checked="checked"{/if} /> <label for="categoryValue_{$display|lower|replace:' ':''}"><span class="categoryValue categoryValue_{$display|lower|replace:' ':''}">{translate text=$display}</span></label></div>
 										</div>
 										{/if}
 									{/foreach}

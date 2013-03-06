@@ -190,16 +190,27 @@ class Advanced extends Action {
 				} else {
 					$selected = false;
 				}
-				$currentList[$value['value']] =
-				array('filter' => $fullFilter, 'selected' => $selected);
+				$currentList[$value['value']] = array('filter' => $fullFilter, 'selected' => $selected);
 			}
 
-			// Perform a natural case sort on the array of facet values:
 			$keys = array_keys($currentList);
-			natcasesort($keys);
 
 			//Add a value for not selected which will be the first item
-			$facets[$list['label']]['values']['Any ' . $list['label']] = array('filter' => '',$selected => !$valueSelected );
+			if (!strpos($facet, 'available_at') === 0){
+				// Perform a natural case sort on the array of facet values:
+				natcasesort($keys);
+
+				$facets[$list['label']]['values']['Any ' . $list['label']] = array('filter' => '',$selected => !$valueSelected );
+			}else{
+				//Don't sort Available Now facet and make sure the Entire Collection is selected if no value is selected
+				if (!$valueSelected){
+					foreach ($currentList as $key => $value){
+						if ($key == 'Entire Collection'){
+							$currentList[$key]['selected'] = true;
+						}
+					}
+				}
+			}
 
 			$facets[$list['label']]['facetName'] = $facet;
 			foreach($keys as $key) {
