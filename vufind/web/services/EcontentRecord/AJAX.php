@@ -285,10 +285,16 @@ class AJAX extends Action {
 		$interface->assign('prospectorDetails', $prospectorDetails);
 
 		$searchTerms = array(
-		array('lookfor' => $record['title']),
+			array(
+				'lookfor' => $record['title'],
+				'type' => 'title',
+			),
 		);
 		if (isset($record['author'])){
-			$searchTerms[] = array('lookfor' => $record['author']);
+			$searchTerms[] = array(
+				'lookfor' => $record['author'],
+				'type' => 'author',
+			);
 		}
 		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
 		$interface->assign('prospectorResults', $prospectorResults);

@@ -20,7 +20,6 @@ class Prospector{
 		$prospectorInfo = $req->getResponseBody();
 
 		//Parse the information to get the titles from the page
-		/*preg_match_all('/<table class="browseBibTable" cellspacing="2" border="0">.*?<div class="dpBibTitle">(.*?)<div class="dpBibAuthor">(.*?)<\/div>.*?<div class="dpImageExtras">(.*?)<br\\s?\/?>.*?<\/div>.*?<\/table>/s', $prospectorInfo, $titleInfo, PREG_SET_ORDER);*/
 		preg_match_all('/<table class="browseBibTable" cellspacing="2" border="0">(.*?)<\/table>/s', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
 		$prospectorTitles = array();
 		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
@@ -103,12 +102,38 @@ class Prospector{
 						$search .= ' ';
 					}
 					if (isset($groupTerm['lookfor'])){
-						$search .= $groupTerm['lookfor'];
+						$termValue = $groupTerm['lookfor'];
+						if (isset($groupTerm['index'])){
+							if ($term['index'] == 'Author'){
+								$search .= "a:($termValue)";
+							}elseif ($groupTerm['index'] == 'Title'){
+								$search .= "t:($termValue)";
+							}elseif ($groupTerm['index'] == 'Subject'){
+								$search .= "d:($termValue)";
+							}else{
+								$search .= $termValue;
+							}
+						}else{
+							$search .= $termValue;
+						}
 					}
 				}
 			}else{
 				if (isset($term['lookfor'])){
-					$search .= $term['lookfor'];
+					$termValue = $term['lookfor'];
+					if (isset($term['index'])){
+						if ($term['index'] == 'Author'){
+							$search .= "a:($termValue)";
+						}elseif ($term['index'] == 'Title'){
+							$search .= "t:($termValue)";
+						}elseif ($term['index'] == 'Subject'){
+							$search .= "d:($termValue)";
+						}else{
+							$search .= $termValue;
+						}
+					}else{
+						$search .= $termValue;
+					}
 				}
 			}
 		}

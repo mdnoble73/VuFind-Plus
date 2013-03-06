@@ -49,10 +49,6 @@ class Search extends Action
 		$interface->assign('searchType',  $searchObject->getSearchType());
 		$interface->assign('searchIndex', $searchObject->getSearchIndex());
 		$interface->assign('qtime',       round($searchObject->getQuerySpeed(), 2));
-		//Load repeat search options
-		require_once('Drivers/marmot_inc/RepeatSearch.php');
-		$repeatSearch = new RepeatSearch();
-		$interface->assign('repeatSearchOptions', $repeatSearch->getRepeatSearchOptions($searchObject));
 
 		$summary = $searchObject->getResultSummary();
 		// Post processing, remember that the REAL results here with regards to

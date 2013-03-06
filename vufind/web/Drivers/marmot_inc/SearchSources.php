@@ -260,8 +260,11 @@ class SearchSources{
 		}else if ($searchSource == 'overdrive'){
 			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookfor);
 		}else if ($searchSource == 'prospector'){
-			//$prospectorSearchType = $this->getProspectorSearchType($searchObject);
+			$prospectorSearchType = $this->getProspectorSearchType($type);
 			$lookfor = str_replace('+', '%20', rawurlencode($lookfor));
+			if ($prospectorSearchType != ' '){
+				$lookfor = "$prospectorSearchType:(" . $lookfor . ")";
+			}
 			return "http://encore.coalliance.org/iii/encore/search/C|S" . $lookfor ."|Orightresult|U1?lang=eng&amp;suite=def";
 		}else if ($searchSource == 'amazon'){
 			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookfor);
@@ -270,5 +273,27 @@ class SearchSources{
 		}else if ($searchSource == 'course-reserves-instructor'){
 			return "http://www.millennium.marmot.org/search~S{$library->scope}/p?SEARCH=" . urlencode($lookfor);
 		}
+	}
+
+	public function getProspectorSearchType($type){
+		switch ($type){
+			case 'AllFields':
+			case 'Keyword':
+				return ' ';
+				break;
+			case 'Subject':
+				return 'd';
+				break;
+			case 'Author':
+				return 'a';
+				break;
+			case 'Title':
+				return 't';
+				break;
+			case 'ISN':
+				return 'i';
+				break;
+		}
+		return;
 	}
 }
