@@ -333,7 +333,8 @@ function updateBag(){
 		}
 		
 		// show array view
-		$("#book_bag").fadeIn('slow');
+		$("#book_bag").show();
+		$("#bag_open_button").effect( "highlight" );
 	} else {	
 		$("#bag_summary").text("0 items");
 		$("#bag_summary_header").text("0 items");
