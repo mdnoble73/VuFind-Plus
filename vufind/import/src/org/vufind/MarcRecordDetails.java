@@ -144,6 +144,21 @@ public class MarcRecordDetails {
 		// Load all items
 		@SuppressWarnings("unchecked")
 		List<DataField> itemFields = record.getVariableFields("989");
+		//Also check 998a to see if there are location codes from orders. 
+		Set<String> additionalLocations = this.getFieldList(record, "998a");
+		boolean changeMade = true;
+		while (changeMade){
+			changeMade = false;
+			for (String curAdditionalLocation : additionalLocations){
+				String replacedLocation = curAdditionalLocation.replaceAll("\\(\\d+\\)", "");
+				if (!replacedLocation.equals(curAdditionalLocation)){
+					additionalLocations.remove(curAdditionalLocation);
+					additionalLocations.add(replacedLocation);
+					changeMade = true;
+					break;
+				}
+			}
+		}
 		Set<String> librarySystems = new LinkedHashSet<String>();
 		Set<String> locations = new LinkedHashSet<String>();
 		Set<String> barcodes = new LinkedHashSet<String>();
@@ -164,7 +179,6 @@ public class MarcRecordDetails {
 		boolean allItemsSuppressed = true;
 		// Check the 907c field for manual suppresion
 		String manualSuppression = getFirstFieldVal("907c");
-		int numItems = itemFields.size();
 		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")) {
 			// logger.debug("The record is manually suppressed.");
 			manuallySuppressed = true;
@@ -176,6 +190,19 @@ public class MarcRecordDetails {
 				// logger.debug("Did not find location code for item ");
 			} else {
 				String locationCode = itemField.getSubfield('d').getData().trim();
+				//Remove any additional locations that are also contained in the item fields
+				changeMade = true;
+				while (changeMade){
+					changeMade = false;
+					for (String curAdditionalLocation : additionalLocations){
+						if (locationCode.startsWith(curAdditionalLocation)){
+							additionalLocations.remove(curAdditionalLocation);
+							changeMade = true;
+							break;
+						}
+					}
+				}
+				
 				// logger.debug("Processing locationCode " + locationCode);
 				// Figure out which location and library this item belongs to.
 				LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(locationCode);
@@ -356,10 +383,54 @@ public class MarcRecordDetails {
 				allItemsSuppressed = false;
 			}
 		}
+		for (String curAdditonalLocation : additionalLocations){
+			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(curAdditonalLocation);
+			LibraryIndexingInfo libraryIndexingInfo = null;
+			boolean itemSuppressed = false;
+			if (locationIndexingInfo == null) {
+				logger.debug("Warning, did not find location info for location " + curAdditonalLocation);
+				if (curAdditonalLocation.equalsIgnoreCase("zzzz")) {
+					// logger.debug("suppressing item because location code is zzzz");
+					itemSuppressed = true;
+				}
+			} else {
+				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
+			}
+			if (!itemSuppressed){
+				allItemsSuppressed = false;
+				// Map library system (institution)
+				if (libraryIndexingInfo != null) {
+					librarySystems.add(libraryIndexingInfo.getFacetLabel());
+				}
+	
+				// Map location (building)
+				if (locationIndexingInfo != null) {
+					locations.add(locationIndexingInfo.getFacetLabel());
+				}
+				
+				LinkedHashSet<String> existingLibraryAvailability = availableAtBySystemOrLocation.get(libraryIndexingInfo.getSubdomain());
+				if (existingLibraryAvailability == null || existingLibraryAvailability.size() == 0){
+					if (existingLibraryAvailability == null){
+						existingLibraryAvailability = new LinkedHashSet<String>();
+					}
+					existingLibraryAvailability.add("Entire Collection");
+					availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLibraryAvailability);
+				}
+				
+				LinkedHashSet<String> existingLocationAvailability = availableAtBySystemOrLocation.get(locationIndexingInfo.getCode());
+				if (existingLocationAvailability == null || existingLocationAvailability.size() == 0){
+					if (existingLocationAvailability == null){
+						existingLocationAvailability = new LinkedHashSet<String>();
+					}
+					existingLocationAvailability.add("Entire Collection");
+					availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLibraryAvailability);
+				}
+			}
+		}
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;
-		} else if (allItemsSuppressed && numItems > 0) {
+		} else if (allItemsSuppressed) {
 			logger.debug("Suppressing bib because all items are suppressed.");
 			bibSuppressed = true;
 		}
