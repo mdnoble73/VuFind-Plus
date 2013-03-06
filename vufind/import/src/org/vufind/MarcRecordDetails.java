@@ -401,30 +401,29 @@ public class MarcRecordDetails {
 				// Map library system (institution)
 				if (libraryIndexingInfo != null) {
 					librarySystems.add(libraryIndexingInfo.getFacetLabel());
+					LinkedHashSet<String> existingLibraryAvailability = availableAtBySystemOrLocation.get(libraryIndexingInfo.getSubdomain());
+					if (existingLibraryAvailability == null || existingLibraryAvailability.size() == 0){
+						if (existingLibraryAvailability == null){
+							existingLibraryAvailability = new LinkedHashSet<String>();
+						}
+						existingLibraryAvailability.add("Entire Collection");
+						availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLibraryAvailability);
+					}
 				}
 	
 				// Map location (building)
 				if (locationIndexingInfo != null) {
 					locations.add(locationIndexingInfo.getFacetLabel());
-				}
-				
-				LinkedHashSet<String> existingLibraryAvailability = availableAtBySystemOrLocation.get(libraryIndexingInfo.getSubdomain());
-				if (existingLibraryAvailability == null || existingLibraryAvailability.size() == 0){
-					if (existingLibraryAvailability == null){
-						existingLibraryAvailability = new LinkedHashSet<String>();
+					LinkedHashSet<String> existingLocationAvailability = availableAtBySystemOrLocation.get(locationIndexingInfo.getCode());
+					if (existingLocationAvailability == null || existingLocationAvailability.size() == 0){
+						if (existingLocationAvailability == null){
+							existingLocationAvailability = new LinkedHashSet<String>();
+						}
+						existingLocationAvailability.add("Entire Collection");
+						availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLocationAvailability);
 					}
-					existingLibraryAvailability.add("Entire Collection");
-					availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLibraryAvailability);
 				}
-				
-				LinkedHashSet<String> existingLocationAvailability = availableAtBySystemOrLocation.get(locationIndexingInfo.getCode());
-				if (existingLocationAvailability == null || existingLocationAvailability.size() == 0){
-					if (existingLocationAvailability == null){
-						existingLocationAvailability = new LinkedHashSet<String>();
-					}
-					existingLocationAvailability.add("Entire Collection");
-					availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLibraryAvailability);
-				}
+
 			}
 		}
 		if (manuallySuppressed) {

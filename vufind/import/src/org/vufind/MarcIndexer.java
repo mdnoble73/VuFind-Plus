@@ -143,6 +143,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 					}
 				} catch (Exception e) {
 					results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
+					results.incErrors();
+					logger.error("Error creating xml doc for record " + recordInfo.getId(), e);
 					e.printStackTrace();
 					return false;
 				}

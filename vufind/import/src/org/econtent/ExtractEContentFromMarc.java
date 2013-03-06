@@ -399,6 +399,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 			if (apiKey == null){
 				logger.error("Unable to get api key for collection " + curCollection);
+				continue;
 			}
 			String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
 			JSONObject availability = callOverDriveURL(url);
@@ -1300,7 +1301,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				results.incErrors();
 			}
 		} catch (Exception e) {
-			results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
+			results.addNote("Error creating xml doc for eContentRecord " + eContentRecordId + " (" + recordInfo.getId() + ") " + e.toString());
+			logger.error("Error creating xml doc for eContentRecord " + eContentRecordId + " (" + recordInfo.getId() + ")", e);
+			results.incErrors();
 			e.printStackTrace();
 		}
 	}
