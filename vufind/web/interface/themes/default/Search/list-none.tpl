@@ -39,11 +39,6 @@
 			</div>
 		{/if}
 		<div>
-			<ul id="noResultsSuggest">
-				<li>Check the spelling of your search terms.</li>
-				<li>Restate your query by using more, other or broader terms.</li>
-			</ul>
-
 			{if $parseError}
 				{$parseError}
 			{/if}
