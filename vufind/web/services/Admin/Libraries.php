@@ -113,6 +113,7 @@ class Libraries extends ObjectEditor
 			$facetsToCopy = $libraryToCopyFrom->facets;
 			foreach ($facetsToCopy as $facetKey => $facet){
 				$facet->libraryId = $libraryId;
+				$facet->id = null;
 				$facetsToCopy[$facetKey] = $facet;
 			}
 			$library->facets = $facetsToCopy;

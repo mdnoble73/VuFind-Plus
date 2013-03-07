@@ -116,6 +116,7 @@ class Locations extends ObjectEditor
 			$facetsToCopy = $locationToCopyFrom->facets;
 			foreach ($facetsToCopy as $facetKey => $facet){
 				$facet->locationId = $locationId;
+				$facet->id = null;
 				$facetsToCopy[$facetKey] = $facet;
 			}
 			$location->facets = $facetsToCopy;
