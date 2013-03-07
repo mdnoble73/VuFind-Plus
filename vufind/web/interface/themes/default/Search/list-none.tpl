@@ -65,7 +65,7 @@
 			{/if}
 			
 			{if $unscopedResults}
-				<h2>Sample Results from the entire Marmot Catalog</h2>
+				<h2>Results from the entire Marmot Catalog</h2>
 				{foreach from=$unscopedResults item=record name="recordLoop"}
 					<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 						{* This is raw HTML -- do not escape it: *}

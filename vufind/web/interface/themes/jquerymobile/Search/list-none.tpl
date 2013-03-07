@@ -18,6 +18,28 @@
 			{/foreach}
 			</ul>
 		{/if}
+		
+		{if $searchSuggestions}
+			<div id="searchSuggestions">
+				<h3>Similar Searches</h3>
+				<p>These searches are similar to the search you tried. Would you like to try one of these instead?</p> 
+				<ul> 
+				{foreach from=$searchSuggestions item=suggestion}
+					<li class="searchSuggestion"><a href="/Search/Results?lookfor={$suggestion.phrase|escape:url}&basicType={$searchIndex|escape:url}">{$suggestion.phrase}</a></li>
+				{/foreach}
+				</ul>
+			</div>
+		{/if}
+			
+		{if $unscopedResults}
+			<h3>Results from the entire Marmot Catalog</h3>
+			{foreach from=$unscopedResults item=record name="recordLoop"}
+				<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+					{* This is raw HTML -- do not escape it: *}
+					{$record}
+				</div>
+			{/foreach}
+		{/if}
 	</div>
 	
 	{include file="footer.tpl"}
