@@ -91,7 +91,7 @@ class Location extends DB_DataObject
 
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
-			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user'),
+			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
 			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
 			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
@@ -141,7 +141,7 @@ class Location extends DB_DataObject
 				'structure' => $hoursStructure,
 				'label' => 'Hours',
 				'description' => 'Library Hours',
-				'hideInLists' => true,
+				//'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
 			),
@@ -155,7 +155,7 @@ class Location extends DB_DataObject
 				'keyOther' => 'locationId',
 				'subObjectType' => 'LocationFacetSetting',
 				'structure' => $facetSettingStructure,
-				'hideInLists' => true,
+				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => true,

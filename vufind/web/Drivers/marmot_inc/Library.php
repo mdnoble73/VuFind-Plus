@@ -253,7 +253,7 @@ class Library extends DB_DataObject
 				'structure' => $holidaysStructure,
 				'label' => 'Holidays',
 				'description' => 'Holidays',
-				'hideInLists' => true,
+				//'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
 			),
@@ -266,7 +266,7 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'NearbyBookStore',
 				'structure' => $nearbyBookStoreStructure,
-				'hideInLists' => true,
+				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true
 			),
@@ -280,7 +280,7 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryFacetSetting',
 				'structure' => $facetSettingStructure,
-				'hideInLists' => true,
+				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => true,

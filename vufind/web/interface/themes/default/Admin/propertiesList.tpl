@@ -67,6 +67,12 @@
 										{else}
 											No values selected
 										{/if}
+									{elseif $property.type == 'oneToMany'}
+										{if is_array($propValue) && count($propValue) > 0}
+											{$propValue|@count values}
+										{else}
+											Not set
+										{/if}
 									{elseif $property.type == 'checkbox'}
 										{if ($propValue == 1)}Yes{else}No{/if}
 										{if $propOldValue}
