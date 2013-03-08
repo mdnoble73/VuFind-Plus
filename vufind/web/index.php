@@ -37,9 +37,6 @@ if (isset($_REQUEST['test_role'])){
 // Start Interface
 $interface = new UInterface();
 $timer->logTime('Create interface');
-if (isset($configArray['Site']['theme_css'])){
-	$interface->assign('theme_css', $configArray['Site']['theme_css']);
-}
 if (isset($configArray['Site']['smallLogo'])){
 	$interface->assign('smallLogo', $configArray['Site']['smallLogo']);
 }

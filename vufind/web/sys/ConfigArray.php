@@ -232,13 +232,6 @@ function updateConfigForScoping($configArray) {
 		//Update the title
 		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
 		$configArray['Site']['title'] = $library->displayName;
-		//Update the facets file
-		if (strlen($library->facetFile) > 0 && $library->facetFile != 'default'){
-			$file = trim("../../sites/$servername/conf/facets/" . $library->facetFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['facets'] = 'facets/' . $library->facetFile . '.ini';
-			}
-		}
 
 		//Update the searches file
 		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
@@ -254,9 +247,6 @@ function updateConfigForScoping($configArray) {
 		//Add an extra css file for the location if it exists.
 		$themes = explode(',', $library->themeName);
 		foreach ($themes as $themeName){
-			if ($location != null && file_exists('./interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css')) {
-				$configArray['Site']['theme_css'] = $configArray['Site']['path'] . '/interface/themes/' . $themeName . '/css/'. $location->code .'_extra_styles.css';
-			}
 			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
 				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';
 			}
@@ -266,22 +256,6 @@ function updateConfigForScoping($configArray) {
 		}
 	}
 	$timer->logTime('finished update config for scoping');
-
-	$configArray = updateConfigForActiveLocation($configArray);
-	return $configArray;
-}
-
-function updateConfigForActiveLocation($configArray){
-	global $locationSingleton;
-	$location = $locationSingleton->getActiveLocation();
-	if ($location != null){
-		if (strlen($location->facetFile) > 0 && $location->facetFile != 'default'){
-			$file = trim('../../conf/facets/' . $location->facetFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['facets'] = 'facets/' . $location->facetFile . '.ini';
-			}
-		}
-	}
 
 	return $configArray;
 }

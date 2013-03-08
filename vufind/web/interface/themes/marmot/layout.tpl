@@ -8,9 +8,6 @@
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 		{css filename="consolidated.min.css"}
-		{if $theme_css}
-			<link rel="stylesheet" href="{$theme_css}" type="text/css" media="screen" />
-		{/if}
 		<script type="text/javascript">
 			path = '{$path}';
 			url = '{$url}';
