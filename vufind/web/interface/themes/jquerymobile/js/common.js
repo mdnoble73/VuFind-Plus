@@ -125,6 +125,10 @@ function showProcessingIndicator(message){
 	});
 }
 
+function hideProcessingIndicator(){
+	$.mobile.loading('hide');
+}
+
 function getQuerystringParameters(){
 	var vars = [];
 	var q = document.URL.split('?')[1];
