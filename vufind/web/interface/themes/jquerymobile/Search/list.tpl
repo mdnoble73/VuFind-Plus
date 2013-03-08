@@ -2,6 +2,8 @@
 <div data-role="page" id="Search-list" class="results-page">
 	{include file="header.tpl"}
 	<div data-role="content">
+		{include file="Search/Recommend/TopFacets.tpl"}
+		
 		{if $recordCount}
 			<p>
 				<strong>{$recordStart}</strong> - <strong>{$recordEnd}</strong> {translate text='of'} <strong>{$recordCount}</strong>
