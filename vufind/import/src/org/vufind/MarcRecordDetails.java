@@ -127,7 +127,7 @@ public class MarcRecordDetails {
 
 			// Check to see if we need to override ptypes that can access the content
 			if (detectionSetting.getAccessType().equalsIgnoreCase("acs") || detectionSetting.getAccessType().equalsIgnoreCase("free")
-					|| detectionSetting.getSource().equals("OverDrive")) {
+					|| detectionSetting.getSource().startsWith("OverDrive")) {
 				overridePTypes = true;
 			}
 		}
@@ -3659,7 +3659,7 @@ public class MarcRecordDetails {
 						String protectionType = parts[1].trim();
 						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
 						if (tempDetectionSettings != null) {
-							eContentDetectionSettings.put(source, tempDetectionSettings);
+							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
 							isEContent = true;
 						}
 					}
@@ -3679,7 +3679,7 @@ public class MarcRecordDetails {
 					String subfieldCVal = subFieldC.getData().trim();
 					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(subfieldBVal, subfieldCVal);
 					if (tempDetectionSettings != null) {
-						eContentDetectionSettings.put(subfieldBVal, tempDetectionSettings);
+						eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
 						isEContent = true;
 						return isEContent;
 					}

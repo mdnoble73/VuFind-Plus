@@ -711,7 +711,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 			
 			for (String source : detectionSettingsBySource.keySet()){
-				//logger.debug("Record " + recordInfo.getId() + " is eContent, source is " + source);
+				logger.debug("Record " + recordInfo.getId() + " is eContent, source is " + source);
 				DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
 				//Generally should only have one source, but in theory there could be multiple sources for a single record
 				String accessType = detectionSettings.getAccessType();
