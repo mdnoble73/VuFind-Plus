@@ -322,11 +322,13 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function initAdvancedFacets()
 	{
+		global $configArray;
 		// Call the standard initialization routine in the parent:
 		parent::init();
 
 		$searchLibrary = Library::getActiveLibrary();
 		$searchLocation = Location::getActiveLocation();
+		$userLocation = Location::getUserHomeLocation();
 		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 		if ($hasSearchLocationFacets){
@@ -348,6 +350,20 @@ class SearchObject_Solr extends SearchObject_Base
 					$facetName = 'itype_' . $searchLibrary->subdomain;
 				}elseif ($facet->facetName == 'detailed_location'){
 					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'available_' . $searchLibrary->subdomain;
+				}
+			}
+			if (isset($userLocation)){
+				if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'available_' . $userLocation->code;
+				}
+			}
+			if (isset($searchLocation)){
+				if ($facet->facetName == 'time_since_added'){
+					$facetName = 'local_time_since_added_' . $searchLocation->code;
+				}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'available_' . $searchLocation->code;
 				}
 			}
 			if ($facet->showInAdvancedSearch){
