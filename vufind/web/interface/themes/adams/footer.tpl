@@ -33,7 +33,7 @@
 	<ul>
 		<li><a href="http://www2.adams.edu//library/hours/hours.php">Library Hours</a></li>
 		<li><a href="http://www2.adams.edu/library/contact/contact.php">Contact Us</a></li>
-		<li><a href="http://www2.adams.edu/library/suggest_bk.php">Suggest a Purchase</a></li>
+		<li><a href="https://adamsstate.wufoo.com/forms/recommend-a-book-for-purchase-nielsen-library/">Suggest a Purchase</a></li>
 		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
 
 		{if isset($illLink)}
