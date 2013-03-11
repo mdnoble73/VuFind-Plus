@@ -1489,8 +1489,8 @@ table.adminTable tbody td.centered {
 float:right;
 z-index: 2;
 position: absolute;
-right:-9px;
-bottom:-20px;
+right:4px;
+bottom:4px;
 }
 #goDeeperContent {
 	position: absolute;

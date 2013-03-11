@@ -1,7 +1,7 @@
 {strip}
 <SimilarAuthors>
 <![CDATA[{if $enrichment.novelist.similarAuthorCount != 0 && $showSimilarAuthors}
-  <h4 id="similarAuthorTitle" >Similar Authors</h4>
+  <h4 title="Similar Authors from Novelist" id="similarAuthorTitle" >Similar Authors</h4>
   {foreach from=$enrichment.novelist.authors item=similarAuthor}
     <div class="sidebarLabel">
       <a href={$path}/Author/Home?author={$similarAuthor|escape:"url"}&lookfor=>{$similarAuthor}</a>
@@ -53,7 +53,7 @@
 {/if}]]></Series>
 <SeriesDefaultIndex>{$enrichment.novelist.seriesDefaultIndex}</SeriesDefaultIndex>
 <SimilarTitles><![CDATA[{if $showSimilarTitles}
-<h4>{translate text="NoveList Recommends"}</h4>
+<h4 title="Similar Titles from NoveList">{translate text="Similar Titles"}</h4>
 <ul class="similar">
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}
