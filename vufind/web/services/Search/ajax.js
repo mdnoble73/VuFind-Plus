@@ -1,5 +1,3 @@
-var GetRatingsList = new Array();
-var GetEContentRatingsList = new Array();
 var GetSaveStatusList = new Array();
 var GetStatusList = new Array();
 var GetEContentStatusList = new Array();
@@ -31,30 +29,6 @@ function getElem(id) {
 	} else if (document.all) {
 		return document.all[id];
 	}
-}
-
-function getThumbnail(id, imgname) {
-		var http = createRequestObject();
-		http.open("GET", path + "/Search/AJAX?method=GetThumbnail&isn="+id+"&size=small", true);
-		http.onreadystatechange = function()
-		{
-				if ((http.readyState == 4) && (http.status == 200)) {
-						var response = http.responseXML.documentElement;
-						if (response.getElementsByTagName('image').item(0)) {
-								var url = response.getElementsByTagName('image').item(0).firstChild.data;
-								alert(url);
-								// write out response
-								if (url) {
-										document[imgname].src = url;
-								} else {
-										document[imgname].src = path + '/images/noCover2.gif';
-								}
-						} else {
-								document[imgname].src = path + '/images/noCover2.gif';
-						}
-				}
-		};
-		http.send(null);
 }
 
 function addIdToStatusList(id, type) {
@@ -306,62 +280,6 @@ function doGetStatusSummaries()
 	GetStatusList = new Array();
 	GetEContentStatusList = new Array();
 	GetOverDriveStatusList = new Array();
-}
-
-function addRatingId(id, type){
-	if (type == undefined){
-		type = 'VuFind';
-	}
-	if (type == 'VuFind'){
-		GetRatingsList[GetRatingsList.length] = id;
-	}else{
-		GetEContentRatingsList[GetEContentRatingsList.length] = id;
-	}
-}
-
-function doGetRatings(){
-	var now = new Date();
-	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-	var http = createRequestObject();
-
-	var url = path + "/Search/AJAX";
-	var data = "method=GetRatings";
-	for (var j=0; j<GetRatingsList.length; j++) {
-		data += "&id[]=" + encodeURIComponent(GetRatingsList[j]);
-	}
-	for (var j=0; j<GetEContentRatingsList.length; j++) {
-		data += "&econtentId[]=" + encodeURIComponent(GetEContentRatingsList[j]);
-	}
-	data += "&time="+ts;
-
-	$.getJSON(url, data,
-		function(data, textStatus) {
-			var recordRatings = data['standard'];
-			for (var id in recordRatings){
-				// Load the rating for the title
-				if (recordRatings[id].user != null && recordRatings[id].user > 0){
-					$('.rate' + id).each(function(index){$(this).rater({'rating':data['standard'][id].user, 'doBindings':false, module:'Record', recordId: id});});
-				}else{
-					$('.rate' + id).each(function(index){$(this).rater({'rating':data['standard'][id].average, 'doBindings':false, module:'Record', recordId: id});});
-				}
-				$('.ui-rater-rating-' + id).each(function(index){$(this).text( data['standard'][id].average );});
-				$('.ui-rater-rateCount-' + id).each(function(index){$(this).text( data['standard'][id].count );});
-			}
-			var eContentRatings = data['eContent'];
-			for (var id in eContentRatings){
-				// Load the rating for the title
-				if (eContentRatings[id].user != null && eContentRatings[id].user > 0){
-					$('.rateEContent' + id).each(function(index){
-						$(this).rater({'rating':eContentRatings[id].user, 'doBindings':false, module:'EcontentRecord', recordId: id });
-					});
-				}else{
-					$('.rateEContent' + id).each(function(index){$(this).rater({'rating':eContentRatings[id].average, 'doBindings':false, module:'EcontentRecord', recordId: id});});
-				}
-				$('.rateEContent' + id + ' .ui-rater-rating-' + id).each(function(index){$(this).text( eContentRatings[id].average );});
-				$('.rateEContent' + id + ' .ui-rater-rateCount-' + id).each(function(index){$(this).text( eContentRatings[id].count );});
-			}
-		}
-	);
 }
 
 function getSaveStatuses(id)

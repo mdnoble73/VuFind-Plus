@@ -74,6 +74,7 @@ class EcontentRecordDriver extends IndexRecord
 	public function getSearchResult()
 	{
 		global $interface;
+		global $user;
 		if (!isset($this->eContentRecord)){
 			$this->eContentRecord = new EContentRecord();
 			$this->eContentRecord->id = $this->getUniqueID();
@@ -82,6 +83,15 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('source', $this->eContentRecord->source);
 		$interface->assign('eContentRecord', $this->eContentRecord);
 		$searchResultTemplate = parent::getSearchResult();
+
+		//Get Rating
+		require_once 'sys/eContent/EContentRating.php';
+		$econtentRating = new EContentRating();
+		$econtentRating->recordId = $this->getUniqueID();
+		if ($econtentRating->find()){
+			$interface->assign('summRating', $econtentRating->getRatingData($user, false));
+		}
+
 		$interface->assign('summAjaxStatus', true);
 		//Override fields as needed
 		return 'RecordDrivers/Econtent/result.tpl';
@@ -170,6 +180,12 @@ class EcontentRecordDriver extends IndexRecord
 		// Pass some parameters along to the template to influence edit controls:
 		$interface->assign('listSelected', $listId);
 		$interface->assign('listEditAllowed', $allowEdit);
+
+		//Get Rating
+		require_once 'sys/eContent/EContentRating.php';
+		$econtentRating = new EContentRating();
+		$econtentRating->recordId = $id;
+		$interface->assign('ratingData', $econtentRating->getRatingData($user, false));
 
 		return 'RecordDrivers/Econtent/listentry.tpl';
 	}
@@ -327,6 +343,7 @@ class EcontentRecordDriver extends IndexRecord
 	public function getSupplementalSearchResult(){
 		global $configArray;
 		global $interface;
+		global $user;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -367,6 +384,12 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
+		//Get Rating
+		require_once 'sys/eContent/EContentRating.php';
+		$econtentRating = new EContentRating();
+		$econtentRating->recordId = $id;
+		$interface->assign('summRating', $econtentRating->getRatingData($user, false));
+
 		//Determine the cover to use
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
@@ -378,6 +401,7 @@ class EcontentRecordDriver extends IndexRecord
 		// records exist in the ILS.  Child classes can override this setting
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
+
 
 		return 'RecordDrivers/Econtent/supplementalResult.tpl';
 	}

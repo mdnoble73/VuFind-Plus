@@ -31,7 +31,6 @@
 		{if $user}
 		doGetSaveStatuses();
 		{/if}
-		doGetRatings();
 	{literal} }); {/literal}
 	</script>
 	{* End of first Body *}

@@ -2,7 +2,7 @@
 {if $user != false}
 	<div class="sidegroup">
 		<h4>{translate text='Your Account'}</h4>
-		<div id="myAccountLinks">
+		<div id="myAccountFines">
 			{if $profile.finesval > 0}
 				{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
 					<div class="myAccountLink" style="color:red; font-weight:bold;">Your account has {$profile.fines} in fines.</div>
@@ -60,6 +60,7 @@
 	{if $tagList}
 		<div class="sidegroup">
 			<h4>{translate text='My Tags'}</h4>
+			<ul>
 			{foreach from=$tagList item=tag}
 				<li class="myAccountLink">
 					<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
@@ -68,6 +69,7 @@
 					</a>
 				</li>
 			{/foreach}
+			</ul>
 		</div>
 	{/if}
 

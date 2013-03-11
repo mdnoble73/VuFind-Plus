@@ -90,21 +90,10 @@ function redrawSaveStatus() {literal}{{/literal}
 				<a href='{$goldRushLink}' >Check for online articles</a>
 			</div>
 			{/if}
-					
-			{if $showRatings == 1}
-				<div id="myrating" class="stat">
-					<div class="statVal">
-						<div class="ui-rater">
-							<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px">&nbsp;</span></span>
-						</div>
-					</div>
-					<script type="text/javascript">
-						$(function() {literal} { {/literal}
-								$('#myrating').rater({literal}{ {/literal} module:'Record', recordId: '{$shortId}', rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-						{literal} } {/literal});
-					</script>
-				</div>
-			{/if}
+			
+			{* Let the user rate this title *}
+			{include file="Record/title-rating.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
+
 		</div> {* End image column *}
 		
 		<div id="record-details-column">

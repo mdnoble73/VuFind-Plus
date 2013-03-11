@@ -83,6 +83,17 @@ class MyResearch extends Action
 			$interface->assign('hasProtectedEContent', false);
 		}
 
+		global $library;
+		if (isset($library)){
+			$interface->assign('showFavorites', $library->showFavorites);
+			$interface->assign('showRatings', $library->showRatings);
+			$interface->assign('showComments', $library->showComments);
+		}else{
+			$interface->assign('showFavorites', 1);
+			$interface->assign('showRatings', 1);
+			$interface->assign('showComments', 1);
+		}
+
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php and Admin.php
 		if ($user !== false){

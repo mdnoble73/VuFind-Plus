@@ -27,7 +27,7 @@
 			{/if}
 
 			{foreach from=$listFormats item=format}
-				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+				<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$format}</span>
 			{/foreach}
 		</div>
 	</div>

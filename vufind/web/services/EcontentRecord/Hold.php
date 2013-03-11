@@ -31,16 +31,16 @@ class Hold extends Action{
 		$driver = new EContentDriver();
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		
+
 		global $logger;
-		
+
 		//Get title information for the record.
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		if (!$eContentRecord->find(true)){
 			PEAR::raiseError("Unable to find eContent record for id: $id");
 		}
-		
+
 		if (isset($_REQUEST['autologout'])){
 			$_SESSION['autologout'] = true;
 		}
@@ -81,7 +81,7 @@ class Hold extends Action{
 			}
 
 		}
-		
+
 		if (isset($return) && $showMessage) {
 			$hold_message_data = array(
               'successful' => $return['result'] ? 'all' : 'none',
@@ -101,10 +101,10 @@ class Hold extends Action{
 					unset($_SESSION['autologout']);
 					UserAccount::softLogout();
 				}
-				
+
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);
-				header("Location: " . $configArray['Site']['path'] . '/MyResearch/MyEContent');
+				header("Location: " . $configArray['Site']['path'] . '/MyResearch/EContentHolds?section=unavailable');
 			}
 		} else {
 			$logger->log('placeHold finished, do not need to show a message', PEAR_LOG_INFO);

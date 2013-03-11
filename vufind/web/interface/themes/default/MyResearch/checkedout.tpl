@@ -200,43 +200,18 @@
 						</td>
 						{/if}
 											
-						<td class="myAccountCell">												
-						<div id ="searchStars{$record.shortId|escape}" class="resultActions">
-							<div class="rate{$record.shortId|escape} stat">
-								<div class="statVal">
-									<span class="ui-rater">
-										<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-										(<span class="ui-rater-rateCount-{$record.shortId|escape} ui-rater-rateCount">0</span>)
-									</span>
-								</div>
-									<div id="saveLink{$record.shortId|escape}">
-										{if $showFavorites == 1} 
-										<a href="{$path}/Resource/Save?id={$record.id|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.id|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
-										{/if}
-										{if $user}
-											<div id="lists{$record.shortId|escape}"></div>
-											<script type="text/javascript">
-												getSaveStatuses('{$record.id|escape:"javascript"}');
-											</script>
-										{/if}
-									</div>
-									{assign var=id value=$record.id scope="global"}
-									{assign var=shortId value=$record.shortId scope="global"}
-									{include file="Record/title-review.tpl"}
-								</div>
-								<script type="text/javascript">
-									$(
-										 function() {literal} { {/literal}
-												 $('.rate{$record.shortId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$record.id}', rating:0.0, postHref: '{$path}/Record/{$record.id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-										 {literal} } {/literal}
-									);
-								</script>
+						<td class="myAccountCell">
+						<div class="resultActions">
+							{* Let the user rate this title *}
+							{include file="Record/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.shortId ratingData=$record.ratingData}
+							{assign var=id value=$record.id scope="global"}
+							{assign var=shortId value=$record.shortId scope="global"}
+							{include file="Record/title-review.tpl"}
 									
 							</div>
 		
 						{if $record.id != -1}
 						<script type="text/javascript">
-							addRatingId('{$record.recordId|escape:"javascript"}');
 							$(document).ready(function(){literal} { {/literal}
 									resultDescription('{$record.id}','{$record.id}');
 							{literal} }); {/literal}
@@ -255,11 +230,6 @@
 				</div>
 			</form>
 			
-			<script type="text/javascript">
-				$(document).ready(function() {literal} { {/literal}
-					doGetRatings();
-				{literal} }); {/literal}
-			</script>
 		{else}
 			{translate text='You do not have any items checked out'}.
 		{/if}

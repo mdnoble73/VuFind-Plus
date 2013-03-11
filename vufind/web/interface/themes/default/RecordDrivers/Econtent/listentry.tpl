@@ -56,7 +56,7 @@
   </div>
 </div>
 
-<div id ="searchStars{$listId|escape}" class="resultActions">
+<div class="resultActions">
   <div class="rateEContent{$listId|escape} stat">
     <div id="saveLink{$listId|escape}">
       {if $listEditAllowed}
@@ -71,27 +71,15 @@
           onclick="return confirm('Are you sure you want to delete this?');"><span class="silk delete">&nbsp;</span>{translate text='Delete'}</a>
       {/if}
     </div>
-	  <div class="statVal">
-	    <span class="ui-rater">
-	      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-	      (<span class="ui-rater-rateCount-{$listId|escape} ui-rater-rateCount">0</span>)
-	    </span>
-	  </div>
+    {* Let the user rate this title *}
+		{include file="Record/title-rating.tpl" ratingClass="" recordId=$listId shortId=$listId ratingData=$ratingData showFavorites=0}
+
     {assign var=id value=$listId scope="global"}
     {include file="EcontentRecord/title-review.tpl"}
       
     </div>
-    <script type="text/javascript">
-      $(
-         function() {literal} { {/literal}
-             $('.rateEContent{$listId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: {$listId},  rating:0.0, postHref: '{$path}/EcontentRecord/{$listId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-         {literal} } {/literal}
-      );
-    </script>
-      
   </div>
 <script type="text/javascript">
-  addRatingId('{$listId|escape:"javascript"}', 'eContent');
   $(document).ready(function(){literal} { {/literal}
       addIdToStatusList('{$listId|escape:"javascript"}', 'eContent');
       resultDescription('{$listId}','{$listId}', 'eContent');

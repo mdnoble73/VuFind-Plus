@@ -493,6 +493,15 @@ class IndexRecord implements RecordInterface
 		$interface->assign('listSelected', $listId);
 		$interface->assign('listEditAllowed', $allowEdit);
 
+		//Get Rating
+		$resource = new Resource();
+		$resource->source = 'VuFind';
+		$resource->record_id = $id;
+		$resource->find(true);
+		$ratingData = $resource->getRatingData($user);
+		//print_r($ratingData);
+		$interface->assign('ratingData', $ratingData);
+
 		return 'RecordDrivers/Index/listentry.tpl';
 	}
 
@@ -653,6 +662,7 @@ class IndexRecord implements RecordInterface
 	{
 		global $configArray;
 		global $interface;
+		global $user;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -709,6 +719,15 @@ class IndexRecord implements RecordInterface
 			$interface->assign('summURLs', array());
 		}
 
+		//Get Rating
+		$resource = new Resource();
+		$resource->source = 'VuFind';
+		$resource->record_id = $id;
+		$resource->find(true);
+		$ratingData = $resource->getRatingData($user);
+		//print_r($ratingData);
+		$interface->assign('summRating', $ratingData);
+
 		//Determine the cover to use
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
@@ -727,6 +746,7 @@ class IndexRecord implements RecordInterface
 	public function getSupplementalSearchResult(){
 		global $configArray;
 		global $interface;
+		global $user;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -766,6 +786,15 @@ class IndexRecord implements RecordInterface
 		$snippet = $this->getHighlightedSnippet();
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
+
+		//Get Rating
+		$resource = new Resource();
+		$resource->source = 'VuFind';
+		$resource->record_id = $id;
+		$resource->find(true);
+		$ratingData = $resource->getRatingData($user);
+		//print_r($ratingData);
+		$interface->assign('summRating', $ratingData);
 
 		//Determine the cover to use
 		$isbn = $this->getCleanISBN();

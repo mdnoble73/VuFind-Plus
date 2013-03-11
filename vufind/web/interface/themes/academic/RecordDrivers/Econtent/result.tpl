@@ -13,6 +13,10 @@
 				<img src="{$bookCoverUrl}" alt="{translate text='Cover Image'}"/>
 				</a>
 			{/if}
+			
+			{* Let the user rate this title *}
+			{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+			
 			{if $eContentRecord->isOverDrive()}
 				{* Place hold link *}
 				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
@@ -44,6 +48,8 @@
 			<div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
 				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
 			</div>
+			
+
 		</div>
 		
 		<div class="resultitem">
@@ -52,39 +58,6 @@
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
 						{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
-					</div>
-				{/if}
-				
-				{if $showRatings == 1}
-					<div id ="searchStars{$summId|escape}" class="resultActions">
-						<div class="rateEContent{$summId|escape} stat">
-							<div class="statVal">
-								<span class="ui-rater">
-									<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
-									(<span class="ui-rater-rateCount-{$summId|escape} ui-rater-rateCount">0</span>)
-								</span>
-							</div>
-							<div id="saveLink{$summId|escape}">
-								{if $user}
-									<div id="lists{$summId|escape}"></div>
-									<script type="text/javascript">
-										getSaveStatuses('{$summId|escape:"javascript"}');
-									</script>
-								{/if}
-								{if $showFavorites == 1} 
-									<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" style="padding-left:8px;" onclick="getSaveToListForm('{$summId|escape}', 'eContent'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
-								{/if}
-							</div>
-							{assign var=id value=$summId scope="global"}
-							{include file="EcontentRecord/title-review.tpl" id=$summId}
-						</div>
-						<script type="text/javascript">
-							$(
-								 function() {literal} { {/literal}
-										 $('.rateEContent{$summId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: {$summId},	rating:0.0, postHref: '{$path}/EcontentRecord/{$summId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-								 {literal} } {/literal}
-							);
-						</script>
 					</div>
 				{/if}
 			</div>
@@ -129,14 +102,10 @@
 	</div>
 	
 	<script type="text/javascript">
-		{if $showRatings == 1}
-		addRatingId('{$summId|escape:"javascript"}', 'eContent');
-		{/if}
 		addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if});
 		$(document).ready(function(){literal} { {/literal}
 			resultDescription('{$summId}','{$summId}', 'eContent');
 		{literal} }); {/literal}
-		
 	</script>
 
 

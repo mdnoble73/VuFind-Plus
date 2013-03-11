@@ -10,6 +10,9 @@
 			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
 				<img src="{$path}/bookcover.php?id={$summId}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" alt="{translate text='Cover Image'}"/>
 			</a>
+			{* Let the user rate this title *}
+			{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+			
 			{* Place hold link *}
 			{if $showHoldButton}
 			<div class='requestThisLink' id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
@@ -26,10 +29,6 @@
 					<div class="searchResultSectionInfo">
 					{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
 					</div>
-				{/if}
-				{if $showRatings == 1}
-					{* Let the user rate this title *}
-					{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$summId shortId=$summShortId}
 				{/if}
 			</div>
 			{if $summEditions}

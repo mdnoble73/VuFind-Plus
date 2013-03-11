@@ -79,28 +79,12 @@
 						onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
 				{/if}
 			</div>
-			<div class="statVal">
-				<span class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-					(<span class="ui-rater-rateCount-{$resource->record_id|regex_replace:"/\./":""|escape} ui-rater-rateCount">0</span>)
-				</span>
-			</div>
 			{assign var=id value=$resource->record_id}
 			{assign var=shortId value=$resource->shortId}
 			{include file="Record/title-review.tpl"}
-			
 		</div>
-		<script type="text/javascript">
-			$(
-				 function() {literal} { {/literal}
-						 $('.rate{$resource->record_id|regex_replace:"/\./":""|escape}').rater({literal}{ {/literal}module: '{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}', recordId: '{$resource->record_id}',	rating:0.0, postHref: '{$path}/Record/{$resource->record_id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-				 {literal} } {/literal}
-			);
-		</script>
-			
 	</div>
 	<script type="text/javascript">
-		addRatingId('{$resource->record_id|escape:"javascript"}');
 		$(document).ready(function(){literal} { {/literal}
 			addIdToStatusList('{$resource->record_id|escape:"javascript"}', '{$resource->source}');
 			resultDescription('{$resource->record_id}','{$resource->record_id|regex_replace:"/\./":""}', '{$resource->source}');

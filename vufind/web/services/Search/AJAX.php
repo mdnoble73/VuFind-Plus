@@ -27,7 +27,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'GetRatings', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries'))){
+		if (in_array($method, array('GetAutoSuggestList', 'RandomSysListTitles', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -307,61 +307,6 @@ class AJAX extends Action {
 		$timer->logTime("Formatted results");
 	}
 
-	/**
-	 * Get Ratings
-	 *
-	 * This is responsible for loading rating information for all specified items
-	 * from the database.
-	 *
-	 * Database is returned as json
-	 *
-	 * @access	public
-	 * @author	Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function GetRatings()
-	{
-		global $configArray;
-
-		//setup 5 star ratings
-		global $user;
-
-		require_once 'services/MyResearch/lib/Resource.php';
-
-		if (isset($_REQUEST['id'])){
-			$ids = $_REQUEST['id'];
-		}else{
-			$ids = array();
-		}
-		$ratingData = array();
-		$ratingData['standard'] = array();
-		$ratingData['eContent'] = array();
-		foreach ($ids as $id){
-			$resource = new Resource();
-			$resource->source = 'VuFind';
-			$resource->record_id = $id;
-			$resource->find(true);
-			$shortId = str_replace('.b', 'b',	$id);
-			$ratingData['standard'][$shortId] = $resource->getRatingData($user);
-		}
-
-		require_once 'sys/eContent/EContentRating.php';
-		if (isset($_REQUEST['econtentId'])){
-			$econtentIds = $_REQUEST['econtentId'];
-		}else{
-			$econtentIds = array();
-		}
-		foreach ($econtentIds as $id){
-			$econtentRating = new EContentRating();
-			$econtentRating->recordId = $id;
-			if ($econtentRating->find()){
-				$ratingData['eContent'][$id] = $econtentRating->getRatingData($user, false);
-			}
-		}
-
-
-		echo json_encode($ratingData);
-
-	}
 
 	function GetSuggestion()
 	{

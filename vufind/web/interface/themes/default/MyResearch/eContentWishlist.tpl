@@ -69,8 +69,3 @@
 	{/if}
 	</div>
 </div>
-<script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-		doGetRatings();
-	{literal} }); {/literal}
-</script>

@@ -316,20 +316,8 @@ function redrawSaveStatus() {literal}{{/literal}
       {/if}
           
         
-      <div id="myrating" class="stat">
-	    <div class="statVal">
-		  <div class="ui-rater">
-		  	<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:63px"></span></span>
-	      </div>
-        </div>
-        <script type="text/javascript">
-        $(
-         function() {literal} { {/literal}
-             $('#myrating').rater({literal}{ {/literal} module:'EcontentRecord', rating:'{if $user}{$ratingData.user}{else}{$ratingData.average}{/if}', recordId: '{$id}', postHref: '{$path}/EcontentRecord/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-         {literal} } {/literal}
-	    );
-        </script>
-      </div>
+      {* Let the user rate this title *}
+			{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$id shortId=$id ratingData=$ratingData}
     </div> {* End image column *}
     
     <div id="record-details-column">
@@ -418,7 +406,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{assign var="scrollerName" value="Series"}
 				{assign var="wrapperId" value="series"}
 				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
 				{include file=titleScroller.tpl}
 		    
 			</div>
@@ -472,7 +460,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{assign var="scrollerName" value="Series"}
 				{assign var="wrapperId" value="series"}
 				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{assign var="fullListLink" value="$path/EcontentRecord/$id/Econtent"}
 				{include file=titleScroller.tpl}
 		    
 			</div>
@@ -508,7 +496,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{assign var="scrollerName" value="Series"}
 				{assign var="wrapperId" value="series"}
 				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
 				{include file=titleScroller.tpl}
 		    
 			</div>

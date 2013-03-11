@@ -143,13 +143,7 @@
 		</div>
 			
 	</div>
-		
-	{* Load Ratings *}
-	<script type="text/javascript">
-		$(document).ready(function() {literal} { {/literal}
-			doGetRatings();
-		{literal} }); {/literal}
-	</script>
+
 	{* End of first Body *}
 </div>
 {/strip}

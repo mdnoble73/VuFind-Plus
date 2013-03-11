@@ -31,13 +31,6 @@
 				<a href="{$path}/MyResearch/OverdriveHolds?section=unavailable" data-role="button" rel="external" id="unavailableOverDrive">{translate text='OverDrive'} (<span id="unavailableHoldsOverDrivePlaceholder">?</span>)</a>
 			</div>
 			
-			<h4>{translate text="Wish Lists"}</h4>
-			<div data-role="controlgroup">
-				{if $hasProtectedEContent}
-				<a href="{$path}/MyResearch/MyEContentWishlist" data-role="button" rel="external">{translate text='eBooks and eAudio'} ({$profile.numEContentWishList})</a>
-				{/if}
-				<a href="{$path}/MyResearch/OverdriveWishList" data-role="button" rel="external">{translate text='OverDrive'} (<span id="wishlistOverDrivePlaceholder">?</span>)</a>
-			</div>
 		{else}
 			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}

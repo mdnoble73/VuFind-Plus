@@ -57,7 +57,7 @@ class OverDriveDriver2 {
 		if ($forceNewConnection || $tokenData == false){
 			global $configArray;
 			$ch = curl_init("https://oauth.overdrive.com/token");
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -83,7 +83,7 @@ class OverDriveDriver2 {
 			$tokenData = $this->_connectToAPI($i != 1);
 			if ($tokenData){
 				$ch = curl_init($url);
-				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 				curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -149,6 +149,7 @@ class OverDriveDriver2 {
 	}
 
 	public function _parseOverDriveCheckedOutItems($checkedOutSection, $overDriveInfo){
+		global $user;
 		$bookshelf = array();
 		$bookshelf['items'] = array();
 		if (preg_match_all('/<li class="mobile-four bookshelf-title-li".*?data-transaction="(.*?)".*?>.*?<div class="is-enhanced" data-transaction=".*?" title="(.*?)".*?<img.*?class="lrgImg" src="(.*?)".*?data-crid="(.*?)".*?<div.*?class="dwnld-container".*?>(.*?)<div class="expiration-date".*?<noscript>(.*?)<\/noscript>.*?data-earlyreturn="(.*?)"/si', $checkedOutSection, $bookshelfInfo, PREG_SET_ORDER)) {
@@ -167,6 +168,12 @@ class OverDriveDriver2 {
 				$eContentRecord->source = 'OverDrive';
 				if ($eContentRecord->find(true)){
 					$bookshelfItem['recordId'] = $eContentRecord->id;
+
+					//Get Rating
+					require_once 'sys/eContent/EContentRating.php';
+					$econtentRating = new EContentRating();
+					$econtentRating->recordId = $eContentRecord->id;
+					$bookshelfItem['ratingData'] = $econtentRating->getRatingData($user, false);
 				}else{
 					$bookshelfItem['recordId'] = -1;
 				}
@@ -215,6 +222,7 @@ class OverDriveDriver2 {
 	}
 
 	private function _parseOverDriveHolds($holdsSection){
+		global $user;
 		$holds = array();
 		$holds['available'] = array();
 		$holds['unavailable'] = array();
@@ -237,6 +245,12 @@ class OverDriveDriver2 {
 				$eContentRecord->source = 'OverDrive';
 				if ($eContentRecord->find(true)){
 					$hold['recordId'] = $eContentRecord->id;
+
+					//Get Rating
+					require_once 'sys/eContent/EContentRating.php';
+					$econtentRating = new EContentRating();
+					$econtentRating->recordId = $eContentRecord->id;
+					$hold['ratingData'] = $econtentRating->getRatingData($user, false);
 				}else{
 					$hold['recordId'] = -1;
 				}

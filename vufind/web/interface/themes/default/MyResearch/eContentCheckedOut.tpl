@@ -78,43 +78,11 @@
 							</td>
 							<td>{$record.holdQueueLength}</td>
 							<td>
-								<div id ="searchStars{$record.recordId|escape}" class="resultActions">
-									<div class="rate{$record.recordId|escape} stat">
-										<div class="statVal">
-											<span class="ui-rater">
-												<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
-												(<span class="ui-rater-rateCount-{$record.recordId|escape} ui-rater-rateCount">0</span>)
-											</span>
-										</div>
-											<div id="saveLink{$record.recordId|escape}">
-												{if $showFavorites == 1} 
-												<a href="{$path}/Record/{$record.recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$record.recordId|escape}', '', '{translate text='Add to favorites'}', 'Record', 'Save', '{$record.recordId|escape}'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
-												{/if}
-												{if $user}
-													<div id="lists{$record.recordId|escape}"></div>
-											<script type="text/javascript">
-												getSaveStatuses('{$record.recordId|escape:"javascript"}');
-											</script>
-												{/if}
-											</div>
-										</div>
-										<script type="text/javascript">
-											$(
-												 function() {literal} { {/literal}
-														 $('.rate{$record.recordId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: '{$record.recordId}',	rating:0.0, postHref: '{$path}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-												 {literal} } {/literal}
-											);
-										</script>
-										
-										{assign var=id value=$record.recordId}
-										{include file="EcontentRecord/title-review.tpl"}
-									</div>
-											
-									{if $record.recordId != -1}
-									<script type="text/javascript">
-										addRatingId('{$record.recordId|escape:"javascript"}');
-									</script>
-									{/if}
+								<div class="resultActions">
+									{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.id ratingData=$record.ratingData}
+									{assign var=id value=$record.recordId}
+									{include file="EcontentRecord/title-review.tpl"}
+								</div>
 							</td>
 							<td>
 								{* Options for the user to view online or download *}
@@ -134,9 +102,4 @@
 	{/if}
 	</div>
 </div>
-<script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-		doGetRatings();
-	{literal} }); {/literal}
-</script>
 {/strip}

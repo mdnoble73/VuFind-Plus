@@ -14,10 +14,8 @@
 					{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
 					</div>
 				{/if}
-				{if $showRatings == 1}
-					{* Let the user rate this title *}
-					{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$summId shortId=$summShortId}
-				{/if}
+				{* Let the user rate this title *}
+				{include file="EcontentRecord/title-rating.tpl" ratingClass="searchStars" recordId=$summId shortId=$summShortId ratingData=$summRating}
 			</div>
 			{if $summEditions}
 			<div class="resultInformation"><span class="resultLabel">{translate text='Edition'}:</span><span class="resultValue">{$summEditions.0|escape}</span></div>
@@ -43,10 +41,10 @@
 			<div class="resultInformation"><span class="resultLabel">{translate text='Format'}:</span><span class="resultValue">
 			{if is_array($summFormats)}
 				{foreach from=$summFormats item=format}
-					<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+					<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$format}</span>
 				{/foreach}
 			{else}
-				<span class="iconlabel {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$summFormats}</span>
+				<span class="icon {$summFormats|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$summFormats}</span>
 			{/if}
 			</span></div>
 			{if $summPhysical}

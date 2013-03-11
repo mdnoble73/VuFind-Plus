@@ -36,7 +36,6 @@
   </div>
   <script type="text/javascript">
   $('#suggestionsList').jcarousel();
-  doGetRatings();
   </script>
 {else}
   <div id='suggestions'>

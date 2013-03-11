@@ -64,8 +64,8 @@ class EContentHolds extends MyResearch {
 					$dateToReactivate = strtotime($suspendDate);
 					$suspendResult = $driver->suspendHolds($ids, $dateToReactivate);
 
-					//Redirect back to the MyEContent page
-					header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyEContent");
+					//Redirect back to the EContentHolds page
+					header("Location: " . $configArray['Site']['path'] . "/MyResearch/EContentHolds?section=unavailable");
 				}
 				$result = $driver->getMyHolds($user);
 				$interface->assign('holds', $result['holds']);

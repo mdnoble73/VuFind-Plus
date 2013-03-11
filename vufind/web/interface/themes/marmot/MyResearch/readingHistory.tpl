@@ -184,7 +184,6 @@
 				
 							<script type="text/javascript">
 								$(document).ready(function() {literal} { {/literal}
-									doGetRatings();
 									/*$("#readingHistoryTable")
 										.tablesorter({literal}{cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 3: { sorter: 'date' }, 4: { sorter: false }, 7: { sorter: false} } }{/literal})
 										.tablesorterPager({literal}{container: $("#pager")}{/literal})

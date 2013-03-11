@@ -62,41 +62,16 @@
 </div>
 
 <div id ="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultActions">
-  <div class="rate{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} stat">
-	  <div class="statVal">
-	    <span class="ui-rater">
-	      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-	      (<span class="ui-rater-rateCount-{if $summShortId}{$summShortId}{else}{$summId|escape}{/if} ui-rater-rateCount">0</span>)
-	    </span>
-	  </div>
-    <div id="saveLink{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-      {if $user}
-      	<div id="lists{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}"></div>
-    		<script type="text/javascript">
-    		  getSaveStatuses('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
-    		</script>
-      {/if}
-      {if $showFavorites == 1} 
-        <a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$summId}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
-      {/if}
-    </div>
-    {assign var=id value=$summId scope="global"}
-    {assign var=shortId value=$summShortId scope="global"}
-    {include file="Record/title-review.tpl"}
-  </div>
-  <script type="text/javascript">
-    $(
-       function() {literal} { {/literal}
-           $('.rate{if $summShortId}{$summShortId|escape}{else}{$summId|escape}{/if}').rater({literal}{ {/literal}module: 'Record', recordId: '{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}',  rating:0.0, postHref: '{$path}/Record/{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}/AJAX?method=RateTitle'{literal} } {/literal});
-       {literal} } {/literal}
-    );
-  </script>
-    
+	{* Let the user rate this title *}
+	{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+
+	{assign var=id value=$summId scope="global"}
+	{assign var=shortId value=$summShortId scope="global"}
+	{include file="Record/title-review.tpl"}
 </div>
 
 
 <script type="text/javascript">
-  addRatingId('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}');
   addIdToStatusList('{$summId|escape}');
   $(document).ready(function(){literal} { {/literal}
   	resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}','VuFind');

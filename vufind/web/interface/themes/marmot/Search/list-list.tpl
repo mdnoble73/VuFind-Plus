@@ -29,6 +29,5 @@ $(document).ready(function() {literal} { {/literal}
 	{if $user}
 	doGetSaveStatuses();
 	{/if}
-	doGetRatings();
 {literal} }); {/literal}
 </script>

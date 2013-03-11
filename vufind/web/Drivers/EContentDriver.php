@@ -564,6 +564,11 @@ class EContentDriver implements DriverInterface{
 				$overdue = $daysUntilDue < 0;
 				$waitList = $this->getWaitList($eContentRecord->id);
 				$links = $this->_getCheckedOutEContentLinks($eContentRecord, null, $eContentCheckout);
+				//Get Ratings
+				require_once 'sys/eContent/EContentRating.php';
+				$econtentRating = new EContentRating();
+				$econtentRating->recordId = $eContentRecord->id;
+				$ratingData = $econtentRating->getRatingData($user, false);
 				$return['transactions'][] = array(
 					'id' => $eContentRecord->id,
 					'recordId' => 'econtentRecord' . $eContentRecord->id,
@@ -575,6 +580,7 @@ class EContentDriver implements DriverInterface{
 					'daysUntilDue' => $daysUntilDue,
 					'holdQueueLength' => $waitList,
 					'links' => $links,
+					'ratingData' => $ratingData,
 				);
 			}
 		}

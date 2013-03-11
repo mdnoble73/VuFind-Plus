@@ -83,6 +83,5 @@
 <script type="text/javascript">
 $(document).ready(function() {literal} { {/literal}
 	doGetStatusSummaries();
-	doGetRatings();
 {literal} }); {/literal}
 </script>

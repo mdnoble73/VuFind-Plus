@@ -1395,6 +1395,7 @@ class MillenniumDriver implements DriverInterface
 	{
 		global $timer;
 		global $configArray;
+		global $user;
 		$id2= $patron['id'];
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
@@ -1429,6 +1430,7 @@ class MillenniumDriver implements DriverInterface
 						if ($hold['shortId'] == $resourceInfo->shortId){
 							$hold['recordId'] = $resourceInfo->record_id;
 							$hold['id'] = $resourceInfo->record_id;
+							$hold['shortId'] = $resourceInfo->shortId;
 							//Load title, author, and format information about the title
 							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
 							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';
@@ -1437,6 +1439,10 @@ class MillenniumDriver implements DriverInterface
 							$hold['isbn'] = isset($resourceInfo->isbn) ? $resourceInfo->isbn : '';
 							$hold['upc'] = isset($resourceInfo->upc) ? $resourceInfo->upc : '';
 							$hold['format_category'] = isset($resourceInfo->format_category) ? $resourceInfo->format_category : '';
+
+							//Load rating information
+							$hold['ratingData'] = $resourceInfo->getRatingData($user);
+
 							$holds[$section][$key] = $hold;
 						}
 					}

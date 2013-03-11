@@ -18,10 +18,11 @@
  *
  */
 
-require_once 'Record.php';
+require_once 'sys/eContent/EContentRecord.php';
+require_once 'RecordDrivers/EcontentRecordDriver.php';
 require_once 'sys/SolrStats.php';
 
-class Series extends Record
+class Series extends Action
 {
 	function launch()
 	{
@@ -56,11 +57,16 @@ class Series extends Record
 		}
 
 		//Build the actual view
-		$interface->setTemplate('view-series.tpl');
+		$interface->setTemplate('../Record/view-series.tpl');
+
+		$eContentRecord = new EContentRecord();
+		$this->id = strip_tags($_REQUEST['id']);
+		$eContentRecord->id = $this->id;
+		$eContentRecord->find(true);
 
 		require_once 'Enrichment.php';
 		$enrichment = new Enrichment(true);
-		$enrichmentData = $enrichment->loadEnrichment($this->isbn);
+		$enrichmentData = $enrichment->loadEnrichment($eContentRecord->getIsbn());
 		$seriesTitles = $enrichmentData['novelist']['series'];
 		//Loading the series title is not reliable.  Do not try to load it.
 		$seriesTitle;

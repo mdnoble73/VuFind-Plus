@@ -26,6 +26,5 @@
 </div>
 <script type="text/javascript">
 $('#list{$list->id}').jcarousel();
-doGetRatings();
 </script>
 ]]></ListTitles>

@@ -91,6 +91,14 @@ class CheckedOut extends MyResearch{
 
 					$transList = array();
 					foreach ($result['transactions'] as $i => $data) {
+						//Get Rating
+						$resource = new Resource();
+						$resource->source = 'VuFind';
+						$resource->record_id = $data['id'];
+						$resource->find(true);
+						$data['ratingData'] = $resource->getRatingData($user);
+						$result['transactions'][$i] = $data;
+
 						$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
 						$itemId = isset($data['itemid']) ? $data['itemid'] : null;
 						if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){

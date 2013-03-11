@@ -154,37 +154,13 @@ function redrawSaveStatus() {literal}{{/literal}
 						</div>
 					</div>
 				{/if}
+				
+				{* Let the user rate this title *}
+				{include file="Record/title-rating.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData}
+			
 				<div class='requestThisLink' style='display:none'>
 					<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="holdRequest  button" style="display:inline-block;font-size:11pt;margin-top:15px;">{translate text="Request This"}</a><br />
 				</div>
-				
-				{if $showRatings == 1}
-					<div id="ratingSummary">
-						<span class="ratingHead">Patron Rating</span><br /><br />
-						<div id="rate{$noDot}" class="stat">
-							<div class="statVal">
-								<span class="ui-rater">
-									<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
-									<span class="ui-rater-rating">{$ratingData.average|string_format:"%.2f"}</span>&#160;(<span class="ui-rater-rateCount">{$ratingData.count}</span>)
-								</span>
-							</div>
-							<script type="text/javascript">
-							$(
-								function() {literal} { {/literal}
-										$('#rate{$noDot}').rater({literal}{ {/literal} rating:'{$ratingData.average}', postHref: '{$path}/Record/{$id}/AJAX?method=RateTitle'{literal} } {/literal});
-								{literal} } {/literal}
-							);
-							</script>
-						</div>
-						{*
-						<span class="smallText">Average Patron Rating</span><br />
-						{$ratingData.count} ratings<br />
-						<img src="{$path}/{$ratingData.summaryGraph}" alt='Ratings Summary'> 
-						*}
-						<br />
-						<br />
-					</div>
-				{/if}{* Ratings *}
 			</div>
 			<div id='fullRecordTitleDetails'>	
 				{* Display Title *}

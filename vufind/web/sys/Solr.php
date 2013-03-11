@@ -1162,9 +1162,11 @@ class Solr implements IndexEngine {
 
 			if (isset($facet['field'])){
 				$options['facet.field'] = $facet['field'];
-				foreach($options['facet.field'] as $key => $facetName){
-					if (strpos($facetName, 'available_') === 0){
-						$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
+				if ($options['facet.field'] && is_array($options['facet.field'])){
+					foreach($options['facet.field'] as $key => $facetName){
+						if (strpos($facetName, 'available_') === 0){
+							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
+						}
 					}
 				}
 			}else{

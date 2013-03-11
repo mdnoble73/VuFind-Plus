@@ -132,6 +132,7 @@ class Novelist{
 	}
 
 	function loadNoveListTitle($originalIsbn, $item, &$titleList, &$titlesOwned, $seriesName = ''){
+		global $user;
 		$isbnList = array();
 		foreach($item->TitleList->TitleItem as $titleItem){
 			$tmpIsbn = (string)$titleItem->attributes()->value;
@@ -174,25 +175,45 @@ class Novelist{
 					$series = $ownedRecord['series'][0];
 				}
 			}
+			//Load rating data
+			if ($ownedRecord['recordtype'] == 'marc'){
+				$resource = new Resource();
+				$resource->source = 'VuFind';
+				$resource->record_id = $ownedRecord['id'];
+				$resource->find(true);
+				$ratingData = $resource->getRatingData($user);
+				$fullRecordLink = '/Record/' . $ownedRecord['id'] . '/Home';
+			}else{
+				require_once 'sys/eContent/EContentRating.php';
+				$shortId = str_replace('econtentRecord', '', $ownedRecord['id']);
+				$econtentRating = new EContentRating();
+				$econtentRating->recordId = $shortId;
+				$ratingData = $econtentRating->getRatingData($user, false);
+				$fullRecordLink = '/EcontentRecord/' . $shortId . '/Home';
+			}
+
+
 			//See if we can get the series title from the record
 			$titleList[] = array(
-                'title' => $ownedRecord['title'],
-                'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
-                'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
-                'publicationDate' => (string)$item->PublicationDate,
-                'isbn' => $isbn13,
-                'isbn10' => $isbn10,
-                'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
-                'recordId' => $ownedRecord['id'],
-                'recordtype' => $ownedRecord['recordtype'],
-                'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
-                'libraryOwned' => true,
-                'isCurrent' => $isCurrent,
-                'shortId' => substr($ownedRecord['id'], 1),
-                'format_category' => $ownedRecord['format_category'],
-                'format' => $ownedRecord['format'],
-                'series' => $series,
-			          'volume' => $volume,
+				'title' => $ownedRecord['title'],
+				'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
+				'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
+				'publicationDate' => (string)$item->PublicationDate,
+				'isbn' => $isbn13,
+				'isbn10' => $isbn10,
+				'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
+				'recordId' => $ownedRecord['id'],
+				'recordtype' => $ownedRecord['recordtype'],
+				'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
+				'libraryOwned' => true,
+				'isCurrent' => $isCurrent,
+				'shortId' => substr($ownedRecord['id'], 1),
+				'format_category' => $ownedRecord['format_category'],
+				'format' => $ownedRecord['format'],
+				'series' => $series,
+				'volume' => $volume,
+				'ratingData' => $ratingData,
+				'fullRecordLink' => $fullRecordLink,
 			);
 			$titlesOwned++;
 		}else{
