@@ -119,6 +119,12 @@ class Download extends Action {
 						header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
 						readfile($bookFile);
 						exit();
+					}else if (strcasecmp($epubFile->item_type, 'text') == 0){
+						header("Content-Type: text/plain;\n");
+						header('Content-Length: ' . filesize($bookFile));
+						//header('Content-Disposition: attachment; filename="' . basename($bookFile) . '"');
+						readfile($bookFile);
+						exit();
 					}else if (strcasecmp($epubFile->item_type, 'mp3') == 0){
 						$id = $_REQUEST['id'];
 						$interface->assign('id', $id);

@@ -1154,6 +1154,12 @@ class EContentDriver implements DriverInterface{
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
 							'text' => 'Access&nbsp;eBook',
 			);
+		}elseif (strcasecmp($eContentItem->item_type, 'text') == 0){
+			//Read online (will launch PDF viewer)
+			$links[] = array(
+							'url' => $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Download?item={$eContentItem->id}",
+							'text' => 'Open&nbsp;Plain&nbsp;Text',
+			);
 		}else{
 			$links[] = array(
 							'url' =>  $configArray['Site']['path'] . "/EcontentRecord/{$eContentItem->recordId}/Link?itemId={$eContentItem->id}",
