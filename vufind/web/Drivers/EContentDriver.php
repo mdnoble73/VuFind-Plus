@@ -312,6 +312,8 @@ class EContentDriver implements DriverInterface{
 		$statusSummary['isOverDrive'] = false;
 		$statusSummary['alwaysAvailable'] = false;
 		$statusSummary['class'] = 'checkedOut';
+		$statusSummary['available'] = false;
+		$statusSummary['status'] = 'Not Available';
 
 		if ($eContentRecord->accessType == 'external' ){
 			$statusSummary['availableCopies'] = $availableCopies;
