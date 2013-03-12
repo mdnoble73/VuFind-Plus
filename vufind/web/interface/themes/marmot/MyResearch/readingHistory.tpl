@@ -165,7 +165,7 @@
 											{if $showRatings == 1}
 												<td class="myAccountCell">
 													{if $record.recordId != -1}
-														{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$record.recordId shortId=$record.shortId}
+														{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$record.recordId shortId=$record.shortId ratingData=$record.ratingData}
 													{/if}
 												</td>
 											{/if} 
