@@ -30,9 +30,9 @@
 				
 				var tableOfContents = new Array();
 				{foreach from=$contents item=tocEntry}
-					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = "{$tocEntry->title}";
+					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = '{$tocEntry->title|replace:"'":"\'"}';
 					{foreach from=$tocEntry->children item=tocEntry2}
-						tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = "{$tocEntry2->title}";
+						tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = '{$tocEntry2->title|replace:"'":"\'"}';
 					{/foreach}
 				{/foreach}
 				{literal}
