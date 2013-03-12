@@ -718,7 +718,7 @@ class Location extends DB_DataObject
 			$defaultFacets[] = $facet;
 		}
 
-		if (true || $configArray['Index']['enableDetailedAvailability']){
+		if ($configArray['Index']['enableDetailedAvailability']){
 			$facet = new LocationFacetSetting();
 			$facet->setupSideFacet('available_at', 'Available Now At', false);
 			$facet->libraryId = $libraryId;
