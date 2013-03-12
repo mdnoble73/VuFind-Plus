@@ -1411,7 +1411,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		addFieldToDoc(doc, "collection", "Western Colorado Catalog");
 		int numHoldings = 0;
 		Set<String> availableAt = new LinkedHashSet<String>();
-		availableAt.add("Entire Collection");
+		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
+		availabilityToggleGlobal.add("Entire Collection");
 		for (Long systemId : recordInfo.getAvailabilityInfo().keySet()){
 			OverDriveAvailabilityInfo curAvailability = recordInfo.getAvailabilityInfo().get(systemId);
 			numHoldings += curAvailability.getCopiesOwned();
@@ -1421,9 +1422,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
 					addFieldToDoc(doc, "institution", libraryFacet + " Online");
 					addFieldToDoc(doc, "building", libraryFacet + " Online");
+					if (curAvailability.isAvailable()){
+						availableAt.add(libraryFacet + " Online");
+					}
 				}
 				if (curAvailability.isAvailable()){
-					availableAt.add("Available Now");
+					availabilityToggleGlobal.add("Available Now");
+					availableAt.add("Digital Collection");
 				}
 				
 			}else{
@@ -1431,11 +1436,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				addFieldToDoc(doc, "institution", libraryName + " Online");
 				addFieldToDoc(doc, "building", libraryName + " Online");
 				if (curAvailability.isAvailable()){
-					availableAt.add("Available Now");
+					availabilityToggleGlobal.add("Available Now");
+					availableAt.add(libraryName + " Online");
 				}
 			}
 		}
 		addFieldToDoc(doc, "available_at", availableAt);
+		addFieldToDoc(doc, "availability_toggle", availabilityToggleGlobal);
 		//Process availability for libraries
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		for (Long libraryId : marcProcessor.getLibraryIds()){
@@ -1463,7 +1470,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		//Add library specific availability
 		for (String code : availableAtBySystemOrLocation.keySet()){
-			addFieldToDoc(doc, "available_" + code, availableAtBySystemOrLocation.get(code));
+			addFieldToDoc(doc, "availability_toggle_" + code, availableAtBySystemOrLocation.get(code));
 		}
 		addFieldToDoc(doc, "collection_group", "Electronic Access");
 		if (recordInfo.getLanguages().size() == 0){

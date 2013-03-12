@@ -79,15 +79,15 @@
 										<th align="right">{translate text=$label}: </th>
 										<td>
 											{if $facetInfo.facetName == "publishDate"}
-												<label for="yearfrom" class='yearboxlabel'>From:</label>
-												<input type="text" size="4" maxlength="4" class="yearbox" name="yearfrom" id="yearfrom" value="" />
-												<label for="yearto" class='yearboxlabel'>To:</label>
-												<input type="text" size="4" maxlength="4" class="yearbox" name="yearto" id="yearto" value="" />
+												<label for="publishDateyearfrom" class='yearboxlabel'>From:</label>
+												<input type="text" size="4" maxlength="4" class="yearbox" name="publishDateyearfrom" id="publishDateyearfrom" value="" />
+												<label for="publishDateyearto" class='yearboxlabel'>To:</label>
+												<input type="text" size="4" maxlength="4" class="yearbox" name="publishDateyearto" id="publishDateyearto" value="" />
 												
 												<div id='yearDefaultLinks'>
-												<a onclick="$('#yearfrom').val('2005');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
-												&bull;<a onclick="$('#yearfrom').val('2000');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-												&bull;<a onclick="$('#yearfrom').val('1995');$('#yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
+												<a onclick="$('#publishDateyearfrom').val('2005');$('#publishDateyearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
+												&bull;<a onclick="$('#publishDateyearfrom').val('2000');$('#publishDateyearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
+												&bull;<a onclick="$('#publishDateyearfrom').val('1995');$('#publishDateyearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
 												</div>
 											{elseif $facetInfo.facetName == "lexile_score"}
 												<div id="lexile-range"></div>

@@ -710,16 +710,21 @@ class Location extends DB_DataObject
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
-		$facet = new LocationFacetSetting();
 		if ($configArray['Index']['enableDetailedAvailability']){
-			$facet->setupTopFacet('available_at', 'Available Now At', false);
-		}else{
-			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet = new LocationFacetSetting();
+			$facet->setupTopFacet('availability_toggle', 'Available?', false);
+			$facet->libraryId = $libraryId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
 		}
 
-		$facet->libraryId = $libraryId;
-		$facet->weight = count($defaultFacets) + 1;
-		$defaultFacets[] = $facet;
+		if (true || $configArray['Index']['enableDetailedAvailability']){
+			$facet = new LocationFacetSetting();
+			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet->libraryId = $libraryId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
+		}
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('format', 'Format', false);

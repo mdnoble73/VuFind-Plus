@@ -350,20 +350,20 @@ class SearchObject_Solr extends SearchObject_Base
 					$facetName = 'itype_' . $searchLibrary->subdomain;
 				}elseif ($facet->facetName == 'detailed_location'){
 					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-				}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-					$facetName = 'available_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 				}
 			}
 			if (isset($userLocation)){
-				if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-					$facetName = 'available_' . $userLocation->code;
+				if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'availability_toggle_' . $userLocation->code;
 				}
 			}
 			if (isset($searchLocation)){
 				if ($facet->facetName == 'time_since_added'){
 					$facetName = 'local_time_since_added_' . $searchLocation->code;
-				}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-					$facetName = 'available_' . $searchLocation->code;
+				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'availability_toggle_' . $searchLocation->code;
 				}
 			}
 			if ($facet->showInAdvancedSearch){
@@ -1436,11 +1436,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$relatedHomeLocationFacets = null;
 		if (!is_null($currentLibrary)){
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
-		}else{
-			$homeLibrary = $librarySingleton->getPatronHomeLibrary();
-			if (!is_null($homeLibrary)){
-				$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
-			}
+		}
+		$homeLibrary = $librarySingleton->getPatronHomeLibrary();
+		if (!is_null($homeLibrary)){
+			$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
 		}
 
 
@@ -1577,8 +1576,10 @@ class SearchObject_Solr extends SearchObject_Base
 			//Only show one system unless we are in the global scope
 			if ($field == 'institution' && isset($currentLibrary)){
 				$list[$field]['valuesToShow'] = $numValidLibraries;
-			}else if (($field == 'building' || $field == 'available_at') && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
+			}else if ($field == 'building' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
 				$list[$field]['valuesToShow'] = $numValidRelatedLocations;
+			}else if ($field == 'available_at'){
+				$list[$field]['valuesToShow'] = count($list[$field]['list']);
 			}else{
 				$list[$field]['valuesToShow'] = 5;
 			}

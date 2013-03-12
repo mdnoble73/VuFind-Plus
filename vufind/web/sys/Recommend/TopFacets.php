@@ -76,18 +76,18 @@ class TopFacets implements RecommendationInterface
 				if ($facet->showAboveResults == 1){
 					$facetName = $facet->facetName;
 					if (isset($searchLibrary)){
-						if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'available_' . $searchLibrary->subdomain;
+						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+							$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 						}
 					}
 					if (isset($userLocation)){
-						if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'available_' . $userLocation->code;
+						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+							$facetName = 'availability_toggle_' . $userLocation->code;
 						}
 					}
 					if (isset($searchLocation)){
-						if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'available_' . $searchLocation->code;
+						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+							$facetName = 'availability_toggle_' . $searchLocation->code;
 						}
 					}
 					$this->facets[$facetName] = $facet->displayName;

@@ -171,7 +171,8 @@ public class MarcRecordDetails {
 		HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem = new HashMap<String, LinkedHashSet<String>>();
 		HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation = new HashMap<String, LinkedHashSet<String>>();
 		Set<String> availableAt = new LinkedHashSet<String>();
-		availableAt.add("Entire Collection");
+		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
+		availabilityToggleGlobal.add("Entire Collection");
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
@@ -333,7 +334,7 @@ public class MarcRecordDetails {
 				// Add availability
 				if (!itemSuppressed && !manuallySuppressed) {
 					if (available) {
-						availableAt.add("Available Now");
+						availabilityToggleGlobal.add("Available Now");
 					}
 					// logger.debug("item is available at " + locationCode);
 					// Loop through all libraries
@@ -366,6 +367,7 @@ public class MarcRecordDetails {
 						if (available) {
 							if (locationIndexingInfo != null && locationIndexingInfo.getCode().equalsIgnoreCase(curCode)) {
 								locationAvailability.add("Available Now");
+								availableAt.add(locationIndexingInfo.getFacetLabel());
 							}
 						}
 						if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()) {
@@ -446,6 +448,7 @@ public class MarcRecordDetails {
 		}
 		addFields(mappedFields, "detailed_location", "detailed_location_map", locationCodes);
 		addFields(mappedFields, "available_at", null, availableAt);
+		addFields(mappedFields, "availability_toggle", null, availabilityToggleGlobal);
 		for (String subdomain : locationsCodesBySystem.keySet()) {
 			LinkedHashSet<String> values = locationsCodesBySystem.get(subdomain);
 			addFields(mappedFields, "detailed_location_" + subdomain, "detailed_location_map", values);
@@ -469,7 +472,7 @@ public class MarcRecordDetails {
 			}
 		}
 		for (String code : availableAtBySystemOrLocation.keySet()) {
-			addFields(mappedFields, "available_" + code, null, availableAtBySystemOrLocation.get(code));
+			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
@@ -3942,6 +3945,7 @@ public class MarcRecordDetails {
 			Object value = allFields.get(fieldName);
 			doc.addField(fieldName, value);
 		}
+		logger.debug(doc.toString());
 		return doc;
 	}
 
@@ -3960,7 +3964,8 @@ public class MarcRecordDetails {
 		int numItems = 0;
 		Set<String> availableAt = new HashSet<String>();
 		HashMap<String, HashSet<String>> availableAtBySystemOrLocation = new HashMap<String, HashSet<String>>();
-		availableAt.add("Entire Collection");
+		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
+		availabilityToggleGlobal.add("Entire Collection");
 		Set<String> buildings = new HashSet<String>();
 
 		// Generate information based on items.
@@ -3976,7 +3981,7 @@ public class MarcRecordDetails {
 			}
 			// TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L) {
-				availableAt.add("Available Now");
+				availabilityToggleGlobal.add("Available Now");
 				// Loop through all libraries and mark this title as available
 				for (Long curLibraryId : marcProcessor.getLibraryIds()) {
 					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
@@ -3989,13 +3994,17 @@ public class MarcRecordDetails {
 					// the same availability to all locations
 					for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
 						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+						availableAt.add(curLocationInfo.getFacetLabel());
 					}
 				}
 
 				buildings.add("Digital Collection");
 				buildings = addSharedAvailability(source, buildings);
+				availableAt.add("Digital Collection");
+				availableAt = addSharedAvailability(source, availableAt);
+				availabilityToggleGlobal.add("Available Now");
 			} else {
-				availableAt.add("Available Now");
+				availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
 				LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
@@ -4021,16 +4030,18 @@ public class MarcRecordDetails {
 				// which need to be cleared so we can use availability.
 				buildings.clear();
 				availableAtBySystemOrLocation.clear();
-				availableAt.clear();
-				availableAt.add("Entire Collection");
+				availabilityToggleGlobal.clear();
+				availabilityToggleGlobal.add("Entire Collection");
 				hasAvailabilityInfo = true;
 			}
 			int copiesOwned = availabilityInfo.getInt("copiesOwned");
 			int availableCopies = availabilityInfo.getInt("availableCopies");
 			long libraryId = availabilityInfo.getLong("libraryId");
 			if (availableCopies > 0) {
-				availableAt.add("Available Now");
+				availabilityToggleGlobal.add("Available Now");
 				if (libraryId == -1L) {
+					availableAt.add("Digital Collection");
+					availableAt = addSharedAvailability(source, availableAt);
 					buildings.add("Digital Collection");
 					buildings = addSharedAvailability(source, buildings);
 					for (Long curLibraryId : marcProcessor.getLibraryIds()) {
@@ -4051,6 +4062,7 @@ public class MarcRecordDetails {
 					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
 					libraryAvailability.add("Entire Collection");
 					libraryAvailability.add("Available Now");
+					availableAt.add(libraryIndexingInfo.getFacetLabel() + " Online");
 					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
 					// Since we don't have availability by location for online titles, add
 					// the same availability to all locations
@@ -4102,9 +4114,11 @@ public class MarcRecordDetails {
 		// Add availability
 		mappedFields.remove("available_at");
 		addFields(mappedFields, "available_at", null, availableAt);
+		mappedFields.remove("availability_toggle");
+		addFields(mappedFields, "availability_toggle", null, availabilityToggleGlobal);
 		for (String code : availableAtBySystemOrLocation.keySet()) {
-			mappedFields.remove("available_" + code);
-			addFields(mappedFields, "available_" + code, null, availableAtBySystemOrLocation.get(code));
+			mappedFields.remove("availability_toggle_" + code);
+			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
 		}
 
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));

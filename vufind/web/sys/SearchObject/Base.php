@@ -292,9 +292,9 @@ abstract class SearchObject_Base
 		$oldFilterList = $this->filterList;
 		$oldPage       = $this->page;
 		// Availability facet can have only one item selected at a time
-		if (strpos($newFilter, 'available_') === 0){
+		if (strpos($newFilter, 'availability_toggle') === 0){
 			foreach ($this->filterList as $name => $value){
-				if (strpos($name, 'available_') === 0){
+				if (strpos($name, 'availability_toggle') === 0){
 					unset ($this->filterList[$name]);
 				}
 			}

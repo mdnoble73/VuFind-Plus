@@ -22,6 +22,7 @@ abstract class FacetSetting extends DB_DataObject {
 			"institution" => "Library System",
 			"building" => "Branch",
 			"available_at" => "Available At",
+			"availability_toggle" => "Available?",
 			"collection_group" => "Collection",
 			"collection_adams" => "Collection (ASU)",
 			"collection_msc" => "Collection (CMU)",

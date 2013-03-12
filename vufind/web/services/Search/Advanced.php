@@ -196,7 +196,7 @@ class Advanced extends Action {
 			$keys = array_keys($currentList);
 
 			//Add a value for not selected which will be the first item
-			if (strpos($facet, 'available') === false){
+			if (strpos($facet, 'availability_toggle') === false){
 				// Perform a natural case sort on the array of facet values:
 				natcasesort($keys);
 

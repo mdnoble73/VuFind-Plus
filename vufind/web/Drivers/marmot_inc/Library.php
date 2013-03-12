@@ -538,16 +538,23 @@ class Library extends DB_DataObject
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
-		$facet = new LibraryFacetSetting();
+
 		if ($configArray['Index']['enableDetailedAvailability']){
-			$facet->setupTopFacet('available_at', 'Available Now At', false);
-		}else{
-			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet = new LibraryFacetSetting();
+			$facet->setupTopFacet('availability_toggle', 'Available?', false);
+			$facet->libraryId = $libraryId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
 		}
 
-		$facet->libraryId = $libraryId;
-		$facet->weight = count($defaultFacets) + 1;
-		$defaultFacets[] = $facet;
+
+		if (true || $configArray['Index']['enableDetailedAvailability']){
+			$facet = new LibraryFacetSetting();
+			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet->libraryId = $libraryId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
+		}
 
 		$facet = new LibraryFacetSetting();
 		$facet->setupSideFacet('format', 'Format', false);

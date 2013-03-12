@@ -1164,7 +1164,7 @@ class Solr implements IndexEngine {
 				$options['facet.field'] = $facet['field'];
 				if ($options['facet.field'] && is_array($options['facet.field'])){
 					foreach($options['facet.field'] as $key => $facetName){
-						if (strpos($facetName, 'available_') === 0){
+						if (strpos($facetName, 'availability_toggle') === 0){
 							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
 						}
 					}
@@ -1183,7 +1183,7 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
-			$options['f.available_at.facet'] = 'true';
+			$options['f.available_at.facet.missing'] = 'true';
 
 			foreach($facet as $param => $value) {
 				$options[$param] = $value;
@@ -1193,7 +1193,7 @@ class Solr implements IndexEngine {
 
 		//Check to see if there are filters we want to show all values for
 		foreach ($filter as $key => $value){
-			if (strpos($value, 'available') === 0){
+			if (strpos($value, 'availability_toggle') === 0){
 				$filter[$key] = '{!tag=avail}' . $value;
 			}
 		}

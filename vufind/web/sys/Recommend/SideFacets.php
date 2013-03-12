@@ -79,20 +79,20 @@ class SideFacets implements RecommendationInterface
 						$facetName = 'itype_' . $searchLibrary->subdomain;
 					}elseif ($facet->facetName == 'detailed_location'){
 						$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-					}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-						$facetName = 'available_' . $searchLibrary->subdomain;
+					}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+						$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 					}
 				}
 				if (isset($userLocation)){
-					if ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-						$facetName = 'available_' . $userLocation->code;
+					if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+						$facetName = 'availability_toggle_' . $userLocation->code;
 					}
 				}
 				if (isset($searchLocation)){
 					if ($facet->facetName == 'time_since_added'){
 						$facetName = 'local_time_since_added_' . $searchLocation->code;
-					}elseif ($facet->facetName == 'available_at' && $configArray['Index']['enableDetailedAvailability']){
-						$facetName = 'available_' . $searchLocation->code;
+					}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+						$facetName = 'availability_toggle_' . $searchLocation->code;
 					}
 				}
 
@@ -101,6 +101,8 @@ class SideFacets implements RecommendationInterface
 					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
 						$this->facetSettings[$facetName] = $facet;
 						$this->mainFacets[$facetName] = $facet->displayName;
+					}elseif ($facet->showInAdvancedSearch == 1 && $facet->showAboveResults == 0){
+						$this->facetSettings[$facetName] = $facet->displayName;
 					}
 				}elseif ($mainSection == 'Author'){
 					if ($facet->showInAuthorResults == 1 && $facet->showAboveResults == 0){
@@ -108,7 +110,6 @@ class SideFacets implements RecommendationInterface
 						$this->mainFacets[$facetName] = $facet->displayName;
 					}
 				}
-
 			}
 		}
 
@@ -188,6 +189,51 @@ class SideFacets implements RecommendationInterface
 				}elseif ($facetKey == 'rating_facet'){
 					$userRatingFacet = $this->updateUserRatingsFacet($facet);
 					$sideFacets[$facetKey] = $userRatingFacet;
+				}elseif ($facetKey == 'available_at'){
+					//Mangle the availability facets
+					$oldFacetValues = $sideFacets['available_at']['list'];
+					ksort($oldFacetValues);
+
+					global $locationSingleton;
+					global $user;
+					global $library;
+					$filters = $this->searchObject->getFilterList();
+					//print_r($filters);
+					$appliedAvailability = array();
+					foreach ($filters as $appliedFilters){
+						foreach ($appliedFilters as $filter){
+							if ($filter['field'] == 'available_at'){
+								$appliedAvailability[$filter['value']] = $filter['removalUrl'];
+							}
+						}
+					}
+
+					$availableAtFacets = array();
+					foreach ($oldFacetValues as $facetKey => $facetInfo){
+						if (strlen($facetKey) > 1){
+							$sortIndicator = substr($facetKey, 0, 1);
+							if ($sortIndicator >= '1' && $sortIndicator <= '4'){
+								$availableAtFacets[$facetKey] = $facetInfo;
+							}
+						}
+					}
+
+					$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
+					//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
+					if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
+						$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
+						//print_r ("anyLocationLabel = $anyLocationLabel");
+						$availableAtFacets['*'] = array(
+							'value' => '*',
+							'display' => $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel,
+							'count' => $this->searchObject->getResultTotal() - (isset($oldFacetValues['']['count']) ? $oldFacetValues['']['count'] : 0),
+							'url' => $this->searchObject->renderLinkWithFilter('available_at:*'),
+							'isApplied' => array_key_exists('*', $appliedAvailability),
+							'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
+						);
+					}
+
+					$sideFacets['available_at']['list'] = $availableAtFacets;
 				}else{
 					//Do other handling of the display
 					if ($facetSetting->sortMode == 'alphabetically'){
