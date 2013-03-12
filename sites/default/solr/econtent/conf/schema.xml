@@ -143,7 +143,7 @@
 		<field name="building" type="string" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
 		<field name="collection_group" type="string" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
 		<field name="available_at" type="string" indexed="true" stored="false" multiValued="true"/>
-		<dynamicField name="available_*" type="textFacet" indexed="true" stored="false" multiValued="true"/>
+		<dynamicField name="availability_toggle*" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- A list of ptypes that can use this record -->
 		<field name="usable_by" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<field name="detailed_location" type="textFacet" indexed="true" stored="false" multiValued="true"/>
