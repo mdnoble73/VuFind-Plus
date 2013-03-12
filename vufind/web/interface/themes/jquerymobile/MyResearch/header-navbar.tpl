@@ -5,6 +5,7 @@
 			<li><a rel="external" {if $pageTemplate=="checkedout.tpl" || $pageTemplate=="eContentCheckedOut.tpl" || $pageTemplate=="overDriveCheckedOut.tpl" || $pageTemplate=="overDriveCheckedOut2.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/CheckedOut">{translate text='Checked Out'}</a></li>
 			<li><a rel="external" {if $pageTemplate=="availableHolds.tpl" || $pageTemplate=="eContentAvailableHolds.tpl" || $pageTemplate=="overDriveAvailableHolds.tpl" || $pageTemplate=="overDriveAvailableHolds2.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/Holds?section=available">{translate text='Ready For Pickup'}</a></li>
 			<li><a rel="external" {if $pageTemplate=="unavailableHolds.tpl" || $pageTemplate=="eContentUnavailableHolds.tpl" || $pageTemplate=="overDriveUnavailableHolds.tpl" || $pageTemplate=="overDriveUnavailableHolds2.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/Holds?section=unavailable">{translate text='On Hold'}</a></li>
+			<li><a rel="external" {if $pageTemplate=="readingHistory.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/ReadingHistory">{translate text='Reading History'}</a></li>
 			<li><a rel="external" {if $pageTemplate=="fines.tpl"} class="ui-btn-active"{/if} href="{$path}/MyResearch/Fines">{translate text='Fines'}</a></li>
 		</ul>
 	</div> 

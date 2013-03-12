@@ -3,7 +3,7 @@
 	alert("{$title}");
 </script>
 {/if}
-<div data-role="page" id="MyResearch-checkedout-overdrive">
+<div data-role="page" id="MyResearch-available-hold-overdrive">
 	{include file="header.tpl"}
 
 	<div data-role="content">
