@@ -1,94 +1,42 @@
-<div id="record{$resource->record_id|regex_replace:"/\./":""|escape}" class="resultsList">
-	<div class="selectTitle">
-		<input type="checkbox" name="selected[{$resource->record_id|escape:"url"}]" id="selected{$resource->record_id|regex_replace:"/\./":""|escape:"url"}" />&nbsp;
-	</div>
-				
-	<div class="imageColumn"> 
-		 {if $user->disableCoverArt != 1}
-		 <a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" id="descriptionTrigger{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
-			<img src="{$path}/bookcover.php?id={$resource->record_id}&amp;isn={$resource->isbn|@formatISBN}&amp;size=small&amp;upc={$resource->upc}&amp;category={$resource->format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
-			</a>
-			<div id='descriptionPlaceholder{$resource->record_id|regex_replace:"/\./":""|escape}' style='display:none'></div>
-		 {/if}
-			
-			{* Place hold link *}
-			<div class='requestThisLink' id="placeHold{$resource->record_id|escape:"url"}" style="display:none">
-				<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold"><img src="{img filename="place_hold.png"}" alt="Place Hold"/></a>
-			</div>
-	</div>
-
-	<div class="resultDetails">
-		<div class="resultItemLine1">
-		<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
-		{if $listTitleStatement}
-			<div class="searchResultSectionInfo">
-				{$listTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
-			</div>
-			{/if}
-		</div>
+<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" rel="external">
+	<div class="result">
+		<h3>
+			{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}
+		</h3>
 	
-		<div class="resultItemLine2">
-			{if $resource->author}
-				{translate text='by'}
-				<a href="{$path}/Author/Home?author={$resource->author|escape:"url"}">{$resource->author|highlight:$lookfor}</a>
-			{/if}
-	 
-			{if $listDate}{translate text='Published'} {$listDate.0|escape}{/if}
-		</div>
-	
-		{if is_array($listFormats)}
-			{foreach from=$listFormats item=format}
-				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
-			{/foreach}
-		{else}
-			<span class="iconlabel {$listFormats|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$listFormats}</span>
+		{if $resource->author}
+			<p>{translate text='by'} {$resource->author|highlight:$lookfor}</p>
 		{/if}
-		{if $listTags}
-					{translate text='Your Tags'}:
-					{foreach from=$listTags item=tag name=tagLoop}
-						<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a>{if !$smarty.foreach.tagLoop.last},{/if}
-					{/foreach}
-					<br />
-				{/if}
-				{if $listNotes}
-					{translate text='Notes'}: 
-					{foreach from=$listNotes item=note}
-						{$note|escape:"html"}<br />
-					{/foreach}
-				{/if}
+	 
+		{if $listDate}<p><strong>{translate text='Published'}: </strong>{$listDate.0|escape}{/if}</p>
 		
-		<div id = "{if $resource->source=='VuFind'}holdingsSummary{else}holdingsEContentSummary{/if}{$resource->record_id|regex_replace:"/\./":""|escape:"url"}" class="holdingsSummary">
-			<div class="statusSummary" id="statusSummary{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
-				<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
-			</div>
-		</div>
+		{if $resource->format}
+			<p><strong>Format:</strong>
+			{if is_array($resource->format)}
+				
+				{foreach from=$resource->format item=format}
+					{translate text=$format}
+				{/foreach}
+			{else}
+				{translate text=$resource->format}
+			{/if}
+			</p>
+		{/if}
+		
+		{if $resource->tags}
+			<p><strong>{translate text='Your Tags'}:</strong>
+			{foreach from=$resource->tags item=tag name=tagLoop}
+				{$tag->tag|escape:"html"}{if !$smarty.foreach.tagLoop.last},{/if}
+			{/foreach}
+			</p>
+		{/if}
+		{if $resource->notes}
+			<p><strong>
+			{translate text='Notes'}: </strong>
+			{foreach from=$resource->notes item=note}
+				{$note|escape:"html"}<br />
+			{/foreach}
+			</p>
+		{/if}
 	</div>
-
-	<div id ="searchStars{$resource->shortId|regex_replace:"/\./":""|escape}" class="resultActions">
-		<div class="rate{$resource->record_id|regex_replace:"/\./":""|escape} stat">
-			<div id="saveLink{$resource->record_id|regex_replace:"/\./":""|escape}">
-				{if $allowEdit}
-						<a href="{$path}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}">{translate text='Edit'}</a>
-						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
-						<a
-						{if is_null($listSelected)}
-							href="{$path}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
-						{else}
-							href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&src={$resource->source}"
-						{/if}
-						onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
-				{/if}
-			</div>
-			{assign var=id value=$resource->record_id}
-			{assign var=shortId value=$resource->shortId}
-			{include file="Record/title-review.tpl"}
-		</div>
-	</div>
-	<script type="text/javascript">
-		$(document).ready(function(){literal} { {/literal}
-			addIdToStatusList('{$resource->record_id|escape:"javascript"}', '{$resource->source}');
-			resultDescription('{$resource->record_id}','{$resource->record_id|regex_replace:"/\./":""}', '{$resource->source}');
-		{literal} }); {/literal}
-	</script>
-</div>
-
+</a>
