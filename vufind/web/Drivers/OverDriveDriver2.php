@@ -620,32 +620,37 @@ class OverDriveDriver2 {
 		global $memcache;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-		$closeSession = true;
-
-		//Switch back to get method
-		curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
-
-		//Open the record page
-		$contentInfoPage = $overDriveInfo['contentInfoPage'] . "?ID=" . $overDriveId;
-		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $contentInfoPage);
-		$recordPage = curl_exec($overDriveInfo['ch']);
-		$recordPageInfo = curl_getinfo($overDriveInfo['ch']);
-
-		//Do one click checkout
-		$checkoutUrl = $overDriveInfo['checkoutUrl'] . '&ReserveID=' . $overDriveId;
-		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $checkoutUrl);
-		$checkoutPage = curl_exec($overDriveInfo['ch']);
-
 		$result = array();
-		if (preg_match('/Your title has been checked out/si', $checkoutPage)){
-			$result['result'] = true;
-			$result['message'] = "Your title was checked out successfully. You may now download the title from your Account.";
-			$memcache->delete('overdrive_summary_' . $user->id);
-		}else{
-			$logger->log("OverDrive checkout failed", PEAR_LOG_ERR);
-			$logger->log($checkoutPage, PEAR_LOG_INFO);
+			if (!$overDriveInfo['result']){
 			$result['result'] = false;
-			$result['message'] = 'Sorry, we could not checkout this title to you.  Please try again later';
+			$result['message'] = $overDriveInfo['message'];
+		}else{
+			$closeSession = true;
+
+			//Switch back to get method
+			curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
+
+			//Open the record page
+			$contentInfoPage = $overDriveInfo['contentInfoPage'] . "?ID=" . $overDriveId;
+			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $contentInfoPage);
+			$recordPage = curl_exec($overDriveInfo['ch']);
+			$recordPageInfo = curl_getinfo($overDriveInfo['ch']);
+
+			//Do one click checkout
+			$checkoutUrl = $overDriveInfo['checkoutUrl'] . '&ReserveID=' . $overDriveId;
+			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $checkoutUrl);
+			$checkoutPage = curl_exec($overDriveInfo['ch']);
+
+			if (preg_match('/Your title has been checked out/si', $checkoutPage)){
+				$result['result'] = true;
+				$result['message'] = "Your title was checked out successfully. You may now download the title from your Account.";
+				$memcache->delete('overdrive_summary_' . $user->id);
+			}else{
+				$logger->log("OverDrive checkout failed", PEAR_LOG_ERR);
+				$logger->log($checkoutPage, PEAR_LOG_INFO);
+				$result['result'] = false;
+				$result['message'] = 'Sorry, we could not checkout this title to you.  Please try again later';
+			}
 		}
 		curl_close($ch);
 		return $result;
