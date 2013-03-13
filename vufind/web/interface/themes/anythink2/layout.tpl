@@ -199,7 +199,9 @@
                     {include file="$module/breadcrumbs.tpl"}
                   </div>
                 {/if}
-                <div id="messages">Due to technical difficulties, you may receive an error when attempting to download digital content from our catalog. If this occurs, please download your desired item directly from OverDrive <a href="http://anythinklibraries.lib.overdrive.com/71467B63-6F1B-4397-AB09-B478CFF9C47B/10/667/en/Default.htm">here</a>. We apologize for the inconvenience.</div>
+                <div id="messages">
+                  Digital content is unavailable for download via the catalog at this time.  To access e-books and audio books, please <a href="http://anythinklibraries.lib.overdrive.com/71467B63-6F1B-4397-AB09-B478CFF9C47B/10/667/en/Default.htm">click here</a>.
+                </div>
               {include file="$module/$pageTemplate"}
             </div></div>
           </div>

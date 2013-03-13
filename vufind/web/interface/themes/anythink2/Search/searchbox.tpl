@@ -24,7 +24,9 @@
       <ul class="inline"><li><a href="{$path}/Search/Advanced" class="small">{translate text="Advanced Search"}</a></li></ul>
       {if isset($shards)}
         {foreach from=$shards key=shard item=isSelected}
+          {if $shard != 'eContent'}
           <input type="checkbox" {if $isSelected}checked="checked" {/if}name="shard[]" value='{$shard|escape}' id="shard-{$shard|replace:' ':''|escape}" /> <label for="shard-{$shard|replace:' ':''|escape}">{$shard|translate}</label>
+          {/if}
         {/foreach}
       {/if}
       {if $filterList || $hasCheckboxFilters}

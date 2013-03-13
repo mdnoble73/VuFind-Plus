@@ -1867,3 +1867,8 @@ div.request-search {
 .request-header a {
   color: #4888C9;
 }
+
+#shards input,
+#shards label {
+  visibility: hidden;
+}
