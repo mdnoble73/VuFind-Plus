@@ -8,7 +8,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Fiction Books'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Non-Fiction Books'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format%3A"DVD"&amp;sort=title'>{translate text='New DVDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format_category%3A"Audio"&amp;filter[]=format%3A"CD"&amp;sort=title'>{translate text='New Audio Books &amp; CDs'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format_category%3A"Audio+Books"&amp;filter[]=format%3A"CD"&amp;sort=title'>{translate text='New Audio Books &amp; CDs'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
