@@ -1,7 +1,7 @@
 function checkoutOverDriveItem(overdriveId, formatId){
 	if (loggedIn){
 		if (formatId == undefined){
-			selectOverDriveFormat(overdriveId, 'checkout')
+			selectOverDriveFormat(overdriveId, 'checkout');
 		}else{
 			var ajaxUrl = path + "/EcontentRecord/AJAX?method=GetOverDriveLoanPeriod&overDriveId=" + overdriveId + "&formatId=" + formatId;
 			ajaxLightbox(ajaxUrl);
@@ -20,35 +20,42 @@ function selectOverDriveFormat(overdriveId, nextAction){
 }
 
 function checkoutOverDriveItemOneClick(overdriveId){
-	showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
-	var ajaxUrl = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId;
-	$.ajax({
-		url: ajaxUrl,
-		cache: false,
-		success: function(data){
-			hideLightbox();
-			if (data.result == true){
-				alert(data.message);
-				window.location.href = path + "/MyResearch/OverdriveCheckedOut";
-			}else{
-				if (data.noCopies == true){
-					ret = confirm(data.message)
-					if (ret == true){
-						placeOverDriveHold(overdriveId, formatId);
-					}
-				}else{
+	if (loggedIn){
+		showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
+		var ajaxUrl = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId;
+		$.ajax({
+			url: ajaxUrl,
+			cache: false,
+			success: function(data){
+				hideLightbox();
+				if (data.result == true){
 					alert(data.message);
+					window.location.href = path + "/MyResearch/OverdriveCheckedOut";
+				}else{
+					if (data.noCopies == true){
+						ret = confirm(data.message)
+						if (ret == true){
+							placeOverDriveHold(overdriveId, formatId);
+						}
+					}else{
+						alert(data.message);
+					}
 				}
+			},
+			dataType: 'json',
+			async: false,
+			error: function(jqXHR, textStatus, errorThrown){
+				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+				alert("ajaxUrl = " + ajaxUrl);
+				hideLightbox();
 			}
-		},
-		dataType: 'json',
-		async: false,
-		error: function(jqXHR, textStatus, errorThrown){
-			alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
-			alert("ajaxUrl = " + ajaxUrl);
-			hideLightbox();
-		}
-	});
+		});
+	}else{
+		ajaxLogin(function(){
+			checkoutOverDriveItemOneClick(overdriveId);
+		});
+	}
+	
 }
 function checkoutOverDriveItemStep2(overdriveId, formatId){
 	var lendingPeriod = $("#loanPeriod option:selected").val();
