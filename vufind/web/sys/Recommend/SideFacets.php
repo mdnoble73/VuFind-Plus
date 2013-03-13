@@ -164,7 +164,7 @@ class SideFacets implements RecommendationInterface
 		$filterList = $this->searchObject->getFilterList(true);
 		foreach ($filterList as $facetKey => $facet){
 			//Remove any top facets since the removal links are displayed above results
-			if (!isset($this->facetSettings[$facet[0]['field']])){
+			if (strpos($facet[0]['field'], 'availability_toggle') === 0){
 				unset($filterList[$facetKey]);
 			}
 		}
