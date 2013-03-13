@@ -65,7 +65,12 @@
 			
 		$(document).ready(function(){
 			{/literal}{if count($widget->lists) > 1 && (!isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs')}{literal}
-			$('#listWidget{/literal}{$widget->id}{literal}').tabs({ selected: 0 });
+			$('#listWidget{/literal}{$widget->id}{literal}').tabs({ 
+				selected: 0,
+				activate:function(event, ui) {
+					showList($('#listWidget{/literal}{$widget->id}{literal}').tabs("option", "active"));
+				}
+			});
 			{/literal}
 			{/if}
 			{assign var=index value=0}
@@ -80,11 +85,7 @@
 				{/if}
 			{/foreach}
 
-			{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
-			$('#listWidget{$widget->id}').bind('tabsshow', function(event, ui) {literal}{
-				showList(ui.index);
-			});
-			{/literal}{/if}{literal}
+			{literal}
 		});
 
 		$(window).bind('beforeunload', function(e) {
