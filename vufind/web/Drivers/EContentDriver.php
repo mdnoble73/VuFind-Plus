@@ -189,8 +189,13 @@ class EContentDriver implements DriverInterface{
 				foreach ($items as $key => $item){
 					$item->links = array();
 					if ($addCheckoutLink){
+						if ($configArray['OverDrive']['interfaceVersion'] == 1){
+							$checkoutLink = "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+						}else{
+							$checkoutLink = "return checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+						}
 						$item->links[] = array(
-								'onclick' => "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'onclick' => $checkoutLink,
 								'text' => 'Check Out',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,

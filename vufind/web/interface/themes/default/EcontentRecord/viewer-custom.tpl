@@ -373,8 +373,8 @@
 			<div id="textSize" onclick="toggleMagnification();" class="normal"><span class="controls_magnifier_a">A</span><span class="controls_magnifier_A">A</span></div>
 			<div id="toggleTOC" onclick="toggleToc();">Hide TOC</div>
 			<div id="epubToolbarBottomRight">
-				<div id="pagePrev" onclick="prevPage();">◄</div>
-				<div id="pageNext" onclick="nextPage();">►</div>
+				<div id="pagePrev" onclick="prevPage();">&#9668;</div>
+				<div id="pageNext" onclick="nextPage();">&#9658;</div>
 			</div>
 		</div>
 		{/if}
