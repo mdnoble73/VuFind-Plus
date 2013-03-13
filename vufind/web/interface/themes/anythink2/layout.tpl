@@ -200,7 +200,7 @@
                   </div>
                 {/if}
                 <div id="messages">
-                  Digital content is not available for download through our catalog at this time. Please search for and download your desired item <a href="http://anythinklibraries.lib.overdrive.com/71467B63-6F1B-4397-AB09-B478CFF9C47B/10/667/en/Default.htm">directly from OverDrive here</a>. We apologize for the inconvenience and are working to address the problem.
+                  Digital content is unavailable for download via the catalog at this time.  To access e-books and audio books, please <a href="http://anythinklibraries.lib.overdrive.com/71467B63-6F1B-4397-AB09-B478CFF9C47B/10/667/en/Default.htm">click here</a>.
                 </div>
               {include file="$module/$pageTemplate"}
             </div></div>

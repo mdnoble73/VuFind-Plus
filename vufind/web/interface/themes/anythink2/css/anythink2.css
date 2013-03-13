@@ -1871,3 +1871,8 @@ div.request-search {
 .lexile-wrapper {
   margin-bottom: 8px;
 }
+
+#shards input,
+#shards label {
+  visibility: hidden;
+}
