@@ -29,6 +29,7 @@ function checkoutOverDriveItemOneClick(overdriveId){
 			cache: false,
 			success: function(data){
 				hideLightbox();
+				hideProcessingIndicator();
 				if (data.result == true){
 					alert(data.message);
 					$.mobile.changePage( path + "/MyResearch/OverdriveCheckedOut");
