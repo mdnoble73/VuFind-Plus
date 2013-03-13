@@ -21,7 +21,7 @@
 		<div data-role="controlgroup">
 			<a data-role="button" rel="external" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&filter[]=format_category:"Books"&filter[]=publishDate:[2013+TO+*]"&filter[]=literary_form_full:"Fiction"&filter[]=target_audience_full:"Adult"'>New Fiction</a>
 			<a data-role="button" rel="external" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&filter[]=format_category:"Books"&filter[]=publishDate:[2013+TO+*]"&filter[]=literary_form_full:"Non+Fiction"&filter[]=target_audience_full:"Adult"'>New Non-Fiction</a>
-			<a data-role="button" rel="external" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&filter[]=format_category:"Movies"&filter[]=publishDate:[2013+TO+*]"&filter[]=target_audience_full:"Adult"'>New Adult Movies</a>
+			<a data-role="button" rel="external" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&filter[]=format_category:"Movies"&filter[]=publishDate:[2013+TO+*]"&filter[]=target_audience_full:"Adult"'>New Movies</a>
 			<a data-role="button" rel="external" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&filter[]=format_category:"eBook"&filter[]=publishDate:[2013+TO+*]"&filter[]=target_audience_full:"Adult"'>New eBooks</a>
 			<a data-role="button" rel="external" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&filter[]=format_category:"Audio+Books"&filter[]=publishDate:[2013+TO+*]"&filter[]=target_audience_full:"Adult"'>New Audio Books</a>
 		</div>
