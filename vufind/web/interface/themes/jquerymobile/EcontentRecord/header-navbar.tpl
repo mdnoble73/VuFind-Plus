@@ -22,6 +22,9 @@
 			</li>
 		{/if}
 		<li>
+			<a {if $tab == 'Series'} class="ui-btn-active"{/if} rel="external" href="{$path}/EcontentRecord/{$id|escape:"url"}/Series">{translate text='Series'}</a>
+		</li>
+		<li>
 			<a {if $tab == 'UserComments'} class="ui-btn-active"{/if} rel="external" href="{$path}/EcontentRecord/{$id|escape:"url"}/UserComments">{translate text='Comments'}</a>
 		</li>
 	</ul>

@@ -67,26 +67,31 @@ class Series extends Action
 		require_once 'Enrichment.php';
 		$enrichment = new Enrichment(true);
 		$enrichmentData = $enrichment->loadEnrichment($eContentRecord->getIsbn());
-		$seriesTitles = $enrichmentData['novelist']['series'];
-		//Loading the series title is not reliable.  Do not try to load it.
-		$seriesTitle;
+
+		$seriesTitle = '';
 		$seriesAuthors = array();
+		$seriesTitles = array();
 		$resourceList = array();
-		if (isset($seriesTitles) && is_array($seriesTitles)){
-			foreach ($seriesTitles as $key => $title){
-				if (isset($title['series']) && strlen($title['series']) > 0 && !(isset($seriesTitle))){
-					$seriesTitle = $title['series'];
-					$interface->assign('seriesTitle', $seriesTitle);
-				}
-				if (isset($title['author'])){
-					$seriesAuthors[$title['author']] = $title['author'];
-				}
-				if ($title['libraryOwned']){
-					$record = RecordDriverFactory::initRecordDriver($title);
-					$resourceList[] = $interface->fetch($record->getSearchResult($user, null, false));
-				}else{
-					$interface->assign('record', $title);
-					$resourceList[] = $interface->fetch('RecordDrivers/Index/nonowned_result.tpl');
+		if (isset($enrichmentData['novelist'])){
+			$seriesTitles = $enrichmentData['novelist']['series'];
+			//Loading the series title is not reliable.  Do not try to load it.
+
+			if (isset($seriesTitles) && is_array($seriesTitles)){
+				foreach ($seriesTitles as $key => $title){
+					if (isset($title['series']) && strlen($title['series']) > 0 && !(isset($seriesTitle))){
+						$seriesTitle = $title['series'];
+						$interface->assign('seriesTitle', $seriesTitle);
+					}
+					if (isset($title['author'])){
+						$seriesAuthors[$title['author']] = $title['author'];
+					}
+					if ($title['libraryOwned']){
+						$record = RecordDriverFactory::initRecordDriver($title);
+						$resourceList[] = $interface->fetch($record->getSearchResult($user, null, false));
+					}else{
+						$interface->assign('record', $title);
+						$resourceList[] = $interface->fetch('RecordDrivers/Index/nonowned_result.tpl');
+					}
 				}
 			}
 		}

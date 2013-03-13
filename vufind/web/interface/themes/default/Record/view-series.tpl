@@ -6,6 +6,7 @@
 {/if}
 <div id="page-content" class="content">
 	<div id="sidebar">
+		{if $seriesTitle || $seriesAuthors}
 		<div class="sidegroup">
 			<h4>Series Information</h4>
 			<div class="sidebarLabel">Series Name</div>
@@ -14,8 +15,10 @@
 			{foreach from=$seriesAuthors item=author}
 				<div class="sidebarValue">{$author}</div>
 			{/foreach}
-			</div>
 		</div>
+		{/if}
+	</div>
+		
 	{* Eventually, we will put the series title here*}
 	
 	<div id="main-content">
@@ -25,6 +28,8 @@
 			{translate text="Showing"}
 			<b>{$recordStart}</b> - <b>{$recordEnd}</b>
 			{translate text='of'} <b>{$recordCount}</b>
+		{else}
+			<p>Sorry, we could not find series information for this title.</p>
 		{/if}
 	</div>
 	{* End Listing Options *}
