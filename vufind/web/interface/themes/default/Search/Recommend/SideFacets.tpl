@@ -36,6 +36,7 @@
 	{* Available filters *}
 	{if $sideFacetSet && $recordCount > 0}
 		{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
+			{if count($cluster.list) > 0}
 			<div class="facetList">
 				<div class="facetTitle {if $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">{translate text=$cluster.label}</div>
 				<div id="facetDetails_{$title}" class="facetDetails" {if $cluster.collapseByDefault}style="display:none"{/if}>
@@ -197,6 +198,7 @@
 			{* Add a line between facets for clarity*}
 			{if !$smarty.foreach.facetSet.last}
 			<hr class="facetSeparator"/>
+			{/if}
 			{/if}
 		{/foreach}
 	{/if}
