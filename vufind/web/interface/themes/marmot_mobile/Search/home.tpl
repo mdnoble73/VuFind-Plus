@@ -30,8 +30,6 @@
 			<a data-role="button" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&amp;filter[]=format_category:"Books"&amp;filter[]=publishDate:[2013+TO+*]&amp;filter[]=literary_form_full:"Fiction"&amp;filter[]=target_audience_full:"Juvenile"'>New Fiction</a>
 			<a data-role="button" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&amp;filter[]=format_category:"Books"&amp;filter[]=publishDate:[2013+TO+*]&amp;filter[]=literary_form_full:"Non+Fiction"&amp;filter[]=target_audience_full:"Juvenile"'>New Non-Fiction</a>
 			<a data-role="button" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&amp;filter[]=format_category:"Movies"&amp;filter[]=publishDate:[2013+TO+*]&amp;filter[]=target_audience_full:"Juvenile"'>New Movies</a>
-			<a data-role="button" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&amp;filter[]=format_category:"eBook"&amp;filter[]=publishDate:[2013+TO+*]&amp;filter[]=target_audience_full:"Juvenile"'>New eBooks</a>
-			<a data-role="button" href='{$path}/Search/Results?lookfor=&amp;basicType=Keyword&amp;filter[]=format_category:"Audio+Books"&amp;filter[]=publishDate:[2013+TO+*]&amp;filter[]=target_audience_full:"Juvenile"'>New Audio Books</a>
 		</div>
 			
 	</div>
