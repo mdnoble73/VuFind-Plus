@@ -6,6 +6,15 @@ require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 
 class MaterialsRequestStatus extends DB_DataObject {
+
+  static public function userCancelableStatuses() {
+    return array(
+      1, // Request Pending
+      4, // Request referred to ILL
+      7 //  Need more info
+    );
+  }
+
 	public $__table = 'materials_request_status';   // table name
 
 	public $id;
