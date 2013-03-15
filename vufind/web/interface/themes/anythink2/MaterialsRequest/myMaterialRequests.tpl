@@ -41,7 +41,7 @@
               <td>{$request->dateCreated|date_format}</td>
               <td>
                 <a href="#" onclick='showMaterialsRequestDetailsAnythink("{$request->id}")' class="button">Details</a>
-                {if $request->status == $defaultStatus}
+                {if $request->userCancelable}
                 <a href="#" onclick="return cancelMaterialsRequest('{$request->id}');" class="button">Cancel Request</a>
                 {/if}
               </td>
