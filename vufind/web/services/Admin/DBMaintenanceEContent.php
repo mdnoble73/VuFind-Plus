@@ -250,7 +250,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'eContent Record Update 1',
 			'description' => 'Adds fields for collection and formatted marc record',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"ALTER TABLE econtent_record ADD collection VARCHAR(30) NULL",
 				"ALTER TABLE econtent_record ADD marcRecord TEXT NULL",
@@ -612,7 +611,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Remove Gale PDF Files',
 			'description' => 'Remove Gale PDF files from the catalog.',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"DELETE econtent_item.* FROM `econtent_item` inner join econtent_record on econtent_record.id = econtent_item.recordId where source = 'Gale Group' and item_type = 'pdf' ",
 		),
@@ -622,7 +620,6 @@ class DBMaintenanceEContent extends Admin {
 			'title' => 'Create eContent Packaging Log',
 			'description' => 'Create eContent Packaging Log',
 			'dependencies' => array(),
-			'database' => 'dclecontent',
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS	econtent_file_packaging_log(".
 					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
@@ -645,6 +642,139 @@ class DBMaintenanceEContent extends Admin {
 					"INDEX(status) ".
 				") ENGINE = MYISAM COMMENT = 'A table to store information about diles that are being sent for packaging in the ACS server.' ",
 		),
+		),
+
+		'overdrive_api_data' => array(
+			'title' => 'OverDrive API Data',
+			'description' => 'Create tables to store data loaded fromthe OverDrive API so the reindex process can use cached data and so we can add additional logic for lastupdate time, etc.',
+			'sql' => array(
+				"CREATE TABLE overdrive_api_products (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					overdriveId VARCHAR(36) NOT NULL,
+					mediaType  VARCHAR(50) NOT NULL,
+					title VARCHAR(512) NOT NULL,
+					series VARCHAR(215),
+					primaryCreatorRole VARCHAR(50),
+					primaryCreatorName VARCHAR(215),
+					dateAdded INT(11),
+					dateUpdated INT(11),
+					lastMetadataCheck INT(11),
+					lastMetadataChange INT(11),
+					lastAvailabilityCheck INT(11),
+					lastAvailabilityChange INT(11),
+					deleted TINYINT(1),
+					dateDeleted INT(11),
+					UNIQUE(overdriveId),
+					INDEX(dateUpdated),
+					INDEX(lastMetadataCheck),
+					INDEX(lastAvailabilityCheck)
+				)" ,
+				"CREATE TABLE overdrive_api_product_formats (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					textId VARCHAR(25),
+					numericId INT,
+					name VARCHAR(512),
+					fileName  VARCHAR(215),
+					fileSize INT,
+					partCount TINYINT,
+					onSaleDate INT(11),
+					INDEX(productId),
+					INDEX(numericId),
+					UNIQUE(productId, textId)
+				)",
+				"CREATE TABLE overdrive_api_product_images (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					size VARCHAR(20),
+					href VARCHAR(512),
+					type VARCHAR(50),
+					INDEX(productId),
+					UNIQUE(productId, size)
+				)",
+				"CREATE TABLE overdrive_api_product_metadata (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					checksum INT(11),
+					sortTitle VARCHAR(512),
+					publisher VARCHAR(215),
+					publishDate INT(11),
+					isPublicDomain TINYINT(1),
+					isPublicPerformanceAllowed TINYINT(1),
+					shortDescription TEXT,
+					fullDescription TEXT,
+					lastUpdated INT(11),
+					starRating FLOAT,
+					popularity INT,
+					UNIQUE(productId),
+					INDEX(lastUpdated)
+				)",
+				"CREATE TABLE overdrive_api_product_creators (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					role VARCHAR(50),
+					name VARCHAR(215),
+					fileAs VARCHAR(215),
+					INDEX (productId)
+				)",
+				"CREATE TABLE overdrive_api_product_links (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					name VARCHAR(215),
+					href VARCHAR(512),
+					type VARCHAR(50),
+					INDEX (productId)
+				)",
+				"CREATE TABLE overdrive_api_product_languages (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					code VARCHAR(10),
+					name VARCHAR(50),
+					INDEX (code)
+				)",
+				"CREATE TABLE overdrive_api_product_languages_ref (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					languageId INT,
+					UNIQUE (productId, languageId)
+				)",
+				"CREATE TABLE overdrive_api_subject (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					name VARCHAR(512),
+					index(name)
+				)",
+				"CREATE TABLE overdrive_api_product_subject_ref (
+					productId INT,
+					subjectId INT,
+					UNIQUE (productId, subjectId)
+				)",
+				"CREATE TABLE overdrive_api_product_availability (
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					productId INT,
+					libraryId INT,
+					available TINYINT(1),
+					copiesOwned INT,
+					copiesAvailable INT,
+					numberOfHolds INT,
+					lastChange INT(11),
+					INDEX (productId),
+					INDEX (libraryId),
+					UNIQUE(productId, libraryId),
+					INDEX (lastChange)
+				)",
+				"CREATE TABLE overdrive_extract_log(
+					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					`startTime` INT(11),
+					`endTime` INT(11),
+					`lastUpdate` INT(11),
+					numProducts INT(11) DEFAULT 0,
+					numErrors INT(11) DEFAULT 0,
+					numAdded INT(11) DEFAULT 0,
+					numDeleted INT(11) DEFAULT 0,
+					numAvailabilityChanges INT(11) DEFAULT 0,
+					numMetadataChanges INT(11) DEFAULT 0,
+					`notes` TEXT
+				)",
+			)
 		),
 
 		'add_indexes' => array(
