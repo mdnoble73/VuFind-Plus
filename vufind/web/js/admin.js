@@ -26,3 +26,7 @@ function toggleCronProcessInfo(id){
 	$("#cronEntry" + id).toggleClass("expanded collapsed");
 	$("#processInfo" + id).toggle();
 }
+function showOverDriveExtractNotes(id){
+	ajaxLightbox("/Admin/AJAX?method=getOverDriveExtractNotes&id=" + id);
+	return false;
+}

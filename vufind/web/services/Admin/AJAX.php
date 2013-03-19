@@ -33,7 +33,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm'))){
+		}else if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getOverDriveExtractNotes'))){
 			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -133,6 +133,26 @@ class AJAX extends Action {
 		}else{
 			$interface->assign('popupTitle', "Error");
 			$interface->assign('popupContent', "We could not find a cron entry with that id.  No notes available.");
+		}
+		return $interface->fetch('popup-wrapper.tpl');
+	}
+    
+    function getOverDriveExtractNotes()
+	{
+		global $interface;
+		$id = $_REQUEST['id'];
+		$overdriveExtractLog = new OverDriveExtractLogEntry();
+		$overdriveExtractLog->id = $id;
+		if ($overdriveExtractLog->find(true)){
+			$interface->assign('popupTitle', "OverDrive Extract {$overdriveExtractLog->id} Notes");
+			if (strlen($overdriveExtractLog->notes) == 0){
+				$interface->assign('popupContent', "No notes have been entered for this OverDrive Extract run");
+			}else{
+				$interface->assign('popupContent', "<div class='helpText'>{$overdriveExtractLog->notes}</div>");
+			}
+		}else{
+			$interface->assign('popupTitle', "Error");
+			$interface->assign('popupContent', "We could not find a OverDrive Extract entry with that id.  No notes available.");
 		}
 		return $interface->fetch('popup-wrapper.tpl');
 	}

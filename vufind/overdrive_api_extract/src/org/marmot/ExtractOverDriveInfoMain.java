@@ -18,7 +18,7 @@ import org.ini4j.Profile.Section;
 import org.marmot.Util;
 
 public class ExtractOverDriveInfoMain {
-	private static Logger logger = Logger.getLogger(ExtractOverDriveInfoMain.class);
+	private static Logger logger;
 	private static String serverName;
 	private static Connection vufindConn;
 	private static Connection econtentConn;
@@ -28,6 +28,7 @@ public class ExtractOverDriveInfoMain {
 			System.out.println("The name of the server to extract OverDrive data for must be provided as the first parameter.");
 			System.exit(1);
 		}
+		System.out.println("Starting overdrive extract");
 		
 		serverName = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
@@ -39,6 +40,7 @@ public class ExtractOverDriveInfoMain {
 		}else{
 			System.out.println("Could not find log4j configuration " + log4jFile.toString());
 		}
+		logger = Logger.getLogger(ExtractOverDriveInfoMain.class);
 		logger.info(currentTime.toString() + ": Starting OverDrive Extract");
 		
 		// Setup the MySQL driver
@@ -49,7 +51,7 @@ public class ExtractOverDriveInfoMain {
 
 			logger.info("Loaded driver for MySQL");
 		} catch (Exception ex) {
-			logger.info("Could not load driver for MySQL, exiting.");
+			logger.info("Could not load driver for MySQL, exiting.", ex);
 			return;
 		}
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
@@ -132,7 +134,7 @@ public class ExtractOverDriveInfoMain {
 			siteSpecificIni.load(new FileReader(siteSpecificFile));
 			for (Section curSection : siteSpecificIni.values()){
 				for (String curKey : curSection.keySet()){
-					logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					ini.put(curSection.getName(), curKey, curSection.get(curKey));
 				}

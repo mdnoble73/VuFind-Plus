@@ -1,6 +1,5 @@
 package org.marmot;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
 public class OverDriveRecordInfo {
@@ -9,24 +8,18 @@ public class OverDriveRecordInfo {
 	private String mediaType;
 	private String title;
 	private String series;
-	private String author;
+	private String primaryCreatorRole;
+	private String primaryCreatorName;
 	private HashSet<String> formats = new HashSet<String>();
 	private String coverImage;
 	private HashSet<Long> collections = new HashSet<Long>();
-	//Data from availability call
-	private HashMap<Long, OverDriveAvailabilityInfo> availabilityInfo = new HashMap<Long, OverDriveAvailabilityInfo>();
 	//Data from metadata call
-	private String edition;
 	private String publisher;
 	private String publishDate;
-	private HashSet<String> contributors = new HashSet<String>();
-	private HashSet<String> languages = new HashSet<String>();
 	private boolean isPublicDomain;
 	private boolean isPublicPerformanceAllowed;
 	private String description;
 	private HashSet<String> subjects = new HashSet<String>();
-	//items are formats in overdrive
-	private HashMap<String, OverDriveItem> items = new HashMap<String, OverDriveItem>();
 	
 	private boolean isShared = false;
 	public String getId() {
@@ -53,11 +46,18 @@ public class OverDriveRecordInfo {
 	public void setSeries(String series) {
 		this.series = series;
 	}
-	public String getAuthor() {
-		return author;
+	
+	public String getPrimaryCreatorRole() {
+		return primaryCreatorRole;
 	}
-	public void setAuthor(String author) {
-		this.author = author;
+	public void setPrimaryCreatorRole(String primaryCreatorRole) {
+		this.primaryCreatorRole = primaryCreatorRole;
+	}
+	public String getPrimaryCreatorName() {
+		return primaryCreatorName;
+	}
+	public void setPrimaryCreatorName(String primaryCreatorName) {
+		this.primaryCreatorName = primaryCreatorName;
 	}
 	public HashSet<String> getFormats() {
 		return formats;
@@ -77,15 +77,6 @@ public class OverDriveRecordInfo {
 	public void setShared(boolean isShared) {
 		this.isShared = isShared;
 	}
-	public HashMap<Long, OverDriveAvailabilityInfo> getAvailabilityInfo() {
-		return availabilityInfo;
-	}
-	public String getEdition() {
-		return edition;
-	}
-	public void setEdition(String edition) {
-		this.edition = edition;
-	}
 	public String getPublisher() {
 		return publisher;
 	}
@@ -98,12 +89,7 @@ public class OverDriveRecordInfo {
 	public void setPublishDate(String publishDate) {
 		this.publishDate = publishDate;
 	}
-	public HashSet<String> getLanguages() {
-		return languages;
-	}
-	public void setLanguages(HashSet<String> languages) {
-		this.languages = languages;
-	}
+	
 	public boolean isPublicDomain() {
 		return isPublicDomain;
 	}
@@ -122,23 +108,11 @@ public class OverDriveRecordInfo {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public HashMap<String, OverDriveItem> getItems() {
-		return items;
-	}
-	public void setItems(HashMap<String, OverDriveItem> items) {
-		this.items = items;
-	}
-	public HashSet<String> getContributors() {
-		return contributors;
-	}
 	public HashSet<String> getSubjects() {
 		return subjects;
 	}
 	public void setFormats(HashSet<String> formats) {
 		this.formats = formats;
-	}
-	public void setAvailabilityInfo(HashMap<Long, OverDriveAvailabilityInfo> availabilityInfo) {
-		this.availabilityInfo = availabilityInfo;
 	}
 	
 }

@@ -219,4 +219,13 @@ public class Util {
 		}
 		return retVal;
 	}
+
+
+	public static boolean compareStrings(String value1, String value2) {
+		if (value1 == null){
+			return value2 == null;
+		}else{
+			return value1.equals(value2);
+		}
+	}
 }

@@ -59,6 +59,7 @@
 		<div class="adminMenuLink {if $action == "DBMaintenanceEContent"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 		<div class="adminMenuLink {if $action == "CronLog"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/CronLog">Cron Log</a></div>
 		<div class="adminMenuLink {if $action == "ReindexLog"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
+        <div class="adminMenuLink {if $action == "OverDriveExtract"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
 	</div>
 	{/if}
 	

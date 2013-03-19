@@ -660,14 +660,15 @@ class DBMaintenanceEContent extends Admin {
 					dateUpdated INT(11),
 					lastMetadataCheck INT(11),
 					lastMetadataChange INT(11),
-					lastAvailabilityCheck INT(11),
+                    lastAvailabilityCheck INT(11),
 					lastAvailabilityChange INT(11),
-					deleted TINYINT(1),
-					dateDeleted INT(11),
+					deleted TINYINT(1) DEFAULT 0,
+					dateDeleted INT(11) DEFAULT NULL,
 					UNIQUE(overdriveId),
 					INDEX(dateUpdated),
 					INDEX(lastMetadataCheck),
-					INDEX(lastAvailabilityCheck)
+					INDEX(lastAvailabilityCheck),
+                    INDEX(deleted)
 				)" ,
 				"CREATE TABLE overdrive_api_product_formats (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -678,7 +679,10 @@ class DBMaintenanceEContent extends Admin {
 					fileName  VARCHAR(215),
 					fileSize INT,
 					partCount TINYINT,
-					onSaleDate INT(11),
+                    sampleSource_1 VARCHAR(215),
+                    sampleUrl_1 VARCHAR(215),
+                    sampleSource_2 VARCHAR(215),
+                    sampleUrl_2 VARCHAR(215),
 					INDEX(productId),
 					INDEX(numericId),
 					UNIQUE(productId, textId)
@@ -695,7 +699,7 @@ class DBMaintenanceEContent extends Admin {
 				"CREATE TABLE overdrive_api_product_metadata (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 					productId INT,
-					checksum INT(11),
+					checksum BIGINT,
 					sortTitle VARCHAR(512),
 					publisher VARCHAR(215),
 					publishDate INT(11),
@@ -703,11 +707,9 @@ class DBMaintenanceEContent extends Admin {
 					isPublicPerformanceAllowed TINYINT(1),
 					shortDescription TEXT,
 					fullDescription TEXT,
-					lastUpdated INT(11),
 					starRating FLOAT,
 					popularity INT,
-					UNIQUE(productId),
-					INDEX(lastUpdated)
+					UNIQUE(productId)
 				)",
 				"CREATE TABLE overdrive_api_product_creators (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -717,13 +719,13 @@ class DBMaintenanceEContent extends Admin {
 					fileAs VARCHAR(215),
 					INDEX (productId)
 				)",
-				"CREATE TABLE overdrive_api_product_links (
+				"CREATE TABLE overdrive_api_product_identifiers (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 					productId INT,
-					name VARCHAR(215),
-					href VARCHAR(512),
 					type VARCHAR(50),
-					INDEX (productId)
+					value VARCHAR(75),
+					INDEX (productId),
+                    INDEX (type)
 				)",
 				"CREATE TABLE overdrive_api_product_languages (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -737,12 +739,12 @@ class DBMaintenanceEContent extends Admin {
 					languageId INT,
 					UNIQUE (productId, languageId)
 				)",
-				"CREATE TABLE overdrive_api_subject (
+				"CREATE TABLE overdrive_api_product_subjects (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 					name VARCHAR(512),
 					index(name)
 				)",
-				"CREATE TABLE overdrive_api_product_subject_ref (
+				"CREATE TABLE overdrive_api_product_subjects_ref (
 					productId INT,
 					subjectId INT,
 					UNIQUE (productId, subjectId)
@@ -755,11 +757,9 @@ class DBMaintenanceEContent extends Admin {
 					copiesOwned INT,
 					copiesAvailable INT,
 					numberOfHolds INT,
-					lastChange INT(11),
 					INDEX (productId),
 					INDEX (libraryId),
-					UNIQUE(productId, libraryId),
-					INDEX (lastChange)
+					UNIQUE(productId, libraryId)
 				)",
 				"CREATE TABLE overdrive_extract_log(
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -770,6 +770,8 @@ class DBMaintenanceEContent extends Admin {
 					numErrors INT(11) DEFAULT 0,
 					numAdded INT(11) DEFAULT 0,
 					numDeleted INT(11) DEFAULT 0,
+                    numUpdated INT(11) DEFAULT 0,
+                    numSkipped INT(11) DEFAULT 0,
 					numAvailabilityChanges INT(11) DEFAULT 0,
 					numMetadataChanges INT(11) DEFAULT 0,
 					`notes` TEXT
