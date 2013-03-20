@@ -61,7 +61,7 @@ class Profile extends MyResearch
 		require_once 'Drivers/OverDriveDriverFactory.php';
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		if ($overDriveDriver->version >= 2){
-			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+			$overDriveSummary = $overDriveDriver->getAccountDetails($user);
 			$interface->assign('overDriveLendingOptions', $overDriveSummary['lendingOptions']);
 		}
 

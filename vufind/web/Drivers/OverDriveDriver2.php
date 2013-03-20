@@ -320,7 +320,7 @@ class OverDriveDriver2 {
 		global $configArray;
 		global $timer;
 
-		$summary = $this->getOverDriveSummary($user);
+		$summary = $this->getAccountDetails($user);
 		$checkedOutTitles = $summary['checkedOut'];
 		return $checkedOutTitles;
 	}
@@ -330,7 +330,7 @@ class OverDriveDriver2 {
 		global $configArray;
 		global $timer;
 
-		$summary = $this->getOverDriveSummary($user);
+		$summary = $this->getAccountDetails($user);
 		$holds = array();
 		$holds['holds'] = $summary['holds'];
 		return $holds;
@@ -345,6 +345,23 @@ class OverDriveDriver2 {
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
+		$apiURL = "https://temp-patron.api.overdrive.com/Marmot/Marmot/" . $user->cat_password;
+		$summaryResultRaw = file_get_contents($apiURL);
+		$summary = array(
+			'numCheckedOut' => 0,
+			'numAvailableHolds' => 0,
+			'numUnavailableHolds' => 0,
+		);
+		if ($summaryResultRaw != "Library patron not found."){
+			$summaryResults = json_decode($summaryResultRaw, true);
+			$summary['numCheckedOut'] = $summaryResults['CheckoutCount'];
+			$summary['numAvailableHolds'] = $summaryResults['AvailableHoldCount'];
+			$summary['numUnavailableHolds'] = $summaryResults['PendingHoldCount'];
+		}
+		return $summary;
+	}
+
+	public function getAccountDetails($user){
 		global $memcache;
 		global $configArray;
 		global $timer;
