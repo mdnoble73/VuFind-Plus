@@ -83,8 +83,8 @@ public class ExtractOverDriveInfo {
 		this.results = logEntry;
 		
 		try {
-			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0", PreparedStatement.RETURN_GENERATED_KEYS);
-			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, dateUpdated = ?, deleted = 0 where id = ?");
+			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0", PreparedStatement.RETURN_GENERATED_KEYS);
+			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0 where id = ?");
 			deleteProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET deleted = 1, dateDeleted = ? where id = ?");
 			updateProductMetadataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET lastMetadataCheck = ?, lastMetadataChange = ? where id = ?");
 			loadMetaDataStmt = econtentConn.prepareStatement("SELECT * FROM overdrive_api_product_metadata WHERE productId = ?");
@@ -229,6 +229,7 @@ public class ExtractOverDriveInfo {
 					!Util.compareStrings(overDriveInfo.getSeries(), overDriveDBInfo.getSeries()) ||
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorRole(), overDriveDBInfo.getPrimaryCreatorRole()) ||
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorName(), overDriveDBInfo.getPrimaryCreatorName()) ||
+					!Util.compareStrings(overDriveInfo.getCoverImage(), overDriveDBInfo.getCover()) ||
 					overDriveDBInfo.isDeleted()
 					){
 				//Update the product in the database
@@ -239,6 +240,7 @@ public class ExtractOverDriveInfo {
 				updateProductStmt.setString(curCol++, overDriveInfo.getSeries());
 				updateProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorRole());
 				updateProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorName());
+				updateProductStmt.setString(curCol++, overDriveInfo.getCoverImage());
 				updateProductStmt.setLong(curCol++, curTime);
 				updateProductStmt.setLong(curCol++, overDriveDBInfo.getDbId());
 				
@@ -273,6 +275,7 @@ public class ExtractOverDriveInfo {
 			addProductStmt.setString(curCol++, overDriveInfo.getSeries());
 			addProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorRole());
 			addProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorName());
+			addProductStmt.setString(curCol++, overDriveInfo.getCoverImage());
 			addProductStmt.setLong(curCol++, curTime);
 			addProductStmt.setLong(curCol++, curTime);
 			addProductStmt.executeUpdate();
@@ -309,6 +312,7 @@ public class ExtractOverDriveInfo {
 				curProduct.setTitle(loadProductsRS.getString("title"));
 				curProduct.setPrimaryCreatorRole(loadProductsRS.getString("primaryCreatorRole"));
 				curProduct.setPrimaryCreatorName(loadProductsRS.getString("primaryCreatorName"));
+				curProduct.setCover(loadProductsRS.getString("cover"));
 				curProduct.setDateAdded(loadProductsRS.getLong("dateAdded"));
 				curProduct.setDateUpdated(loadProductsRS.getLong("dateUpdated"));
 				curProduct.setLastAvailabilityCheck(loadProductsRS.getLong("lastAvailabilityCheck"));

@@ -8,6 +8,7 @@ public class OverDriveDBInfo {
 	private String series;
 	private String primaryCreatorRole;
 	private String primaryCreatorName;
+	private String cover;
 	private long dateAdded;
 	private long dateUpdated;
 	private long lastMetadataCheck;
@@ -102,5 +103,10 @@ public class OverDriveDBInfo {
 	public void setLastAvailabilityChange(long lastAvailabilityChange) {
 		this.lastAvailabilityChange = lastAvailabilityChange;
 	}
-	
+	public String getCover() {
+		return cover;
+	}
+	public void setCover(String cover) {
+		this.cover = cover;
+	}
 }
