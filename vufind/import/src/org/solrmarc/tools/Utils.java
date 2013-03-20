@@ -174,6 +174,7 @@ public final class Utils {
 		return (getPropertyFileInputStream(propertyPaths, propertyFileName, false, null));
 	}
 
+	@SuppressWarnings("resource")
 	public static InputStream getPropertyFileInputStream(String[] propertyPaths, String propertyFileName, boolean showName, String inputSource[]) {
 		InputStream in = null;
 		// look for properties file in paths
@@ -190,10 +191,11 @@ public final class Utils {
 						if (inputSource != null && inputSource.length >= 1) {
 							inputSource[0] = propertyFile.getAbsolutePath();
 						}
-						if (showName)
+						if (showName){
 							logger.info("Opening file: " + propertyFile.getAbsolutePath());
-						else
+						}else{
 							logger.debug("Opening file: " + propertyFile.getAbsolutePath());
+						}
 					} catch (FileNotFoundException e) {
 						// simply eat this exception since we should only try to open the
 						// file if we previously

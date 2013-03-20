@@ -3945,7 +3945,7 @@ public class MarcRecordDetails {
 			Object value = allFields.get(fieldName);
 			doc.addField(fieldName, value);
 		}
-		logger.debug(doc.toString());
+		//logger.debug(doc.toString());
 		return doc;
 	}
 

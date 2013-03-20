@@ -246,6 +246,7 @@ public class Util {
 			}
 			inputLine = reader.readLine();
 		}
+		reader.close();
 		return formatMap;
 	}
 	

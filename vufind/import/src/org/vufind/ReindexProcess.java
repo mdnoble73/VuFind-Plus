@@ -47,6 +47,8 @@ public class ReindexProcess {
 	private static long startTime;
 	private static long endTime;
 	
+	private static long loadChangesSince = 0;
+
 	//Variables to determine what sub processes to run.
 	private static boolean reloadDefaultSchema = false;
 	private static boolean updateSolr = true;
@@ -561,10 +563,33 @@ public class ReindexProcess {
 		}
 		try {
 			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
+			//Load the last index times
+			ResultSet reindexTime1RS = vufindConn.prepareStatement("SELECT * from variables where name = 'reindex_time_1'").executeQuery();
+			Long reindexTime1 = null;
+			if (reindexTime1RS.next()){
+				reindexTime1 = reindexTime1RS.getLong("value");
+			}
+			Long reindexTime2 = null;
+			ResultSet reindexTime2RS = vufindConn.prepareStatement("SELECT * from variables where name = 'reindex_time_2'").executeQuery();
+			if (reindexTime2RS.next()){
+				reindexTime2 = reindexTime2RS.getLong("value");
+			}
+			//Update the reindex times to indicate that a new reindex is starting
+			if (reindexTime2 != null){
+				loadChangesSince = reindexTime2;
+				vufindConn.prepareStatement("UPDATE variables set value = '" + reindexTime1 + "' WHERE name = 'reindex_time_2'");
+				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'");
+			}else if (reindexTime1 != null){
+				vufindConn.prepareStatement("INSERT INTO variables set value = '" + reindexTime1 + "', name = 'reindex_time_2'");
+				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'");
+			}else{
+				vufindConn.prepareStatement("INSERT INTO variables set value = '" + (startTime / 1000) + "', name = 'reindex_time_1'");
+			}
 		} catch (SQLException e) {
 			logger.error("Could not connect to vufind database", e);
 			System.exit(1);
 		}
+		
 		
 		String econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
@@ -675,5 +700,9 @@ public class ReindexProcess {
 			logger.error("Site Specific config file could not be read.", e);
 		}
 		return ini;
+	}
+	
+	public static long getLoadChangesSince() {
+		return loadChangesSince;
 	}
 }

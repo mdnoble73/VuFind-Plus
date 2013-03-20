@@ -387,18 +387,21 @@ public class MarcProcessor {
 				//Skip the first line
 				reader.readNext();
 				while ((nextLine = reader.readNext()) != null) {
-					LexileData lexileData = new LexileData();
-					lexileData.setIsbn(nextLine[3]);
-					lexileData.setLexileCode(nextLine[4]);
-					if (nextLine[5] != null && nextLine[5].length() > 0){
-						lexileData.setLexileScore(nextLine[5]);
-					}else{
-						lexileData.setLexileScore(null);
+					if (nextLine.length >= 10){
+						LexileData lexileData = new LexileData();
+						lexileData.setIsbn(nextLine[3]);
+						lexileData.setLexileCode(nextLine[4]);
+						if (nextLine[5] != null && nextLine[5].length() > 0){
+							lexileData.setLexileScore(nextLine[5]);
+						}else{
+							lexileData.setLexileScore(null);
+						}
+						lexileData.setSeries(nextLine[9]);
+						lexileData.setAwards(nextLine[10]);
+						lexileInfo.put(lexileData.getIsbn(), lexileData);
 					}
-					lexileData.setSeries(nextLine[9]);
-					lexileData.setAwards(nextLine[10]);
-					lexileInfo.put(lexileData.getIsbn(), lexileData);
 				}
+				reader.close();
 				ReindexProcess.addNoteToCronLog("Finished loading lexile information.  Found " + lexileInfo.size() + " titles in lexile export.");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

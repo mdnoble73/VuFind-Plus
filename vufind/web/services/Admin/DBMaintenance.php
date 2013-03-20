@@ -1172,6 +1172,20 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+      'variables_table' => array(
+				'title' => 'Variables Table',
+				'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
+				'dependencies' => array(),
+				'sql' => array(
+					"CREATE TABLE `variables` (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						`name` VARCHAR( 128 ) NOT NULL,
+						`value` VARCHAR( 255 ),
+						INDEX(name)
+					)",
+				),
+			),
+
 			'utf8_update' => array(
 			'title' => 'Update to UTF-8',
 			'description' => 'Update database to use UTF-8 encoding',
