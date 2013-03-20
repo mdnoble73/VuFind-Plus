@@ -1269,7 +1269,12 @@ class MillenniumDriver implements DriverInterface
 					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
 				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
 					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
-					$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+					if ($checkoutTime){
+						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+					}else{
+						//print_r($historyEntry);
+						$titleKey = $historyEntry['title_sort'];
+					}
 				}elseif ($sortOption == "format"){
 					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
 				}else{
