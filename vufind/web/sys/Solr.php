@@ -1815,7 +1815,7 @@ class Solr implements IndexEngine {
 		$input = preg_replace($patterns, $matches, $input);
 
 		//Remove any exclamation marks that Solr will handle incorrectly.
-		$input = str_replace('!', '', $input);
+		$input = str_replace('!', ' ', $input);
 
 		return $input;
 	}
@@ -1870,13 +1870,6 @@ class Solr implements IndexEngine {
 		return false;
 	}
 
-	public function cleanInput($query)
-	{
-		$query = trim(str_replace($this->illegal, '', $query));
-		$query = strtolower($query);
-
-		return $query;
-	}
 
 	/**
 	 * Obtain information from an alphabetic browse index.
