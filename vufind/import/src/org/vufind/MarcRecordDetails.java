@@ -2435,12 +2435,12 @@ public class MarcRecordDetails {
 					literaryFormChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
 					if (literaryFormChar != ' '){
 						result.add(Character.toString(literaryFormChar));
-						logger.debug("Literary Form is " + Character.toString(literaryFormChar));
+						//logger.debug("Literary Form is " + Character.toString(literaryFormChar));
 					}
 				}
 				if (result.size() == 0 ){
 					result.add(" ");
-					logger.debug("Literary Form is <blank>");
+					//logger.debug("Literary Form is <blank>");
 				}
 			} else {
 				logger.debug("Not a valid type to determine literary form");

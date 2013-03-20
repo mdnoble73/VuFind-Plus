@@ -839,8 +839,7 @@ class SearchObject_Solr extends SearchObject_Base
 			// that we display the user's query back to them unmodified (i.e. without
 			// capitalized Boolean operators)!
 		} else if (!$this->indexEngine->hasCaseSensitiveBooleans()) {
-			$output = $this->publicQuery =
-			$this->indexEngine->buildQuery($this->searchTerms, true);
+			$output = $this->publicQuery = $this->indexEngine->buildQuery($this->searchTerms, true);
 			// Simple answer
 		} else {
 			$output = $this->query;
