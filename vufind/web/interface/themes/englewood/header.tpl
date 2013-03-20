@@ -3,9 +3,9 @@
 	<div class="searchcontent">
 		<div id="toptabs">
 			<span class="toptab"><a href="{$path}/MyResearch/Home">My Account</a></span>
-			<span class="toptab"><a href="http://www.englewoodgov.org/Index.aspx?page=1168">Ebooks</a></span>
-			<span class="toptab"><a href="http://www.englewoodgov.org/Index.aspx?page=509">Events</a></span>
-			<span class="toptab"><a href="http://www.englewoodgov.org/Index.aspx?page=224">Kids</a></span>
+			<span class="toptab"><a href="http://www.englewoodgov.org/inside-city-hall/city-departments/library/ebooks">Ebooks</a></span>
+			<span class="toptab"><a href="http://www.englewoodgov.org/inside-city-hall/city-departments/library/what-s-happening">Events</a></span>
+			<span class="toptab"><a href="http://www.englewoodgov.org/inside-city-hall/city-departments/library/children-s-corner">Kids</a></span>
 		</div>
 		{include file='login-block.tpl'}
 
