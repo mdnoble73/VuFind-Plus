@@ -4233,6 +4233,10 @@ public class MarcRecordDetails {
 	}
 
 	public String getIlsId() {
-		return ilsId;
+		if (ilsId == null){
+			return getId();
+		}else{
+			return ilsId;
+		}
 	}
 }

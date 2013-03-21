@@ -285,9 +285,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		try {
 			results.incRecordsProcessed();
 			if (!recordInfo.isEContent()){
-				if (existingEcontentIlsIds.containsKey(recordInfo.getId())){
+				if (existingEcontentIlsIds.containsKey(recordInfo.getIlsId())){
 					//Delete the existing record
-					EcontentRecordInfo econtentInfo = existingEcontentIlsIds.get(recordInfo.getId());
+					EcontentRecordInfo econtentInfo = existingEcontentIlsIds.get(recordInfo.getIlsId());
 					if (econtentInfo.getStatus().equals("active")){
 						//logger.debug("Record is no longer eContent, removing");
 						deleteEContentRecord.setLong(1, econtentInfo.getRecordId());
@@ -297,7 +297,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					}else{
 						results.incSkipped();
 					}
-					existingEcontentIlsIds.remove(recordInfo.getId());
+					existingEcontentIlsIds.remove(recordInfo.getIlsId());
 				}else{
 					//logger.debug("Skipping record, it is not eContent");
 					results.incSkipped();
@@ -309,14 +309,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			//Record is eContent, get additional details about how to process it.
 			HashMap<String, DetectionSettings> detectionSettingsBySource = recordInfo.getEContentDetectionSettings();
 			if (detectionSettingsBySource == null || detectionSettingsBySource.size() == 0){
-				logger.error("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
-				results.addNote("Record " + recordInfo.getId() + " was tagged as eContent, but we did not get detection settings for it.");
+				logger.error("Record " + recordInfo.getIlsId() + " was tagged as eContent, but we did not get detection settings for it.");
+				results.addNote("Record " + recordInfo.getIlsId() + " was tagged as eContent, but we did not get detection settings for it.");
 				results.incErrors();
 				return false;
 			}
 			
 			for (String source : detectionSettingsBySource.keySet()){
-				logger.debug("Record " + recordInfo.getId() + " is eContent, source is " + source);
+				logger.debug("Record " + recordInfo.getIlsId() + " is eContent, source is " + source);
 				DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
 				//Generally should only have one source, but in theory there could be multiple sources for a single record
 				String accessType = detectionSettings.getAccessType();
@@ -344,17 +344,17 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						logger.debug("Record is unchanged, but reindex unchanged records is on");
 					}else{
 						//Check to see if we have items for the record
-						if (!existingEcontentIlsIds.containsKey(recordInfo.getId())){
+						if (!existingEcontentIlsIds.containsKey(recordInfo.getIlsId())){
 							logger.debug("Record is unchanged, but the record does not exist in the eContent database.");
 						}else{
-							EcontentRecordInfo existingRecordInfo = existingEcontentIlsIds.get(recordInfo.getId());
+							EcontentRecordInfo existingRecordInfo = existingEcontentIlsIds.get(recordInfo.getIlsId());
 							recordInfo.seteContentRecordId(existingRecordInfo.getRecordId());
 							if (existingRecordInfo.getNumItems() == 0){
 								logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
 							}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
 								logger.debug("Record is unchanged, is not active indexing to correct the status.");
 							}else{
-								existingEcontentIlsIds.remove(recordInfo.getId());
+								existingEcontentIlsIds.remove(recordInfo.getIlsId());
 								logger.debug("Skipping because the record is not changed");
 								results.incSkipped();
 								return false;
@@ -371,7 +371,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				
 				
 				//Check to see if the record already exists
-				String ilsId = recordInfo.getId();
+				String ilsId = recordInfo.getIlsId();
 				//Make sure to map the record before we change id based on eContent record id!
 				recordInfo.mapRecord("ExtractEContent");
 				boolean importRecordIntoDatabase = true;
@@ -385,7 +385,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						importRecordIntoDatabase = false;
 						eContentRecordId = eContentRecordInfo.getRecordId();
 						recordInfo.seteContentRecordId(eContentRecordId);
-						existingEcontentIlsIds.remove(recordInfo.getId());
+						existingEcontentIlsIds.remove(recordInfo.getIlsId());
 					}else{
 						//Add to database
 						importRecordIntoDatabase = true;
@@ -433,9 +433,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			//logger.debug("Finished processing record");
 			return true;
 		} catch (Exception e) {
-			logger.error("Error extracting eContent for record " + recordInfo.getId(), e);
+			logger.error("Error extracting eContent for record " + recordInfo.getIlsId(), e);
 			results.incErrors();
-			results.addNote("Error extracting eContent for record " + recordInfo.getId() + " " + e.toString());
+			results.addNote("Error extracting eContent for record " + recordInfo.getIlsId() + " " + e.toString());
 			return false;
 		}finally{
 			if (results.getRecordsProcessed() % 100 == 0){
@@ -520,7 +520,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			throws SQLException, IOException {
 		//logger.info("Adding ils id " + ilsId + " to the database.");
 		int curField = 1;
-		createEContentRecord.setString(curField++, recordInfo.getId());
+		createEContentRecord.setString(curField++, recordInfo.getIlsId());
 		createEContentRecord.setString(curField++, cover);
 		createEContentRecord.setString(curField++, source);
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
@@ -601,12 +601,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			sourceUrls = recordInfo.getSourceUrls();
 		} catch (IOException e1) {
 			results.incErrors();
-			results.addNote("Could not load source URLs for " + recordInfo.getId() + " " + e1.toString());
+			results.addNote("Could not load source URLs for " + recordInfo.getIlsId() + " " + e1.toString());
 			return;
 		}
-		logger.info("Found " + sourceUrls.size() + " urls for " + recordInfo.getId());
+		logger.info("Found " + sourceUrls.size() + " urls for " + recordInfo.getIlsId());
 		if (sourceUrls.size() == 0){
-			results.addNote("Warning, could not find any urls for " + recordInfo.getId() + " source " + detectionSettings.getSource() + " protection type " + detectionSettings.getAccessType());
+			results.addNote("Warning, could not find any urls for " + recordInfo.getIlsId() + " source " + detectionSettings.getSource() + " protection type " + detectionSettings.getAccessType());
 		}
 		for (LibrarySpecificLink curLink : sourceUrls){
 			//Look for an existing link
@@ -696,7 +696,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			sourceUrls = recordInfo.getSourceUrls();
 		} catch (IOException e) {
 			results.incErrors();
-			results.addNote("Could not load source URLs for overdrive record " + recordInfo.getId() + " " + e.toString());
+			results.addNote("Could not load source URLs for overdrive record " + recordInfo.getIlsId() + " " + e.toString());
 			return false;
 		}
 		//logger.debug("Found " + sourceUrls.size() + " urls for overdrive id " + recordInfo.getId());
@@ -727,10 +727,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						duplicateRecords.add(processedOverDriveRecords.get(overDriveId));
 						duplicateOverDriveRecordsInMillennium.put(overDriveId, duplicateRecords);
 					}
-					duplicateRecords.add(recordInfo.getId());
+					duplicateRecords.add(recordInfo.getIlsId());
 					return false;
 				}else{
-					processedOverDriveRecords.put("overDriveId", recordInfo.getId());
+					processedOverDriveRecords.put("overDriveId", recordInfo.getIlsId());
 					overDriveTitleInfo.remove(overDriveId);
 					addOverdriveItemsAndAvailability(overDriveBasicInfo, eContentRecordId);
 					return true;
@@ -738,7 +738,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}
 		}else{
 			//results.incErrors();
-			recordsWithoutOverDriveId.add(recordInfo.getId());
+			recordsWithoutOverDriveId.add(recordInfo.getIlsId());
 			//results.addNote("Did not find overdrive id for record " + recordInfo.getId() + " " + eContentRecordId);
 			return false;
 		}
@@ -841,7 +841,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			sourceUrls = recordInfo.getSourceUrls();
 		} catch (IOException e1) {
 			results.incErrors();
-			results.addNote("Could not load source URLs for gutenberg record " + recordInfo.getId() + " " + e1.toString());
+			results.addNote("Could not load source URLs for gutenberg record " + recordInfo.getIlsId() + " " + e1.toString());
 			return;
 		}
 		//If no, load the source url
@@ -885,7 +885,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					}
 				}
 				if (numGutenbergItemsFound == 0){
-					logger.warn("No items found for gutenberg title " + recordInfo.getId());
+					logger.warn("No items found for gutenberg title " + recordInfo.getIlsId());
 				}
 				
 				//Attach items based on the source URL
@@ -927,8 +927,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				results.incErrors();
 			}
 		} catch (Exception e) {
-			results.addNote("Error creating xml doc for eContentRecord " + eContentRecordId + " (" + recordInfo.getId() + ") " + e.toString());
-			logger.error("Error creating xml doc for eContentRecord " + eContentRecordId + " (" + recordInfo.getId() + ")", e);
+			results.addNote("Error creating xml doc for eContentRecord " + eContentRecordId + " (" + recordInfo.getIlsId() + ") " + e.toString());
+			logger.error("Error creating xml doc for eContentRecord " + eContentRecordId + " (" + recordInfo.getIlsId() + ")", e);
 			results.incErrors();
 			e.printStackTrace();
 		}
