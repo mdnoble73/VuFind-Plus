@@ -2,3 +2,27 @@
 	background-color: #82A21B;
 	border-color: #9BB06B;
 }
+
+#ft{
+	width: 70%;
+	border: 4px solid black;
+	color: white;
+	background-color: #4E3868;
+	text-align: center;
+	font-size: 12px;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+#ft div.footerCol{
+	border: 0px solid black;
+	width: 30%;
+	margin: 0px 8%;
+	text-align: left;
+}
+#ft a, #ft a:visited{
+	color: white;
+	text-decoration: underline;
+}
+#ft a:hover{
+	font-weight: bold;
+}

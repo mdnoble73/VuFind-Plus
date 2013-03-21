@@ -556,4 +556,8 @@ div.footerCol{padding:0
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
 /* extra_styles.css */
-.searchHomeForm{background-color:#82A21B;border-color:#9BB06B}
+.searchHomeForm{background-color:#82A21B;border-color:#9BB06B}#ft{width:70%;border:4px
+solid black;color:white;background-color:#4E3868;text-align:center;font-size:12px;font-weight:bold;margin-bottom:10px}#ft
+div.footerCol{border:0px
+solid black;width:30%;margin:0px
+8%;text-align:left}#ft a, #ft a:visited{color:white;text-decoration:underline}#ft a:hover{font-weight:bold}
