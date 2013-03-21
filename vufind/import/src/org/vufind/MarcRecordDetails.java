@@ -90,6 +90,8 @@ public class MarcRecordDetails {
 		// Map the id field
 		String fieldVal[] = marcProcessor.getMarcFieldProps().get("id");
 		mapField("id", fieldVal);
+		ilsId = (String)mappedFields.get("id");
+		//logger.debug("ILS Id is " + ilsId);
 	}
 
 	/**
@@ -4126,6 +4128,13 @@ public class MarcRecordDetails {
 
 		mappedFields.remove("recordtype");
 		addField(mappedFields, "recordtype", "econtentRecord");
+		
+		mappedFields.remove("id");
+		addField(mappedFields, "id", "econtentRecord" + eContentRecordId.toString());
+		addField(mappedFields, "id_alt", ilsId);
+		if (externalIdLoaded){
+			addField(mappedFields, "id_alt", externalId);
+		}
 
 		HashMap<String, Object> allFields = getFields("getEContentSolrDocument");
 		for (String fieldName : allFields.keySet()) {
@@ -4224,19 +4233,10 @@ public class MarcRecordDetails {
 	public void seteContentRecordId(Long eContentRecordId) {
 		if (this.eContentRecordId == null){
 			this.eContentRecordId = eContentRecordId;
-			String curId = (String) mappedFields.get("id");
-			this.ilsId = curId;
-			mappedFields.remove("id");
-			addField(mappedFields, "id", "econtentRecord" + eContentRecordId.toString());
-			addField(mappedFields, "id_alt", curId);
 		}
 	}
 
 	public String getIlsId() {
-		if (ilsId == null){
-			return getId();
-		}else{
-			return ilsId;
-		}
+		return ilsId;
 	}
 }

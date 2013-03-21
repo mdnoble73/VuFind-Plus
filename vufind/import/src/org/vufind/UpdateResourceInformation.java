@@ -423,7 +423,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			resourceInsertStmt.setString(8, Long.toString(recordInfo.geteContentRecordId()));
 			resourceInsertStmt.setString(9, Long.toString(recordInfo.geteContentRecordId()));
 		}else{
-			resourceInsertStmt.setString(8, recordInfo.getId());
+			resourceInsertStmt.setString(8, recordInfo.getIlsId());
 			resourceInsertStmt.setString(9, recordInfo.getShortId());
 		}
 		resourceInsertStmt.setLong(10, recordInfo.getChecksum());

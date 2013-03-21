@@ -630,7 +630,7 @@ public class MarcProcessor {
 	public void loadTranslationMapValues(String transMapName, String mapName, String mapKeyPrefix) {
 		Properties props = null;
 		props = Utils.loadProperties(propertyFilePaths, transMapName);
-		logger.debug("Loading Custom Map: " + transMapName + " found " + props.size() + " properties");
+		//logger.debug("Loading Custom Map: " + transMapName + " found " + props.size() + " properties");
 		loadTranslationMapValues(props, mapName, mapKeyPrefix);
 	}
 
