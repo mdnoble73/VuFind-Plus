@@ -293,7 +293,7 @@ public class Cron {
 			siteSpecificIni.load(new FileReader(siteSpecificFile));
 			for (Section curSection : siteSpecificIni.values()){
 				for (String curKey : curSection.keySet()){
-					logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					ini.put(curSection.getName(), curKey, curSection.get(curKey));
 				}

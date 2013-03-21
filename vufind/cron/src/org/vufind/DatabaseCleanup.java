@@ -47,6 +47,40 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error deleting expired searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
+		
+		//Remove econtent records and related data that was created incorrectly. 
+		try {
+			//Anything where the ILS id matches the ID is wrong.   
+			ResultSet eContentToCleanup = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = id OR ilsId like 'econtentRecord%'").executeQuery();
+			PreparedStatement removeResourceStmt = vufindConn.prepareStatement("DELETE FROM resource where record_id = ? and source = 'eContent'");
+			PreparedStatement removeEContentItemsStmt = econtentConn.prepareStatement("DELETE FROM econtent_item where recordId = ?");
+			PreparedStatement removeEContentRecordStmt = econtentConn.prepareStatement("DELETE FROM econtent_record where id = ?");
+			int recordsRemoved = 0;
+			while (eContentToCleanup.next()){
+				Long curId = eContentToCleanup.getLong("id");
+				//Remove related resources
+				removeResourceStmt.setString(1, curId.toString());
+				removeResourceStmt.executeUpdate();
+				//Remove related econtent items
+				removeEContentItemsStmt.setLong(1, curId);
+				removeEContentItemsStmt.executeUpdate();
+				//Remove the record itself
+				removeEContentRecordStmt.setLong(1, curId);
+				removeEContentRecordStmt.executeUpdate();
+				processLog.incUpdated();
+				recordsRemoved++;
+				if (recordsRemoved % 1000 == 0){
+					processLog.saveToDatabase(vufindConn, logger);
+				}
+			}
+			processLog.addNote("Removed " + recordsRemoved + " incorrectly created eContent");
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to remove incorrectly created econtent. " + e.toString());
+			logger.error("Error removing incorrectly created econtent", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}
