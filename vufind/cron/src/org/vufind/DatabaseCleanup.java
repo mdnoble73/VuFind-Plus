@@ -51,7 +51,7 @@ public class DatabaseCleanup implements IProcessHandler {
 		//Remove econtent records and related data that was created incorrectly. 
 		try {
 			//Anything where the ILS id matches the ID is wrong.   
-			ResultSet eContentToCleanup = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = id OR ilsId like 'econtentRecord%'").executeQuery();
+			ResultSet eContentToCleanup = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = id OR ilsId like 'econtentRecord%'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery();
 			PreparedStatement removeResourceStmt = vufindConn.prepareStatement("DELETE FROM resource where record_id = ? and source = 'eContent'");
 			PreparedStatement removeEContentItemsStmt = econtentConn.prepareStatement("DELETE FROM econtent_item where recordId = ?");
 			PreparedStatement removeEContentRecordStmt = econtentConn.prepareStatement("DELETE FROM econtent_record where id = ?");
