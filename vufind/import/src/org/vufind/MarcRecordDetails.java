@@ -3969,6 +3969,7 @@ public class MarcRecordDetails {
 		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
 		availabilityToggleGlobal.add("Entire Collection");
 		Set<String> buildings = new HashSet<String>();
+		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 
 		// Generate information based on items.
 		while (itemInfo.next()) {
@@ -3983,6 +3984,7 @@ public class MarcRecordDetails {
 			}
 			// TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L) {
+				usableByPTypes.addAll(marcProcessor.getAllPTypes());
 				availabilityToggleGlobal.add("Available Now");
 				// Loop through all libraries and mark this title as available
 				for (Long curLibraryId : marcProcessor.getLibraryIds()) {
@@ -4006,6 +4008,7 @@ public class MarcRecordDetails {
 				availableAt = addSharedAvailability(source, availableAt);
 				availabilityToggleGlobal.add("Available Now");
 			} else {
+				usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
 				availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
@@ -4034,11 +4037,17 @@ public class MarcRecordDetails {
 				availableAtBySystemOrLocation.clear();
 				availabilityToggleGlobal.clear();
 				availabilityToggleGlobal.add("Entire Collection");
+				usableByPTypes.clear();
 				hasAvailabilityInfo = true;
 			}
 			int copiesOwned = availabilityInfo.getInt("copiesOwned");
 			int availableCopies = availabilityInfo.getInt("availableCopies");
 			long libraryId = availabilityInfo.getLong("libraryId");
+			if (libraryId == -1L){
+				usableByPTypes.addAll(marcProcessor.getAllPTypes());
+			}else{
+				usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
+			}
 			if (availableCopies > 0) {
 				availabilityToggleGlobal.add("Available Now");
 				if (libraryId == -1L) {
@@ -4101,6 +4110,8 @@ public class MarcRecordDetails {
 		}
 		// mappedFields.remove("format");
 		addFields(mappedFields, "format", "format_map", formats);
+		mappedFields.remove("usable_by");
+		addFields(mappedFields, "usable_by", null, usableByPTypes);
 		if (formats.size() > 0) {
 			String firstFormat = formats.iterator().next();
 			mappedFields.remove("format_category");

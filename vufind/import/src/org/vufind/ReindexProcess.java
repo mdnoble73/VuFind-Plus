@@ -66,6 +66,8 @@ public class ReindexProcess {
 	
 	private static PreparedStatement updateCronLogLastUpdatedStmt;
 	private static PreparedStatement addNoteToCronLogStmt;
+
+	private static PreparedStatement getOverDriveProductStmt;
 	
 	/**
 	 * Starts the reindexing process
@@ -367,24 +369,36 @@ public class ReindexProcess {
 			ResultSet allEContent = econtentRecordStatement.executeQuery();
 			while (allEContent.next()){
 				for (IEContentProcessor econtentProcessor : econtentProcessors){
-					//Determine if the record is new, updated, deleted, or unchanged
-					long dateAdded = allEContent.getLong("date_added");
-					long dateUpdated = allEContent.getLong("date_updated");
+					//Get better change time information for overdrive api titles
+					long dateAdded = Integer.MAX_VALUE;
+					long dateUpdated = Integer.MAX_VALUE;
+					boolean deleted = false;
+					if (allEContent.getString("source").equalsIgnoreCase("OverDrive")){
+						String externalId = allEContent.getString("externalId");
+						getOverDriveProductStmt.setString(1, externalId.toLowerCase());
+						ResultSet overDriveInfoRS = getOverDriveProductStmt.executeQuery();
+						if (overDriveInfoRS.next()){
+							dateAdded = overDriveInfoRS.getLong("dateAdded");
+							dateUpdated = overDriveInfoRS.getLong("dateUpdated");
+							deleted = overDriveInfoRS.getBoolean("deleted");
+						}
+					}else{
+						//Determine if the record is new, updated, deleted, or unchanged
+						dateAdded = allEContent.getLong("date_added");
+						dateUpdated = allEContent.getLong("date_updated");
+					}
 					String status = allEContent.getString("status");
 					long recordStatus = MarcProcessor.RECORD_UNCHANGED;
-					if (status.equals("deleted") || status.equals("archived")){
+					if (status.equals("deleted") || status.equals("archived") || deleted){
 						logger.debug("eContent record is deleted");
 						recordStatus = MarcProcessor.RECORD_DELETED;
 					}else{
-						if ((indexTime - dateAdded) < 24 * 60 * 60){
+						if (dateAdded > loadChangesSince){
 							recordStatus = MarcProcessor.RECORD_NEW;
-							logger.debug("eContent record is new");
-						}else if ((indexTime - dateUpdated) < 24 * 60 * 60){
-							logger.debug("eContent record is changed primary");
+							logger.debug("eContent record is new dateAdded = " + dateAdded + " loadChangesSince = " + loadChangesSince);
+						}else if (dateUpdated > loadChangesSince){
+							logger.debug("eContent record is changed primary dateUpdated = " + dateUpdated + " loadChangesSince = " + loadChangesSince);
 							recordStatus = MarcProcessor.RECORD_CHANGED_PRIMARY;
-						}else if ((indexTime - dateUpdated) < 48 * 60 * 60){
-							logger.debug("eContent record is changed secondary");
-							recordStatus = MarcProcessor.RECORD_CHANGED_SECONDARY;
 						}else{
 							logger.debug("eContent record is not changed");
 						}
@@ -605,6 +619,7 @@ public class ReindexProcess {
 		}
 		try {
 			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
+			getOverDriveProductStmt = econtentConn.prepareStatement("SELECT id, dateAdded, GREATEST(dateUpdated, lastMetadataChange, lastAvailabilityChange, dateDeleted) as dateUpdated, deleted from overdrive_api_products where overdriveId = ?");
 		} catch (SQLException e) {
 			logger.error("Could not connect to econtent database", e);
 			System.exit(1);

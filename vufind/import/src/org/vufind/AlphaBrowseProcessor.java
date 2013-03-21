@@ -329,12 +329,17 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			//For alpha browse processing, everything is handled in the finish method
 			results.incEContentRecordsProcessed();
 			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
+				logger.debug("Record has not changed since last index.");
 				//Check to see if the record has been added to alpha browse
 				if (isRecordInBrowse(recordIdFull)){
+					logger.debug("  The record is already in the browse index, skipping.");
 					results.incSkipped();
 					return true;
+				}else{
+					logger.debug("  The record is not in the browse index, can't skip.");
 				}
 			}
+			logger.debug("Updating alpha browse for " + recordIdFull);
 			//Clear the information for the record as long as we didn't clear it already. 
 			if (!clearAlphaBrowseAtStartOfIndex){
 				clearBrowseInfoForRecord(recordIdFull);
@@ -396,7 +401,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}else{
 				results.incUpdated();
 			}
-			results.incAdded();
 			return true;
 		} catch (SQLException e) {
 			results.addNote("Error processing eContentRecord " + e.toString());

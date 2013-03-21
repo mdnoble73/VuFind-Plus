@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
@@ -986,6 +985,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		int numRecordsAdded = 0;
 		for (String overDriveId : overDriveTitleInfo.keySet()){
 			OverDriveBasicInfo recordInfo = overDriveTitleInfo.get(overDriveId.toLowerCase());
+			numRecordsAdded++;
+			if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded > numOverDriveTitlesToLoadFromAPI){
+				break;
+			}
+			if (!(recordInfo.getLastChange() > ReindexProcess.getLoadChangesSince() || extractEContentFromUnchangedRecords)){
+				logger.debug("OverDrive Record " + recordInfo.getId() + " has not changed since last index.");
+				continue;
+			}
 			logger.debug("Adding OverDrive record " + recordInfo.getId() +  " " + recordInfo.getTitle());
 			try {
 				long econtentRecordId = -1;
@@ -1285,11 +1292,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						//logger.debug(doc.toString());
 						updateServer.add(doc);
 					}
-				}
-				
-				numRecordsAdded++;
-				if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded >= numOverDriveTitlesToLoadFromAPI){
-					break;
 				}
 			} catch (Exception e) {
 				logger.error("Error processing eContent record " + overDriveId , e);
