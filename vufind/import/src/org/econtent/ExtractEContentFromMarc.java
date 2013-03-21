@@ -395,7 +395,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				String ilsId = recordInfo.getIlsId();
 				//Make sure to map the record before we change id based on eContent record id!
 				recordInfo.mapRecord("ExtractEContent");
-				long eContentRecordId = recordInfo.geteContentRecordId();
+				long eContentRecordId = -1;
+				if (recordInfo.geteContentRecordId() != null){
+					eContentRecordId = recordInfo.geteContentRecordId();
+				}
+				
 				if (ilsId.length() == 0){
 					logger.warn("ILS Id could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
 				}
