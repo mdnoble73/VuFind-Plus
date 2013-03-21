@@ -46,6 +46,8 @@ public class ReindexProcess {
 	private static long reindexLogId;
 	private static long startTime;
 	private static long endTime;
+	private static Long reindexTime1 = null;
+	private static Long reindexTime2 = null;
 	
 	private static long loadChangesSince = 0;
 
@@ -124,6 +126,21 @@ public class ReindexProcess {
 		// Send completion information
 		endTime = new Date().getTime();
 		sendCompletionMessage(recordProcessors);
+		
+		try {
+			//Update the reindex times to indicate that a new reindex is starting
+			if (reindexTime2 != null){
+				vufindConn.prepareStatement("UPDATE variables set value = '" + reindexTime1 + "' WHERE name = 'reindex_time_2'").executeUpdate();
+				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'").executeUpdate();
+			}else if (reindexTime1 != null){
+				vufindConn.prepareStatement("INSERT INTO variables set value = '" + reindexTime1 + "', name = 'reindex_time_2'").executeUpdate();
+				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'").executeUpdate();
+			}else{
+				vufindConn.prepareStatement("INSERT INTO variables set value = '" + (startTime / 1000) + "', name = 'reindex_time_1'").executeUpdate();
+			}
+		} catch (SQLException e) {
+			addNoteToCronLog("Error updating reindex times in database " + e.toString());
+		}
 
 		addNoteToCronLog("Finished Reindex for " + serverName);
 		logger.info("Finished Reindex for " + serverName);
@@ -565,25 +582,15 @@ public class ReindexProcess {
 			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
 			//Load the last index times
 			ResultSet reindexTime1RS = vufindConn.prepareStatement("SELECT * from variables where name = 'reindex_time_1'").executeQuery();
-			Long reindexTime1 = null;
 			if (reindexTime1RS.next()){
 				reindexTime1 = reindexTime1RS.getLong("value");
 			}
-			Long reindexTime2 = null;
 			ResultSet reindexTime2RS = vufindConn.prepareStatement("SELECT * from variables where name = 'reindex_time_2'").executeQuery();
 			if (reindexTime2RS.next()){
 				reindexTime2 = reindexTime2RS.getLong("value");
 			}
-			//Update the reindex times to indicate that a new reindex is starting
 			if (reindexTime2 != null){
 				loadChangesSince = reindexTime2;
-				vufindConn.prepareStatement("UPDATE variables set value = '" + reindexTime1 + "' WHERE name = 'reindex_time_2'");
-				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'");
-			}else if (reindexTime1 != null){
-				vufindConn.prepareStatement("INSERT INTO variables set value = '" + reindexTime1 + "', name = 'reindex_time_2'");
-				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'");
-			}else{
-				vufindConn.prepareStatement("INSERT INTO variables set value = '" + (startTime / 1000) + "', name = 'reindex_time_1'");
 			}
 		} catch (SQLException e) {
 			logger.error("Could not connect to vufind database", e);

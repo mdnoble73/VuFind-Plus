@@ -2443,7 +2443,7 @@ public class MarcRecordDetails {
 					//logger.debug("Literary Form is <blank>");
 				}
 			} else {
-				logger.debug("Not a valid type to determine literary form");
+				//logger.debug("Not a valid type to determine literary form");
 				result.add("Unknown");
 			}
 			//logger.debug("Finished mapping literary form " + result.size());
