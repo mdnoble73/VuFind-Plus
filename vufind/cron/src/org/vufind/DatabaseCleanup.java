@@ -73,6 +73,25 @@ public class DatabaseCleanup implements IProcessHandler {
 					processLog.saveToDatabase(vufindConn, logger);
 				}
 			}
+			ResultSet eContentToCleanup2 = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = '' and externalId is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery();
+			while (eContentToCleanup2.next()){
+				Long curId = eContentToCleanup2.getLong("id");
+				//Remove related resources
+				removeResourceStmt.setString(1, curId.toString());
+				removeResourceStmt.executeUpdate();
+				//Remove related econtent items
+				removeEContentItemsStmt.setLong(1, curId);
+				removeEContentItemsStmt.executeUpdate();
+				//Remove the record itself
+				removeEContentRecordStmt.setLong(1, curId);
+				removeEContentRecordStmt.executeUpdate();
+				processLog.incUpdated();
+				recordsRemoved++;
+				if (recordsRemoved % 1000 == 0){
+					processLog.saveToDatabase(vufindConn, logger);
+				}
+			}
+			
 			processLog.addNote("Removed " + recordsRemoved + " incorrectly created eContent");
 			processLog.saveToDatabase(vufindConn, logger);
 		} catch (SQLException e) {
