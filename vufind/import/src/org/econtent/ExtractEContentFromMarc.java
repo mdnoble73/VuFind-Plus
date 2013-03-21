@@ -283,7 +283,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	public boolean processMarcRecord(MarcProcessor marcProcessor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		this.marcProcessor = marcProcessor; 
 		try {
-			results.incRecordsProcessed();
+			if (recordInfo.isEContent()){
+				results.incEContentRecordsProcessed();
+			}else{
+				results.incRecordsProcessed();
+			}
 			if (!recordInfo.isEContent()){
 				//This record is not econtent
 				if (existingEcontentIlsIds.containsKey(recordInfo.getIlsId())){
@@ -993,6 +997,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded > numOverDriveTitlesToLoadFromAPI){
 				break;
 			}
+			results.incOverDriveNonMarcRecordsProcessed();
 			if (!(recordInfo.getLastChange() > ReindexProcess.getLoadChangesSince() || extractEContentFromUnchangedRecords)){
 				logger.debug("OverDrive Record " + recordInfo.getId() + " has not changed since last index.");
 				continue;

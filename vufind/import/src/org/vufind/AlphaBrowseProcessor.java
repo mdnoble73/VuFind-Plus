@@ -184,7 +184,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
 			//For alpha browse processing, everything is handled in the finish method
-			results.incRecordsProcessed();
+			if (recordInfo.isEContent()){
+				results.incEContentRecordsProcessed();
+			}else{
+				results.incRecordsProcessed();
+			}
 			if (!updateAlphaBrowseForUnchangedRecords && (recordStatus == MarcProcessor.RECORD_UNCHANGED)){
 				//Check to see if the record has been added to alpha browse and force it to be indexed even if it hasn't changed
 				if (isRecordInBrowse(recordInfo.getId())){
@@ -327,7 +331,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			Long econtentId = resource.getLong("id");
 			String recordIdFull = "econtentRecord" + resource.getString("id");
 			//For alpha browse processing, everything is handled in the finish method
-			results.incEContentRecordsProcessed();
+			results.incOverDriveNonMarcRecordsProcessed();
 			if (!updateAlphaBrowseForUnchangedRecords && recordStatus == MarcProcessor.RECORD_UNCHANGED){
 				logger.debug("Record has not changed since last index.");
 				//Check to see if the record has been added to alpha browse
