@@ -306,7 +306,7 @@ class Results extends Action {
 				}
 
 				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
-				if ($autoSwitchSearch){
+				if ($autoSwitchSearch && !isset($_REQUEST['replacementTerm'])){
 					//Get search results for the new search
 					$interface->assign('oldTerm', $searchObject->displayQuery());
 					$interface->assign('newTerm', $commonSearches[0]['phrase']);
