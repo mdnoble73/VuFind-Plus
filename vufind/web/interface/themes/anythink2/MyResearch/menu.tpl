@@ -30,23 +30,4 @@
     <li><a {if $pageTemplate=="holds.tpl"}class="active"{/if} href="{$path}/MyAccount/Holds">{translate text='Available Holds'}{if !empty($profile.numHoldsAvailable)} ({$profile.numHoldsAvailable}){/if}</a></li>
     <li><a {if $pageTemplate=="holds.tpl"}class="active"{/if} href="{$path}/MyAccount/Holds">{translate text='Unavailable Holds'}{if !empty($profile.numHoldsRequested)} ({$profile.numHoldsRequested}){/if}</a></li>
   </ul>
-  <h4>eContent Titles</h4>
-  <ul>
-    <li><a {if $pageTemplate=="eContentCheckedOut.tpl"}class="active"{/if} href="{$path}/MyAccount/EContentCheckedOut">{translate text='Checked Out Items'} {if !empty($profile.numEContentCheckedOut)}({$profile.numEContentCheckedOut}){/if}</a></li>
-    {if $hasProtectedEContent}
-      <li><a {if $pageTemplate=="eContentHolds.tpl"}class="active"{/if} href="{$path}/MyAccount/EContentHolds">{translate text='Available Holds'} {if !empty($profile.numEContentAvailableHolds)}({$profile.numEContentAvailableHolds}){/if}</a></li>
-      <li><a {if $pageTemplate=="eContentHolds.tpl"}class="active"{/if} href="{$path}/MyAccount/EContentHolds">{translate text='Unavailable Holds'} {if !empty($profile.numEContentUnavailableHolds)}({$profile.numEContentUnavailableHolds}){/if}</a></li>
-      <li><a {if $pageTemplate=="eContentWishList.tpl"}class="active"{/if} href="{$path}/MyAccount/MyEContentWishlist">{translate text='Wish List'} {if !empty($profile.numEContentWishList)}({$profile.numEContentWishList}){/if}</a></li>
-    {/if}
-  </ul>
-  <h4>OverDrive Titles</h4>
-  <ul>
-    <li><a {if $pageTemplate=="overDriveCheckedOut.tpl"}class="active"{/if} href="{$path}/MyAccount/OverdriveCheckedOut">{translate text='Checked Out Items'} (<span id="checkedOutItemsOverDrivePlaceholder">?</span>)</a></li>
-    <li><a {if $pageTemplate=="overDriveHolds.tpl"}class="active"{/if} href="{$path}/MyAccount/OverdriveHolds">{translate text='Available Holds'} (<span id="availableHoldsOverDrivePlaceholder">?</span>)</a></li>
-    <li><a {if $pageTemplate=="overDriveHolds.tpl"}class="active"{/if} href="{$path}/MyAccount/OverdriveHolds">{translate text='Unavailable Holds'} (<span id="unavailableHoldsOverDrivePlaceholder">?</span>)</a></li>
-    <li><a {if $pageTemplate=="overDriveWishList.tpl"}class="active"{/if} href="{$path}/MyAccount/OverdriveWishList">{translate text='Wish List'} (<span id="wishlistOverDrivePlaceholder">?</span>)</a></li>
-  </ul>
 {/if}
-<script type="text/javascript">
-  getOverDriveSummary();
-</script>
