@@ -23,7 +23,6 @@ class MillenniumStatusLoader{
 		$r = substr($r,strpos($r,">")+1);
 		$r = substr($r,0,stripos($r,"</table"));
 		$rows = preg_split("/<tr([^>]*)>/",$r);
-		$count = 0;
 		$keys = array_pad(array(),10,"");
 
 		// Load marc record
@@ -36,158 +35,15 @@ class MillenniumStatusLoader{
 		//Load item information from marc record
 		foreach ($itemFields as $itemField){
 			$itemData['callnumber'] = $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
-			$itemData['location'] = $itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '?????';
+			$itemData['location'] = $itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : ($itemField->getSubfield('p') != null ? $itemField->getSubfield('p')->getData() : '?????');
 			$itemData['iType'] = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '0';
 			$itemData['matched'] = false;
 			$marcItemData[] = $itemData;
 		}
 
-		$loc_col_name      = $configArray['OPAC']['location_column'];
-		$call_col_name     = $configArray['OPAC']['call_no_column'];
-		$status_col_name   = $configArray['OPAC']['status_column'];
-		$reserves_col_name = $configArray['OPAC']['location_column'];
-		$reserves_key_name = $configArray['OPAC']['reserves_key_name'];
-		$transit_key_name  = $configArray['OPAC']['transit_key_name'];
-		$stat_avail        = $configArray['OPAC']['status_avail'];
-		$stat_due          = $configArray['OPAC']['status_due'];
-		$stat_libuse       = $configArray['OPAC']['status_libuse'];
-
-		$ret = array();
 		//Process each row in the callnumber table.
-		$numHoldings = 0;
-		foreach ($rows as $row) {
-			//Skip the first row, it is always blank.
-			if ($count == 0){
-				$count++;
-				continue;
-			}
-			//Break up each row into columns
-			$cols = array();
-			preg_match_all('/<t[dh].*?>\\s*(?:\\s*<!-- .*? -->\\s*)*\\s*(.*?)\\s*<\/t[dh]>/s', $row, $cols, PREG_PATTERN_ORDER);
+		$ret = MillenniumStatusLoader::parseHoldingRows($id, $rows, $keys);
 
-			$curHolding = array();
-			$addHolding = true;
-			//Process each cell
-			for ($i=0; $i < sizeof($cols[1]); $i++) {
-				//Get the value of the cell
-				$cellValue = str_replace("&nbsp;"," ",$cols[1][$i]);
-				$cellValue = trim(html_entity_decode($cellValue));
-				if ($count == 1) {
-					//Header cell, this will become the key used later.
-					$keys[$i] = $cellValue;
-					$addHolding = false;
-				} else {
-					//We are in the body of the call number field.
-					if (sizeof($cols[1]) == 1){
-						//This is a special case, i.e. a download link.  Process it differently
-						//Get the last holding we processed.
-						if (count($ret) > 0){
-							$lastHolding = $ret[$numHoldings -1];
-							$linkParts = array();
-							if (preg_match_all('/<a href=[\'"](.*?)[\'"]>(.*)(?:<\/a>)*/s', $cellValue, $linkParts)){
-								$linkCtr = 0;
-								foreach ($linkParts[1] as $index => $linkInfo){
-									$linkText = $linkParts[2][$index];
-									$linkText = trim(preg_replace('/Click here (for|to) access\.?\s*/', '', $linkText));
-									$isDownload = preg_match('/(SpringerLink|NetLibrary|digital media|Online version|ebrary|gutenberg|Literature Online)\.?/i', $linkText);
-									$linkUrl = $linkParts[1][$index];
-									if (preg_match('/netlibrary/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'NetLibrary';
-									}elseif (preg_match('/ebscohost/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'Ebsco';
-									}elseif (preg_match('/overdrive/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'OverDrive';
-									}elseif (preg_match('/ebrary/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'ebrary';
-									}elseif (preg_match('/gutenberg/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'Gutenberg Project';
-									}elseif (preg_match('/gale/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'Gale Group';
-									}
-									$lastHolding['link'][] = array('link' => $linkUrl,
-                                                                   'linkText' => $linkText,
-                                                                   'isDownload' => $isDownload);
-									$linkCtr++;
-								}
-								$ret[$numHoldings -1] = $lastHolding;
-							}
-
-							$addHolding = false;
-						}
-					}else{
-						//This is a normal call number row.
-						//should have Location, Call Number, and Status
-						if (stripos($keys[$i],$loc_col_name) > -1) {
-							//If the location has a link in it, it is a link to a map of the library
-							//Process that differently and store independently
-							if (preg_match('/<a href=[\'"](.*?)[\'"]>(.*)/s', $cellValue, $linkParts)){
-								$curHolding['locationLink'] = $linkParts[1];
-								$location = trim($linkParts[2]);
-								if (substr($location, strlen($location) -4, 4) == '</a>'){
-									$location = substr($location, 0, strlen($location) -4);
-								}
-								$curHolding['location'] = $location;
-
-							}else{
-								$curHolding['location'] = strip_tags($cellValue);
-							}
-							//Trim off the courier code if one exists
-							if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $curHolding['location'], $locationParts)){
-								$curHolding['location'] = $locationParts[1];
-							}else{
-								$curHolding['location'] = $curHolding['location'];
-							}
-						}
-						if (stripos($keys[$i],$reserves_col_name) > -1) {
-							if (stripos($cellValue,$reserves_key_name) > -1) {  // if the location name has "reserves"
-								$curHolding['reserve'] = 'Y';
-							} else if(stripos($cols[1][$i],$transit_key_name) > -1) {
-								$curHolding['reserve'] = 'Y';
-							} else {
-								$curHolding['reserve'] = 'N';
-							}
-						}
-						if (stripos($keys[$i],$call_col_name) > -1) {
-							$curHolding['callnumber'] = strip_tags($cellValue);
-						}
-						if (stripos($keys[$i],$status_col_name) > -1) {
-							//Load status information
-							$curHolding['status'] = $cellValue;
-							if (stripos($cellValue,$stat_due) > -1) {
-								$p = substr($cellValue,stripos($cellValue,$stat_due));
-								$s = trim($p, $stat_due);
-								$curHolding['duedate'] = $s;
-							}
-
-							$statfull = strip_tags($cellValue);
-							if (isset($driver->statusTranslations[$statfull])){
-								$statfull = $driver->statusTranslations[$statfull];
-							}else{
-								$statfull = strtolower($statfull);
-								$statfull = ucwords($statfull);
-							}
-							$curHolding['statusfull'] = $statfull;
-						}
-					}
-
-				}
-			} //End looping through columns
-
-			if ($addHolding){
-				$numHoldings++;
-				$curHolding['id'] = $id;
-				$curHolding['number'] = $numHoldings;
-				$curHolding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
-				$ret[] = $curHolding;
-			}
-			$count++;
-		} //End looping through rows
 		$timer->logTime('processed all holdings rows');
 
 		global $locationSingleton;
@@ -315,6 +171,9 @@ class MillenniumStatusLoader{
 					$holding['locationCode'] = $locationCode;
 				}
 			}
+			if ($holding['locationCode'] == '?????'){
+				$logger->log("Did not find location code for " . $holding['location'] , PEAR_LOG_DEBUG);
+			}
 
 			//Now that we have the location code, try to match with the marc record
 			$holding['iType'] = 0;
@@ -325,10 +184,11 @@ class MillenniumStatusLoader{
 					if (strlen($itemData['callnumber']) == 0){
 						$callNumberMatched = (strlen($holding['callnumber']) == 0);
 					}else{
-						$callNumberMatched = (strpos($holding['callnumber'], $itemData['callnumber']) === 0);
+						$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
 					}
 					if ($locationMatched && $callNumberMatched){
 						$holding['iType'] = $itemData['iType'];
+						$itemData['matched'] = true;
 					}
 				}
 			}
@@ -465,5 +325,156 @@ class MillenniumStatusLoader{
 		}else{
 			return $sorted_array;
 		}
+	}
+
+	private static function parseHoldingRows($id, $rows, $keys){
+		global $configArray;
+		$loc_col_name      = $configArray['OPAC']['location_column'];
+		$call_col_name     = $configArray['OPAC']['call_no_column'];
+		$status_col_name   = $configArray['OPAC']['status_column'];
+		$reserves_col_name = $configArray['OPAC']['location_column'];
+		$reserves_key_name = $configArray['OPAC']['reserves_key_name'];
+		$transit_key_name  = $configArray['OPAC']['transit_key_name'];
+		$stat_avail        = $configArray['OPAC']['status_avail'];
+		$stat_due          = $configArray['OPAC']['status_due'];
+		$stat_libuse       = $configArray['OPAC']['status_libuse'];
+
+		$ret = array();
+		$count = 0;
+		$numHoldings = 0;
+		foreach ($rows as $row) {
+			//Skip the first row, it is always blank.
+			if ($count == 0){
+				$count++;
+				continue;
+			}
+			//Break up each row into columns
+			$cols = array();
+			preg_match_all('/<t[dh].*?>\\s*(?:\\s*<!-- .*? -->\\s*)*\\s*(.*?)\\s*<\/t[dh]>/s', $row, $cols, PREG_PATTERN_ORDER);
+
+			$curHolding = array();
+			$addHolding = true;
+			//Process each cell
+			for ($i=0; $i < sizeof($cols[1]); $i++) {
+				//Get the value of the cell
+				$cellValue = str_replace("&nbsp;"," ",$cols[1][$i]);
+				$cellValue = trim(html_entity_decode($cellValue));
+				if ($count == 1) {
+					//Header cell, this will become the key used later.
+					$keys[$i] = $cellValue;
+					$addHolding = false;
+				} else {
+					//We are in the body of the call number field.
+					if (sizeof($cols[1]) == 1){
+						//This is a special case, i.e. a download link.  Process it differently
+						//Get the last holding we processed.
+						if (count($ret) > 0){
+							$lastHolding = $ret[$numHoldings -1];
+							$linkParts = array();
+							if (preg_match_all('/<a href=[\'"](.*?)[\'"]>(.*)(?:<\/a>)*/s', $cellValue, $linkParts)){
+								$linkCtr = 0;
+								foreach ($linkParts[1] as $index => $linkInfo){
+									$linkText = $linkParts[2][$index];
+									$linkText = trim(preg_replace('/Click here (for|to) access\.?\s*/', '', $linkText));
+									$isDownload = preg_match('/(SpringerLink|NetLibrary|digital media|Online version|ebrary|gutenberg|Literature Online)\.?/i', $linkText);
+									$linkUrl = $linkParts[1][$index];
+									if (preg_match('/netlibrary/i', $linkUrl)){
+										$isDownload = true;
+										//$linkText = 'NetLibrary';
+									}elseif (preg_match('/ebscohost/i', $linkUrl)){
+										$isDownload = true;
+										//$linkText = 'Ebsco';
+									}elseif (preg_match('/overdrive/i', $linkUrl)){
+										$isDownload = true;
+										//$linkText = 'OverDrive';
+									}elseif (preg_match('/ebrary/i', $linkUrl)){
+										$isDownload = true;
+										//$linkText = 'ebrary';
+									}elseif (preg_match('/gutenberg/i', $linkUrl)){
+										$isDownload = true;
+										//$linkText = 'Gutenberg Project';
+									}elseif (preg_match('/gale/i', $linkUrl)){
+										$isDownload = true;
+										//$linkText = 'Gale Group';
+									}
+									$lastHolding['link'][] = array('link' => $linkUrl,
+                                                                   'linkText' => $linkText,
+                                                                   'isDownload' => $isDownload);
+									$linkCtr++;
+								}
+								$ret[$numHoldings -1] = $lastHolding;
+							}
+
+							$addHolding = false;
+						}
+					}else{
+						//This is a normal call number row.
+						//should have Location, Call Number, and Status
+						if (stripos($keys[$i],$loc_col_name) > -1) {
+							//If the location has a link in it, it is a link to a map of the library
+							//Process that differently and store independently
+							if (preg_match('/<a href=[\'"](.*?)[\'"]>(.*)/s', $cellValue, $linkParts)){
+								$curHolding['locationLink'] = $linkParts[1];
+								$location = trim($linkParts[2]);
+								if (substr($location, strlen($location) -4, 4) == '</a>'){
+									$location = substr($location, 0, strlen($location) -4);
+								}
+								$curHolding['location'] = $location;
+
+							}else{
+								$curHolding['location'] = strip_tags($cellValue);
+							}
+							//Trim off the courier code if one exists
+							if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $curHolding['location'], $locationParts)){
+								$curHolding['location'] = $locationParts[1];
+							}else{
+								$curHolding['location'] = $curHolding['location'];
+							}
+						}
+						if (stripos($keys[$i],$reserves_col_name) > -1) {
+							if (stripos($cellValue,$reserves_key_name) > -1) {  // if the location name has "reserves"
+								$curHolding['reserve'] = 'Y';
+							} else if(stripos($cols[1][$i],$transit_key_name) > -1) {
+								$curHolding['reserve'] = 'Y';
+							} else {
+								$curHolding['reserve'] = 'N';
+							}
+						}
+						if (stripos($keys[$i],$call_col_name) > -1) {
+							$curHolding['callnumber'] = strip_tags($cellValue);
+						}
+						if (stripos($keys[$i],$status_col_name) > -1) {
+							//Load status information
+							$curHolding['status'] = $cellValue;
+							if (stripos($cellValue,$stat_due) > -1) {
+								$p = substr($cellValue,stripos($cellValue,$stat_due));
+								$s = trim($p, $stat_due);
+								$curHolding['duedate'] = $s;
+							}
+
+							$statfull = strip_tags($cellValue);
+							if (isset($driver->statusTranslations[$statfull])){
+								$statfull = $driver->statusTranslations[$statfull];
+							}else{
+								$statfull = strtolower($statfull);
+								$statfull = ucwords($statfull);
+							}
+							$curHolding['statusfull'] = $statfull;
+						}
+					}
+
+				}
+			} //End looping through columns
+
+			if ($addHolding){
+				$numHoldings++;
+				$curHolding['id'] = $id;
+				$curHolding['number'] = $numHoldings;
+				$curHolding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
+				$ret[] = $curHolding;
+			}
+			$count++;
+		} //End looping through rows
+		return $ret;
 	}
 }
