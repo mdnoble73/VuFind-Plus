@@ -179,7 +179,7 @@ public class MarcRecordDetails {
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
-		boolean allItemsSuppressed = true;
+		//boolean allItemsSuppressed = true;
 		// Check the 907c field for manual suppresion
 		String manualSuppression = getFirstFieldVal("907c");
 		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")) {
@@ -388,9 +388,9 @@ public class MarcRecordDetails {
 					// logger.debug("Item/Bib is suppressed.");
 				}
 			}
-			if (!itemSuppressed) {
+			/*if (!itemSuppressed) {
 				allItemsSuppressed = false;
-			}
+			}*/
 		}
 		for (String curAdditonalLocation : additionalLocations){
 			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(curAdditonalLocation);
@@ -406,7 +406,7 @@ public class MarcRecordDetails {
 				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
 			}
 			if (!itemSuppressed){
-				allItemsSuppressed = false;
+				//allItemsSuppressed = false;
 				// Map library system (institution)
 				if (libraryIndexingInfo != null) {
 					librarySystems.add(libraryIndexingInfo.getFacetLabel());
@@ -438,9 +438,11 @@ public class MarcRecordDetails {
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;
-		} else if (allItemsSuppressed) {
-			logger.debug("Suppressing bib because all items are suppressed.");
-			bibSuppressed = true;
+		//Don't suppress if all items are suppressed because some periodicals have 
+		//dummy records that have dummy records for scoping, but no full items.
+		//} else if (allItemsSuppressed) {
+			//logger.debug("Suppressing bib because all items are suppressed.");
+			//bibSuppressed = true;
 		}
 
 		addField(mappedFields, "bib_suppression", bibSuppressed ? "suppressed" : "notsuppressed");
