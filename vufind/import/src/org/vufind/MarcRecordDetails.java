@@ -179,7 +179,7 @@ public class MarcRecordDetails {
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
-		//boolean allItemsSuppressed = true;
+		boolean allItemsSuppressed = true;
 		// Check the 907c field for manual suppresion
 		String manualSuppression = getFirstFieldVal("907c");
 		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")) {
@@ -326,7 +326,7 @@ public class MarcRecordDetails {
 						if (dueDate.length() == 0) {
 							if (icode2Subfield != null) {
 								String icode2 = icode2Subfield.getData().toLowerCase().trim();
-								if (icode2.equals("n") || icode2.equals("d") || icode2.equals("x")) {
+								if (icode2.equals("n") || icode2.equals("x")) {
 									// logger.debug("Suppressing item because icode2 is " +
 									// icode2);
 									itemSuppressed = true;
@@ -388,9 +388,9 @@ public class MarcRecordDetails {
 					// logger.debug("Item/Bib is suppressed.");
 				}
 			}
-			/*if (!itemSuppressed) {
+			if (!itemSuppressed) {
 				allItemsSuppressed = false;
-			}*/
+			}
 		}
 		for (String curAdditonalLocation : additionalLocations){
 			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(curAdditonalLocation);
@@ -406,7 +406,7 @@ public class MarcRecordDetails {
 				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
 			}
 			if (!itemSuppressed){
-				//allItemsSuppressed = false;
+				allItemsSuppressed = false;
 				// Map library system (institution)
 				if (libraryIndexingInfo != null) {
 					librarySystems.add(libraryIndexingInfo.getFacetLabel());
@@ -438,11 +438,9 @@ public class MarcRecordDetails {
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;
-		//Don't suppress if all items are suppressed because some periodicals have 
-		//dummy records that have dummy records for scoping, but no full items.
-		//} else if (allItemsSuppressed) {
-			//logger.debug("Suppressing bib because all items are suppressed.");
-			//bibSuppressed = true;
+		} else if (allItemsSuppressed) {
+			logger.debug("Suppressing bib because all items are suppressed.");
+			bibSuppressed = true;
 		}
 
 		addField(mappedFields, "bib_suppression", bibSuppressed ? "suppressed" : "notsuppressed");
