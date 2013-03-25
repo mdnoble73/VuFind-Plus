@@ -1,6 +1,7 @@
 package org.vufind;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 
 public class LibraryIndexingInfo {
 	private Long libraryId;
@@ -52,6 +53,15 @@ public class LibraryIndexingInfo {
 		}
 		return null;
 	}
+	public LinkedHashSet<String> getExtraLocationIndexingInfo(String locationCode) {
+		LinkedHashSet<String> extraLocations = new LinkedHashSet<String>();
+		for (LocationIndexingInfo locationInfo : locations.values()){
+			if (locationInfo.matchesExtraLocation(locationCode)){
+				extraLocations.add(locationInfo.getFacetLabel());
+			}
+		}
+		return extraLocations;
+	}
 	public boolean hasCode(String curCode) {
 		for (LocationIndexingInfo locationInfo : locations.values()){
 			if (curCode.startsWith(locationInfo.getCode())){
@@ -75,6 +85,4 @@ public class LibraryIndexingInfo {
 	public String getIlsCode() {
 		return ilsCode;
 	}
-	
-	
 }

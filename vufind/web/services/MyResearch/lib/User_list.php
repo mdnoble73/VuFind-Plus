@@ -84,7 +84,7 @@ class User_list extends SolrDataObject
 		//If the user is scoped to just see holdings for their location, only make the list available for that location
 		//unless the user a library admin
 		$scopeToLocation = false;
-		if ($homeLocation->useScope == 1 && strlen($homeLocation->defaultLocationFacet) > 0){
+		if ($homeLocation->useScope == 1 && $homeLocation->restrictSearchByLocation){
 			if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin')){
 				$scopeToLocation = false;
 			}else{

@@ -14,6 +14,7 @@ class Location extends DB_DataObject
 	public $code;					//varchar(5)
 	public $displayName;			//varchar(40)
 	public $libraryId;				//int(11)
+	public $extraLocationCodesToInclude;
 	public $validHoldPickupBranch;	//tinyint(4)
 	public $nearbyLocation1;		//int(11)
 	public $nearbyLocation2;		//int(11)
@@ -21,7 +22,8 @@ class Location extends DB_DataObject
 	public $scope;
 	public $useScope;
 	public $facetLabel;
-	public $defaultLocationFacet;
+	public $restrictSearchByLocation;
+	public $includeDigitalCollection;
 	public $showHoldButton;
 	public $showAmazonReviews;
 	public $showStandardReviews;
@@ -92,6 +94,7 @@ class Location extends DB_DataObject
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'extraLocationCodesToInclude', 'type'=>'text', 'label'=> 'Extra Locations To Include', 'description'=>'A list of other location codes to include in this location for indexing special collections, juvenile collections, etc.', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
 			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
 			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8', 'hideInLists' => true),
@@ -115,7 +118,10 @@ class Location extends DB_DataObject
 
 			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
-				array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true, 'size'=>'40'),
+				//array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true, 'size'=>'40'),
+				array('property'=>'restrictSearchByLocation', 'type'=>'checkbox', 'label'=>'Restrict Search By Location', 'description'=>'Whether or not search results should only include titles from this location', 'hideInLists' => true),
+				array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),
+
 				array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true),
 				array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
 				array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),

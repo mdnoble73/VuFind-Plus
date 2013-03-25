@@ -16,7 +16,7 @@ class SearchSources{
 
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
-		if ($location != null && $location->useScope && strlen($location->defaultLocationFacet) > 0){
+		if ($location != null && $location->useScope && $location->restrictSearchByLocation){
 			$repeatSearchSetting = $location->repeatSearchOption;
 			$repeatInWorldCat = $location->repeatInWorldCat == 1;
 			$repeatInProspector = $location->repeatInProspector == 1;
@@ -42,7 +42,7 @@ class SearchSources{
 		$marmotAdded = false;
 
 		//Local search
-		if (isset($location) && $location != null && $location->useScope && strlen($location->defaultLocationFacet) > 0){
+		if (isset($location) && $location != null && $location->useScope && $location->restrictSearchByLocation){
 			$searchOptions['local'] = array(
               'name' => $location->displayName,
               'description' => "The {$location->displayName} catalog.",
@@ -62,7 +62,7 @@ class SearchSources{
 
 		if (($location != null) &&
 		($repeatSearchSetting == 'marmot' || $repeatSearchSetting == 'librarySystem') &&
-		($location->useScope && strlen($location->defaultLocationFacet) > 0)
+		($location->useScope && $location->restrictSearchByLocation)
 		){
 			$searchOptions[$library->subdomain] = array(
               'name' => $library->displayName,
@@ -113,7 +113,7 @@ class SearchSources{
 		//Marmot Global search
 		if (isset($library) &&
 		($repeatSearchSetting == 'marmot') &&
-		(strlen($library->defaultLibraryFacet) > 0)
+		$library->restrictSearchByLibrary
 		&& $marmotAdded == false
 		){
 

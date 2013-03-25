@@ -74,7 +74,7 @@ function getExtraConfigArray($name)
 			global $librarySingleton;
 			$library = $librarySingleton->getActiveLibrary();
 			if (isset($library)){
-				if (strlen($library->defaultLibraryFacet) > 0 && $library->useScope){
+				if ($library->restrictSearchByLibrary && $library->useScope){
 					unset($extraConfigs[$name]['Results']['institution']);
 					unset($extraConfigs[$name]['Author']['institution']);
 				}
@@ -82,7 +82,7 @@ function getExtraConfigArray($name)
 			global $locationSingleton;
 			$activeLocation = $locationSingleton->getActiveLocation();
 			if (!is_null($activeLocation)){
-				if (strlen($activeLocation->defaultLocationFacet) && $activeLocation->useScope){
+				if ($activeLocation->restrictSearchByLocation && $activeLocation->useScope){
 					unset($extraConfigs[$name]['Results']['institution']);
 					unset($extraConfigs[$name]['Results']['building']);
 					unset($extraConfigs[$name]['Author']['institution']);

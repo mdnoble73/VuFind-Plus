@@ -348,6 +348,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `systemMessage` VARCHAR(512) DEFAULT '';",
 				),
 			),
+			'library_30' => array(
+				'title' => 'Library 30',
+				'description' => 'Add bettter controls for restricting what is searched',
+				'sql' => array(
+					"ALTER TABLE library ADD restrictSearchByLibrary TINYINT(1) DEFAULT '0'",
+					"ALTER TABLE library ADD includeDigitalCollection TINYINT(1) DEFAULT '1'",
+					"UPDATE library set restrictSearchByLibrary = 1 where defaultLibraryFacet <> ''"
+				),
+			),
 
 			'library_facets' => array(
 				'title' => 'Library Facets',
@@ -487,14 +496,25 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_7' => array(
+				'title' => 'Location 7',
+				'description' => 'Add extraLocationCodesToInclude field for indexing of juvenile collections and other special collections, and add bettter controls for restricting what is searched',
+				'sql' => array(
+					"ALTER TABLE location ADD extraLocationCodesToInclude VARCHAR(255) DEFAULT ''",
+					"ALTER TABLE location ADD restrictSearchByLocation TINYINT(1) DEFAULT '0'",
+					"ALTER TABLE location ADD includeDigitalCollection TINYINT(1) DEFAULT '1'",
+					"UPDATE location set restrictSearchByLocation = 1 where defaultLocationFacet <> ''"
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',
 				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE user ADD displayName VARCHAR( 30 ) NOT NULL DEFAULT ''",
-		),
-		),
+				),
+			),
 
 		'user_phone' => array(
 			'title' => 'User phone',

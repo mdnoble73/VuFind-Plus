@@ -18,7 +18,8 @@ class Library extends DB_DataObject
 	public $ilsCode;
 	public $themeName; 				//varchar(15)
 	public $searchesFile;        //varchar(15)
-	public $defaultLibraryFacet;  	//varchar(20)
+	public $restrictSearchByLibrary;
+	public $includeDigitalCollection;
 	public $allowProfileUpdates;   //tinyint(4)
 	public $allowFreezeHolds;   //tinyint(4)
 	public $scope; 					//smallint(6)
@@ -174,7 +175,8 @@ class Library extends DB_DataObject
 			)),
 			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
 				'facetLabel' => array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label for the library system in the Library System Facet.', 'size'=>'40', 'hideInLists' => true,),
-				'defaultLibraryFacet' => array('property'=>'defaultLibraryFacet', 'type'=>'text', 'label'=>'Default Library Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'size'=>'40', 'hideInLists' => true,),
+				'restrictSearchByLibrary' => array('property'=>'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
+				'includeDigitalCollection' => array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),
 				'boostByLibrary' => array('property'=>'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
 				'searchesFile' => array('property'=>'searchesFile', 'type'=>'text', 'label'=>'Searches File', 'description'=>'The name of the searches file which should be used while searching', 'hideInLists' => true,),
 				'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),

@@ -1120,14 +1120,22 @@ class Solr implements IndexEngine {
 			}
 			if ($this->scopingDisabled == false){
 				if (isset($searchLibrary)){
-					if (strlen($searchLibrary->defaultLibraryFacet) > 0){
-						$filter[] = "(institution:\"{$searchLibrary->defaultLibraryFacet}\" OR institution:\"Shared Digital Collection\" OR institution:\"Digital Collection\" OR institution:\"{$searchLibrary->defaultLibraryFacet} Online\")";
+					if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){
+						$filter[] = "(institution:\"{$searchLibrary->facetLabel}\" OR institution:\"Shared Digital Collection\" OR institution:\"Digital Collection\" OR institution:\"{$searchLibrary->facetLabel} Online\")";
+					}else if ($searchLibrary->restrictSearchByLibrary){
+						$filter[] = "institution:\"{$searchLibrary->facetLabel}\"";
+					}else if (!$searchLibrary->includeDigitalCollection){
+						$filter[] = "!(institution:\"Digital Collection\" OR institution:\"{$searchLibrary->facetLabel} Online\")";
 					}
 				}
 
 				if ($searchLocation != null){
-					if (strlen($searchLocation->defaultLocationFacet)){
-						$filter[] = "(building:\"{$searchLocation->defaultLocationFacet}\" OR building:\"Shared Digital Collection\" OR building:\"Digital Collection\" OR building:\"{$searchLocation->defaultLocationFacet} Online\")";
+					if ($searchLocation->restrictSearchByLocation && $searchLocation->includeDigitalCollection){
+						$filter[] = "(building:\"{$searchLocation->facetLabel}\" OR building:\"Shared Digital Collection\" OR building:\"Digital Collection\" OR building:\"{$searchLocation->facetLabel} Online\")";
+					}else if ($searchLocation->restrictSearchByLocation){
+						$filter[] = "(building:\"{$searchLocation->facetLabel}\")";
+					}else if (!$searchLocation->includeDigitalCollection){
+						$filter[] = "!(building:\"Shared Digital Collection\" OR building:\"Digital Collection\" OR building:\"{$searchLibrary->facetLabel} Online\")";
 					}
 				}
 

@@ -33,7 +33,7 @@ class AlphaBrowse{
 		$libaryToBrowse = -1;
 		$scope = 0;
 		$scopeId = '';
-		if (isset($searchLibrary) && $searchLibrary->defaultLibraryFacet){
+		if (isset($searchLibrary) && $searchLibrary->restrictSearchByLibrary){
 			$libaryToBrowse = $searchLibrary->libraryId;
 			$scope = 1;
 			$scopeId = $searchLibrary->subdomain;

@@ -44,13 +44,13 @@ import org.solrmarc.tools.CallNumUtils;
 import org.solrmarc.tools.SolrMarcIndexerException;
 import org.solrmarc.tools.Utils;
 
-import com.jamesmurty.utils.XMLBuilder;
-
 import bsh.BshMethod;
 import bsh.EvalError;
 import bsh.Interpreter;
 import bsh.Primitive;
 import bsh.UtilEvalError;
+
+import com.jamesmurty.utils.XMLBuilder;
 
 public class MarcRecordDetails {
 	private MarcProcessor										marcProcessor;
@@ -227,6 +227,11 @@ public class MarcRecordDetails {
 				// Map location (building)
 				if (locationIndexingInfo != null) {
 					locations.add(locationIndexingInfo.getFacetLabel());
+				}
+				//Check for extra locations
+				LinkedHashSet<String> extraLocations = marcProcessor.getExtraLocations(locationCode);
+				if (extraLocations.size() > 0){
+					locations.addAll(extraLocations);
 				}
 
 				// Barcodes

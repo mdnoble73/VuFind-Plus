@@ -291,7 +291,7 @@ public class MarcProcessor {
 		}
 		
 		try {
-			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, libraryId, facetLabel, defaultLocationFacet, code from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, libraryId, facetLabel, defaultLocationFacet, code, extraLocationCodesToInclude from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
 			while (locationFacetRS.next()) {
 				Long libraryId = locationFacetRS.getLong("libraryId");
@@ -311,6 +311,7 @@ public class MarcProcessor {
 				locationInfo.setFacetLabel(facetLabel);
 				locationInfo.setScoped(defaultLocationFacet.length() > 0);
 				locationInfo.setCode(code);
+				locationInfo.setExtraLocationCodesToInclude(locationFacetRS.getString("extraLocationCodesToInclude").trim());
 				libraryInfo.addLocation(locationInfo);
 				
 			}
@@ -954,6 +955,22 @@ public class MarcProcessor {
 		}
 		return null;
 	}
+	
+	private HashMap<String, LinkedHashSet<String>> extraLocationIndexingInfoByCode = new HashMap<String, LinkedHashSet<String>>();
+	public LinkedHashSet<String> getExtraLocations(String locationCode) {
+		if (extraLocationIndexingInfoByCode.containsKey(locationCode)){
+			return extraLocationIndexingInfoByCode.get(locationCode);
+		}
+		LinkedHashSet<String> extraLocations = new LinkedHashSet<String>();
+		for (LibraryIndexingInfo libraryInfo : libraryIndexingInfo.values()){
+			LinkedHashSet<String> locationInfo = libraryInfo.getExtraLocationIndexingInfo(locationCode);
+			if (locationInfo != null){
+				extraLocations.addAll(locationInfo);
+			}
+		}
+		extraLocationIndexingInfoByCode.put(locationCode, extraLocations);
+		return extraLocations;
+	}
 
 	public ArrayList<String> getLocationCodes() {
 		return locationCodes;
@@ -1022,5 +1039,4 @@ public class MarcProcessor {
 		}
 		return allPtypes;
 	}
-
 }
