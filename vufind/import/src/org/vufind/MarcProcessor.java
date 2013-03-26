@@ -3,6 +3,7 @@ package org.vufind;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +55,7 @@ public class MarcProcessor {
 	private String													marcEncoding		= "UTF8";
 
 	protected String												marcRecordPath;
+	private String 													individualMarcPath;
 	private HashMap<String, MarcIndexInfo>	marcIndexInfo		= new HashMap<String, MarcIndexInfo>();
 
 	/** map: keys are solr field names, values inform how to get solr field values */
@@ -127,6 +129,12 @@ public class MarcProcessor {
 		// Get the directory where the marc records are stored.vufindConn
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
 			logger.error("Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
+			return false;
+		}
+		
+		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
+		if (individualMarcPath == null || individualMarcPath.length() == 0) {
+			logger.error("Individual Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
 			return false;
 		}
 
@@ -773,6 +781,21 @@ public class MarcProcessor {
 						} else {
 							logger.debug("Record is new");
 							recordStatus = RECORD_NEW;
+						}
+						//Write the individual file 
+						String shortId = marcInfo.getIlsId().replace(".", "");
+						String firstChars = shortId.substring(0, 4);
+						String basePath = individualMarcPath + "/" + firstChars;
+						String individualFilename = basePath + "/" + shortId + ".mrc";
+						File individualFile = new File(individualFilename);
+						if (recordStatus == RECORD_NEW || recordStatus == RECORD_CHANGED_PRIMARY || !individualFile.exists()){
+							File baseFile = new File(basePath);
+							if (!baseFile.exists()){
+								baseFile.mkdirs();
+							}
+							FileWriter writer = new FileWriter(individualFile,false);
+							writer.write(marcInfo.getRawRecord());
+							writer.close();
 						}
 						
 						for (IMarcRecordProcessor processor : recordProcessors) {

@@ -321,16 +321,8 @@ class Home extends Action{
 
 	public function getStaffView($eContentRecord){
 		global $interface;
-		$marcRecord = $eContentRecord->marcRecord;
-		if (strlen($marcRecord) > 0){
-			$marc = trim($marcRecord);
-			$marc = preg_replace('/#31;/', "\x1F", $marc);
-			$marc = preg_replace('/#30;/', "\x1E", $marc);
-			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-
-			if (!($marcRecord = $marc->next())) {
-				PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
-			}
+		$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
+		if ($marcRecord != null){
 			$interface->assign('marcRecord', $marcRecord);
 			return 'RecordDrivers/Marc/staff.tpl';
 		}else{

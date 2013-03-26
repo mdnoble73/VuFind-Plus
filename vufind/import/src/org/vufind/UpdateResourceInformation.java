@@ -430,7 +430,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 			resourceInsertStmt.setString(9, recordInfo.getShortId());
 		}
 		resourceInsertStmt.setLong(10, recordInfo.getChecksum());
-		resourceInsertStmt.setString(11, recordInfo.getRawRecord());
+		resourceInsertStmt.setString(11, null);
 		if (recordInfo.isEContent()){
 			resourceInsertStmt.setString(12, "eContent");
 		}else{
@@ -467,7 +467,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 		resourceUpdateStmt.setString(6, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format")));
 		resourceUpdateStmt.setString(7, Util.trimTo(50, recordInfo.getFirstFieldValueInSet("format_category")));
 		resourceUpdateStmt.setLong(8, recordInfo.getChecksum());
-		resourceUpdateStmt.setString(9, recordInfo.getRawRecord());
+		resourceUpdateStmt.setString(9, null);
 		if (recordInfo.isEContent()){
 			resourceUpdateStmt.setString(10, Long.toString(recordInfo.geteContentRecordId()));
 		}else{

@@ -52,7 +52,6 @@ class EContentRecord extends DB_DataObject{
 	public $marcControlField;
 	public $collection;
 	public $literary_form_full;
-	public $marcRecord;
 	public $status; //'active', 'archived', or 'deleted'
 
 	/* Static get */
@@ -1487,14 +1486,6 @@ class EContentRecord extends DB_DataObject{
 
 	public function setliterary_form_full($literary_form_full){
 		$this->literary_form_full = $literary_form_full;
-	}
-
-	public function getmarcrecord(){
-		return $this->marcrecord;
-	}
-
-	public function setmarcrecord($marcrecord){
-		$this->marcrecord = $marcrecord;
 	}
 
 	public function getstatus(){

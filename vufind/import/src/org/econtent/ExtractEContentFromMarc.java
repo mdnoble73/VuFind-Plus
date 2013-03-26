@@ -510,7 +510,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		updateEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("ctrlnum"));
 		updateEContentRecord.setString(curField++, accessType);
 		updateEContentRecord.setLong(curField++, new Date().getTime() / 1000);
-		updateEContentRecord.setString(curField++, recordInfo.toString());
+		updateEContentRecord.setString(curField++, null);
 		updateEContentRecord.setString(curField++, recordInfo.getExternalId());
 		updateEContentRecord.setInt(curField++, recordInfo.hasItemLevelOwnership());
 		updateEContentRecord.setLong(curField++, eContentRecordId);
@@ -566,7 +566,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		createEContentRecord.setString(curField++, recordInfo.getFirstFieldValueInSet("ctrlnum"));
 		createEContentRecord.setString(curField++, accessType);
 		createEContentRecord.setLong(curField++, new Date().getTime() / 1000);
-		createEContentRecord.setString(curField++, recordInfo.toString());
+		createEContentRecord.setString(curField++, null);
 		createEContentRecord.setString(curField++, recordInfo.getExternalId());
 		createEContentRecord.setInt(curField++, recordInfo.hasItemLevelOwnership());
 		int rowsInserted = createEContentRecord.executeUpdate();

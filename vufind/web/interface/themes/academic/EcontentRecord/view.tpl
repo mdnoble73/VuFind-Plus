@@ -70,9 +70,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="inProspectorPlaceholder"></div>
 			</div>
 		{/if}
-		
+
 		{include file="EcontentRecord/tag_sidegroup.tpl"}
-		
+
 		{if is_array($editions) && !$showOtherEditionsPopup}
 			<div class="sidegroup" id="otherEditionsSidegroup">
 				<h4>{translate text="Other Editions"}</h4>
@@ -98,16 +98,16 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/foreach}
 			</div>
 		{/if}
-		
+
 		<div class="sidegroup" id="similarAuthorsSidegroup">
 			<div id="similarAuthorPlaceholder"></div>
 		</div>
-		
+
 		<div class="sidegroup" id="similarTitlesSidegroup" style='display:none'>
 			{* Display either similar tiles from novelist or from the catalog*}
 			<div id="similarTitlePlaceholder"></div>
 		</div>
-		
+
 		{if is_array($similarRecords)}
 			<div id="relatedTitles">
 				<h4>{translate text="Other Titles"}</h4>
@@ -130,15 +130,15 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 		{/if}
 	</div>
-	
-	{if $error}<p class="error">{$error}</p>{/if} 
+
+	{if $error}<p class="error">{$error}</p>{/if}
 	<div id="main-content" class="full-result-content">
 		<div id = "fullcontent">
 			<div id='fullRecordSummaryAndImage'>
 				<div class="clearer"></div>
 				{* Display Book Cover *}
-				{if $user->disableCoverArt != 1} 
-					<div id = "recordcover">	
+				{if $user->disableCoverArt != 1}
+					<div id = "recordcover">
 						<div class="recordcoverWrapper">
 							<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
 							<div id="goDeeperLink" class="godeeper" style="display:none">
@@ -148,16 +148,16 @@ function redrawSaveStatus() {literal}{{/literal}
 						</div>
 					</div>
 				{/if}
-			
+
 				{* Let the user rate this title *}
 				{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$id shortId=$id ratingData=$ratingData}
-			
+
 				{if $eContentRecord->isOverDrive()}
 					{* Place hold link *}
 					<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
 						<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
 					</div>
-					
+
 					{* Checkout link *}
 					<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
 						<a href="#" class="button" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
@@ -167,25 +167,25 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
 						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
 					</div>
-				
+
 					{* Checkout link *}
 					<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
 						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
 					</div>
-					
+
 					{* Access Online link *}
 					<div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
 						<a href="{$path}/EcontentRecord/{$id|escape:"url"}" class="button">{translate text="Access Online"}</a>
 					</div>
-					
+
 					{* Add to Wish List *}
 					<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
 						<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
 					</div>
 				{/if}
-				
+
 			</div>
-			
+
 			<div id='fullRecordTitleDetails'>
 				{* Display Title *}
 				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|regex_replace:"/(\/|:)$/":""|escape}{/if}
@@ -200,7 +200,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 				{/if}
 				</div>
-		
+
 				{* Display more information about the title*}
 				{if $eContentRecord->author}
 				<div class="resultInformation">
@@ -208,7 +208,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<span class="resultValue"><a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a></span>
 				</div>
 				{/if}
-		
+
 				{if count($additionalAuthorsList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Contributors'}:</span>
@@ -219,14 +219,14 @@ function redrawSaveStatus() {literal}{{/literal}
 						</span>
 					</div>
 				{/if}
-				
+
 				{if $eContentRecord->publishDate || $eContentRecord->publisher || $eContentRecord->publishLocation}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Published'}:</span>
 						<span class="resultValue">{$eContentRecord->publishLocation|escape} {$eContentRecord->publisher|escape} {$eContentRecord->publishDate|escape}</span>
 					</div>
 				{/if}
-				
+
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Format'}:</span>
 					<span class="resultValue">
@@ -239,26 +239,26 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/if}
 					</span>
 				</div>
-				
+
 				{if $eContentRecord->physicalDescription}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Physical Desc.'}:</span>
 					<span class="resultValue">{$eContentRecord->physicalDescription|escape}</span>
 				</div>
 				{/if}
-		
+
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Language'}:</span>
 					<span class="resultValue">{$eContentRecord->language|escape}</span>
 				</div>
-				
+
 				{if $eContentRecord->edition}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Edition'}:</span>
 						<span class="resultValue">{$eContentRecord->edition|escape}</span>
 					</div>
 				{/if}
-	
+
 				{if count($lccnList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='LCCN'}:</span>
@@ -267,7 +267,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/foreach}
 					</div>
 				{/if}
-	
+
 				{if count($isbnList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='ISBN'}:</span>
@@ -278,7 +278,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						</span>
 					</div>
 				{/if}
-	
+
 				{if count($issnList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='ISSN'}:</span>
@@ -287,7 +287,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/foreach}
 					</div>
 				{/if}
-					 
+
 				{if count($upcList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='UPC'}:</span>
@@ -296,7 +296,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/foreach}
 					</div>
 				{/if}
-				
+
 				{if count($regionList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Region'}:</span>
@@ -305,7 +305,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{/foreach}
 					</div>
 				{/if}
-	
+
 				{if count($eraList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Era'}:</span>
@@ -313,11 +313,11 @@ function redrawSaveStatus() {literal}{{/literal}
 							<span class="resultValue">{$eraListItem|escape}</span>
 						{/foreach}
 					</div>
-				{/if} 
-			
+				{/if}
+
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Location'}:</span><span class="resultValue boldedResultValue" id="locationValue">Online</span></div>
 				<div class="resultInformation" ><span class="resultLabel">{translate text='Status'}:</span><span class="resultValue" id="statusValue">Loading...</span></div>
-					
+
 				{if count($subjects) > 0}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Subjects'}</span>
@@ -332,7 +332,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					</span>
 				</div>
 				{/if}
-				
+
 				{if $eContentRecord->description}
 				<div class="resultInformation">
 					<span class="resultLabel">{translate text='Summary'}</span>
@@ -341,10 +341,10 @@ function redrawSaveStatus() {literal}{{/literal}
 					</span>
 				</div>
 				{/if}
-			</div>	
+			</div>
 			{* End Title *}
 			<div id = "titleblock">
-				
+
 				{if count($seriesList) > 0}
 					<div class="resultInformation">
 						<span class="resultLabel">{translate text='Series'}:</<span class="resultLabel">
@@ -352,10 +352,10 @@ function redrawSaveStatus() {literal}{{/literal}
 							<span class="resultValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesListItem|escape:"url"}%22&amp;basicType=Series">{$seriesListItem|escape}</a></span>
 						{/foreach}
 					</div>
-				{/if} 
-			
-				
-				
+				{/if}
+
+
+
 			</div> {* End titleblock *}
 			<div>
 				<div class="clearer">&nbsp;</div>
@@ -380,12 +380,12 @@ function redrawSaveStatus() {literal}{{/literal}
 						<li id="copiestabLink"><a href="#copiestab">{translate text="Copies"}</a></li>
 						<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 					</ul>
-			
+
 					{* Display the content of individual tabs *}
 					<div id="formatstab">
 						<a name="formats"></a>
 						<div id="formatsPlaceholder">Loading...</div>
-						
+
 						<div id="additionalFormatActions">
 							{if $showOtherEditionsPopup}
 							<div class="otherEditionCopies button">
@@ -397,14 +397,14 @@ function redrawSaveStatus() {literal}{{/literal}
 							{/if}
 					 	</div>
 					</div>
-					
+
 					{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 						<div id="prospectorTab">
 							{* Display in Prospector Sidebar *}
 							<div id="inProspectorPlaceholder"></div>
 						</div>
 					{/if}
-					
+
 					{if $notes}
 						<div id ="notestab">
 							<ul class='notesList'>
@@ -414,7 +414,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							</ul>
 						</div>
 					{/if}
-			
+
 					{if $showAmazonReviews || $showStandardReviews || $showComments}
 					<div id="reviewtab">
 						{if $showComments}
@@ -422,14 +422,14 @@ function redrawSaveStatus() {literal}{{/literal}
 						{include file="Record/view-staff-reviews.tpl"}
 						</div>
 						{/if}
-						 
+
 						{if $showAmazonReviews || $showStandardReviews}
 						<h4>Professional Reviews</h4>
 						<div id='reviewPlaceholder'></div>
 						{/if}
 					</div>
 					{/if}
-					
+
 					{if $showComments == 1}
 						<div id = "readertab" >
 							<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" onclick="$('#userreview{$id}').slideDown();"><span class="silk add">&nbsp;</span>Add a Review</span></div>
@@ -440,7 +440,7 @@ function redrawSaveStatus() {literal}{{/literal}
 								{include file="EcontentRecord/submit-comments.tpl"}
 							</div>
 							{include file="EcontentRecord/view-comments.tpl"}
-							
+
 							{* Chili Fresh Reviews *}
 							{if $chiliFreshAccount && ($isbn || $upc || $issn)}
 								<h4>Chili Fresh Reviews</h4>
@@ -457,16 +457,16 @@ function redrawSaveStatus() {literal}{{/literal}
 							{/if}
 						</div>
 					{/if}
-			
+
 					<div id = "citetab" >
 						{include file="Record/cite.tpl"}
 					</div>
-			
+
 					<div id = "copiestab">
 						<div id="copiesPlaceholder">Loading...</div>
 					</div>
-			
-					{if $eContentRecord->marcRecord && $staffDetails != null}
+
+					{if $eContentRecord->ilsId && $staffDetails != null}
 						<div id = "stafftab">
 							{include file=$staffDetails}
 						</div>
