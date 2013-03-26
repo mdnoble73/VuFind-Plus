@@ -56,7 +56,7 @@ class MarcLoader{
 			}else{
 				require_once 'services/MyResearch/lib/Resource.php';
 				$resource = new Resource;
-				$resource->record_id = $record['id'];
+				$resource->record_id = $ilsId;
 				if ($record['recordtype'] == 'marc'){
 					$resource->source = 'VuFind';
 				}elseif ($record['recordtype'] == 'econtentRecord'){
