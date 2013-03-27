@@ -5,6 +5,7 @@ class MillenniumStatusLoader{
 		global $user;
 		global $timer;
 		global $configArray;
+		global $logger;
 
 		//Get information about holdings, order information, and issue information
 		$millenniumInfo = $driver->getMillenniumRecordInfo($id);
@@ -16,7 +17,7 @@ class MillenniumStatusLoader{
 			}else{
 				$holdQueueLength = 0;
 			}
-		}
+		}//
 
 		// Load Record Page
 		$r = substr($millenniumInfo->holdingsInfo, stripos($millenniumInfo->holdingsInfo, 'bibItems'));
@@ -181,8 +182,8 @@ class MillenniumStatusLoader{
 				if (!$itemData['matched']){
 					$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
 					$callNumberMatched = false;
-					if (strlen($itemData['callnumber']) == 0){
-						$callNumberMatched = (strlen($holding['callnumber']) == 0);
+					if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
+						$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
 					}else{
 						$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
 					}
