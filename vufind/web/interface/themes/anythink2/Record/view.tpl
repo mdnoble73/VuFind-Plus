@@ -391,6 +391,13 @@ function redrawSaveStatus() {
     <div id="record-details-header">
       <div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
     </div>
+
+   {if $overdriveLink}
+   <div class="link-to-download">
+     <a href="{$overdriveLink}" class="button">Download from Overdrive</a>
+   </div>
+   {/if}
+
     {if $summary}
     <div class="resultInformation">
       <h4>{translate text='Description'}</h4>
