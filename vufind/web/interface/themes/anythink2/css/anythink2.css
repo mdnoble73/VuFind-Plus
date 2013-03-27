@@ -1122,6 +1122,11 @@ body.Search--Home #fixed-wrapper {
 
 #record-details-header {
   border-bottom: 0;
+  margin-bottom: 10px;
+}
+
+.link-to-download {
+  margin-bottom: 10px;
 }
 
 #record-title-nav-wrapper {
