@@ -35,7 +35,10 @@ class MillenniumStatusLoader{
 
 		//Load item information from marc record
 		foreach ($itemFields as $itemField){
-			$itemData['callnumber'] = $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
+			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
+			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
+			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
+			$itemData['callnumber'] = $fullCallNumber;
 			$itemData['location'] = $itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : ($itemField->getSubfield('p') != null ? $itemField->getSubfield('p')->getData() : '?????');
 			$itemData['iType'] = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '0';
 			$itemData['matched'] = false;
