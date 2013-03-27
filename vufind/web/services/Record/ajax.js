@@ -32,7 +32,7 @@ function SaveComment(id, shortId, strings) {
 		}
 		$('#userreview' + shortId).slideUp();
 		var comment = $('#comment' + shortId).val();
-	
+
 		var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 		var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
 		$.ajax({
@@ -99,7 +99,7 @@ function LoadComments(id, strings) {
 		} else {
 			$("#commentList").html(strings.load_error);
 		}
-		
+
 		var staffComments = data.staffComments;
 		if (staffComments && staffComments.length > 0) {
 			$("#staffCommentList").html(staffComments);
@@ -120,7 +120,7 @@ function GetPreferredBranches() {
 	var url = path + "/MyResearch/AJAX";
 	var params = "method=GetPreferredBranches&username="
 	    + encodeURIComponent(username) + "&barcode="
-	    + encodeURIComponent(barcode) + "&holdCount=" 
+	    + encodeURIComponent(barcode) + "&holdCount="
 	    + encodeURIComponent(holdCount);
 	$('#holdError').hide();
 	$.getJSON(url + "?" + params, function(data) {
@@ -132,8 +132,8 @@ function GetPreferredBranches() {
 				var campus = document.placeHoldForm.campus;
 				campus.options.length = 0;
 				for (i = 0; i < locations.length; i++) {
-					campus.options[campus.options.length] = new Option(locations[i].displayName, 
-							locations[i].id, 
+					campus.options[campus.options.length] = new Option(locations[i].displayName,
+							locations[i].id,
 							locations[i].selected);
 				}
 				// Check to see if the user can cancel the hold
@@ -159,7 +159,7 @@ function GetPreferredBranches() {
 
 	  }
 	);
-	
+
 	return false;
 }
 
@@ -209,9 +209,9 @@ function GetEnrichmentInfo(id, isbn, upc, econtent) {
 				}
 				var seriesData = $(data).find("SeriesInfo").text();
 				if (seriesData && seriesData.length > 0) {
-					
+
 					seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
-	
+
 					seriesData = $.parseJSON(seriesData);
 					if (seriesData.titles.length > 0){
 						$('#list-series-tab').show();
@@ -245,12 +245,21 @@ function GetProspectorInfo(id) {
 				if (inProspectorData.length > 0) {
 					$("#inProspectorPlaceholder").html(inProspectorData);
 				}
+				var prospectorCopies = $(data).find("OwningLibrariesFormatted").text();
+				if (prospectorCopies && prospectorCopies.length > 0) {
+					$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
+				}
+				$("#inProspectorSidegroup").show();
+			}else{
+				if ($("#prospectortab_label")){
+					$("#prospectortab_label").hide();
+					if ($("#holdingstab_label").is(":visible")){
+						$("#moredetails-tabs").tabs("option", "active", 0);
+					}else{
+						$("#moredetails-tabs").tabs("option", "active", 2);
+					}
+				}
 			}
-			var prospectorCopies = $(data).find("OwningLibrariesFormatted").text();
-			if (prospectorCopies && prospectorCopies.length > 0) {
-				$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
-			}
-			$("#inProspectorSidegroup").show();
 		}
 	});
 }
@@ -266,8 +275,17 @@ function GetHoldingsInfo(id) {
 			if (holdingsData) {
 				if (holdingsData.length > 0) {
 					if (holdingsData.match(/No Copies Found/i)){
-						$("#moredetails-tabs").tabs("select", 1);
-						$("#moredetails-tabs").tabs("remove", 0);
+						try{
+							if ($("#prospectortab_label").is(":visible")){
+								$("#moredetails-tabs").tabs("option", "active", 1);
+							}else{
+								$("#moredetails-tabs").tabs("option", "active", 2);
+							}
+							$("#moredetails-tabs").tabs("option", "active", 1);
+							$("#holdingstab_label").hide();
+						}catch(e){
+
+						}
 					}else{
 						$("#holdingsPlaceholder").html(holdingsData);
 					}
