@@ -57,9 +57,11 @@ function redrawSaveStatus() {
           <img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
         </div>
       {/if}
+      {if !$hideHold}
       <div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
         <a class="button" href="{$path}/Record/{$id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
       </div>
+      {/if}
       {if $showOtherEditionsPopup}
       <div id="otherEditionCopies">
         <div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummariesAnythink('{$id}', false)">{translate text="Other Formats and Languages"}</a></div>

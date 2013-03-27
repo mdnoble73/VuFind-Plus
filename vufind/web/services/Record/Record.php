@@ -469,6 +469,7 @@ class Record extends Action
 		}
 
                 if (!empty($overdrive)) {
+			$interface->assign('hideHold', TRUE);
 			$interface->assign('overdriveLink', $overdrive);
                 }
 
