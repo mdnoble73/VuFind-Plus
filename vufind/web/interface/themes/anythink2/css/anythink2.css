@@ -1126,7 +1126,15 @@ body.Search--Home #fixed-wrapper {
 }
 
 .link-to-download {
+  font-size: 1.333em;
   margin-bottom: 10px;
+}
+
+.link-to-download a.button {
+  background: #B31E3B;
+  border-color: #8B2B3E #8B1A30 #8E0E27;
+  color: #fff !important;
+  text-shadow: #333 0 1px 1px;
 }
 
 #record-title-nav-wrapper {
