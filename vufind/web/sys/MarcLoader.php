@@ -21,7 +21,6 @@ class MarcLoader{
 
 	public static function loadEContentMarcRecord($econtentRecord){
 		if ($econtentRecord->ilsId != false){
-			echo("Loading marc record for econtentrecord");
 			return MarcLoader::loadMarcRecordByILSId($econtentRecord->ilsId);
 		}else{
 			return null;
