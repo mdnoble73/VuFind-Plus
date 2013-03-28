@@ -6,9 +6,11 @@
       <img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
       </a>
     {/if}
+    {if !$hideHold}
     <div class="requestThisLink" id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">
       <a class="button" href="{$url}/Record/{$summId|escape:"url"}/Hold">Hold</a>
     </div>
+    {/if}
   </div>
   <div class="resultActions" id="searchStars{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
     <div class="actions-first">
