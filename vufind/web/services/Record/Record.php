@@ -434,6 +434,12 @@ class Record extends Action
 					$showLink = true;
 					//Process some links differently so we can either hide them
 					//or show them in different areas of the catalog.
+					// Pull out overdrive link separately.
+					if (preg_match('/lib.overdrive.com/', $link)) {
+						$overdrive = $link;
+						$showLink = FALSE;
+					}
+
 					if (preg_match('/purchase|buy/i', $linkText) ||
 						preg_match('/barnesandnoble|tatteredcover|amazon|smashwords\.com/i', $link)){
 						$showLink = false;
@@ -461,6 +467,11 @@ class Record extends Action
 		if (isset($purchaseLinks) && count($purchaseLinks) > 0){
 			$interface->assign('purchaseLinks', $purchaseLinks);
 		}
+
+                if (!empty($overdrive)) {
+			$interface->assign('hideHold', TRUE);
+			$interface->assign('overdriveLink', $overdrive);
+                }
 
 		//Determine the cover to use
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
