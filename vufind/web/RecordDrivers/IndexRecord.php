@@ -722,6 +722,25 @@ class IndexRecord implements RecordInterface
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
 
+		require_once 'sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordFromRecord(array('id' => $id));
+
+                // Copied from services/Record/Record.php
+		$hideHold = FALSE;
+                $linkFields = $marcRecord->getFields('856');
+                if ($linkFields) {
+                  foreach ($linkFields as $marcField) {
+                    if ($marcField->getSubfield('u')) {
+                      $link = $marcField->getSubfield('u')->getData();
+                      if (preg_match('/lib.overdrive.com/', $link)) {
+			$hideHold = TRUE;
+                        break;
+                      }
+                    }
+                  }
+                }
+                $interface->assign('hideHold', $hideHold);
+
 		return 'RecordDrivers/Index/result.tpl';
 	}
 
