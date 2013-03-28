@@ -64,7 +64,9 @@ class MyRequests extends MyResearch
 			$materialsRequests->selectAdd('materials_request.*, description as statusLabel');
 			$materialsRequests->find();
 			while ($materialsRequests->fetch()){
-				$allRequests[] = clone $materialsRequests;
+        $request = clone $materialsRequests;
+        $request->userCancelable = in_array($request->status, MaterialsRequestStatus::userCancelableStatuses());
+        $allRequests[] = $request;
 			}
 		}else{
 			header('Location: ' . $configArray['Site']['path'] . '/MyResearch/Home?followupModule=MaterialsRequest&followupAction=MyRequests');
