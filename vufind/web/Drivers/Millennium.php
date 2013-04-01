@@ -168,9 +168,10 @@ class MillenniumDriver implements DriverInterface
 			//First clean out any records that are more than 5 minutes old
 			$cacheExpirationTime = time() - 5 * 60;
 			//$logger->log("Clearing millennium cache before $cacheExpirationTime", PEAR_LOG_INFO);
+			//Update memcache before clearing the database so we don't have tons of threads trying to clear the cache
+			$memcache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
 			$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
 			$millenniumCache->delete(true);
-			$memcache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
 		}
 		//Now see if the record already exists in our cache.
 		$millenniumCache = new MillenniumCache();
