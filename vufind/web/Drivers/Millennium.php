@@ -160,16 +160,17 @@ class MillenniumDriver implements DriverInterface
 		$scope = $this->getMillenniumScope();
 		//Clear millennium cache once per minute
 		$lastCacheClear = $memcache->get('millennium_cache_interval');
-		if (!$lastCacheClear){
+		//echo ("lastCacheClear = $lastCacheClear, cache_interval = {$configArray['Caching']['millennium_cache_interval']}");
+		if ($lastCacheClear == false || isset($_REQUEST['reload'])){
 			//Get rid of anything in the cache older than 5 minutes
-			//global $logger;
-			//$logger->log('Loaded millennium info for id ' . $id . ' scope ' . $scope, PEAR_LOG_INFO);
+			global $logger;
 			$millenniumCache = new MillenniumCache();
 			//First clean out any records that are more than 5 minutes old
 			$cacheExpirationTime = time() - 5 * 60;
+			//$logger->log("Clearing millennium cache before $cacheExpirationTime", PEAR_LOG_INFO);
 			$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
 			$millenniumCache->delete(true);
-			$memcache->set('millennium_cache_interval', true, $configArray['Caching']['millennium_cache_interval']);
+			$memcache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
 		}
 		//Now see if the record already exists in our cache.
 		$millenniumCache = new MillenniumCache();
