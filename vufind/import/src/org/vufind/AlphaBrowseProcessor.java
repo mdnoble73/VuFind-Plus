@@ -208,14 +208,12 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				HashMap<String, String> subjects = recordInfo.getBrowseSubjects();
 				Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
 				HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
-				//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
-				HashSet<Long> resourceLocations = getLocationsForPrintRecord(localCallNumbers);
-				//logger.debug("found " + resourceLocations.size() + " locations for the resource");
+				logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
 				//logger.debug("found " + titles.size() + " titles for the resource");
 				for (String sortTitle: titles.keySet()){
 					//logger.debug("  " + curTitle);
 					String curTitle = titles.get(sortTitle);
-					addRecordIdToBrowse("title", resourceLibraries, resourceLocations, curTitle, sortTitle, recordIdFull);
+					addRecordIdToBrowse("title", resourceLibraries, curTitle, sortTitle, recordIdFull);
 				}
 				
 				//Setup author browse
@@ -223,7 +221,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				for (String sortAuthor: authors.keySet()){
 					//logger.debug("  " + curAuthor);
 					String curAuthor = authors.get(sortAuthor);
-					addRecordIdToBrowse("author", resourceLibraries, resourceLocations, curAuthor, sortAuthor, recordIdFull);
+					addRecordIdToBrowse("author", resourceLibraries, curAuthor, sortAuthor, recordIdFull);
 				}
 				
 				//Setup subject browse
@@ -231,7 +229,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				for (String sortSubject: subjects.keySet()){
 					//logger.debug("  " + curSubject);
 					String curSubject = subjects.get(sortSubject);
-					addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, curSubject, sortSubject, recordIdFull);
+					addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
 				}
 				
 				//Setup call number browse
@@ -320,7 +318,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			//logger.debug("  '" + callNumberSort + "' - '" + callNumber + "'");
 			if (callNumberSort.length() > 0){
-				addRecordIdToBrowse("callnumber", resourceLibraries, resourceLocations, callNumber, callNumberSort, recordIdFull);
+				addRecordIdToBrowse("callnumber", resourceLibraries, callNumber, callNumberSort, recordIdFull);
 			}
 		}
 	}
@@ -377,25 +375,23 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			
 			HashSet<Long> resourceLibraries = getLibrariesEContentRecord(econtentId);
-			//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
-			HashSet<Long> resourceLocations = getLocationsForEContentRecord(econtentId);
-			//logger.debug("found " + resourceLocations.size() + " locations for the resource");
+			logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
 			//Setup title browse
 			if (sortTitle.length() >= 1){
-				addRecordIdToBrowse("title", resourceLibraries, resourceLocations, title, sortTitle, recordIdFull);
+				addRecordIdToBrowse("title", resourceLibraries, title, sortTitle, recordIdFull);
 			}
 			
 			//Setup author browse
 			for (String curAuthorSortable: browseAuthors.keySet()){
 				if (curAuthorSortable.length() >= 1){
-					addRecordIdToBrowse("author", resourceLibraries, resourceLocations, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
+					addRecordIdToBrowse("author", resourceLibraries, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
 				}
 			}
 			
 			//Setup subject browse
 			for (String curSubjectSortable: browseSubjects.keySet()){
 				if (curSubjectSortable.length() >= 1){
-					addRecordIdToBrowse("subject", resourceLibraries, resourceLocations, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
+					addRecordIdToBrowse("subject", resourceLibraries, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
 				}
 			}
 			
@@ -419,7 +415,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	}
 
 	
-	private synchronized void addRecordIdToBrowse(String browseType, HashSet<Long> resourceLibraries, HashSet<Long> resourceLocations, String browseValue, String sortValue, String recordIdFull) throws SQLException {
+	private synchronized void addRecordIdToBrowse(String browseType, HashSet<Long> resourceLibraries, String browseValue, String sortValue, String recordIdFull) throws SQLException {
 		if (browseValue == null){
 			return;
 		}
@@ -609,29 +605,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		//Make sure we add the global scope
 		librariesForResource.add(-1L);
 		return librariesForResource;
-	}
-	
-	private HashSet<Long> getLocationsForPrintRecord(Set<LocalCallNumber> callNumbers) throws SQLException {
-		HashSet<Long> locationsForResource = new HashSet<Long>();
-		//Use the call numbers to generate the available locations
-		//Print titles are always available in the global scope (-1)
-		locationsForResource.add(-1L);
-		for (LocalCallNumber callNumber : callNumbers){
-			locationsForResource.add(callNumber.getLocationId());
-		}
-		return locationsForResource;
-	}
-	
-	private HashSet<Long> getLocationsForEContentRecord(Long econtentId) throws SQLException {
-		HashSet<Long> locationsForResource = new HashSet<Long>();
-		//Get a list of libraries from the econtent database
-		getLibraryIdsForEContent.setLong(1, econtentId);
-		ResultSet libraryIdsForEContentRs = getLibraryIdsForEContent.executeQuery();
-		while (libraryIdsForEContentRs.next()){
-			//TODO: Add all locations within the library to the list
-			//locationsForResource.add(libraryIdsForEContentRs.getLong("libraryId"));
-		}
-		return locationsForResource;
 	}
 
 	@Override

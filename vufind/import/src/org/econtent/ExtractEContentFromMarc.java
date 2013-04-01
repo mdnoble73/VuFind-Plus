@@ -21,16 +21,15 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.common.SolrInputDocument;
-import org.econtent.GutenbergItemInfo;
 import org.ini4j.Ini;
 import org.solrmarc.tools.Utils;
+import org.vufind.IMarcRecordProcessor;
+import org.vufind.IRecordProcessor;
 import org.vufind.LexileData;
 import org.vufind.LibraryIndexingInfo;
 import org.vufind.LocationIndexingInfo;
-import org.vufind.MarcRecordDetails;
-import org.vufind.IMarcRecordProcessor;
-import org.vufind.IRecordProcessor;
 import org.vufind.MarcProcessor;
+import org.vufind.MarcRecordDetails;
 import org.vufind.ProcessorResults;
 import org.vufind.ReindexProcess;
 import org.vufind.URLPostResponse;
@@ -351,26 +350,33 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				OverDriveBasicInfo overdriveBasicInfo = null;
 				
 				if (source.matches("(?i)^overdrive.*")){
-					overdriveBasicInfo = overDriveTitleInfo.get(overDriveId.toLowerCase());
-					if (overdriveBasicInfo != null){
-						//Check to see if data changed since the last index time
-						if (overdriveBasicInfo.getLastChange() >= ReindexProcess.getLoadChangesSince() || extractEContentFromUnchangedRecords || (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) || (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
-							//This record should be reindexed
-							logger.debug("Overdrive record has changed, reindexing (infoChanged = " + (overdriveBasicInfo.getLastChange() > ReindexProcess.getLoadChangesSince()) + ", extractEContentFromUnchangedRecords=" + extractEContentFromUnchangedRecords + ", recordStatus changed primary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) + ", changedsecondary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) + ")");
-						}else if (recordInfo.geteContentRecordId() == null){
-							logger.debug("Overdrive record has not changed, but is not in the database, reindexing.");
-						}else if (existingRecordInfo.getNumItems() == 0){
-							logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
-						}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
-							logger.debug("Record is unchanged, is not active indexing to correct the status.");
-						}else{	
-							logger.debug("Skipping overdrive record because the record is not changed");
-							results.incSkipped();
-							return false;
+					if (overDriveId != null){
+						overdriveBasicInfo = overDriveTitleInfo.get(overDriveId.toLowerCase());
+						if (overdriveBasicInfo != null){
+							//Check to see if data changed since the last index time
+							if (overdriveBasicInfo.getLastChange() >= ReindexProcess.getLoadChangesSince() || extractEContentFromUnchangedRecords || (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) || (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
+								//This record should be reindexed
+								logger.debug("Overdrive record has changed, reindexing (infoChanged = " + (overdriveBasicInfo.getLastChange() > ReindexProcess.getLoadChangesSince()) + ", extractEContentFromUnchangedRecords=" + extractEContentFromUnchangedRecords + ", recordStatus changed primary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) + ", changedsecondary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) + ")");
+							}else if (recordInfo.geteContentRecordId() == null){
+								logger.debug("Overdrive record has not changed, but is not in the database, reindexing.");
+							}else if (existingRecordInfo.getNumItems() == 0){
+								logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
+							}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
+								logger.debug("Record is unchanged, is not active indexing to correct the status.");
+							}else{	
+								logger.debug("Skipping overdrive record because the record is not changed");
+								results.incSkipped();
+								return false;
+							}
+						}else{
+							//Overdrive record, force processing to make sure we get updated availability
+							logger.debug("Record is overdrive (" + overDriveId + "), but didn't get Basic information from API");
 						}
 					}else{
-						//Overdrive record, force processing to make sure we get updated availability
-						logger.debug("Record is overdrive (" + overDriveId + "), but didn't get Basic information from API");
+						logger.debug("Record is tagged as overdrive, but didn't find the URL in the marc record.");
+						results.incErrors();
+						results.addNote("Did not find overdrive id in marc record " + recordInfo.getIlsId());
+						recordsWithoutOverDriveId.add(recordInfo.getIlsId());
 					}
 				}else if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
 					//Record has changed, reindex
