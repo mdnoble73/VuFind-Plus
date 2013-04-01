@@ -549,6 +549,9 @@ class OverDriveDriver2 {
 							$logger->log("Placing hold on OverDrive item. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
 							$logger->log('URL: '.$secureBaseUrl . "BANGAuthenticate.dll?Action=LibraryWaitingList $post_string\r\n" . $mainSection ,PEAR_LOG_INFO);
 						}
+					}elseif (preg_match('/Unfortunately this title is not available to your library at this time./', $waitingListConfirm)){
+						$holdResult['result'] = false;
+						$holdResult['message'] = 'This title is not available to your library at this time.';
 					}elseif (preg_match('/You will receive an email when the title becomes available./', $waitingListConfirm)){
 						$holdResult['result'] = true;
 						$holdResult['message'] = 'Your hold was placed successfully.';
