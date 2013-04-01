@@ -8,30 +8,30 @@
 	{* Left Sidebar *}
 	<div id="sidebar">
 		{* Display Book Cover *}
-		<div id = "clearcover"> 
-			<div class="alignleft"> 
+		<div id = "clearcover">
+			<div class="alignleft">
 				<a href="{$path}/Person/{$summShortId}">
-				{if $record.picture}
-				<a target='_blank' href='{$path}/files/original/{$record.picture|escape}'><img src="{$path}/files/medium/{$record.picture|escape}" class="alignleft listResultImage" alt="{translate text='Picture'}"/></a><br />
+				{if $person->picture}
+				<a target='_blank' href='{$path}/files/original/{$person->picture|escape}'><img src="{$path}/files/medium/{$person->picture|escape}" class="alignleft listResultImage" alt="{translate text='Picture'}"/></a><br />
 				{else}
 				<img src="{$path}/interface/themes/default/images/person.png" class="alignleft listResultImage" alt="{translate text='No Cover Image'}"/><br />
 				{/if}
 				</a>
-			</div>	
+			</div>
 		</div>
 	</div>
 	<div id="main-content">
-		{if $error}<p class="error">{$error}</p>{/if} 
+		{if $error}<p class="error">{$error}</p>{/if}
 
 		<h1>
-			{$record.firstName|escape} {$record.middleName|escape}{if $record.nickName} "{$record.nickName|escape}"{/if}{if $record.maidenName} ({$record.maidenName}){/if} {$record.lastName|escape}
+			{$person->firstName|escape} {$person->middleName|escape}{if $person->nickName} "{$person->nickName|escape}"{/if}{if $person->maidenName} ({$person->maidenName}){/if} {$person->lastName|escape}
 			{if $userIsAdmin}
 				<a href='{$path}/Admin/People?objectAction=edit&amp;id={$id}' ><span title='Edit this person' class='silk user_edit'>&nbsp;</span></a>
 				<a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' onclick='return confirm("Removing this person will permanently remove them from the system.	Are you sure?")'><span title='Delete this person' class='silk user_delete'>&nbsp;</span></a>
 			{/if}
 		</h1>
-		{if $record.otherName}
-			<div class='personDetail'><span class='personDetailLabel'>Other Names:</span><span class='personDetailValue'>{$record.otherName|escape}</span></div>
+		{if $person->otherName}
+			<div class='personDetail'><span class='personDetailLabel'>Other Names:</span><span class='personDetailValue'>{$person->otherName|escape}</span></div>
 		{/if}
 		{if $birthDate}
 			<div class='personDetail'><span class='personDetailLabel'>Birth Date:</span><span class='personDetailValue'>{$birthDate}</span></div>
@@ -40,13 +40,13 @@
 			<div class='personDetail'><span class='personDetailLabel'>Death Date:</span><span class='personDetailValue'>{$deathDate}</span></div>
 		{/if}
 		{if $ageAtDeath}
-			<div class='personDetail'><span class='personDetailLabel'>Age at Death:</span><span class='personDetailValue'>{$record.ageAtDeath|escape}</span></div>
+			<div class='personDetail'><span class='personDetailLabel'>Age at Death:</span><span class='personDetailValue'>{$person->ageAtDeath|escape}</span></div>
 		{/if}
-		{if $record.veteranOf}
-			{implode subject=$record.veteranOf glue=", " assign='veteranOf'} 
+		{if $person->veteranOf}
+			{implode subject=$person->veteranOf glue=", " assign='veteranOf'}
 			<div class='personDetail'><span class='personDetailLabel'>Veteran Of:</span><span class='personDetailValue'>{$veteranOf}</span></div>
 		{/if}
-					
+
 		{if count($marriages) > 0 || $userIsAdmin}
 			<div class="blockhead">Marriages
 			{if $userIsAdmin}
@@ -65,15 +65,15 @@
 					<div class="marriageComments">{$marriage.comments|escape}</div>
 				{/if}
 			{/foreach}
-			
+
 		{/if}
-		{if $record.cemeteryName || $record.cemeteryLocation || $record.mortuaryName}
+		{if $person->cemeteryName || $person->cemeteryLocation || $person->mortuaryName}
 			<div class="blockhead">Burial Details</div>
-			{if $record.cemeteryName}
-			<div class='personDetail'><span class='personDetailLabel'>Cemetery Name:</span><span class='personDetailValue'>{$record.cemeteryName}</span></div>
+			{if $person->cemeteryName}
+			<div class='personDetail'><span class='personDetailLabel'>Cemetery Name:</span><span class='personDetailValue'>{$person->cemeteryName}</span></div>
 			{/if}
-			{if $record.cemeteryLocation}
-			<div class='personDetail'><span class='personDetailLabel'>Cemetery Location:</span><span class='personDetailValue'>{$record.cemeteryLocation}</span></div>
+			{if $person->cemeteryLocation}
+			<div class='personDetail'><span class='personDetailLabel'>Cemetery Location:</span><span class='personDetailValue'>{$person->cemeteryLocation}</span></div>
 			{/if}
 			{if $person->addition || $person->lot || $person->block || $person->grave}
 			<div class='personDetail'><span class='personDetailLabel'>Burial Location:</span>
@@ -84,8 +84,8 @@
 			<div class='personDetail'><span class='personDetailLabel'>Tombstone Inscription:</span><div class='personDetailValue'>{$person->tombstoneInscription}</div></div>
 			{/if}
 			{/if}
-			{if $record.mortuaryName}
-			<div class='personDetail'><span class='personDetailLabel'>Mortuary Name:</span><span class='personDetailValue'>{$record.mortuaryName}</span></div>
+			{if $person->mortuaryName}
+			<div class='personDetail'><span class='personDetailLabel'>Mortuary Name:</span><span class='personDetailValue'>{$person->mortuaryName}</span></div>
 			{/if}
 		{/if}
 		{if count($obituaries) > 0 || $userIsAdmin}
@@ -112,13 +112,13 @@
 					<div class="obituaryPicture">{if $obituary.picture|escape}<a href='{$path}/files/original/{$obituary.picture|escape}'><img class='obitPicture' src='{$path}/files/medium/{$obituary.picture|escape}'/></a>{/if}</div>
 					<div class="clearer"></div>
 				{/if}
-				
+
 			{/foreach}
-			
+
 		{/if}
 		<div class="blockhead">Comments</div>
-		{if $record.comments}
-		<div class='personComments'>{$record.comments|escape}</div>
+		{if $person->comments}
+		<div class='personComments'>{$person->comments|escape}</div>
 		{else}
 		<div class='personComments'>No comments found.</div>
 		{/if}

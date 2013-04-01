@@ -57,8 +57,7 @@ class TopFacets implements RecommendationInterface
 		$searchLocation = Location::getActiveLocation();
 		$config = getExtraConfigArray($iniFile);
 		if ($searchObject->getSearchType() == 'genealogy'){
-			$config = getExtraConfigArray($iniName);
-			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
+			$this->mainFacets = array();
 		}else{
 			$searchLibrary = Library::getActiveLibrary();
 			$searchLocation = Location::getActiveLocation();
