@@ -9,7 +9,7 @@ abstract class FacetSetting extends DB_DataObject {
 	public $weight;
 	public $numEntriesToShowByDefault; //
 	public $showAsDropDown;   //True or false
-	public $sortMode;         //0 = alphabetically, 1 = by number of results
+	public $sortMode;         //alphabetically = alphabetically, num_results = by number of results
 	public $showAboveResults;
 	public $showInResults;
 	public $showInAuthorResults;
@@ -83,16 +83,10 @@ abstract class FacetSetting extends DB_DataObject {
 	}
 
 	function insert(){
-		if (!is_numeric($this->sortMode)){
-			$this->sortMode = 1;
-		}
 		parent::insert();
 	}
 
 	function update($dataObject = false){
-		if (!is_numeric($this->sortMode)){
-			$this->sortMode = 1;
-		}
 		parent::update($dataObject);
 	}
 
