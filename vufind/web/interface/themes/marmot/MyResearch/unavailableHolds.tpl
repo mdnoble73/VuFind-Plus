@@ -30,7 +30,7 @@
 			{if $profile.web_note}
 				<div id="web_note">{$profile.web_note}</div>
 			{/if}
-			
+
 			<div class="myAccountTitle">{translate text='Titles On Hold'}</div>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
@@ -57,8 +57,8 @@
 												});{/literal}
 											</script>
 										{/if}
-										<input type="submit" class="button" name="freezeSelected" value="Suspend Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
-										<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
+										<input type="submit" class="button" name="freezeSelected" value="Freeze Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
+										<input type="submit" class="button" name="thawSelected" value="Thaw Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
 									{/if}
 									<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
 									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
@@ -214,7 +214,7 @@
 										<div class="rate{$record.shortId|escape} stat">
 											{* Let the user rate this title *}
 											{include file="Record/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.shortId ratingData=$record.ratingData}
-											
+
 											{assign var=id value=$record.recordId}
 											{assign var=shortId value=$record.shortId}
 											{include file="Record/title-review.tpl"}
