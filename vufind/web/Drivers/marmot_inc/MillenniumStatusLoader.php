@@ -201,6 +201,7 @@ class MillenniumStatusLoader{
 			//we know what pType is in use and we are showing all items.
 			if ($scope == 93 && $pType != -1){
 				if (!$driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
+					//$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
 					unset($ret[$holdingKey]);
 					continue;
 				}
