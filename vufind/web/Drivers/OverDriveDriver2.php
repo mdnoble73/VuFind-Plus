@@ -638,6 +638,7 @@ class OverDriveDriver2 {
 	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
 		global $logger;
 		global $memcache;
+		$accountSummaryBeforeCheckout = $this->getOverDriveSummary($user);
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 		$result = array();
@@ -661,12 +662,14 @@ class OverDriveDriver2 {
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $checkoutUrl);
 			$checkoutPage = curl_exec($overDriveInfo['ch']);
 
-			if (preg_match('/Your title has been checked out/si', $checkoutPage)){
+			//OverDrive no longer provides a status indicator in the text of the site.  Just check to see if we have more.
+			$accountSummaryAfterCheckout = $this->getOverDriveSummary($user);
+			if ($accountSummaryAfterCheckout['numCheckedOut'] > $accountSummaryBeforeCheckout['numCheckedOut']){
 				$result['result'] = true;
 				$result['message'] = "Your title was checked out successfully. You may now download the title from your Account.";
 				$memcache->delete('overdrive_summary_' . $user->id);
 			}else{
-				$logger->log("OverDrive checkout failed", PEAR_LOG_ERR);
+				$logger->log("OverDrive checkout failed calling page $checkoutUrl", PEAR_LOG_ERR);
 				$logger->log($checkoutPage, PEAR_LOG_INFO);
 				$result['result'] = false;
 				$result['message'] = 'Sorry, we could not checkout this title to you.  Please try again later';

@@ -32,7 +32,10 @@ require_once 'services/MyResearch/MyResearch.php';
  * @version  $Revision$
  */
 class MyList extends MyResearch {
-
+	function __construct(){
+		$this->requireLogin = false;
+		parent::__construct();
+	}
 	function launch() {
 		global $configArray;
 		global $interface;
@@ -57,7 +60,9 @@ class MyList extends MyResearch {
 
 		//Figure out if we should show a link to classic opac to pay holds.
 		$ecommerceLink = $configArray['Site']['ecommerceLink'];
-		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		if ($user){
+			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		}
 		if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
 			$interface->assign('showEcommerceLink', true);
 			$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);

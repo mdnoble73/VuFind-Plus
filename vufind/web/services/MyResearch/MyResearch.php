@@ -29,6 +29,7 @@ class MyResearch extends Action
 {
 	protected $db;
 	protected $catalog;
+	protected $requireLogin = true;
 
 	function __construct()
 	{
@@ -39,7 +40,7 @@ class MyResearch extends Action
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('ils', $configArray['Catalog']['ils']);
 
-		if (!UserAccount::isLoggedIn()) {
+		if ($this->requireLogin && !UserAccount::isLoggedIn()) {
 			require_once 'Login.php';
 			Login::launch();
 			exit();
