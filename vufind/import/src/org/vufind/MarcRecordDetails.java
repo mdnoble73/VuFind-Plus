@@ -3660,6 +3660,7 @@ public class MarcRecordDetails {
 			// Check the items
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = (List<DataField>) record.getVariableFields("989");
+			String eContentSource = null;
 			for (DataField itemField : itemFields) {
 				Subfield subFieldW = itemField.getSubfield('w');
 				if (subFieldW != null) {
@@ -3671,31 +3672,70 @@ public class MarcRecordDetails {
 						if (tempDetectionSettings != null) {
 							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
 							isEContent = true;
+							if (eContentSource == null){
+								eContentSource = tempDetectionSettings.getSource();
+							}
+						}
+					}
+				}
+			}
+			if (!isEContent){
+				// Check the 037 second
+				@SuppressWarnings("unchecked")
+				List<DataField> oh37Fields = (List<DataField>) record.getVariableFields("037");
+				for (DataField oh37 : oh37Fields) {
+					Subfield subFieldB = oh37.getSubfield('b');
+					Subfield subFieldC = oh37.getSubfield('c');
+					if (subFieldB != null && subFieldC != null) {
+						String subfieldBVal = subFieldB.getData().trim();
+						String subfieldCVal = subFieldC.getData().trim();
+						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(subfieldBVal, subfieldCVal);
+						if (tempDetectionSettings != null) {
+							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
+							if (eContentSource == null){
+								eContentSource = tempDetectionSettings.getSource();
+							}
+							isEContent = true;
 						}
 					}
 				}
 			}
 			if (isEContent) {
-				return isEContent;
-			}
-			// Check the 037 second
-			@SuppressWarnings("unchecked")
-			List<DataField> oh37Fields = (List<DataField>) record.getVariableFields("037");
-			for (DataField oh37 : oh37Fields) {
-				Subfield subFieldB = oh37.getSubfield('b');
-				Subfield subFieldC = oh37.getSubfield('c');
-				if (subFieldB != null && subFieldC != null) {
-					String subfieldBVal = subFieldB.getData().trim();
-					String subfieldCVal = subFieldC.getData().trim();
-					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(subfieldBVal, subfieldCVal);
-					if (tempDetectionSettings != null) {
-						eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
-						isEContent = true;
-						return isEContent;
+				//If the source is overdrive, make sure that we have an overdrive id
+				logger.debug("Record is eContent, validating that it was tagged correctly.  Source is: " + eContentSource);
+				if (eContentSource != null && eContentSource.matches("(?i)overdrive")){
+					String externalId = loadOverDriveId();
+					if (externalId == null){
+						logger.debug("Record " + getId() + " is marked as eContent, but did not find an external id.  Treating as Print.");
+						isEContent = false;
+					}
+				}else{
+					//Check to make sure that all items have an eContent iType
+					boolean allITypesAreEContent = true;
+					if (marcProcessor.hasEContentITypes()){
+						for (DataField itemField : itemFields) {
+							if (itemField.getSubfield('j') == null){
+								allITypesAreEContent = false;
+								logger.debug("Record is not eContent because item did not have iType set");
+							}else{
+								String iType = itemField.getSubfield('j').getData();
+								if (!marcProcessor.isITypeEContent(Integer.parseInt(iType))){
+									allITypesAreEContent = false;
+									logger.debug("Record is not eContent because iType " + iType + " is not an eContent iType");
+								}
+							}
+							if (!allITypesAreEContent){
+								break;
+							}
+						}
+					}
+					if (!allITypesAreEContent){
+						isEContent = false;
 					}
 				}
+				return isEContent;
 			}
-
+			
 			return isEContent;
 		} else {
 			return isEContent;
@@ -3709,7 +3749,7 @@ public class MarcRecordDetails {
 			source = "OverDrive";
 		}
 		tempDetectionSettings.setSource(source);
-		if (protectionType.equalsIgnoreCase("External")) {
+		if (protectionType.equalsIgnoreCase("external")) {
 			tempDetectionSettings.setAccessType("external");
 			tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
 			tempDetectionSettings.setItem_type("externalLink");
@@ -3913,19 +3953,24 @@ public class MarcRecordDetails {
 			// Get the overdrive id
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
 			if (curDetectionSetting.getSource().matches("(?i)^overdrive.*")) {
-				try {
-					ArrayList<LibrarySpecificLink> sourceUrls = getSourceUrls();
-					for (LibrarySpecificLink link : sourceUrls) {
-						Matcher RegexMatcher = overdriveIdPattern.matcher(link.getUrl());
-						if (RegexMatcher.find()) {
-							externalId = RegexMatcher.group();
-							return externalId.toLowerCase();
-						}
-					}
-				} catch (IOException e) {
-					logger.error("Error loading source urls while retrieving external id");
+				return loadOverDriveId();
+			}
+		}
+		return null;
+	}
+
+	private String loadOverDriveId() {
+		try {
+			ArrayList<LibrarySpecificLink> sourceUrls = getSourceUrls();
+			for (LibrarySpecificLink link : sourceUrls) {
+				Matcher RegexMatcher = overdriveIdPattern.matcher(link.getUrl());
+				if (RegexMatcher.find()) {
+					externalId = RegexMatcher.group();
+					return externalId.toLowerCase();
 				}
 			}
+		} catch (IOException e) {
+			logger.error("Error loading source urls while retrieving external id");
 		}
 		return null;
 	}

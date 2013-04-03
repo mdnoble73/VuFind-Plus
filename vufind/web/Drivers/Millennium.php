@@ -398,18 +398,7 @@ class MillenniumDriver implements DriverInterface
 				$numHoldableCopies++;
 			}
 			$numCopies++;
-			//Check to see if the holding has a download link and if so, set that info.
-			if (isset($holding['link'])){
-				foreach ($holding['link'] as $link){
-					if ($link['isDownload']){
-						$summaryInformation['status'] = "Available for Download";
-						$summaryInformation['class'] = 'here';
-						$summaryInformation['isDownloadable'] = true;
-						$summaryInformation['downloadLink'] = $link['link'];
-						$summaryInformation['downloadText'] = $link['linkText'];
-					}
-				}
-			}
+
 			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
 			$showItsHere = ($library == null) ? true : ($library->showItsHere == 1);
 			if (in_array(substr($holdingKey, 0, 1), array('1', '2', '3', '4', '5')) && !isset($summaryInformation['callnumber'])){

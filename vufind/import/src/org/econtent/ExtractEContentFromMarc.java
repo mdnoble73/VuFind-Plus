@@ -373,10 +373,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							logger.debug("Record is overdrive (" + overDriveId + "), but didn't get Basic information from API");
 						}
 					}else{
-						logger.debug("Record is tagged as overdrive, but didn't find the URL in the marc record.");
+						logger.debug("Record is tagged as overdrive, but didn't find a URL in the marc record to extract the id from.");
 						results.incErrors();
 						results.addNote("Did not find overdrive id in marc record " + recordInfo.getIlsId());
 						recordsWithoutOverDriveId.add(recordInfo.getIlsId());
+						return false;
 					}
 				}else if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
 					//Record has changed, reindex
@@ -1112,7 +1113,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				StringBuffer isbns = new StringBuffer();
 				Set<String> isbnSet = new LinkedHashSet<String>();
 				while (loadISBNsRS.next()){
-					String isbn = loadISBNsRS.getString("name");
+					String isbn = loadISBNsRS.getString("value");
 					if (isbns.length() > 0) isbns.append("\r\n");
 					isbns.append(isbn);
 					isbnSet.add(isbn);
@@ -1141,8 +1142,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				Set<String> upcSet = new LinkedHashSet<String>();
 				while (loadUPCsRS.next()){
 					if (upcs.length() > 0) upcs.append("\r\n");
-					upcs.append(loadUPCsRS.getString("name"));
-					upcSet.add(loadUPCsRS.getString("name"));
+					upcs.append(loadUPCsRS.getString("value"));
+					upcSet.add(loadUPCsRS.getString("value"));
 				}
 				updateStatement.setString(curCol++, upcs.toString());
 				addFieldToDoc(doc, "upc", upcSet);

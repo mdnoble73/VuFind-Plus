@@ -37,11 +37,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private PreparedStatement	insertSubjectBrowseValue;
 	private PreparedStatement	insertCallNumberBrowseValue;
 	
-	/*private PreparedStatement optimizeTitleStmt;
-	private PreparedStatement optimizeAuthorStmt;
-	private PreparedStatement optimizeSubjectStmt;
-	private PreparedStatement optimizeCallNumberStmt;*/
-	
 	private PreparedStatement	getLibraryIdsForEContent;
 	private HashMap<String, PreparedStatement> insertTitleBrowseScopeValueStmts;
 	private HashMap<String, PreparedStatement>	insertAuthorBrowseScopeValueStmts;
@@ -107,11 +102,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			clearCallNumberBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			clearSubjectBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
 			clearTitleBrowseRecordInfoStmts = new HashMap<String, PreparedStatement>();
-			
-			/*optimizeTitleStmt = vufindConn.prepareStatement("OPTIMIZE TABLE title_browse");
-			optimizeAuthorStmt = vufindConn.prepareStatement("OPTIMIZE TABLE author_browse");
-			optimizeSubjectStmt = vufindConn.prepareStatement("OPTIMIZE TABLE subject_browse");
-			optimizeCallNumberStmt = vufindConn.prepareStatement("OPTIMIZE TABLE callnumber_browse");*/
 			
 			clearAuthorBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM author_browse_scoped_results_global where record = ?"));
 			clearCallNumberBrowseRecordInfoStmts.put("global", vufindConn.prepareStatement("DELETE FROM callnumber_browse_scoped_results_global where record = ?"));
@@ -197,52 +187,48 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}
 			}
 			//Process all marc records together
-			//if (!recordInfo.isEContent()){
-				if (!clearAlphaBrowseAtStartOfIndex){
-					//logger.debug("Clearing browse info for " + recordInfo.getId());
-					clearBrowseInfoForRecord(recordInfo.getFullId());
-				}
-				HashMap<String, String> titles = recordInfo.getBrowseTitles();
-				HashMap<String, String> authors = recordInfo.getBrowseAuthors();
-				String recordIdFull = recordInfo.getId();
-				HashMap<String, String> subjects = recordInfo.getBrowseSubjects();
-				Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
-				HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
-				logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
-				//logger.debug("found " + titles.size() + " titles for the resource");
-				for (String sortTitle: titles.keySet()){
-					//logger.debug("  " + curTitle);
-					String curTitle = titles.get(sortTitle);
-					addRecordIdToBrowse("title", resourceLibraries, curTitle, sortTitle, recordIdFull);
-				}
-				
-				//Setup author browse
-				//logger.debug("found " + authors.size() + " authors for the resource");
-				for (String sortAuthor: authors.keySet()){
-					//logger.debug("  " + curAuthor);
-					String curAuthor = authors.get(sortAuthor);
-					addRecordIdToBrowse("author", resourceLibraries, curAuthor, sortAuthor, recordIdFull);
-				}
-				
-				//Setup subject browse
-				//logger.debug("found " + subjects.size() + " subjects for the resource");
-				for (String sortSubject: subjects.keySet()){
-					//logger.debug("  " + curSubject);
-					String curSubject = subjects.get(sortSubject);
-					addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
-				}
-				
-				//Setup call number browse
-				addCallNumbersToBrowse(localCallNumbers, recordIdFull);
-				
-				if (recordStatus == MarcProcessor.RECORD_NEW){
-					results.incAdded();
-				}else{
-					results.incUpdated();
-				}
-			/*}else{
-				results.incSkipped();
-			}*/
+			if (!clearAlphaBrowseAtStartOfIndex){
+				//logger.debug("Clearing browse info for " + recordInfo.getId());
+				clearBrowseInfoForRecord(recordInfo.getFullId());
+			}
+			HashMap<String, String> titles = recordInfo.getBrowseTitles();
+			HashMap<String, String> authors = recordInfo.getBrowseAuthors();
+			String recordIdFull = recordInfo.getFullId();
+			HashMap<String, String> subjects = recordInfo.getBrowseSubjects();
+			Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
+			HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
+			logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
+			//logger.debug("found " + titles.size() + " titles for the resource");
+			for (String sortTitle: titles.keySet()){
+				//logger.debug("  " + curTitle);
+				String curTitle = titles.get(sortTitle);
+				addRecordIdToBrowse("title", resourceLibraries, curTitle, sortTitle, recordIdFull);
+			}
+			
+			//Setup author browse
+			//logger.debug("found " + authors.size() + " authors for the resource");
+			for (String sortAuthor: authors.keySet()){
+				//logger.debug("  " + curAuthor);
+				String curAuthor = authors.get(sortAuthor);
+				addRecordIdToBrowse("author", resourceLibraries, curAuthor, sortAuthor, recordIdFull);
+			}
+			
+			//Setup subject browse
+			//logger.debug("found " + subjects.size() + " subjects for the resource");
+			for (String sortSubject: subjects.keySet()){
+				//logger.debug("  " + curSubject);
+				String curSubject = subjects.get(sortSubject);
+				addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
+			}
+			
+			//Setup call number browse
+			addCallNumbersToBrowse(localCallNumbers, recordIdFull);
+			
+			if (recordStatus == MarcProcessor.RECORD_NEW){
+				results.incAdded();
+			}else{
+				results.incUpdated();
+			}
 			return true;
 		} catch (SQLException e) {
 			results.addNote("Error processing marc record " + e.toString());
@@ -478,7 +464,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}else{
 					insertBrowseScopeValueStatement = insertCallNumberBrowseScopeValueStmts.get("global");
 				}
-				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseScopeValueStatement, browseValueId);
+				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseScopeValueStatement, browseValueId, "global");
 			}else{
 				String librarySubdomain = librarySubdomains.get(curLibrary);
 				//logger.debug("library subdomain for " + curLibrary + " is " + librarySubdomain);
@@ -492,13 +478,13 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}else{
 					insertBrowseLibraryScopeValueStatement = insertCallNumberBrowseScopeValueStmts.get(librarySubdomain);
 				}
-				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseLibraryScopeValueStatement, browseValueId);
+				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseLibraryScopeValueStatement, browseValueId, librarySubdomain);
 			}
 		}
 	}
 
 	private void insertBrowseScoping(String browseType, String browseValue, String recordIdFull,
-			PreparedStatement insertBrowseScopeValueStatement, Long browseValueId) throws SQLException {
+			PreparedStatement insertBrowseScopeValueStatement, Long browseValueId, String scope) throws SQLException {
 		//Add the scoping information to the table
 		//Check to see if we already have an existing scope value
 		try {
@@ -508,7 +494,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		} catch (Exception e) {
 			//We occassionally get errors if multiple locations use the same call numbers
 			//ignore for now.
-			logger.error("Error adding " + browseType + " '" + browseValue + "' browse scoping " + e.toString(), e);
+			logger.error("Error adding " + browseType + " '" + browseValue + "' to scope " + scope + " browse scoping " + e.toString(), e);
+			results.incErrors();
 		}
 	}
 

@@ -122,6 +122,8 @@ public class MarcProcessor {
 	public static final int								RECORD_DELETED						= 4;
 	public static final int								RECORD_CHANGED_SECONDARY	= 1;
 	
+	private HashMap<Integer, String> eContentITypes = new HashMap<Integer, String>();
+	
 	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 
@@ -383,8 +385,29 @@ public class MarcProcessor {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
 		}
+		
+		//Define iTypes that are treated as eContent. 
+		loadEContentITypes();
+		
 		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
+	}
+	
+	private void loadEContentITypes(){
+		Properties props = null;
+		props = Utils.loadProperties(propertyFilePaths, "econtent_itype_link_type_map.properties");
+		for (Object iTypeObj : props.keySet()){
+			String iType = (String)iTypeObj;
+			eContentITypes.put(Integer.parseInt(iType), props.getProperty(iType));
+		}
+	}
+	
+	public boolean hasEContentITypes(){
+		return eContentITypes.size() > 0;
+	}
+	
+	public boolean isITypeEContent(Integer iType){
+		return eContentITypes.containsKey(iType);
 	}
 
 	private void loadLexileInfo(String lexileExportPath) {
