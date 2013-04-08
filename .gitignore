@@ -23,6 +23,7 @@ vufind/web/files/original/*
 vufind/web/*.csv
 tests/*
 */.idea/*
+.settings/
 data-import
 
 # Compiled source #                                                                                   

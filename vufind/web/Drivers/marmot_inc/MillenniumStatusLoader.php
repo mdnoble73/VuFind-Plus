@@ -135,7 +135,6 @@ class MillenniumStatusLoader{
 		}
 
 		//Get the current Ptype for later usage.
-		$pType = $driver->getPType();
 		$timer->logTime('setup for additional holdings processing.');
 
 		//Now that we have the holdings, we need to filter and sort them according to scoping rules.
@@ -202,6 +201,7 @@ class MillenniumStatusLoader{
 			if ($scope == 93 && $pType > 0){
 				if (!$driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
 					//$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
+					//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
 					unset($ret[$holdingKey]);
 					continue;
 				}
