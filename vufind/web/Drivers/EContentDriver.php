@@ -242,15 +242,17 @@ class EContentDriver implements DriverInterface{
 
 		//Load the holding label for the branch where the user is physically.
 		if (!is_null($homeLibrary)){
-			return $homeLibrary->libraryId;
+			return $homeLibrary->includeOutOfSystemExternalLinks ? -1 : $homeLibrary->libraryId;
 		}else if (!is_null($activeLocation)){
-			return $activeLocation->libraryId;
+			$activeLibrary = Library::getLibraryForLocation($activeLocation->locationId);
+			return $activeLibrary->includeOutOfSystemExternalLinks ? -1 : $activeLibrary->libraryId;
 		}else if (isset($activeLibrary)) {
-			return $activeLibrary->libraryId;
+			return $activeLibrary->includeOutOfSystemExternalLinks ? -1 : $activeLibrary->libraryId;
 		}else if (!is_null($searchLocation)){
-			return $searchLocation->libraryId;
+			$searchLibrary = Library::getLibraryForLocation($searchLibrary->locationId);
+			return $searchLibrary->includeOutOfSystemExternalLinks ? -1 : $searchLocation->libraryId;
 		}else if (isset($searchLibrary)) {
-			return $searchLibrary->libraryId;
+			return $searchLibrary->includeOutOfSystemExternalLinks ? -1 : $searchLibrary->libraryId;
 		}else{
 			return -1;
 		}

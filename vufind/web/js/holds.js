@@ -37,8 +37,8 @@ function freezeSelectedHolds(){
 			var suspendDate = $('#suspendDateTop').val();
 		}else{
 			var suspendDate = $('#suspendDateBottom').val();
-		}	
-		
+		}
+
 		if (suspendDate.length == 0){
 			alert("Please select the date when the hold should be reactivated.");
 			return false;
@@ -80,9 +80,8 @@ function getSelectedTitles(){
 		var ret = confirm('You have not selected any items, process all items?');
 		if (ret == true){
 			selectedTitles = $("input.titleSelect").map(function() {
-				return $(this).attr('name') + "=on";
+				return $(this).attr('name') + "=" + $(this).val();
 			}).get().join("&");
-			$('.titleSelect').attr('checked', 'checked');
 		}
 	}
 	return selectedTitles;

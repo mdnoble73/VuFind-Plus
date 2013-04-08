@@ -219,102 +219,8 @@ public class MarcRecordDetails {
 				} else {
 					libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
 				}
-				// Map library system (institution)
-				if (libraryIndexingInfo != null) {
-					librarySystems.add(libraryIndexingInfo.getFacetLabel());
-				}
-
-				// Map location (building)
-				if (locationIndexingInfo != null) {
-					locations.add(locationIndexingInfo.getFacetLabel());
-				}
-				//Check for extra locations
-				LinkedHashSet<String> extraLocations = marcProcessor.getExtraLocations(locationCode);
-				if (extraLocations.size() > 0){
-					locations.addAll(extraLocations);
-				}
-
-				// Barcodes
-				@SuppressWarnings("unchecked")
-				List<Subfield> barcodeFields = itemField.getSubfields('b');
-				for (Subfield curSubfield : barcodeFields) {
-					String barcode = curSubfield.getData();
-					if (digitPattern.matcher(barcode).matches()) {
-						barcodes.add(barcode);
-					}
-				}
-
-				// Map iTypes
-				Subfield iTypeSubfield = itemField.getSubfield('j');
-				String iType = "0";
-				if (iTypeSubfield != null) {
-					iType = iTypeSubfield.getData();
-					iTypes.add(iType);
-					if (libraryIndexingInfo != null) {
-						LinkedHashSet<String> iTypesBySystemVals;
-						if (iTypesBySystem.containsKey(libraryIndexingInfo.getSubdomain())) {
-							iTypesBySystemVals = iTypesBySystem.get(libraryIndexingInfo.getSubdomain());
-						} else {
-							iTypesBySystemVals = new LinkedHashSet<String>();
-							iTypesBySystem.put(libraryIndexingInfo.getSubdomain(), iTypesBySystemVals);
-						}
-
-						iTypesBySystemVals.add(iType);
-					}
-				}
-
-				// Get Location Codes
-				locationCodes.add(locationCode);
-				// Get Location Codes By System
-				if (libraryIndexingInfo != null) {
-					LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(libraryIndexingInfo.getSubdomain());
-					if (detailedLocationVals == null) {
-						detailedLocationVals = new LinkedHashSet<String>();
-						locationsCodesBySystem.put(libraryIndexingInfo.getSubdomain(), detailedLocationVals);
-					}
-					detailedLocationVals.add(locationCode);
-				}
-
-				// Get Location Codes By Location
-				if (locationIndexingInfo != null) {
-					LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(locationIndexingInfo.getCode());
-					if (detailedLocationVals == null) {
-						detailedLocationVals = new LinkedHashSet<String>();
-						locationsCodesBySystem.put(locationIndexingInfo.getCode(), detailedLocationVals);
-					}
-					detailedLocationVals.add(locationCode);
-				}
-
-				// Map time since added (library & location)
-				Subfield dateAddedField = itemField.getSubfield('k');
-				if (dateAddedField != null) {
-					String dateAddedStr = dateAddedField.getData();
-					try {
-						Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
-						LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
-						if (itemTimeSinceAdded.size() > timeSinceAdded.size()) {
-							timeSinceAdded = itemTimeSinceAdded;
-						}
-						// Check library specific time since added
-						if (libraryIndexingInfo != null) {
-							LinkedHashSet<String> timeSinceAddedBySystemVals = timeSinceAddedBySystem.get(libraryIndexingInfo.getSubdomain());
-							if (timeSinceAddedBySystemVals == null || itemTimeSinceAdded.size() > timeSinceAddedBySystemVals.size()) {
-								timeSinceAddedBySystem.put(libraryIndexingInfo.getSubdomain(), itemTimeSinceAdded);
-							}
-						}
-						// Check location specific time since added
-						if (locationIndexingInfo != null) {
-							LinkedHashSet<String> timeSinceAddedByLocationVals = timeSinceAddedByLocation.get(locationIndexingInfo.getCode());
-							if (timeSinceAddedByLocationVals == null || itemTimeSinceAdded.size() > timeSinceAddedByLocationVals.size()) {
-								timeSinceAddedByLocation.put(locationIndexingInfo.getCode(), itemTimeSinceAdded);
-							}
-						}
-					} catch (ParseException e) {
-						logger.error("Error processing date added", e);
-					}
-				}
-
-				// Load availability (local, system, marmot)
+				
+			// Load availability (local, system, marmot)
 				Subfield statusSubfield = itemField.getSubfield('g');
 				Subfield dueDateField = itemField.getSubfield('m');
 				Subfield icode2Subfield = itemField.getSubfield('o');
@@ -337,53 +243,152 @@ public class MarcRecordDetails {
 						}
 					}
 				}
-
-				// Add availability
-				if (!itemSuppressed && !manuallySuppressed) {
-					if (available) {
-						availabilityToggleGlobal.add("Available Now");
+				
+				if (!itemSuppressed){
+					// Map library system (institution)
+					if (libraryIndexingInfo != null) {
+						librarySystems.add(libraryIndexingInfo.getFacetLabel());
 					}
-					// logger.debug("item is available at " + locationCode);
-					// Loop through all libraries
-					for (String curSubdomain : marcProcessor.getLibrarySubdomains()) {
-						LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curSubdomain);
-						if (existingAvailability != null && existingAvailability.size() == 2) {
-							continue;
+	
+					// Map location (building)
+					if (locationIndexingInfo != null) {
+						locations.add(locationIndexingInfo.getFacetLabel());
+					}
+					//Check for extra locations
+					LinkedHashSet<String> extraLocations = marcProcessor.getExtraLocations(locationCode);
+					if (extraLocations.size() > 0){
+						locations.addAll(extraLocations);
+					}
+	
+					// Barcodes
+					@SuppressWarnings("unchecked")
+					List<Subfield> barcodeFields = itemField.getSubfields('b');
+					for (Subfield curSubfield : barcodeFields) {
+						String barcode = curSubfield.getData();
+						if (digitPattern.matcher(barcode).matches()) {
+							barcodes.add(barcode);
 						}
-						LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
-						libraryAvailability.add("Entire Collection");
+					}
+	
+					// Map iTypes
+					Subfield iTypeSubfield = itemField.getSubfield('j');
+					String iType = "0";
+					if (iTypeSubfield != null) {
+						iType = iTypeSubfield.getData();
+						iTypes.add(iType);
+						if (libraryIndexingInfo != null) {
+							LinkedHashSet<String> iTypesBySystemVals;
+							if (iTypesBySystem.containsKey(libraryIndexingInfo.getSubdomain())) {
+								iTypesBySystemVals = iTypesBySystem.get(libraryIndexingInfo.getSubdomain());
+							} else {
+								iTypesBySystemVals = new LinkedHashSet<String>();
+								iTypesBySystem.put(libraryIndexingInfo.getSubdomain(), iTypesBySystemVals);
+							}
+	
+							iTypesBySystemVals.add(iType);
+						}
+					}
+	
+					// Get Location Codes
+					locationCodes.add(locationCode);
+					// Get Location Codes By System
+					if (libraryIndexingInfo != null) {
+						LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(libraryIndexingInfo.getSubdomain());
+						if (detailedLocationVals == null) {
+							detailedLocationVals = new LinkedHashSet<String>();
+							locationsCodesBySystem.put(libraryIndexingInfo.getSubdomain(), detailedLocationVals);
+						}
+						detailedLocationVals.add(locationCode);
+					}
+	
+					// Get Location Codes By Location
+					if (locationIndexingInfo != null) {
+						LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(locationIndexingInfo.getCode());
+						if (detailedLocationVals == null) {
+							detailedLocationVals = new LinkedHashSet<String>();
+							locationsCodesBySystem.put(locationIndexingInfo.getCode(), detailedLocationVals);
+						}
+						detailedLocationVals.add(locationCode);
+					}
+	
+					// Map time since added (library & location)
+					Subfield dateAddedField = itemField.getSubfield('k');
+					if (dateAddedField != null) {
+						String dateAddedStr = dateAddedField.getData();
+						try {
+							Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
+							LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
+							if (itemTimeSinceAdded.size() > timeSinceAdded.size()) {
+								timeSinceAdded = itemTimeSinceAdded;
+							}
+							// Check library specific time since added
+							if (libraryIndexingInfo != null) {
+								LinkedHashSet<String> timeSinceAddedBySystemVals = timeSinceAddedBySystem.get(libraryIndexingInfo.getSubdomain());
+								if (timeSinceAddedBySystemVals == null || itemTimeSinceAdded.size() > timeSinceAddedBySystemVals.size()) {
+									timeSinceAddedBySystem.put(libraryIndexingInfo.getSubdomain(), itemTimeSinceAdded);
+								}
+							}
+							// Check location specific time since added
+							if (locationIndexingInfo != null) {
+								LinkedHashSet<String> timeSinceAddedByLocationVals = timeSinceAddedByLocation.get(locationIndexingInfo.getCode());
+								if (timeSinceAddedByLocationVals == null || itemTimeSinceAdded.size() > timeSinceAddedByLocationVals.size()) {
+									timeSinceAddedByLocation.put(locationIndexingInfo.getCode(), itemTimeSinceAdded);
+								}
+							}
+						} catch (ParseException e) {
+							logger.error("Error processing date added", e);
+						}
+					}
+	
+					
+	
+					// Add availability
+					if (!itemSuppressed && !manuallySuppressed) {
 						if (available) {
-							if (libraryIndexingInfo != null && libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)) {
-								libraryAvailability.add("Available Now");
+							availabilityToggleGlobal.add("Available Now");
+						}
+						// logger.debug("item is available at " + locationCode);
+						// Loop through all libraries
+						for (String curSubdomain : marcProcessor.getLibrarySubdomains()) {
+							LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curSubdomain);
+							if (existingAvailability != null && existingAvailability.size() == 2) {
+								continue;
+							}
+							LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
+							libraryAvailability.add("Entire Collection");
+							if (available) {
+								if (libraryIndexingInfo != null && libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)) {
+									libraryAvailability.add("Available Now");
+								}
+							}
+							if (existingAvailability == null || libraryAvailability.size() > existingAvailability.size()) {
+								availableAtBySystemOrLocation.put(curSubdomain, libraryAvailability);
 							}
 						}
-						if (existingAvailability == null || libraryAvailability.size() > existingAvailability.size()) {
-							availableAtBySystemOrLocation.put(curSubdomain, libraryAvailability);
-						}
-					}
-
-					// Loop through all locations
-					for (String curCode : marcProcessor.getLocationCodes()) {
-						LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curCode);
-						if (existingAvailability != null && existingAvailability.size() == 2) {
-							// Can't get better availability
-							continue;
-						}
-						LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
-						locationAvailability.add("Entire Collection");
-						if (available) {
-							if (locationIndexingInfo != null && locationIndexingInfo.getCode().equalsIgnoreCase(curCode)) {
-								locationAvailability.add("Available Now");
-								availableAt.add(locationIndexingInfo.getFacetLabel());
+	
+						// Loop through all locations
+						for (String curCode : marcProcessor.getLocationCodes()) {
+							LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation.get(curCode);
+							if (existingAvailability != null && existingAvailability.size() == 2) {
+								// Can't get better availability
+								continue;
+							}
+							LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
+							locationAvailability.add("Entire Collection");
+							if (available) {
+								if (locationIndexingInfo != null && locationIndexingInfo.getCode().equalsIgnoreCase(curCode)) {
+									locationAvailability.add("Available Now");
+									availableAt.add(locationIndexingInfo.getFacetLabel());
+								}
+							}
+							if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()) {
+								availableAtBySystemOrLocation.put(curCode, locationAvailability);
 							}
 						}
-						if (existingAvailability == null || locationAvailability.size() > existingAvailability.size()) {
-							availableAtBySystemOrLocation.put(curCode, locationAvailability);
-						}
+	
+						LinkedHashSet<String> itemUsableByPTypes = marcProcessor.getCompatiblePTypes(iType, locationCode);
+						usableByPTypes.addAll(itemUsableByPTypes);
 					}
-
-					LinkedHashSet<String> itemUsableByPTypes = marcProcessor.getCompatiblePTypes(iType, locationCode);
-					usableByPTypes.addAll(itemUsableByPTypes);
 				} else {
 					// logger.debug("Item/Bib is suppressed.");
 				}
@@ -393,6 +398,7 @@ public class MarcRecordDetails {
 			}
 		}
 		for (String curAdditonalLocation : additionalLocations){
+			logger.debug("Processing supplemental location " + curAdditonalLocation);
 			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(curAdditonalLocation);
 			LibraryIndexingInfo libraryIndexingInfo = null;
 			boolean itemSuppressed = false;
@@ -432,9 +438,9 @@ public class MarcRecordDetails {
 						availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLocationAvailability);
 					}
 				}
-
 			}
 		}
+		
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;
@@ -3660,6 +3666,7 @@ public class MarcRecordDetails {
 			// Check the items
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = (List<DataField>) record.getVariableFields("989");
+			String eContentSource = null;
 			for (DataField itemField : itemFields) {
 				Subfield subFieldW = itemField.getSubfield('w');
 				if (subFieldW != null) {
@@ -3671,31 +3678,70 @@ public class MarcRecordDetails {
 						if (tempDetectionSettings != null) {
 							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
 							isEContent = true;
+							if (eContentSource == null){
+								eContentSource = tempDetectionSettings.getSource();
+							}
+						}
+					}
+				}
+			}
+			if (!isEContent){
+				// Check the 037 second
+				@SuppressWarnings("unchecked")
+				List<DataField> oh37Fields = (List<DataField>) record.getVariableFields("037");
+				for (DataField oh37 : oh37Fields) {
+					Subfield subFieldB = oh37.getSubfield('b');
+					Subfield subFieldC = oh37.getSubfield('c');
+					if (subFieldB != null && subFieldC != null) {
+						String subfieldBVal = subFieldB.getData().trim();
+						String subfieldCVal = subFieldC.getData().trim();
+						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(subfieldBVal, subfieldCVal);
+						if (tempDetectionSettings != null) {
+							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
+							if (eContentSource == null){
+								eContentSource = tempDetectionSettings.getSource();
+							}
+							isEContent = true;
 						}
 					}
 				}
 			}
 			if (isEContent) {
-				return isEContent;
-			}
-			// Check the 037 second
-			@SuppressWarnings("unchecked")
-			List<DataField> oh37Fields = (List<DataField>) record.getVariableFields("037");
-			for (DataField oh37 : oh37Fields) {
-				Subfield subFieldB = oh37.getSubfield('b');
-				Subfield subFieldC = oh37.getSubfield('c');
-				if (subFieldB != null && subFieldC != null) {
-					String subfieldBVal = subFieldB.getData().trim();
-					String subfieldCVal = subFieldC.getData().trim();
-					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(subfieldBVal, subfieldCVal);
-					if (tempDetectionSettings != null) {
-						eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
-						isEContent = true;
-						return isEContent;
+				//If the source is overdrive, make sure that we have an overdrive id
+				logger.debug("Record is eContent, validating that it was tagged correctly.  Source is: " + eContentSource);
+				if (eContentSource != null && eContentSource.matches("(?i)overdrive")){
+					String externalId = loadOverDriveId();
+					if (externalId == null){
+						logger.debug("Record " + getId() + " is marked as eContent, but did not find an external id.  Treating as Print.");
+						isEContent = false;
+					}
+				}else{
+					//Check to make sure that all items have an eContent iType
+					boolean allITypesAreEContent = true;
+					if (marcProcessor.hasEContentITypes()){
+						for (DataField itemField : itemFields) {
+							if (itemField.getSubfield('j') == null){
+								allITypesAreEContent = false;
+								logger.debug("Record is not eContent because item did not have iType set");
+							}else{
+								String iType = itemField.getSubfield('j').getData();
+								if (!marcProcessor.isITypeEContent(Integer.parseInt(iType))){
+									allITypesAreEContent = false;
+									logger.debug("Record is not eContent because iType " + iType + " is not an eContent iType");
+								}
+							}
+							if (!allITypesAreEContent){
+								break;
+							}
+						}
+					}
+					if (!allITypesAreEContent){
+						isEContent = false;
 					}
 				}
+				return isEContent;
 			}
-
+			
 			return isEContent;
 		} else {
 			return isEContent;
@@ -3709,7 +3755,7 @@ public class MarcRecordDetails {
 			source = "OverDrive";
 		}
 		tempDetectionSettings.setSource(source);
-		if (protectionType.equalsIgnoreCase("External")) {
+		if (protectionType.equalsIgnoreCase("external")) {
 			tempDetectionSettings.setAccessType("external");
 			tempDetectionSettings.setAdd856FieldsAsExternalLinks(true);
 			tempDetectionSettings.setItem_type("externalLink");
@@ -3913,19 +3959,24 @@ public class MarcRecordDetails {
 			// Get the overdrive id
 			DetectionSettings curDetectionSetting = eContentDetectionSettings.get(eContentDetectionSettings.keySet().iterator().next());
 			if (curDetectionSetting.getSource().matches("(?i)^overdrive.*")) {
-				try {
-					ArrayList<LibrarySpecificLink> sourceUrls = getSourceUrls();
-					for (LibrarySpecificLink link : sourceUrls) {
-						Matcher RegexMatcher = overdriveIdPattern.matcher(link.getUrl());
-						if (RegexMatcher.find()) {
-							externalId = RegexMatcher.group();
-							return externalId.toLowerCase();
-						}
-					}
-				} catch (IOException e) {
-					logger.error("Error loading source urls while retrieving external id");
+				return loadOverDriveId();
+			}
+		}
+		return null;
+	}
+
+	private String loadOverDriveId() {
+		try {
+			ArrayList<LibrarySpecificLink> sourceUrls = getSourceUrls();
+			for (LibrarySpecificLink link : sourceUrls) {
+				Matcher RegexMatcher = overdriveIdPattern.matcher(link.getUrl());
+				if (RegexMatcher.find()) {
+					externalId = RegexMatcher.group();
+					return externalId.toLowerCase();
 				}
 			}
+		} catch (IOException e) {
+			logger.error("Error loading source urls while retrieving external id");
 		}
 		return null;
 	}

@@ -28,7 +28,7 @@ public class ExtractOverDriveInfoMain {
 			System.out.println("The name of the server to extract OverDrive data for must be provided as the first parameter.");
 			System.exit(1);
 		}
-		System.out.println("Starting overdrive extract");
+		//System.out.println("Starting overdrive extract");
 		
 		serverName = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);

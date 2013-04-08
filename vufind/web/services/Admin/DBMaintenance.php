@@ -358,6 +358,14 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'library_31' => array(
+				'title' => 'Library 31',
+				'description' => 'Add includeOutOfSystemExternalLinks option to allow econtent links to be shown in global library search',
+				'sql' => array(
+					"ALTER TABLE library ADD includeOutOfSystemExternalLinks TINYINT(1) DEFAULT '0'",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

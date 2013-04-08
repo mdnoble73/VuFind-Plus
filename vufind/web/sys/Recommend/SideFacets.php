@@ -89,7 +89,7 @@ class SideFacets implements RecommendationInterface
 					}
 				}
 				if (isset($searchLocation)){
-					if ($facet->facetName == 'time_since_added'){
+					if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
 						$facetName = 'local_time_since_added_' . $searchLocation->code;
 					}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 						$facetName = 'availability_toggle_' . $searchLocation->code;

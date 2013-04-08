@@ -22,7 +22,8 @@ vufind/web/images/covers/large/*
 vufind/web/files/original/*
 vufind/web/*.csv
 tests/*
-*/.idea/*
+.idea/
+.settings/
 data-import
 
 # Compiled source #                                                                                   
