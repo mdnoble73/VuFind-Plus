@@ -845,10 +845,10 @@ class EContentRecord extends DB_DataObject{
 	 * the format separated by line.
 	 */
 	function getDeviceCompatibilityMap(){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $servername;
-		$deviceMap = $memcache->get('device_compatibility_map');
+		$deviceMap = $memCache->get('device_compatibility_map');
 		if ($deviceMap == false){
 			$deviceMap = array();
 			if (file_exists("../../sites/$servername/conf/device_compatibility_map.ini")){
@@ -862,7 +862,7 @@ class EContentRecord extends DB_DataObject{
 				$devices = explode(",", $devicesCsv);
 				$deviceMap[$format] = $devices;
 			}
-			$memcache->set('device_compatibility_map', $deviceMap, 0, $configArray['Caching']['device_compatibility_map']);
+			$memCache->set('device_compatibility_map', $deviceMap, 0, $configArray['Caching']['device_compatibility_map']);
 		}
 		return $deviceMap;
 	}
@@ -873,10 +873,10 @@ class EContentRecord extends DB_DataObject{
 	 * Use a * to match any category
 	 */
 	function getFormatCategoryMap(){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $servername;
-		$categoryMap = $memcache->get('econtent_category_map');
+		$categoryMap = $memCache->get('econtent_category_map');
 		if ($categoryMap == false){
 			$categoryMap = array();
 			if (file_exists("../../sites/$servername/translation_maps/format_category_map.properties")){
@@ -890,7 +890,7 @@ class EContentRecord extends DB_DataObject{
 				$categoryMap[$format] = $category;
 			}
 
-			$memcache->set('econtent_category_map', $categoryMap, 0, $configArray['Caching']['econtent_category_map']);
+			$memCache->set('econtent_category_map', $categoryMap, 0, $configArray['Caching']['econtent_category_map']);
 		}
 		return $categoryMap;
 	}

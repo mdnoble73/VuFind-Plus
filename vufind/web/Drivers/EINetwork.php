@@ -42,7 +42,7 @@ class EINetwork extends MillenniumDriver{
 	public function patronLogin($barcode, $pin)
 	{
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		global $timer;
 
 		if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){

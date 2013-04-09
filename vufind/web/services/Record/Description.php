@@ -51,7 +51,7 @@ class Description extends Record{
 		global $configArray;
 		global $library;
 		global $timer;
-		global $memcache;
+		global $memCache;
 
 		// Get ISBN for cover and review use
 		$isbn = null;
@@ -86,7 +86,7 @@ class Description extends Record{
 			}
 		}
 
-		$descriptionArray = $memcache->get("record_description_{$isbn}_{$upc}_{$allowExternalDescription}");
+		$descriptionArray = $memCache->get("record_description_{$isbn}_{$upc}_{$allowExternalDescription}");
 		if (!$descriptionArray){
 			$marcDescription = null;
 			$description = '';
@@ -143,7 +143,7 @@ class Description extends Record{
 					$descriptionArray['publisher'] = $publisher;
 				}
 			}
-			$memcache->set("record_description_{$isbn}_{$upc}_{$allowExternalDescription}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$memCache->set("record_description_{$isbn}_{$upc}_{$allowExternalDescription}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}
 
 		return $descriptionArray;

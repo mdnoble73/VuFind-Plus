@@ -905,10 +905,10 @@ class ListAPI extends Action {
 	}
 
 	function getSavedSearchTitles($searchId){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		$cacheId = 'saved_search_titles_' . $searchId;
-		$listTitles = $memcache->get($cacheId);
+		$listTitles = $memCache->get($cacheId);
 		if ($listTitles == false || isset($_REQUEST['reload'])){
 			require_once('services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
@@ -955,16 +955,16 @@ class ListAPI extends Action {
 				);
 			}
 
-			$memcache->set($cacheId, $listTitles, 0, $configArray['Caching']['list_saved_search']);
+			$memCache->set($cacheId, $listTitles, 0, $configArray['Caching']['list_saved_search']);
 		}
 
 		return $listTitles;
 	}
 
 	function getRandomSystemListTitles($listName){
-		global $memcache;
+		global $memCache;
 		global $configArray;
-		$listTitles = $memcache->get('system_list_titles_' . $listName);
+		$listTitles = $memCache->get('system_list_titles_' . $listName);
 		if ($listTitles == false || isset($_REQUEST['reload'])){
 			require_once('services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
@@ -1015,15 +1015,15 @@ class ListAPI extends Action {
 				);
 			}
 
-			$memcache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
+			$memCache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
 		return $listTitles;
 	}
 
 	function getSystemListTitles($listName){
-		global $memcache;
+		global $memCache;
 		global $configArray;
-		$listTitles = $memcache->get('system_list_titles_' . $listName);
+		$listTitles = $memCache->get('system_list_titles_' . $listName);
 		if ($listTitles == false){
 			require_once('services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
@@ -1062,7 +1062,7 @@ class ListAPI extends Action {
 				);
 			}
 
-			$memcache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
+			$memCache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
 		}
 		return $listTitles;
 	}
@@ -1084,8 +1084,8 @@ class ListAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
-	 * <li>listId – te id of the new list that is created.</li>
+	 * <li>success ï¿½ true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
+	 * <li>listId ï¿½ te id of the new list that is created.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1142,9 +1142,9 @@ class ListAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the titles could be added to the list, false if the username or password were incorrect or the list could not be created.</li>
-	 * <li>listId – the id of the list that titles were added to.</li>
-	 * <li>numAdded – the number of titles that were added to the list.</li>
+	 * <li>success ï¿½ true if the account is valid and the titles could be added to the list, false if the username or password were incorrect or the list could not be created.</li>
+	 * <li>listId ï¿½ the id of the list that titles were added to.</li>
+	 * <li>numAdded ï¿½ the number of titles that were added to the list.</li>
 	 * </ul>
 	 *
 	 * Sample Call:

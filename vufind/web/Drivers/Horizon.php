@@ -111,9 +111,9 @@ class Horizon implements DriverInterface{
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode
-				global $memcache;
+				global $memCache;
 				if (isset($barcode) && strlen($barcode) > 0){
-					$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
+					$itemData = $memCache->get("item_data_{$barcode}_{$forSummary}");
 				}else{
 					$itemData = false;
 				}
@@ -191,7 +191,7 @@ class Horizon implements DriverInterface{
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
 					if (isset($barcode) && strlen($barcode) > 0){
-						$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
+						$memCache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
 					}
 				}
 
@@ -729,7 +729,7 @@ public function getMyHoldsViaDB($patron)
 		global $library;
 		global $locationSingleton;
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		//Holdings summaries need to be cached based on the actual location since part of the information
 		//includes local call numbers and statuses.
 		$ipLocation = $locationSingleton->getPhysicalLocation();
@@ -750,7 +750,7 @@ public function getMyHoldsViaDB($patron)
 		}else{
 			$locationId = $location->locationId;
 		}
-		$summaryInformation = $memcache->get("holdings_summary_{$id}_{$locationId}" );
+		$summaryInformation = $memCache->get("holdings_summary_{$id}_{$locationId}" );
 		if ($summaryInformation == false){
 
 			$canShowHoldButton = true;
@@ -1053,7 +1053,7 @@ public function getMyHoldsViaDB($patron)
 			}
 			$timer->logTime('Finished building summary');
 
-			$memcache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
+			$memCache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
 		}
 		return $summaryInformation;
 	}
@@ -1613,10 +1613,10 @@ private $transactions = array();
 	private $sipInitialized = false;
 	private $mysip = false;
 	private function _loadItemSIP2Data($barcode, $itemStatus){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
-		$itemSip2Data = $memcache->get("item_sip2_data_{$barcode}");
+		$itemSip2Data = $memCache->get("item_sip2_data_{$barcode}");
 		if ($itemSip2Data == false){
 			//Check to see if the SIP2 information is already cached
 			if ($this->sipInitialized == false){
@@ -1677,7 +1677,7 @@ private $transactions = array();
 					}
 				}
 			}
-			$memcache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
+			$memCache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
 			$timer->logTime("Got due date and hold queue length from SIP 2 for barcode $barcode");
 		}
 		return $itemSip2Data;

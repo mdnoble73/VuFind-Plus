@@ -7,7 +7,7 @@ class Novelist{
 		global $library;
 		global $timer;
 		global $configArray;
-		global $memcache;
+		global $memCache;
 
 		if (isset($configArray['Novelist']) && isset($configArray['Novelist']['profile']) && strlen($configArray['Novelist']['profile']) > 0){
 			$profile = $configArray['Novelist']['profile'];
@@ -21,7 +21,7 @@ class Novelist{
 			return null;
 		}
 
-		$enrichment = $memcache->get("novelist_enrichment_$isbn");
+		$enrichment = $memCache->get("novelist_enrichment_$isbn");
 		if ($enrichment == false  || isset($_REQUEST['reload'])){
 
 			$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/AllContent?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$isbn}";
@@ -77,7 +77,7 @@ class Novelist{
 				$enrichment = null;
 			}
 
-			$memcache->set("novelist_enrichment_$isbn", $enrichment, 0, $configArray['Caching']['novelist_enrichement']);
+			$memCache->set("novelist_enrichment_$isbn", $enrichment, 0, $configArray['Caching']['novelist_enrichement']);
 		}
 
 		return $enrichment;

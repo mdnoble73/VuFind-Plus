@@ -150,9 +150,9 @@ class Solr implements IndexEngine {
 
 		$this->host = $host . '/' . $index;
 
-		global $memcache;
-		if ($memcache){
-			$pingDone = $memcache->get('solr_ping');
+		global $memCache;
+		if ($memCache){
+			$pingDone = $memCache->get('solr_ping');
 		}else{
 			$pingDone = false;
 		}
@@ -171,8 +171,8 @@ class Solr implements IndexEngine {
 			} else {
 				PEAR::raiseError($result);
 			}
-			if ($memcache){
-				$pingDone = $memcache->set('solr_ping', true, 0, $configArray['Caching']['solr_ping']);
+			if ($memCache){
+				$pingDone = $memCache->set('solr_ping', true, 0, $configArray['Caching']['solr_ping']);
 			}
 			$timer->logTime('Ping Solr instance');
 		}
@@ -328,9 +328,9 @@ class Solr implements IndexEngine {
 		if ($this->debug) {
 			echo "<pre>Get Record: $id</pre>\n";
 		}
-		global $memcache;
+		global $memCache;
 		global $configArray;
-		$record = $memcache->get("solr_record_$id");
+		$record = $memCache->get("solr_record_$id");
 		if ($record == false){
 
 			// Query String Parameters
@@ -342,7 +342,7 @@ class Solr implements IndexEngine {
 
 			if (isset($result['response']['docs'][0])){
 				$record = $result['response']['docs'][0];
-				$memcache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
+				$memCache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
 			}else{
 				global $logger;
 				$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);

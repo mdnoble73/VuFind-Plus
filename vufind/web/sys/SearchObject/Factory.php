@@ -40,7 +40,7 @@ class SearchObjectFactory {
 	static function initSearchObject($engine = 'Solr')
 	{
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		
 		$path = "{$configArray['Site']['local']}/sys/SearchObject/{$engine}.php";
 		if (is_readable($path)) {

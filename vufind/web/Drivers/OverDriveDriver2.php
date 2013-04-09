@@ -36,7 +36,7 @@ class OverDriveDriver2 {
 	 * @param EContentRecord $record
 	 */
 	public function getCoverUrl($record){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 
 		$overDriveId = $record->getOverDriveId();
@@ -52,8 +52,8 @@ class OverDriveDriver2 {
 	}
 
 	private function _connectToAPI($forceNewConnection = false){
-		global $memcache;
-		$tokenData = $memcache->get('overdrive_token');
+		global $memCache;
+		$tokenData = $memCache->get('overdrive_token');
 		if ($forceNewConnection || $tokenData == false){
 			global $configArray;
 			$ch = curl_init("https://oauth.overdrive.com/token");
@@ -72,7 +72,7 @@ class OverDriveDriver2 {
 			curl_close($ch);
 			$tokenData = json_decode($return);
 			if ($tokenData){
-				$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+				$memCache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
 			}
 		}
 		return $tokenData;
@@ -316,7 +316,7 @@ class OverDriveDriver2 {
 	 * @return array
 	 */
 	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
@@ -326,7 +326,7 @@ class OverDriveDriver2 {
 	}
 
 	public function getOverDriveHolds($user, $overDriveInfo = null){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
@@ -362,11 +362,11 @@ class OverDriveDriver2 {
 	}
 
 	public function getAccountDetails($user){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
-		$summary = $memcache->get('overdrive_summary_' . $user->id);
+		$summary = $memCache->get('overdrive_summary_' . $user->id);
 		if ($summary == false || isset($_REQUEST['reload'])){
 			$summary = array();
 			$ch = curl_init();
@@ -413,7 +413,7 @@ class OverDriveDriver2 {
 			curl_close($ch);
 
 			$timer->logTime("Finished loading titles from overdrive summary");
-			$memcache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
+			$memCache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
 		}
 
 		return $summary;
@@ -427,7 +427,7 @@ class OverDriveDriver2 {
 	 * @param User $user
 	 */
 	public function placeOverDriveHold($overDriveId, $format, $user){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $logger;
 
@@ -556,7 +556,7 @@ class OverDriveDriver2 {
 						$holdResult['result'] = true;
 						$holdResult['message'] = 'Your hold was placed successfully.';
 
-						$memcache->delete('overdrive_summary_' . $user->id);
+						$memCache->delete('overdrive_summary_' . $user->id);
 
 						//Record that the entry was checked out in strands
 						global $configArray;
@@ -574,7 +574,7 @@ class OverDriveDriver2 {
 						}
 
 						//Delete the cache for the record
-						$memcache->delete('overdrive_record_' . $overDriveId);
+						$memCache->delete('overdrive_record_' . $overDriveId);
 					}else{
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'Unknown error placing your hold.';
@@ -591,7 +591,7 @@ class OverDriveDriver2 {
 	}
 
 	public function cancelOverDriveHold($overDriveId, $format, $user){
-		global $memcache;
+		global $memCache;
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -611,10 +611,10 @@ class OverDriveDriver2 {
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 
 			//Check to see if the user has cached hold information and if so, clear it
-			$memcache->delete('overdrive_summary_' . $user->id);
+			$memCache->delete('overdrive_summary_' . $user->id);
 
 			//Delete the cache for the record
-			$memcache->delete('overdrive_record_' . $overDriveId);
+			$memCache->delete('overdrive_record_' . $overDriveId);
 		}else{
 			echo($cancellationResult);
 			$cancelHoldResult['result'] = false;
@@ -637,7 +637,7 @@ class OverDriveDriver2 {
 	 */
 	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
 		global $logger;
-		global $memcache;
+		global $memCache;
 		$accountSummaryBeforeCheckout = $this->getOverDriveSummary($user);
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
@@ -667,7 +667,7 @@ class OverDriveDriver2 {
 			if ($accountSummaryAfterCheckout['numCheckedOut'] > $accountSummaryBeforeCheckout['numCheckedOut']){
 				$result['result'] = true;
 				$result['message'] = "Your title was checked out successfully. You may now download the title from your Account.";
-				$memcache->delete('overdrive_summary_' . $user->id);
+				$memCache->delete('overdrive_summary_' . $user->id);
 			}else{
 				$logger->log("OverDrive checkout failed calling page $checkoutUrl", PEAR_LOG_ERR);
 				$logger->log($checkoutPage, PEAR_LOG_INFO);
@@ -795,7 +795,7 @@ class OverDriveDriver2 {
 	public function getOverdriveHoldings($overDriveId, $overdriveUrl){
 		require_once('sys/eContent/OverdriveItem.php');
 		//get the url for the page in overdrive
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 		$timer->logTime('Starting _getOverdriveHoldings');
@@ -803,7 +803,7 @@ class OverDriveDriver2 {
 		if ($overDriveId == null || strlen($overDriveId) == 0 ){
 			$items = array();
 		}else{
-			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
+			$items = $memCache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
 			if ($items == false || isset($_REQUEST['reload'])){
 				$items = array();
 				//Get base availability for the title
@@ -861,7 +861,7 @@ class OverDriveDriver2 {
 					$items[] = $overdriveItem;
 				}
 
-				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
+				$memCache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
 			}
 			return $items;
 		}
@@ -877,7 +877,7 @@ class OverDriveDriver2 {
 
 	public function returnOverDriveItem($overDriveId, $transactionId, $user){
 		global $logger;
-		global $memcache;
+		global $memCache;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
@@ -901,9 +901,9 @@ class OverDriveDriver2 {
 		if (!preg_match("/$transactionId/si", $returnPage)){
 			$result['result'] = true;
 			$result['message'] = "Your title was returned successfully.";
-			$memcache->delete('overdrive_summary_' . $user->id);
+			$memCache->delete('overdrive_summary_' . $user->id);
 			//Delete the cache for the record
-			$memcache->delete('overdrive_record_' . $overDriveId);
+			$memCache->delete('overdrive_record_' . $overDriveId);
 		}else{
 			$logger->log("OverDrive return failed", PEAR_LOG_ERR);
 			$logger->log($checkoutPage, PEAR_LOG_INFO);
@@ -916,7 +916,7 @@ class OverDriveDriver2 {
 
 	public function selectOverDriveDownloadFormat($overDriveId, $formatId, $user){
 		global $logger;
-		global $memcache;
+		global $memCache;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
@@ -927,13 +927,13 @@ class OverDriveDriver2 {
 			'result' => true,
 			'downloadUrl' => $overDriveInfo['baseLoginUrl'] . 'BANGPurchase.dll?Action=Download&ReserveID=' . $overDriveId . '&FormatID=' . $formatId . '&url=MyAccount.htm'
 		);
-		$memcache->delete('overdrive_summary_' . $user->id);
+		$memCache->delete('overdrive_summary_' . $user->id);
 		curl_close($ch);
 		return $result;
 	}
 
 	public function updateLendingOptions(){
-		global $memcache;
+		global $memCache;
 		global $user;
 		global $logger;
 		$ch = curl_init();
@@ -964,7 +964,7 @@ class OverDriveDriver2 {
 		$lendingOptionsPage = curl_exec($overDriveInfo['ch']);
 		//$logger->log($lendingOptionsPage, PEAR_LOG_DEBUG);
 
-		$memcache->delete('overdrive_summary_' . $user->id);
+		$memCache->delete('overdrive_summary_' . $user->id);
 		return true;
 	}
 }

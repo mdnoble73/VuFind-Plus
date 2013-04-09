@@ -1,10 +1,22 @@
 <?php
+/**
+ * Class MillenniumStatusLoader
+ *
+ * Processes status information from Millennium to load holdings.
+ */
 class MillenniumStatusLoader{
+
+	/**
+	 * Load status (holdings) for a record and filter them based on the logged in user information.
+	 *
+	 * @param string            $id     the id of the record
+	 * @param MillenniumDriver  $driver
+	 * @return array A list of holdings for the record
+	 */
 	public static function getStatus($id, $driver){
 		global $library;
 		global $user;
 		global $timer;
-		global $configArray;
 		global $logger;
 
 		//Get information about holdings, order information, and issue information
@@ -17,16 +29,15 @@ class MillenniumStatusLoader{
 			}else{
 				$holdQueueLength = 0;
 			}
-		}//
+		}
 
 		// Load Record Page
 		$r = substr($millenniumInfo->holdingsInfo, stripos($millenniumInfo->holdingsInfo, 'bibItems'));
 		$r = substr($r,strpos($r,">")+1);
 		$r = substr($r,0,stripos($r,"</table"));
 		$rows = preg_split("/<tr([^>]*)>/",$r);
-		$keys = array_pad(array(),10,"");
 
-		// Load marc record
+		// Load the full marc record so we can get the iType for each record.
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 		$itemFields = $marcRecord->getFields("989");
 		$marcItemData = array();
@@ -35,6 +46,7 @@ class MillenniumStatusLoader{
 
 		//Load item information from marc record
 		foreach ($itemFields as $itemField){
+			/** @var $itemField File_MARC_Data_Field */
 			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
 			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
@@ -46,11 +58,11 @@ class MillenniumStatusLoader{
 		}
 
 		//Process each row in the callnumber table.
-		$ret = MillenniumStatusLoader::parseHoldingRows($driver, $id, $rows, $keys);
+		$ret = MillenniumStatusLoader::parseHoldingRows($driver, $id, $rows);
 
 		$timer->logTime('processed all holdings rows');
 
-		global $locationSingleton;
+		global $locationSingleton; /** @var $locationSingleton Location */
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
 		if ($physicalLocation != null){
 			$physicalBranch = $physicalLocation->holdingBranchLabel;
@@ -332,7 +344,15 @@ class MillenniumStatusLoader{
 		}
 	}
 
-	private static function parseHoldingRows($driver, $id, $rows, $keys){
+	/**
+	 * @param MillenniumDriver  $driver   The main driver for processing records
+	 * @param string            $id       The id of the record in the database
+	 * @param array             $rows     An array of strings for each row in the Millennium holdings table
+	 * @return array
+	 */
+	private static function parseHoldingRows($driver, $id, $rows){
+		$keys = array_pad(array(),10,"");
+
 		global $configArray;
 		$loc_col_name      = $configArray['OPAC']['location_column'];
 		$call_col_name     = $configArray['OPAC']['call_no_column'];
@@ -340,9 +360,7 @@ class MillenniumStatusLoader{
 		$reserves_col_name = $configArray['OPAC']['location_column'];
 		$reserves_key_name = $configArray['OPAC']['reserves_key_name'];
 		$transit_key_name  = $configArray['OPAC']['transit_key_name'];
-		$stat_avail        = $configArray['OPAC']['status_avail'];
 		$stat_due          = $configArray['OPAC']['status_due'];
-		$stat_libuse       = $configArray['OPAC']['status_libuse'];
 
 		$ret = array();
 		$count = 0;

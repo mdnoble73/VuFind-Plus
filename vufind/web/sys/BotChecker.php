@@ -33,10 +33,10 @@ class BotChecker{
 		if (BotChecker::$isBot == null){
 			global $logger;
 			global $timer;
-			global $memcache;
+			global $memCache;
 			global $configArray;
 			$userAgent = $_SERVER['HTTP_USER_AGENT'];
-			$isBot = $memcache->get("bot_by_user_agent_" . $userAgent);
+			$isBot = $memCache->get("bot_by_user_agent_" . $userAgent);
 			if ($isBot === FALSE){
 				global $servername;
 				if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
@@ -60,7 +60,7 @@ class BotChecker{
 				}
 				fclose($fhnd);
 
-				$memcache->set("bot_by_user_agent_" . $userAgent, ($isBot ? 'TRUE' : 'FALSE'), 0, $configArray['Caching']['bot_by_user_agent']);
+				$memCache->set("bot_by_user_agent_" . $userAgent, ($isBot ? 'TRUE' : 'FALSE'), 0, $configArray['Caching']['bot_by_user_agent']);
 				if ($isBot){
 					$logger->log("$userAgent is a bot", PEAR_LOG_DEBUG);
 				}else{

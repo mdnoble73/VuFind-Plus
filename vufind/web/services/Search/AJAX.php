@@ -503,11 +503,11 @@ class AJAX extends Action {
 		require_once 'services/Search/lib/SearchSuggestions.php';
 		global $timer;
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		$searchTerm = isset($_REQUEST['searchTerm']) ? $_REQUEST['searchTerm'] : $_REQUEST['q'];
 		$searchType = isset($_REQUEST['type']) ? $_REQUEST['type'] : '';
 		$cacheKey = 'auto_suggest_list_' . urlencode($searchType) . '_' . urlencode($searchTerm);
-		$searchSuggestions = $memcache->get($cacheKey);
+		$searchSuggestions = $memCache->get($cacheKey);
 		if ($searchSuggestions == false){
 			$suggestions = new SearchSuggestions();
 			$commonSearches = $suggestions->getAllSuggestions($searchTerm, $searchType);
@@ -520,7 +520,7 @@ class AJAX extends Action {
 				}
 			}
 			$searchSuggestions = json_encode($commonSearchTerms);
-			$memcache->set($cacheKey, $searchSuggestions, 0, $configArray['Caching']['search_suggestions'] );
+			$memCache->set($cacheKey, $searchSuggestions, 0, $configArray['Caching']['search_suggestions'] );
 			$timer->logTime("Loaded search suggestions $cacheKey");
 		}
 		echo $searchSuggestions;
@@ -617,7 +617,7 @@ class AJAX extends Action {
 	}
 
 	function GetListTitles(){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
@@ -629,7 +629,7 @@ class AJAX extends Action {
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForList();
 
-		$listData = $memcache->get($cacheInfo['cacheName']);
+		$listData = $memCache->get($cacheInfo['cacheName']);
 		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
 			global $interface;
 
@@ -677,7 +677,7 @@ class AJAX extends Action {
 				$listData = json_encode($return);
 			}
 
-			$memcache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
+			$memCache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
 
 		}
 		echo $listData;

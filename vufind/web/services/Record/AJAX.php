@@ -373,8 +373,8 @@ class AJAX extends Action {
 		$resource->addRating($rating, $user);
 		$analytics->addEvent('User Enrichment', 'Rate Title', $resource->title);
 
-		global $memcache;
-		$memcache->delete('rating_' . $_GET['id']);
+		global $memCache;
+		$memCache->delete('rating_' . $_GET['id']);
 
 		return $rating;
 	}
@@ -586,12 +586,12 @@ class AJAX extends Action {
 	}
 
 	function getDescription(){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $interface;
 		$id = $_REQUEST['id'];
 		//Bypass loading solr, etc if we already have loaded the descriptive info before
-		$descriptionArray = $memcache->get("record_description_{$id}");
+		$descriptionArray = $memCache->get("record_description_{$id}");
 		if (!$descriptionArray){
 			require_once 'Description.php';
 			$searchObject = SearchObjectFactory::initSearchObject();
@@ -599,7 +599,7 @@ class AJAX extends Action {
 
 			$description = new Description(true, $id);
 			$descriptionArray = $description->loadData();
-			$memcache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}
 		$interface->assign('description', $descriptionArray['description']);
 		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');

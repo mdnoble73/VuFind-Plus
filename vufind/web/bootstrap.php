@@ -30,7 +30,7 @@ $timer->logTime('Bootstrap');
 
 function initMemcache(){
 	//Connect to memcache
-	global $memcache;
+	global $memCache;
 	global $timer;
 	global $configArray;
 	// Set defaults if nothing set in config file.
@@ -39,10 +39,10 @@ function initMemcache(){
 	$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
 
 	// Connect to Memcache:
-	$memcache = new Memcache();
-	if (!$memcache->pconnect($host, $port, $timeout)) {
+	$memCache = new Memcache();
+	if (!$memCache->pconnect($host, $port, $timeout)) {
 		//Try again with a non-persistent connection
-		if (!$memcache->connect($host, $port, $timeout)) {
+		if (!$memCache->connect($host, $port, $timeout)) {
 			PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
 		}
 	}
