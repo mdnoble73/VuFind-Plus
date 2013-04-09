@@ -144,7 +144,7 @@ class MillenniumDriver implements DriverInterface
 		}else if (isset($searchLibrary) && $searchLibrary->useScope && $searchLibrary->restrictSearchByLibrary) {
 			return $searchLibrary->scope;
 		}else{
-			return $this->getDefaultScope();
+            return $this->getDefaultScope();
 		}
 	}
 
@@ -157,16 +157,20 @@ class MillenniumDriver implements DriverInterface
 		require_once 'Drivers/marmot_inc/MillenniumCache.php';
 		global $memcache;
 		global $configArray;
+		global $logger;
 		$scope = $this->getMillenniumScope();
 		//Clear millennium cache once per minute
 		$lastCacheClear = $memcache->get('millennium_cache_interval');
 		//echo ("lastCacheClear = $lastCacheClear, cache_interval = {$configArray['Caching']['millennium_cache_interval']}");
 		if ($lastCacheClear == false || isset($_REQUEST['reload'])){
 			//Get rid of anything in the cache older than 5 minutes
-			global $logger;
 			$millenniumCache = new MillenniumCache();
 			//First clean out any records that are more than 5 minutes old
-			$cacheExpirationTime = time() - 5 * 60;
+			if (isset($_REQUEST['reload'])){
+				$cacheExpirationTime = time() ;
+			}else{
+				$cacheExpirationTime = time() - 5 * 60;
+			}
 			//$logger->log("Clearing millennium cache before $cacheExpirationTime", PEAR_LOG_INFO);
 			//Update memcache before clearing the database so we don't have tons of threads trying to clear the cache
 			$memcache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
@@ -202,6 +206,7 @@ class MillenniumDriver implements DriverInterface
 
 		$req =  $host . "/search~S{$scope}/.b" . $id_ . "/.b" . $id_ . "/1,1,1,B/holdings~" . $id_;
 		$millenniumCache->holdingsInfo = file_get_contents($req);
+		//$logger->log("Loaded holdings from url $req", PEAR_LOG_DEBUG);
 		$timer->logTime('got holdings from millennium');
 
 		$req =  $host . "/search~S{$scope}/.b" . $id_ . "/.b" . $id_ . "/1,1,1,B/frameset~" . $id_;
@@ -2515,16 +2520,30 @@ class MillenniumDriver implements DriverInterface
 	 */
 	public function getPType(){
 		if (!(isset($ptype)) || $this->ptype == null){
+			/** @var $user User */
 			global $user;
+			/** @var $user Library */
 			global $library;
+			/** @var $locationSingleton Location */
 			global $locationSingleton;
+			/** @var $location Location */
 			$location = $locationSingleton->getActiveLocation();
+      $canUseDefaultPType = true;
+      if ($this->getMillenniumScope() == $this->getDefaultScope()){
+        //If the user is searching the global scope, we don't want to use the default pType
+	      //Unless the default scope is unscoped.
+	      if (isset($location) && !$location->useScope){
+		      $canUseDefaultPType = false;
+	      }elseif (isset($library) && !$library->useScope){
+		      $canUseDefaultPType = false;
+	      }
+      }
 			if (isset($user) && $user != false){
 				$patronDump = $this->_getPatronDump($this->_getBarcode());
 				$this->ptype = $patronDump['P_TYPE'];
-			}else if (isset($location) && $location->defaultPType != -1){
+			}else if (isset($location) && $location->defaultPType > 0 && $canUseDefaultPType){
 				$this->ptype = $location->defaultPType;
-			}else if (isset($library)){
+			}else if (isset($library) && $library->defaultPType > 0 && $canUseDefaultPType){
 				$this->ptype = $library->defaultPType;
 			}else{
 				$this->ptype = -1;

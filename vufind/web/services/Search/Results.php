@@ -139,7 +139,7 @@ class Results extends Action {
 						}
 					}
 				}
-				if ($yearFrom != '*' || $yearTo != '*'){
+				if ($from != '*' || $to != '*'){
 					$queryParamStrings[] = "&filter[]=$filter:[$from+TO+$to]";
 				}
 				$queryParamString = join('&', $queryParamStrings);

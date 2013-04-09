@@ -46,7 +46,7 @@ class MillenniumStatusLoader{
 		}
 
 		//Process each row in the callnumber table.
-		$ret = MillenniumStatusLoader::parseHoldingRows($id, $rows, $keys);
+		$ret = MillenniumStatusLoader::parseHoldingRows($driver, $id, $rows, $keys);
 
 		$timer->logTime('processed all holdings rows');
 
@@ -332,7 +332,7 @@ class MillenniumStatusLoader{
 		}
 	}
 
-	private static function parseHoldingRows($id, $rows, $keys){
+	private static function parseHoldingRows($driver, $id, $rows, $keys){
 		global $configArray;
 		$loc_col_name      = $configArray['OPAC']['location_column'];
 		$call_col_name     = $configArray['OPAC']['call_no_column'];
