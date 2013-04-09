@@ -403,7 +403,7 @@ public class MarcRecordDetails {
 			LibraryIndexingInfo libraryIndexingInfo = null;
 			boolean itemSuppressed = false;
 			if (locationIndexingInfo == null) {
-				logger.debug("Warning, did not find location info for location " + curAdditonalLocation);
+				logger.debug("Warning, did not find location info for additional location " + curAdditonalLocation);
 				if (curAdditonalLocation.equalsIgnoreCase("zzzz")) {
 					// logger.debug("suppressing item because location code is zzzz");
 					itemSuppressed = true;

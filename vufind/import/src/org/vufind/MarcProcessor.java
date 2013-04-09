@@ -301,7 +301,7 @@ public class MarcProcessor {
 		}
 		
 		try {
-			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, libraryId, facetLabel, defaultLocationFacet, code, extraLocationCodesToInclude from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, libraryId, facetLabel, restrictSearchByLocation, code, extraLocationCodesToInclude from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
 			while (locationFacetRS.next()) {
 				Long libraryId = locationFacetRS.getLong("libraryId");
@@ -309,7 +309,7 @@ public class MarcProcessor {
 				String facetLabel = locationFacetRS.getString("facetLabel");
 				String code = locationFacetRS.getString("code").trim();
 				locationCodes.add(code);
-				String defaultLocationFacet = locationFacetRS.getString("defaultLocationFacet");
+				boolean restrictSearchByLocation = locationFacetRS.getBoolean("restrictSearchByLocation");
 				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
 				locationFacets.put(facetLabel, locationId);
 				//Load information for indexing items
@@ -319,7 +319,7 @@ public class MarcProcessor {
 				locationInfo.setLibraryId(libraryId);
 				locationInfo.setLocationId(locationId);
 				locationInfo.setFacetLabel(facetLabel);
-				locationInfo.setScoped(defaultLocationFacet.length() > 0);
+				locationInfo.setScoped(restrictSearchByLocation);
 				locationInfo.setCode(code);
 				locationInfo.setExtraLocationCodesToInclude(locationFacetRS.getString("extraLocationCodesToInclude").trim());
 				libraryInfo.addLocation(locationInfo);
