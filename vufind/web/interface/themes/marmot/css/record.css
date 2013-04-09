@@ -267,3 +267,8 @@
 #moredetails-tabs{
 	margin-top: 10px;
 }
+ul.notesList li{
+    margin-bottom: 2px;
+    padding-left: 10px;
+    text-indent: -10px;
+}

@@ -73,7 +73,7 @@
 		<div id ="notestab">
 			<ul class='notesList'>
 			{foreach from=$notes item=note}
-				<li>{$note|escape}</li>
+				<li>{$note}</li>
 			{/foreach}
 			</ul>
 		</div>

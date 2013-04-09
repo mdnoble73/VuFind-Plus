@@ -387,13 +387,44 @@ class Record extends Action
 		}
 
 		$additionalNotesFields = array(
-          '310' => 'Current Publication Frequency',
-          '321' => 'Former Publication Frequency',
-          '351' => 'Organization & arrangement of materials',
-          '362' => 'Dates of publication and/or sequential designation',
-		      '590' => 'Local note',
-
+            '310' => 'Current Publication Frequency',
+            '321' => 'Former Publication Frequency',
+            '351' => 'Organization & arrangement of materials',
+            '362' => 'Dates of publication and/or sequential designation',
+            '501' => '"With"',
+            '502' => 'Dissertation',
+            '506' => 'Restrictions on Access',
+            '507' => 'Scale for Graphic Material',
+            '508' => 'Creation/Production Credits',
+            '510' => 'Citation/References',
+            '511' => 'Participant or Performer',
+            '513' => 'Type of Report an Period Covered',
+            '515' => 'Numbering Peculiarities',
+            '518' => 'Date/Time and Place of Event',
+            '521' => 'Target Audience',
+            '522' => 'Geographic Coverage',
+            '525' => 'Supplement',
+            '526' => 'Study Program Information',
+            '530' => 'Additional Physical Form',
+            '533' => 'Reproduction',
+            '534' => 'Original Version',
+            '536' => 'Funding Information',
+            '538' => 'System Details',
+            '545' => 'Biographical or Historical Data',
+            '546' => 'Language',
+            '547' => 'Former Title Complexity',
+            '550' => 'Issuing Body',
+            '555' => 'Cumulative Index/Finding Aids',
+            '556' => 'Information About Documentation',
+            '561' => 'Ownership and Custodial History',
+            '563' => 'Binding Information',
+            '580' => 'Linking Entry Complexity',
+            '581' => 'Publications About Described Materials',
+            '586' => 'Awards',
+            '590' => 'Local note',
+            '599' => 'Differentiable Local note',
 		);
+
 		foreach ($additionalNotesFields as $tag => $label){
 			$marcFields = $marcRecord->getFields($tag);
 			foreach ($marcFields as $marcField){
@@ -403,7 +434,7 @@ class Record extends Action
 				}
 				$note = implode(',', $noteText);
 				if (strlen($note) > 0){
-					$notes[] = $label . ': ' . $note;
+					$notes[] = "<b>$label</b>: " . $note;
 				}
 			}
 		}
