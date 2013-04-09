@@ -1073,17 +1073,21 @@ class Solr implements IndexEngine {
 			global $user;
 			$pType = 0;
 			$owningSystem = '';
+			$owningLibrary = '';
+			$canUseDefaultPType = !$this->scopingDisabled;
 			if ($user){
 				$pType = $user->patronType;
-			}elseif (isset($searchLocation) && $searchLocation->defaultPType > 0){
+			}elseif (isset($searchLocation) && $searchLocation->defaultPType > 0 && $canUseDefaultPType){
 				$pType = $searchLocation->defaultPType;
-				$owningSystem = $searchLibrary->facetLabel;
-			}elseif (isset($searchLibrary) && $searchLibrary->defaultPType > 0){
+				$owningLibrary = $searchLocation->facetLabel;
+			}elseif (isset($searchLibrary) && $searchLibrary->defaultPType > 0 && $canUseDefaultPType){
 				$pType = $searchLibrary->defaultPType;
 				$owningSystem = $searchLibrary->facetLabel;
 			}
-			if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true && $this->scopingDisabled == false){
-				if (strlen($owningSystem) > 0){
+			if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
+				if (strlen($owningLibrary) > 0){
+					$filter[] = "(usable_by:$pType OR building:\"$owningLibrary\")";
+				}else	if (strlen($owningSystem) > 0){
 					$filter[] = "(usable_by:$pType OR institution:\"$owningSystem\")";
 				}else{
 					$filter[] = 'usable_by:'.$pType;
