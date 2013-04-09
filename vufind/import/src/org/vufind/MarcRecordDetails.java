@@ -2486,8 +2486,8 @@ public class MarcRecordDetails {
 			DataField itemField = (DataField) itemFieldIterator.next();
 			Subfield callNumber = itemField.getSubfield(callNumberSubfieldChar);
 			Subfield location = itemField.getSubfield(locationSubfieldChar);
-			if (callNumber != null && location != null) {
-				String callNumberData = callNumber.getData();
+			if (location != null) {
+				String callNumberData = callNumber == null ? "" :  callNumber.getData();
 				callNumberData = callNumberData.replaceAll("~", " ");
 				String locationCode = location.getData();
 				long locationId = getLocationIdForLocation(locationCode);
