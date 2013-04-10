@@ -91,7 +91,7 @@ class EcontentRecordDriver extends IndexRecord
 		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRating = new EContentRating();
 		$econtentRating->recordId = $this->getUniqueID();
-		$logger->log("Loading ratings for econtent record {$this->getUniqueID()}", PEAR_LOG_DEBUG);
+		//$logger->log("Loading ratings for econtent record {$this->getUniqueID()}", PEAR_LOG_DEBUG);
 		$interface->assign('summRating', $econtentRating->getRatingData($user, false));
 
 		$interface->assign('summAjaxStatus', true);
@@ -443,7 +443,7 @@ class EcontentRecordDriver extends IndexRecord
 		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRating = new EContentRating();
 		$econtentRating->recordId = $id;
-		$logger->log("Loading ratings for econtent record $id", PEAR_LOG_DEBUG);
+		//$logger->log("Loading ratings for econtent record $id", PEAR_LOG_DEBUG);
 		$interface->assign('summRating', $econtentRating->getRatingData($user, false));
 
 		//Determine the cover to use

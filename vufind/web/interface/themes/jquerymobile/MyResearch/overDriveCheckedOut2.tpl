@@ -41,7 +41,7 @@
 								</select>
 								<a href="#" onclick="selectOverDriveDownloadFormat('{$record.overDriveId}')" data-role="button" rel="external">Download</a>
 							{/if}
-							{if $record.earlyreturn}
+							{if $record.earlyReturn}
 								<a href="#" onclick="returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" data-role="button" rel="external">Return&nbsp;Now</a>
 							{/if}
 							{if $record.overdriveRead}

@@ -144,6 +144,7 @@ class OverDriveDriver2 {
 
 	public function _parseOverDriveCheckedOutItems($checkedOutSection, $overDriveInfo){
 		global $user;
+		global $logger;
 		$bookshelf = array();
 		$bookshelf['items'] = array();
 		if (preg_match_all('/<li class="mobile-four bookshelf-title-li".*?data-transaction="(.*?)".*?>.*?<div class="is-enhanced" data-transaction=".*?" title="(.*?)".*?<img.*?class="lrgImg" src="(.*?)".*?data-crid="(.*?)".*?<div.*?class="dwnld-container".*?>(.*?)<div class="expiration-date".*?<noscript>(.*?)<\/noscript>.*?data-earlyreturn="(.*?)"/si', $checkedOutSection, $bookshelfInfo, PREG_SET_ORDER)) {
@@ -175,9 +176,10 @@ class OverDriveDriver2 {
 				$formatSection = $bookshelfInfo[$i][$group++];
 				//print_r("\r\nFormat Section $i\r\n$formatSection\r\n");
 				$bookshelfItem['expiresOn'] = $bookshelfInfo[$i][$group++];
-				$bookshelfItem['earlyreturn'] = $bookshelfInfo[$i][$group++];
+				$bookshelfItem['earlyReturn'] = $bookshelfInfo[$i][$group++];
+				$bookshelfItem['overdriveRead'] = false;
 				//Check to see if a format has been selected
-				if (preg_match_all('/<li class="dwnld-litem.*?".*?data-fmt="(.*?)".*?data-lckd="(.*?)".*?data-enhanced="(.*?)".*?<a.*?>(.*?)<\/a>/si', $formatSection, $formatOptions, PREG_SET_ORDER)) {
+				if (preg_match_all('/<li class="dwnld-litem.*?".*?data-fmt="(.*?)".*?data-lckd="(.*?)".*?data-enhanced="(.*?)".*?<a.*?href="(.*?)".*?>(.*?)<\/a>/si', $formatSection, $formatOptions, PREG_SET_ORDER)) {
 					$bookshelfItem['formatSelected'] = false;
 					$bookshelfItem['formats'] = array();
 					for ($fmt = 0; $fmt < count($formatOptions); $fmt++){
@@ -185,17 +187,22 @@ class OverDriveDriver2 {
 						$format['id'] = $formatOptions[$fmt][1];
 						$format['locked'] = $formatOptions[$fmt][2]; //This means the format is selected
 						$format['enhanced'] = $formatOptions[$fmt][3];
-						$format['name'] = $formatOptions[$fmt][4];
+						$format['name'] = $formatOptions[$fmt][5];
 						if ($format['locked'] == 1){
 							$bookshelfItem['formatSelected'] = true;
 							$bookshelfItem['selectedFormat'] = $format;
 							$bookshelfItem['downloadUrl'] = $overDriveInfo['baseLoginUrl'] . 'BANGPurchase.dll?Action=Download&ReserveID=' . $bookshelfItem['overDriveId'] . '&FormatID=' . $format['id'] . '&url=MyAccount.htm';
 						}
-						$bookshelfItem['formats'][] = $format;
+						if ($format['id'] == 610){
+							$bookshelfItem['overdriveRead'] = true;
+							$bookshelfItem['overdriveReadUrl'] = $overDriveInfo['baseLoginUrl'] . 'BANGPurchase.dll?Action=Download&ReserveID=' . $bookshelfItem['overDriveId'] . '&FormatID=' . $format['id'] . '&url=MyAccount.htm';
+						}else{
+							$bookshelfItem['formats'][] = $format;
+						}
 					}
 				}
 				//Parse special formats
-				if (preg_match('/<div class="dwnld-kindle" data-transaction=".*?">(.*?)<\/div>.*?<div class="dwnld-odread" data-transaction=".*?">(.*?)<\/div>.*?<div class="dwnld-locked-in" data-transaction=".*?">(.*?)<\/div>/si', $formatSection, $specialDownloads)) {
+				/*if (preg_match('/<div class="dwnld-kindle" data-transaction=".*?">(.*?)<\/div>.*?<div class="dwnld-odread" data-transaction=".*?".*?>(.*?)<\/div>.*?<div class="dwnld-locked-in" data-transaction=".*?">(.*?)<\/div>/si', $formatSection, $specialDownloads)) {
 					$bookshelfItem['kindle'] = $specialDownloads[1];
 					$overDriveRead = $specialDownloads[2];
 					if (strlen($overDriveRead) > 0){
@@ -208,7 +215,10 @@ class OverDriveDriver2 {
 					}
 					//$bookshelfItem['overdriveRead'] = $specialDownloads[2];
 					$bookshelfItem['lockedIn'] = $specialDownloads[3];
-				}
+					$logger->log("Matched special formats $formatSection", PEAR_LOG_DEBUG);
+				}else{
+					$logger->log("Did not match special formats $formatSection", PEAR_LOG_DEBUG);
+				}*/
 
 				$bookshelf['items'][] = $bookshelfItem;
 			}
