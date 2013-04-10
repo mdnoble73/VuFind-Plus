@@ -607,10 +607,14 @@ class MillenniumDriver implements DriverInterface
 
 		//Strip any non digit characters from the password
 		$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
-		$id2= $password;
+		if (strlen($password) == 5){
+			$password = '41000000' . $password;
+		}elseif (strlen($password) == 6){
+			$password = '4100000' . $password;
+		}
 
 		//Load the raw information about the patron
-		$patronDump = $this->_getPatronDump($id2);
+		$patronDump = $this->_getPatronDump($password);
 
 		//Create a variety of possible name combinations for testing purposes.
 		$userValid = false;
@@ -637,7 +641,7 @@ class MillenniumDriver implements DriverInterface
 		}
 		if ($userValid){
 			$user = array(
-                'id'        => $id2,
+                'id'        => $password,
                 'username'  => $patronDump['RECORD_#'],
                 'firstname' => $firstname,
                 'lastname'  => $lastname,
