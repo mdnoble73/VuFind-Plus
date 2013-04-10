@@ -15,6 +15,16 @@
 		{/if}
 
 		{if count($overDriveCheckedOutItems) > 0}
+			<div id='overdriveMediaConsoleInfo'>
+				<p>
+					Need help opening your title?  We have <a href="#" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')" rel="external" >step by step instructions</a> for most formats and devices <a href="#" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
+					If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" rel="external" >support form</a>.
+				</p>
+				<p><b>To access OverDrive titles, you will need the <a href="http://www.overdrive.com/software/omc/" rel="external" >OverDrive&reg; Media Console&trade;</a></b>.
+					If you do not already have the OverDrive Media Console, you may download it <a href="http://www.overdrive.com/software/omc/">here</a>.</p>
+				<div class="clearer">&nbsp;</div>
+			</div>
+
 			<ul class="results checkedout-list" data-role="listview">
 				{foreach from=$overDriveCheckedOutItems item=record}
 					<li>

@@ -22,13 +22,27 @@
 			{include file=$userNoticeFile}
 		{/if}
 
-		{if $overDriveCheckedOutItems}
-			<div class='sortOptions'>
-				Hide Covers <input type="checkbox" onclick="$('.imageColumnOverdrive').toggle();"/>
-			</div>
-		{/if}
-
 		{if count($overDriveCheckedOutItems) > 0}
+			<div id='overdriveMediaConsoleInfo'>
+				<p>
+					Need help opening your title?  We have <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">step by step instructions</a> for most formats and devices <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
+					If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" onclick="return showEContentSupportForm()">support form</a>.
+				</p>
+				<img src="{$path}/images/overdrive.png" width="125" height="42" alt="Powered by Overdrive" class="alignleft"/>
+				<p><b>To access OverDrive Audio Books on all devices and eBooks on most devices, you will need the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a></b>.
+					If you do not already have the OverDrive Media Console, you may download it <a href="http://www.overdrive.com/software/omc/">here</a>.</p>
+				<div class="clearer">&nbsp;</div>
+				<img src="{$path}/images/160x41_Get_Adobe_Digital_Editions.png" alt="Get Adobe Digital Editions" class="alignleft"/>
+				<p><b>To access eBooks on PCs and Macs, you will need a copy of <a href="http://www.adobe.com/products/digital-editions/download.html">Adobe&reg; Digital Editions</a></b>.
+					If you do not already have a copy of Adobe Digital Editions, you may download it <a href="http://www.adobe.com/products/digital-editions/download.html">here</a>.</p>
+				<div class="clearer">&nbsp;</div>
+			</div>
+
+			{if $overDriveCheckedOutItems}
+				<div class='sortOptions'>
+					Hide Covers <input type="checkbox" onclick="$('.imageColumnOverdrive').toggle();"/>
+				</div>
+			{/if}
 			<table class="myAccountTable">
 				<thead>
 					<tr><th class='imageColumnOverdrive'></th><th>Title</th><th>Expires</th><th>Rating</th><th></th></tr>
@@ -89,16 +103,7 @@
 		{else}
 			<div class='noItems'>You do not have any titles from OverDrive checked out</div>
 		{/if}
-		<div id='overdriveMediaConsoleInfo'>
-		<img src="{$path}/images/overdrive.png" width="125" height="42" alt="Powered by Overdrive" class="alignleft"/>
-		<p>To access OverDrive titles, you will need the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a>.
-		If you do not already have the OverDrive Media Console, you may download it <a href="http://www.overdrive.com/software/omc/">here</a>.</p>
-		<div class="clearer">&nbsp;</div>
-		<p>Need help transferring a title to your device or want to know whether or not your device is compatible with a particular format?
-		Click <a href="http://help.overdrive.com">here</a> for more information.
-		</p>
 
-	</div>
 	{else}
 		You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 	{/if}
