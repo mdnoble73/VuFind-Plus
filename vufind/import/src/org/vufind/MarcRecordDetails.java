@@ -403,7 +403,7 @@ public class MarcRecordDetails {
 			LibraryIndexingInfo libraryIndexingInfo = null;
 			boolean itemSuppressed = false;
 			if (locationIndexingInfo == null) {
-				logger.debug("Warning, did not find location info for location " + curAdditonalLocation);
+				logger.debug("Warning, did not find location info for additional location " + curAdditonalLocation);
 				if (curAdditonalLocation.equalsIgnoreCase("zzzz")) {
 					// logger.debug("suppressing item because location code is zzzz");
 					itemSuppressed = true;
@@ -2486,8 +2486,8 @@ public class MarcRecordDetails {
 			DataField itemField = (DataField) itemFieldIterator.next();
 			Subfield callNumber = itemField.getSubfield(callNumberSubfieldChar);
 			Subfield location = itemField.getSubfield(locationSubfieldChar);
-			if (callNumber != null && location != null) {
-				String callNumberData = callNumber.getData();
+			if (location != null) {
+				String callNumberData = callNumber == null ? "" :  callNumber.getData();
 				callNumberData = callNumberData.replaceAll("~", " ");
 				String locationCode = location.getData();
 				long locationId = getLocationIdForLocation(locationCode);

@@ -251,13 +251,13 @@ class Location extends DB_DataObject
 		return $locationList;
 	}
 
+	private static $activeLocation = 'unset';
 	/**
 	 * Returns the active location to use when doing search scoping, etc.
 	 * This does not include the IP address
 	 *
 	 * @return Location
 	 */
-	private static $activeLocation = 'unset';
 	function getActiveLocation(){
 		if (Location::$activeLocation != 'unset') {
 			return Location::$activeLocation;
@@ -391,14 +391,14 @@ class Location extends DB_DataObject
 			return $this->ipLocation;
 		}
 		global $timer;
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $logger;
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
 		//$logger->log("Active IP is $activeIp", PEAR_LOG_DEBUG);
-		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
-		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
+		$this->ipLocation = $memCache->get('location_for_ip_' . $activeIp);
+		$this->ipId = $memCache->get('ipId_for_ip_' . $activeIp);
 		if ($this->ipId == -1){
 			$this->ipLocation = false;
 		}
@@ -433,8 +433,8 @@ class Location extends DB_DataObject
 				enableErrorHandler();
 			}
 
-			$memcache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
-			$memcache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
+			$memCache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
+			$memCache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
 			$timer->logTime('Finished getIPLocation');
 		}
 
@@ -501,24 +501,28 @@ class Location extends DB_DataObject
 		if ($name == "hours") {
 			if (!isset($this->hours)){
 				$this->hours = array();
-				$hours = new LocationHours();
-				$hours->locationId = $this->locationId;
-				$hours->orderBy('day');
-				$hours->find();
-				while($hours->fetch()){
-					$this->hours[$hours->id] = clone($hours);
+				if ($this->locationId){
+					$hours = new LocationHours();
+					$hours->locationId = $this->locationId;
+					$hours->orderBy('day');
+					$hours->find();
+					while($hours->fetch()){
+						$this->hours[$hours->id] = clone($hours);
+					}
 				}
 			}
 			return $this->hours;
 		}elseif ($name == "facets") {
 			if (!isset($this->facets)){
 				$this->facets = array();
-				$facet = new LocationFacetSetting();
-				$facet->locationId = $this->locationId;
-				$facet->orderBy('weight');
-				$facet->find();
-				while($facet->fetch()){
-					$this->facets[$facet->id] = clone($facet);
+				if ($this->locationId){
+					$facet = new LocationFacetSetting();
+					$facet->locationId = $this->locationId;
+					$facet->orderBy('weight');
+					$facet->find();
+					while($facet->fetch()){
+						$this->facets[$facet->id] = clone($facet);
+					}
 				}
 			}
 			return $this->facets;
@@ -609,7 +613,7 @@ class Location extends DB_DataObject
 	public static function getLibraryHours($locationId, $timeToCheck){
 		$location = new Location();
 		$location->locationId = $locationId;
-		if ($location->find(true)){
+		if ($locationId > 0 && $location->find(true)){
 			// format $timeToCheck according to MySQL default date format
 			$todayFormatted = date('Y-m-d', $timeToCheck);
 

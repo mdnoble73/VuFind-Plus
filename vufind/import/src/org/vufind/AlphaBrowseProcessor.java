@@ -287,8 +287,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		//logger.debug("found " + localCallNumbers.size() + " call numbers for the resource");
 		HashMap<String, String> distinctCallNumbers = new HashMap<String, String>(); 
 		for (LocalCallNumber callNumber : localCallNumbers){
-			//logger.debug("  " + callNumber.getCallNumber() + " " + callNumber.getLibraryId() + " " + callNumber.getLocationId());
-			distinctCallNumbers.put(Util.makeValueSortable(callNumber.getCallNumber()), callNumber.getCallNumber().trim());
+			if (callNumber.getCallNumber().length() > 0){
+				//logger.debug("  " + callNumber.getCallNumber() + " " + callNumber.getLibraryId() + " " + callNumber.getLocationId());
+				distinctCallNumbers.put(Util.makeValueSortable(callNumber.getCallNumber()), callNumber.getCallNumber().trim());
+			}
 		}
 		for (String callNumberSort : distinctCallNumbers.keySet()){
 			String callNumber = distinctCallNumbers.get(callNumberSort);

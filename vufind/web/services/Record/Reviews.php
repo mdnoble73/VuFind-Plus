@@ -53,9 +53,9 @@ class Reviews extends Record
 	function loadReviews($id, $isbn, $includeEditorial = false) {
 		global $interface;
 		global $configArray;
-		global $memcache;
+		global $memCache;
 
-		$reviews = $memcache->get("reviews_{$isbn}");
+		$reviews = $memCache->get("reviews_{$isbn}");
 		if (!$reviews || isset($_REQUEST['reload'])){
 			// Fetch from provider
 			if (isset($configArray['Content']['reviews'])) {
@@ -80,7 +80,7 @@ class Reviews extends Record
 					}
 				}
 			}
-			$memcache->set("reviews_{$isbn}", $reviews, 0, $configArray['Caching']['purchased_reviews']);
+			$memCache->set("reviews_{$isbn}", $reviews, 0, $configArray['Caching']['purchased_reviews']);
 		}
 
 		//Load Editorial Reviews

@@ -9,8 +9,8 @@
 class OtherEditionHandler{
 	static function getEditions($sourceSolrId, $isbn, $issn, $numResourcesToLoad = 5) {
 		global $configArray;
-		global $memcache;
-		$editions = $memcache->get('other_editions_' . $isbn);
+		global $memCache;
+		$editions = $memCache->get('other_editions_' . $isbn);
 		if (!$editions){
 			
 			// Setup Search Engine Connection
@@ -32,7 +32,7 @@ class OtherEditionHandler{
 				$editions = null;
 			}
 			
-			$memcache->set('other_editions_' . $isbn, $editions, 0, $configArray['Caching']['other_editions']);
+			$memCache->set('other_editions_' . $isbn, $editions, 0, $configArray['Caching']['other_editions']);
 		}
 		return $editions;
 	}

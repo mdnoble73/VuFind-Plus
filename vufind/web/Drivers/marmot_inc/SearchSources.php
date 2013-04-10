@@ -14,6 +14,7 @@ class SearchSources{
 		$searchGenealogy = true;
 		$repeatCourseReserves = false;
 
+		/** @var $locationSingleton Location */
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
 		if ($location != null && $location->useScope && $location->restrictSearchByLocation){
@@ -102,11 +103,10 @@ class SearchSources{
 			}
 		}
 
-		//Summon Search - later
 
 		//eContent Search
 		$searchOptions['econtent'] = array(
-              'name' => 'Digital Collection',
+              'name' => 'Online Collection',
               'description' => 'Digital Media available for use online and with portable devices',
 		);
 
@@ -212,7 +212,6 @@ class SearchSources{
 				return 'kw';
 				break;
 		}
-		return;
 	}
 
 	public function getGoldRushSearchType($type){
@@ -220,67 +219,62 @@ class SearchSources{
 			case 'Subject':
 				return 'Subject';
 				break;
-			case 'Author':
-				return; //Gold Rush does not support this directly
-				break;
 			case 'Title':
 				return 'Journal Title';
 				break;
 			case 'ISN':
 				return 'ISSN';
 				break;
+			case 'Author': //Gold Rush does not support author searches directly
 			case 'AllFields':
 			case 'Keyword':
 			default:
 				return 'Keyword';
 				break;
 		}
-		return;
 	}
 
-	public function getExternalLink($searchSource, $type, $lookfor){
+	public function getExternalLink($searchSource, $type, $lookFor){
 		global $library;
 		if ($searchSource =='goldrush'){
 			$goldRushType = $this->getGoldRushSearchType($type);
-			return "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&inst_code={$library->goldRushCode}&search_type={$goldRushType}&search_term=".urlencode($lookfor);
+			return "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&inst_code={$library->goldRushCode}&search_type={$goldRushType}&search_term=".urlencode($lookFor);
 		}else if ($searchSource == 'worldcat'){
 			$worldCatSearchType = $this->getWorldCatSearchType($type);
-			$worldCatLink = "http://www.worldcat.org/search?q={$worldCatSearchType}%3A".urlencode($lookfor);
+			$worldCatLink = "http://www.worldcat.org/search?q={$worldCatSearchType}%3A".urlencode($lookFor);
 			if (isset($library) && strlen($library->worldCatUrl) > 0){
 				$worldCatLink = $library->worldCatUrl;
 				if (strpos($worldCatLink, '?') == false){
 					$worldCatLink .= "?";
 				}
-				$worldCatLink .= "q={$worldCatSearchType}:".urlencode($lookfor);
+				$worldCatLink .= "q={$worldCatSearchType}:".urlencode($lookFor);
 				if (strlen($library->worldCatQt) > 0){
 					$worldCatLink .= "&qt=" . $library->worldCatQt;
 				}
 			}
 			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
-			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookfor);
+			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
 		}else if ($searchSource == 'prospector'){
 			$prospectorSearchType = $this->getProspectorSearchType($type);
-			$lookfor = str_replace('+', '%20', rawurlencode($lookfor));
+			$lookFor = str_replace('+', '%20', rawurlencode($lookFor));
 			if ($prospectorSearchType != ' '){
-				$lookfor = "$prospectorSearchType:(" . $lookfor . ")";
+				$lookFor = "$prospectorSearchType:(" . $lookFor . ")";
 			}
-			return "http://encore.coalliance.org/iii/encore/search/C|S" . $lookfor ."|Orightresult|U1?lang=eng&amp;suite=def";
+			return "http://encore.coalliance.org/iii/encore/search/C|S" . $lookFor ."|Orightresult|U1?lang=eng&amp;suite=def";
 		}else if ($searchSource == 'amazon'){
-			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookfor);
+			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookFor);
 		}else if ($searchSource == 'course-reserves-course-name'){
-			return "http://www.millennium.marmot.org/search~S{$library->scope}/r?SEARCH=" . urlencode($lookfor);
+			return "http://www.millennium.marmot.org/search~S{$library->scope}/r?SEARCH=" . urlencode($lookFor);
 		}else if ($searchSource == 'course-reserves-instructor'){
-			return "http://www.millennium.marmot.org/search~S{$library->scope}/p?SEARCH=" . urlencode($lookfor);
+			return "http://www.millennium.marmot.org/search~S{$library->scope}/p?SEARCH=" . urlencode($lookFor);
+		}else{
+			return "";
 		}
 	}
 
 	public function getProspectorSearchType($type){
 		switch ($type){
-			case 'AllFields':
-			case 'Keyword':
-				return ' ';
-				break;
 			case 'Subject':
 				return 'd';
 				break;
@@ -293,7 +287,11 @@ class SearchSources{
 			case 'ISN':
 				return 'i';
 				break;
+			case 'AllFields':
+			case 'Keyword':
+				return ' ';
+				break;
 		}
-		return;
+		return ' ';
 	}
 }

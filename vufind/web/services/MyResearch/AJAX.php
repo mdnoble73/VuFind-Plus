@@ -210,7 +210,7 @@ class AJAX extends Action {
 	}
 
 	function GetListTitles(){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
@@ -224,7 +224,7 @@ class AJAX extends Action {
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForList();
 
-		$listData = $memcache->get($cacheInfo['cacheName']);
+		$listData = $memCache->get($cacheInfo['cacheName']);
 
 		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
 			global $interface;
@@ -273,7 +273,7 @@ class AJAX extends Action {
 				$listData = json_encode($return);
 			}
 
-			$memcache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
+			$memCache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
 
 		}
 

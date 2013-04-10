@@ -515,6 +515,14 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_8' => array(
+				'title' => 'Location 8',
+				'description' => 'Remove default location facet',
+				'sql' => array(
+					"ALTER TABLE location DROP defaultLocationFacet",
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',

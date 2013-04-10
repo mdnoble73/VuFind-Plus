@@ -79,6 +79,7 @@ function getSelectedTitles(){
 	if (selectedTitles.length == 0){
 		var ret = confirm('You have not selected any items, process all items?');
 		if (ret == true){
+			$("input.titleSelect").attr('checked', 'checked');
 			selectedTitles = $("input.titleSelect").map(function() {
 				return $(this).attr('name') + "=" + $(this).val();
 			}).get().join("&");
@@ -88,6 +89,9 @@ function getSelectedTitles(){
 }
 function renewSelectedTitles(){
 	var selectedTitles = getSelectedTitles();
+	if (selectedTitles.length == 0){
+		return false;
+	}
 	$('#renewForm').submit();
 	return false;
 }

@@ -82,9 +82,9 @@ class MillenniumDriver implements DriverInterface
 	var $loanRuleDeterminers = null;
 	private function loadLoanRules(){
 		if (is_null($this->loanRules)){
-			global $memcache;
+			global $memCache;
 			global $configArray;
-			$this->loanRules = $memcache->get('loan_rules');
+			$this->loanRules = $memCache->get('loan_rules');
 			if (!$this->loanRules){
 				$this->loanRules = array();
 				$loanRule = new LoanRule();
@@ -93,9 +93,9 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memcache->set('loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
+			$memCache->set('loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
 
-			$this->loanRuleDeterminers = $memcache->get('loan_rule_determiners');
+			$this->loanRuleDeterminers = $memCache->get('loan_rule_determiners');
 			if (!$this->loanRuleDeterminers){
 				$this->loanRuleDeterminers = array();
 				$loanRuleDeterminer = new LoanRuleDeterminer();
@@ -106,7 +106,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memcache->set('loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
+			$memCache->set('loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
 		}
 	}
 
@@ -144,7 +144,7 @@ class MillenniumDriver implements DriverInterface
 		}else if (isset($searchLibrary) && $searchLibrary->useScope && $searchLibrary->restrictSearchByLibrary) {
 			return $searchLibrary->scope;
 		}else{
-            return $this->getDefaultScope();
+      return $this->getDefaultScope();
 		}
 	}
 
@@ -155,12 +155,12 @@ class MillenniumDriver implements DriverInterface
 
 	public function getMillenniumRecordInfo($id){
 		require_once 'Drivers/marmot_inc/MillenniumCache.php';
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $logger;
 		$scope = $this->getMillenniumScope();
 		//Clear millennium cache once per minute
-		$lastCacheClear = $memcache->get('millennium_cache_interval');
+		$lastCacheClear = $memCache->get('millennium_cache_interval');
 		//echo ("lastCacheClear = $lastCacheClear, cache_interval = {$configArray['Caching']['millennium_cache_interval']}");
 		if ($lastCacheClear == false || isset($_REQUEST['reload'])){
 			//Get rid of anything in the cache older than 5 minutes
@@ -173,7 +173,7 @@ class MillenniumDriver implements DriverInterface
 			}
 			//$logger->log("Clearing millennium cache before $cacheExpirationTime", PEAR_LOG_INFO);
 			//Update memcache before clearing the database so we don't have tons of threads trying to clear the cache
-			$memcache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
+			$memCache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
 			$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
 			$millenniumCache->delete(true);
 		}
@@ -856,9 +856,9 @@ class MillenniumDriver implements DriverInterface
 	protected function _getPatronDump($barcode, $forceReload = false)
 	{
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		global $timer;
-		$patronDump = $memcache->get("patron_dump_$barcode");
+		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
@@ -920,7 +920,7 @@ class MillenniumDriver implements DriverInterface
 				return null;
 			}else{
 
-				$memcache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
+				$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
 				//Need to wait a little bit since getting the patron api locks the record in the DB
 				usleep(250);
 			}
@@ -1364,7 +1364,7 @@ class MillenniumDriver implements DriverInterface
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rah";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-			$sresult = curl_exec($curl_connection);
+			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Delete All Reading History Titles');
 			}
@@ -1375,7 +1375,7 @@ class MillenniumDriver implements DriverInterface
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptOut";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-			$sresult = curl_exec($curl_connection);
+			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Opt Out of Reading History');
 			}
@@ -1384,13 +1384,13 @@ class MillenniumDriver implements DriverInterface
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/OptIn";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-			$sresult = curl_exec($curl_connection);
+			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Opt in to Reading History');
 			}
 		}
 		curl_close($curl_connection);
-		unlink($cookieJar);
+		unlink($cookie);
 	}
 
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
@@ -1733,7 +1733,7 @@ class MillenniumDriver implements DriverInterface
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @param   string  $type       The date when the hold should be cancelled if any
 	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
@@ -1810,15 +1810,15 @@ class MillenniumDriver implements DriverInterface
 			list($Month, $Day, $Year)=explode("/", $date);
 
 			//------------BEGIN CURL-----------------------------------------------------------------
-			$Fullname = $patronDump['PATRN_NAME'];
-			$nameParts = explode(', ',$Fullname);
-			$lastname = $nameParts[0];
+			$fullName = $patronDump['PATRN_NAME'];
+			$nameParts = explode(', ',$fullName);
+			$lastName = $nameParts[0];
 			if (isset($nameParts[1])){
-				$secondname = $nameParts[1];
-				$secondnameParts = explode(' ', $secondname);
-				$firstname = $secondnameParts[0];
-				if (isset($secondnameParts[1])){
-					$middlename = $secondnameParts[1];
+				$secondName = $nameParts[1];
+				$secondNameParts = explode(' ', $secondName);
+				$firstName = $secondNameParts[0];
+				if (isset($secondNameParts[1])){
+					$middleName = $secondNameParts[1];
 				}
 			}
 
@@ -1862,10 +1862,10 @@ class MillenniumDriver implements DriverInterface
 				}
 				$post_string = implode ('&', $post_items);
 				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$sresult = curl_exec($curl_connection);
+				curl_exec($curl_connection);
 				$post_data = array();
 			}else{
-				$post_data = $this->_getLoginFormValues($patronInfo);
+				$post_data = $this->_getLoginFormValues($patronDump);
 			}
 			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
 			//echo "$curl_url";
@@ -2158,8 +2158,8 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		//Make sure to clear any cached data
-		global $memcache;
-		$memcache->delete("patron_dump_{$this->_getBarcode()}");
+		global $memCache;
+		$memCache->delete("patron_dump_{$this->_getBarcode()}");
 		usleep(250);
 		//Clear holds for the patron
 		unset($this->holds[$patronId]);
@@ -2191,7 +2191,7 @@ class MillenniumDriver implements DriverInterface
 	public function renewAll($patronId){
 		global $logger;
 		global $configArray;
-		global $memcache;
+		global $memCache;
 
 		//Setup the call to Millennium
 		$id2= $patronId;
@@ -2431,8 +2431,8 @@ class MillenniumDriver implements DriverInterface
 			unlink($cookieJar);
 
 			//Make sure to clear any cached data
-			global $memcache;
-			$memcache->delete("patron_dump_{$this->_getBarcode()}");
+			global $memCache;
+			$memCache->delete("patron_dump_{$this->_getBarcode()}");
 			usleep(250);
 		}
 
@@ -2527,12 +2527,14 @@ class MillenniumDriver implements DriverInterface
 			/** @var $locationSingleton Location */
 			global $locationSingleton;
 			/** @var $location Location */
-			$location = $locationSingleton->getActiveLocation();
+			$activeLocation = $locationSingleton->getActiveLocation();
+			$searchLocation = $locationSingleton->getSearchLocation();
+			$searchLibrary = Library::getSearchLibrary();
       $canUseDefaultPType = true;
       if ($this->getMillenniumScope() == $this->getDefaultScope()){
         //If the user is searching the global scope, we don't want to use the default pType
 	      //Unless the default scope is unscoped.
-	      if (isset($location) && !$location->useScope){
+	      if (isset($activeLocation) && !$activeLocation->useScope){
 		      $canUseDefaultPType = false;
 	      }elseif (isset($library) && !$library->useScope){
 		      $canUseDefaultPType = false;
@@ -2541,10 +2543,10 @@ class MillenniumDriver implements DriverInterface
 			if (isset($user) && $user != false){
 				$patronDump = $this->_getPatronDump($this->_getBarcode());
 				$this->ptype = $patronDump['P_TYPE'];
-			}else if (isset($location) && $location->defaultPType > 0 && $canUseDefaultPType){
-				$this->ptype = $location->defaultPType;
-			}else if (isset($library) && $library->defaultPType > 0 && $canUseDefaultPType){
-				$this->ptype = $library->defaultPType;
+			}else if (isset($searchLocation) && $searchLocation->defaultPType > 0){
+				$this->ptype = $searchLocation->defaultPType;
+			}else if (isset($searchLibrary) && $searchLibrary->defaultPType > 0){
+				$this->ptype = $searchLibrary->defaultPType;
 			}else{
 				$this->ptype = -1;
 			}
@@ -2863,13 +2865,14 @@ class MillenniumDriver implements DriverInterface
 		$sresult = curl_exec($curl_connection);
 
 		curl_close($curl_connection);
+		unlink($cookie);
 
 		//Parse the library card number from the response
 		if (preg_match('/Your barcode is:.*?(\\d+)<\/(b|strong)>/s', $sresult, $matches)) {
 			$barcode = $matches[0];
 			return array('success' => true, 'barcode' => $barcode);
 		} else {
-			return array('success' => false, 'barcode' => $barcode);
+			return array('success' => false, 'barcode' => '');
 		}
 
 	}
@@ -2884,8 +2887,6 @@ class MillenniumDriver implements DriverInterface
 			global $user;
 			$loginData['name'] = $user->cat_username;
 			$loginData['code'] = $user->cat_password;
-			//$loginData['name'] = $patronInfo['PATRN_NAME'];
-			//$loginData['code'] = $patronInfo['P_BARCODE'];
 		}
 
 		return $loginData;

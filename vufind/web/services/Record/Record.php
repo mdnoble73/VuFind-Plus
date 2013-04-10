@@ -565,8 +565,8 @@ class Record extends Action
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
 
 		// Find Similar Records
-		global $memcache;
-		$similar = $memcache->get('similar_titles_' . $this->id);
+		global $memCache;
+		$similar = $memCache->get('similar_titles_' . $this->id);
 		if ($similar == false){
 			$similar = $this->db->getMoreLikeThis($this->id);
 			// Send the similar items to the template; if there is only one, we need
@@ -577,7 +577,7 @@ class Record extends Action
 				$similar = array();
 				$timer->logTime("Did not find any similar records");
 			}
-			$memcache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
+			$memCache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
 		}
 		$interface->assign('similarRecords', $similar);
 		$timer->logTime('Loaded similar titles');
