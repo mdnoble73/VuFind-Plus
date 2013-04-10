@@ -43,9 +43,7 @@ class RenewMultiple extends Action
 		}
 
 		//Renew the hold
-		if (method_exists($this->catalog->driver, 'renewMultiple')) {
-
-		}else if (method_exists($this->catalog->driver, 'renewItem')) {
+		if (method_exists($this->catalog->driver, 'renewItem')) {
 			$selectedItems = $_GET['selected'];
 			$renewMessages = array();
 			$_SESSION['renew_message']['Unrenewed'] = 0;

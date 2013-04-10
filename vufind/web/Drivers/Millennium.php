@@ -2294,10 +2294,9 @@ class MillenniumDriver implements DriverInterface
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-		$success = false;
 
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
+		//$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 
 		$curl_connection = curl_init($curl_url);
 		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
@@ -2310,43 +2309,66 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		$post_data = $this->_getLoginFormValues($patronDump);
+		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
+		curl_exec($curl_connection);
 
 		//Go to the items page
 		$scope = $this->getDefaultScope();
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		$sresult = curl_exec($curl_connection);
+		curl_exec($curl_connection);
 
 		//Post renewal information
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$sresult = curl_exec($curl_connection);
-		if (preg_match('/<div id="renewfailmsg" style="display:none"  class="errormessage">(.*?)<\/div>.*?<font color="red">\\s*(.*?)<\/font>/si', $sresult, $matches)) {
-			$success = false;
-			$message = 'Unable to renew this item, ' . strtolower($matches[2]) . '.';
-			if ($analytics){
-				$analytics->addEvent('ILS Integration', 'Renew Failed', strtolower($matches[2]));
-			}
-		}else if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $sresult, $matches)) {
+		$checkedOutPageText = curl_exec($curl_connection);
+
+		//Parse the checked out titles into individual rows
+		$message = 'Unable to load renewal information for this entry';
+		$success = false;
+		if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $checkedOutPageText, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item, ' . strtolower($matches[1]) . '.';
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Failed', strtolower($matches[1]));
 			}
-		}else if (preg_match('/Your record is in use/si', $sresult, $matches)) {
+		}else if (preg_match('/Your record is in use/si', $checkedOutPageText, $matches)) {
 			$success = false;
 			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
+			}
+		}else if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/s', $checkedOutPageText, $matches)) {
+			$checkedOutTitleTable = $matches[1];
+			//$logger->log("Found checked out titles table", PEAR_LOG_DEBUG);
+			if (preg_match_all('/<tr class="patFuncEntry">(.*?)<\/tr>/s', $checkedOutTitleTable, $rowMatches, PREG_SET_ORDER)){
+				//$logger->log("Checked out titles table has " . count($rowMatches) . "rows", PEAR_LOG_DEBUG);
+				//$logger->log(print_r($rowMatches, true), PEAR_LOG_DEBUG);
+				for ($i = 0; $i < count($rowMatches); $i++) {
+					$rowData = $rowMatches[$i][1];
+					if (preg_match("/{$itemId}/", $rowData)){
+						//$logger->log("Found the row for this item", PEAR_LOG_DEBUG);
+						//Extract the renewal message
+						if (preg_match('/<td align="left" class="patFuncStatus">.*?<em><font color="red">(.*?)<\/font><\/em>.*?<\/td>/s', $rowData, $statusMatches)){
+							$success = false;
+							$message = 'Unable to renew this item, ' . $statusMatches[1];
+						}elseif (preg_match('/<td align="left" class="patFuncStatus">.*?<em>(.*?)<\/em>.*?<\/td>/s', $rowData, $statusMatches)){
+							$success = true;
+							$message = 'Your item was successfully renewed';
+						}
+						$logger->log("Renew success = $success, $message", PEAR_LOG_DEBUG);
+					}
+				}
+			}else{
+				$logger->log("Did not find any rows for the table $checkedOutTitleTable", PEAR_LOG_DEBUG);
 			}
 		}else{
 			$success = true;
