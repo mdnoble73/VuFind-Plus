@@ -1,7 +1,7 @@
 <?php
-require_once 'Action.php';
-require_once 'sys/Proxy_Request.php';
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 global $configArray;
 
@@ -63,8 +63,7 @@ class AJAX extends Action {
 		echo($marcData->toRaw());
 	}
 	function GetGoDeeperData(){
-		require_once('Drivers/marmot_inc/GoDeeperData.php');
-		$id = $_REQUEST['id'];
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$dataType = $_REQUEST['dataType'];
 		$upc = $_REQUEST['upc'];
 		$isbn = $_REQUEST['isbn'];
@@ -74,7 +73,7 @@ class AJAX extends Action {
 	}
 
 	function GetEnrichmentInfo(){
-		require_once 'Enrichment.php';
+		require_once ROOT_DIR . '/Enrichment.php';
 		global $configArray;
 		global $library;
 		$isbn = $_REQUEST['isbn'];
@@ -167,7 +166,7 @@ class AJAX extends Action {
 		if (isset($library) && $library->showGoDeeper == 0){
 			$interface->assign('showGoDeeper', false);
 		}else{
-			require_once('Drivers/marmot_inc/GoDeeperData.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
 			if (count($goDeeperOptions['options']) == 0){
 				$interface->assign('showGoDeeper', false);
@@ -199,8 +198,8 @@ class AJAX extends Action {
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		//Load holdings information from the driver
-		require_once ('Drivers/EContentDriver.php');
-		require_once ('sys/eContent/EContentRecord.php');
+		require_once (ROOT_DIR . '/Drivers/EContentDriver.php');
+		require_once (ROOT_DIR . '/sys/eContent/EContentRecord.php');
 		$driver = new EContentDriver();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
@@ -252,13 +251,12 @@ class AJAX extends Action {
 		if (PEAR::isError($result)) {
 			PEAR::raiseError($result);
 		}
-		$holdingData->holdingsSummary = $result;
 		$interface->assign('holdingsSummary', $result);
 		return $interface->fetch('EcontentRecord/ajax-holdings.tpl');
 	}
 
 	function GetProspectorInfo(){
-		require_once 'Drivers/marmot_inc/Prospector.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		global $configArray;
 		global $interface;
 		$id = 'econtentRecord' . $_REQUEST['id'];
@@ -304,7 +302,7 @@ class AJAX extends Action {
 	// Email Record
 	function SendEmail()
 	{
-		require_once 'services/EcontentRecord/Email.php';
+		require_once ROOT_DIR . '/services/EcontentRecord/Email.php';
 
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
@@ -323,7 +321,7 @@ class AJAX extends Action {
 	// SMS Record
 	function SendSMS()
 	{
-		require_once 'services/EcontentRecord/SMS.php';
+		require_once ROOT_DIR . '/services/EcontentRecord/SMS.php';
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
@@ -356,7 +354,7 @@ class AJAX extends Action {
 
 	function SaveComment()
 	{
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		$user = UserAccount::isLoggedIn();
 		if ($user === false) {
@@ -376,7 +374,7 @@ class AJAX extends Action {
 
 	function DeleteComment()
 	{
-		require_once 'services/MyResearch/lib/Comments.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 		global $user;
 		global $configArray;
 
@@ -398,8 +396,8 @@ class AJAX extends Action {
 	{
 		global $interface;
 
-		require_once 'services/MyResearch/lib/Resource.php';
-		require_once 'services/MyResearch/lib/Comments.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 		$interface->assign('id', $_GET['id']);
 
@@ -422,7 +420,7 @@ class AJAX extends Action {
 	}
 
 	function RateTitle(){
-		require_once('sys/eContent/EContentRating.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 		global $user;
 		if (!isset($user) || $user == false){
 			header('HTTP/1.0 500 Internal server error');
@@ -444,18 +442,12 @@ class AJAX extends Action {
 		}else{
 			$rating->insert();
 		}
-		//Update the title within Solr
-		require_once 'sys/eContent/EContentRecord.php';
-		$eContentRecord = new EContentRecord();
-		$eContentRecord->recordId = $_REQUEST['id'];
-		$eContentRecord->find(true);
-		$eContentRecord->saveToSolr();
 
 		return $ratingValue;
 	}
 	function getDescription(){
 		global $interface;
-		require_once 'sys/eContent/EContentRecord.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 		$eContentRecord = new EContentRecord();
 
 		$id = $_REQUEST['id'];
@@ -472,8 +464,8 @@ class AJAX extends Action {
 		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 	function AddItem(){
-		require_once 'sys/eContent/EContentItem.php';
-		require_once 'sys/DataObjectUtil.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 		global $user;
 		global $interface;
 		global $configArray;
@@ -488,8 +480,8 @@ class AJAX extends Action {
 		return $interface->fetch('EcontentRecord/ajax-editItem.tpl');
 	}
 	function EditItem(){
-		require_once 'sys/eContent/EContentItem.php';
-		require_once 'sys/DataObjectUtil.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 		global $user;
 		global $interface;
 		global $configArray;
@@ -510,7 +502,7 @@ class AJAX extends Action {
 	}
 	function DeleteItem(){
 		global $user;
-		require_once 'sys/eContent/EContentItem.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		if ($user->hasRole('epubAdmin')){
 			$recordId = strip_tags($_REQUEST['id']);
 			$itemId = strip_tags($_REQUEST['itemId']);
@@ -552,7 +544,7 @@ class AJAX extends Action {
 			$_SESSION['userinfo'] = serialize($user);
 		}
 		if ($user && !PEAR::isError($user)){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
 			return json_encode($holdMessage);
@@ -569,7 +561,7 @@ class AJAX extends Action {
 		//global $logger;
 		//$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
 		if ($user && !PEAR::isError($user)){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
 			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
@@ -584,7 +576,7 @@ class AJAX extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$transactionId = $_REQUEST['transactionId'];
 		if ($user && !PEAR::isError($user)){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->returnOverDriveItem($overDriveId, $transactionId, $user);
 			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
@@ -599,7 +591,7 @@ class AJAX extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$formatId = $_REQUEST['formatId'];
 		if ($user && !PEAR::isError($user)){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->selectOverDriveDownloadFormat($overDriveId, $formatId, $user);
 			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
@@ -619,7 +611,7 @@ class AJAX extends Action {
 		$formatId = $_REQUEST['formatId'];
 		$interface->assign('overDriveId', $overDriveId);
 		$interface->assign('formatId', $formatId);
-		require_once 'Drivers/OverDriveDriverFactory.php';
+		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
@@ -716,7 +708,7 @@ class AJAX extends Action {
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		if ($user && !PEAR::isError($user)){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->removeOverDriveItemFromWishlist($overDriveId, $user);
 			return json_encode($result);
@@ -730,7 +722,7 @@ class AJAX extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['formatId'];
 		if ($user && !PEAR::isError($user)){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);
 			return json_encode($result);
@@ -762,7 +754,7 @@ class AJAX extends Action {
 				}else{
 					$title = $eContentRecord->title;
 					$author = $eContentRecord->author;
-					require_once 'services/Record/Purchase.php';
+					require_once ROOT_DIR . '/services/Record/Purchase.php';
 					$purchaseLinks = Purchase::getStoresForTitle($title, $author);
 
 					if (count($purchaseLinks) > 0){

@@ -1,4 +1,6 @@
 <?php
+define ('ROOT_DIR', __DIR__);
+
 $startTime = microtime(true);
 require_once 'sys/Logger.php';
 require_once 'PEAR.php';

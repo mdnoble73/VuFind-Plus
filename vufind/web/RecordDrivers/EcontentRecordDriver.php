@@ -19,8 +19,8 @@
  */
 require_once 'File/MARC.php';
 
-require_once 'RecordDrivers/IndexRecord.php';
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/IndexRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 /**
  * EContent Record Driver
@@ -30,7 +30,9 @@ require_once 'sys/eContent/EContentRecord.php';
  */
 class EcontentRecordDriver extends IndexRecord
 {
+	/** @var EContentRecord */
 	private $eContentRecord;
+	/** @var File_MARC_Record|bool */
 	private $marcRecord = false;
 	public function __construct($record = null)
 	{
@@ -38,7 +40,7 @@ class EcontentRecordDriver extends IndexRecord
 		parent::__construct($record);
 
 		// Also process the MARC record:
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 
 	}
 
@@ -75,6 +77,7 @@ class EcontentRecordDriver extends IndexRecord
 	{
 		global $interface;
 		global $user;
+		global $logger;
 		if (!isset($this->eContentRecord)){
 			$this->eContentRecord = new EContentRecord();
 			$this->eContentRecord->id = $this->getUniqueID();
@@ -82,15 +85,14 @@ class EcontentRecordDriver extends IndexRecord
 		}
 		$interface->assign('source', $this->eContentRecord->source);
 		$interface->assign('eContentRecord', $this->eContentRecord);
-		$searchResultTemplate = parent::getSearchResult();
+		parent::getSearchResult();
 
 		//Get Rating
-		require_once 'sys/eContent/EContentRating.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRating = new EContentRating();
 		$econtentRating->recordId = $this->getUniqueID();
-		if ($econtentRating->find()){
-			$interface->assign('summRating', $econtentRating->getRatingData($user, false));
-		}
+		$logger->log("Loading ratings for econtent record {$this->getUniqueID()}", PEAR_LOG_DEBUG);
+		$interface->assign('summRating', $econtentRating->getRatingData($user, false));
 
 		$interface->assign('summAjaxStatus', true);
 		//Override fields as needed
@@ -98,7 +100,7 @@ class EcontentRecordDriver extends IndexRecord
 	}
 
 	public function getCitation($format){
-		require_once 'sys/CitationBuilder.php';
+		require_once ROOT_DIR . '/sys/CitationBuilder.php';
 
 		// Build author list:
 		$authors = array();
@@ -138,6 +140,7 @@ class EcontentRecordDriver extends IndexRecord
 			case 'ChicagoHumanities':
 				return $citation->getChicagoHumanities();
 		}
+		return '';
 	}
 
 	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
@@ -182,7 +185,7 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('listEditAllowed', $allowEdit);
 
 		//Get Rating
-		require_once 'sys/eContent/EContentRating.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRating = new EContentRating();
 		$econtentRating->recordId = $id;
 		$interface->assign('ratingData', $econtentRating->getRatingData($user, false));
@@ -274,7 +277,7 @@ class EcontentRecordDriver extends IndexRecord
 	protected function getPublicationDetails()
 	{
 		if (isset($this->eContentRecord)){
-			return array($eContentRecord->publishLocation . ' ' . $eContentRecord->publisher . ' ' . $eContentRecord->publishDate);
+			return array($this->eContentRecord->publishLocation . ' ' . $this->eContentRecord->publisher . ' ' . $this->eContentRecord->publishDate);
 		}else{
 			return parent::getPhysicalDescriptions();
 		}
@@ -306,20 +309,20 @@ class EcontentRecordDriver extends IndexRecord
 	 * array will contain separate entries for separate subfields.
 	 *
 	 * @param   string      $field          The MARC field number to read
-	 * @param   array       $subfields      The MARC subfield codes to read
-	 * @param   bool        $concat         Should we concatenate subfields?
+	 * @param   array       $subFields      The MARC subfield codes to read
+	 * @param   bool        $concatenate         Should we concatenate subfields?
 	 * @access  private
 	 * @return  array
 	 */
-	private function getFieldArray($field, $subfields = null, $concat = true)
+	private function getFieldArray($field, $subFields = null, $concatenate = true)
 	{
 		if (!$this->marcRecord){
 			return array();
 		}
 
-		// Default to subfield a if nothing is specified.
-		if (!is_array($subfields)) {
-			$subfields = array('a');
+		// Default to subField a if nothing is specified.
+		if (!is_array($subFields)) {
+			$subFields = array('a');
 		}
 
 		// Initialize return array
@@ -333,10 +336,61 @@ class EcontentRecordDriver extends IndexRecord
 
 		// Extract all the requested subfields, if applicable.
 		foreach($fields as $currentField) {
-			$next = $this->getSubfieldArray($currentField, $subfields, $concat);
+			$next = $this->getSubfieldArray($currentField, $subFields, $concatenate);
 			$matches = array_merge($matches, $next);
 		}
 
+		return $matches;
+	}
+
+	/**
+	 * Return an array of non-empty subfield values found in the provided MARC
+	 * field.  If $concat is true, the array will contain either zero or one
+	 * entries (empty array if no subfields found, subfield values concatenated
+	 * together in specified order if found).  If concat is false, the array
+	 * will contain a separate entry for each subfield value found.
+	 *
+	 * @access  private
+	 * @param   object      $currentField   Result from File_MARC::getFields.
+	 * @param   array       $subFields      The MARC subfield codes to read
+	 * @param   bool        $concatenate         Should we concatenate subfields?
+	 * @return  array
+	 */
+	private function getSubfieldArray($currentField, $subFields, $concatenate = true)
+	{
+		// Start building a line of text for the current field
+		$matches = array();
+		$currentLine = '';
+
+		// Loop through all specified subfields, collecting results:
+		foreach($subFields as $subField) {
+			$subFieldsResult = $currentField->getSubfields($subField);
+			/** @var File_MARC_Subfield[] $subFieldsResult */
+			if (is_array($subFieldsResult)) {
+				foreach($subFieldsResult as $currentSubField) {
+					// Grab the current subfield value and act on it if it is
+					// non-empty:
+					$data = trim($currentSubField->getData());
+					if (!empty($data)) {
+						// Are we concatenating fields or storing them separately?
+						if ($concatenate) {
+							$currentLine .= $data . ' ';
+						} else {
+							$matches[] = $data;
+						}
+					}
+				}
+			}
+		}
+
+		// If we're in concat mode and found data, it will be in $currentLine and
+		// must be moved into the matches array.  If we're not in concat mode,
+		// $currentLine will always be empty and this code will be ignored.
+		if (!empty($currentLine)) {
+			$matches[] = trim($currentLine);
+		}
+
+		// Send back our result array:
 		return $matches;
 	}
 
@@ -344,6 +398,7 @@ class EcontentRecordDriver extends IndexRecord
 		global $configArray;
 		global $interface;
 		global $user;
+		global $logger;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -385,9 +440,10 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
 		//Get Rating
-		require_once 'sys/eContent/EContentRating.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRating = new EContentRating();
 		$econtentRating->recordId = $id;
+		$logger->log("Loading ratings for econtent record $id", PEAR_LOG_DEBUG);
 		$interface->assign('summRating', $econtentRating->getRatingData($user, false));
 
 		//Determine the cover to use

@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/Utils/SwitchDatabase.php';
+require_once ROOT_DIR . '/sys/Utils/SwitchDatabase.php';
 require_once 'EContentRecord.php';
 
 class EContentRating extends DB_DataObject
@@ -13,8 +13,10 @@ class EContentRating extends DB_DataObject
 	public $id;
 	public $userId;				//int(11)
 	public $recordId;			//int(11)
-	public $dateRated;  //date
-	public $rating;  //date
+	public $dateRated;    //date
+	public $rating;       //int
+	protected $average;   //float - the average rating when loaded with getRatingData
+	protected $count;     //int - the number of times the rating has been rated when loaded with getRatingData
 
 	/* Static get */
   function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EContentRating',$k,$v); }
@@ -53,7 +55,7 @@ class EContentRating extends DB_DataObject
 
  	function getRatingData($user, $showGraph = false)
  	{
- 		require_once 'Drivers/marmot_inc/UserRating.php';
+ 		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 
 		//Set default rating data
 		$ratingData = array(

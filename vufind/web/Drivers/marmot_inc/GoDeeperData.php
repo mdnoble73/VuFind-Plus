@@ -503,7 +503,7 @@ class GoDeeperData{
 		return array('link' => "http://books.google.com/books?id=$googleBookId&printsec=frontcover");
 	}
 
-	function getHtmlData($dataType, $recordType, $isbn, $upc){
+	static function getHtmlData($dataType, $recordType, $isbn, $upc){
 		global $interface;
 		$interface->assign('recordType', $recordType);
 		$interface->assign('id', $_REQUEST['id']);

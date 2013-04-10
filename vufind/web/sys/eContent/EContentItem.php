@@ -41,7 +41,7 @@ class EContentItem extends DB_DataObject {
 		return array('id', 'filename', 'folder');
 	}
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		global $configArray;
 
 		//Load Libraries for lookup values
