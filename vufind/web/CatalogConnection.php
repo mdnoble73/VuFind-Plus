@@ -58,7 +58,7 @@ class CatalogConnection
 	 * The object of the appropriate driver.
 	 *
 	 * @access private
-	 * @var    object
+	 * @var    MillenniumDriver|object
 	 */
 	public $driver;
 

@@ -23,8 +23,11 @@ require_once 'Action.php';
 
 class RenewMultiple extends Action
 {
+	/** @var CatalogConnection */
+	private $catalog;
 	function launch()
 	{
+
 		global $configArray;
 		global $user;
 
@@ -40,7 +43,9 @@ class RenewMultiple extends Action
 		}
 
 		//Renew the hold
-		if (method_exists($this->catalog->driver, 'renewItem')) {
+		if (method_exists($this->catalog->driver, 'renewMultiple')) {
+
+		}else if (method_exists($this->catalog->driver, 'renewItem')) {
 			$selectedItems = $_GET['selected'];
 			$renewMessages = array();
 			$_SESSION['renew_message']['Unrenewed'] = 0;
