@@ -73,7 +73,7 @@ class AJAX extends Action {
 	}
 
 	function GetEnrichmentInfo(){
-		require_once ROOT_DIR . '/Enrichment.php';
+		require_once './Enrichment.php';
 		global $configArray;
 		global $library;
 		$isbn = $_REQUEST['isbn'];
@@ -82,6 +82,7 @@ class AJAX extends Action {
 		$enrichmentData = Enrichment::loadEnrichment($isbn);
 		global $interface;
 		$interface->assign('id', $id);
+		$interface->assign('enrichment', $enrichmentData);
 		$interface->assign('enrichment', $enrichmentData);
 		$showSimilarTitles = false;
 		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['similarTitles']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
