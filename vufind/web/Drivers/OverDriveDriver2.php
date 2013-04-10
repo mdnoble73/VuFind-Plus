@@ -1,6 +1,6 @@
 <?php
 
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 /**
  * Loads information from OverDrive Next Gen interface (version 2) and provides updates to OverDrive by screen scraping
@@ -28,19 +28,14 @@ require_once 'sys/eContent/EContentRecord.php';
 class OverDriveDriver2 {
 	public $version = 2;
 
-	private $maxAccountCacheMin = 14400; //Allow caching of overdrive account information for 4 hours
-	private $maxCheckedOutCacheMin = 3600; //Only cache the checked out page for an hour.
 	/**
 	 * Retrieves the URL for the cover of the record by screen scraping OverDrive.
 	 * ..
 	 * @param EContentRecord $record
+	 * @return string
 	 */
 	public function getCoverUrl($record){
-		global $memCache;
-		global $configArray;
-
 		$overDriveId = $record->getOverDriveId();
-		echo("OverDrive ID is $overDriveId");
 		//Get metadata for the record
 		$metadata = $this->getProductMetadata($overDriveId);
 		if (isset($metadata->images) && isset($metadata->images->cover)){
@@ -48,7 +43,6 @@ class OverDriveDriver2 {
 		}else{
 			return "";
 		}
-
 	}
 
 	private function _connectToAPI($forceNewConnection = false){
@@ -166,11 +160,12 @@ class OverDriveDriver2 {
 				$eContentRecord = new EContentRecord();
 				$eContentRecord->externalId = $bookshelfItem['overDriveId'];
 				$eContentRecord->source = 'OverDrive';
+				$eContentRecord->status = 'active';
 				if ($eContentRecord->find(true)){
 					$bookshelfItem['recordId'] = $eContentRecord->id;
 
 					//Get Rating
-					require_once 'sys/eContent/EContentRating.php';
+					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 					$econtentRating = new EContentRating();
 					$econtentRating->recordId = $eContentRecord->id;
 					$bookshelfItem['ratingData'] = $econtentRating->getRatingData($user, false);
@@ -243,11 +238,12 @@ class OverDriveDriver2 {
 				$eContentRecord = new EContentRecord();
 				$eContentRecord->externalId = $hold['overDriveId'];
 				$eContentRecord->source = 'OverDrive';
+				$eContentRecord->status = 'active';
 				if ($eContentRecord->find(true)){
 					$hold['recordId'] = $eContentRecord->id;
 
 					//Get Rating
-					require_once 'sys/eContent/EContentRating.php';
+					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 					$econtentRating = new EContentRating();
 					$econtentRating->recordId = $eContentRecord->id;
 					$hold['ratingData'] = $econtentRating->getRatingData($user, false);
@@ -792,81 +788,6 @@ class OverDriveDriver2 {
 		return $overDriveInfo;
 	}
 
-	public function getOverdriveHoldings($overDriveId, $overdriveUrl){
-		require_once('sys/eContent/OverdriveItem.php');
-		//get the url for the page in overdrive
-		global $memCache;
-		global $configArray;
-		global $timer;
-		$timer->logTime('Starting _getOverdriveHoldings');
-
-		if ($overDriveId == null || strlen($overDriveId) == 0 ){
-			$items = array();
-		}else{
-			$items = $memCache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if ($items == false || isset($_REQUEST['reload'])){
-				$items = array();
-				//Get base availability for the title
-				$availability = $this->getProductAvailability($overDriveId);
-				$availableCopies = $availability->copiesAvailable;
-				$holdQueueLength = $availability->numberOfHolds;
-				$totalCopies = $availability->copiesOwned;
-
-				//Get base metadata for the title
-				$metadata = $this->getProductMetadata($overDriveId);
-				//print_r($metadata);
-				foreach ($metadata->formats as $format){
-					$overdriveItem = new OverdriveItem();
-					$overdriveItem->overDriveId = $overDriveId;
-					$overdriveItem->format = $format->name;
-					if (strcasecmp($overdriveItem->format, "Adobe EPUB eBook") == 0){
-						$overdriveItem->formatId = 410;
-					}elseif (strcasecmp($overdriveItem->format, "Kindle Book") == 0){
-						$overdriveItem->formatId = 420;
-					}elseif (strcasecmp($overdriveItem->format, "Microsoft eBook") == 0){
-						$overdriveItem->formatId = 1;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive WMA Audiobook") == 0){
-						$overdriveItem->formatId = 25;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive MP3 Audiobook") == 0){
-						$overdriveItem->formatId = 425;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive Music") == 0){
-						$overdriveItem->formatId = 30;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive Video") == 0){
-						$overdriveItem->formatId = 35;
-					}elseif (strcasecmp($overdriveItem->format, "Adobe PDF eBook") == 0){
-						$overdriveItem->formatId = 50;
-					}elseif (strcasecmp($overdriveItem->format, "Palm") == 0){
-						$overdriveItem->formatId = 150;
-					}elseif (strcasecmp($overdriveItem->format, "Mobipocket eBook") == 0){
-						$overdriveItem->formatId = 90;
-					}elseif (strcasecmp($overdriveItem->format, "Disney Online Book") == 0){
-						$overdriveItem->formatId = 302;
-					}elseif (strcasecmp($overdriveItem->format, "Open PDF eBook") == 0){
-						$overdriveItem->formatId = 450;
-					}elseif (strcasecmp($overdriveItem->format, "Open EPUB eBook") == 0){
-						$overdriveItem->formatId = 810;
-					}
-					if ($format->fileSize > 0){
-						$overdriveItem->size = $format->fileSize;
-					}else{
-						$overdriveItem->size = 'unknown';
-					}
-					//For now treat all advantage titles as available until we can use the API to check better.
-					$overdriveItem->available = ($availableCopies > 0);
-					$overdriveItem->lastLoaded = time();
-
-					$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
-					$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
-					$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
-					$items[] = $overdriveItem;
-				}
-
-				$memCache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
-			}
-			return $items;
-		}
-	}
-
 	public function getLoanPeriodsForFormat($formatId){
 		if ($formatId == 35){
 			return array(3, 5, 7);
@@ -906,7 +827,7 @@ class OverDriveDriver2 {
 			$memCache->delete('overdrive_record_' . $overDriveId);
 		}else{
 			$logger->log("OverDrive return failed", PEAR_LOG_ERR);
-			$logger->log($checkoutPage, PEAR_LOG_INFO);
+			$logger->log($returnPage, PEAR_LOG_INFO);
 			$result['result'] = false;
 			$result['message'] = 'Sorry, we could not return this title for you.  Please try again later';
 		}

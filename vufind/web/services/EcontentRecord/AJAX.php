@@ -181,7 +181,7 @@ class AJAX extends Action {
 
 	function GetSeriesTitles(){
 		//Get other titles within a series for display within the title scroller
-		require_once 'Enrichment.php';
+		require_once './Enrichment.php';
 		$isbn = $_REQUEST['isbn'];
 		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];

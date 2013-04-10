@@ -18,44 +18,19 @@
  *
  */
 
-require_once 'sys/Amazon.php';
-require_once 'sys/Proxy_Request.php';
-require_once 'sys/Novelist.php';
+require_once ROOT_DIR . '/sys/Amazon.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Novelist.php';
 
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 class Enrichment
 {
-	function launch()
-	{
-		global $interface;
-		global $configArray;
-		global $library;
-
-		if (!$interface->is_cached($this->cacheId)) {
-			$interface->setPageTitle('Extra Information: ' . $this->record['title_short']);
-
-			//Load the data for the reviews and populate in the user interface
-			$this->loadData();
-
-			$interface->assign('subTemplate', 'view-series.tpl');
-			$interface->setTemplate('view.tpl');
-		}
-		
-		if (isset($library)){
-			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
-		}else{
-			$interface->assign('showSeriesAsTab', 0);
-		}
-
-		// Display Page
-		$interface->display('layout.tpl', $this->cacheId);
-	}
-
 	/**
 	 * Load information from the review provider and update the interface with the data.
 	 *
-	 * @return array       Returns array with review data, otherwise a
+	 * @var string $isbn    The ISBN to load enrichment data for.
+	 * @return array        Returns array with review data, otherwise a
 	 *                      PEAR_Error.
 	 */
 	function loadEnrichment($isbn)
@@ -94,6 +69,7 @@ class Enrichment
 	 * This method is responsible for fetching enrichment information from NoveList
 	 * uses the REST Interface provided by NoveList
 	 *
+	 * @var     string      $isbn    The ISBN to load novelist data for.
 	 * @return  array       Returns array with enrichment information, otherwise a
 	 *                      PEAR_Error.
 	 * @access  public
@@ -104,6 +80,4 @@ class Enrichment
 		$novelist = new Novelist();
 		return $novelist->loadEnrichment($isbn);
 	}
-
-
 }

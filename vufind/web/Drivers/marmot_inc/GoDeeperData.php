@@ -2,7 +2,7 @@
 require_once('Drivers/marmot_inc/ISBNConverter.php') ;
 
 class GoDeeperData{
-	function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
+	static function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
 		global $configArray;
 		global $memCache;
 		global $timer;

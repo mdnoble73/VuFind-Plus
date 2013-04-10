@@ -689,12 +689,7 @@ class EContentDriver implements DriverInterface{
 			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
 				require_once 'Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
-				$overDriveId = substr($eContentRecord->sourceUrl, -36);
-				//Get holdings for the record
-				$holdings = $overDriveDriver->getOverdriveHoldings($eContentRecord);
-				//Use the first format as the hold type. The user can checkout any version they want after the hold is available.
-				$format = $holdings[0]->formatId;
-				$overDriveResult = $overDriveDriver->placeOverDriveHold($overDriveId, $format, $user);
+				$overDriveResult = $overDriveDriver->placeOverDriveHold($eContentRecord->externalId, '', $user);
 				$return['result'] = $overDriveResult['result'];
 				$return['message'] = $overDriveResult['message'];
 			}else{
