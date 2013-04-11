@@ -2105,6 +2105,25 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+			'analytics_6' => array(
+				'title' => 'Analytics Update 6',
+				'description' => 'Update analytics make display of dashboard and other reports faster.',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE analytics_event ADD INDEX(eventTime)',
+					'ALTER TABLE analytics_page_view ADD INDEX(pageStartTime)',
+					'ALTER TABLE analytics_page_view ADD INDEX(pageEndTime)',
+					'ALTER TABLE analytics_page_view ADD INDEX(module)',
+					'ALTER TABLE analytics_page_view ADD INDEX(action)',
+					'ALTER TABLE analytics_page_view ADD INDEX(method)',
+					'ALTER TABLE analytics_page_view ADD INDEX(objectId)',
+					'ALTER TABLE analytics_page_view ADD INDEX(language)',
+					'ALTER TABLE analytics_search ADD INDEX(searchTime)',
+					'ALTER TABLE analytics_session ADD INDEX(sessionStartTime)',
+					'ALTER TABLE analytics_session ADD INDEX(lastRequestTime)',
+				),
+			),
+
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
 			'description' => 'Add a field for whether or not the session was started with remember me on.',
