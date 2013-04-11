@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
 
 /**
  * Provides a method of running SQL updates to the database.
@@ -321,7 +321,7 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `eContentSupportAddress` VARCHAR(256) DEFAULT 'askmarmot@marmot.org';",
 				),
 			),
-			'library_27' => array(
+			/*'library_27' => array(
 				'title' => 'Library 27',
 				'description' => 'Remove showOtherFormatCategory.',
 				'dependencies' => array(),
@@ -329,7 +329,7 @@ class DBMaintenance extends Admin {
 				'sql' => array(
 					"ALTER TABLE `library` DROP `showOtherFormatCategory`;",
 				),
-			),
+			),*/
 			'library_28' => array(
 				'title' => 'Library 28',
 				'description' => 'Add ilsCode.',
@@ -566,7 +566,7 @@ class DBMaintenance extends Admin {
 
 			'list_widgets' => array(
 				'title' => 'Setup Configurable List Widgets',
-				'description' => 'Create tables related to configurable list widgets',
+				'description' => 'Create list widgets tables',
 				'dependencies' => array(),
 				'sql' => array(
 					"CREATE TABLE IF NOT EXISTS list_widgets (".
@@ -613,8 +613,8 @@ class DBMaintenance extends Admin {
 				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
-					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor, fullListLink) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all', '')",
-					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor, fullListLink) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all', '')",
+					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all')",
+					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all')",
 				),
 			),
 
@@ -746,7 +746,7 @@ class DBMaintenance extends Admin {
 
 			'editorial_review' => array(
 				'title' => 'Create Editorial Review table',
-				'description' => 'Create table to store editorial reviews from external reviews, i.e. book-a-day blog',
+				'description' => 'Create editorial review tables for external reviews, i.e. book-a-day blog',
 				'dependencies' => array(),
 				'sql' => array(
 					"CREATE TABLE editorial_reviews (".
@@ -761,7 +761,7 @@ class DBMaintenance extends Admin {
 			),
 
 			'editorial_review_1' => array(
-				'title' => 'Add tabname to editorial reviews',
+				'title' => 'Add tabName to editorial reviews',
 				'description' => 'Update editorial reviews to include a tab name',
 				'dependencies' => array(),
 				'sql' => array(
@@ -780,7 +780,7 @@ class DBMaintenance extends Admin {
 
 			'purchase_link_tracking' => array(
 				'title' => 'Create Purchase Link Tracking Table',
-				'description' => 'Create table to track data about the Purchase Links that were clicked',
+				'description' => 'Create Purchase Links tables to track links that were clicked',
 				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS purchase_link_tracking (' .
@@ -795,9 +795,9 @@ class DBMaintenance extends Admin {
 						'ALTER TABLE purchase_link_tracking ADD INDEX ( `purchaseLinkId` )',
 						),
 			),
-			'usage_tracking' => array(
+			/*'usage_tracking' => array(
 				'title' => 'Create Usage Tracking Table',
-				'description' => 'Create table to track aggregate page view data',
+				'description' => 'Create aggregate page view tracking table',
 				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS usage_tracking (' .
@@ -813,7 +813,7 @@ class DBMaintenance extends Admin {
 
 					'ALTER TABLE usage_tracking ADD INDEX ( `usageId` )',
 				),
-			),
+			),*/
 
 			'resource_update_table' => array(
 				'title' => 'Update resource table',
@@ -901,7 +901,7 @@ class DBMaintenance extends Admin {
 				),
 			),
 
-			'resource_update9' => array(
+			/*'resource_update9' => array(
 				'title' => 'Update resource 9',
 				'description' => 'Updates resources to use MyISAM rather than INNODB for . ',
 				'sql' => array(
@@ -914,7 +914,7 @@ class DBMaintenance extends Admin {
 
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
-				'description' => 'Create table to store call numbers for resources',
+				'description' => 'Build table to store call numbers for resources',
 				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
@@ -928,11 +928,11 @@ class DBMaintenance extends Admin {
 					'INDEX (`locationId`)' .
 					') ENGINE=InnoDB',
 				),
-			),
+			),*/
 
 			'resource_subject' => array(
 				'title' => 'Resource subject',
-				'description' => 'Create table to store subjects for resources',
+				'description' => 'Build table to store subjects for resources',
 				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS subject (' .
@@ -953,14 +953,14 @@ class DBMaintenance extends Admin {
 				),
 			),
 
-			'resource_subject_1' => array(
+			/*'resource_subject_1' => array(
 				'title' => 'Resource subject update 1',
 				'description' => 'Increase the length of the subject column',
 				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE subject CHANGE subject subject VARCHAR(512) NOT NULL'
 				),
-			),
+			),*/
 
 			'readingHistory' => array(
 				'title' => 'Reading History Creation',
@@ -989,7 +989,7 @@ class DBMaintenance extends Admin {
 
 			'externalLinkTracking' => array(
 				'title' => 'Create External Link Tracking Table',
-				'description' => 'Create table to track links to external sites from 856 tags or eContent',
+				'description' => 'Build table to track links to external sites from 856 tags or eContent',
 				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS external_link_tracking (' .
@@ -1026,7 +1026,7 @@ class DBMaintenance extends Admin {
 					'author varchar(255), '.
 					'format varchar(25), '.
 					'ageLevel varchar(25), '.
-					'isbn_upc varchar(15), '.
+					'isbn varchar(15), '.
 					'oclcNumber varchar(30), '.
 					'publisher varchar(255), '.
 					'publicationYear varchar(4), '.
@@ -1070,7 +1070,7 @@ class DBMaintenance extends Admin {
 				'sql' => array(
 					'ALTER TABLE `materials_request` ADD `season` VARCHAR(80)',
 					'ALTER TABLE `materials_request` ADD `magazineTitle` VARCHAR(255)',
-					'ALTER TABLE `materials_request` CHANGE `isbn_upc` `isbn` VARCHAR( 15 )',
+					//'ALTER TABLE `materials_request` CHANGE `isbn_upc` `isbn` VARCHAR( 15 )',
 					'ALTER TABLE `materials_request` ADD `upc` VARCHAR(15)',
 					'ALTER TABLE `materials_request` ADD `issn` VARCHAR(8)',
 					'ALTER TABLE `materials_request` ADD `bookType` VARCHAR(20)',
@@ -1125,7 +1125,7 @@ class DBMaintenance extends Admin {
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Referred to Collection Development - J/YA', 0, '', 1)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Referred to Collection Development - AV', 0, '', 1)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('ILL Under Review', 0, '', 1)",
-					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Request Referred to ILL', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The library\'s Interlibrary loan department is reviewing your request. We will attempt to borrow this item from another system. This process generally takes about 2 - 6 weeks.', 1)",
+					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Request Referred to ILL', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. The library\\'s Interlibrary loan department is reviewing your request. We will attempt to borrow this item from another system. This process generally takes about 2 - 6 weeks.', 1)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Request Filled by ILL', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. Our Interlibrary Loan Department is set to borrow this item from another library.', 0)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Ineligible ILL', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. Your library account is not eligible for interlibrary loan at this time.', 0)",
 					"INSERT INTO materials_request_status (description, sendEmailToPatron, emailTemplate, isOpen) VALUES ('Not enough info - please contact Collection Development to clarify', 1, 'This e-mail is to let you know the status of your recent request for an item that you did not find in our catalog. We need more specific information in order to locate the exact item you need. Please re-submit your request with more details.', 1)",
@@ -1198,7 +1198,7 @@ class DBMaintenance extends Admin {
 				),
 			),
 
-			'indexUsageTracking' => array(
+			/*'indexUsageTracking' => array(
 				'title' => 'Index Usage Tracking',
 				'description' => 'Update Usage Tracking to include index based on ip and tracking date',
 				'dependencies' => array(),
@@ -1206,7 +1206,7 @@ class DBMaintenance extends Admin {
 				'sql' => array(
 					"ALTER TABLE `usage_tracking` ADD INDEX `IP_DATE` ( `ipId` , `trackingDate` )",
 				),
-			),
+			),*/
 
       'variables_table' => array(
 				'title' => 'Variables Table',
@@ -1229,7 +1229,7 @@ class DBMaintenance extends Admin {
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER DATABASE " . $configArray['Database']['database_vufind_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE administrators CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				//"ALTER TABLE administrators CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE bad_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE circulation_status CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE comments CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
@@ -1241,8 +1241,8 @@ class DBMaintenance extends Admin {
 				"ALTER TABLE list_widgets CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE list_widget_lists CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE location CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE nonHoldableLocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE ptype_restricted_locations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				//"ALTER TABLE nonHoldableLocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				//"ALTER TABLE ptype_restricted_locations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE purchase_link_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE resource_tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
@@ -1252,7 +1252,7 @@ class DBMaintenance extends Admin {
 				"ALTER TABLE session CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE spelling_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE usage_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				//"ALTER TABLE usage_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE user CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE user_list CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
 				"ALTER TABLE user_rating CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
@@ -1277,7 +1277,7 @@ class DBMaintenance extends Admin {
 		/* This routine completely changed, removing alpha_browse_setup since alpha_browse_setup_1 complete redoes the tables */
 		'alpha_browse_setup_2' => array(
 			'title' => 'Setup Alphabetic Browse',
-			'description' => 'Create tables to handle alphabetic browse functionality.',
+			'description' => 'Build tables to handle alphabetic browse functionality.',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS `title_browse`",
@@ -1289,7 +1289,7 @@ class DBMaintenance extends Admin {
 				INDEX ( `sortValue` ),
 				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
-				"DROP TABLE IF EXISTS `title_browse_scoped_results`",
+				/*"DROP TABLE IF EXISTS `title_browse_scoped_results`",
 				"CREATE TABLE `title_browse_scoped_results`(
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
@@ -1297,7 +1297,7 @@ class DBMaintenance extends Admin {
 					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
 				INDEX (`scopeId`)
-				) ENGINE = MYISAM",
+				) ENGINE = MYISAM",*/
 
 				"DROP TABLE IF EXISTS `author_browse`",
 				"CREATE TABLE `author_browse` (
@@ -1308,7 +1308,7 @@ class DBMaintenance extends Admin {
 				INDEX ( `sortValue` ),
 				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
-				"DROP TABLE IF EXISTS `author_browse_scoped_results`",
+				/*"DROP TABLE IF EXISTS `author_browse_scoped_results`",
 				"CREATE TABLE `author_browse_scoped_results`(
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
@@ -1316,7 +1316,7 @@ class DBMaintenance extends Admin {
 					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
 				INDEX (`scopeId`)
-				) ENGINE = MYISAM",
+				) ENGINE = MYISAM",*/
 
 				"DROP TABLE IF EXISTS `callnumber_browse`",
 				"CREATE TABLE `callnumber_browse` (
@@ -1327,7 +1327,7 @@ class DBMaintenance extends Admin {
 				INDEX ( `sortValue` ),
 				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
-				"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
+				/*"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
 				"CREATE TABLE `callnumber_browse_scoped_results`(
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
@@ -1335,7 +1335,7 @@ class DBMaintenance extends Admin {
 					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
 				INDEX (`scopeId`)
-				) ENGINE = MYISAM",
+				) ENGINE = MYISAM",*/
 
 				"DROP TABLE IF EXISTS `subject_browse`",
 				"CREATE TABLE `subject_browse` (
@@ -1346,7 +1346,7 @@ class DBMaintenance extends Admin {
 				INDEX ( `sortValue` ),
 				UNIQUE (`value`)
 				) ENGINE = MYISAM;",
-				"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
+				/*"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
 				"CREATE TABLE `subject_browse_scoped_results`(
 					`browseValueId` INT(11) NOT NULL,
 					`scope` TINYINT NOT NULL,
@@ -1354,7 +1354,7 @@ class DBMaintenance extends Admin {
 					`record` VARCHAR( 50 ) NOT NULL,
 				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
 				INDEX (`scopeId`)
-				) ENGINE = MYISAM",
+				) ENGINE = MYISAM",*/
 			),
 		),
 
@@ -1364,36 +1364,36 @@ class DBMaintenance extends Admin {
 			'dependencies' => array(),
 			'sql' => array(
 				//Author browse
-				"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `scope` )",
-				"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `record` )",
+				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `scope` )",
+				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `record` )",
 				"ALTER TABLE `author_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
 				"ALTER TABLE `author_browse` ADD INDEX ( `alphaRank` )",
 				"set @r=0;",
 				"UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
 
 				//Call number browse
-				"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `scope` )",
-				"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `record` )",
+				//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+				//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `scope` )",
+				//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `record` )",
 				"ALTER TABLE `callnumber_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
 				"ALTER TABLE `callnumber_browse` ADD INDEX ( `alphaRank` )",
 				"set @r=0;",
 				"UPDATE callnumber_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
 
 				//Subject Browse
-				"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `scope` )",
-				"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `record` )",
+				//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+				//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `scope` )",
+				//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `record` )",
 				"ALTER TABLE `subject_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
 				"ALTER TABLE `subject_browse` ADD INDEX ( `alphaRank` )",
 				"set @r=0;",
 				"UPDATE subject_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
 
 				//Tile Browse
-				"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `scope` )",
-				"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `record` )",
+				//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+				//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `scope` )",
+				//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `record` )",
 				"ALTER TABLE `title_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
 				"ALTER TABLE `title_browse` ADD INDEX ( `alphaRank` )",
 				"set @r=0;",
@@ -1413,7 +1413,7 @@ class DBMaintenance extends Admin {
 					`maxAlphaRank` INT NOT NULL ,
 					`numResults` INT NOT NULL
 				) ENGINE = InnoDB;",
-				"INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+				//"INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
 
 				"CREATE TABLE callnumber_browse_metadata (
 					`scope` TINYINT( 4 ) NOT NULL ,
@@ -1422,7 +1422,7 @@ class DBMaintenance extends Admin {
 					`maxAlphaRank` INT NOT NULL ,
 					`numResults` INT NOT NULL
 				) ENGINE = InnoDB;",
-				"INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+				//"INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
 
 				"CREATE TABLE title_browse_metadata (
 					`scope` TINYINT( 4 ) NOT NULL ,
@@ -1431,7 +1431,7 @@ class DBMaintenance extends Admin {
 					`maxAlphaRank` INT NOT NULL ,
 					`numResults` INT NOT NULL
 				) ENGINE = InnoDB;",
-				"INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+				//"INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
 
 				"CREATE TABLE subject_browse_metadata (
 					`scope` TINYINT( 4 ) NOT NULL ,
@@ -1440,7 +1440,7 @@ class DBMaintenance extends Admin {
 					`maxAlphaRank` INT NOT NULL ,
 					`numResults` INT NOT NULL
 				) ENGINE = InnoDB;",
-				"INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+				//"INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
 			),
 		),
 
@@ -1453,16 +1453,16 @@ class DBMaintenance extends Admin {
 				//Add firstChar fields
 				"ALTER TABLE `title_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
 				"ALTER TABLE title_browse ADD INDEX ( `firstChar` )",
-				'UPDATE title_browse set firstChar = substr(sortValue, 1, 1);',
+				'UPDATE title_browse set firstChar = SUBSTR(sortValue, 1, 1);',
 				"ALTER TABLE `author_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
 				"ALTER TABLE author_browse ADD INDEX ( `firstChar` )",
-				'UPDATE author_browse set firstChar = substr(sortValue, 1, 1);',
+				'UPDATE author_browse set firstChar = SUBSTR(sortValue, 1, 1);',
 				"ALTER TABLE `subject_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
 				"ALTER TABLE subject_browse ADD INDEX ( `firstChar` )",
-				'UPDATE subject_browse set firstChar = substr(sortValue, 1, 1);',
+				'UPDATE subject_browse set firstChar = SUBSTR(sortValue, 1, 1);',
 				"ALTER TABLE `callnumber_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
 				"ALTER TABLE callnumber_browse ADD INDEX ( `firstChar` )",
-				'UPDATE callnumber_browse set firstChar = substr(sortValue, 1, 1);',
+				'UPDATE callnumber_browse set firstChar = SUBSTR(sortValue, 1, 1);',
 				//Create global tables
 				'CREATE TABLE `title_browse_scoped_results_global` (
 					`browseValueId` INT( 11 ) NOT NULL ,
@@ -1494,7 +1494,7 @@ class DBMaintenance extends Admin {
 				"TRUNCATE TABLE `subject_browse_scoped_results_global`",
 				"TRUNCATE TABLE `callnumber_browse_scoped_results_global`",
 				//Load data from old method into tables
-				'INSERT INTO title_browse_scoped_results_global (`browseValueId`, record)
+				/*'INSERT INTO title_browse_scoped_results_global (`browseValueId`, record)
 					SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
 					FROM title_browse_scoped_results
 					WHERE scope = 0;',
@@ -1509,12 +1509,12 @@ class DBMaintenance extends Admin {
 				'INSERT INTO callnumber_browse_scoped_results_global (`browseValueId`, record)
 					SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
 					FROM callnumber_browse_scoped_results
-					WHERE scope = 0;',
+					WHERE scope = 0;',*/
 				'createScopingTables',
-				'DROP TABLE title_browse_scoped_results',
+				/*'DROP TABLE title_browse_scoped_results',
 				'DROP TABLE author_browse_scoped_results',
 				'DROP TABLE subject_browse_scoped_results',
-				'DROP TABLE callnumber_browse_scoped_results',
+				'DROP TABLE callnumber_browse_scoped_results',*/
 
 			),
 		),
@@ -1717,7 +1717,7 @@ class DBMaintenance extends Admin {
 			),
 		),
 
-		'cleanup_search' => array(
+		/*'cleanup_search' => array(
 			'title' => 'Cleanup Search table',
 			'description' => 'Cleanup Search table to remove unused tables and add needed indexes',
 			'dependencies' => array(),
@@ -1726,10 +1726,10 @@ class DBMaintenance extends Admin {
 				'ALTER TABLE search DROP title',
 				'ALTER TABLE search ADD INDEX (`saved`)',
 			),
-		),
+		),*/
 
 
-		'remove_old_tables' => array(
+		/*'remove_old_tables' => array(
 			'title' => 'Remove old tables',
 			'description' => 'Remove tables that are no longer needed due to usage of memcache',
 			'dependencies' => array(),
@@ -1772,7 +1772,7 @@ class DBMaintenance extends Admin {
 			'sql' => array(
 				'DROP TABLE IF EXISTS subject',
 			),
-		),
+		),*/
 
 		'rename_tables' => array(
 			'title' => 'Rename tables',
@@ -1818,7 +1818,7 @@ class DBMaintenance extends Admin {
 					`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
 					`allowablePtypes` varchar(50) NOT NULL COMMENT 'A list of PTypes that are allowed to place holds on items with this location separated with pipes (|).',
 					PRIMARY KEY (`locationId`)
-				) ENGINE=MyISAM",
+				) ENGINE=MYISAM",
 
 				"CREATE TABLE IF NOT EXISTS `non_holdable_locations` (
 					`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
@@ -1826,13 +1826,13 @@ class DBMaintenance extends Admin {
 					`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
 					`availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
 					PRIMARY KEY (`locationId`)
-				) ENGINE=MyISAM"
+				) ENGINE=MYISAM"
 			),
 		),
 
 		'loan_rule_determiners_1' => array(
 			'title' => 'Loan Rule Determiners',
-			'description' => 'Create tables to store loan rule determiners',
+			'description' => 'Build tables to store loan rule determiners',
 			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS loan_rules (" .
@@ -1865,19 +1865,19 @@ class DBMaintenance extends Admin {
 			),
 		),
 
-		'remove_old_millennium_hold_logic' => array(
+		/*'remove_old_millennium_hold_logic' => array(
 			'title' => 'Remove Old Millennium Hold Logic',
-			'description' => 'Create tables to store loan rule determiners',
+			'description' => 'Build tables to store loan rule determiners',
 			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE ptype_restricted_locations",
 				"DROP TABLE non_holdable_locations",
 			),
-		),
+		),*/
 
 		'location_hours' => array(
 			'title' => 'Location Hours',
-			'description' => 'Create table to store hours for a location',
+			'description' => 'Build table to store hours for a location',
 			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS location_hours (" .
@@ -1894,7 +1894,7 @@ class DBMaintenance extends Admin {
 		),
 		'holiday' => array(
 			'title' => 'Holidays',
-			'description' => 'Create table to store holidays',
+			'description' => 'Build table to store holidays',
 			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS holiday (" .
@@ -1962,7 +1962,7 @@ class DBMaintenance extends Admin {
 
 		'ptype' => array(
 			'title' => 'P-Type',
-			'description' => 'Create tables to store information related to P-Types.',
+			'description' => 'Build tables to store information related to P-Types.',
 			'dependencies' => array(),
 			'sql' => array(
 				'CREATE TABLE IF NOT EXISTS ptype(
@@ -1977,7 +1977,7 @@ class DBMaintenance extends Admin {
 
 		'analytics' => array(
 			'title' => 'Analytics',
-			'description' => 'Create tables to store analytics information.',
+			'description' => 'Build tables to store analytics information.',
 			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
@@ -2085,9 +2085,9 @@ class DBMaintenance extends Admin {
 			'sql' => array(
 				'ALTER TABLE `analytics_event` ADD COLUMN data2 VARCHAR(256)',
 				'ALTER TABLE `analytics_event` ADD COLUMN data3 VARCHAR(256)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `data`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `data2`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `data3`)',
+				'ALTER TABLE `analytics_event` ADD INDEX ( `data`)',
+				'ALTER TABLE `analytics_event` ADD INDEX ( `data2`)',
+				'ALTER TABLE `analytics_event` ADD INDEX ( `data3`)',
 			),
 		),
 
@@ -2114,14 +2114,14 @@ class DBMaintenance extends Admin {
 				'PRIMARY KEY (`id`) '.
 				') ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
 		mysql_query($sql);
-		$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists` WHERE `fullListLink` != "" ');
+		/*$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists` WHERE `fullListLink` != "" ');
 		while($row = mysql_fetch_assoc($result))
 		{
 			$sqlInsert = 'INSERT INTO `list_widget_lists_links` (`id`,`listWidgetListsId`,`name`,`link`) VALUES (NULL,\''.$row['id'].'\',\'Full List Link\',\''.$row['fullListLink'].'\') ';
 			mysql_query($sqlInsert);
 		}
 		mysql_free_result($result);
-		mysql_query('ALTER TABLE `list_widget_lists` DROP `fullListLink`');
+		mysql_query('ALTER TABLE `list_widget_lists` DROP `fullListLink`');*/
 	}
 
 
@@ -2212,22 +2212,22 @@ class DBMaintenance extends Admin {
 			$this->runSQLStatement(&$update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
 			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
 			$this->runSQLStatement(&$update,
-				"INSERT INTO title_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+				"INSERT INTO title_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
 					FROM title_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
 			$this->runSQLStatement(&$update,
-				"INSERT INTO author_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+				"INSERT INTO author_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT author_browse_scoped_results.browseValueId, author_browse_scoped_results.record
 					FROM author_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
 			$this->runSQLStatement(&$update,
-				"INSERT INTO subject_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+				"INSERT INTO subject_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT subject_browse_scoped_results.browseValueId, subject_browse_scoped_results.record
 					FROM subject_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
 			$this->runSQLStatement(&$update,
-				"INSERT INTO callnumber_browse_scoped_results_library_{$library->subdomain} (`browseValueId`, record)
+				"INSERT INTO callnumber_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
 					FROM callnumber_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
@@ -2251,13 +2251,13 @@ class DBMaintenance extends Admin {
 		$library->find();
 		while ($library->fetch()){
 			//$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
 			//$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
 			//$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
 			//$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ADD INDEX ( `record` )");
+			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
 
 		}
 	}
@@ -2283,8 +2283,8 @@ class DBMaintenance extends Admin {
 	}
 
 	function createDefaultIpRanges(){
-		require_once 'Drivers/marmot_inc/ipcalc.php';
-		require_once 'Drivers/marmot_inc/subnet.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/ipcalc.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
 		$subnet = new subnet();
 		$subnet->find();
 		while ($subnet->fetch()){
