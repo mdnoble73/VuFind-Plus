@@ -94,7 +94,7 @@ abstract class FacetSetting extends DB_DataObject {
 		$this->facetName = $facetName;
 		$this->displayName = $displayName;
 		$this->showAsDropDown = false;
-		$this->sortMode = 1;
+		$this->sortMode = 'num_results';
 		$this->showAboveResults = true;
 		$this->showInResults = true;
 		$this->showInAuthorResults = true;
@@ -106,7 +106,7 @@ abstract class FacetSetting extends DB_DataObject {
 		$this->facetName = $facetName;
 		$this->displayName = $displayName;
 		$this->showAsDropDown = false;
-		$this->sortMode = 1;
+		$this->sortMode = 'num_results';
 		$this->showAboveResults = false;
 		$this->showInResults = true;
 		$this->showInAuthorResults = true;
@@ -119,7 +119,7 @@ abstract class FacetSetting extends DB_DataObject {
 		$this->facetName = $facetName;
 		$this->displayName = $displayName;
 		$this->showAsDropDown = false;
-		$this->sortMode = 1;
+		$this->sortMode = 'num_results';
 		$this->showAboveResults = false;
 		$this->showInResults = false;
 		$this->showInAuthorResults = false;
