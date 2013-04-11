@@ -411,7 +411,7 @@ class OverDriveDriver2 {
 			}
 
 			//Get lending options
-			if (preg_match('/<li.*?id="myAccount4Tab">(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
+			if (preg_match('/<li id="myAccount4Tab">(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
 				$lendingOptionsSection = $matches[1];
 				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
 				$summary['lendingOptions'] = $lendingOptions;
@@ -419,7 +419,11 @@ class OverDriveDriver2 {
 				$start = strpos($accountPage, '<li id="myAccount4Tab">') + strlen('<li id="myAccount4Tab">');
 				$end = strpos($accountPage, '<!-- myAccountContent -->');
 				$logger->log("Lending options from $start to $end", PEAR_LOG_DEBUG);
-				if (preg_match('/<li id="myAccount4Tab">/s', $accountPage)){
+
+				$lendingOptionsSection = substr($accountPage, $start, $end);
+				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
+				$summary['lendingOptions'] = $lendingOptions;
+				/*if (preg_match('/<li id="myAccount4Tab">/s', $accountPage)){
 					$logger->log("Found myAccount 4 tab", PEAR_LOG_DEBUG);
 					if (preg_match('/<!-- myAccountContent -->/s', $accountPage)){
 						$logger->log("End of myAccountContent", PEAR_LOG_DEBUG);
@@ -430,7 +434,7 @@ class OverDriveDriver2 {
 				}else{
 					$summary['lendingOptions'] = "Could not load lending options";
 					$logger->log("Account page $accountPage", PEAR_LOG_DEBUG);
-				}
+				}*/
 			}
 
 			curl_close($ch);
