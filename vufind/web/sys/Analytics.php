@@ -1,15 +1,19 @@
 <?php
-require_once 'sys/analytics/Analytics_Session.php';
-require_once 'sys/analytics/Analytics_Event.php';
-require_once 'sys/analytics/Analytics_Search.php';
-require_once 'sys/analytics/Analytics_PageView.php';
-require_once 'sys/BotChecker.php';
+require_once ROOT_DIR . '/sys/analytics/Analytics_Session.php';
+require_once ROOT_DIR . '/sys/analytics/Analytics_Event.php';
+require_once ROOT_DIR . '/sys/analytics/Analytics_Search.php';
+require_once ROOT_DIR . '/sys/analytics/Analytics_PageView.php';
+require_once ROOT_DIR . '/sys/BotChecker.php';
 
 class Analytics
 {
+	/** @var Analytics_Session */
 	private $session;
+	/** @var Analytics_PageView */
 	private $pageView;
+	/** @var Analytics_Event[] */
 	private $events = array();
+	/** @var Analytics_Search */
 	private $search;
 	private $finished = false;
 	private $trackingDisabled = false;
@@ -119,13 +123,13 @@ class Analytics
 	function doGeoIP(){
 		global $configArray;
 		//Load GeoIP data
-		require_once 'sys/MaxMindGeoIP/geoip.inc';
-		require_once 'sys/MaxMindGeoIP/geoipcity.inc';
+		require_once ROOT_DIR . '/sys/MaxMindGeoIP/geoip.inc';
+		require_once ROOT_DIR . '/sys/MaxMindGeoIP/geoipcity.inc';
 		$geoIP = geoip_open($configArray['Site']['local'] . '/../../sites/default/GeoIPCity.dat', GEOIP_MEMORY_CACHE);
 		$geoRecord = GeoIP_record_by_addr($geoIP, $this->session->ip);
 		if ($geoRecord){
 			$this->session->country = $geoRecord->country_code;
-			$this->session->states = $geoRecord->region;
+			$this->session->state = $geoRecord->region;
 			$this->session->city = $geoRecord->city;
 			$this->session->latitude = $geoRecord->latitude;
 			$this->session->longitude = $geoRecord->longitude;
@@ -229,6 +233,12 @@ class Analytics
 				}
 			}
 		}
+		if (isset($_REQUEST['startDate'])){
+			$filterParams .= "&startDate=" . urlencode($_REQUEST['startDate']);
+		}
+		if (isset($_REQUEST['endDate'])){
+			$filterParams .= "&endDate=" . urlencode($_REQUEST['endDate']);
+		}
 		return $filterParams;
 	}
 
@@ -236,7 +246,7 @@ class Analytics
 		$sessionFilterSQL = null;
 		if (isset($_REQUEST['filter'])){
 			$filterFields = $_REQUEST['filter'];
-			$filterValues = $_REQUEST['filterValue'];
+			$filterValues = isset($_REQUEST['filterValue']) ? $_REQUEST['filterValue'] : array();
 			foreach($filterFields as $index => $fieldName){
 				if (isset($filterValues[$index])){
 					$value = $filterValues[$index];
@@ -358,6 +368,8 @@ class Analytics
 	}
 
 	function getSearchesByType($forGraph){
+		$searchesInfo = array();
+
 		$searches = new Analytics_Search();
 		$searches->selectAdd('count(analytics_search.id) as numSearches');
 		$searches->selectAdd('searchType');
@@ -374,7 +386,6 @@ class Analytics
 			$searchByTypeRaw[$searches->searchType] = $searches->numSearches;
 			$totalSearches += $searches->numSearches;
 		}
-		$searchesByType = array();
 		$numSearchesReported = 0;
 		foreach ($searchByTypeRaw as $searchName => $searchCount){
 			$numSearchesReported += $searchCount;
@@ -456,6 +467,7 @@ class Analytics
 	}
 
 	function getFacetUsageByType($forGraph){
+		$eventInfo = array();
 		//load searches by type
 		$events = new Analytics_Event();
 
@@ -500,7 +512,7 @@ class Analytics
 	function getTopSearches($forGraph){
 		$search = new Analytics_Search();
 		$search->selectAdd();
-		$search->selectAdd("count(analytics_search.id) as timesSearched");
+		$search->selectAdd("count(analytics_search.id) as numSearches");
 		$search->selectAdd("lookfor");
 		$session = $this->getSessionFilters();
 		if ($session != null){
@@ -508,7 +520,7 @@ class Analytics
 		}
 		$search->whereAdd("numResults > 0");
 		$search->groupBy('lookfor');
-		$search->orderBy('timesSearched DESC');
+		$search->orderBy('numSearches DESC');
 		if ($forGraph){
 			$search->limit(0, 20);
 		}else{
@@ -525,9 +537,9 @@ class Analytics
 				$searchTerm = "&lt;blank&gt;";
 			}
 			if ($forGraph){
-				$topSearches[] = "$searchTerm ({$search->timesSearched})";
+				$topSearches[] = "$searchTerm ({$search->numSearches})";
 			}else{
-				$topSearches[] = array($searchTerm, $search->timesSearched);
+				$topSearches[] = array($searchTerm, $search->numSearches);
 			}
 		}
 		return $topSearches;
@@ -536,12 +548,12 @@ class Analytics
 	function getPageViewsByDevice($forGraph){
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
 		$session = $this->getSessionFilters();
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
+		$pageViews->addDateFilters();
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('device');
 		$pageViews->groupBy('device');
@@ -568,6 +580,7 @@ class Analytics
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
+		$pageViews->addDateFilters();
 		$session->joinAdd($location);
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('displayName');
@@ -594,6 +607,7 @@ class Analytics
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
+		$pageViews->addDateFilters();
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('physicalLocation');
 		$pageViews->groupBy('physicalLocation');
@@ -619,6 +633,7 @@ class Analytics
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
+		$pageViews->addDateFilters();
 		$pageViews->joinAdd($session);
 		$pageViews->selectAdd('theme');
 		$pageViews->groupBy('theme');
@@ -644,6 +659,7 @@ class Analytics
 		if ($session != null){
 			$pageViews->joinAdd($session);
 		}
+		$pageViews->addDateFilters();
 		$pageViews->groupBy('module');
 		$pageViews->orderBy('numViews DESC');
 		if ($forGraph){
@@ -668,6 +684,7 @@ class Analytics
 		if ($session != null){
 			$pageViews->joinAdd($session);
 		}
+		$pageViews->addDateFilters();
 		$pageViews->groupBy('module');
 		$pageViews->groupBy('action');
 		$pageViews->orderBy('numViews DESC');
@@ -709,6 +726,7 @@ class Analytics
 			$totalEvents += $events->numEvents;
 		}
 		$numReported = 0;
+		$eventInfo = array();
 		foreach ($eventsInfoRaw as $name => $count){
 			if ($forGraph && (float)($count / $totalEvents) < .02){
 				break;

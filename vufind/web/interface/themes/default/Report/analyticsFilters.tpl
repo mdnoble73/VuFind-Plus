@@ -6,6 +6,9 @@
 			<input type="hidden" name="source" value="{$smarty.request.source}"/>
 		{/if}
 		<div id="filters">
+			<div id="dateFilter">
+				Include data <label for="startDateField">from</label> <input type="text" name="startDate" id="startDateField" value="{$startDate->format('m-d-Y')}"/> <label for="endDateField">to</label> <input type="text" name="endDate" id="endDateField" value="{$endDate->format('m-d-Y')}"/>.
+			</div>
 			{* Display existing filters *}
 			{assign var=nextFilterIndex value=1}
 			{foreach from=$activeFilters item=filterInfo key=filterIndex}
@@ -42,6 +45,10 @@
 </div>
 {/strip}
 <script type="text/javascript">
+	{literal}
+	$("#startDateField").datepicker({dateFormat : 'mm-dd-yy'});
+	$("#endDateField").datepicker({dateFormat : 'mm-dd-yy'});
+	{/literal}
 	var filterValues = {literal}{}{/literal};
 	{foreach from=$filters item=filter}
 		filterValues["{$filter.field}"] = {literal}{}{/literal};

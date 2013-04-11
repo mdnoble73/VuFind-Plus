@@ -12,4 +12,7 @@ class Analytics_Search extends DB_DataObject{
 	public $facetsApplied;
 	public $numResults;
 	public $searchTime;
+
+	//Dynamically created variable during queries.
+	public $numSearches;
 }

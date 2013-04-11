@@ -10,4 +10,7 @@ class Analytics_Event extends DB_DataObject{
 	public $data2;
 	public $data3;
 	public $eventTime;
+
+	//Dynamically created based on queries
+	public $numEvents;
 }

@@ -1,11 +1,11 @@
 <?php
-require_once 'services/Report/Report.php';
+require_once ROOT_DIR . '/services/Report/Report.php';
 class AnalyticsReport extends Report{
 	function setupFilters(){
 		global $interface;
-		global $user;
 		global $analytics;
 
+		//Load session based filters
 		$filters = array();
 		$filters['country'] = $this->getSessionFilter('Country', 'country');
 		$filters['city'] = $this->getSessionFilter('City', 'city');
@@ -16,17 +16,13 @@ class AnalyticsReport extends Report{
 		$filters['physicalLocation'] = $this->getSessionFilter('Physical Location', 'physicalLocation');
 		$filters['patronType'] = $this->getSessionFilter('Patron Type', 'patronType');
 		$filters['homeLocationId'] = $this->getSessionFilter('Home Location', 'homeLocationId');
-
 		$interface->assign('filters', $filters);
 
-		$filterParams = "";
 		$activeFilters = array();
 		if (isset($_REQUEST['filter'])){
 			foreach ($_REQUEST['filter'] as $index => $filterName){
 				if (isset($_REQUEST['filterValue'][$index])){
 					$filterVal = $_REQUEST['filterValue'][$index];
-					$filterParams .= "&filter[$index]={$filterName}";
-					$filterParams .= "&filterValue[$index]={$filterVal}";
 					$activeFilters[$index] = array(
 						'name' => $filterName,
 						'value' => $filterVal
@@ -34,9 +30,29 @@ class AnalyticsReport extends Report{
 				}
 			}
 		}
+
+		//Load date based filters
+		if (isset($_REQUEST['startDate'])){
+			$startDate = DateTime::createFromFormat('m-d-Y', $_REQUEST['startDate']);
+		}else{
+			$startDate = new DateTime();
+			$startDate->modify('-1 month');
+		}
+		if (isset($_REQUEST['endDate'])){
+			$endDate = DateTime::createFromFormat('m-d-Y', $_REQUEST['endDate']);
+		}else{
+			$endDate = new DateTime();
+		}
+		if ($endDate->getTimestamp() < $startDate->getTimestamp()){
+			$tempDate = $startDate;
+			$startDate = $endDate;
+			$endDate = $tempDate;
+		}
+		$interface->assign('startDate', $startDate);
+		$interface->assign('endDate', $endDate);
+
 		$interface->assign('activeFilters', $activeFilters);
 		$interface->assign('filterString', $analytics->getSessionFilterString());
-
 	}
 
 	function getSessionFilter($label, $field){

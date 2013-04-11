@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once('services/Admin/Admin.php');
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/Action.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 
 class Report extends Admin
