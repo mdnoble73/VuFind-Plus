@@ -411,7 +411,7 @@ class OverDriveDriver2 {
 			}
 
 			//Get lending options
-			if (preg_match('/<li .*?id="myAccount4Tab".*?>(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
+			if (preg_match('/<li\\s.*?id="myAccount4Tab".*?>(.*?)<!--\\smyAccountContent\\s-->/s', $accountPage, $matches)) {
 				$lendingOptionsSection = $matches[1];
 				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
 				$summary['lendingOptions'] = $lendingOptions;
