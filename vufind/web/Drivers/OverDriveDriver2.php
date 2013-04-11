@@ -371,6 +371,7 @@ class OverDriveDriver2 {
 		global $memCache;
 		global $configArray;
 		global $timer;
+		global $logger;
 
 		$summary = $memCache->get('overdrive_summary_' . $user->id);
 		if ($summary == false || isset($_REQUEST['reload'])){
@@ -414,6 +415,9 @@ class OverDriveDriver2 {
 				$lendingOptionsSection = $matches[1];
 				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
 				$summary['lendingOptions'] = $lendingOptions;
+			}else{
+				$summary['lendingOptions'] = "Could not load lending options";
+				$logger->log("Account page $accountPage", PEAR_LOG_DEBUG);
 			}
 
 			curl_close($ch);
