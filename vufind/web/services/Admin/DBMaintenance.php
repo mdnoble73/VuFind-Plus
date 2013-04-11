@@ -2091,6 +2091,20 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'analytics_5' => array(
+			'title' => 'Analytics Update 5',
+			'description' => 'Update analytics search to make display of reports faster.',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE analytics_search ADD INDEX(lookfor)',
+				'ALTER TABLE analytics_search ADD INDEX(numResults)',
+				'ALTER TABLE analytics_search ADD INDEX(searchType)',
+				'ALTER TABLE analytics_search ADD INDEX(scope)',
+				'ALTER TABLE analytics_search ADD INDEX(facetsApplied)',
+				'ALTER TABLE analytics_search ADD INDEX(isAdvanced)',
+			),
+		),
+
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
 			'description' => 'Add a field for whether or not the session was started with remember me on.',
