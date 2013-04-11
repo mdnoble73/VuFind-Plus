@@ -161,7 +161,7 @@
 		$("#adminMenuAccordion").accordion();
 		{/literal}
 		{if $defaultSection}
-		$("#adminMenuAccordion").accordion("activate", {$defaultSection});
+		$("#adminMenuAccordion").accordion("option", "active", {$defaultSection});
 		{/if}
 		{literal}
 	});
