@@ -25,14 +25,14 @@ require_once(ROOT_DIR . '/PHPExcel.php');
 class Dashboard extends AnalyticsReport{
 
 	function launch(){
-		global $configArray;
 		global $interface;
-		global $user;
 
 		//Setup filters
 		$this->setupFilters();
 
 		$interface->setPageTitle('Report - Dashboard');
+
+		$interface->assign('showDateFilters', false);
 		$interface->setTemplate('dashboard.tpl');
 		$interface->display('layout.tpl');
 	}

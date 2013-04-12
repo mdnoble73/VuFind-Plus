@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class AJAX extends Action {
 
@@ -73,7 +73,7 @@ class AJAX extends Action {
 		}
 		$analyticsSession->selectAdd('count(id) as numActiveUsers');
 		$analyticsSession->whereAdd('lastRequestTime > ' . ($curTime - $interval));
-		 $analyticsSession->whereAdd("lastRequestTime <= $curTime");
+		//$analyticsSession->whereAdd("lastRequestTime <= $curTime");
 		if ($analyticsSession->find(true)){
 			$activityByMinute['activeUsers'] = $analyticsSession->numActiveUsers;
 		}else{
@@ -83,7 +83,7 @@ class AJAX extends Action {
 		$pageView = new Analytics_PageView();
 		$pageView->selectAdd('count(id) as numPageViews');
 		$pageView->whereAdd("pageEndTime > " . ($curTime - $interval));
-		$pageView->whereAdd("pageEndTime <= $curTime");
+		//$pageView->whereAdd("pageEndTime <= $curTime");
 		if ($pageView->find(true)){
 			$activityByMinute['pageViews'] = $pageView->numPageViews;
 		}else{
@@ -93,7 +93,7 @@ class AJAX extends Action {
 		$searches = new Analytics_Search();
 		$searches->selectAdd('count(id) as numSearches');
 		$searches->whereAdd("searchTime > " . ($curTime - $interval));
-		$searches->whereAdd("searchTime <= $curTime");
+		//$searches->whereAdd("searchTime <= $curTime");
 		if ($searches->find(true)){
 			$activityByMinute['searches'] = $searches->numSearches;
 		}else{
@@ -103,7 +103,7 @@ class AJAX extends Action {
 		$events = new Analytics_Event();
 		$events->selectAdd('count(id) as numEvents');
 		$events->whereAdd("eventTime > " . ($curTime - $interval));
-		$events->whereAdd("eventTime <= $curTime");
+		//$events->whereAdd("eventTime <= $curTime");
 		if ($events->find(true)){
 			$activityByMinute['events'] = $events->numEvents;
 		}else{

@@ -377,6 +377,7 @@ class Analytics
 		if ($session != null){
 			$searches->joinAdd($session);
 		}
+		$searches->addDateFilters();
 		$searches->groupBy('searchType');
 		$searches->orderBy('numSearches  DESC');
 		$searches->find();
@@ -413,6 +414,7 @@ class Analytics
 		if ($session != null){
 			$searches->joinAdd($session);
 		}
+		$searches->addDateFilters();
 		$searches->groupBy('scope');
 		$searches->orderBy('numSearches  DESC');
 		$searches->find();
@@ -450,6 +452,7 @@ class Analytics
 		if ($session != null){
 			$searches->joinAdd($session);
 		}
+		$searches->addDateFilters();
 		$searches->groupBy('facetsApplied');
 		$searches->find();
 		$totalSearches = 0;
@@ -518,6 +521,7 @@ class Analytics
 		if ($session != null){
 			$search->joinAdd($session);
 		}
+		$search->addDateFilters();
 		$search->whereAdd("numResults > 0");
 		$search->groupBy('lookfor');
 		$search->orderBy('numSearches DESC');

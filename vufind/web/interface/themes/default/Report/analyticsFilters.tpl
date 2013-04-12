@@ -6,9 +6,11 @@
 			<input type="hidden" name="source" value="{$smarty.request.source}"/>
 		{/if}
 		<div id="filters">
+			{if !isset($showDateFilters) || $showDateFilters == true}
 			<div id="dateFilter">
 				Include data <label for="startDateField">from</label> <input type="text" name="startDate" id="startDateField" value="{$startDate->format('m-d-Y')}"/> <label for="endDateField">to</label> <input type="text" name="endDate" id="endDateField" value="{$endDate->format('m-d-Y')}"/>.
 			</div>
+			{/if}
 			{* Display existing filters *}
 			{assign var=nextFilterIndex value=1}
 			{foreach from=$activeFilters item=filterInfo key=filterIndex}
