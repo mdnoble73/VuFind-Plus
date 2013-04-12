@@ -246,7 +246,7 @@ $interface->assign('action', $action);
 $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
 
-if ($analytics){
+if (!$analytics->isTrackingDisabled()){
 	$analytics->setModule($module);
 	$analytics->setAction($action);
 	$analytics->setObjectId(isset($_REQUEST['id']) ? $_REQUEST['id'] : null);

@@ -35,19 +35,21 @@ class Analytics
 			//$logger->log("Disabling logging because the request is from a bot", PEAR_LOG_DEBUG);
 			$this->trackingDisabled = true;
 			$this->finished = true;
+			return;
 		}
-
-		$session = new Analytics_Session();
-		$this->session = $session;
 
 		//Check to see if analytics is enabled
 		if (isset($configArray['System']['enableAnalytics']) && $configArray['System']['enableAnalytics'] == false){
+			$this->trackingDisabled = true;
 			return;
 		}
 		//Check to see if we are in maintenance mode
 		if (isset($configArray['System']['available']) && $configArray['System']['available'] == false){
+			$this->trackingDisabled = true;
 			return;
 		}
+
+		$session = new Analytics_Session();
 
 		//disable error handler since the tables may not be installed yet.
 		disableErrorHandler();
@@ -79,6 +81,10 @@ class Analytics
 
 	function disableTracking(){
 		$this->trackingDisabled = true;
+	}
+
+	function isTrackingDisabled(){
+		return $this->trackingDisabled;
 	}
 
 	function setModule($module){
