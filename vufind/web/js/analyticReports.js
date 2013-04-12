@@ -9,8 +9,8 @@ function showFilterValues(control){
 	var curIndex = activeFilter.data("filter-index");
 	activeFilter.parent().find(".filterValues").remove();
 	var filterValueSelection = "<select class='filterValues' name='filterValue[" + curIndex + "]'>";
-	for (selectedValue in filterValues[selectedOption]){
-		filterValueSelection += "<option value='" + selectedValue + "'>" + selectedValue + "</option>";
+	for (var index in filterValues[selectedOption]){
+		filterValueSelection += "<option value='" + index + "'>" + filterValues[selectedOption][index] + "</option>";
 	}
 	filterValueSelection += "</select>";
 	activeFilter.after(filterValueSelection);
@@ -148,8 +148,8 @@ function setupInteractiveChart(divToRenderTo, title, xAxisLabel, yAxisLabel){
 }
 
 function getRecentActivity(){
-	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getRecentActivity&interval=5" + filterParms,
+	var filterParams = getFilterParams();
+	$.getJSON(path + "/Report/AJAX?method=getRecentActivity&interval=5" + filterParams,
 		function(data) {
 			activePageViewChart.series[0].addPoint(parseInt(data.pageViews), true, true);
 			recentUsersChart.series[0].addPoint(parseInt(data.activeUsers), true, true);

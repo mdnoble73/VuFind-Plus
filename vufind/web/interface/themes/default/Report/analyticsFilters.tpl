@@ -17,7 +17,7 @@
 				<div class="filterSetting" id="filterSetting{$filterIndex}">
 					<select name="filter[{$filterIndex}]" id="filter{$filterIndex}" data-filter-index="{$filterIndex}" onchange="showFilterValues(this)">
 						<option value="">Select a value</option>
-						{foreach from=$filters item=filter}
+						{foreach from=$filters item=filter key=filterId}
 							<option value="{$filter.field}" {if $filterInfo.name == $filter.field}selected="selected"{/if}>{$filter.label}</option>
 						{/foreach}
 					</select>
@@ -31,6 +31,7 @@
 				</div>
 				{assign var=nextFilterIndex value=$nextFilterIndex+1}
 			{/foreach}
+			{* Display a list of filters that can be applied *}
 			<div class="filterSetting" id="filterSetting{$nextFilterIndex}">
 				<select name="filter[{$nextFilterIndex}]" id="filter{$nextFilterIndex}" data-filter-index="{$nextFilterIndex}" onchange="showFilterValues(this)">
 					<option value="">Select a value</option>

@@ -26,7 +26,6 @@ class Analytics
 		}
 
 		global $interface;
-		global $user;
 		if (!isset($interface)){
 			die("You must setup the interface before creating a tracker");
 		}
@@ -40,6 +39,10 @@ class Analytics
 
 		//Check to see if analytics is enabled
 		if (isset($configArray['System']['enableAnalytics']) && $configArray['System']['enableAnalytics'] == false){
+			return;
+		}
+		//Check to see if we are in maintenance mode
+		if (isset($configArray['System']['available']) && $configArray['System']['available'] == false){
 			return;
 		}
 
@@ -96,8 +99,8 @@ class Analytics
 		$this->pageView->language = $language;
 	}
 
-	function setTheme($language){
-		$this->session->theme = $language;
+	function setTheme($theme){
+		$this->session->setTheme($theme);
 	}
 
 	function setMobile($mobile){
@@ -105,15 +108,15 @@ class Analytics
 	}
 
 	function setDevice($device){
-		$this->session->device = $device;
+		$this->session->setDevice($device);
 	}
 
 	function setPhysicalLocation($physicalLocation){
-		$this->session->physicalLocation = $physicalLocation;
+		$this->session->setPhysicalLocation($physicalLocation);
 	}
 
 	function setPatronType($patronType){
-		$this->session->patronType = $patronType;
+		$this->session->setPatronType($patronType);
 	}
 
 	function setHomeLocationId($homeLocationId){
@@ -128,9 +131,9 @@ class Analytics
 		$geoIP = geoip_open($configArray['Site']['local'] . '/../../sites/default/GeoIPCity.dat', GEOIP_MEMORY_CACHE);
 		$geoRecord = GeoIP_record_by_addr($geoIP, $this->session->ip);
 		if ($geoRecord){
-			$this->session->country = $geoRecord->country_code;
-			$this->session->state = $geoRecord->region;
-			$this->session->city = $geoRecord->city;
+			$this->session->setCountry($geoRecord->country_code);
+			$this->session->setState($geoRecord->region);
+			$this->session->setCity($geoRecord->city);
 			$this->session->latitude = $geoRecord->latitude;
 			$this->session->longitude = $geoRecord->longitude;
 		}
@@ -199,6 +202,7 @@ class Analytics
 	}
 
 	function getSessionFilters(){
+		/** @var Analytics_Session $session  */
 		$session = null;
 		if (isset($_REQUEST['filter'])){
 			$filterFields = $_REQUEST['filter'];
@@ -206,7 +210,7 @@ class Analytics
 			foreach($filterFields as $index => $fieldName){
 				if (isset($filterValues[$index])){
 					$value = $filterValues[$index];
-					if (in_array($fieldName, array('country', 'city', 'state', 'theme', 'mobile', 'device', 'physicalLocation', 'patronType', 'homeLocationId'))){
+					if (in_array($fieldName, array('countryId', 'cityId', 'stateId', 'themeId', 'mobile', 'deviceId', 'physicalLocationId', 'patronTypeId', 'homeLocationId'))){
 						if ($session == null){
 							$session = new Analytics_Session();
 						}

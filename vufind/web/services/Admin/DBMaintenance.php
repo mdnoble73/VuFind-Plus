@@ -2105,24 +2105,136 @@ class DBMaintenance extends Admin {
 			),
 		),
 
-			'analytics_6' => array(
-				'title' => 'Analytics Update 6',
-				'description' => 'Update analytics make display of dashboard and other reports faster.',
+		'analytics_6' => array(
+			'title' => 'Analytics Update 6',
+			'description' => 'Update analytics make display of dashboard and other reports faster.',
+			'dependencies' => array(),
+			'sql' => array(
+				'ALTER TABLE analytics_event ADD INDEX(eventTime)',
+				'ALTER TABLE analytics_page_view ADD INDEX(pageStartTime)',
+				'ALTER TABLE analytics_page_view ADD INDEX(pageEndTime)',
+				'ALTER TABLE analytics_page_view ADD INDEX(module)',
+				'ALTER TABLE analytics_page_view ADD INDEX(action)',
+				'ALTER TABLE analytics_page_view ADD INDEX(method)',
+				'ALTER TABLE analytics_page_view ADD INDEX(objectId)',
+				'ALTER TABLE analytics_page_view ADD INDEX(language)',
+				'ALTER TABLE analytics_search ADD INDEX(searchTime)',
+			),
+		),
+
+			'analytics_7' => array(
+				'title' => 'Analytics Update 7',
+				'description' => 'Normalize Analytics Session for better performance.',
 				'dependencies' => array(),
 				'sql' => array(
-					'ALTER TABLE analytics_event ADD INDEX(eventTime)',
-					'ALTER TABLE analytics_page_view ADD INDEX(pageStartTime)',
-					'ALTER TABLE analytics_page_view ADD INDEX(pageEndTime)',
-					'ALTER TABLE analytics_page_view ADD INDEX(module)',
-					'ALTER TABLE analytics_page_view ADD INDEX(action)',
-					'ALTER TABLE analytics_page_view ADD INDEX(method)',
-					'ALTER TABLE analytics_page_view ADD INDEX(objectId)',
-					'ALTER TABLE analytics_page_view ADD INDEX(language)',
-					'ALTER TABLE analytics_search ADD INDEX(searchTime)',
-					'ALTER TABLE analytics_session ADD INDEX(sessionStartTime)',
-					'ALTER TABLE analytics_session ADD INDEX(lastRequestTime)',
+					"CREATE TABLE IF NOT EXISTS analytics_country (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_city (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_state (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_theme (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_device (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_physical_location (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_patron_type (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_session_2(
+							`id` INT(11) NOT NULL AUTO_INCREMENT,
+							`session_id` VARCHAR(128),
+							`sessionStartTime` INT(11) NOT NULL,
+							`lastRequestTime` INT(11) NOT NULL,
+							`countryId` INT(11) ,
+							`cityId` INT(11),
+							`stateId` INT(11),
+							`latitude` FLOAT,
+							`longitude` FLOAT,
+							`ip` CHAR(16),
+							`themeId` INT(11),
+							`mobile` TINYINT,
+							`deviceId` INT(11),
+							`physicalLocationId` INT(11),
+							`patronTypeId` INT(11),
+							`homeLocationId` INT(11),
+							UNIQUE KEY ( `session_id` ),
+							INDEX (sessionStartTime),
+							INDEX (lastRequestTime),
+							INDEX (countryId),
+							INDEX (cityId),
+							INDEX (stateId),
+							INDEX (latitude),
+							INDEX (longitude),
+							INDEX (ip),
+							INDEX (themeId),
+							INDEX (mobile),
+							INDEX (deviceId),
+							INDEX (physicalLocationId),
+							INDEX (patronTypeId),
+							INDEX (homeLocationId),
+							PRIMARY KEY ( `id` )
+					) ENGINE = InnoDB",
+					'TRUNCATE TABLE analytics_country',
+					'INSERT INTO analytics_country (value) SELECT DISTINCT country from analytics_session',
+					'TRUNCATE TABLE analytics_city',
+					'INSERT INTO analytics_city (value) SELECT DISTINCT city from analytics_session',
+					'TRUNCATE TABLE analytics_state',
+					'INSERT INTO analytics_state (value) SELECT DISTINCT state from analytics_session',
+					'TRUNCATE TABLE analytics_theme',
+					'INSERT INTO analytics_theme (value) SELECT DISTINCT theme from analytics_session',
+					'TRUNCATE TABLE analytics_device',
+					'INSERT INTO analytics_device (value) SELECT DISTINCT device from analytics_session',
+					'TRUNCATE TABLE analytics_physical_location',
+					'INSERT INTO analytics_physical_location (value) SELECT DISTINCT physicalLocation from analytics_session',
+					'TRUNCATE TABLE analytics_patron_type',
+					'INSERT INTO analytics_patron_type (value) SELECT DISTINCT patronType from analytics_session',
+					'TRUNCATE TABLE analytics_session_2',
+					"INSERT INTO analytics_session_2 (
+							session_id, sessionStartTime, lastRequestTime, countryId, cityId, stateId, latitude, longitude, ip, themeId, mobile, deviceId, physicalLocationId, patronTypeId, homeLocationId
+						)
+						SELECT session_id, sessionStartTime, lastRequestTime, analytics_country.id, analytics_city.id, analytics_state.id, latitude, longitude, ip, analytics_theme.id, mobile, analytics_device.id, analytics_physical_location.id, analytics_patron_type.id, homeLocationId
+						FROM analytics_session
+						left join analytics_country on analytics_session.country = analytics_country.value
+						left join analytics_city on analytics_session.city = analytics_city.value
+						left join analytics_state on analytics_session.state = analytics_state.value
+						left join analytics_theme on analytics_session.theme = analytics_theme.value
+						left join analytics_device on analytics_session.device = analytics_device.value
+						left join analytics_physical_location on analytics_session.physicalLocation= analytics_physical_location.value
+						left join analytics_patron_type on analytics_session.patronType= analytics_patron_type.value",
+					'RENAME TABLE analytics_session TO analytics_session_old',
+					'RENAME TABLE analytics_session_2 TO analytics_session',
 				),
 			),
+
 
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
