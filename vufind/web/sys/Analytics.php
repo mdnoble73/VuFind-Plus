@@ -149,6 +149,7 @@ class Analytics
 	}
 
 	function addEvent($category, $action, $data1 = '', $data2 = '', $data3 = ''){
+		if ($this->trackingDisabled) return;
 		$event = new Analytics_Event();
 		$event->sessionId = $this->session->id;
 		$event->category = $category;
@@ -161,6 +162,7 @@ class Analytics
 	}
 
 	function addSearch($scope, $lookfor, $isAdvanced, $searchType, $facetsApplied, $numResults){
+		if ($this->trackingDisabled) return;
 		$this->search = new Analytics_Search();
 		$this->search->sessionId = $this->session->id;
 		$this->search->scope = $scope;
