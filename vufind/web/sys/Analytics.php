@@ -37,6 +37,8 @@ class Analytics
 			$this->finished = true;
 		}
 
+		$session = new Analytics_Session();
+
 		//Check to see if analytics is enabled
 		if (isset($configArray['System']['enableAnalytics']) && $configArray['System']['enableAnalytics'] == false){
 			return;
@@ -49,7 +51,6 @@ class Analytics
 		//disable error handler since the tables may not be installed yet.
 		disableErrorHandler();
 		$sessionId = session_id();
-		$session = new Analytics_Session();
 		$session->session_id = $sessionId;
 		if ($session->find(true)){
 			$this->session = $session;
