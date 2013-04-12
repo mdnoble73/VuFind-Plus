@@ -2770,9 +2770,11 @@ public class MarcRecordDetails {
 			while (fieldsIter.hasNext()) {
 				field = (DataField) fieldsIter.next();
 				Subfield subfieldA = field.getSubfield('a');
-				if (subfieldA.getData().toLowerCase().contains("seed library")) {
-					result.add("SeedPacket");
-					if (returnFirstValue) return result;
+				if (subfieldA != null){
+					if (subfieldA.getData().toLowerCase().contains("seed library")) {
+						result.add("SeedPacket");
+						if (returnFirstValue) return result;
+					}
 				}
 			}
 		}
