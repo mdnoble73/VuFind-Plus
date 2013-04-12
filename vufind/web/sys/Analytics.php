@@ -38,6 +38,7 @@ class Analytics
 		}
 
 		$session = new Analytics_Session();
+		$this->session = $session;
 
 		//Check to see if analytics is enabled
 		if (isset($configArray['System']['enableAnalytics']) && $configArray['System']['enableAnalytics'] == false){
