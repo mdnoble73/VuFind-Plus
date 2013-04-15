@@ -44,17 +44,20 @@ class PageViews extends AnalyticsReport{
 		global $user;
 		global $analytics;
 
-		$sessionFilterSQL = $analytics->getSessionFilterSQL();
-		$sessionJoin = "";
-		$sessionWhere = "";
-		if ($sessionFilterSQL != null){
-			$sessionJoin = " INNER JOIN analytics_session on analytics_session.id = analytics_page_view.sessionId";
-			$sessionWhere = " WHERE " . $sessionFilterSQL;
-		}
-
 		$pageView = new Analytics_PageView();
-		$pageView->query("select rawData.module, rawData.action, rawData.method, AVG(rawData.loadTime) as loadTime, count(rawData.id) as numViews FROM (SELECT analytics_page_view.id, module, action, method, pageEndTime-pageStartTime as loadTime FROM `analytics_page_view` $sessionJoin $sessionWhere) rawData group by module, action order by loadTime DESC LIMIT 0, 20");
+		$session = $analytics->getSessionFilters();
+		if ($session != null){
+			$pageView->joinAdd($session);
+		}
+		$pageView->selectAdd('AVG(loadTime) as loadTime');
+		$pageView->selectAdd('COUNT(analytics_page_view.id) as numViews');
+		$pageView->whereAdd('loadTime > 0');
+		$pageView->groupBy('module, action');
+		$pageView->orderBy('loadTime DESC');
+		$pageView->limit(0, 25);
+		$pageView->addDateFilters();
 		$slowPages = array();
+		$pageView->find();
 		while ($pageView->fetch()){
 			$slowPages[] = array(
 				'module' => $pageView->module,

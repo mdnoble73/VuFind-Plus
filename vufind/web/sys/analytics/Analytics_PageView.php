@@ -8,6 +8,7 @@ class Analytics_PageView extends DB_DataObject
 	public $sessionId;
 	public $pageStartTime;
 	public $pageEndTime;
+	public $loadTime;
 	public $language;
 	public $module;
 	public $action;

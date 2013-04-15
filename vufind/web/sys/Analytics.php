@@ -20,7 +20,6 @@ class Analytics
 
 	function __construct($ipAddress, $startTime){
 		global $configArray;
-		global $logger;
 		if (!isset($configArray)){
 			die("You must load configuration before creating a tracker");
 		}
@@ -180,8 +179,6 @@ class Analytics
 
 	function finish(){
 		if ($this->finished){
-			global $logger;
-			//$logger->log("Not logging analytics because tracking is already finished", PEAR_LOG_DEBUG);
 			return;
 		}
 		$this->finished = true;
@@ -197,6 +194,7 @@ class Analytics
 			$this->session->update();
 			//Save the page view
 			$this->pageView->pageEndTime = time();
+			$this->pageView->loadTime =$this->pageView->pageEndTime - $this->pageView->pageStartTime;
 			$this->pageView->insert();
 			//Save searches
 			if ($this->search){
@@ -214,7 +212,7 @@ class Analytics
 	function getSessionFilters(){
 		/** @var Analytics_Session $session  */
 		$session = null;
-		if (isset($_REQUEST['filter'])){
+		if (isset($_REQUEST['filter']) && isset($_REQUEST['filterValue'])){
 			$filterFields = $_REQUEST['filter'];
 			$filterValues = $_REQUEST['filterValue'];
 			foreach($filterFields as $index => $fieldName){
@@ -468,6 +466,9 @@ class Analytics
 		}
 		$searches->addDateFilters();
 		$searches->groupBy('facetsApplied');
+		if ($forGraph){
+			$searches->limit(0, 10);
+		}
 		$searches->find();
 		$totalSearches = 0;
 		$searchByTypeRaw = array();
@@ -548,7 +549,6 @@ class Analytics
 		$search->find();
 		$topSearches = array();
 		while ($search->fetch()){
-			$searchTerm = "";
 			if (!is_null($search->lookfor) && strlen(trim($search->lookfor)) > 0){
 				$searchTerm = $search->lookfor;
 			}else{
@@ -566,15 +566,17 @@ class Analytics
 	function getPageViewsByDevice($forGraph){
 		//load searches by type
 		$pageViews = new Analytics_PageView();
+		require_once ROOT_DIR . '/sys/analytics/Analytics_Device.php';
+		$device = new Analytics_Device();
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
 		$session = $this->getSessionFilters();
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
 		$pageViews->addDateFilters();
+		$session->joinAdd($device);
 		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('device');
-		$pageViews->groupBy('device');
+		$pageViews->groupBy('deviceId');
 		$pageViews->orderBy('numViews DESC');
 		if ($forGraph){
 			$pageViews->limit(0, 10);
@@ -582,7 +584,7 @@ class Analytics
 		$pageViews->find();
 		$pageViewsByDeviceRaw = array();
 		while ($pageViews->fetch()){
-			$pageViewsByDeviceRaw[] = array ($pageViews->device, (int)$pageViews->numViews);
+			$pageViewsByDeviceRaw[] = array ($pageViews->value, (int)$pageViews->numViews);
 		}
 
 		return $pageViewsByDeviceRaw;
@@ -619,16 +621,19 @@ class Analytics
 	function getPageViewsByPhysicalLocation($forGraph){
 		//load searches by type
 		$pageViews = new Analytics_PageView();
+		require_once ROOT_DIR . '/sys/analytics/Analytics_PhysicalLocation.php';
+		$physicalLocation = new Analytics_PhysicalLocation;
 
 		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
 		$session = $this->getSessionFilters();
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
+		$session->joinAdd($physicalLocation);
 		$pageViews->addDateFilters();
 		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('physicalLocation');
-		$pageViews->groupBy('physicalLocation');
+		$pageViews->selectAdd('value');
+		$pageViews->groupBy('physicalLocationId');
 		$pageViews->orderBy('numViews DESC');
 		if ($forGraph){
 			$pageViews->limit(0, 5);
@@ -636,7 +641,7 @@ class Analytics
 		$pageViews->find();
 		$pageViewsByDeviceRaw = array();
 		while ($pageViews->fetch()){
-			$pageViewsByDeviceRaw[] = array ($pageViews->physicalLocation, (int)$pageViews->numViews);
+			$pageViewsByDeviceRaw[] = array ($pageViews->value, (int)$pageViews->numViews);
 		}
 
 		return $pageViewsByDeviceRaw;
@@ -645,16 +650,18 @@ class Analytics
 	function getPageViewsByTheme($forGraph){
 		//load searches by type
 		$pageViews = new Analytics_PageView();
-
-		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		require_once ROOT_DIR . '/sys/analytics/Analytics_Theme.php';
+		$theme = new Analytics_Theme;
 		$session = $this->getSessionFilters();
 		if ($session == null){
 			$session = new Analytics_Session();
 		}
-		$pageViews->addDateFilters();
+		$session->joinAdd($theme);
 		$pageViews->joinAdd($session);
-		$pageViews->selectAdd('theme');
-		$pageViews->groupBy('theme');
+		$pageViews->selectAdd('count(analytics_page_view.id) as numViews');
+		$pageViews->addDateFilters();
+		$pageViews->selectAdd('value');
+		$pageViews->groupBy('themeId');
 		$pageViews->orderBy('numViews DESC');
 		if ($forGraph){
 			$pageViews->limit(0, 10);
@@ -662,7 +669,7 @@ class Analytics
 		$pageViews->find();
 		$pageViewsByThemeRaw = array();
 		while ($pageViews->fetch()){
-			$pageViewsByThemeRaw[] = array ($pageViews->theme, (int)$pageViews->numViews);
+			$pageViewsByThemeRaw[] = array ($pageViews->value, (int)$pageViews->numViews);
 		}
 
 		return $pageViewsByThemeRaw;
