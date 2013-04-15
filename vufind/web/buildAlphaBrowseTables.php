@@ -22,7 +22,7 @@ runSQLStatement(
 		PRIMARY KEY ( `browseValueId` , `record` ) ,
 		INDEX ( `browseValueId` ),
 		INDEX (`record`)
-	) ENGINE = MYISAM");
+	) ENGINE = INNODB");
 runSQLStatement(
 	"CREATE TABLE `author_browse_scoped_results_library_{$subdomain}` (
 		`browseValueId` INT( 11 ) NOT NULL ,
@@ -30,7 +30,7 @@ runSQLStatement(
 		PRIMARY KEY ( `browseValueId` , `record` ) ,
 		INDEX ( `browseValueId` ),
 		INDEX (`record`)
-	) ENGINE = MYISAM");
+	) ENGINE = INNODB");
 runSQLStatement(
 	"CREATE TABLE `subject_browse_scoped_results_library_{$subdomain}` (
 		`browseValueId` INT( 11 ) NOT NULL ,
@@ -38,7 +38,7 @@ runSQLStatement(
 		PRIMARY KEY ( `browseValueId` , `record` ) ,
 		INDEX ( `browseValueId` ),
 		INDEX (`record`)
-	) ENGINE = MYISAM");
+	) ENGINE = INNODB");
 runSQLStatement(
 	"CREATE TABLE `callnumber_browse_scoped_results_library_{$subdomain}` (
 		`browseValueId` INT( 11 ) NOT NULL ,
@@ -46,7 +46,7 @@ runSQLStatement(
 		PRIMARY KEY ( `browseValueId` , `record` ) ,
 		INDEX ( `browseValueId` ),
 		INDEX (`record`)
-	) ENGINE = MYISAM");
+	) ENGINE = INNODB");
 echo("Finished building for browse tables for $subdomain");
 
 
