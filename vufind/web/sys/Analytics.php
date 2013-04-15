@@ -496,6 +496,7 @@ class Analytics
 		if ($session != null){
 			$events->joinAdd($session);
 		}
+		$events->addDateFilters();
 		$events->groupBy('action');
 		$events->orderBy('numEvents DESC');
 		$events->find();
@@ -732,7 +733,7 @@ class Analytics
 	function getHoldsByResult($forGraph){
 		//load searches by type
 		$events = new Analytics_Event();
-
+		$events->addDateFilters();
 		$events->selectAdd('data');
 		$events->selectAdd('count(analytics_event.id) as numEvents');
 		$events->category = 'ILS Integration';
@@ -779,8 +780,9 @@ class Analytics
 
 		//load searches by type
 		$events = new Analytics_Event();
-
-		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Successful Hold' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventDateFilter = $events->getDateFilterSQL();
+		$sessionFilter = $this->getSessionFilterSQL();
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(analytics_event.id) as numHolds, sessionId FROM analytics_event INNER JOIN analytics_session on sessionId = analytics_session.id WHERE action ='Successful Hold' " . $eventDateFilter . " " . $sessionFilter . " GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
 		$eventsInfoRaw = array();
 		$totalEvents = 0;
 		while ($events->fetch()){
@@ -825,7 +827,9 @@ class Analytics
 		$totalSessions = new Analytics_Session();
 		$numTotalSessions = $totalSessions->count('id');
 
-		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Hold Cancelled' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventDateFilter = $events->getDateFilterSQL();
+		$sessionFilter = $this->getSessionFilterSQL();
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(analytics_event.id) as numHolds, sessionId FROM analytics_event INNER JOIN analytics_session on sessionId = analytics_session.id WHERE action ='Hold Cancelled' " . $eventDateFilter . " " . $sessionFilter . " GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
 		$eventsInfoRaw = array();
 		$totalEvents = 0;
 		while ($events->fetch()){
@@ -868,7 +872,9 @@ class Analytics
 		$totalSessions = new Analytics_Session();
 		$numTotalSessions = $totalSessions->count('id');
 
-		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Hold Updated' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventDateFilter = $events->getDateFilterSQL();
+		$sessionFilter = $this->getSessionFilterSQL();
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(analytics_event.id) as numHolds, sessionId FROM analytics_event INNER JOIN analytics_session on sessionId = analytics_session.id WHERE action ='Hold Updated' " . $eventDateFilter . " " . $sessionFilter . " GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
 		$eventsInfoRaw = array();
 		$totalEvents = 0;
 		while ($events->fetch()){
@@ -911,7 +917,9 @@ class Analytics
 		$totalSessions = new Analytics_Session();
 		$numTotalSessions = $totalSessions->count('id');
 
-		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(id) as numHolds, sessionId FROM analytics_event WHERE action ='Failed Hold' GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
+		$eventDateFilter = $events->getDateFilterSQL();
+		$sessionFilter = $this->getSessionFilterSQL();
+		$events->query("SELECT numHolds, count(sessionId) as numSessions from (SELECT count(analytics_event.id) as numHolds, sessionId FROM analytics_event INNER JOIN analytics_session on sessionId = analytics_session.id WHERE action ='Failed Hold' " . $eventDateFilter . " " . $sessionFilter . " GROUP BY sessionId) as holdData GROUP BY numHolds ORDER BY numHolds");
 		$eventsInfoRaw = array();
 		$totalEvents = 0;
 		while ($events->fetch()){
