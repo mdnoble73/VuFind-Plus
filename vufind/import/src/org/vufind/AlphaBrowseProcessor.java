@@ -61,7 +61,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private boolean updateAlphaBrowseForUnchangedRecords = false;
 	
 	private HashMap<String, HashSet<String>> existingBrowseRecords = new HashMap<String, HashSet<String>>();
-
+	
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		this.vufindConn = vufindConn;
@@ -195,7 +195,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			if (!updateAlphaBrowseForUnchangedRecords && (recordStatus == MarcProcessor.RECORD_UNCHANGED)){
 				//Check to see if the record has been added to alpha browse and force it to be indexed even if it hasn't changed
-				if (isRecordInBrowse(recordInfo.getId())){
+				if (isRecordInBrowse(recordInfo.getFullId())){
 					results.incSkipped();
 					return true;
 				}
@@ -213,27 +213,39 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
 			//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
 			//logger.debug("found " + titles.size() + " titles for the resource");
+			HashSet<Long> titleBrowseValues = new HashSet<Long>();
 			for (String sortTitle: titles.keySet()){
 				//logger.debug("  " + curTitle);
 				String curTitle = titles.get(sortTitle);
-				addRecordIdToBrowse("title", resourceLibraries, curTitle, sortTitle, recordIdFull);
+				Long browseValueId = insertBrowseValue("title", curTitle, sortTitle, existingBrowseValuesTitle, insertTitleBrowseValue, getExistingTitleBrowseValue);
+				titleBrowseValues.add(browseValueId);
+				//addRecordIdToBrowse("title", resourceLibraries, curTitle, sortTitle, recordIdFull);
 			}
+			addBrowseScoping("title", resourceLibraries, titleBrowseValues, recordIdFull);
 			
 			//Setup author browse
 			//logger.debug("found " + authors.size() + " authors for the resource");
+			HashSet<Long> authorBrowseValues = new HashSet<Long>();
 			for (String sortAuthor: authors.keySet()){
 				//logger.debug("  " + curAuthor);
 				String curAuthor = authors.get(sortAuthor);
-				addRecordIdToBrowse("author", resourceLibraries, curAuthor, sortAuthor, recordIdFull);
+				Long browseValueId = insertBrowseValue("author", curAuthor, sortAuthor, existingBrowseValuesAuthor, insertAuthorBrowseValue, getExistingAuthorBrowseValue);
+				authorBrowseValues.add(browseValueId);
+				//addRecordIdToBrowse("author", resourceLibraries, curAuthor, sortAuthor, recordIdFull);
 			}
+			addBrowseScoping("author", resourceLibraries, authorBrowseValues, recordIdFull);
 			
 			//Setup subject browse
 			//logger.debug("found " + subjects.size() + " subjects for the resource");
+			HashSet<Long> subjectBrowseValues = new HashSet<Long>();
 			for (String sortSubject: subjects.keySet()){
 				//logger.debug("  " + curSubject);
 				String curSubject = subjects.get(sortSubject);
-				addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
+				Long browseValueId = insertBrowseValue("subject", curSubject, sortSubject, existingBrowseValuesSubject, insertSubjectBrowseValue, getExistingSubjectBrowseValue);
+				subjectBrowseValues.add(browseValueId);
+				//addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
 			}
+			addBrowseScoping("subject", resourceLibraries, subjectBrowseValues, recordIdFull);
 			
 			//Setup call number browse
 			//addCallNumbersToBrowse(localCallNumbers, recordIdFull);
@@ -257,6 +269,37 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		
 	}
 	
+	private void addBrowseScoping(String browseType, HashSet<Long> resourceLibraries, HashSet<Long> titleBrowseValues, String recordIdFull) {
+		if (resourceLibraries.size() == 0 || titleBrowseValues.size() == 0){
+			return;
+		}
+		for (Long curLibraryId : resourceLibraries){
+			String librarySubdomain = librarySubdomains.get(curLibraryId);
+			StringBuffer sqlStatement;
+			if (curLibraryId == -1){
+				sqlStatement = new StringBuffer("INSERT INTO " + browseType + "_browse_scoped_results_global (browseValueId, record) VALUES ");
+			}else{
+				librarySubdomain = librarySubdomains.get(curLibraryId);
+				sqlStatement = new StringBuffer("INSERT INTO " + browseType + "_browse_scoped_results_library_" + librarySubdomain + " (browseValueId, record) VALUES ");
+			}
+			
+			int numBrowseValuesAdded = 0;
+			for (Long curBrowseValueId : titleBrowseValues){
+				if (numBrowseValuesAdded != 0){
+					sqlStatement.append(", ");
+				}
+				sqlStatement.append("(" + curBrowseValueId + ", '" + recordIdFull + "')");
+				numBrowseValuesAdded++;
+			}
+			//logger.debug(sqlStatement.toString());
+			try {
+				vufindConn.prepareStatement(sqlStatement.toString()).executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Error inserting browse values " + sqlStatement.toString(), e);
+			}
+		}
+	}
+
 	private void clearBrowseInfoForRecord(String id) {
 		try {
 			if (existingBrowseRecords.get("global").contains(id)){
@@ -410,20 +453,33 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			
 			//Setup author browse
+			HashSet<Long> authorBrowseValues = new HashSet<Long>();
 			for (String curAuthorSortable: browseAuthors.keySet()){
-				if (curAuthorSortable.length() >= 1){
-					addRecordIdToBrowse("author", resourceLibraries, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
+				String curAuthor = browseAuthors.get(curAuthorSortable);
+				Long browseValueId = insertBrowseValue("author", curAuthor, curAuthorSortable, existingBrowseValuesAuthor, insertAuthorBrowseValue, getExistingAuthorBrowseValue);
+				if (browseValueId != null){
+					authorBrowseValues.add(browseValueId);
 				}
+				//if (curAuthorSortable.length() >= 1){
+				//	addRecordIdToBrowse("author", resourceLibraries, browseAuthors.get(curAuthorSortable), curAuthorSortable, recordIdFull);
+				//}
 			}
+			addBrowseScoping("author", resourceLibraries, authorBrowseValues, recordIdFull);
 			
 			//Setup subject browse
+			HashSet<Long> subjectBrowseValues = new HashSet<Long>();
 			for (String curSubjectSortable: browseSubjects.keySet()){
-				if (curSubjectSortable.length() >= 1){
-					addRecordIdToBrowse("subject", resourceLibraries, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
+				//if (curSubjectSortable.length() >= 1){
+				//	addRecordIdToBrowse("subject", resourceLibraries, browseSubjects.get(curSubjectSortable), curSubjectSortable, recordIdFull);
+				//}
+				String curSubject = browseSubjects.get(curSubjectSortable);
+				Long browseValueId = insertBrowseValue("subject", curSubject, curSubjectSortable, existingBrowseValuesSubject, insertSubjectBrowseValue, getExistingSubjectBrowseValue);
+				if (browseValueId != null){
+					subjectBrowseValues.add(browseValueId);
 				}
 			}
+			addBrowseScoping("subject", resourceLibraries, subjectBrowseValues, recordIdFull);
 			
-			//No call numbers for digital content
 			if (recordStatus == MarcProcessor.RECORD_NEW){
 				results.incAdded();
 			}else{
@@ -540,7 +596,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			results.incErrors();
 		}
 	}
-
+	
 	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, Map<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		try {
 			browseValue = Util.trimTo(255, browseValue);
