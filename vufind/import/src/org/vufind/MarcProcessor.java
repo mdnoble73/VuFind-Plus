@@ -124,8 +124,13 @@ public class MarcProcessor {
 	
 	private HashMap<Integer, String> eContentITypes = new HashMap<Integer, String>();
 	
+	private Connection vufindConn;
+	private Connection econtentConn;
+	
 	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
+		this.vufindConn = vufindConn;
+		this.econtentConn = econtentConn;
 
 		marcRecordPath = configIni.get("Reindex", "marcPath");
 		// Get the directory where the marc records are stored.vufindConn
@@ -757,6 +762,10 @@ public class MarcProcessor {
 			InputStream input = new FileInputStream(marcFile);
 			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
 			int recordNumber = 0;
+			
+			vufindConn.setAutoCommit(false);
+			econtentConn.setAutoCommit(false);
+			
 			while (reader.hasNext()) {
 				recordNumber++;
 				try {
@@ -837,6 +846,8 @@ public class MarcProcessor {
 					}
 					if (recordsProcessed % 1000 == 0){
 						ReindexProcess.updateLastUpdateTime();
+						vufindConn.commit();
+						econtentConn.commit();
 					}
 				} catch (Exception e) {
 					ReindexProcess.addNoteToCronLog("Exception processing record " + recordNumber + " - " + e.toString());
@@ -846,6 +857,10 @@ public class MarcProcessor {
 					logger.error("Error processing record " + recordNumber, e);
 				}
 			}
+			vufindConn.commit();
+			econtentConn.commit();
+			vufindConn.setAutoCommit(true);
+			econtentConn.setAutoCommit(true);
 			input.close();
 			logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 			ReindexProcess.addNoteToCronLog("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");

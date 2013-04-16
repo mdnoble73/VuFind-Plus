@@ -200,7 +200,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					return true;
 				}
 			}
-			vufindConn.setAutoCommit(false);
 			//Process all marc records together
 			if (!clearAlphaBrowseAtStartOfIndex){
 				//logger.debug("Clearing browse info for " + recordInfo.getId());
@@ -212,7 +211,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			HashMap<String, String> subjects = recordInfo.getBrowseSubjects();
 			Set<LocalCallNumber> localCallNumbers = recordInfo.getLocalCallNumbers(itemTag, callNumberSubfield, locationSubfield);
 			HashSet<Long> resourceLibraries = getLibrariesForPrintRecord(localCallNumbers);
-			logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
+			//logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
 			//logger.debug("found " + titles.size() + " titles for the resource");
 			for (String sortTitle: titles.keySet()){
 				//logger.debug("  " + curTitle);
@@ -235,8 +234,6 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				String curSubject = subjects.get(sortSubject);
 				addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
 			}
-			vufindConn.commit();
-			vufindConn.setAutoCommit(true);
 			
 			//Setup call number browse
 			//addCallNumbersToBrowse(localCallNumbers, recordIdFull);

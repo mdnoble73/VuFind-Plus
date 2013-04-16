@@ -437,22 +437,18 @@ public class MarcRecordDetails {
 			}
 		}
 		for (String curAdditonalLocation : additionalLocations) {
-			logger.debug("Processing supplemental location " + curAdditonalLocation);
-			LocationIndexingInfo locationIndexingInfo = marcProcessor
-					.getLocationIndexingInfo(curAdditonalLocation);
+			//logger.debug("Processing supplemental location " + curAdditonalLocation);
+			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(curAdditonalLocation);
 			LibraryIndexingInfo libraryIndexingInfo = null;
 			boolean itemSuppressed = false;
 			if (locationIndexingInfo == null) {
-				logger
-						.debug("Warning, did not find location info for additional location "
-								+ curAdditonalLocation);
+				logger.debug("Warning, did not find location info for additional location " + curAdditonalLocation);
 				if (curAdditonalLocation.equalsIgnoreCase("zzzz")) {
 					// logger.debug("suppressing item because location code is zzzz");
 					itemSuppressed = true;
 				}
 			} else {
-				libraryIndexingInfo = marcProcessor
-						.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
+				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
 			}
 			if (!itemSuppressed) {
 				allItemsSuppressed = false;
