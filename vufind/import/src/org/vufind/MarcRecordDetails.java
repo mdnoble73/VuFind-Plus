@@ -1450,19 +1450,67 @@ public class MarcRecordDetails {
 		}
 		return result;
 	}
+	
+	/** 
+	 * Return the publisher 
+	 * 
+	 * @return 
+	 */
+	public Set<String> getPublisher(){
+		Set<String> publisher = new LinkedHashSet<String>();
+		//First check for 264 fields
+		@SuppressWarnings("unchecked")
+		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+		if (rdaFields.size() > 0){
+			for (DataField curField : rdaFields){
+				if (curField.getIndicator2() == '1'){
+					Subfield subFieldB = curField.getSubfield('b');
+					if (subFieldB != null){
+						publisher.add(subFieldB.getData());
+						logger.debug("Found RDA publisher ");
+					}
+				}
+			}
+		}
+		publisher.addAll(getFieldList("260b"));
+		return publisher;
+	}
 
 	/**
 	 * Return the date in 260c as a string
 	 * 
-	 * @param record
-	 *          - the marc record object
 	 * @return 260c, "cleaned" per org.solrmarc.tools.Utils.cleanDate()
 	 */
 	public String getDate() {
-		String date = getFieldVals("260c", ", ");
-		if (date == null || date.length() == 0)
+		@SuppressWarnings("unchecked")
+		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+		String date = null;
+		//Try to get from RDA data
+		if (rdaFields.size() > 0){
+			for (DataField curField : rdaFields){
+				if (curField.getIndicator2() == '1'){
+					Subfield subFieldC = curField.getSubfield('c');
+					if (subFieldC != null){
+						date = subFieldC.getData();
+						logger.debug("Found RDA publication date ");
+					}
+				}
+			}
+		}
+		//Try to get from 260
+		if (date == null || date.length() == 0){
+			date = getFieldVals("260c", ", ");
+		}
+		//Try to get from 008
+		if (date == null || date.length() == 0){
+			date = getFirstFieldVal("008[7-10]");
+			logger.debug("Got date from 008 " + date);
+		}
+		if (date == null || date.length() == 0){
 			return (null);
-		return Utils.cleanDate(date);
+		}else{
+			return Utils.cleanDate(date);
+		}
 	}
 
 	/**
@@ -1651,6 +1699,9 @@ public class MarcRecordDetails {
 				} else if (functionName.equals("getRecordType")) {
 					retval = getRecordType();
 					returnType = String.class;
+				} else if (functionName.equals("getPublisher")) {
+					retval = getPublisher();
+					returnType = Set.class;
 				} else {
 					logger.debug("Using reflection to invoke custom method "
 							+ functionName);

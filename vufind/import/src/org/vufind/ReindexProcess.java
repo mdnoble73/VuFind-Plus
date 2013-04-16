@@ -90,6 +90,8 @@ public class ReindexProcess {
 		
 		initializeReindex();
 		
+		addNoteToCronLog("Initialized Reindex " + indexSettings);
+		
 		// Runs the export process to extract marc records from the ILS (if applicable)
 		runExportScript();
 		
