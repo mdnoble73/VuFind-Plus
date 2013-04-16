@@ -60,7 +60,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private boolean clearAlphaBrowseAtStartOfIndex = false;
 	private boolean updateAlphaBrowseForUnchangedRecords = false;
 	
-	private HashSet<String> existingBrowseRecords = new HashSet<String>();
+	private HashMap<String, HashSet<String>> existingBrowseRecords = new HashMap<String, HashSet<String>>();
 
 	public boolean init(Ini configIni, String serverName, long reindexLogId, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
@@ -150,11 +150,26 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				//Load the existing browse values 
 				results.addNote("Loading existing browse records");
 				results.saveResults();
+				HashSet<String> existingRecordsGlobal = new HashSet<String>();
 				ResultSet getExistingBrowseRecordsRS = getExistingBrowseRecordsStmt.executeQuery();
 				while(getExistingBrowseRecordsRS.next()){
-					existingBrowseRecords.add(getExistingBrowseRecordsRS.getString(1));
+					existingRecordsGlobal.add(getExistingBrowseRecordsRS.getString(1));
 				}
+				existingBrowseRecords.put("global", existingRecordsGlobal);
 				getExistingBrowseRecordsRS.close();
+				
+				//Load for each library
+				for (String subdomain : librarySubdomains.values()){
+					PreparedStatement getExistingBrowseRecordsForLibraryStmt = vufindConn.prepareStatement("SELECT distinct record from title_browse_scoped_results_library_" + subdomain);
+					ResultSet getExistingBrowseRecordsForLibraryRS = getExistingBrowseRecordsForLibraryStmt.executeQuery();
+					HashSet<String> existingRecordsForLibrary = new HashSet<String>();
+					while(getExistingBrowseRecordsForLibraryRS.next()){
+						existingRecordsForLibrary.add(getExistingBrowseRecordsForLibraryRS.getString(1));
+					}
+					existingBrowseRecords.put(subdomain, existingRecordsForLibrary);
+					logger.debug("Found " + existingRecordsForLibrary.size() + " records for subdomain " + subdomain);
+				}
+				
 				results.addNote("Finished loading existing browse records");
 				results.saveResults();
 			}
@@ -185,6 +200,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					return true;
 				}
 			}
+			vufindConn.setAutoCommit(false);
 			//Process all marc records together
 			if (!clearAlphaBrowseAtStartOfIndex){
 				//logger.debug("Clearing browse info for " + recordInfo.getId());
@@ -219,6 +235,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				String curSubject = subjects.get(sortSubject);
 				addRecordIdToBrowse("subject", resourceLibraries, curSubject, sortSubject, recordIdFull);
 			}
+			vufindConn.commit();
+			vufindConn.setAutoCommit(true);
 			
 			//Setup call number browse
 			//addCallNumbersToBrowse(localCallNumbers, recordIdFull);
@@ -244,17 +262,43 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	
 	private void clearBrowseInfoForRecord(String id) {
 		try {
-			for (PreparedStatement curStatement: clearAuthorBrowseRecordInfoStmts.values()){
+			if (existingBrowseRecords.get("global").contains(id)){
+				//logger.debug("clearing browse info for record " + id + " global scope");
+				clearAuthorBrowseRecordInfoStmts.get("global").setString(1, id);
+				clearAuthorBrowseRecordInfoStmts.get("global").executeUpdate();
+				
+				clearSubjectBrowseRecordInfoStmts.get("global").setString(1, id);
+				clearSubjectBrowseRecordInfoStmts.get("global").executeUpdate();
+				
+				clearTitleBrowseRecordInfoStmts.get("global").setString(1, id);
+				clearTitleBrowseRecordInfoStmts.get("global").executeUpdate();
+				
+				for (String subdomain : librarySubdomains.values()){
+					if (existingBrowseRecords.get(subdomain).contains(id)){
+						//logger.debug("clearing browse info for record " + id + " subdomain " + subdomain);
+						clearAuthorBrowseRecordInfoStmts.get(subdomain).setString(1, id);
+						clearAuthorBrowseRecordInfoStmts.get(subdomain).executeUpdate();
+						
+						clearSubjectBrowseRecordInfoStmts.get(subdomain).setString(1, id);
+						clearSubjectBrowseRecordInfoStmts.get(subdomain).executeUpdate();
+						
+						clearTitleBrowseRecordInfoStmts.get(subdomain).setString(1, id);
+						clearTitleBrowseRecordInfoStmts.get(subdomain).executeUpdate();
+					}
+				}
+			}
+			
+			/*for (PreparedStatement curStatement: clearAuthorBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
-			}
+			}*/
 			
 			/*for (PreparedStatement curStatement: clearCallNumberBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
 			}*/
 			
-			for (PreparedStatement curStatement: clearSubjectBrowseRecordInfoStmts.values()){
+			/*for (PreparedStatement curStatement: clearSubjectBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
 			}
@@ -262,7 +306,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			for (PreparedStatement curStatement: clearTitleBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
-			}
+			}*/
 		} catch (SQLException e) {
 			results.incErrors();
 			results.addNote("Error clearing browse info for record " + id + " " + e.toString());
@@ -272,7 +316,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	}
 
 	private boolean isRecordInBrowse(String recordId) {
-		if (existingBrowseRecords.contains(recordId)){
+		if (existingBrowseRecords.get("global").contains(recordId)){
 			existingBrowseRecords.remove(recordId);
 			//logger.debug("record " + recordId + " does exist in browse index");
 			return true;

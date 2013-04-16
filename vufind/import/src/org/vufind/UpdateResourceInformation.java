@@ -133,7 +133,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				existingResourceChecksums.put(ilsId, existingResourceRS.getLong("marc_checksum"));
 				int deleted = existingResourceRS.getInt("deleted");
 				if (deleted != 0){
-					logger.debug("reourceid " + resourceId + " is deleted " + deleted);
+					//logger.debug("reourceid " + resourceId + " is deleted " + deleted);
 					deletedResources.add(resourceId);
 				}
 				if (++numResourcesRead % 100000 == 0){
@@ -158,7 +158,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 				existingEContentWithMarcResourceChecksums.put(ilsId, existingEContentWithMarcResourceRS.getLong("marc_checksum"));
 				int deleted = existingEContentWithMarcResourceRS.getInt("deleted");
 				if (deleted != 0){
-					logger.debug("econtent resource " + resourceId + " is deleted " + deleted);
+					//logger.debug("econtent resource " + resourceId + " is deleted " + deleted);
 					deletedEContentWithMarcResources.add(resourceId);
 				}
 				if (++numEContentWithMarcResourcesRead % 100000 == 0){
@@ -183,7 +183,7 @@ public class UpdateResourceInformation implements IMarcRecordProcessor, IEConten
 					existingEContentResourceDateUpdated.put(resourceId, existingEContentResourceRS.getLong("date_updated"));
 					int deleted = existingEContentResourceRS.getInt("deleted");
 					if (deleted != 0){
-						logger.debug("econtent resource (with no marc) " + resourceId + " is deleted " + deleted);
+						//logger.debug("econtent resource (with no marc) " + resourceId + " is deleted " + deleted);
 						deletedEContentResources.add(resourceId);
 					}
 					if (++numEContentResourcesRead % 100000 == 0){
