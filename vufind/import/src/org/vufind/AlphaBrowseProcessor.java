@@ -1,5 +1,8 @@
 package org.vufind;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,6 +31,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	private HashMap<String, PreparedStatement>	clearSubjectBrowseRecordInfoStmts;
 	private HashMap<String, PreparedStatement>	clearTitleBrowseRecordInfoStmts;
 	
+	private String[] browseTypes = new String[]{"title", "author", "subject"};
+	private HashMap<String, File> browseScopingFiles = new HashMap<String, File>();
+	private HashMap<String, FileWriter> browseScopingFileWriters = new HashMap<String, FileWriter>();
+	
 	private PreparedStatement	getExistingTitleBrowseValue;
 	private PreparedStatement	getExistingAuthorBrowseValue;
 	private PreparedStatement	getExistingSubjectBrowseValue;
@@ -38,9 +45,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	//private PreparedStatement	insertCallNumberBrowseValue;
 	
 	private PreparedStatement	getLibraryIdsForEContent;
-	private HashMap<String, PreparedStatement> insertTitleBrowseScopeValueStmts;
-	private HashMap<String, PreparedStatement>	insertAuthorBrowseScopeValueStmts;
-	private HashMap<String, PreparedStatement>	insertSubjectBrowseScopeValueStmts;
+	//private HashMap<String, PreparedStatement> insertTitleBrowseScopeValueStmts;
+	//private HashMap<String, PreparedStatement>	insertAuthorBrowseScopeValueStmts;
+	//private HashMap<String, PreparedStatement>	insertSubjectBrowseScopeValueStmts;
 	//private HashMap<String, PreparedStatement>	insertCallNumberBrowseScopeValueStmts;
 	
 	//Information about how to process call numbers for local browse
@@ -91,8 +98,23 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			librarySubdomains = new HashMap<Long, String>();
 			PreparedStatement loadLibraryInfo = vufindConn.prepareStatement("SELECT libraryId, subdomain FROM library");
 			ResultSet libraryInfoRS = loadLibraryInfo.executeQuery();
+			
 			while (libraryInfoRS.next()){
-				librarySubdomains.put(libraryInfoRS.getLong("libraryId"), libraryInfoRS.getString("subdomain"));
+				String subdomain = libraryInfoRS.getString("subdomain");
+				librarySubdomains.put(libraryInfoRS.getLong("libraryId"), subdomain);
+				
+				for (String browseType : browseTypes){
+					File libraryScopingFile = File.createTempFile(browseType + "_browse_data_" + subdomain, ".csv");
+					FileWriter writer = new FileWriter(libraryScopingFile);
+					browseScopingFiles.put(browseType + "_" + subdomain, libraryScopingFile);
+					browseScopingFileWriters.put(browseType + "_" + subdomain, writer);
+				}
+			}
+			for (String browseType : browseTypes){
+				File libraryScopingFile = File.createTempFile(browseType + "_browse_data_global", ".csv");
+				FileWriter writer = new FileWriter(libraryScopingFile);
+				browseScopingFiles.put(browseType + "_" + "global", libraryScopingFile);
+				browseScopingFileWriters.put(browseType + "_" + "global", writer);
 			}
 			//logger.debug("found " + librarySubdomains.size() + "library subdomains");
 			
@@ -124,22 +146,22 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			insertSubjectBrowseValue = vufindConn.prepareStatement("INSERT INTO subject_browse (value, sortValue, alphaRank, firstChar, secondChar) VALUES (?, ?, 0, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			//insertCallNumberBrowseValue = vufindConn.prepareStatement("INSERT INTO callnumber_browse (value, sortValue, alphaRank, firstChar, secondChar) VALUES (?, ?, 0, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 			
-			insertTitleBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
-			insertAuthorBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
-			insertSubjectBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
+			//insertTitleBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
+			//insertAuthorBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
+			//insertSubjectBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
 			//insertCallNumberBrowseScopeValueStmts = new HashMap<String, PreparedStatement>();
 			
-			insertTitleBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO title_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
-			insertAuthorBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO author_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
-			insertSubjectBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO subject_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
+			//insertTitleBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO title_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
+			//insertAuthorBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO author_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
+			//insertSubjectBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO subject_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
 			//insertCallNumberBrowseScopeValueStmts.put("global", vufindConn.prepareStatement("INSERT INTO callnumber_browse_scoped_results_global (browseValueId, record) VALUES (?, ?)"));
 			
-			for (String subdomain : librarySubdomains.values()){
+			/*for (String subdomain : librarySubdomains.values()){
 				insertTitleBrowseScopeValueStmts.put(subdomain, vufindConn.prepareStatement("INSERT INTO title_browse_scoped_results_library_" + subdomain + " (browseValueId, record) VALUES (?, ?)"));
 				insertAuthorBrowseScopeValueStmts.put(subdomain, vufindConn.prepareStatement("INSERT INTO author_browse_scoped_results_library_" + subdomain + " (browseValueId, record) VALUES (?, ?)"));
 				insertSubjectBrowseScopeValueStmts.put(subdomain, vufindConn.prepareStatement("INSERT INTO subject_browse_scoped_results_library_" + subdomain + " (browseValueId, record) VALUES (?, ?)"));
 				//insertCallNumberBrowseScopeValueStmts.put(subdomain, vufindConn.prepareStatement("INSERT INTO callnumber_browse_scoped_results_library_" + subdomain + " (browseValueId, record) VALUES (?, ?)"));
-			}
+			}*/
 			
 			if (clearAlphaBrowseAtStartOfIndex){
 				clearBrowseIndex("title_browse");
@@ -178,6 +200,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			results.incErrors();
 			logger.error("Error setting up prepared statements for Alpha Browse Processor", e);
 			return false;
+		} catch (IOException e) {
+			results.addNote("Error setting up file writers for Alpha Browse Processor");
+			results.incErrors();
+			logger.error("Error setting up file writers for Alpha Browse Processor", e);
+			return false;
 		}finally{
 			results.saveResults();
 		}
@@ -201,10 +228,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}
 			}
 			//Process all marc records together
-			if (!clearAlphaBrowseAtStartOfIndex){
+			/*if (!clearAlphaBrowseAtStartOfIndex){
 				//logger.debug("Clearing browse info for " + recordInfo.getId());
 				clearBrowseInfoForRecord(recordInfo.getFullId());
-			}
+			}*/
 			HashMap<String, String> titles = recordInfo.getBrowseTitles();
 			HashMap<String, String> authors = recordInfo.getBrowseAuthors();
 			String recordIdFull = recordInfo.getFullId();
@@ -275,32 +302,39 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		}
 		for (Long curLibraryId : resourceLibraries){
 			String librarySubdomain = librarySubdomains.get(curLibraryId);
-			StringBuffer sqlStatement;
+			FileWriter writer;
+			//StringBuffer sqlStatement;
 			if (curLibraryId == -1){
-				sqlStatement = new StringBuffer("INSERT INTO " + browseType + "_browse_scoped_results_global (browseValueId, record) VALUES ");
+				writer = browseScopingFileWriters.get(browseType + "_global");
+				//sqlStatement = new StringBuffer("INSERT INTO " + browseType + "_browse_scoped_results_global (browseValueId, record) VALUES ");
 			}else{
-				librarySubdomain = librarySubdomains.get(curLibraryId);
-				sqlStatement = new StringBuffer("INSERT INTO " + browseType + "_browse_scoped_results_library_" + librarySubdomain + " (browseValueId, record) VALUES ");
+				writer = browseScopingFileWriters.get(browseType + "_" + librarySubdomain);
+				//sqlStatement = new StringBuffer("INSERT INTO " + browseType + "_browse_scoped_results_library_" + librarySubdomain + " (browseValueId, record) VALUES ");
 			}
 			
-			int numBrowseValuesAdded = 0;
+			//int numBrowseValuesAdded = 0;
 			for (Long curBrowseValueId : titleBrowseValues){
-				if (numBrowseValuesAdded != 0){
+				try {
+					writer.write("\"" + curBrowseValueId + "\",\"" + recordIdFull + "\"\n");
+				} catch (IOException e) {
+					logger.error("Error saving browse values to file", e);
+				}
+				/*if (numBrowseValuesAdded != 0){
 					sqlStatement.append(", ");
 				}
 				sqlStatement.append("(" + curBrowseValueId + ", '" + recordIdFull + "')");
-				numBrowseValuesAdded++;
+				numBrowseValuesAdded++;*/
 			}
 			//logger.debug(sqlStatement.toString());
-			try {
+			/*try {
 				vufindConn.prepareStatement(sqlStatement.toString()).executeUpdate();
 			} catch (SQLException e) {
 				logger.error("Error inserting browse values " + sqlStatement.toString(), e);
-			}
+			}*/
 		}
 	}
 
-	private void clearBrowseInfoForRecord(String id) {
+	/*private void clearBrowseInfoForRecord(String id) {
 		try {
 			if (existingBrowseRecords.get("global").contains(id)){
 				//logger.debug("clearing browse info for record " + id + " global scope");
@@ -328,17 +362,17 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				}
 			}
 			
-			/*for (PreparedStatement curStatement: clearAuthorBrowseRecordInfoStmts.values()){
+			for (PreparedStatement curStatement: clearAuthorBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
-			}*/
+			}
 			
-			/*for (PreparedStatement curStatement: clearCallNumberBrowseRecordInfoStmts.values()){
-				curStatement.setString(1, id);
-				curStatement.executeUpdate();
-			}*/
+			//for (PreparedStatement curStatement: clearCallNumberBrowseRecordInfoStmts.values()){
+			//	curStatement.setString(1, id);
+			//	curStatement.executeUpdate();
+			//}
 			
-			/*for (PreparedStatement curStatement: clearSubjectBrowseRecordInfoStmts.values()){
+			for (PreparedStatement curStatement: clearSubjectBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
 			}
@@ -346,14 +380,14 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			for (PreparedStatement curStatement: clearTitleBrowseRecordInfoStmts.values()){
 				curStatement.setString(1, id);
 				curStatement.executeUpdate();
-			}*/
+			}
 		} catch (SQLException e) {
 			results.incErrors();
 			results.addNote("Error clearing browse info for record " + id + " " + e.toString());
 			logger.error("Error clearing browse info for record " + id, e);
 		}
 		
-	}
+	}*/
 
 	private boolean isRecordInBrowse(String recordId) {
 		if (existingBrowseRecords.get("global").contains(recordId)){
@@ -414,9 +448,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			}
 			logger.debug("Updating alpha browse for " + recordIdFull);
 			//Clear the information for the record as long as we didn't clear it already. 
-			if (!clearAlphaBrowseAtStartOfIndex){
+			/*if (!clearAlphaBrowseAtStartOfIndex){
 				clearBrowseInfoForRecord(recordIdFull);
-			}
+			}*/
 			String title = resource.getString("title");
 			String subTitle = resource.getString("subTitle");
 			if (subTitle.length() > 0){
@@ -448,9 +482,15 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			HashSet<Long> resourceLibraries = getLibrariesEContentRecord(econtentId);
 			logger.debug("found " + resourceLibraries.size() + " libraries for the resource");
 			//Setup title browse
+			HashSet<Long> titleBrowseValues = new HashSet<Long>();
 			if (sortTitle.length() >= 1){
-				addRecordIdToBrowse("title", resourceLibraries, title, sortTitle, recordIdFull);
+				//addRecordIdToBrowse("title", resourceLibraries, title, sortTitle, recordIdFull);
+				Long browseValueId = insertBrowseValue("title", title, sortTitle, existingBrowseValuesTitle, insertTitleBrowseValue, getExistingTitleBrowseValue);
+				if (browseValueId != null){
+					titleBrowseValues.add(browseValueId);
+				}
 			}
+			addBrowseScoping("title", resourceLibraries, titleBrowseValues, recordIdFull);
 			
 			//Setup author browse
 			HashSet<Long> authorBrowseValues = new HashSet<Long>();
@@ -499,7 +539,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	}
 
 	
-	private synchronized void addRecordIdToBrowse(String browseType, HashSet<Long> resourceLibraries, String browseValue, String sortValue, String recordIdFull) throws SQLException {
+	/*private synchronized void addRecordIdToBrowse(String browseType, HashSet<Long> resourceLibraries, String browseValue, String sortValue, String recordIdFull) throws SQLException {
 		if (browseValue == null){
 			return;
 		}
@@ -538,11 +578,11 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			insertValueStatement = insertSubjectBrowseValue;
 			getExistingBrowseValueStatement = getExistingSubjectBrowseValue;
 			existingBrowseValues = existingBrowseValuesSubject;
-		}/*else{
-			insertValueStatement = insertCallNumberBrowseValue;
-			getExistingBrowseValueStatement = getExistingCallNumberBrowseValue;
-			existingBrowseValues = existingBrowseValuesCallNumber;
-		}*/
+		}//else{
+		//	insertValueStatement = insertCallNumberBrowseValue;
+		//	getExistingBrowseValueStatement = getExistingCallNumberBrowseValue;
+		//	existingBrowseValues = existingBrowseValuesCallNumber;
+		//}
 		Long browseValueId = insertBrowseValue(browseType, browseValue, sortValue, existingBrowseValues, insertValueStatement,getExistingBrowseValueStatement);
 		if (browseValueId == null){
 			return;
@@ -559,9 +599,9 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					insertBrowseScopeValueStatement = insertAuthorBrowseScopeValueStmts.get("global");
 				}else if (browseType.equals("subject")){
 					insertBrowseScopeValueStatement = insertSubjectBrowseScopeValueStmts.get("global");
-				}/*else{
-					insertBrowseScopeValueStatement = insertCallNumberBrowseScopeValueStmts.get("global");
-				}*/
+				}//else{
+				//	insertBrowseScopeValueStatement = insertCallNumberBrowseScopeValueStmts.get("global");
+				//}
 				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseScopeValueStatement, browseValueId, "global");
 			}else{
 				String librarySubdomain = librarySubdomains.get(curLibrary);
@@ -573,15 +613,15 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					insertBrowseLibraryScopeValueStatement = insertAuthorBrowseScopeValueStmts.get(librarySubdomain);
 				}else if (browseType.equals("subject")){
 					insertBrowseLibraryScopeValueStatement = insertSubjectBrowseScopeValueStmts.get(librarySubdomain);
-				}/*else{
-					insertBrowseLibraryScopeValueStatement = insertCallNumberBrowseScopeValueStmts.get(librarySubdomain);
-				}*/
+				}//else{
+				//	insertBrowseLibraryScopeValueStatement = insertCallNumberBrowseScopeValueStmts.get(librarySubdomain);
+				//}
 				insertBrowseScoping(browseType, browseValue, recordIdFull, insertBrowseLibraryScopeValueStatement, browseValueId, librarySubdomain);
 			}
 		}
-	}
+	}*/
 
-	private void insertBrowseScoping(String browseType, String browseValue, String recordIdFull,
+	/*private void insertBrowseScoping(String browseType, String browseValue, String recordIdFull,
 			PreparedStatement insertBrowseScopeValueStatement, Long browseValueId, String scope) throws SQLException {
 		//Add the scoping information to the table
 		//Check to see if we already have an existing scope value
@@ -595,7 +635,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			logger.error("Error adding " + browseType + " '" + browseValue + "' to scope " + scope + " browse scoping " + e.toString(), e);
 			results.incErrors();
 		}
-	}
+	}*/
 	
 	private Long insertBrowseValue(String browseType, String browseValue, String sortValue, Map<String, Long> existingValues, PreparedStatement insertValueStatement, PreparedStatement getExistingBrowseValueStatement) {
 		try {
@@ -699,6 +739,20 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			PreparedStatement initRanking =  vufindConn.prepareStatement("set @r=0;");
 			initRanking.executeUpdate();
 			
+			//Load data from temporary csv files
+			for (String browseType : browseTypes){
+				FileWriter writer = browseScopingFileWriters.get(browseType + "_global");
+				writer.close();
+				File titleBrowseScopingFile = browseScopingFiles.get(browseType + "_global");
+				//logger.info("Global title browse file is " + titleBrowseScopingFile.getAbsolutePath());
+				//Truncate the browse tables 
+				clearBrowseScopingTables(browseType + "_browse");
+				PreparedStatement loadGlobalTitleCsv = vufindConn.prepareStatement("load data local infile ? into table " + browseType + "_browse_scoped_results_global fields terminated by ',' enclosed by '\"' lines terminated by '\n' (browseValueId, record)");
+				loadGlobalTitleCsv.setString(1, titleBrowseScopingFile.getAbsolutePath());
+				loadGlobalTitleCsv.executeUpdate();
+				titleBrowseScopingFile.deleteOnExit();
+			}
+			
 			results.addNote("Updating browse tables for authors");
 			results.saveResults();
 			PreparedStatement authorRankingUpdate = vufindConn.prepareStatement("UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
@@ -731,6 +785,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			results.addNote("Updating browse tables for titles");
 			results.saveResults();
 			initRanking.executeUpdate();
+			
 			PreparedStatement titleRankingUpdate = vufindConn.prepareStatement("UPDATE title_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;");
 			titleRankingUpdate.executeUpdate();
 			PreparedStatement titleMetaDataClear = vufindConn.prepareStatement("TRUNCATE title_browse_metadata");
@@ -740,6 +795,19 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			
 			for (Long libraryId : librarySubdomains.keySet()){
 				String subdomain = librarySubdomains.get(libraryId);
+				
+				for (String browseType : browseTypes){
+					FileWriter writer = browseScopingFileWriters.get(browseType + "_" + subdomain);
+					writer.close();
+					File titleBrowseScopingFile = browseScopingFiles.get(browseType + "_" + subdomain);
+					
+					PreparedStatement loadScopedTitleCsv = vufindConn.prepareStatement("load data local infile ? into table " + browseType + "_browse_scoped_results_library_" + subdomain + " fields terminated by ',' enclosed by '\"' lines terminated by '\n' (browseValueId, record)");
+					logger.info(browseType + " browse file for " + subdomain + " is " + titleBrowseScopingFile.getAbsolutePath());
+					loadScopedTitleCsv.setString(1, titleBrowseScopingFile.getAbsolutePath());
+					loadScopedTitleCsv.executeUpdate();
+					titleBrowseScopingFile.deleteOnExit();
+				}
+				
 				results.addNote("Updating meta data for " + subdomain);
 				results.saveResults();
 				 
@@ -769,6 +837,10 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			logger.error("Error finishing Alpha Browse Processing", e);
 			results.incErrors();
 			results.addNote("Error finishing Alpha Browse Processing" + e.toString());
+		} catch (IOException e1) {
+			logger.error("Error finishing Alpha Browse Processing", e1);
+			results.incErrors();
+			results.addNote("Error finishing Alpha Browse Processing" + e1.toString());
 		}
 		
 	}
@@ -779,6 +851,20 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		results.saveResults();
 		PreparedStatement truncateTable = vufindConn.prepareStatement("TRUNCATE " + tableName);
 		truncateTable.executeUpdate();
+		//truncateTable.executeUpdate();
+		PreparedStatement truncateScopingTable = vufindConn.prepareStatement("TRUNCATE " + tableName + "_scoped_results_global");
+		truncateScopingTable.executeUpdate();
+		
+		for (String subdomain : librarySubdomains.values()){
+			PreparedStatement truncateLibraryScopingTable = vufindConn.prepareStatement("TRUNCATE " + tableName + "_scoped_results_library_" + subdomain);
+			truncateLibraryScopingTable.executeUpdate();
+		}
+	}
+	
+	private void clearBrowseScopingTables(String tableName) throws SQLException{
+		logger.info("Truncating " + tableName);
+		results.addNote("Truncating " + tableName);
+		results.saveResults();
 		//truncateTable.executeUpdate();
 		PreparedStatement truncateScopingTable = vufindConn.prepareStatement("TRUNCATE " + tableName + "_scoped_results_global");
 		truncateScopingTable.executeUpdate();
