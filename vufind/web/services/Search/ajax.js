@@ -1,7 +1,7 @@
-var GetSaveStatusList = new Array();
-var GetStatusList = new Array();
-var GetEContentStatusList = new Array();
-var GetOverDriveStatusList = new Array();
+var GetSaveStatusList =[];
+var GetStatusList = [];
+var GetEContentStatusList = [];
+var GetOverDriveStatusList = [];
 
 function createRequestObject() {	
 	// find the correct xmlHTTP, works with IE, FF and Opera
@@ -330,36 +330,6 @@ function doGetSaveStatuses()
 				}
 		};
 		http.send(null);
-}
-
-function showSuggestions(elem)
-{
-		if ((elem.value != '') && (document.searchForm.suggest.checked)) {
-				var http = createRequestObject();
-				http.open("GET", path + "/Search/AJAX?method=GetSuggestion&phrase=" + elem.value, true);
-				http.onreadystatechange = function()
-				{
-						if ((http.readyState == 4) && (http.status == 200)) {
-								document.getElementById('SuggestionList').style.visibility = 'visible';
-								document.getElementById('SuggestionList').innerHTML = '';
-
-								var result = http.responseXML.documentElement.getElementsByTagName('result').item(0).firstChild.data;
-								var resultList = result.split("|");
-
-								for (i=0; i<10; i++) {
-										if (i==0) {
-												document.getElementById('SuggestionList').innerHTML = document.getElementById('SuggestionList').innerHTML + '<li class="top"><a href="">' + resultList[i] + '</a></li>';
-										} else {
-												document.getElementById('SuggestionList').innerHTML = document.getElementById('SuggestionList').innerHTML + '<li><a href="">' + resultList[i] + '</a></li>';
-										}
-								}
-						}
-				};
-				http.send(null);
-		} else {
-				document.getElementById('SuggestionList').style.visibility = 'hidden';
-				document.getElementById('SuggestionList').innerHTML = '';
-		}
 }
 
 function getSubjects(phrase)

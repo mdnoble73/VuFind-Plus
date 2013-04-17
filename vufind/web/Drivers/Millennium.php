@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Proxy_Request.php';
-require_once 'Drivers/marmot_inc/CirculationStatus.php';
-require_once 'Drivers/marmot_inc/LoanRule.php';
-require_once 'Drivers/marmot_inc/LoanRuleDeterminer.php';
-require_once 'Interface.php';
-require_once 'Innovative.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/CirculationStatus.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRule.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRuleDeterminer.php';
+require_once ROOT_DIR . '/Drivers/Interface.php';
+require_once ROOT_DIR . '/Drivers/Innovative.php';
 
 /**
  * VuFind Connector for Marmot's Innovative catalog (millenium)
@@ -258,6 +258,7 @@ class MillenniumDriver implements DriverInterface
 	 * the holding information makes sense to all users.
 	 *
 	 * @param string $id the id of the bid to load holdings for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
 	 * @return array an associative array with a summary of the holdings.
 	 */
 	public function getStatusSummary($id, $forSearch = false){
@@ -567,6 +568,7 @@ class MillenniumDriver implements DriverInterface
 	 * to query all holdings at one time.
 	 *
 	 * @param array $ids an array ids to load summary information for.
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
 	 * @return array an associative array containing a second array with summary information.
 	 */
 	public function getStatusSummaries($ids, $forSearch = false){

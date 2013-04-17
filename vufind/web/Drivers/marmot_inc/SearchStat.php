@@ -25,12 +25,16 @@ class SearchStat extends DB_DataObject
 	}
 
 	function getSearchSuggestions($phrase, $type){
+		//global $logger;
+		//$logger->log("Loading search suggestions", PEAR_LOG_DEBUG);
 		$phrase = strtolower($phrase);
 		$activeLibrary = Library::getActiveLibrary();
 		$libraryId = -1;
 		if ($activeLibrary != null && $activeLibrary->useScope){
 			$libraryId = $activeLibrary->libraryId;
 		}
+
+		/** @var $locationSingleton Location */
 		global $locationSingleton;
 		$locationId = -1;
 		$activeLocation = $locationSingleton->getActiveLocation();
@@ -55,15 +59,38 @@ class SearchStat extends DB_DataObject
 		}
 		//Don't suggest things to users that will result in them not getting any results
 		$searchStat->whereAdd("numResults > 0");
-		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($phrase) ."%' or phrase sounds like '" . mysql_escape_string($phrase) ."')");
+		$splitPhrase = explode(' ', $phrase);
+		$rebuiltPhrase = implode(' % ', $splitPhrase);
+		if ($rebuiltPhrase)
+		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($rebuiltPhrase) ."%' or phrase sounds like '" . mysql_escape_string($rebuiltPhrase) ."')");
 		//$searchStat->groupBy('phrase');
 		$searchStat->orderBy("numResults DESC");
-		$searchStat->limit(0, 10);
+		$searchStat->limit(0, 20);
 		$searchStat->find();
 		$results = array();
 		if ($searchStat->N > 0){
 			while($searchStat->fetch()){
-				$results[] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
+				$searchStat->phrase = str_replace('"', '', $searchStat->phrase);
+				if ($this->phrase != $phrase){
+					//Check the levenshtein distance to make sure that the terms are actually close.
+					//$logger->log("Testing {$searchStat->phrase}", PEAR_LOG_DEBUG);
+					$levenshteinDistance = levenshtein($phrase, $searchStat->phrase);
+					//$logger->log("  Levenshtein Distance is $levenshteinDistance", PEAR_LOG_DEBUG);
+					similar_text($phrase, $searchStat->phrase, $percent);
+					//$logger->log("  Similarity is $percent", PEAR_LOG_DEBUG);
+					$allPartsContained = true;
+					foreach ($splitPhrase as $phrasePart){
+						$stringPosition = strpos($searchStat->phrase, $phrasePart);
+						if ($stringPosition === false){
+							$allPartsContained = false;
+						}
+					}
+
+					//$logger->log("  String Position is $stringPosition, $stringPosition2", PEAR_LOG_DEBUG);
+					if ($levenshteinDistance == 1 || $percent >= 75 || $allPartsContained){
+						$results[$searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
+					}
+				}
 			}
 		}
 		return $results;
@@ -79,6 +106,8 @@ class SearchStat extends DB_DataObject
 		if ($activeLibrary != null && $activeLibrary->useScope){
 			$libraryId = $activeLibrary->libraryId;
 		}
+
+		/** @var $locationSingleton Location */
 		global $locationSingleton;
 		$locationId = -1;
 		$activeLocation = $locationSingleton->getActiveLocation();

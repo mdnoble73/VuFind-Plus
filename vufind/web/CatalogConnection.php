@@ -251,6 +251,7 @@ class CatalogConnection
 	 * collection of records.
 	 *
 	 * @param array $recordIds The array of record ids to retrieve the status for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
 	 *
 	 * @return mixed           An array of getStatus() return values on success,
 	 * a PEAR_Error object otherwise.
@@ -260,6 +261,18 @@ class CatalogConnection
 	public function getStatuses($recordIds, $forSearch = false)
 	{
 		return $this->driver->getStatuses($recordIds, $forSearch);
+	}
+
+	/**
+	 * Returns summary information for an array of ids.  This allows the search results
+	 * to query all holdings at one time.
+	 *
+	 * @param array $ids an array ids to load summary information for.
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
+	 * @return array an associative array containing a second array with summary information.
+	 */
+	public function getStatusSummaries($ids, $forSearch = false){
+		return $this->driver->getStatusSummaries($ids, $forSearch);
 	}
 
 	/**
