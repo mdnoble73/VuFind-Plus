@@ -86,8 +86,7 @@ class EContentRecord extends DB_DataObject{
 		}
 		if ($formatCategory == null){
 			if (array_key_exists("*", $formatCategoryMap)){
-				$formatCategory = $formatCategoryMap[$format];
-				break;
+				$formatCategory = $formatCategoryMap['*'];
 			}else{
 				if(isset($configArray['EContent']['formatCategory'])){
 					return $configArray['EContent']['formatCategory'];
@@ -691,7 +690,7 @@ class EContentRecord extends DB_DataObject{
 		return trim($allFields);
 	}
 	function rating(){
-		require_once 'sys/eContent/EContentRating.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRating = new EContentRating();
 		$query = "SELECT AVG(rating) as avgRating from econtent_rating where recordId = {$this->id}";
 		$econtentRating->query($query);
@@ -729,7 +728,7 @@ class EContentRecord extends DB_DataObject{
 	function available_at(){
 		//Check to see if the item is checked out or if it has available holds
 		if ($this->status == 'active'){
-			require_once('Drivers/EContentDriver.php');
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			if ($this->source == 'Freegal'){
 				return array('Freegal');
 			}else{
@@ -915,7 +914,7 @@ class EContentRecord extends DB_DataObject{
 		if ($this->items == null || $reload){
 			$this->items = array();
 
-			require_once 'sys/eContent/EContentItem.php';
+			require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $this->id;
 			$eContentItem->find();
@@ -931,7 +930,7 @@ class EContentRecord extends DB_DataObject{
 		global $configArray;
 		if ($this->availability == null){
 			$this->availability = array();
-			require_once 'sys/eContent/EContentAvailability.php';
+			require_once ROOT_DIR . '/sys/eContent/EContentAvailability.php';
 			$eContentAvailability = new EContentAvailability();
 			$eContentAvailability->recordId = $this->id;
 			$eContentAvailability->find();
@@ -939,9 +938,9 @@ class EContentRecord extends DB_DataObject{
 				$this->availability[] = clone $eContentAvailability;
 			}
 			if (strcasecmp($this->source, "OverDrive") == 0 ){
-				require_once 'Drivers/OverDriveDriverFactory.php';
+				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$driver = OverDriveDriverFactory::getDriver();
-				//echo("Loading availablity from overdrive, part of " . count($this->availability) . " collections");
+				//echo("Loading availability from overdrive, part of " . count($this->availability) . " collections");
 				foreach ($this->availability as $key => $tmpAvailability){
 					//echo("\r\n{$tmpAvailability->libraryId}");
 					//Get updated availability for each library from overdrive
@@ -1010,7 +1009,7 @@ class EContentRecord extends DB_DataObject{
 			if (strcasecmp($this->source, 'OverDrive') == 0){
 				return -1;
 			}else{
-				require_once 'sys/eContent/EContentItem.php';
+				require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 				$eContentItem = new EContentItem();
 				$eContentItem->recordId = $this->id;
 				$eContentItem->find();
@@ -1087,7 +1086,7 @@ class EContentRecord extends DB_DataObject{
 		if ($ret){
 			$this->clearCachedCover();
 			if ($currentValue->N == 1 && $currentValue->availableCopies != $this->availableCopies){
-				require_once 'Drivers/EContentDriver.php';
+				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$eContentDriver = new EContentDriver();
 				$eContentDriver->processHoldQueue($this->id);
 			}
@@ -1117,7 +1116,7 @@ class EContentRecord extends DB_DataObject{
 		}
 	}
 	public function getIsbn(){
-		require_once 'sys/ISBN.php';
+		require_once ROOT_DIR . '/sys/ISBN.php';
 		$isbns = $this->getPropertyArray('isbn');
 		if (count($isbns) == 0){
 			return null;
@@ -1127,14 +1126,14 @@ class EContentRecord extends DB_DataObject{
 		}
 	}
 	public function getIsbn10(){
-		require_once 'sys/ISBN.php';
+		require_once ROOT_DIR . '/sys/ISBN.php';
 		$isbn = $this->getIsbn();
 		if ($isbn == null){
 			return $isbn;
 		}elseif(strlen($isbn == 10)){
 			return $isbn;
 		}else{
-			require_once 'Drivers/marmot_inc/ISBNConverter.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php';
 			return ISBNConverter::convertISBN13to10($isbn);
 		}
 	}

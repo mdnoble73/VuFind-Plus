@@ -265,40 +265,6 @@ class AJAX extends Action {
 		$timer->logTime("Formatted results");
 	}
 
-	// Saves a search to User's Account
-	function SaveSearch()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
-
-		//check if user is logged in
-		if (!($user = UserAccount::isLoggedIn())) {
-			echo "<result>Please Log in.</result>";
-			return;
-		}
-
-		$lookfor = strip_tags($_GET['lookfor']);
-		$limitTo = strip_tags(urldecode($_GET['limit']));
-		$type = $_GET['type'];
-
-		$search = new SearchEntry();
-		$search->user_id = $user->id;
-		$search->limitto = $limitTo;
-		$search->lookfor = $lookfor;
-		$search->type = $type;
-		if(!$search->find()) {
-			$search = new SearchEntry();
-			$search->user_id = $user->id;
-			$search->lookfor = $lookfor;
-			$search->limitto = $limitTo;
-			$search->type = $type;
-			$search->created = date('Y-m-d');
-
-			$search->insert();
-		}
-		echo "<result>Done</result>";
-	}
-
 	// Email Search Results
 	function SendEmail()
 	{
