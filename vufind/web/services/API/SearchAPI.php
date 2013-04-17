@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/SolrStats.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class SearchAPI extends Action {
 
@@ -243,10 +243,10 @@ class SearchAPI extends Action {
 	 * Enter description here ...
 	 */
 	function getTopSearches(){
-		require_once('Drivers/marmot_inc/SearchStat.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 		$numSearchesToReturn = isset($_REQUEST['numResults']) ? $_REQUEST['numResults'] : 20;
 		$searchStats = new SearchStat();
-		$searchStats->query("SELECT phrase, sum(numSearches) as numTotalSearches FROM `search_stats` where phrase != '' group by phrase order by numTotalSearches DESC LIMIT $numSearchesToReturn");
+		$searchStats->query("SELECT phrase, sum(numSearches) as numTotalSearches FROM `search_stats` where phrase != '' group by phrase order by numTotalSearches DESC LIMIT " . $numSearchesToReturn);
 		$searches = array();
 		while ($searchStats->fetch()){
 			$searches[] = $searchStats->phrase;
@@ -264,7 +264,7 @@ class SearchAPI extends Action {
 		global $timer;
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . 'sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		//setup the results array.
