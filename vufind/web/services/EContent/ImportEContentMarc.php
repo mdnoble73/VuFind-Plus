@@ -78,11 +78,11 @@ class ImportEContentMarc extends Admin
 				//Get import information
 				$cronPath = $configArray['Site']['cronPath']; 
 				if (file_exists($cronPath) && is_dir($cronPath)){
-					global $servername;
+					global $serverName;
 					if ($configArray['System']['operatingSystem'] == 'windows'){
-						$commandToRun = "cd $cronPath && start /b java -jar cron.jar $servername org.epub.ImportMarcRecord";
+						$commandToRun = "cd $cronPath && start /b java -jar cron.jar $serverName org.epub.ImportMarcRecord";
 					}else{
-						$commandToRun = "cd {$cronPath}; java -jar cron.jar $servername org.epub.ImportMarcRecord";
+						$commandToRun = "cd {$cronPath}; java -jar cron.jar $serverName org.epub.ImportMarcRecord";
 					}
 					//Set the servername 
 					$commandToRun .= " marcFile=" . escapeshellarg($destFullPath);

@@ -38,9 +38,9 @@ class BotChecker{
 			$userAgent = $_SERVER['HTTP_USER_AGENT'];
 			$isBot = $memCache->get("bot_by_user_agent_" . $userAgent);
 			if ($isBot === FALSE){
-				global $servername;
-				if (file_exists('../../sites/' . $servername . '/conf/bots.ini')){
-					$fhnd = fopen('../../sites/' . $servername . '/conf/bots.ini', 'r');
+				global $serverName;
+				if (file_exists('../../sites/' . $serverName . '/conf/bots.ini')){
+					$fhnd = fopen('../../sites/' . $serverName . '/conf/bots.ini', 'r');
 				}elseif (file_exists('../../sites/default/conf/bots.ini')){
 					$fhnd = fopen('../../sites/default/conf/bots.ini', 'r');
 				}else{

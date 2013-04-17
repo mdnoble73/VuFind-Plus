@@ -847,13 +847,13 @@ class EContentRecord extends DB_DataObject{
 	function getDeviceCompatibilityMap(){
 		global $memCache;
 		global $configArray;
-		global $servername;
+		global $serverName;
 		$deviceMap = $memCache->get('device_compatibility_map');
 		if ($deviceMap == false){
 			$deviceMap = array();
-			if (file_exists("../../sites/$servername/conf/device_compatibility_map.ini")){
+			if (file_exists("../../sites/$serverName/conf/device_compatibility_map.ini")){
 				// Return the file path (note that all ini files are in the conf/ directory)
-				$deviceMapFile = "../../sites/$servername/conf/device_compatibility_map.ini";
+				$deviceMapFile = "../../sites/$serverName/conf/device_compatibility_map.ini";
 			}else{
 				$deviceMapFile = "../../sites/default/conf/device_compatibility_map.ini";
 			}
@@ -875,13 +875,13 @@ class EContentRecord extends DB_DataObject{
 	function getFormatCategoryMap(){
 		global $memCache;
 		global $configArray;
-		global $servername;
+		global $serverName;
 		$categoryMap = $memCache->get('econtent_category_map');
 		if ($categoryMap == false){
 			$categoryMap = array();
-			if (file_exists("../../sites/$servername/translation_maps/format_category_map.properties")){
+			if (file_exists("../../sites/$serverName/translation_maps/format_category_map.properties")){
 				// Return the file path (note that all ini files are in the conf/ directory)
-				$categoryMapFile = "../../sites/$servername/translation_maps/format_category_map.properties";
+				$categoryMapFile = "../../sites/$serverName/translation_maps/format_category_map.properties";
 			}else{
 				$categoryMapFile = "../../sites/default/translation_maps/format_category_map.properties";
 			}

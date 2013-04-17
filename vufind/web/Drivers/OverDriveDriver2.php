@@ -463,13 +463,12 @@ class OverDriveDriver2 {
 			$contentInfoPage = $overDriveInfo['contentInfoPage'] . "?ID=" . $overDriveId;
 			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $contentInfoPage);
 			$recordPage = curl_exec($overDriveInfo['ch']);
-			$recordPageInfo = curl_getinfo($overDriveInfo['ch']);
+			curl_getinfo($overDriveInfo['ch']);
 			$logger->log("View record " . $contentInfoPage, PEAR_LOG_DEBUG);
 
 			//Navigate to place a hold page
 			$waitingListUrl = $overDriveInfo['waitingListUrl'];
 			if ($format == "" || $format == 'undefined'){
-				$format = "";
 				if (preg_match('/<a href="BANGAuthenticate\.dll\?Action=AuthCheck&ForceLoginFlag=0&URL=WaitingListForm.htm%3FID=(.*?)%26Format=(.*?)" class="radius large button details-title-button" data-checkedout="(.*?)" data-contentstatus="(.*?)">Place a Hold<\/a>/si', $recordPage, $formatInfo)){
 					$format = $formatInfo[2];
 				}else{
@@ -591,9 +590,9 @@ class OverDriveDriver2 {
 						//Delete the cache for the record
 						$memCache->delete('overdrive_record_' . $overDriveId);
 					}else{
+						global $logger;
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'Unknown error placing your hold.';
-						global $logger;
 						$logger->log("Placing hold on OverDrive item. OverDriveId ". $overDriveId, PEAR_LOG_INFO);
 						$logger->log('URL: '.$secureBaseUrl . "BANGAuthenticate.dll?Action=LibraryWaitingList $post_string\r\n" . $waitingListConfirm ,PEAR_LOG_INFO);
 					}

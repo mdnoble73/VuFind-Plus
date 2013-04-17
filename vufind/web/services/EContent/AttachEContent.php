@@ -42,12 +42,12 @@ class AttachEContent extends Admin
 				$errors[] = "Sorry, we could not find a directory with that name to import files from.";
 			}else{
 				//Get import information
-				global $servername;
+				global $serverName;
 				$cronPath = $configArray['Site']['cronPath']; 
 				if ($configArray['System']['operatingSystem'] == 'windows'){
-					$commandToRun = "cd $cronPath && start /b java -jar cron.jar $servername org.epub.AttachEContent";
+					$commandToRun = "cd $cronPath && start /b java -jar cron.jar $serverName org.epub.AttachEContent";
 				}else{
-					$commandToRun = "cd {$cronPath}; java -jar cron.jar $servername org.epub.AttachEContent";
+					$commandToRun = "cd {$cronPath}; java -jar cron.jar $serverName org.epub.AttachEContent";
 				}
 				$commandToRun .= " source=\"" . $source . "\"";
 				

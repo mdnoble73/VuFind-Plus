@@ -34,10 +34,10 @@ function getExtraConfigArrayFile($name)
 	$filename = isset($configArray['Extra_Config'][$name]) ? $configArray['Extra_Config'][$name] : $name . '.ini';
 
 	//Check to see if there is a domain name based subfolder for he configuration
-	global $servername;
-	if (file_exists("../../sites/$servername/conf/$filename")){
+	global $serverName;
+	if (file_exists("../../sites/$serverName/conf/$filename")){
 		// Return the file path (note that all ini files are in the conf/ directory)
-		return "../../sites/$servername/conf/$filename";
+		return "../../sites/$serverName/conf/$filename";
 	}elseif (file_exists("../../sites/default/conf/$filename")){
 		// Return the file path (note that all ini files are in the conf/ directory)
 		return "../../sites/default/conf/$filename";
@@ -126,25 +126,25 @@ function readConfig()
 	$configFile = '../../sites/default/conf/config.ini';
 	$mainArray = parse_ini_file($configFile, true);
 
-	global $servername;
+	global $serverName;
 	$serverUrl = $_SERVER['SERVER_NAME'];
 	$server = $serverUrl;
 	$serverParts = explode('.', $server);
-	$servername = 'default';
+	$serverName = 'default';
 	while (count($serverParts) > 0){
 		$tmpServername = join('.', $serverParts);
 		$configFile = "../../sites/$tmpServername/conf/config.ini";
 		if (file_exists($configFile)){
 			$serverArray = parse_ini_file($configFile, true);
 			$mainArray = ini_merge($mainArray, $serverArray);
-			$servername = $tmpServername;
+			$serverName = $tmpServername;
 		}
 		array_shift($serverParts);
 	}
 
 	// Sanity checking to make sure we loaded a good file
 	// @codeCoverageIgnoreStart
-	if ($servername == 'default'){
+	if ($serverName == 'default'){
 		global $logger;
 		if ($logger){
 			$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
@@ -177,7 +177,7 @@ function readConfig()
 function updateConfigForScoping($configArray) {
 	global $timer;
 	//Get the subdomain for the request
-	global $servername;
+	global $serverName;
 
 	//split the servername based on
 	global $subdomain;
@@ -235,7 +235,7 @@ function updateConfigForScoping($configArray) {
 
 		//Update the searches file
 		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim("../../sites/$servername/conf/searches/" . $library->searchesFile . '.ini');
+			$file = trim("../../sites/$serverName/conf/searches/" . $library->searchesFile . '.ini');
 			if (file_exists($file)) {
 				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
 			}

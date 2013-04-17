@@ -210,14 +210,14 @@ $timer->logTime('Proxy server checks');
 
 // Setup Translator
 global $language;
-global $servername;
+global $serverName;
 if (isset($_REQUEST['mylang'])) {
 	$language = strip_tags($_REQUEST['mylang']);
 	setcookie('language', $language, null, '/');
 } else {
 	$language = strip_tags((isset($_COOKIE['language'])) ? $_COOKIE['language'] : $configArray['Site']['language']);
 }
-$translator = $memCache->get("translator_{$servername}_{$language}");
+$translator = $memCache->get("translator_{$serverName}_{$language}");
 if ($translator == false){
 	// Make sure language code is valid, reset to default if bad:
 	$validLanguages = array_keys($configArray['Languages']);
@@ -225,7 +225,7 @@ if ($translator == false){
 		$language = $configArray['Site']['language'];
 	}
 	$translator = new I18N_Translator('lang', $language, $configArray['System']['missingTranslations']);
-	$memCache->set("translator_{$servername}_{$language}", $translator, 0, $configArray['Caching']['translator']);
+	$memCache->set("translator_{$serverName}_{$language}", $translator, 0, $configArray['Caching']['translator']);
 	$timer->logTime('Translator setup');
 }
 $interface->setLanguage($language);

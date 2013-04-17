@@ -17,11 +17,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
  *
  */
-require_once 'sys/IndexEngine.php';
-require_once 'sys/Proxy_Request.php';
-require_once 'sys/ConfigArray.php';
-require_once 'sys/SolrUtils.php';
-require_once 'sys/VuFindCache.php';
+require_once ROOT_DIR . '/sys/IndexEngine.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/ConfigArray.php';
+require_once ROOT_DIR . '/sys/SolrUtils.php';
+require_once ROOT_DIR . '/sys/VuFindCache.php';
 
 require_once 'XML/Unserializer.php';
 require_once 'XML/Serializer.php';
@@ -76,6 +76,8 @@ class Solr implements IndexEngine {
 
 	/**
 	 * An array of search specs pulled from $searchSpecsFile (above)
+	 *
+	 * @var array
 	 */
 	private $_searchSpecs = false;
 
@@ -139,10 +141,10 @@ class Solr implements IndexEngine {
 		}
 
 		//Check for a more specific searchspecs file
-		global $servername;
-		if (file_exists("../../sites/$servername/conf/searchspecs.yaml")){
+		global $serverName;
+		if (file_exists("../../sites/$serverName/conf/searchspecs.yaml")){
 			// Return the file path (note that all ini files are in the conf/ directory)
-			$this->searchSpecsFile = "../../sites/$servername/conf/searchspecs.yaml";
+			$this->searchSpecsFile = "../../sites/$serverName/conf/searchspecs.yaml";
 		}elseif(file_exists("../../sites/default/conf/searchspecs.yaml")){
 			// Return the file path (note that all ini files are in the conf/ directory)
 			$this->searchSpecsFile = "../../sites/default/conf/searchspecs.yaml";
@@ -501,7 +503,7 @@ class Solr implements IndexEngine {
 			'spellcheck' => 'true'
 			);
 
-			$result = $this->_select($method, $options);
+			$result = $this->_select(HTTP_REQUEST_METHOD_GET, $options);
 			if (PEAR::isError($result)) {
 				PEAR::raiseError($result);
 			}
@@ -1511,7 +1513,7 @@ class Solr implements IndexEngine {
 	 *																					should we fail outright (false) or
 	 *																					treat it as an empty result set with
 	 *																					an error key set (true)?
-	 * @return	array													 The Solr response (or a PEAR error)
+	 * @return	array|PEAR_Error													 The Solr response (or a PEAR error)
 	 * @access	private
 	 */
 	private function _select($method = HTTP_REQUEST_METHOD_GET, $params = array(), $returnSolrError = false)
