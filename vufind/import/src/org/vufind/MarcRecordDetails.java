@@ -2896,7 +2896,7 @@ public class MarcRecordDetails {
 		String leader = record.getLeader().toString();
 		char leaderBit;
 		ControlField fixedField = (ControlField) record.getVariableField("008");
-		DataField title = (DataField) record.getVariableField("245");
+		//DataField title = (DataField) record.getVariableField("245");
 		char formatCode = ' ';
 
 		boolean returnFirstValue = false;
@@ -2973,7 +2973,7 @@ public class MarcRecordDetails {
 		}
 
 		// check if there's an h in the 245
-		if (title != null) {
+		/*if (title != null) {
 			if (title.getSubfield('h') != null) {
 				if (title.getSubfield('h').getData().toLowerCase()
 						.contains("[electronic resource]")) {
@@ -2982,7 +2982,7 @@ public class MarcRecordDetails {
 						return result;
 				}
 			}
-		}
+		}*/
 
 		// Check for large print book (large format in 650, 300, or 250 fields)
 		// Check for blu-ray in 300 fields
@@ -4226,70 +4226,72 @@ public class MarcRecordDetails {
 		return getBrowseSubjects(true);
 	}
 
+	private HashMap<String, String> browseSubjects = null;
 	public HashMap<String, String> getBrowseSubjects(boolean doRotation) {
 		// Get a list of subjects that are valid for browsing.
-		@SuppressWarnings("unchecked")
-		List<VariableField> subjectFields = (List<VariableField>) record
-				.getVariableFields(new String[] { "600", "610", "611", "630", "650",
-						"690" });
-		HashMap<String, String> browseSubjects = new HashMap<String, String>();
-		for (VariableField curField : subjectFields) {
-			DataField curDataField = (DataField) curField;
-			if (curField.getTag().equals("690")) {
-				// Only process the 690a subfield
-				if (curDataField.getSubfield('a') != null) {
-					browseSubjects.put(
-							Util.makeValueSortable(curDataField.getSubfield('a').getData()),
-							curDataField.getSubfield('a').getData());
-				}
-			} else {
-				// Base subject is for doing rotations with subdivisions
-				StringBuffer baseSubject = new StringBuffer();
-				StringBuffer fullSubject = new StringBuffer();
-				ArrayList<String> subdivisions = new ArrayList<String>();
-				@SuppressWarnings("unchecked")
-				List<Subfield> subfields = curDataField.getSubfields();
-				for (Subfield curSubfield : subfields) {
-					String subfieldData = curSubfield.getData().replaceAll("\\W", " ")
-							.trim();
-					subfieldData = subfieldData.replaceAll("\\s{2,}", " ");
-					if (curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 't') {
-						// Setup base subject
-						if (baseSubject.length() > 0) {
-							baseSubject.append(" -- ");
-						}
-						baseSubject.append(subfieldData);
-						// Setup full subject
-						if (fullSubject.length() > 0) {
-							fullSubject.append(" -- ");
-						}
-						fullSubject.append(subfieldData);
-						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()),
-								fullSubject.toString());
-					} else if (curSubfield.getCode() >= 'v'
-							&& curSubfield.getCode() <= 'z') {
-						subdivisions.add(subfieldData);
-						// Setup full subject
-						if (fullSubject.length() > 0) {
-							fullSubject.append(" -- ");
-						}
-						fullSubject.append(subfieldData);
-						browseSubjects.put(Util.makeValueSortable(fullSubject.toString()),
-								fullSubject.toString());
+		if (browseSubjects == null){
+			@SuppressWarnings("unchecked")
+			List<VariableField> subjectFields = (List<VariableField>) record
+					.getVariableFields(new String[] { "600", "610", "611", "630", "650",
+							"690" });
+			browseSubjects = new HashMap<String, String>();
+			for (VariableField curField : subjectFields) {
+				DataField curDataField = (DataField) curField;
+				if (curField.getTag().equals("690")) {
+					// Only process the 690a subfield
+					if (curDataField.getSubfield('a') != null) {
+						browseSubjects.put(
+								Util.makeValueSortable(curDataField.getSubfield('a').getData()),
+								curDataField.getSubfield('a').getData());
 					}
-				}
-				if (baseSubject.length() > 0 && subdivisions.size() > 0 && doRotation) {
-					// Do rotation of subjects
-					for (String curSubdivision : subdivisions) {
-						StringBuffer rotatedField = new StringBuffer()
-								.append(curSubdivision).append(" -- ").append(baseSubject);
-						browseSubjects.put(Util.makeValueSortable(rotatedField.toString()),
-								rotatedField.toString());
+				} else {
+					// Base subject is for doing rotations with subdivisions
+					StringBuffer baseSubject = new StringBuffer();
+					StringBuffer fullSubject = new StringBuffer();
+					ArrayList<String> subdivisions = new ArrayList<String>();
+					@SuppressWarnings("unchecked")
+					List<Subfield> subfields = curDataField.getSubfields();
+					for (Subfield curSubfield : subfields) {
+						String subfieldData = curSubfield.getData().replaceAll("\\W", " ")
+								.trim();
+						subfieldData = subfieldData.replaceAll("\\s{2,}", " ");
+						if (curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 't') {
+							// Setup base subject
+							if (baseSubject.length() > 0) {
+								baseSubject.append(" -- ");
+							}
+							baseSubject.append(subfieldData);
+							// Setup full subject
+							if (fullSubject.length() > 0) {
+								fullSubject.append(" -- ");
+							}
+							fullSubject.append(subfieldData);
+							browseSubjects.put(Util.makeValueSortable(fullSubject.toString()),
+									fullSubject.toString());
+						} else if (curSubfield.getCode() >= 'v'
+								&& curSubfield.getCode() <= 'z') {
+							subdivisions.add(subfieldData);
+							// Setup full subject
+							if (fullSubject.length() > 0) {
+								fullSubject.append(" -- ");
+							}
+							fullSubject.append(subfieldData);
+							browseSubjects.put(Util.makeValueSortable(fullSubject.toString()),
+									fullSubject.toString());
+						}
+					}
+					if (baseSubject.length() > 0 && subdivisions.size() > 0 && doRotation) {
+						// Do rotation of subjects
+						for (String curSubdivision : subdivisions) {
+							StringBuffer rotatedField = new StringBuffer()
+									.append(curSubdivision).append(" -- ").append(baseSubject);
+							browseSubjects.put(Util.makeValueSortable(rotatedField.toString()),
+									rotatedField.toString());
+						}
 					}
 				}
 			}
 		}
-
 		return browseSubjects;
 	}
 

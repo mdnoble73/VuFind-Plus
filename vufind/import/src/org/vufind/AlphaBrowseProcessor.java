@@ -735,6 +735,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 	@Override
 	public void finish() {
 		try {
+			vufindConn.setAutoCommit(false);
+			vufindConn.prepareStatement("SET UNIQUE_CHECKS=0;").executeQuery();
 			//Update rankings
 			PreparedStatement initRanking =  vufindConn.prepareStatement("set @r=0;");
 			initRanking.executeUpdate();
@@ -747,10 +749,17 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 				//logger.info("Global title browse file is " + titleBrowseScopingFile.getAbsolutePath());
 				//Truncate the browse tables 
 				clearBrowseScopingTables(browseType + "_browse");
-				PreparedStatement loadGlobalTitleCsv = vufindConn.prepareStatement("load data local infile ? into table " + browseType + "_browse_scoped_results_global fields terminated by ',' enclosed by '\"' lines terminated by '\n' (browseValueId, record)");
+				
+				String sql = "load data local infile ? into table " + browseType + "_browse_scoped_results_global fields terminated by ',' enclosed by '\"' lines terminated by '\n' (browseValueId, record)";
+				//logger.info(sql);
+				PreparedStatement loadGlobalTitleCsv = vufindConn.prepareStatement(sql);
+				
 				loadGlobalTitleCsv.setString(1, titleBrowseScopingFile.getAbsolutePath());
 				loadGlobalTitleCsv.executeUpdate();
 				titleBrowseScopingFile.deleteOnExit();
+				results.addNote("Imported global scoping for " + browseType);
+				results.saveResults();
+				vufindConn.commit();
 			}
 			
 			results.addNote("Updating browse tables for authors");
@@ -761,6 +770,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			authorMetaDataClear.executeUpdate();
 			PreparedStatement authorMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			authorMetaDataUpdate.executeUpdate();
+			vufindConn.commit();
 			
 			/*results.addNote("Updating browse tables for call numbers");
 			results.saveResults();
@@ -781,6 +791,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			subjectMetaDataClear.executeUpdate();
 			PreparedStatement subjectMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			subjectMetaDataUpdate.executeUpdate();
+			vufindConn.commit();
 			
 			results.addNote("Updating browse tables for titles");
 			results.saveResults();
@@ -792,6 +803,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			titleMetaDataClear.executeUpdate();
 			PreparedStatement titleMetaDataUpdate = vufindConn.prepareStatement("INSERT INTO title_browse_metadata (SELECT 0, -1, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results_global ON id = browseValueId where alphaRank > 0)");
 			titleMetaDataUpdate.executeUpdate();
+			vufindConn.commit();
 			
 			for (Long libraryId : librarySubdomains.keySet()){
 				String subdomain = librarySubdomains.get(libraryId);
@@ -802,10 +814,14 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					File titleBrowseScopingFile = browseScopingFiles.get(browseType + "_" + subdomain);
 					
 					PreparedStatement loadScopedTitleCsv = vufindConn.prepareStatement("load data local infile ? into table " + browseType + "_browse_scoped_results_library_" + subdomain + " fields terminated by ',' enclosed by '\"' lines terminated by '\n' (browseValueId, record)");
-					logger.info(browseType + " browse file for " + subdomain + " is " + titleBrowseScopingFile.getAbsolutePath());
+					//logger.info(browseType + " browse file for " + subdomain + " is " + titleBrowseScopingFile.getAbsolutePath());
 					loadScopedTitleCsv.setString(1, titleBrowseScopingFile.getAbsolutePath());
 					loadScopedTitleCsv.executeUpdate();
 					titleBrowseScopingFile.deleteOnExit();
+					
+					results.addNote("Imported " + subdomain + " scoping for " + browseType);
+					results.saveResults();
+					vufindConn.commit();
 				}
 				
 				results.addNote("Updating meta data for " + subdomain);
@@ -820,6 +836,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 						vufindConn.prepareStatement("INSERT INTO author_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
 						vufindConn.prepareStatement("INSERT INTO subject_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
 						//vufindConn.prepareStatement("INSERT INTO callnumber_browse_metadata (SELECT 1, " + libraryId + ", MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results_library_" + subdomain + " ON id = browseValueId where alphaRank > 0)").executeUpdate();
+						vufindConn.commit();
 					}else{
 						logger.debug("Skipped updating " + subdomain + " because there are no records");
 					}
@@ -829,7 +846,8 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 					results.addNote("Error updating meta data for " + subdomain + " " + e.toString());
 				}
 			}
-			
+			vufindConn.prepareStatement("SET UNIQUE_CHECKS=1;").executeQuery();
+			vufindConn.setAutoCommit(true);
 			results.addNote("Finished updating browse tables");
 			results.saveResults();
 			
