@@ -120,6 +120,13 @@ public class ReindexProcess {
 				
 				for (IRecordProcessor processor : recordProcessors){
 					processor.finish();
+					try {
+						vufindConn.setAutoCommit(true);
+						vufindConn.commit();
+					} catch (SQLException e) {
+						logger.error("Error setting auto commit", e);
+						addNoteToCronLog("Error setting auto commit " + e.toString());
+					}
 				}
 			}
 		} catch (Error e) {

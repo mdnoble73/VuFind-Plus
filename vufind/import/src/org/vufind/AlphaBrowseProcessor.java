@@ -737,7 +737,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 		try {
 			vufindConn.prepareStatement("SET UNIQUE_CHECKS=0;").executeQuery();
 			vufindConn.prepareStatement("SET foreign_key_checks=0;").executeQuery();
-			vufindConn.prepareStatement("SET sql_log_bin=0;").executeQuery();
+			//vufindConn.prepareStatement("SET sql_log_bin=0;").executeQuery();
 			vufindConn.prepareStatement("SET innodb_support_xa=0;").executeQuery();
 			vufindConn.prepareStatement("SET global innodb_flush_log_at_trx_commit=0;").executeQuery();
 			vufindConn.setAutoCommit(false);
@@ -854,7 +854,7 @@ public class AlphaBrowseProcessor implements IMarcRecordProcessor, IEContentProc
 			vufindConn.setAutoCommit(true);
 			vufindConn.prepareStatement("SET UNIQUE_CHECKS=1;").executeQuery();
 			vufindConn.prepareStatement("SET foreign_key_checks=1;").executeQuery();
-			vufindConn.prepareStatement("SET sql_log_bin=1;").executeQuery();
+			//vufindConn.prepareStatement("SET sql_log_bin=1;").executeQuery();
 			vufindConn.prepareStatement("SET innodb_support_xa=1;").executeQuery();
 			vufindConn.prepareStatement("SET global innodb_flush_log_at_trx_commit=1;").executeQuery();
 			results.addNote("Finished updating browse tables");
