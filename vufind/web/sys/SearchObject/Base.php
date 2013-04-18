@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'services/MyResearch/lib/Search.php';
-require_once 'sys/Recommend/RecommendationFactory.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/sys/Recommend/RecommendationFactory.php';
 
 /**
  * Search Object abstract base class.

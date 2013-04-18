@@ -88,7 +88,7 @@ class SearchStat extends DB_DataObject
 
 					//$logger->log("  String Position is $stringPosition, $stringPosition2", PEAR_LOG_DEBUG);
 					if ($levenshteinDistance == 1 || $percent >= 75 || $allPartsContained){
-						$results[$searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
+						$results[] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
 					}
 				}
 			}

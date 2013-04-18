@@ -18,24 +18,20 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Search.php';
-require_once 'Drivers/marmot_inc/Prospector.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 
-require_once 'sys/SolrStats.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Results extends Action {
-
-	private $solrStats = false;
-	private $query;
 
 	function launch() {
 		global $interface;
 		global $configArray;
 		global $timer;
-		global $user;
 		global $analytics;
 
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
@@ -54,7 +50,7 @@ class Results extends Action {
 		}
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/Solr.php';
 		$timer->logTime('Include search engine');
 
 		//Check to see if the year has been set and if so, convert to a filter and resend.
@@ -149,6 +145,7 @@ class Results extends Action {
 		}
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);
 		$timer->logTime("Init Search Object");
@@ -219,6 +216,7 @@ class Results extends Action {
 		//Enable and disable functionality based on library settings
 		//This must be done before we process each result
 		global $library;
+		/** @var Location $locationSingleton */
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
 		$showHoldButton = 1;
@@ -288,9 +286,9 @@ class Results extends Action {
 			//We didn't find anything.  Look for search Suggestions
 			//Don't try to find suggestions if facets were applied
 			$autoSwitchSearch = false;
-			$disallowReplacements = isset($_REQUEST['disallowReplacements']);
+			$disallowReplacements = isset($_REQUEST['disallowReplacements']) || isset($_REQUEST['replacementTerm']);
 			if (!$disallowReplacements && (!isset($facetSet) || count($facetSet) == 0)){
-				require_once 'services/Search/lib/SearchSuggestions.php';
+				require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
 				$searchSuggestions = new SearchSuggestions();
 				$commonSearches = $searchSuggestions->getCommonSearchesMySql($searchObject->displayQuery(), $searchObject->getSearchIndex());
 				//If the first search in the list is used 10 times more than the next, just show results for that
@@ -306,14 +304,14 @@ class Results extends Action {
 				}
 
 				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
-				if ($autoSwitchSearch && !isset($_REQUEST['replacementTerm'])){
+				if ($autoSwitchSearch){
 					//Get search results for the new search
 					$interface->assign('oldTerm', $searchObject->displayQuery());
 					$interface->assign('newTerm', $commonSearches[0]['phrase']);
 					$thisUrl = $_SERVER['REQUEST_URI'];
-					$thisUrl = $_SERVER['REQUEST_URI'];
 					$thisUrl = $thisUrl . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
 					header("Location: " . $thisUrl);
+					exit();
 				}
 
 				$interface->assign('searchSuggestions', $commonSearches);
@@ -348,7 +346,7 @@ class Results extends Action {
 			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
-		/*} else if ($searchObject->getResultTotal() == 1){
+		} else if ($searchObject->getResultTotal() == 1 && (strpos($searchObject->displayQuery(), 'id') === 0 || $searchObject->getSearchType() == 'id')){
 			//Redirect to the home page for the record
 			$recordSet = $searchObject->getResultRecordSet();
 			$record = reset($recordSet);
@@ -356,21 +354,18 @@ class Results extends Action {
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
 				header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyList/{$listId}");
-				//exit();
+				exit();
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
 				header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/$shortId/Home");
-				//exit();
+				exit();
 			}else{
 				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");
-				//exit();
-			}*/
+				exit();
+			}
 
 		} else {
 			$timer->logTime('save search');
-
-			// If the "jumpto" parameter is set, jump to the specified result index:
-			$this->processJumpto($result);
 
 			// Assign interface variables
 			$summary = $searchObject->getResultSummary();
@@ -384,7 +379,7 @@ class Results extends Action {
 			//Check to see if a format category is already set
 			$categorySelected = false;
 			if (isset($facetSet['top'])){
-				foreach ($facetSet['top'] as $title=>$cluster){
+				foreach ($facetSet['top'] as $cluster){
 					if ($cluster['label'] == 'Category'){
 						foreach ($cluster['list'] as $thisFacet){
 							if ($thisFacet['isApplied']){
@@ -412,7 +407,6 @@ class Results extends Action {
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','Search Results');
 
-
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
 			$options = array('totalItems' => $summary['resultTotal'],
@@ -434,7 +428,7 @@ class Results extends Action {
 			$interface->assign('prospectorNumTitlesToLoad', 0);
 		}
 
-		if ($enableUnscopedSearch){
+		if ($enableUnscopedSearch && isset($unscopedSearch)){
 			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
 			$unscopedSearch->disableScoping();
 			$unscopedSearch->processSearch(false, false);
@@ -459,7 +453,7 @@ class Results extends Action {
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-			require_once('Drivers/marmot_inc/SearchStat.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
@@ -467,23 +461,4 @@ class Results extends Action {
 		// Done, display the page
 		$interface->display('layout.tpl');
 	} // End launch()
-
-	/**
-	 * Process the "jumpto" parameter.
-	 *
-	 * @access  private
-	 * @param   array       $result         Solr result returned by SearchObject
-	 */
-	private function processJumpto($result)
-	{
-		if (isset($_REQUEST['jumpto']) && is_numeric($_REQUEST['jumpto'])) {
-			$i = intval($_REQUEST['jumpto'] - 1);
-			if (isset($result['response']['docs'][$i])) {
-				$record = RecordDriverFactory::initRecordDriver($result['response']['docs'][$i]);
-				$jumpUrl = '../Record/' . urlencode($record->getUniqueID());
-				header('Location: ' . $jumpUrl);
-				die();
-			}
-		}
-	}
 }

@@ -54,7 +54,7 @@ class SearchSuggestions{
 			//Merge the two arrays together
 			foreach($spellingSearches as $term){
 				if (!in_array($term, $searchSuggestions)){
-					$searchSuggestions[$term] = $term;
+					$searchSuggestions[] = $term;
 				}
 			}
 		}

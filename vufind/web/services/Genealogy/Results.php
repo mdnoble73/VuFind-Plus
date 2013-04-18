@@ -198,9 +198,6 @@ class Results extends Action {
 		} else {
 			$timer->logTime('save search');
 
-			// If the "jumpto" parameter is set, jump to the specified result index:
-			$this->processJumpto($result);
-
 			// Assign interface variables
 			$summary = $searchObject->getResultSummary();
 			$interface->assign('recordCount', $summary['resultTotal']);
@@ -261,23 +258,4 @@ class Results extends Action {
 		// Done, display the page
 		$interface->display('layout.tpl');
 	} // End launch()
-
-	/**
-	 * Process the "jumpto" parameter.
-	 *
-	 * @access  private
-	 * @param   array       $result         Solr result returned by SearchObject
-	 */
-	private function processJumpto($result)
-	{
-		if (isset($_REQUEST['jumpto']) && is_numeric($_REQUEST['jumpto'])) {
-			$i = intval($_REQUEST['jumpto'] - 1);
-			if (isset($result['response']['docs'][$i])) {
-				$record = RecordDriverFactory::initRecordDriver($result['response']['docs'][$i]);
-				$jumpUrl = '../Record/' . urlencode($record->getUniqueID());
-				header('Location: ' . $jumpUrl);
-				die();
-			}
-		}
-	}
 }

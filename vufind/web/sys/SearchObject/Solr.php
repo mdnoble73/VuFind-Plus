@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Solr.php';
-require_once 'sys/SearchObject/Base.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'Drivers/marmot_inc/Location.php';
+require_once ROOT_DIR . '/sys/Solr.php';
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 
 /**
  * Search Object class
