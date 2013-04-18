@@ -119,10 +119,18 @@ public class ReindexProcess {
 				processResources(recordProcessors);
 				
 				for (IRecordProcessor processor : recordProcessors){
+					try {
+						vufindConn.setAutoCommit(false);
+					} catch (SQLException e) {
+						logger.error("Error setting auto commit", e);
+						addNoteToCronLog("Error setting auto commit " + e.toString());
+					}
 					processor.finish();
 					try {
-						vufindConn.setAutoCommit(true);
-						vufindConn.commit();
+						if (!vufindConn.getAutoCommit()){
+							vufindConn.commit();
+							vufindConn.setAutoCommit(true);
+						}
 					} catch (SQLException e) {
 						logger.error("Error setting auto commit", e);
 						addNoteToCronLog("Error setting auto commit " + e.toString());
