@@ -57,8 +57,8 @@
 												});{/literal}
 											</script>
 										{/if}
-										<input type="submit" class="button" name="freezeSelected" value="Freeze Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
-										<input type="submit" class="button" name="thawSelected" value="Thaw Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
+										<input type="submit" class="button" name="freezeSelected" value="Freeze Selected" title="Freezing a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
+										<input type="submit" class="button" name="thawSelected" value="Thaw Selected" title="Thawing the hold allows the hold to be filled again." onclick="return thawSelectedHolds();"/>
 									{/if}
 									<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
 									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
@@ -249,12 +249,12 @@
 											});{/literal}
 										</script>
 									{/if}
-									<input type="submit" class="button" name="freezeSelected" value="Suspend Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
-									<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
+									<input type="submit" class="button" name="freezeSelected" value="Freeze Selected" title="Freezing a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
+									<input type="submit" class="button" name="thawSelected" value="Thaw Selected" title="Thawing the hold allows the hold to be filled again." onclick="return thawSelectedHolds();"/>
 								{/if}
 								<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
 								{if $allowChangeLocation}
-									<div id='holdsUpdateBranchSelction'>
+									<div id='holdsUpdateBranchSelection'>
 										Change Pickup Location for Selected Items to:
 										{html_options name="withSelectedLocation" options=$pickupLocations selected=$resource.currentPickupId}
 										<input type="submit" name="updateSelected" value="Go" onclick="return updateSelectedHolds();"/>

@@ -303,7 +303,7 @@
 											{/if}
 											<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
 											{if $allowChangeLocation && $sectionKey=='unavailable'}
-												<div id='holdsUpdateBranchSelction'>
+												<div id='holdsUpdateBranchSelection'>
 													Change Pickup Location for Selected Items to: 
 													{html_options name="withSelectedLocation" options=$pickupLocations selected=$resource.currentPickupId}
 													<input type="submit" name="updateSelected" value="Go" onclick="return updateSelectedHolds();"/>

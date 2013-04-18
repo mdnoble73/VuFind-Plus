@@ -6,7 +6,7 @@ $configArray = readConfig();
 require_once 'sys/Utils/SwitchDatabase.php';
 require_once 'sys/Timer.php';
 global $timer;
-$timer = new Timer();
+$timer = new Timer(time());
 global $logger;
 $logger = new Logger();
 
@@ -38,7 +38,9 @@ foreach ($configArray['Database'] as $key => $value){
 		$tableName = $matches[1];
 
 		//Some tables take too long to optimize, ignore them.
-		optimizeTable($tableName);
+		if (in_array($tableName, array('analytics_session'))){
+			optimizeTable($tableName);
+		}
 	}
 }
 
