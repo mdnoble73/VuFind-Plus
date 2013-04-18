@@ -1560,6 +1560,16 @@ class DBMaintenance extends Admin {
 			),
 		),
 
+		'alpha_browse_setup_9' => array(
+			'title' => 'Alphabetic Browse remove record indices',
+			'description' => 'Remove record indices since they are no longer needed and make the import slower, also use MyISAM engine since that is faster for import.',
+			'continueOnError' => true,
+			'dependencies' => array(),
+			'sql' => array(
+				"removeScopingTableIndex",
+			),
+		),
+
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
 			'description' => 'Create Reindex Log table to track reindexing.',
@@ -2447,6 +2457,38 @@ class DBMaintenance extends Admin {
 			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
 			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
 			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+		}
+	}
+
+	function removeScopingTableIndex($update){
+		$this->runSQLStatement(&$update, "TRUNCATE TABLE title_browse_scoped_results_global");
+		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement(&$update, "TRUNCATE TABLE author_browse_scoped_results_global");
+		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement(&$update, "TRUNCATE TABLE subject_browse_scoped_results_global");
+		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement(&$update, "TRUNCATE TABLE callnumber_browse_scoped_results_global");
+		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = MYISAM");
+
+		$library = new Library();
+		$library->find();
+		while ($library->fetch()){
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
 		}
 	}
 
