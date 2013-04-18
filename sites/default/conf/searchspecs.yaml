@@ -57,12 +57,12 @@
 #       - [onephrase, 500]
 #       - [and, 200]
 #     - B:
-#       - [and, 100]
+#       - [and, 100]   
 #       - [or, 50]  
 #     # Start an anonymous array to group; first element indicates AND grouping 
 #     #     and a weight of 50
 #     -
-#       - [AND, 50]
+#       - [AND, 50]                 
 #       - C:
 #         - [onephrase, 200]
 #       - D:
@@ -157,7 +157,7 @@ ISN:
 Subject:
   DismaxFields:
     - topic^100
-    - word_think_heading^100
+    - topic_proper^100
     - geographic^50
     - genre^50
     - era
@@ -166,7 +166,7 @@ Subject:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
-    - word_think_heading:
+    - topic_proper:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
@@ -181,20 +181,15 @@ Subject:
     - era:
       - [and, 100]
       - [or, ~]
-      
+
 SubjectProper:
   DismaxFields:
     - topic_proper^100
-    - word_think_heading^100
     - geographic_proper^50
     - genre_proper^50
     - era_proper
   QueryFields:
     - topic_proper:
-      - [onephrase, 300]
-      - [and, 100]
-      - [or, ~]
-    - word_think_heading:
       - [onephrase, 300]
       - [and, 100]
       - [or, ~]
@@ -208,7 +203,7 @@ SubjectProper:
       - [or, ~]
     - era_proper:
       - [and, 100]
-      - [or, ~]      
+      - [or, ~]
 
 JournalTitle:
   DismaxFields:
@@ -233,7 +228,7 @@ JournalTitle:
     - title_new:
       - [and, 100]
     - title_old:
-      - [and, ~]  
+      - [and, ~]
     - series:
       - [onephrase, 100]
       - [and, 50]
@@ -245,6 +240,7 @@ JournalTitle:
 Title:
   QueryFields:
     - title_proper:
+      - [exact, 800]
       - [onephrase, 600]
     - title_short:
       - [onephrase, 1200]
@@ -270,7 +266,7 @@ Title:
     - series2:
       - [onephrase, 50]
       - [and , ~]
-      
+
 TitleProper:
   DismaxFields:
     - title_proper^500
@@ -310,21 +306,22 @@ AllFields:
     - allfields
   QueryFields:
     allfields:
-      - [or, ~]
+      - [and, ~]
 
 AllFieldsProper:
   DismaxFields:
     - allfields_proper
   QueryFields:
     allfields_proper:
-      - [or, ~]
-      
+      - [and, ~]
+
 Keyword:
   QueryFields:
     - 
       - [OR, 50]
       - title_proper:
-        - [onephrase, 300]
+        - [exact, 800]
+        - [onephrase, 500]
         - [and, 200]
       - title:
         - [onephrase, 200]
@@ -334,14 +331,13 @@ Keyword:
       - title_new:
         - [and, 50]
     series:
+      - [exact, 800]
       - [onephrase, 300]
       - [and, 50]
     series2:
       - [and, 30]
-    word_think_heading:
-      - [onephrase, 300]
-      - [and, 50]
     author:
+      - [exact, 800]
       - [onephrase, 250]
       - [and, 200]
     author2:
@@ -357,7 +353,6 @@ Keyword:
     genre:
       - [onephrase, 75]
     keywords:
-      - [onephrase, 200]
       - [and, 100]
     issn:
       - [and, 100]
@@ -368,14 +363,13 @@ Keyword:
     upc:
       - [and, 100]
       - [or, ~]
-    econtentText:
-      - [onephrase, 500]
-      
+    callnumber-subject:
+      - [onephrase, ~]
+
 KeywordProper:
   DismaxFields:
     - title_proper^850
     - series_proper^100
-    - word_think_heading^100
     - author^300
     - contents_proper^10
     - topic_proper^500
@@ -385,14 +379,11 @@ KeywordProper:
     - isbn
     - issn
     - upc
-    - econtentText_unstemmed
+    - callnumber-subject
   QueryFields:
     title_proper:
-      - [onephrase, 300]
-      - [and, 100]
+      - [onephrase, 850]
     series_proper:
-      - [and, 50]
-    word_think_heading:
       - [and, 50]
     author:
       - [onephrase, 300]
@@ -406,8 +397,7 @@ KeywordProper:
     genre_proper:
       - [onephrase, 300]
     keywords_proper:
-      - [onephrase, 100]
-      - [and, 50]
+      - [and, ~]
     issn:
       - [and, 100]
       - [or, ~]
@@ -417,9 +407,9 @@ KeywordProper:
     upc:
       - [and, 100]
       - [or, ~]      
-    econtentText_unstemmed:
-      - [onephrase, 500]
-      
+    callnumber-subject:
+      - [onephrase, ~]
+
 # These are advanced searches that never use Dismax:
 id:
   QueryFields:
@@ -436,6 +426,7 @@ ids:
     - id:
       - [or, ~]
     -id_alt:
+      - [onephrase, ~]
       - [or, ~]
 
 TopicBrowse:
@@ -481,17 +472,20 @@ CallNumber:
     - dewey-full:
       - [callnumber, ~]
 
+callnumber_browse:
+  QueryFields:
+    - callnumber_browse:
+      - [onephrase, ~]
+
 publisher:
   QueryFields:
     - publisher:
       - [and, 100]
-      - [or, ~]
 
 year:
   QueryFields:
     - publishDate:
       - [and, 100]
-      - [or, ~]
 
 language:
   QueryFields:
@@ -502,7 +496,6 @@ toc:
   QueryFields:
     - contents:
       - [and, 100]
-      - [or, ~]
 
 topic:
   QueryFields:
@@ -562,3 +555,4 @@ GenealogyName:
     - title: 
       - [onephrase, 350]
       - [and, 200]
+
