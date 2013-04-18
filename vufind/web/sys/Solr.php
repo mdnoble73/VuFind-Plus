@@ -389,6 +389,7 @@ class Solr implements IndexEngine {
 		$startIndex = 0;
 		$batchSize = 30;
 
+		$lastBatch = false;
 		while (true){
 			$endIndex = $startIndex + $batchSize;
 			if ($endIndex >= count($ids)){
@@ -397,30 +398,21 @@ class Solr implements IndexEngine {
 				$batchSize = count($ids) - $startIndex;
 			}
 			$tmpIds = array_slice($ids, $startIndex, $batchSize);
-			/*echo("Start $startIndex, $endIndex\r\n<br/>");
-			 if ($this->debug) {
-			 echo "<pre>Get Records: ".print_r($tmpIds)."}</pre>\n";
-			 }*/
 
 			// Query String Parameters
-			$idstr = '';
+			$idString = '';
 			foreach ($tmpIds as $id){
-				if (strlen($idstr) > 0){
-					$idstr .= ' OR ';
+				if (strlen($idString) > 0){
+					$idString .= ' OR ';
 				}
-				$idstr .= "id:\"$id\"";
+				$idString .= "id:\"$id\"";
 			}
-			//echo("Searching for $idstr\r\n<br/>");
-			$options = array('q' => $idstr, 'rows' => $batchSize);
+			$options = array('q' => $idString, 'rows' => $batchSize);
 			$result = $this->_select('GET', $options);
 			if (PEAR::isError($result)) {
 				PEAR::raiseError($result);
 			}
-			//echo("Found " . count($result['response']['docs']) . " results this batch\r\n<br/>");
 			foreach ($result['response']['docs'] as $record){
-				/*if (isset($records[$record['id']])){
-				 echo("Error: record {$record['id']} already exists in the results array\r\n<br/>");
-				 }*/
 				$records[$record['id']] = $record;
 			}
 			if ($lastBatch){
@@ -524,32 +516,32 @@ class Solr implements IndexEngine {
 	private function _applySearchSpecs($structure, $values, $joiner = "OR")
 	{
 		$clauses = array();
-		foreach ($structure as $field => $clausearray) {
+		foreach ($structure as $field => $clauseArray) {
 			if (is_numeric($field)) {
 				// shift off the join string and weight
-				$sw = array_shift($clausearray);
+				$sw = array_shift($clauseArray);
 				$internalJoin = ' ' . $sw[0] . ' ';
 				// Build it up recursively
-				$sstring = '(' .	$this->_applySearchSpecs($clausearray, $values, $internalJoin) . ')';
+				$searchString = '(' .	$this->_applySearchSpecs($clauseArray, $values, $internalJoin) . ')';
 				// ...and add a weight if we have one
 				$weight = $sw[1];
 				if(!is_null($weight) && $weight && $weight > 0) {
-					$sstring .= '^' . $weight;
+					$searchString .= '^' . $weight;
 				}
 				// push it onto the stack of clauses
-				$clauses[] = $sstring;
+				$clauses[] = $searchString;
 			} else {
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
-				foreach ($clausearray as $spec) {
+				foreach ($clauseArray as $spec) {
 					// build a string like title:("one two")
-					$sstring = $field . ':(' . $values[$spec[0]] . ')';
+					$searchString = $field . ':(' . $values[$spec[0]] . ')';
 					// Add the weight it we have one. Yes, I know, it's redundant code.
 					$weight = $spec[1];
 					if(!is_null($weight) && $weight && $weight > 0) {
-						$sstring .= '^' . $weight;
+						$searchString .= '^' . $weight;
 					}
 					// ..and push it on the stack of clauses
-					$clauses[] = $sstring;
+					$clauses[] = $searchString;
 				}
 			}
 		}
@@ -632,6 +624,7 @@ class Solr implements IndexEngine {
 			// Build possible inputs for searching:
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
+			$values['exact'] = $lookfor;
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
 		} else {
@@ -640,7 +633,7 @@ class Solr implements IndexEngine {
 			// tokenization).	We'll just set all possible values to the same thing,
 			// except that we'll try to do the "one phrase" in quotes if possible.
 			$onephrase = strstr($lookfor, '"') ? $lookfor : '"' . $lookfor . '"';
-			$values = array('onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor);
+			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor);
 		}
 
 		// Apply custom munge operations if necessary:

@@ -70,8 +70,8 @@ class SearchStat extends DB_DataObject
 		$results = array();
 		if ($searchStat->N > 0){
 			while($searchStat->fetch()){
-				$searchStat->phrase = str_replace('"', '', $searchStat->phrase);
-				if ($this->phrase != $phrase){
+				$searchStat->phrase = trim(str_replace('"', '', $searchStat->phrase));
+				if ($this->phrase != $phrase && !array_key_exists($searchStat->phrase, $results)){
 					//Check the levenshtein distance to make sure that the terms are actually close.
 					//$logger->log("Testing {$searchStat->phrase}", PEAR_LOG_DEBUG);
 					$levenshteinDistance = levenshtein($phrase, $searchStat->phrase);
@@ -88,12 +88,12 @@ class SearchStat extends DB_DataObject
 
 					//$logger->log("  String Position is $stringPosition, $stringPosition2", PEAR_LOG_DEBUG);
 					if ($levenshteinDistance == 1 || $percent >= 75 || $allPartsContained){
-						$results[] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
+						$results[$searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>$searchStat->numResults);
 					}
 				}
 			}
 		}
-		return $results;
+		return array_values($results);
 	}
 
 	function saveSearch($phrase, $type, $numResults){
