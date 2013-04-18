@@ -216,12 +216,17 @@ class AJAX extends Action {
 			}
 		}
 		$interface->assign('record', $eContentRecord);
-		$interface->assign('availability', $driver->getScopedAvailability($eContentRecord));
+		$availability = $driver->getScopedAvailability($eContentRecord);
+		$interface->assign('availability', $availability['mine']);
+		$interface->assign('availabilityOther', $availability['other']);
 		$showAvailability = true;
+		$showAvailabilityOther = true;
 		if ($eContentRecord->accessType == 'external' && strcasecmp($eContentRecord->source, 'OverDrive') != 0){
 			$showAvailability = false;
+			$showAvailabilityOther = false;
 		}
 		$interface->assign('showAvailability', $showAvailability);
+		$interface->assign('showAvailabilityOther', $showAvailabilityOther);
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('accessType', $eContentRecord->accessType);
 		$interface->assign('showEContentNotes', $showEContentNotes);

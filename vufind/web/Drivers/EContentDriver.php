@@ -259,16 +259,18 @@ class EContentDriver implements DriverInterface{
 	}
 
 	public function getScopedAvailability($eContentRecord){
-		$availability = $eContentRecord->getAvailability();
+		$availability = array();
+		$availability['mine'] = $eContentRecord->getAvailability();
+		$availability['other'] = array();
 		$scopingId = $this->getLibraryScopingId();
 		if ($scopingId != -1){
-			foreach ($availability as $key => $availabilityItem){
+			foreach ($availability['mine'] as $key => $availabilityItem){
 				if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
-					unset($availability[$key]);
+					$availability['other'][$key] = $availability['mine'][$key];
+					unset($availability['mine'][$key]);
 				}
 			}
 		}
-		//print_r($availability);
 		return $availability;
 	}
 
@@ -293,8 +295,8 @@ class EContentDriver implements DriverInterface{
 		$onHold = 0;
 		$wishListSize = 0;
 		$numHolds = 0;
-		if (count($availability) > 0){
-			foreach ($availability as $curAvailability){
+		if (count($availability['mine']) > 0){
+			foreach ($availability['mine'] as $curAvailability){
 				$availableCopies += $curAvailability->availableCopies;
 				$totalCopies += $curAvailability->copiesOwned;
 				$onOrderCopies += $curAvailability->onOrderCopies;
@@ -306,9 +308,6 @@ class EContentDriver implements DriverInterface{
 			$totalCopies = $eContentRecord->availableCopies;
 			$onOrderCopies = $eContentRecord->onOrderCopies;
 		}
-		$available = ($availableCopies > 0);
-
-		//Check to see if the title is checked out by the current user
 
 		//Load status summary
 		$statusSummary = array();
@@ -431,8 +430,8 @@ class EContentDriver implements DriverInterface{
 		if ($eContentRecord->accessType == 'external'){
 			if (strcasecmp($eContentRecord->source, 'OverDrive') ==0 ){
 				$statusSummary['holdQueueLength'] = $numHolds;
-				$statusSummary['showPlaceHold'] = $availableCopies == 0;
-				$statusSummary['showCheckout'] = $availableCopies > 0;
+				$statusSummary['showPlaceHold'] = $availableCopies == 0 && count($availability['mine']) > 0;
+				$statusSummary['showCheckout'] = $availableCopies > 0 && count($availability['mine']) > 0;
 				$statusSummary['showAddToWishlist'] = false;
 				$statusSummary['showAccessOnline'] = false;
 			}else{
