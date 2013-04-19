@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/ListWidgetList.php';
+require_once ROOT_DIR . '/sys/ListWidgetList.php';
 
 class ListWidget extends DB_DataObject
 {
@@ -17,10 +17,12 @@ class ListWidget extends DB_DataObject
 	public $customCss;
 	public $listDisplayType;
 	public $showMultipleTitles;
+	public $style; //0 = Horizontal Display, 1 = Vertical Display, 2 = Single Title
 	public $autoRotate;
 	public $libraryId;
 
-	private $lists; //varchar(500)
+	/** @var  ListWidgetList[] */
+	private $lists;
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ListWidget',$k,$v); }
 
@@ -29,21 +31,19 @@ class ListWidget extends DB_DataObject
 	}
 
 	function getObjectStructure(){
-		global $configArray;
 		global $user;
 
 		//Load Libraries for lookup values
+		$libraryList = array();
 		if ($user->hasRole('opacAdmin')){
 			$library = new Library();
 			$library->orderBy('displayName');
 			$library->find();
-			$libraryList = array();
 			$libraryList[-1] = 'All Libraries';
 			while ($library->fetch()){
 				$libraryList[$library->libraryId] = $library->displayName;
 			}
 		}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
-			$libraryList = array();
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$libraryList[$homeLibrary->libraryId] = $homeLibrary->displayName;
 		}
@@ -74,7 +74,7 @@ class ListWidget extends DB_DataObject
         'rows' => 3,
         'cols'=> 80,
         'label'=>'Description',
-        'description'=>'A descrption for the widget',
+        'description'=>'A description for the widget',
         'storeDb' => true,
         'hideInLists' => true,
       ),
@@ -94,6 +94,15 @@ class ListWidget extends DB_DataObject
         'default' => true,
         'hideInLists' => true,
       ),
+			'style' => array(
+				'property' => 'style',
+				'type' => 'enum',
+				'label' => 'The style to use when displaying the list widget',
+				'values' => array(0 => 'Horizontal', 1=> 'Vertical', 2=>'Single Title'),
+				'storeDb' => true,
+				'default' => true,
+				'hideInLists' => true,
+			),
       'autoRotate' => array(
         'property' => 'autoRotate',
         'type' => 'checkbox',
@@ -163,9 +172,12 @@ class ListWidget extends DB_DataObject
 		);
 
 		//Check to see if the name is unique
-		$query = "SELECT * FROM list_widgets WHERE name='" . mysql_escape_string($this->name) . "' and id != '{$this->id}' and libraryId = '{$this->libraryId}'";
-		$result = mysql_query($query);
-		if (mysql_numrows($result) > 0){
+		$widget = new ListWidget();
+		$widget->name = $this->name;
+		$widget->whereAdd("id != " . $this->id);
+		$widget->libraryId = $this->libraryId;
+		$widget->find();
+		if ($widget->N > 0){
 			//The title is not unique
 			$validationResults['errors'][] = "This widget has already been created.  Please select another name.";
 		}
@@ -191,12 +203,15 @@ class ListWidget extends DB_DataObject
 			}
 			return $this->lists;
 		}
+		return null;
 	}
+
 	public function __set($name, $value){
 		if ($name == "lists") {
 			$this->lists = $value;
 		}
 	}
+
 
 	public function getLibraryName(){
 		if ($this->libraryId == -1){
@@ -221,6 +236,7 @@ class ListWidget extends DB_DataObject
 		}else{
 			$this->saveLists();
 		}
+		return true;
 	}
 
 	/**
@@ -235,6 +251,7 @@ class ListWidget extends DB_DataObject
 		}else{
 			$this->saveLists();
 		}
+		return true;
 	}
 
 	public function saveLists(){
@@ -264,7 +281,7 @@ class ListWidget extends DB_DataObject
 		);
 
 		$listNames = array();
-		require_once 'services/API/ListAPI.php';
+		require_once ROOT_DIR . '/services/API/ListAPI.php';
 		$listAPI = new ListAPI();
 		$allListIds = $listAPI->getAllListIds();
 
