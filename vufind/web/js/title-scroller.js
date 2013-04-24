@@ -4,18 +4,22 @@
  * @param scrollerId - the id of the scroller which will hold the titles
  * @param scrollerShortName
  * @param container - a container to display if any titles are found
+ * @param enableDescription - Whether or not the description popup window should be shown
+ * @param onSelectCallback - a javascript function to fire whenever the title is changed
+ * @param autoScroll - whether or not the selected title should change automatically
+ * @param style - The style of the scroller vertical, horizontal, or single
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
-		enableDescription, onSelectCallback, autoScroll, showMultipleTitles) {
-	this.scrollerTitles = new Array();
+		enableDescription, onSelectCallback, autoScroll, style) {
+	this.scrollerTitles = [];
 	this.currentScrollerIndex = 0;
 	this.numScrollerTitles = 0;
 	this.scrollerId = scrollerId;
 	this.scrollerShortName = scrollerShortName;
 	this.container = container;
 	this.scrollInterval = 0;
-	
+
 	if (typeof enableDescription == "undefined") {
 		this.enableDescription = true;
 	} else {
@@ -31,10 +35,10 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 	} else {
 		this.autoScroll = autoScroll;
 	}
-	if (typeof showMultipleTitles == "undefined") {
-		this.showMultipleTitles = true;
+	if (typeof style == "undefined") {
+		this.style = 'horizontal';
 	} else {
-		this.showMultipleTitles = showMultipleTitles;
+		this.style = style;
 	}
 }
 
@@ -64,7 +68,7 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 			$('#' + this.scrollerId + " .scrollerBodyContainer .scrollerLoadingContainer").hide();
 			scrollerBody.show();
 		}else{
-			scroller.scrollerTitles = new Array();
+			scroller.scrollerTitles = [];
 			var i = 0;
 			$.each(data.titles, function(key, val) {
 				scroller.scrollerTitles[i++] = val;
@@ -73,13 +77,12 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 				$("#" + scroller.container).fadeIn();
 			}
 			scroller.numScrollerTitles = data.titles.length;
-			if (this.showMultipleTitles){
+			if (this.style == 'horizontal'){
 				scroller.currentScrollerIndex = data.currentIndex;
 			}else{
 				scroller.currentScrollerIndex = 0;
 			}
-			
-	
+
 			TitleScroller.prototype.updateScroller.call(scroller);
 		}
 	} catch (err) {
@@ -92,25 +95,34 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 			//alert("Could not find scroller body for " + this.scrollerId);
 		}
 	}
-}
+};
 
 TitleScroller.prototype.updateScroller = function() {
 	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
-		if (this.showMultipleTitles){
-			var scrollerBodyContents = "";
+		var scrollerBodyContents = "";
+		var curScroller = this;
+		if (this.style == 'horizontal'){
 			for ( var i in this.scrollerTitles) {
 				scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
 			}
 			scrollerBody.html(scrollerBodyContents);
-			scrollerBody.width(this.scrollerTitles.length * 140);
+			scrollerBody.width(this.scrollerTitles.length * 131);
 	
-			var curScroller = this;
+			scrollerBody.waitForImages(function() {
+				TitleScroller.prototype.finishLoadingScroller.call(curScroller);
+			});
+		}else if (this.style == 'vertical'){
+			for ( var i in this.scrollerTitles) {
+				scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
+			}
+			scrollerBody.html(scrollerBodyContents);
+			scrollerBody.height(this.scrollerTitles.length * 131);
+
 			scrollerBody.waitForImages(function() {
 				TitleScroller.prototype.finishLoadingScroller.call(curScroller);
 			});
 		}else{
-			var scrollerBodyContents = "";
 			this.currentScrollerIndex = 0;
 			scrollerBody.html(this.scrollerTitles[this.currentScrollerIndex]['formattedTitle']);
 			TitleScroller.prototype.finishLoadingScroller.call(this);
@@ -195,9 +207,8 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 	//Make sure to clear the current tooltip if any
 	$("#tooltip").hide();
 	//Update the actual display
-	if (this.showMultipleTitles){
-		var scrollerTitleId = "#scrollerTitle" + this.scrollerShortName
-				+ currentScrollerIndex;
+	var scrollerTitleId = "#scrollerTitle" + this.scrollerShortName + currentScrollerIndex;
+	if (this.style == 'horizontal'){
 		if ($(scrollerTitleId).length != 0) {
 				var widthItemsLeft = $(scrollerTitleId).position().left;
 				var widthCurrent = $(scrollerTitleId).width();
@@ -214,6 +225,22 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 					}
 					$(scrollerTitleId).addClass('selected');
 				});
+		}
+	}else if (this.style == 'vertical'){
+		if ($(scrollerTitleId).length != 0) {
+			//Move top of the current title to the top of the scroller.
+			var relativeTopOfElement = $(scrollerTitleId).position().top;
+			// center the book in the container
+			var topPosition = 25 - relativeTopOfElement;
+			scrollerBody.animate( {
+				top : topPosition + "px"
+			}, 400, function() {
+				for ( var i in scrollerTitles) {
+					var scrollerTitleId2 = "#scrollerTitle" + scrollerShortName + i;
+					$(scrollerTitleId2).removeClass('selected');
+				}
+				$(scrollerTitleId).addClass('selected');
+			});
 		}
 	}else{
 		var scrollerBodyContents = "";

@@ -512,7 +512,7 @@ class AJAX extends Action {
 							$shortId = str_replace('.b', 'b', $shortId);
 							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
 						}
-						$formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+						$formattedTitle .= "<img src=\"{$rawData['small_image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
 								"</a></div>" .
 								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
 									$descriptionInfo .

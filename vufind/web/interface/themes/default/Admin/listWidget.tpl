@@ -16,6 +16,7 @@
 		<div id='selectedWidgetLibrary'>Available to: {$object->getLibraryName()}</div>
 		<div id='selectedWidgetDescription'>{$object->description}</div>
 		<div id='selectedWidgetCss'>{if $object->customCss}{$object->customCss}{else}No custom css defined{/if}</div>
+		<div id='selectedWidgetDisplayType'>Style: {$object->style}</div>
 		<div id='selectedWidgetDisplayType'>Display lists as: {$object->listDisplayType}</div>
 		
 		{if count($object->lists) > 0}

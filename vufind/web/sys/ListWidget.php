@@ -17,7 +17,7 @@ class ListWidget extends DB_DataObject
 	public $customCss;
 	public $listDisplayType;
 	public $showMultipleTitles;
-	public $style; //0 = Horizontal Display, 1 = Vertical Display, 2 = Single Title
+	public $style; //'vertical', 'horizontal', 'single'
 	public $autoRotate;
 	public $libraryId;
 
@@ -98,9 +98,9 @@ class ListWidget extends DB_DataObject
 				'property' => 'style',
 				'type' => 'enum',
 				'label' => 'The style to use when displaying the list widget',
-				'values' => array(0 => 'Horizontal', 1=> 'Vertical', 2=>'Single Title'),
+				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title'),
 				'storeDb' => true,
-				'default' => true,
+				'default' => 'horizontal',
 				'hideInLists' => true,
 			),
       'autoRotate' => array(
@@ -174,7 +174,9 @@ class ListWidget extends DB_DataObject
 		//Check to see if the name is unique
 		$widget = new ListWidget();
 		$widget->name = $this->name;
-		$widget->whereAdd("id != " . $this->id);
+		if ($this->id){
+			$widget->whereAdd("id != " . $this->id);
+		}
 		$widget->libraryId = $this->libraryId;
 		$widget->find();
 		if ($widget->N > 0){

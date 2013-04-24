@@ -644,6 +644,15 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
 				),
 			),
+			'list_widget_update_2' => array(
+				'title' => 'Update List Widget 2',
+				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `style` ENUM('vertical', 'horizontal', 'single') NOT NULL DEFAULT 'horizontal'",
+					"UPDATE TABLE `list_widgets` SET `style` = 'single' WHERE showMultipleTitles = 0",
+				),
+			),
 			'library_4' => array(
 				'title' => 'Library 4',
 				'description' => 'Update Library table to include enableAlphaBrowse column',

@@ -1,3 +1,4 @@
+{strip}
 <div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle || $Links}
@@ -34,3 +35,17 @@
 		</div>    
 	</div>
 </div>
+
+{/strip}
+<script type="text/javascript">
+	$("#list-"+ '{$wrapperId}'+" .leftScrollerButton").button(
+					{literal}
+					{icons: {primary:'ui-icon-triangle-1-w'}, text: false}
+					{/literal}
+	);
+	$("#list-" + '{$wrapperId}'+" .rightScrollerButton").button(
+					{literal}
+					{icons: {primary:'ui-icon-triangle-1-e'}, text: false}
+					{/literal}
+	);
+</script>
