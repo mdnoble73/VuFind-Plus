@@ -135,8 +135,8 @@
 		<field name="econtentText_unstemmed" type="textProper" indexed="true" stored="false"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
 		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
-		<field name="spelling" type="textSpell" indexed="true" stored="true"/>
-		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
+		<field name="spelling" type="textSpell" indexed="true" stored="false"/>
+		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="false" multiValued="true"/>
 		<!-- Institutional Fields -->
 		<field name="collection" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="institution" type="string" indexed="true" stored="false" multiValued="true" omitNorms="false"/>

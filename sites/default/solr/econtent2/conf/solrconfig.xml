@@ -450,6 +450,24 @@
     </lst>
   </requestHandler>
   
+  <requestHandler name="morelikethis2" class="solr.MoreLikeThisHandler">
+    <lst name="defaults">
+      <str name="mlt.fl">topic_facet,awards_facet,genre_facet,geographic_facet,callnumber-label,era,author</str>
+      <str name="mlt.qf">
+        topic_facet^600
+        callnumber-label^200
+        awards_facet^100
+        author^75
+        era^50
+        genre_facet^50
+        geographic_facet^50
+      </str>
+      <int name="mlt.mintf">1</int>
+      <int name="mlt.mindf">1</int>
+      <str name="mlt.boost">true</str>
+    </lst>
+  </requestHandler>
+
   <searchComponent name="spellcheck" class="org.apache.solr.handler.component.SpellCheckComponent">
     <lst name="spellchecker">
       <str name="name">default</str>
@@ -470,6 +488,9 @@
   </searchComponent>
   <queryConverter name="queryConverter" class="org.apache.solr.spelling.SpellingQueryConverter"/>
 
+  <!-- Search component for extracting terms (useful for sitemap generation) -->
+  <searchComponent name="term" class="org.apache.solr.handler.component.TermsComponent">
+  </searchComponent>
 
   <!--
    
@@ -520,6 +541,13 @@
     </arr>
   </requestHandler>
   
+  <!-- Request handler to extract terms (useful for sitemap generation) -->
+  <requestHandler name="/term" class="org.apache.solr.handler.component.SearchHandler">
+    <arr name="components">
+      <str>term</str>
+    </arr>
+  </requestHandler>
+
   <searchComponent name="elevator" class="org.apache.solr.handler.component.QueryElevationComponent" >
     <!-- pick a fieldType to analyze queries -->
     <str name="queryFieldType">string</str>

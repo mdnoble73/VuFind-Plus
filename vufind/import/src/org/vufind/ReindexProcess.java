@@ -169,6 +169,7 @@ public class ReindexProcess {
 		logger.info("Reloading schemas from default");
 		try {
 			//Copy default schemas from biblio to biblio2 and econtent
+			//Schema
 			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/biblio2/conf/schema.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/biblio2/conf/schema.xml"))){
 				logger.info("Unable to copy schema to biblio2");
@@ -184,6 +185,7 @@ public class ReindexProcess {
 				logger.info("Unable to copy schema to econtent2");
 				addNoteToCronLog("Unable to copy schema to econtent2");
 			}
+			//Synonyms
 			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/biblio2/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/biblio2/conf/synonyms.txt"))){
 				logger.info("Unable to copy synonyms.txt to biblio2");
@@ -239,6 +241,11 @@ public class ReindexProcess {
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/synonyms.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt"))){
 				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+			}
+			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/solrconfig.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/solrconfig.xml");
+			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/solrconfig.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/solrconfig.xml"))){
+				logger.info("Unable to copy solrconfig.xml for " + schemaName);
+				addNoteToCronLog("Unable to copy solrconfig.xml for " + schemaName);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
