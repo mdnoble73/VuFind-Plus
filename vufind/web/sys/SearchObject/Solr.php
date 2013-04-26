@@ -53,6 +53,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 	// OTHER VARIABLES
 	// Index
+	/** @var Solr $indexEngine */
 	private $indexEngine = null;
 	// Facets information
 	private $allFacetSettings = array();    // loaded from facets.ini
@@ -83,7 +84,7 @@ class SearchObject_Solr extends SearchObject_Base
 		global $library;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
-		require_once "sys/$class.php";
+		require_once ROOT_DIR . "/sys/$class.php";
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Index']['url']);
 		$timer->logTime('Created Index Engine');
@@ -165,6 +166,10 @@ class SearchObject_Solr extends SearchObject_Base
 
 	public function disableScoping(){
 		$this->indexEngine->disableScoping();
+	}
+
+	public function enableScoping(){
+		$this->indexEngine->enableScoping();
 	}
 
 	/**
@@ -295,8 +300,7 @@ class SearchObject_Solr extends SearchObject_Base
 					$this->setFacetSortOrder('count');
 				}
 			}
-		} else if ($module == 'Search' &&
-		($action == 'NewItem' || $action == 'Reserves')) {
+		} else if ($module == 'Search' && ($action == 'NewItem' || $action == 'Reserves')) {
 			// We don't need spell checking
 			$this->spellcheck = false;
 			$this->searchType = strtolower($action);
@@ -1157,18 +1161,18 @@ class SearchObject_Solr extends SearchObject_Base
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
 		$this->indexResult = $this->indexEngine->search(
-		$this->query,      // Query string
-		$this->index,      // DisMax Handler
-		$filterQuery,      // Filter query
-		$recordStart,      // Starting record
-		$this->limit,      // Records per page
-		$facetSet,         // Fields to facet on
-		$spellcheck,       // Spellcheck query
-		$this->dictionary, // Spellcheck dictionary
-		$finalSort,        // Field to sort on
-		$this->fields,     // Fields to return
-		$this->method,     // HTTP Request method
-		$returnIndexErrors // Include errors in response?
+			$this->query,      // Query string
+			$this->index,      // DisMax Handler
+			$filterQuery,      // Filter query
+			$recordStart,      // Starting record
+			$this->limit,      // Records per page
+			$facetSet,         // Fields to facet on
+			$spellcheck,       // Spellcheck query
+			$this->dictionary, // Spellcheck dictionary
+			$finalSort,        // Field to sort on
+			$this->fields,     // Fields to return
+			$this->method,     // HTTP Request method
+			$returnIndexErrors // Include errors in response?
 		);
 		$timer->logTime("run solr search");
 

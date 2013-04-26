@@ -113,6 +113,8 @@ class Record extends Action
 			$interface->display('layout.tpl');
 			die();
 		}
+		$this->db->enableScoping();
+
 		$this->record = $record;
 		$interface->assign('record', $record);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);

@@ -54,7 +54,7 @@ class Search extends Action {
 			header('Location: ' . $link);
 			die();
 		}else if ($searchSource == 'genealogy'){
-			require_once ('services/Genealogy/Results.php');
+			require_once (ROOT_DIR . '/services/Genealogy/Results.php');
 			$module = 'Search';
 			$interface->assign('module', $module);
 			$action = 'Results';
@@ -64,7 +64,7 @@ class Search extends Action {
 		}else{
 			$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
 			if (strpos($type , 'browse') === 0){
-				require_once ('services/AlphaBrowse/Results.php');
+				require_once (ROOT_DIR . '/services/AlphaBrowse/Results.php');
 				$module = 'AlphaBrowse';
 				$interface->assign('module', $module);
 				$action = 'Results';
@@ -72,7 +72,7 @@ class Search extends Action {
 				$results = new Results();
 				return $results->launch();
 			}else{
-				require_once ('services/Search/Results.php');
+				require_once (ROOT_DIR . '/services/Search/Results.php');
 				$module = 'Search';
 				$interface->assign('module', $module);
 				$action = 'Results';

@@ -37,6 +37,7 @@ $timer->logTime('Bootstrap');
 
 function initMemcache(){
 	//Connect to memcache
+	/** @var Memcache $memCache */
 	global $memCache;
 	global $timer;
 	global $configArray;

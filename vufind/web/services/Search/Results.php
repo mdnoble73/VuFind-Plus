@@ -46,7 +46,6 @@ class Results extends Action {
 			$oldSearchUrl = $_SERVER['REQUEST_URI'];
 			$oldSearchUrl = str_replace('replacementTerm=' . urlencode($replacementTerm), 'disallowReplacements', $oldSearchUrl);
 			$interface->assign('oldSearchUrl', $oldSearchUrl);
-
 		}
 
 		// Include Search Engine Class

@@ -52,7 +52,7 @@ function getExtraConfigArrayFile($name)
  * Support function -- get the contents of one of the ini files specified in the
  * [Extra_Config] section of config.ini.
  *
- * @param   name        The ini's name from the [Extra_Config] section of config.ini
+ * @param   string $name        The ini's name from the [Extra_Config] section of config.ini
  * @return  array       The retrieved configuration settings.
  */
 function getExtraConfigArray($name)

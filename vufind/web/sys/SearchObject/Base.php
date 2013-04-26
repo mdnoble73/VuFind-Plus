@@ -283,7 +283,7 @@ abstract class SearchObject_Base
 	 * Return a url for the current search with an additional filter
 	 *
 	 * @access  public
-	 * @param   string   $new_filter   A filter to add to the search url
+	 * @param   string   $newFilter   A filter to add to the search url
 	 * @return  string   URL of a new search
 	 */
 	public function renderLinkWithFilter($newFilter)
@@ -454,7 +454,6 @@ abstract class SearchObject_Base
             'index'   => $type,
             'lookfor' => $_REQUEST['lookfor']
 		);
-
 		return true;
 	}
 
