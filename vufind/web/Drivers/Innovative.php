@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 require_once 'Interface.php';
 
 /**
@@ -50,7 +50,7 @@ class Innovative implements DriverInterface
             $host = $this->config['Catalog']['url'];
         }
         $req = new Proxy_Request($host . '/record=b' . $id_);
-        if (PEAR::isError($req->sendRequest())) {
+        if (PEAR_Singleton::isError($req->sendRequest())) {
             return null;
         }
         $result = $req->getResponseBody();

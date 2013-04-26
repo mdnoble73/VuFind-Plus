@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class CheckedOut extends MyResearch{
 	function launch(){
@@ -35,11 +35,11 @@ class CheckedOut extends MyResearch{
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
 				$timer->logTime("Logged in patron to get checked out items.");
-				if (PEAR::isError($patron))
-				PEAR::raiseError($patron);
+				if (PEAR_Singleton::isError($patron))
+				PEAR_Singleton::raiseError($patron);
 
 				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR::isError($patronResult)) {
+				if (!PEAR_Singleton::isError($patronResult)) {
 					$interface->assign('profile', $patronResult);
 				}
 				$timer->logTime("Got patron profile to get checked out items.");
@@ -69,7 +69,7 @@ class CheckedOut extends MyResearch{
 
 				$result = $this->catalog->getMyTransactions($patron, $page, $recordsPerPage, $selectedSortOption);
 				$timer->logTime("Loaded transactions from catalog.");
-				if (!PEAR::isError($result)) {
+				if (!PEAR_Singleton::isError($result)) {
 
 					$link = $_SERVER['REQUEST_URI'];
 					if (preg_match('/[&?]page=/', $link)){
@@ -239,7 +239,7 @@ class CheckedOut extends MyResearch{
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Checked Out');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="CheckedOutItems.xls"');
 		header('Cache-Control: max-age=0');

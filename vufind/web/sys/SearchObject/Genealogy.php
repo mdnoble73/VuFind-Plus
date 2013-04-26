@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Solr.php';
-require_once 'sys/SearchObject/Base.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'Drivers/marmot_inc/Location.php';
+require_once ROOT_DIR . '/sys/Solr.php';
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 
 /**
  * Search Object class
@@ -174,7 +174,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$restored = $this->restoreSavedSearch();
 		if ($restored === true) {
 			return true;
-		} else if (PEAR::isError($restored)) {
+		} else if (PEAR_Singleton::isError($restored)) {
 			return false;
 		}
 
@@ -687,7 +687,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		// Build Query
 		$query = $this->indexEngine->buildQuery($search);
-		if (PEAR::isError($query)) {
+		if (PEAR_Singleton::isError($query)) {
 			return $query;
 		}
 
@@ -1256,7 +1256,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 			$curRow++;
 			$curCol = 0;
 			//Get supplemental information from the database
-			require_once 'sys/Genealogy/Person.php';
+			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = new Person();
 			$id = str_replace('person', '', $curDoc['id']);
 			$person->personId = $id;

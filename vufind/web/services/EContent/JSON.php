@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class JSON extends Action
 {
@@ -40,7 +40,7 @@ class JSON extends Action
 		$item = $_REQUEST['item'];
 
 		//Check the database to see if there is an existing title
-		require_once('sys/eContent/EContentItem.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentItem.php');
 		$epubFile = new EContentItem();
 		$epubFile->id = $_REQUEST['item'];
 		$epubFile->find();
@@ -56,7 +56,7 @@ class JSON extends Action
 		}
 
 		if (file_exists($bookFile)){
-			require_once('sys/eReader/ebook.php');
+			require_once(ROOT_DIR . '/sys/eReader/ebook.php');
 			$ebook = new ebook($bookFile);
 			$epubExists = true;
 		}else{

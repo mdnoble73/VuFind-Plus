@@ -26,10 +26,10 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 
-require_once 'Action.php';
-require_once 'sys/Language.php';
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Language.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 
 /**
  * Export action for MyResearch module.
@@ -166,7 +166,7 @@ class Export extends MyResearch
 		$format = $_SESSION['exportFormat'];
 		if (isset($format) && is_array($ids)) {
 			$result = $this->exportAll($format, $ids);
-			if ($result && !PEAR::isError($result)
+			if ($result && !PEAR_Singleton::isError($result)
 			&& !empty($result['exportDetails'])
 			) {
 				$export = true;

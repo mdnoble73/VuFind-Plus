@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User_resource.php';
-require_once 'services/MyResearch/lib/Resource_tags.php';
-require_once 'services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 /**
  * This class does not use MyResearch base class (we don't need to connect to
@@ -102,7 +102,7 @@ class MyList extends MyResearch {
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {
-			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
+			PEAR_Singleton::raiseError(new PEAR_Error(translate('list_access_denied')));
 		}
 
 		//Reindex can happen by anyone since it needs to be called by cron
@@ -220,12 +220,12 @@ class MyList extends MyResearch {
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$result = $this->catalog->getMyProfile($patron);
-					if (!PEAR::isError($result)) {
+					if (!PEAR_Singleton::isError($result)) {
 						$interface->assign('profile', $result);
 					}
 				}

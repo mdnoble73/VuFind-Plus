@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Drivers/EContentDriver.php';
+require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Hold extends Action{
 	function launch(){
@@ -38,7 +38,7 @@ class Hold extends Action{
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		if (!$eContentRecord->find(true)){
-			PEAR::raiseError("Unable to find eContent record for id: $id");
+			PEAR_Singleton::raiseError("Unable to find eContent record for id: $id");
 		}
 
 		if (isset($_REQUEST['autologout'])){
@@ -51,7 +51,7 @@ class Hold extends Action{
 				$user = UserAccount::login();
 			}
 
-			if (!PEAR::isError($user) && $user){
+			if (!PEAR_Singleton::isError($user) && $user){
 				//The user is already logged in
 				$return = $driver->placeHold($id, $user);
 				$interface->assign('result', $return['result']);
@@ -72,7 +72,7 @@ class Hold extends Action{
 			}
 
 			//Showing place hold form.
-			if (!PEAR::isError($user) && $user){
+			if (!PEAR_Singleton::isError($user) && $user){
 				//set focus to the submit button if the user is logged in since the campus will be correct most of the time.
 				$interface->assign('focusElementId', 'submit');
 			}else{

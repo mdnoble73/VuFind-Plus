@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'sys/Amazon.php';
-require_once 'sys/Proxy_Request.php';
-require_once 'sys/Novelist.php';
+require_once ROOT_DIR . '/sys/Amazon.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Novelist.php';
 
 require_once 'Record.php';
 
@@ -74,7 +74,7 @@ class Enrichment extends Record
 					$enrichment[$func] = Enrichment::$func($isbn);
 	
 					// If the current provider had no valid reviews, store nothing:
-					if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+					if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
 						unset($enrichment[$func]);
 					}
 				}

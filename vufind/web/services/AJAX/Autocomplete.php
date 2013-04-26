@@ -26,8 +26,8 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
-require_once 'sys/Autocomplete/AutocompleteFactory.php';
-require_once 'Action.php';
+require_once ROOT_DIR . '/sys/Autocomplete/AutocompleteFactory.php';
+require_once ROOT_DIR . '/Action.php';
 
 /**
  * Autocomplete AJAX controller

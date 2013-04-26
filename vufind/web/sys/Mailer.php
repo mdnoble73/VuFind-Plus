@@ -93,7 +93,7 @@ class VuFindMailer {
 		if ($this->settings['host'] != false){
 			
 			$mail =& Mail::factory('smtp', $this->settings);
-			if (PEAR::isError($mail)) {
+			if (PEAR_Singleton::isError($mail)) {
 				return $mail;
 			}
 

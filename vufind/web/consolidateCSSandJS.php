@@ -1,4 +1,5 @@
 <?php
+define ('ROOT_DIR', __DIR__);
 /**
  * This file consolidates CSS and JS for all themes based on the consolidation.ini file within
  * each theme (if any).
@@ -9,12 +10,12 @@
 ini_set('display_errors', true);
 error_reporting(E_ALL & ~E_DEPRECATED);
 
-require_once 'Minify/JSMin.php';
+require_once ROOT_DIR . '/Minify/JSMin.php';
 function vufind_autoloader($class) {
 	if (file_exists('sys/' . $class . '.php')){
-		require_once 'sys/' . $class . '.php';
+		require_once ROOT_DIR . '/sys/' . $class . '.php';
 	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-		require_once 'services/MyResearch/lib/' . $class . '.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/' . $class . '.php';
 	}else{
 		$altclass = str_replace('_', '/', $class) . '.php';
 		require_once $altclass;

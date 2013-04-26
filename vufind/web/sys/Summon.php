@@ -19,8 +19,8 @@
  */
 
 require_once 'HTTP/Request.php';
-require_once 'sys/ConfigArray.php';
-require_once 'sys/SolrUtils.php';
+require_once ROOT_DIR . '/sys/ConfigArray.php';
+require_once ROOT_DIR . '/sys/SolrUtils.php';
 
 /**
  * Summon REST API Interface
@@ -124,8 +124,8 @@ class Summon {
         // Query String Parameters
         $options = array('s.st' => "id,$id");
         $result = $this->call($options);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;
@@ -308,7 +308,7 @@ class Summon {
         }
 
         $result = $this->call($options);
-        if (PEAR::isError($result)) {
+        if (PEAR_Singleton::isError($result)) {
             if ($returnErr) {
                 return array(
                     'recordCount' => 0,
@@ -316,7 +316,7 @@ class Summon {
                     'errors' => $result->getMessage()
                 );
             } else {
-                PEAR::raiseError($result);
+                PEAR_Singleton::raiseError($result);
             }
         }
         
@@ -379,7 +379,7 @@ class Summon {
 
         // Send Request
         $result = $this->client->sendRequest();
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             return $this->_process($this->client->getResponseBody());
         } else {
             return $result;

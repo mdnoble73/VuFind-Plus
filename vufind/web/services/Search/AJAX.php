@@ -89,7 +89,7 @@ class AJAX extends Action {
 		// Loop through all the status information that came back
 		foreach ($result as $record) {
 			// If we encountered errors, skip those problem records.
-			if (PEAR::isError($record)) {
+			if (PEAR_Singleton::isError($record)) {
 				continue;
 			}
 			$available = false;
@@ -195,7 +195,7 @@ class AJAX extends Action {
 		// Loop through all the status information that came back
 		foreach ($summaries as $id => $record) {
 			// If we encountered errors, skip those problem records.
-			if (PEAR::isError($record)) {
+			if (PEAR_Singleton::isError($record)) {
 				continue;
 			}
 			$itemResults = $record;
@@ -234,7 +234,7 @@ class AJAX extends Action {
 		// Loop through all the status information that came back
 		foreach ($result as $id => $record) {
 			// If we encountered errors, skip those problem records.
-			if (PEAR::isError($record)) {
+			if (PEAR_Singleton::isError($record)) {
 				continue;
 			}
 
@@ -273,7 +273,7 @@ class AJAX extends Action {
 		$emailService = new Email();
 		$result = $emailService->sendEmail($_GET['url'], $_GET['to'], $_GET['from'], $_GET['message']);
 
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			echo '<result>Error</result>';
 			echo '<details>' . htmlspecialchars(translate($result->getMessage())) . '</details>';
 		} else {

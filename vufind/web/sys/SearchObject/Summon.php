@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Summon.php';
-require_once 'sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/sys/Summon.php';
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
 
 /* A derivative of the Search Object for use with Summon.
  */
@@ -106,7 +106,7 @@ class SearchObject_Summon extends SearchObject_Base
         $restored = $this->restoreSavedSearch();
         if ($restored === true) {
             return true;
-        } else if (PEAR::isError($restored)) {
+        } else if (PEAR_Singleton::isError($restored)) {
             return false;
         }
 
@@ -284,8 +284,8 @@ class SearchObject_Summon extends SearchObject_Base
         $this->indexResult = $this->summon->query($this->searchTerms, 
             $this->getFilterList(), $this->page, $this->limit, $finalSort, 
             $this->fullFacetSettings, $returnIndexErrors);
-        if (PEAR::isError($this->indexResult)) {
-            PEAR::raiseError($this->indexResult);
+        if (PEAR_Singleton::isError($this->indexResult)) {
+            PEAR_Singleton::raiseError($this->indexResult);
         }
 
         // Save spelling details if they exist.

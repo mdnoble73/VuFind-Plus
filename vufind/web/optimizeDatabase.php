@@ -1,25 +1,10 @@
 <?php
-require_once 'sys/Logger.php';
-require_once 'PEAR.php';
-require_once 'sys/ConfigArray.php';
-$configArray = readConfig();
-require_once 'sys/Utils/SwitchDatabase.php';
-require_once 'sys/Timer.php';
+
+require_once 'bootstrap.php';
+require_once ROOT_DIR . '/sys/Utils/SwitchDatabase.php';
 global $timer;
-$timer = new Timer(time());
 global $logger;
-$logger = new Logger();
 
-if ($configArray['System']['debug']) {
-	ini_set('display_errors', true);
-	error_reporting(E_ALL & ~E_DEPRECATED);
-}
-// Setup Local Database Connection
-define('DB_DATAOBJECT_NO_OVERLOAD', 0);
-$options =& PEAR::getStaticProperty('DB_DataObject', 'options');
-$options = $configArray['Database'];
-
-require_once('Drivers/marmot_inc/Library.php');
 $library = new Library();
 $library->find();
 

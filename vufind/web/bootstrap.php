@@ -1,14 +1,19 @@
 <?php
 define ('ROOT_DIR', __DIR__);
 
+global $errorHandlingEnabled;
+$errorHandlingEnabled = true;
+
 $startTime = microtime(true);
-require_once 'sys/Logger.php';
-require_once 'PEAR.php';
-require_once 'sys/ConfigArray.php';
-require_once 'sys/Utils/SwitchDatabase.php';
+require_once ROOT_DIR . '/sys/Logger.php';
+require_once ROOT_DIR . '/sys/PEAR_Singleton.php';
+PEAR_Singleton::init();
+
+require_once ROOT_DIR . '/sys/ConfigArray.php';
+require_once ROOT_DIR . '/sys/Utils/SwitchDatabase.php';
 global $configArray;
 $configArray = readConfig();
-require_once 'sys/Timer.php';
+require_once ROOT_DIR . '/sys/Timer.php';
 global $timer;
 $timer = new Timer($startTime);
 global $logger;
@@ -25,7 +30,7 @@ initDatabase();
 requireSystemLibraries();
 initLocale();
 // Sets global error handler for PEAR errors
-PEAR::setErrorHandling(PEAR_ERROR_CALLBACK, 'handlePEARError');
+PEAR_Singleton::setErrorHandling(PEAR_ERROR_CALLBACK, 'handlePEARError');
 loadLibraryAndLocation();
 
 $timer->logTime('Bootstrap');
@@ -45,7 +50,7 @@ function initMemcache(){
 	if (!$memCache->pconnect($host, $port, $timeout)) {
 		//Try again with a non-persistent connection
 		if (!$memCache->connect($host, $port, $timeout)) {
-			PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
 		}
 	}
 	$timer->logTime("Initialize Memcache");
@@ -55,25 +60,25 @@ function initDatabase(){
 	global $configArray;
 	// Setup Local Database Connection
 	define('DB_DATAOBJECT_NO_OVERLOAD', 0);
-	$options =& PEAR::getStaticProperty('DB_DataObject', 'options');
+	$options =& PEAR_Singleton::getStaticProperty('DB_DataObject', 'options');
 	$options = $configArray['Database'];
 }
 
 function requireSystemLibraries(){
 	global $timer;
 	// Require System Libraries
-	require_once 'sys/Interface.php';
+	require_once ROOT_DIR . '/sys/Interface.php';
 	$timer->logTime("Include Interface");
-	require_once 'sys/User.php';
+	require_once ROOT_DIR . '/sys/User.php';
 	$timer->logTime("Include User");
-	require_once 'sys/Translator.php';
+	require_once ROOT_DIR . '/sys/Translator.php';
 	$timer->logTime("Include Translator");
-	require_once 'sys/SearchObject/Factory.php';
+	require_once ROOT_DIR . '/sys/SearchObject/Factory.php';
 	$timer->logTime("Include Search Object Factory");
-	require_once 'sys/ConnectionManager.php';
+	require_once ROOT_DIR . '/sys/ConnectionManager.php';
 	$timer->logTime("Include ConnectionManager");
-	require_once 'Drivers/marmot_inc/Library.php';
-	require_once 'Drivers/marmot_inc/Location.php';
+	require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
+	require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 	$timer->logTime("Include Library and Location");
 }
 
@@ -86,6 +91,14 @@ function initLocale(){
 	date_default_timezone_set($configArray['Site']['timezone']);
 }
 
+/**
+ * Handle an error raised by pear
+ *
+ * @var PEAR_Error $error;
+ * @var string $method
+ *
+ * @return null
+ */
 function handlePEARError($error, $method = null){
 	global $errorHandlingEnabled;
 	if (isset($errorHandlingEnabled) && $errorHandlingEnabled == false){
@@ -199,4 +212,13 @@ function loadLibraryAndLocation(){
 	//Update configuration information for scoping now that the database is setup.
 	$configArray = updateConfigForScoping($configArray);
 	$timer->logTime('Updated config for scoping');
+}
+
+function disableErrorHandler(){
+	global $errorHandlingEnabled;
+	$errorHandlingEnabled = false;
+}
+function enableErrorHandler(){
+	global $errorHandlingEnabled;
+	$errorHandlingEnabled = true;
 }

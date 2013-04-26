@@ -19,7 +19,7 @@
  */
  
 require_once 'Record.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 class Export extends Record
 {

@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/ListWidgetListsLinks.php';
+require_once ROOT_DIR . '/sys/ListWidgetListsLinks.php';
 
 class ListWidgetList extends DB_DataObject
 {

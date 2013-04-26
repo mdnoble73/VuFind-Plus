@@ -1,6 +1,6 @@
 <?php
 require_once 'Authentication.php';
-require_once 'sys/Administration/Administrator.php';
+require_once ROOT_DIR . '/sys/Administration/Administrator.php';
 
 class AdminDBAuthentication implements Authentication {
 

@@ -18,8 +18,8 @@
  *
  */
 
-require_once "Action.php";
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 class EmailPin extends Action{
 	protected $catalog;

@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/Suggestions.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
 
-require_once 'services/MyResearch/lib/User_resource.php';
-require_once 'services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
 
 class AJAX extends Action {
 
@@ -63,12 +63,12 @@ class AJAX extends Action {
 	// Create new list
 	function AddList()
 	{
-		require_once 'services/MyResearch/ListEdit.php';
+		require_once ROOT_DIR . '/services/MyResearch/ListEdit.php';
 		$return = array();
 		if (UserAccount::isLoggedIn()) {
 			$listService = new ListEdit();
 			$result = $listService->addList();
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$return['result'] = 'Done';
 				$return['newId'] = $result;
 			} else {
@@ -92,7 +92,7 @@ class AJAX extends Action {
 	 */
 	function GetPreferredBranches()
 	{
-		require_once 'Drivers/marmot_inc/Location.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 		global $configArray;
 		global $user;
 
@@ -130,7 +130,7 @@ class AJAX extends Action {
 					'selected' => $curLocation->selected,
 				);
 			}
-			require_once 'Drivers/marmot_inc/PType.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 			$maxHolds = -1;
 			//Determine if we should show a warning
 			$ptype = new PType();
@@ -220,7 +220,7 @@ class AJAX extends Action {
 		$scrollerName = isset($_GET['scrollerName']) ? strip_tags($_GET['scrollerName']) : $listName;
 
 		//Determine the caching parameters
-		require_once('services/API/ListAPI.php');
+		require_once(ROOT_DIR . '/services/API/ListAPI.php');
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForList();
 
@@ -283,7 +283,7 @@ class AJAX extends Action {
 	function getOverDriveSummary(){
 		global $user;
 		if ($user){
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$summary = $overDriveDriver->getOverDriveSummary($user);
 			return json_encode($summary);

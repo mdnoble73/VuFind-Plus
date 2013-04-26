@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class TransferAccountInfo extends Admin
 {
@@ -52,8 +52,8 @@ class TransferAccountInfo extends Admin
 			} 
 			
 			if ($okToTransfer){
-				require_once 'services/MyResearch/lib/Resource.php';
-				require_once 'sys/eContent/EContentRecord.php';
+				require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+				require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 				//Transfer ratings for regular titles
 				$message .= "<p>Transfered: <ul>";
 				$resource = new Resource();

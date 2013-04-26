@@ -64,14 +64,14 @@ class MarcLoader{
 				//$rawMarc = file_get_contents($individualName);
 				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
 				if (!($marcRecord = $marc->next())) {
-					PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
+					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
 				}else{
 					if ($memCache){
 						$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);
 					}
 				}
 			}else{
-				require_once 'services/MyResearch/lib/Resource.php';
+				require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 				$resource = new Resource;
 				$resource->record_id = $ilsId;
 				if ($recordType == 'marc'){
@@ -94,7 +94,7 @@ class MarcLoader{
 					$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
 
 					if (!($marcRecord = $marc->next())) {
-						PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
+						PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
 					}else{
 						if ($memCache){
 							$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);

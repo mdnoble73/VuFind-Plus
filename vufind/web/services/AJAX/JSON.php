@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class JSON extends Action {
 
@@ -67,8 +67,8 @@ class JSON extends Action {
 	}
 
 	function saveToMyList(){
-		require_once 'services/MyResearch/lib/Resource.php';
-		require_once 'services/MyResearch/lib/User.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 		$listId = $_REQUEST['list'];
 		$tags = $_REQUEST['mytags'];
@@ -116,9 +116,9 @@ class JSON extends Action {
 		//Login the user.  Must be called via Post parameters.
 		global $user;
 		$user = UserAccount::isLoggedIn();
-		if (!$user || PEAR::isError($user)){
+		if (!$user || PEAR_Singleton::isError($user)){
 			$user = UserAccount::login();
-			if (!$user || PEAR::isError($user)){
+			if (!$user || PEAR_Singleton::isError($user)){
 				return array('success'=>false);
 			}
 		}
@@ -126,7 +126,7 @@ class JSON extends Action {
 		global $locationSingleton;
 		$patronHomeBranch = $locationSingleton->getUserHomeLocation();
 		//Check to see if materials request should be activated
-		require_once 'sys/MaterialsRequest.php';
+		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
 		return array(
 			'success'=>true,
 			'name'=>ucwords($user->firstname . ' ' . $user->lastname),
@@ -170,7 +170,7 @@ class JSON extends Action {
 		$results = array();
 		if (count($printIds) > 0){
 			$results = $catalog->getStatuses($printIds);
-			if (PEAR::isError($results)) {
+			if (PEAR_Singleton::isError($results)) {
 				$this->output($results->getMessage(), JSON::STATUS_ERROR);
 			} else if (!is_array($results)) {
 				// If getStatuses returned garbage, let's turn it into an empty array
@@ -201,7 +201,7 @@ class JSON extends Action {
 		$statuses = array();
 		foreach ($results as $record) {
 			// Skip errors and empty records:
-			if (!PEAR::isError($record) && count($record)) {
+			if (!PEAR_Singleton::isError($record) && count($record)) {
 				if ($locationSetting == "group") {
 					$current = $this->_getItemStatusGroup($record, $messages, $callnumberSetting);
 				} else {
@@ -229,7 +229,7 @@ class JSON extends Action {
 		}
 
 		if (count($econtentIds) > 0){
-			require_once 'Drivers/EContentDriver.php';
+			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 			$econtentDriver = new EContentDriver();
 			$econtentResults = $econtentDriver->getStatuses($econtentIds);
 			foreach ($econtentResults as $result){
@@ -390,7 +390,7 @@ class JSON extends Action {
 	 * @access public
 	 */
 	public function emailCartItems() {
-		require_once 'sys/Mailer.php';
+		require_once ROOT_DIR . '/sys/Mailer.php';
 		// Load the appropriate module based on the "type" parameter:
 		global $configArray;
 		$ids = $_REQUEST['id'];

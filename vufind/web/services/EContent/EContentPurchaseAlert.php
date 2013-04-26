@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/Pager.php';
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once(ROOT_DIR . "/PHPExcel.php");
 
 class EContentPurchaseAlert extends Admin
 {
@@ -127,7 +127,7 @@ class EContentPurchaseAlert extends Admin
 		// Set active sheet index to the first sheet, so Excel opens this as the first sheet
 		$objPHPExcel->setActiveSheetIndex(0);
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename=EContentWishListReport.xls');
 		header('Cache-Control: max-age=0');

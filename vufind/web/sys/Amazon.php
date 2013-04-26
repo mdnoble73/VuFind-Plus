@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * AWS_Request Class
@@ -118,7 +118,7 @@ class AWS_Request
 		$result = $client->sendRequest();
 
 		// Send back the error or the response body, as appropriate:
-		return PEAR::isError($result) ? $result : $client->getResponseBody();
+		return PEAR_Singleton::isError($result) ? $result : $client->getResponseBody();
 	}
 }
 ?>

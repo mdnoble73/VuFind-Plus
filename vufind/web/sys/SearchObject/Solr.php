@@ -208,7 +208,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$restored = $this->restoreSavedSearch();
 		if ($restored === true) {
 			return true;
-		} else if (PEAR::isError($restored)) {
+		} else if (PEAR_Singleton::isError($restored)) {
 			return false;
 		}
 
@@ -225,7 +225,7 @@ class SearchObject_Solr extends SearchObject_Base
 		($_REQUEST['type'] == 'ISN' || $_REQUEST['type'] == 'Keyword' || $_REQUEST['type'] == 'AllFields') &&
 		(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']) ||
 		preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']))) {
-			require_once('sys/ISBN.php');
+			require_once(ROOT_DIR . '/sys/ISBN.php');
 			$isbn = new ISBN($_REQUEST['lookfor']);
 			$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
 		}
@@ -948,8 +948,8 @@ class SearchObject_Solr extends SearchObject_Base
 	private function processTagSearch($lookfor)
 	{
 		// Include the app database objects
-		require_once 'services/MyResearch/lib/Tags.php';
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		// Find our tag in the database
 		$tag = new Tags();
@@ -1070,7 +1070,7 @@ class SearchObject_Solr extends SearchObject_Base
 		// Build Query
 		$query = $this->indexEngine->buildQuery($search);
 		$timer->logTime("build query");
-		if (PEAR::isError($query)) {
+		if (PEAR_Singleton::isError($query)) {
 			return $query;
 		}
 

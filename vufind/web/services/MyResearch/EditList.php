@@ -25,7 +25,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
-require_once "Action.php";
+require_once ROOT_DIR . "/Action.php";
 
 require_once 'Home.php';
 
@@ -82,7 +82,7 @@ class EditList extends Action
 
 		// Ensure user have privs to view the list
 		if ($list->user_id != $user->id) {
-			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
+			PEAR_Singleton::raiseError(new PEAR_Error(translate('list_access_denied')));
 		}
 
 		// Save Data

@@ -53,7 +53,7 @@ class Resource extends DB_DataObject {
 		$tag->query($query);
 		if ($tag->N) {
 			//Load all bad words.
-			require_once('Drivers/marmot_inc/BadWord.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
 			$badWords = new BadWord();
 			$badWordsList = $badWords->getBadWordExpressions();
 
@@ -117,7 +117,7 @@ class Resource extends DB_DataObject {
 		$tag->query($query);
 		if ($tag->N) {
 			//Load all bad words.
-			require_once('Drivers/marmot_inc/BadWord.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
 			$badWords = new BadWord();
 			$badWordsList = $badWords->getBadWordExpressions();
 
@@ -160,8 +160,8 @@ class Resource extends DB_DataObject {
 
 	function addTag($tag, $user)
 	{
-		require_once 'services/MyResearch/lib/Tags.php';
-		require_once 'services/MyResearch/lib/Resource_tags.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
 
 		$tags = new Tags();
 		$tags->tag = $tag;
@@ -182,8 +182,8 @@ class Resource extends DB_DataObject {
 
 	function removeTag($tagId, $user, $removeFromAllResources = false)
 	{
-		require_once 'services/MyResearch/lib/Tags.php';
-		require_once 'services/MyResearch/lib/Resource_tags.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
 
 		$rTag = new Resource_tags();
 		if (!$removeFromAllResources){
@@ -220,7 +220,7 @@ class Resource extends DB_DataObject {
 
 	function addComment($body, $user, $source = 'VuFind')
 	{
-		require_once 'services/MyResearch/lib/Comments.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 		$comment = new Comments();
 		$comment->user_id = $user->id;
@@ -233,7 +233,7 @@ class Resource extends DB_DataObject {
 	}
 
 	function getComments($source = 'VuFind'){
-		require_once 'services/MyResearch/lib/Comments.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 		$sql = "SELECT comments.*, concat(user.firstname, ' ', user.lastname) as fullname, user.displayName as displayName " .
                "FROM comments RIGHT OUTER JOIN user on comments.user_id = user.id " .
@@ -243,7 +243,7 @@ class Resource extends DB_DataObject {
 		global $library;
 		global $user;
 		//Load all bad words.
-		require_once('Drivers/marmot_inc/BadWord.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
 		$badWords = new BadWord();
 		$badWordsList = $badWords->getBadWordExpressions();
 
@@ -296,7 +296,7 @@ class Resource extends DB_DataObject {
 
 	function addRating($ratingValue, $user)
 	{
-		require_once 'Drivers/marmot_inc/UserRating.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 
 		$rating = new UserRating();
 		$rating->userid = $user->id;
@@ -321,7 +321,7 @@ class Resource extends DB_DataObject {
 			global $user;
 		}
 
-		require_once 'Drivers/marmot_inc/UserRating.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 
 		//Set default rating data
 		$ratingData = array(

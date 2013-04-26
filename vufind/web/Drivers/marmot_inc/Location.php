@@ -4,8 +4,8 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'Drivers/marmot_inc/LocationHours.php';
-require_once 'Drivers/marmot_inc/LocationFacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
 
 class Location extends DB_DataObject
 {
@@ -618,7 +618,7 @@ class Location extends DB_DataObject
 			$todayFormatted = date('Y-m-d', $timeToCheck);
 
 			// check to see if today is a holiday
-			require_once 'Drivers/marmot_inc/Holiday.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 			$holidays = array();
 			$holiday = new Holiday();
 			$holiday->date = $todayFormatted;
@@ -634,7 +634,7 @@ class Location extends DB_DataObject
 			$dayOfWeekToday = strftime ('%w', $timeToCheck);
 
 			// find library hours for the above day of the week
-			require_once 'Drivers/marmot_inc/LocationHours.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 			$hours = new LocationHours();
 			$hours->locationId = $locationId;
 			$hours->day = $dayOfWeekToday;

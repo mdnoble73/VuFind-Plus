@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/SolrDataObject.php';
+require_once ROOT_DIR . '/sys/SolrDataObject.php';
 
 class EContentCheckout extends DB_DataObject {
 	public $__table = 'econtent_checkout';    // table name

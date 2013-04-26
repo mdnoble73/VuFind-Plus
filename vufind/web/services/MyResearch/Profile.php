@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 class Profile extends MyResearch
 {
@@ -40,7 +40,7 @@ class Profile extends MyResearch
 		if (isset($_POST['update'])) {
 			$result = $this->catalog->updatePatronInfo($user->cat_password, $canUpdateContactInfo);
 			$_SESSION['profileUpdateErrors'] = $result;
-			require_once 'Drivers/OverDriveDriverFactory.php';
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$result = $overDriveDriver->updateLendingOptions();
 
@@ -58,7 +58,7 @@ class Profile extends MyResearch
 			$interface->assign('edit', false);
 		}
 
-		require_once 'Drivers/OverDriveDriverFactory.php';
+		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		if ($overDriveDriver->version >= 2){
 			$overDriveSummary = $overDriveDriver->getAccountDetails($user);

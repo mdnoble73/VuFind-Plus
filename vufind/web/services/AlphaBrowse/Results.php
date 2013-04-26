@@ -73,7 +73,7 @@ class Results extends Home {
 
 		// If required parameters are present, load results:
 		if ($source && $from !== false) {
-			require_once('sys/AlphaBrowse.php');
+			require_once(ROOT_DIR . '/sys/AlphaBrowse.php');
 			$alphaBrowse = new AlphaBrowse();
 			$result = $alphaBrowse->getBrowseResults($source, $from, $page, $limit);
 

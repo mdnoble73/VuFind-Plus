@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Purchase extends Action {
 
@@ -44,7 +44,7 @@ class Purchase extends Action {
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($recordId))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		$this->record = $record;
 		$interface->assign('record', $record);
@@ -56,7 +56,7 @@ class Purchase extends Action {
 
 		if ($field856Index == null){
 			// Find the store in the database
-			require_once 'Drivers/marmot_inc/BookStore.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/BookStore.php';
 			$storeDbObj = new BookStore();
 			$storeDbObj->storeName = $store;
 			$storeDbObj->find();
@@ -66,12 +66,12 @@ class Purchase extends Action {
 			}
 		}else{
 			// Process MARC Data
-			require_once 'sys/MarcLoader.php';
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
 			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 			if ($marcRecord) {
 				$this->marcRecord = $marcRecord;
 			} else {
-				PEAR::raiseError(new PEAR_Error("Failed to load the MAC record for this title."));
+				PEAR_Singleton::raiseError(new PEAR_Error("Failed to load the MAC record for this title."));
 			}
 				
 			$linkFields =$marcRecord->getFields('856') ;
@@ -91,9 +91,9 @@ class Purchase extends Action {
 		}
 
 		//Do not track purchases from Bots
-		require_once('sys/BotChecker.php');
+		require_once(ROOT_DIR . '/sys/BotChecker.php');
 		if (!BotChecker::isRequestFromBot()){
-			require_once 'sys/PurchaseLinkTracking.php';
+			require_once ROOT_DIR . '/sys/PurchaseLinkTracking.php';
 			$tracking = new PurchaseLinkTracking();
 			$tracking->ipAddress = $ipAddress;
 			$tracking->recordId = $recordId;
@@ -105,7 +105,7 @@ class Purchase extends Action {
 		if ($purchaseLinkUrl != ""){
 			header( "Location:" .$purchaseLinkUrl);
 		} else {
-			PEAR::raiseError(new PEAR_Error("Failed to load the store information for this title."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load the store information for this title."));
 		}
 			
 	}

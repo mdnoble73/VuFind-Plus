@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/DataObjectUtil.php';
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 class Edit extends Action {
 
 	function launch()

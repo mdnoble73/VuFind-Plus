@@ -2,22 +2,9 @@
 ini_set('display_errors', true);
 error_reporting(E_ALL & ~E_DEPRECATED);
 
-require_once 'sys/ConfigArray.php';
-$configArray = readConfig();
+require_once 'bootstrap.php';
 
-global $memCache;
-// Set defaults if nothing set in config file.
-$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
-$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
-$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
-
-// Connect to Memcache:
-$memCache = new Memcache();
-if (!$memCache->pconnect($host, $port, $timeout)) {
-	PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
-}
-
-require_once 'Drivers/OverDriveDriverFactory.php';
+require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
 $libraryInfo = $driver->getLibraryAccountInformation();

@@ -12,8 +12,8 @@
 
 require_once 'Interface.php';
 require_once 'DAIA.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'sys/authn/LDAPConfigurationParameter.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/sys/authn/LDAPConfigurationParameter.php';
 
 /**
  * Holding information is got by DAIA, so its not necessary to implement those functions here

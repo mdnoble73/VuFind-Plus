@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'services/Report/AnalyticsReport.php';
-require_once 'sys/Pager.php';
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/services/Report/AnalyticsReport.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once(ROOT_DIR . "/PHPExcel.php");
 
 class DetailedReport extends AnalyticsReport{
 

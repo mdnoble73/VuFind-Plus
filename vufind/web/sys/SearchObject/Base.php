@@ -76,7 +76,7 @@ abstract class SearchObject_Base
 	// Flag for logging/search history
 	protected $disableLogging = false;
 	// Debugging flag
-	protected $debug;
+	public $debug;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -431,7 +431,7 @@ abstract class SearchObject_Base
 			if (count($_REQUEST['lookfor']) == 1) {
 				$_REQUEST['lookfor'] = strip_tags($_REQUEST['lookfor'][0]);
 			} else {
-				PEAR::RaiseError(new PEAR_Error("Unsupported search URL."));
+				PEAR_Singleton::RaiseError(new PEAR_Error("Unsupported search URL."));
 				die();
 			}
 		}
@@ -499,7 +499,7 @@ abstract class SearchObject_Base
 					if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
 							(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
 							preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
-						require_once('sys/ISBN.php');
+						require_once(ROOT_DIR . '/sys/ISBN.php');
 						$isbn = new ISBN($lookfor);
 						$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
 					}
@@ -1751,7 +1751,7 @@ abstract class SearchObject_Base
 				// tried to load a non-existent module, and we'll ignore it.
 				$obj = RecommendationFactory::initRecommendation($module, $this,
 				$params);
-				if ($obj && !PEAR::isError($obj)) {
+				if ($obj && !PEAR_Singleton::isError($obj)) {
 					$obj->init();
 					$this->recommend[$location][] = $obj;
 				}
@@ -1936,7 +1936,7 @@ public function getNextPrevLinks(){
 					$nextResults = $nextSearchObject->getResultRecordSet();
 				}
 
-				if (PEAR::isError($result)) {
+				if (PEAR_Singleton::isError($result)) {
 					//If we get an error excuting the search, just eat it for now.
 				}else{
 					if ($searchObject->getResultTotal() < 1) {

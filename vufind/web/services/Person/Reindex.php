@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'sys/Genealogy/Person.php';
-require_once 'Action.php';
+require_once ROOT_DIR . '/sys/Genealogy/Person.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Reindex extends Action{
 	function launch(){

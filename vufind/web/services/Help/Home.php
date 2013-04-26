@@ -19,7 +19,7 @@
  */
 
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Home extends Action
 {
@@ -56,7 +56,7 @@ class Home extends Action
 
 			// Error -- help isn't available at all!
 		} else {
-			PEAR::raiseError(new PEAR_Error('Unknown Help Page'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Unknown Help Page'));
 		}
 
 		$interface->display('Help/help.tpl');

@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Search extends Action
 {
@@ -40,8 +40,8 @@ class Search extends Action
 		// TODO : Stats
 
 		$result = $searchObject->processSearch();
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 
 		$interface->assign('sortList',    $searchObject->getSortList());

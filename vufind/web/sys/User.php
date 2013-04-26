@@ -21,10 +21,10 @@
 require_once 'XML/Unserializer.php';
 require_once 'XML/Serializer.php';
 
-require_once 'sys/authn/AuthenticationFactory.php';
+require_once ROOT_DIR . '/sys/authn/AuthenticationFactory.php';
 
 // This is necessary for unserialize
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class UserAccount
 {
@@ -59,7 +59,7 @@ class UserAccount
 		$user = $authN->authenticate();
 
 		// If we authenticated, store the user in the session:
-		if (!PEAR::isError($user)) {
+		if (!PEAR_Singleton::isError($user)) {
 			self::updateSession($user);
 		}
 

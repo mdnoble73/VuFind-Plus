@@ -1,5 +1,5 @@
 <?php
-require_once('Drivers/marmot_inc/ISBNConverter.php') ;
+require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php') ;
 
 class Novelist{
 
@@ -30,7 +30,7 @@ class Novelist{
 				disableErrorHandler();
 				$req = new Proxy_Request($requestUrl);
 				//$result = file_get_contents($req);
-				if (PEAR::isError($req->sendRequest())) {
+				if (PEAR_Singleton::isError($req->sendRequest())) {
 					enableErrorHandler();
 					return null;
 				}
@@ -184,7 +184,7 @@ class Novelist{
 				$ratingData = $resource->getRatingData($user);
 				$fullRecordLink = '/Record/' . $ownedRecord['id'] . '/Home';
 			}else{
-				require_once 'sys/eContent/EContentRating.php';
+				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 				$shortId = str_replace('econtentRecord', '', $ownedRecord['id']);
 				$econtentRating = new EContentRating();
 				$econtentRating->recordId = $shortId;

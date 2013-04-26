@@ -19,7 +19,7 @@
  */
 require_once 'File/MARC.php';
 
-require_once 'RecordDrivers/IndexRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/IndexRecord.php';
 
 /**
  * MARC Record Driver
@@ -37,10 +37,10 @@ class MarcRecord extends IndexRecord
 		parent::__construct($record);
 
 		// Also process the MARC record:
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 		if (!$this->marcRecord) {
-			PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
 		}
 	}
 
@@ -778,7 +778,7 @@ class MarcRecord extends IndexRecord
 			return new PEAR_Error('Cannot connect to ILS');
 		}
 		$holdingsSummary = $catalog->getStatusSummary($_GET['id']);
-		if (PEAR::isError($holdingsSummary)) {
+		if (PEAR_Singleton::isError($holdingsSummary)) {
 			return $holdingsSummary;
 		}
 

@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'Drivers/marmot_inc/GoDeeperData.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'Drivers/EContentDriver.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 
 class GoDeeper extends Action
 {

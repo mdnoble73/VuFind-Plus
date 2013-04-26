@@ -18,17 +18,17 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR  . '/Action.php';
 
 require_once 'File/MARC.php';
 
-require_once 'sys/Language.php';
+require_once ROOT_DIR  . '/sys/Language.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/Resource_tags.php';
-require_once 'services/MyResearch/lib/Tags.php';
-require_once 'RecordDrivers/Factory.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
 
 class Record extends Action
 {
@@ -41,12 +41,14 @@ class Record extends Action
 	public $marcRecord;
 
 	public $record;
+	public $similarTitles;
 
 	public $isbn;
 	public $upc;
 
 	public $cacheId;
 
+	/** @var  SearchObject_Solr */
 	public $db;
 
 	public $description;
@@ -79,7 +81,7 @@ class Record extends Action
 		$resource->deleted = 0;
 		if (!$resource->find()){
 			//Check to see if the record has been converted to an eContent record
-			require_once 'sys/eContent/EContentRecord.php';
+			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 			$econtentRecord = new EContentRecord();
 			$econtentRecord->ilsId = $this->id;
 			$econtentRecord->status = 'active';
@@ -102,9 +104,6 @@ class Record extends Action
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 		$this->db->disableScoping();
 
 		// Retrieve Full Marc Record
@@ -122,7 +121,7 @@ class Record extends Action
 		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());
 
 		// Process MARC Data
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR  . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
@@ -197,10 +196,12 @@ class Record extends Action
 
 		// Get ISBN for cover and review use
 		$mainIsbnSet = false;
+		/** @var File_MARC_Data_Field[] $isbnFields */
 		if ($isbnFields = $this->marcRecord->getFields('020')) {
 			$isbns = array();
 			//Use the first good ISBN we find.
 			foreach ($isbnFields as $isbnField){
+				/** @var File_MARC_Subfield $isbnSubfieldA */
 				if ($isbnSubfieldA = $isbnField->getSubfield('a')) {
 					$tmpIsbn = trim($isbnSubfieldA->getData());
 					if (strlen($tmpIsbn) > 0){
@@ -226,7 +227,7 @@ class Record extends Action
 			}
 			if (isset($this->isbn)){
 				if (strlen($this->isbn) == 13){
-					require_once('Drivers/marmot_inc/ISBNConverter.php');
+					require_once(ROOT_DIR  . '/Drivers/marmot_inc/ISBNConverter.php');
 					$this->isbn10 = ISBNConverter::convertISBN13to10($this->isbn);
 				}else{
 					$this->isbn10 = $this->isbn;
@@ -237,16 +238,18 @@ class Record extends Action
 		}
 
 		if ($upcField = $this->marcRecord->getField('024')) {
-			if ($upcField = $upcField->getSubfield('a')) {
-				$this->upc = trim($upcField->getData());
+			/** @var File_MARC_Data_Field $upcField */
+			if ($upcSubField = $upcField->getSubfield('a')) {
+				$this->upc = trim($upcSubField->getData());
 				$interface->assign('upc', $this->upc);
 			}
 		}
 
 
 		if ($issnField = $this->marcRecord->getField('022')) {
-			if ($issnField = $issnField->getSubfield('a')) {
-				$this->issn = trim($issnField->getData());
+			/** @var File_MARC_Data_Field $issnField */
+			if ($issnSubField = $issnField->getSubfield('a')) {
+				$this->issn = trim($issnSubField->getData());
 				if ($pos = strpos($this->issn, ' ')) {
 					$this->issn = substr($this->issn, 0, $pos);
 				}
@@ -272,8 +275,11 @@ class Record extends Action
 			}
 		}
 
+		/** @var File_MARC_Data_Field[] $marcField440 */
 		$marcField440 = $marcRecord->getFields('440');
+		/** @var File_MARC_Data_Field[] $marcField490 */
 		$marcField490 = $marcRecord->getFields('490');
+		/** @var File_MARC_Data_Field[] $marcField830 */
 		$marcField830 = $marcRecord->getFields('830');
 		if ($marcField440 || $marcField490 || $marcField830){
 			$series = array();
@@ -295,7 +301,7 @@ class Record extends Action
 		$useMarcSummary = true;
 		if ($this->isbn || $this->upc){
 			if ($library && $library->preferSyndeticsSummary == 1){
-				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
 				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
 				if (isset($summaryInfo['summary'])){
 					$interface->assign('summaryTeaser', $summaryInfo['summary']);
@@ -309,7 +315,7 @@ class Record extends Action
 				$interface->assign('summary', $this->getSubfieldData($summaryField, 'a'));
 				$interface->assign('summaryTeaser', $this->getSubfieldData($summaryField, 'a'));
 			}elseif ($library && $library->preferSyndeticsSummary == 0){
-				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
 				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
 				if (isset($summaryInfo['summary'])){
 					$interface->assign('summaryTeaser', $summaryInfo['summary']);
@@ -329,12 +335,14 @@ class Record extends Action
 			$subjectFields = explode(',', $subjectFieldsToShow);
 			$subjects = array();
 			foreach ($subjectFields as $subjectField){
+				/** @var File_MARC_Data_Field[] $marcFields */
 				$marcFields = $marcRecord->getFields($subjectField);
 				if ($marcFields){
 					foreach ($marcFields as $marcField){
 						$searchSubject = "";
 						$subject = array();
 						foreach ($marcField->getSubFields() as $subField){
+							/** @var File_MARC_Subfield $subField */
 							if ($subField->getCode() != 2){
 								$searchSubject .= " " . $subField->getData();
 								$subject[] = array(
@@ -430,6 +438,7 @@ class Record extends Action
 			foreach ($marcFields as $marcField){
 				$noteText = array();
 				foreach ($marcField->getSubFields() as $subfield){
+					/** @var File_MARC_Subfield $subfield */
 					$noteText[] = $subfield->getData();
 				}
 				$note = implode(',', $noteText);
@@ -443,6 +452,7 @@ class Record extends Action
 			$interface->assign('notes', $notes);
 		}
 
+		/** @var File_MARC_Data_Field[] $linkFields */
 		$linkFields =$marcRecord->getFields('856') ;
 		if ($linkFields){
 			$internetLinks = array();
@@ -579,13 +589,14 @@ class Record extends Action
 			}
 			$memCache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
 		}
+		$this->similarTitles = $similar;
 		$interface->assign('similarRecords', $similar);
 		$timer->logTime('Loaded similar titles');
 
 		// Find Other Editions
 		if ($configArray['Content']['showOtherEditionsPopup'] == false){
 			$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
-			if (!PEAR::isError($editions)) {
+			if (!PEAR_Singleton::isError($editions)) {
 				$interface->assign('editions', $editions);
 			}else{
 				$logger->logTime("Did not find any other editions");

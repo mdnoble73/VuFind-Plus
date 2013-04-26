@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'CatalogConnection.php';
-require_once 'services/MyResearch/MyResearch.php';
-require_once("PHPExcel.php");
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once(ROOT_DIR . "/PHPExcel.php");
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Holds extends MyResearch
 {
@@ -105,7 +105,7 @@ class Holds extends MyResearch
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
 				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR::isError($patronResult)) {
+				if (!PEAR_Singleton::isError($patronResult)) {
 					$interface->assign('profile', $patronResult);
 				}
 
@@ -122,7 +122,7 @@ class Holds extends MyResearch
 				}
 
 				$result = $this->catalog->getMyHolds($patron, $page, $recordsPerPage, $selectedSortOption);
-				if (!PEAR::isError($result)) {
+				if (!PEAR_Singleton::isError($result)) {
 					if (count($result) > 0 ) {
 						$location = new Location();
 						$pickupBranches = $location->getPickupBranches($patronResult, null);
@@ -335,7 +335,7 @@ class Holds extends MyResearch
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Holds');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="Holds.xls"');
 		header('Cache-Control: max-age=0');

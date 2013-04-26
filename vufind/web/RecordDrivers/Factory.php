@@ -64,7 +64,7 @@ class RecordDriverFactory {
 		}
 
 		// If we got here, something went very wrong:
-		PEAR::raiseError(new PEAR_Error("Problem loading record driver: {$driver}"));
+		PEAR_Singleton::raiseError(new PEAR_Error("Problem loading record driver: {$driver}"));
 	}
 }
 ?>

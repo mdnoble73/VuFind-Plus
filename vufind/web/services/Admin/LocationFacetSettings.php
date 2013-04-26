@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
 
 class LocationFacetSettings extends ObjectEditor

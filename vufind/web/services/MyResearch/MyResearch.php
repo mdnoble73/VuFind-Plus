@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 class MyResearch extends Action
 {
@@ -61,7 +61,7 @@ class MyResearch extends Action
 		if (isset($_POST['submit']) && !empty($_POST['submit'])) {
 			if ($this->catalog && isset($_POST['cat_username']) && isset($_POST['cat_password'])) {
 				$result = $this->catalog->patronLogin($_POST['cat_username'], $_POST['cat_password']);
-				if ($result && !PEAR::isError($result)) {
+				if ($result && !PEAR_Singleton::isError($result)) {
 					$user->cat_username = $_POST['cat_username'];
 					$user->cat_password = $_POST['cat_password'];
 					$user->update();
@@ -103,14 +103,14 @@ class MyResearch extends Action
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$profile = $this->catalog->getMyProfile($patron);
 					//global $logger;
 					//$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
-					if (!PEAR::isError($profile)) {
+					if (!PEAR_Singleton::isError($profile)) {
 						$interface->assign('profile', $profile);
 					}
 				}
@@ -172,7 +172,7 @@ class MyResearch extends Action
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username,
 				$user->cat_password);
-				if (empty($patron) || PEAR::isError($patron)) {
+				if (empty($patron) || PEAR_Singleton::isError($patron)) {
 					// Problem logging in -- clear user credentials so they can be
 					// prompted again; perhaps their password has changed in the
 					// system!

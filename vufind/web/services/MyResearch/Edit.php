@@ -18,7 +18,7 @@
  *
  */
 
-require_once "Action.php";
+require_once ROOT_DIR . "/Action.php";
 
 require_once 'Home.php';
 
@@ -52,7 +52,7 @@ class Edit extends Action
 		if ($resource->find(true)){
 			$interface->assign('resource', $resource);
 		}else{
-			PEAR::raiseError(new PEAR_Error("Could not find resource {$_REQUEST['resourceId']}"));
+			PEAR_Singleton::raiseError(new PEAR_Error("Could not find resource {$_REQUEST['resourceId']}"));
 		}
 
 		// Loop through the list of lists on the edit screen:
@@ -63,7 +63,7 @@ class Edit extends Action
 				$list->id = $listId;
 				$list->find(true);
 			} else {
-				PEAR::raiseError(new PEAR_Error('List ID Missing'));
+				PEAR_Singleton::raiseError(new PEAR_Error('List ID Missing'));
 			}
 
 			// Extract tags from the user input:

@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 global $configArray;
 
@@ -168,7 +168,7 @@ class AJAX extends Action {
 
 						$title = $resource->title;
 						$author = $resource->author;
-						require_once 'services/Record/Purchase.php';
+						require_once ROOT_DIR . '/services/Record/Purchase.php';
 						$purchaseLinks = Purchase::getStoresForTitle($title, $author);
 
 						if (count($purchaseLinks) > 0){
@@ -194,7 +194,7 @@ class AJAX extends Action {
 
 	function IsLoggedIn()
 	{
-		require_once 'services/MyResearch/lib/User.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 		return "<result>" .
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
@@ -203,14 +203,14 @@ class AJAX extends Action {
 	// Saves a Record to User's Account
 	function SaveRecord()
 	{
-		require_once 'services/Record/Save.php';
-		require_once 'services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/services/Record/Save.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
 
 		$result = array();
 		if (UserAccount::isLoggedIn()) {
 			$saveService = new Save();
 			$result = $saveService->saveRecord();
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$result['result'] = "Done";
 			} else {
 				$result['result'] = "Error";
@@ -223,8 +223,8 @@ class AJAX extends Action {
 
 	function GetSaveStatus()
 	{
-		require_once 'services/MyResearch/lib/User.php';
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		// check if user is logged in
 		if ((!$user = UserAccount::isLoggedIn())) {
@@ -248,7 +248,7 @@ class AJAX extends Action {
 	// Email Record
 	function SendEmail()
 	{
-		require_once 'services/Record/Email.php';
+		require_once ROOT_DIR . '/services/Record/Email.php';
 
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
@@ -256,7 +256,7 @@ class AJAX extends Action {
 		$emailService = new Email();
 		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
 
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return '<result>Error</result><details>' .
 			htmlspecialchars($result->getMessage()) . '</details>';
 		} else {
@@ -271,14 +271,14 @@ class AJAX extends Action {
 	// SMS Record
 	function SendSMS()
 	{
-		require_once 'services/Record/SMS.php';
+		require_once ROOT_DIR . '/services/Record/SMS.php';
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
 		$sms = new SMS();
 		$result = $sms->sendSMS();
 
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return '<result>Error</result>';
 		} else {
 			if ($result === true){
@@ -291,7 +291,7 @@ class AJAX extends Action {
 
 	function SaveComment()
 	{
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		$user = UserAccount::isLoggedIn();
 		if ($user === false) {
@@ -310,7 +310,7 @@ class AJAX extends Action {
 
 	function DeleteComment()
 	{
-		require_once 'services/MyResearch/lib/Comments.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 		global $user;
 		global $configArray;
 
@@ -331,8 +331,8 @@ class AJAX extends Action {
 	{
 		global $interface;
 
-		require_once 'services/MyResearch/lib/Resource.php';
-		require_once 'services/MyResearch/lib/Comments.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 		$interface->assign('id', $_GET['id']);
 
@@ -354,8 +354,8 @@ class AJAX extends Action {
 	}
 
 	function RateTitle(){
-		require_once 'services/MyResearch/lib/Resource.php';
-		require_once('Drivers/marmot_inc/UserRating.php');
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/UserRating.php');
 		global $user;
 		global $analytics;
 		if (!isset($user) || $user == false){
@@ -380,7 +380,7 @@ class AJAX extends Action {
 	}
 
 	function GetGoDeeperData(){
-		require_once('Drivers/marmot_inc/GoDeeperData.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$id = $_REQUEST['id'];
 		$dataType = $_REQUEST['dataType'];
 		$upc = $_REQUEST['upc'];
@@ -492,7 +492,7 @@ class AJAX extends Action {
 		if (isset($library) && $library->showGoDeeper == 0){
 			$interface->assign('showGoDeeper', false);
 		}else{
-			require_once('Drivers/marmot_inc/GoDeeperData.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
 			if (count($goDeeperOptions['options']) == 0){
 				$interface->assign('showGoDeeper', false);
@@ -531,7 +531,7 @@ class AJAX extends Action {
 	}
 
 	function GetProspectorInfo(){
-		require_once 'Drivers/marmot_inc/Prospector.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		global $configArray;
 		global $interface;
 		$id = $_REQUEST['id'];
@@ -549,7 +549,7 @@ class AJAX extends Action {
 
 		// Retrieve Full record from Solr
 		if (!($record = $db->getRecord($id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 
 		$prospector = new Prospector();

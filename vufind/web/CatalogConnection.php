@@ -68,6 +68,7 @@ class CatalogConnection
 	 * This is responsible for instantiating the driver that has been specified.
 	 *
 	 * @param string $driver The name of the driver to load.
+	 * @throws PDOException error if we cannot connect to the driver.
 	 *
 	 * @access public
 	 */
@@ -296,7 +297,7 @@ class CatalogConnection
 
 		// Validate return from driver's getHolding method -- should be an array or
 		// an error.  Anything else is unexpected and should become an error.
-		if (!is_array($holding) && !PEAR::isError($holding)) {
+		if (!is_array($holding) && !PEAR_Singleton::isError($holding)) {
 			return new PEAR_Error('Unexpected return from getHolding: ' . $holding);
 		}
 

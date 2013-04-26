@@ -49,7 +49,7 @@ class Enrichment
 					$enrichment[$func] = Enrichment::$func($isbn);
 	
 					// If the current provider had no valid reviews, store nothing:
-					if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+					if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
 						unset($enrichment[$func]);
 					}
 				}

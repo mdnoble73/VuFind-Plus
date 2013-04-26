@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class Viewer extends Action
 {
@@ -52,12 +52,12 @@ class Viewer extends Action
 			$errorOccurred = true;
 			$interface->assign('showLogin', true);
 		}else{
-			require_once ('sys/eContent/EContentRecord.php');
+			require_once (ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $id;
 			if ($eContentRecord->find(true)){
 				//Check the database to see if there is an existing title
-				require_once('sys/eContent/EContentItem.php');
+				require_once(ROOT_DIR . '/sys/eContent/EContentItem.php');
 				$eContentItem = new EContentItem();
 				$eContentItem->id = $_REQUEST['item'];
 				if ($eContentItem->find(true)){
@@ -78,7 +78,7 @@ class Viewer extends Action
 			}
 
 			if (file_exists($bookFile) && $errorOccurred == false){
-				require_once('Drivers/EContentDriver.php');
+				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$driver = new EContentDriver();
 				//Check to see if the user has access to the title.
 				$isCheckedOut = $driver->isRecordCheckedOutToUser($id);
@@ -92,7 +92,7 @@ class Viewer extends Action
 					if (strcasecmp($eContentItem->item_type, 'epub') === 0){
 						$driver->recordEContentAction($id, "Read Online", $eContentRecord->accessType);
 
-						require_once('sys/eReader/ebook.php');
+						require_once(ROOT_DIR . '/sys/eReader/ebook.php');
 
 						$ebook = new ebook($bookFile);
 						if ($ebook->readErrorOccurred()){

@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'RecordDrivers/Interface.php';
+require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/Resource_tags.php';
-require_once 'services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
 
 /**
  * Index Record Driver
@@ -135,7 +135,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCitation($format)
 	{
-		require_once 'sys/CitationBuilder.php';
+		require_once ROOT_DIR . '/sys/CitationBuilder.php';
 
 		// Build author list:
 		$authors = array();
@@ -277,7 +277,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getEditions()
 	{
-		require_once 'sys/WorldCatUtils.php';
+		require_once ROOT_DIR . '/sys/WorldCatUtils.php';
 		$wc = new WorldCatUtils();
 
 		// Try to build an array of ISBN or ISSN-based sub-queries:
@@ -307,7 +307,7 @@ class IndexRecord implements RecordInterface
 			// Perform the search and return either results or an error:
 			$index = $this->getIndexEngine();
 			$result = $index->search($query, null, null, 0, 5);
-			if (PEAR::isError($result)) {
+			if (PEAR_Singleton::isError($result)) {
 				return $result;
 			}
 			if (isset($result['response']['docs']) &&
@@ -340,7 +340,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getExcerpts()
 	{
-		require_once 'sys/Excerpts.php';
+		require_once ROOT_DIR . '/sys/Excerpts.php';
 
 		$ed = new ExternalExcerpts($this->getCleanISBN());
 		return $ed->fetch();
@@ -644,7 +644,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getReviews()
 	{
-		require_once 'sys/Reviews.php';
+		require_once ROOT_DIR . '/sys/Reviews.php';
 
 		$rev = new ExternalReviews($this->getCleanISBN());
 		return $rev->fetch();
@@ -1063,7 +1063,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCleanISBN()
 	{
-		require_once 'sys/ISBN.php';
+		require_once ROOT_DIR . '/sys/ISBN.php';
 
 		// Get all the ISBNs and initialize the return value:
 		$isbns = $this->getISBNs();

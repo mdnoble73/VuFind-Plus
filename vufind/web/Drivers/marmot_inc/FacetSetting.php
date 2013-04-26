@@ -57,7 +57,7 @@ abstract class FacetSetting extends DB_DataObject {
 		return $availableFacets;
 	}
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		global $user;
 
 		$structure = array(

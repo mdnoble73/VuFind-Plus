@@ -21,9 +21,9 @@
  *
  */
 
-require_once "Action.php";
-require_once 'sys/MaterialsRequest.php';
-require_once 'sys/MaterialsRequestStatus.php';
+require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . '/sys/MaterialsRequest.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
 
 /**
  * MaterialsRequest AJAX Page, handles returing asynchronous information about Materials Requests.
@@ -262,7 +262,7 @@ class AJAX extends Action{
 				
 				if (strlen($curTitle['description']) == 0 && isset($curTitle["ISBN"]) && is_array($curTitle["ISBN"]) && count($curTitle["ISBN"]) > 0){
 					//Get the description from syndetics
-					require_once 'Drivers/marmot_inc/GoDeeperData.php';
+					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($curTitle["ISBN"][0], null);
 					if (isset($summaryInfo['summary'])){
 						$curTitle['description'] = $summaryInfo['summary'];

@@ -18,7 +18,7 @@
  *
  */
 require_once 'Interface.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 class XCNCIP implements DriverInterface
 {
@@ -45,8 +45,8 @@ class XCNCIP implements DriverInterface
         $client->setURL($this->config['Catalog']['url']);
         $client->addPostData('NCIP', $xml);
         $result = $client->sendRequest();
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
         
         // Process the NCIP response:
@@ -54,7 +54,7 @@ class XCNCIP implements DriverInterface
         if ($result = @simplexml_load_string($response)) {
             return $result;
         } else {
-            PEAR::raiseError(new PEAR_Error("Problem parsing XML"));
+            PEAR_Singleton::raiseError(new PEAR_Error("Problem parsing XML"));
         }
     }
 

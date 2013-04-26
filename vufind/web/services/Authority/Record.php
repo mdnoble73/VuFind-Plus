@@ -71,7 +71,7 @@ class Record extends Base
 
         // Retrieve the record from the index
         if (!($record = $this->db->getRecord($_GET['id']))) {
-            PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+            PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
         }
 
         // Send basic information to the template.
@@ -81,10 +81,10 @@ class Record extends Base
         $interface->assign('record', $record);
 
         // Load MARC data
-        require_once 'sys/MarcLoader.php';
+        require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
         if (!$marcRecord) {
-            PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record'));
+            PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record'));
         }
         $xml = trim($marcRecord->toXML());
 

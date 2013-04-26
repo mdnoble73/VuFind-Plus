@@ -20,7 +20,7 @@
 
 require_once 'XML/Unserializer.php';
 require_once 'XML/Serializer.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * Zebra SRU Search Interface
@@ -104,8 +104,8 @@ class Zebra implements IndexEngine {
                          'recordSchema' => 'marcxml');
 
     	$result = $this->_call('GET', 'select', $options, false);
-    	if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+    	if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
         
         $style = new DOMDocument;
@@ -233,8 +233,8 @@ class Zebra implements IndexEngine {
         }
 
     	$result = $this->_call('GET', 'select', $options);
-    	if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+    	if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;
@@ -293,8 +293,8 @@ class Zebra implements IndexEngine {
         }
 
     	$result = $this->_call('GET', 'select', $options);
-    	if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+    	if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
         
         return $result;
@@ -342,7 +342,7 @@ class Zebra implements IndexEngine {
     	$this->client->addRawQueryString($url);
         $result = $this->client->sendRequest();
         
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             if ($process) {
                 return $this->_process($this->client->getResponseBody());
             } else {
@@ -374,10 +374,10 @@ class Zebra implements IndexEngine {
         } else {
         	$unxml = new XML_Unserializer();
         	$result = $unxml->unserialize($result);
-        	if (!PEAR::isError($result)) {
+        	if (!PEAR_Singleton::isError($result)) {
                 return $unxml->getUnserializedData();
             } else {
-                PEAR::raiseError($result);
+                PEAR_Singleton::raiseError($result);
             }
         }
         

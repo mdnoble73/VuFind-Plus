@@ -18,13 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-//require_once 'sys/DataObjects/Pillar.php';
-require_once('services/Admin/Admin.php');
-require_once('sys/eContent/EContentRecord.php');
-require_once('sys/eContent/EContentItem.php');
-require_once 'sys/DataObjectUtil.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Search extends Admin {
 

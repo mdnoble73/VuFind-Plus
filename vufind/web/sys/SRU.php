@@ -21,7 +21,7 @@
 require_once 'XML/Unserializer.php';
 require_once 'XML/Serializer.php';
 require_once 'File/MARCXML.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . 'sys/Proxy_Request.php';
 
 /**
  * SRU Search Interface
@@ -32,7 +32,7 @@ require_once 'sys/Proxy_Request.php';
  */
 class SRU  {
     /**
-     * A boolean value detemrining whether to print debug information
+     * A boolean value determining whether to print debug information
      * @var bool
      */
     public $debug = false;
@@ -103,8 +103,8 @@ class SRU  {
                          'recordSchema' => 'marcxml');
 
         $result = $this->_call('GET', $options, false);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
         
         $style = new DOMDocument;
@@ -228,8 +228,8 @@ class SRU  {
         }
 
         $result = $this->_call('GET', $options);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;
@@ -256,8 +256,8 @@ class SRU  {
         }
 
         $result = $this->_call('GET', $options, false);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;
@@ -298,8 +298,8 @@ class SRU  {
         }
 
         $result = $this->_call('GET', $options, $process);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;
@@ -353,7 +353,7 @@ class SRU  {
         $this->client->addRawQueryString($url);
         $result = $this->client->sendRequest();
 
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             if ($process) {
                 return $this->_process($this->client->getResponseBody());
             } else {
@@ -369,7 +369,7 @@ class SRU  {
         global $configArray;
 
          if (substr($result, 0, 5) != '<?xml') {
-            PEAR::raiseError(new PEAR_Error('Cannot Load Results'));
+            PEAR_Singleton::raiseError(new PEAR_Error('Cannot Load Results'));
         }
 
         $xsl = new XSLTProcessor();
@@ -389,7 +389,7 @@ class SRU  {
             $unxml = new XML_Unserializer();
             $result = $unxml->unserialize($result);
 
-            if (!PEAR::isError($result)) {
+            if (!PEAR_Singleton::isError($result)) {
                 $output = $unxml->getUnserializedData();
                 // Make sure the result list is always an array, even if there is only
                 // a single result!
@@ -398,7 +398,7 @@ class SRU  {
                 }
                 return $output;
             } else {
-                PEAR::raiseError($result);
+                PEAR_Singleton::raiseError($result);
             }
         }
 

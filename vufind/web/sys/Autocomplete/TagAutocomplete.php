@@ -25,8 +25,8 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/autocomplete Wiki
  */
-require_once 'sys/Autocomplete/Interface.php';
-require_once 'services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR . '/sys/Autocomplete/Interface.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
 
 /**
  * Tag Autocomplete Module

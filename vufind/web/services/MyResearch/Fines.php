@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 require_once 'Structures/DataGrid.php';
 
@@ -31,12 +31,12 @@ class Fines extends MyResearch
 
 		// Get My Fines
 		if ($patron = $this->catalogLogin()) {
-			if (PEAR::isError($patron)){
-				PEAR::raiseError($patron);
+			if (PEAR_Singleton::isError($patron)){
+				PEAR_Singleton::raiseError($patron);
 			}
 			if ($this->catalog->checkFunction('getMyFines')){
 				$result = $this->catalog->getMyFines($patron, true);
-				if (!PEAR::isError($result)) {
+				if (!PEAR_Singleton::isError($result)) {
 					if (count($result)) {
 						// Drop the index object into a global
 						//  so it's accessible inside the callback.
@@ -66,7 +66,7 @@ class Fines extends MyResearch
 						$interface->assign('finesData', translate('You do not have any fines'));
 					}
 				}else{
-					PEAR::raiseError($result);
+					PEAR_Singleton::raiseError($result);
 				}
 			}else{
 				$interface->assign('finesData', translate('This catalog does not support listing fines.'));

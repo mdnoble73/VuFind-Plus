@@ -54,7 +54,7 @@ if (isset($location) && $location->footerTemplate != 'default'){
 }
 getGitBranch();
 
-require_once 'sys/Analytics.php';
+require_once ROOT_DIR . '/sys/Analytics.php';
 //Define tracking to be done
 global $analytics;
 global $active_ip;
@@ -266,7 +266,7 @@ if (!$analytics->isTrackingDisabled()){
 }
 
 //Determine whether or not materials request functionality should be enabled
-require_once 'sys/MaterialsRequest.php';
+require_once ROOT_DIR . '/sys/MaterialsRequest.php';
 $interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 // Process Authentication, must be done here so we can redirect based on user information
@@ -281,8 +281,8 @@ if ($user) {
 // Default case for all other authentication methods:
 ((isset($_POST['username']) && isset($_POST['password'])) && ($action != 'Account' && $module != 'AJAX'))) {
 	$user = UserAccount::login();
-	if (PEAR::isError($user)) {
-		require_once 'services/MyResearch/Login.php';
+	if (PEAR_Singleton::isError($user)) {
+		require_once ROOT_DIR . '/services/MyResearch/Login.php';
 		Login::launch($user->getMessage());
 		exit();
 	}
@@ -425,7 +425,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 
 	//Load repeat search options
-	require_once('Drivers/marmot_inc/SearchSources.php');
+	require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchSources.php');
 	$searchSources = new SearchSources();
 	$interface->assign('searchSources', $searchSources->getSearchSources());
 
@@ -551,10 +551,10 @@ if (is_readable("services/$module/$action.php")) {
 		$service->launch();
 		$timer->logTime('Finish launch of action');
 	} else {
-		PEAR::raiseError(new PEAR_Error('Unknown Action'));
+		PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
 	}
 } else {
-	PEAR::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
+	PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
 }
 $timer->logTime('Finished Index');
 $timer->writeTimings();
@@ -642,18 +642,6 @@ function processShards()
 		$interface->assign('shards', $shards);
 	}
 }
-
-function disableErrorHandler(){
-	global $errorHandlingEnabled;
-	$errorHandlingEnabled = false;
-}
-function enableErrorHandler(){
-	global $errorHandlingEnabled;
-	$errorHandlingEnabled = true;
-}
-
-// Process any errors that are thrown
-
 
 // Check for the various stages of functionality
 function checkAvailabilityMode() {
@@ -746,9 +734,9 @@ function vufind_autoloader($class) {
 	}
 	$nameSpaceClass = str_replace('_', '/', $class) . '.php';
 	if (file_exists('sys/' . $class . '.php')){
-		require_once 'sys/' . $class . '.php';
+		require_once ROOT_DIR . '/sys/' . $class . '.php';
 	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-		require_once 'services/MyResearch/lib/' . $class . '.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/' . $class . '.php';
 	}else{
 		require_once $nameSpaceClass;
 	}
@@ -813,7 +801,7 @@ function initializeSession(){
 	if (isset($configArray['Site']['cookie_domain'])){
 		session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
 	}
-	require_once 'sys/' . $session_type . '.php';
+	require_once ROOT_DIR . '/sys/' . $session_type . '.php';
 	if (class_exists($session_type)) {
 		$session = new $session_type();
 		$session->init($session_lifetime, $session_rememberMeLifetime);

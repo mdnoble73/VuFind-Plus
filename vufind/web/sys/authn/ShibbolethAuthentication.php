@@ -2,7 +2,7 @@
 require_once 'PEAR.php';
 require_once 'Authentication.php';
 require_once 'ShibbolethConfigurationParameter.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class ShibbolethAuthentication implements Authentication {
 

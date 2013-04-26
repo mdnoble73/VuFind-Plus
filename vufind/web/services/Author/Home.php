@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'sys/Proxy_Request.php';
-require_once 'sys/Pager.php';
-require_once 'sys/Novelist.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once ROOT_DIR . '/sys/Novelist.php';
 
 class Home extends Action
 {
@@ -52,7 +52,7 @@ class Home extends Action
 		$interface->caching = false;
 
 		if (!isset($_GET['author'])) {
-			PEAR::raiseError(new PEAR_Error('Unknown Author'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Unknown Author'));
 		} else {
 			$interface->assign('author', $_GET['author']);
 		}
@@ -130,7 +130,7 @@ class Home extends Action
 					$wiki_lang = substr($configArray['Site']['language'], 0, 2);
 					$authorInfo = $this->getWikipedia($authorName, $wiki_lang);
 					$interface->assign('wiki_lang', $wiki_lang);
-					if (!PEAR::isError($authorInfo)) {
+					if (!PEAR_Singleton::isError($authorInfo)) {
 						$interface->assign('info', $authorInfo);
 					}
 				}
@@ -148,8 +148,8 @@ class Home extends Action
 
 		// Process Search
 		$result = $searchObject->processSearch(false, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 
 		// Some more variables
@@ -258,12 +258,12 @@ class Home extends Action
 		$client->setURL($url);
 
 		$result = $client->sendRequest();
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return $result;
 		}
 
 		$info = $this->parseWikipedia(unserialize($client->getResponseBody()));
-		if (!PEAR::isError($info)) {
+		if (!PEAR_Singleton::isError($info)) {
 			return $info;
 		}
 	}
@@ -287,7 +287,7 @@ class Home extends Action
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
 		$result = $client->sendRequest();
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return false;
 		}
 

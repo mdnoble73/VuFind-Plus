@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once 'Record.php';
 
-require_once 'sys/Mailer.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
 
 class SMS extends Record {
 	private $sms;
@@ -37,7 +37,7 @@ class SMS extends Record {
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendSMS();
-			if (PEAR::isError($result)) {
+			if (PEAR_Singleton::isError($result)) {
 				$interface->assign('error', $result->getMessage());
 			}
 			$interface->assign('subTemplate', 'sms-status.tpl');
@@ -82,7 +82,7 @@ class SMS extends Record {
 		}
 
 		$holdingsSummary = $catalog->getStatusSummary($_GET['id']);
-		if (PEAR::isError($holdingsSummary)) {
+		if (PEAR_Singleton::isError($holdingsSummary)) {
 			return $holdingsSummary;
 		}
 

@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Hold extends Action {
 	var $catalog;
@@ -46,13 +46,13 @@ class Hold extends Action {
 		} elseif (method_exists($this->catalog->driver, 'getHoldLink')) {
 			// Redirect user to Place Hold screen on ILS OPAC
 			$link = $this->catalog->getHoldLink($_GET['id'],$patron['id'],$_GET['date']);
-			if (!PEAR::isError($link)) {
+			if (!PEAR_Singleton::isError($link)) {
 				header('Location:' . $link);
 			} else {
-				PEAR::raiseError($link);
+				PEAR_Singleton::raiseError($link);
 			}
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
 		}
 	}
 
@@ -73,8 +73,8 @@ class Hold extends Action {
 
 		//Get title information for the record.
 		$holding = $this->catalog->getHolding($recordId);
-		if (PEAR::isError($holding)) {
-			PEAR::raiseError($holding);
+		if (PEAR_Singleton::isError($holding)) {
+			PEAR_Singleton::raiseError($holding);
 		}
 		$interface->assign('holding', $holding);
 
@@ -117,7 +117,7 @@ class Hold extends Action {
 				$interface->assign('profile', $profile);
 
 				//Get information to show a warning if the user does not have sufficient holds
-				require_once 'Drivers/marmot_inc/PType.php';
+				require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 				$maxHolds = -1;
 				//Determine if we should show a warning
 				$ptype = new PType();
@@ -172,7 +172,7 @@ class Hold extends Action {
 		if ($record) {
 			$interface->assign('record', $record);
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot find record ' . $_GET['id']));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot find record ' . $_GET['id']));
 		}
 
 		$interface->assign('id', $_GET['id']);

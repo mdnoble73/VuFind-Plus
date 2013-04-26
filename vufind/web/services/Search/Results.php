@@ -180,8 +180,8 @@ class Results extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 		$timer->logTime('Process Search');
 
@@ -337,7 +337,7 @@ class Results extends Action {
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR::raiseError(new PEAR_Error('Unable to process query<br />' .
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
                         'Solr Returned: ' . $error));
 				}
 			}

@@ -21,14 +21,14 @@
  *
  */
 
-require_once 'Action.php';
-require_once('services/Admin/Admin.php');
-require_once('sys/MaterialsRequest.php');
-require_once('sys/MaterialsRequestStatus.php');
-require_once("sys/pChart/class/pData.class.php");
-require_once("sys/pChart/class/pDraw.class.php");
-require_once("sys/pChart/class/pImage.class.php");
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/Action.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequest.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
+require_once(ROOT_DIR . "/sys/pChart/class/pData.class.php");
+require_once(ROOT_DIR . "/sys/pChart/class/pDraw.class.php");
+require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
+require_once(ROOT_DIR . "/PHPExcel.php");
 
 class UserReport extends Admin {
 
@@ -159,7 +159,7 @@ class UserReport extends Admin {
 		// Rename sheet
 		$activeSheet->setTitle('User Report');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="MaterialsRequestUserReport.xls"');
 		header('Cache-Control: max-age=0');

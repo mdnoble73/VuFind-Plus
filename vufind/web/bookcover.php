@@ -1,4 +1,5 @@
 <?php
+define ('ROOT_DIR', __DIR__);
 /**
  *
  * Copyright (C) Villanova University 2007.
@@ -23,10 +24,10 @@
  *          images.  Also investigate local caching approach.  What about using
  *          Squid?
  */
-require_once 'sys/Timer.php';
-require_once 'sys/Logger.php';
-require_once 'sys/BookCoverProcessor.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Timer.php';
+require_once ROOT_DIR . '/sys/Logger.php';
+require_once ROOT_DIR . '/sys/BookCoverProcessor.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 //Bootstrap the process
 if (!function_exists('vufind_autoloader')){
 	// Set up autoloader (needed for YAML)
@@ -41,7 +42,7 @@ if (empty($timer)){
 }
 
 // Retrieve values from configuration file
-require_once 'sys/ConfigArray.php';
+require_once ROOT_DIR . '/sys/ConfigArray.php';
 $configArray = readConfig();
 $timer->logTime("Read config");
 if (isset($configArray['System']['timings'])){

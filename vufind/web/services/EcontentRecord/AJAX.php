@@ -254,8 +254,8 @@ class AJAX extends Action {
 		$interface->assign('holdings', $holdings);
 		//Load status summary
 		$result = $driver->getStatusSummary($id, $holdings);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result);
 		}
 		$interface->assign('holdingsSummary', $result);
 		return $interface->fetch('EcontentRecord/ajax-holdings.tpl');
@@ -280,7 +280,7 @@ class AJAX extends Action {
 
 		// Retrieve Full record from Solr
 		if (!($record = $db->getRecord($id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 
 		$prospector = new Prospector();
@@ -316,7 +316,7 @@ class AJAX extends Action {
 		$emailService = new Email();
 		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
 
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return '<result>Error</result><details>' .
 			htmlspecialchars($result->getMessage()) . '</details>';
 		} else {
@@ -334,7 +334,7 @@ class AJAX extends Action {
 		$sms = new SMS();
 		$result = $sms->sendSMS();
 
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return '<result>Error</result>';
 		} else {
 			if ($result === true){
@@ -549,7 +549,7 @@ class AJAX extends Action {
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
 		}
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
@@ -566,7 +566,7 @@ class AJAX extends Action {
 		$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : null;
 		//global $logger;
 		//$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
@@ -581,7 +581,7 @@ class AJAX extends Action {
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		$transactionId = $_REQUEST['transactionId'];
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->returnOverDriveItem($overDriveId, $transactionId, $user);
@@ -596,7 +596,7 @@ class AJAX extends Action {
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		$formatId = $_REQUEST['formatId'];
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->selectOverDriveDownloadFormat($overDriveId, $formatId, $user);
@@ -713,7 +713,7 @@ class AJAX extends Action {
 	function RemoveOverDriveRecordFromWishList(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->removeOverDriveItemFromWishlist($overDriveId, $user);
@@ -727,7 +727,7 @@ class AJAX extends Action {
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['formatId'];
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);

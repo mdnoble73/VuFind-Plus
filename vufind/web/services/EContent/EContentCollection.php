@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/Pager.php';
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once(ROOT_DIR . "/PHPExcel.php");
 
 class EContentCollection extends Admin
 {
@@ -214,7 +214,7 @@ class EContentCollection extends Admin
 		// Rename sheet
 		$activeSheet->setTitle('eContent Collction');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename=EContentCollectionDetailsReport.xls');
 		header('Cache-Control: max-age=0');

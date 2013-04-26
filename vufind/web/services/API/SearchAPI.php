@@ -54,7 +54,7 @@ class SearchAPI extends Action {
 		global $timer;
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		//setup the results array.
@@ -74,8 +74,8 @@ class SearchAPI extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 		$timer->logTime('Process Search');
 
@@ -98,7 +98,7 @@ class SearchAPI extends Action {
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR::raiseError(new PEAR_Error('Unable to process query<br />' .
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
                         'Solr Returned: ' . $error));
 				}
 			}
@@ -188,7 +188,7 @@ class SearchAPI extends Action {
 
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-			require_once('Drivers/marmot_inc/SearchStat.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']), strip_tags($_GET['type']), $searchObject->getResultTotal());
 		}
@@ -224,9 +224,9 @@ class SearchAPI extends Action {
 			$interface->assign('user', $user);
 		}
 		//Load the widget configuration
-		require_once 'sys/ListWidget.php';
-		require_once 'sys/ListWidgetList.php';
-		require_once 'sys/ListWidgetListsLinks.php';
+		require_once ROOT_DIR . '/sys/ListWidget.php';
+		require_once ROOT_DIR . '/sys/ListWidgetList.php';
+		require_once ROOT_DIR . '/sys/ListWidgetListsLinks.php';
 		$widget = new ListWidget();
 		$id = $_REQUEST['id'];
 
@@ -284,8 +284,8 @@ class SearchAPI extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 
 		if ($searchObject->getResultTotal() < 1){
@@ -309,7 +309,7 @@ class SearchAPI extends Action {
 		global $timer;
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		//setup the results array.
@@ -329,8 +329,8 @@ class SearchAPI extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 
 		if ($searchObject->getResultTotal() >= 1){

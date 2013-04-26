@@ -551,7 +551,7 @@ class VoyagerRestful extends Voyager
                 $renewalObj = $this->_makeRequest($hierarchy, $params, "POST");
 
                 $process = $this->_processRenewals($renewalObj);
-                if (PEAR::isError($process)) {
+                if (PEAR_Singleton::isError($process)) {
                     return $process;
                 }
                 // Process Renewal
@@ -616,10 +616,10 @@ class VoyagerRestful extends Voyager
                     $newTime = $this->dateFormat->convertToDisplayTime(
                         "Y-m-d H:i", $dueDate
                     );
-                    if (!PEAR::isError($newDate)) {
+                    if (!PEAR_Singleton::isError($newDate)) {
                         $response['new_date'] = $newDate;
                     }
-                    if (!PEAR::isError($newTime)) {
+                    if (!PEAR_Singleton::isError($newTime)) {
                         $response['new_time'] = $newTime;
                     }
                 }
@@ -865,7 +865,7 @@ class VoyagerRestful extends Voyager
         $lastInterestDate = $this->dateFormat->convertFromDisplayDate(
             "Y-m-d", $holdDetails['requiredBy']
         );
-        if (PEAR::isError($lastInterestDate)) {
+        if (PEAR_Singleton::isError($lastInterestDate)) {
             // Hold Date is invalid
             return $this->_holdError("hold_date_invalid");
         }
@@ -873,7 +873,7 @@ class VoyagerRestful extends Voyager
         $checkTime =  $this->dateFormat->convertFromDisplayDate(
             "U", $holdDetails['requiredBy']
         );
-        if (PEAR::isError($checkTime) || !is_numeric($checkTime)) {
+        if (PEAR_Singleton::isError($checkTime) || !is_numeric($checkTime)) {
             return $checkTime;
         }
 

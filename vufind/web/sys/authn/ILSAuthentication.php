@@ -1,6 +1,6 @@
 <?php
 require_once 'Authentication.php';
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 class ILSAuthentication implements Authentication {
 
@@ -18,7 +18,7 @@ class ILSAuthentication implements Authentication {
 
 			if ($catalog->status) {
 				$patron = $catalog->patronLogin($this->username, $this->password);
-				if ($patron && !PEAR::isError($patron)) {
+				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$user = $this->processILSUser($patron);
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');

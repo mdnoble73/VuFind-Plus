@@ -14,7 +14,7 @@ class Prospector{
 		$prospectorUrl = $this->getSearchLink($searchTerms);
 		//Load the HTML from Prospector
 		$req = new Proxy_Request($prospectorUrl);
-		if (PEAR::isError($req->sendRequest())) {
+		if (PEAR_Singleton::isError($req->sendRequest())) {
 			return null;
 		}
 		$prospectorInfo = $req->getResponseBody();

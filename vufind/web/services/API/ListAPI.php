@@ -599,7 +599,7 @@ class ListAPI extends Action {
 			}
 			elseif ($listId == 'highestRatedEContent')
 			{
-				require_once 'sys/eContent/EContentRating.php';
+				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 				$econtentRating = new EContentRating();
 				$records=$econtentRating->getRecordsListAvgRating("DESC",30);
 				if(!empty($records))
@@ -634,7 +634,7 @@ class ListAPI extends Action {
 				if (!$user){
 					return array('success'=>false, 'message'=>'A valid user must be provided to load recommendations.');
 				}
-				require_once('services/MyResearch/lib/Suggestions.php');
+				require_once(ROOT_DIR . '/services/MyResearch/lib/Suggestions.php');
 				$suggestions = Suggestions::getSuggestions($userId);
 				$titles = array();
 				foreach ($suggestions as $id=>$suggestion){
@@ -931,7 +931,7 @@ class ListAPI extends Action {
 				}
 
 				// Process MARC Data
-				require_once 'sys/MarcLoader.php';
+				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
@@ -962,7 +962,7 @@ class ListAPI extends Action {
 		global $configArray;
 		$listTitles = $memCache->get('system_list_titles_' . $listName);
 		if ($listTitles == false || isset($_REQUEST['reload'])){
-			require_once('services/Record/Description.php');
+			require_once(ROOT_DIR . '/services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
 			$searchObj = SearchObjectFactory::initSearchObject();
 			$searchObj->init();
@@ -992,7 +992,7 @@ class ListAPI extends Action {
 				}
 
 				// Process MARC Data
-				require_once 'sys/MarcLoader.php';
+				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
@@ -1021,7 +1021,7 @@ class ListAPI extends Action {
 		global $configArray;
 		$listTitles = $memCache->get('system_list_titles_' . $listName);
 		if ($listTitles == false){
-			require_once('services/Record/Description.php');
+			require_once(ROOT_DIR . '/services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
 			$scrollerName = strip_tags($_GET['scrollerName']);
 			$searchObj = SearchObjectFactory::initSearchObject();
@@ -1040,7 +1040,7 @@ class ListAPI extends Action {
 				}
 
 				// Process MARC Data
-				require_once 'sys/MarcLoader.php';
+				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
 					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
@@ -1102,7 +1102,7 @@ class ListAPI extends Action {
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new User_list();
 			$list->title = $_REQUEST['title'];
 			$list->description = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
@@ -1169,7 +1169,7 @@ class ListAPI extends Action {
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new User_list();
 			$list->id = $_REQUEST['listId'];
 			$list->user_id = $user->id;

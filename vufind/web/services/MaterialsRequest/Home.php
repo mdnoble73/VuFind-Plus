@@ -21,7 +21,7 @@
  * 
  */
 
-require_once "Action.php";
+require_once ROOT_DIR . "/Action.php";
 
 /**
  * MyResearch Home Page, should only get here when going to the login page.

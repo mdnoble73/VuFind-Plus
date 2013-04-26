@@ -21,10 +21,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once('services/Admin/Admin.php');
-require_once('sys/MaterialsRequest.php');
-require_once('sys/MaterialsRequestStatus.php');
+require_once ROOT_DIR . '/Action.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequest.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
 
 class ManageRequests extends Admin {
 
@@ -65,7 +65,7 @@ class ManageRequests extends Admin {
 			//Look for which titles should be modified
 			$selectedRequests = $_REQUEST['select'];
 			$statusToSet = $_REQUEST['newStatus'];
-			require_once 'sys/Mailer.php';
+			require_once ROOT_DIR . '/sys/Mailer.php';
 			$mail = new VuFindMailer();
 			foreach ($selectedRequests as $requestId => $selected){
 				$materialRequest = new MaterialsRequest();
@@ -321,7 +321,7 @@ class ManageRequests extends Admin {
 		// Rename sheet
 		$activeSheet->setTitle('Materials Requests');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename=MaterialsRequests.xls');
 		header('Cache-Control: max-age=0');

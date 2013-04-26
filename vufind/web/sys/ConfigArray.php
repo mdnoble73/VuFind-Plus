@@ -149,7 +149,7 @@ function readConfig()
 		if ($logger){
 			$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
 		}
-		PEAR::raiseError("Invalid configuration, could not find site for " . $_SERVER['SERVER_NAME']);
+		PEAR_Singleton::raiseError("Invalid configuration, could not find site for " . $_SERVER['SERVER_NAME']);
 	}
 
 	if ($mainArray == false){

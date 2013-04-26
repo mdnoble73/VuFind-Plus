@@ -18,13 +18,14 @@
  *
  */
 
-require_once 'services/Record/UserComments.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
-require_once 'sys/SolrStats.php';
+require_once ROOT_DIR . '/services/Record/UserComments.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class Home extends Action{
-	private $db;
+	/** @var  SearchObject_Solr $db */
+	protected $db;
 	private $id;
 	private $isbn;
 	private $issn;
@@ -181,7 +182,7 @@ class Home extends Action{
 
 			$interface->assign('id', $eContentRecord->id);
 
-			require_once('sys/eContent/EContentRating.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 			$eContentRating = new EContentRating();
 			$eContentRating->recordId = $eContentRecord->id;
 			$interface->assign('ratingData', $eContentRating->getRatingData($user, false));
@@ -202,7 +203,7 @@ class Home extends Action{
 			// Find Other Editions
 			if ($configArray['Content']['showOtherEditionsPopup'] == false){
 				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
-				if (!PEAR::isError($editions)) {
+				if (!PEAR_Singleton::isError($editions)) {
 					$interface->assign('editions', $editions);
 				}
 				$timer->logTime('Got Other editions');
@@ -392,7 +393,7 @@ class Home extends Action{
 		if ($interface->isMobile()){
 			//If we are in mobile interface, load standard reviews
 			$reviews = array();
-			require_once 'sys/Reviews.php';
+			require_once ROOT_DIR . '/sys/Reviews.php';
 			if ($eContentRecord->getIsbn()){
 				$externalReviews = new ExternalReviews($eContentRecord->getIsbn());
 				$reviews = $externalReviews->fetch();
@@ -443,7 +444,7 @@ class Home extends Action{
 				$enrichment[$func] = $this->$func();
 
 				// If the current provider had no valid reviews, store nothing:
-				if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+				if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
 					unset($enrichment[$func]);
 				}
 			}

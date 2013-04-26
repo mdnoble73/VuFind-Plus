@@ -3,7 +3,7 @@ include_once 'bootstrap.php';
 global $logger;
 global $configArray;
 
-require_once('Drivers/marmot_inc/Library.php');
+require_once(ROOT_DIR . '/Drivers/marmot_inc/Library.php');
 $library = new Library();
 $library->find();
 

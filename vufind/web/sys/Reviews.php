@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Amazon.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Amazon.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * ExternalReviews Class
@@ -64,7 +64,7 @@ class ExternalReviews
 				$this->results[$func] = method_exists($this, $func) ? $this->$func($key) : false;
 
 				// If the current provider had no valid reviews, store nothing:
-				if (empty($this->results[$func]) || PEAR::isError($this->results[$func])) {
+				if (empty($this->results[$func]) || PEAR_Singleton::isError($this->results[$func])) {
 					unset($this->results[$func]);
 				}else{
 					if (is_array($this->results[$func])){
@@ -171,7 +171,7 @@ class ExternalReviews
 		$client = new Proxy_Request();
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
-		if (PEAR::isError($http = $client->sendRequest())) {
+		if (PEAR_Singleton::isError($http = $client->sendRequest())) {
 			// @codeCoverageIgnoreStart
 			$logger->log("Error connecting to $url", PEAR_LOG_ERR);
 			$logger->log("$http", PEAR_LOG_ERR);
@@ -196,7 +196,7 @@ class ExternalReviews
 				$url = $baseUrl . '/index.aspx?isbn=' . $this->isbn . '/' .
 				$sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
 				$client->setURL($url);
-				if (PEAR::isError($http = $client->sendRequest())) {
+				if (PEAR_Singleton::isError($http = $client->sendRequest())) {
 					// @codeCoverageIgnoreStart
 					$logger->log("Error connecting to $url", PEAR_LOG_ERR);
 					$logger->log("$http", PEAR_LOG_ERR);

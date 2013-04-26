@@ -20,8 +20,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/API/ListAPI.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/API/ListAPI.php';
 
 class ODPlaceHold extends Action {
 
@@ -45,7 +45,7 @@ class ODPlaceHold extends Action {
 				$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 				$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
 				$profile = $catalog->getMyProfile($patron);
-				if (!PEAR::isError($profile))
+				if (!PEAR_Singleton::isError($profile))
 				{
 					$interface->assign('profile', $profile);
 				}
@@ -53,7 +53,7 @@ class ODPlaceHold extends Action {
 				$overDriveId = (isset($_GET['overDriveId']) ? $_GET['overDriveId'] : $_POST['overDriveId']);
 				$formatId = (isset($_GET['formatId']) ? $_GET['formatId'] : $_POST['formatId']);
 
-				require_once 'Drivers/OverDriveDriverFactory.php';
+				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$driver = OverDriveDriverFactory::getDriver();
 				$holdMessage = $driver->placeOverDriveHold($overDriveId, $formatId, $user);
 

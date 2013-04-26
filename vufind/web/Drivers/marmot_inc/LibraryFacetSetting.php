@@ -1,11 +1,11 @@
 <?php
-require_once 'Drivers/marmot_inc/FacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/FacetSetting.php';
 
 class LibraryFacetSetting extends FacetSetting {
 	public $__table = 'library_facet_setting';    // table name
 	public $libraryId;
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		global $user;
 		$library = new Library();
 		$library->orderBy('displayName');

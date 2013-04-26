@@ -41,7 +41,7 @@
  *
  * @return string Alphabetical help string
  */
-require_once 'sys/VuFindDate.php';
+require_once ROOT_DIR . '/sys/VuFindDate.php';
 // @codingStandardsIgnoreStart
 function smarty_function_displaydateformat($params, &$smarty)
 {   // @codingStandardsIgnoreEnd

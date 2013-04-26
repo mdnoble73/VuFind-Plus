@@ -1,6 +1,6 @@
 <?php
 
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 /**
  * Loads information from OverDrive and provides updates to OverDrive by screen scraping
@@ -1029,7 +1029,7 @@ class OverDriveDriver {
 
 					}
 					//Add the record to the reading history
-					require_once 'Drivers/EContentDriver.php';
+					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 					$eContentDriver = new EContentDriver();
 					$eContentDriver->addRecordToReadingHistory($eContentRecord, $user);
 				}

@@ -27,7 +27,7 @@
  * @link     http://vufind.org/wiki/building_an_ils_driver Wiki
  */
 require_once 'Horizon.php';
-require_once 'sys/VuFindDate.php';
+require_once ROOT_DIR . '/sys/VuFindDate.php';
 
 /**
  * Horizon ILS Driver
@@ -714,7 +714,7 @@ class HorizonXMLAPI extends Horizon
                     $currentDueDate = $this->dateFormat->convertToDisplayDate(
                         "d/m/Y", $dueDate
                     );
-                    if (PEAR::isError($dueDate)) {
+                    if (PEAR_Singleton::isError($dueDate)) {
                         return $currentDueDate;
                     }
                 }

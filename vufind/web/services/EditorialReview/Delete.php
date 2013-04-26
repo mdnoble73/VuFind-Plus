@@ -18,9 +18,9 @@
  *
  */
 
-require_once('services/Admin/Admin.php');
-require_once('sys/EditorialReview.php');
-require_once 'sys/DataObjectUtil.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 
 class Delete extends Admin {
 

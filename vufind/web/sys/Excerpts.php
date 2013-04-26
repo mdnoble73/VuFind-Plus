@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * ExternalExcerpts Class
@@ -63,7 +63,7 @@ class ExternalExcerpts
                     $this->$func($key) : false;
 
                 // If the current provider had no valid excerpts, store nothing:
-                if (empty($this->results[$func]) || PEAR::isError($this->results[$func])) {
+                if (empty($this->results[$func]) || PEAR_Singleton::isError($this->results[$func])) {
                     unset($this->results[$func]);
                 }
             }
@@ -119,7 +119,7 @@ class ExternalExcerpts
         $client = new Proxy_Request();
         $client->setMethod(HTTP_REQUEST_METHOD_GET);
         $client->setURL($url);
-        if (PEAR::isError($http = $client->sendRequest())) {
+        if (PEAR_Singleton::isError($http = $client->sendRequest())) {
             return $http;
         }
 
@@ -137,7 +137,7 @@ class ExternalExcerpts
                 $url = $baseUrl . '/index.aspx?isbn=' . $this->isbn . '/' .
                        $sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
                 $client->setURL($url);
-                if (PEAR::isError($http = $client->sendRequest())) {
+                if (PEAR_Singleton::isError($http = $client->sendRequest())) {
                     return $http;
                 }
 

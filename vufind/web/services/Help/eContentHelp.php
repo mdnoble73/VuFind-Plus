@@ -19,7 +19,7 @@
  */
 
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class eContentHelp extends Action
 {
@@ -30,14 +30,14 @@ class eContentHelp extends Action
 		$interface->setPageTitle('eContent Help');
 		$defaultFormat = "";
 
-		require_once 'sys/eContent/EContentRecord.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 		if (isset($_REQUEST['id'])){
 			$id = $_REQUEST['id'];
 			$interface->assign('id', $id);
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $id;
 			if ($eContentRecord->find(true)){
-				require_once 'sys/eContent/EContentItem.php';
+				require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 				$eContentItem = new EContentItem();
 				$eContentItem->id = $_REQUEST['itemId'];
 				if ($eContentItem->find(true)){

@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class Save extends Action
 {
@@ -76,7 +76,7 @@ class Save extends Action
 		}
 
 		// Get Record Information
-		require_once 'sys/eContent/EContentRecord.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 		$econtentRecord = new EContentRecord();
 		$econtentRecord->id = strip_tags($_REQUEST['id']);
 		$econtentRecord->find(true);
@@ -138,7 +138,7 @@ class Save extends Action
 				$resource->source = $_GET['source'];
 			}
 			if (!$resource->find(true)) {
-				PEAR::raiseError(new PEAR_Error('Unable find a resource for that title.'));
+				PEAR_Singleton::raiseError(new PEAR_Error('Unable find a resource for that title.'));
 			}
 
 			preg_match_all('/"[^"]*"|[^,]+/', $_GET['mytags'], $tagArray);

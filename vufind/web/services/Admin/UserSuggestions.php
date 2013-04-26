@@ -18,9 +18,9 @@
  *
  */
  
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'Drivers/marmot_inc/UserSuggestion.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/UserSuggestion.php';
 require_once 'XML/Unserializer.php';
 
 class UserSuggestions extends Admin

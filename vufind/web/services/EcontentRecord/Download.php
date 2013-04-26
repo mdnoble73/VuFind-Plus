@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once('sys/eContent/EContentItem.php');
-require_once('sys/eContent/EContentRecord.php');
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 class Download extends Action {
 	private $user;
@@ -76,7 +76,7 @@ class Download extends Action {
 			$errorOccurred = false;
 
 			if (file_exists($bookFile)){
-				require_once('Drivers/EContentDriver.php');
+				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				//Check to see if the user has access to the title.
 				if (!$driver->isRecordCheckedOutToUser($id)){
@@ -89,7 +89,7 @@ class Download extends Action {
 					$driver->recordEContentAction($id, 'Download', $eContentRecord->accessType);
 
 					if (strcasecmp($epubFile->item_type, 'epub') == 0){
-						require_once('sys/eReader/ebook.php');
+						require_once ROOT_DIR . '/sys/eReader/ebook.php';
 						$ebook = new ebook($bookFile);
 
 						//Return the contents of the epub file

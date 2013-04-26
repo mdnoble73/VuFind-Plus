@@ -27,7 +27,7 @@
  * @link     http://vufind.org/wiki/system_classes#index_interface Wiki
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 require_once 'Crypt/generateHMAC.php';
 
 /**
@@ -80,8 +80,8 @@ class HoldLogic
         // Get Holdings Data
         if ($this->catalog && $this->catalog->status) {
             $result = $this->catalog->getHolding($id, $patron);
-            if (PEAR::isError($result)) {
-                PEAR::raiseError($result);
+            if (PEAR_Singleton::isError($result)) {
+                PEAR_Singleton::raiseError($result);
             }
 
             $mode = CatalogConnection::getHoldsMode();

@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
 class DataObjectUtil
@@ -96,7 +96,7 @@ class DataObjectUtil
 			}
 			if (!$validationResults['saveOk']){
 				//TODO: Display the PEAR error (in certain circumstances only?)
-				$error = &PEAR::getStaticProperty('DB_DataObject','lastError');
+				$error = &PEAR_Singleton::getStaticProperty('DB_DataObject','lastError');
 				if (isset($error)){
 					$validationResults['errors'][] = 'Save failed ' . $error->getMessage();
 				}else{

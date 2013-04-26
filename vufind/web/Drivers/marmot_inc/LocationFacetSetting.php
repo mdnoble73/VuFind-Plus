@@ -1,11 +1,11 @@
 <?php
-require_once 'Drivers/marmot_inc/FacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/FacetSetting.php';
 
 class LocationFacetSetting extends FacetSetting {
 	public $__table = 'location_facet_setting';    // table name
 	public $locationId;
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		global $user;
 		$location = new Location();
 		$location->orderBy('displayName');

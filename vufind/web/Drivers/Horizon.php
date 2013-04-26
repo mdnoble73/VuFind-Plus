@@ -19,7 +19,7 @@
  */
 
 require_once 'Interface.php';
-require_once 'sys/SIP2.php';
+require_once ROOT_DIR . '/sys/SIP2.php';
 
 class Horizon implements DriverInterface{
 	protected $db;
@@ -77,7 +77,7 @@ class Horizon implements DriverInterface{
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 		if ($marcRecord) {
 			$timer->logTime('Loaded MARC record from search object');
@@ -263,7 +263,7 @@ class Horizon implements DriverInterface{
 	/** uses SIP2 authentication rather than database authentication **/
 	public function patronLogin($username, $password)
 	{
-		require_once('sys/authn/SIPAuthentication.php');
+		require_once(ROOT_DIR . '/sys/authn/SIPAuthentication.php');
 		$sipAuth = new SIPAuthentication();
 		$basicInfo = $sipAuth->validateAccount($username, $password);
 		if ($basicInfo){
@@ -457,7 +457,7 @@ class Horizon implements DriverInterface{
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -915,7 +915,7 @@ public function getMyHoldsViaDB($patron)
 				// Retrieve Full Marc Record
 				$recordURL = null;
 				// Process MARC Data
-				require_once 'sys/MarcLoader.php';
+				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 				if ($marcRecord) {
 					//Check the 856 tag to see if there is a URL
@@ -1146,7 +1146,7 @@ public function getMyHoldsViaDB($patron)
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -1264,8 +1264,8 @@ public function getMyHoldsViaDB($patron)
 	}
 
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "dueDate"){
-		require_once('sys/ReadingHistoryEntry.php');
-		require_once('services/MyResearch/lib/Resource.php');
+		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
+		require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
 		//Reading History is stored within VuFind for each patron.
 		global $user;
 		$historyActive = $user->trackReadingHistory == 1;
@@ -1347,7 +1347,7 @@ public function getMyHoldsViaDB($patron)
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
 	function doReadingHistoryAction($patron, $action, $selectedTitles){
-		require_once('sys/ReadingHistoryEntry.php');
+		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
 		global $user;
 		//Reading History Information is stored in the VuFind database
 		if ($action == 'deleteMarked'){
@@ -1472,7 +1472,7 @@ private $patronProfiles = array();
 					);
 
 					//Get eContent info as well
-					require_once('Drivers/EContentDriver.php');
+					require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 					$eContentDriver = new EContentDriver();
 					$eContentAccountSummary = $eContentDriver->getAccountSummary();
 					$profile = array_merge($profile, $eContentAccountSummary);
@@ -1720,7 +1720,7 @@ private $transactions = array();
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -1867,7 +1867,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -2068,7 +2068,7 @@ public function renewItem($patronId, $itemId){
 	function updatePatronInfo($password){
 		global $configArray;
 		global $user;
-		require_once 'Drivers/marmot_inc/BadWord.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 
 		$updateErrors = array();
 		//Check to make sure the patron alias is valid if provided
@@ -2137,7 +2137,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -2316,7 +2316,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Go to the request copy page (login)
@@ -2375,7 +2375,7 @@ public function renewItem($patronId, $itemId){
 			if (preg_match('/<font size="3" color="white" face="Arial, Helvetica"><b>(.*?)<\/b><\/font>/', $sresult, $matches)) {
 				$failureReason = $matches[1];
 			} else {
-				PEAR::raiseError('Could not get notify by or failure information from page.');
+				PEAR_Singleton::raiseError('Could not get notify by or failure information from page.');
 			}
 
 		}
@@ -2630,7 +2630,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -2960,7 +2960,7 @@ private function parseSip2Fines($finesData){
 					if (strlen($email) == 0){
 						return array('error' => 'Your account does not have an email address on record. Please visit your local library to retrieve your PIN number.');
 					}
-					require_once 'sys/Mailer.php';
+					require_once ROOT_DIR . '/sys/Mailer.php';
 
 					$mailer = new VuFindMailer();
 					$subject = "PIN number for your Library Card";

@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'sys/Recommend/Interface.php';
+require_once ROOT_DIR . '/sys/Recommend/Interface.php';
 
 /**
  * SideFacets Recommendations Module

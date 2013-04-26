@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
-require_once 'services/MyResearch/lib/Comments.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 class UserComments extends Action{
 	function launch(){

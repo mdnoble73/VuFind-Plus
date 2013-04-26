@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 global $configArray;
 
@@ -48,14 +48,14 @@ class AJAX extends Action {
 	// Saves a Record to User's List
 	function SaveRecord()
 	{
-		require_once 'services/Resource/Save.php';
-		require_once 'services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/services/Resource/Save.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
 
 		$result = array();
 		if (UserAccount::isLoggedIn()) {
 			$saveService = new Save();
 			$result = $saveService->saveRecord();
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$result['result'] = "Done";
 			} else {
 				$result['result'] = "Error";
@@ -107,7 +107,7 @@ class AJAX extends Action {
 	}
 	
 	function GetTags() {
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];

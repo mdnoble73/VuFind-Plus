@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class Save extends Action
 {
@@ -129,7 +129,7 @@ class Save extends Action
 			if ($_GET['list'] != '') {
 				$list->id = $_GET['list'];
 				if (!$list->find(true)){
-					PEAR::raiseError(new PEAR_Error('Unable the selected list.'));
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable the selected list.'));
 					return false;
 				}
 			} else {
@@ -142,7 +142,7 @@ class Save extends Action
 			$resource->record_id = $_GET['id'];
 			$resource->source = $_GET['source'];
 			if (!$resource->find(true)) {
-				PEAR::raiseError(new PEAR_Error('Unable find a resource for that title.'));
+				PEAR_Singleton::raiseError(new PEAR_Error('Unable find a resource for that title.'));
 				return false;
 			}
 

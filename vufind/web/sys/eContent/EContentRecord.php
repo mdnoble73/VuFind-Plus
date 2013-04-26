@@ -68,6 +68,9 @@ class EContentRecord extends DB_DataObject{
 	function recordtype(){
 		return 'econtentRecord';
 	}
+	function getSolrId(){
+		return $this->recordtype() . $this->id;
+	}
 	function title(){
 		return $this->title;
 	}

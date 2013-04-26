@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
 abstract class ObjectEditor extends Admin
@@ -140,7 +140,7 @@ abstract class ObjectEditor extends Admin
 		}
 	}
 	function updateFromUI($object, $structure){
-		require_once 'sys/DataObjectUtil.php';
+		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 		return DataObjectUtil::updateFromUI($object, $structure);
 	}
 	function viewExistingObjects(){

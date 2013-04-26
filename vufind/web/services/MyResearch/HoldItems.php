@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class HoldItems extends Action
 {
@@ -46,7 +46,7 @@ class HoldItems extends Action
 		if (method_exists($this->catalog->driver, 'placeHold')) {
 			$this->placeHolds();
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
 		}
 	}
 

@@ -102,7 +102,7 @@ class Description extends Record{
 			$useMarcSummary = true;
 			if ($allowExternalDescription){
 				if (!is_null($isbn) || !is_null($upc)){
-					require_once 'Drivers/marmot_inc/GoDeeperData.php';
+					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
 					if (isset($summaryInfo['summary'])){
 						$descriptionArray['description'] = Description::trimDescription($summaryInfo['summary']);

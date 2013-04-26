@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'Drivers/marmot_inc/BookStore.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/BookStore.php';
 
 class NearbyBookStore extends DB_DataObject
 {
@@ -23,7 +23,7 @@ class NearbyBookStore extends DB_DataObject
 		return array('id');
 	}
 
-	function getObjectStructure(){		
+	static function getObjectStructure(){
 		$library = new Library();
 		$library->orderBy('displayName');
 		$library->find();

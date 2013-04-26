@@ -82,7 +82,7 @@ class ConnectionManager
         if (!defined('DB_DATAOBJECT_NO_OVERLOAD')) {
             define('DB_DATAOBJECT_NO_OVERLOAD', 0);
         }
-        $options =& PEAR::getStaticProperty('DB_DataObject', 'options');
+        $options =& PEAR_Singleton::getStaticProperty('DB_DataObject', 'options');
 
         // If we're using PostgreSQL, we need to set up some extra configuration
         // settings so that unique ID sequences are properly registered:

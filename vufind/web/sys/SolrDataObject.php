@@ -1,5 +1,5 @@
 <?php
-require_once 'sys/Solr.php';
+require_once ROOT_DIR . '/sys/Solr.php';
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 abstract class SolrDataObject extends DB_DataObject{
@@ -86,7 +86,7 @@ abstract class SolrDataObject extends DB_DataObject{
 	abstract function solrId();
 
 	function removeFromSolr(){
-		require_once 'sys/Solr.php';
+		require_once ROOT_DIR . '/sys/Solr.php';
 		global $configArray;
 		$host = $configArray[$this->getConfigSection()]['url'];
 
@@ -176,7 +176,7 @@ abstract class SolrDataObject extends DB_DataObject{
 	}
 
 	function optimize(){
-		require_once 'sys/Solr.php';
+		require_once ROOT_DIR . '/sys/Solr.php';
 		global $configArray;
 		$host = $configArray[$this->getConfigSection()]['url'];
 

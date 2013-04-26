@@ -20,8 +20,8 @@
 *
 */
 
-require_once 'Action.php';
-require_once 'services/API/ListAPI.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/API/ListAPI.php';
 
 class MostPopular extends Action {
 

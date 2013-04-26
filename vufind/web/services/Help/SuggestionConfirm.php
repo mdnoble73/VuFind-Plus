@@ -19,7 +19,7 @@
  */
  
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 require_once('recaptcha/recaptchalib.php');
 
 

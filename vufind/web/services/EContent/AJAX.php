@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class AJAX extends Action {
 
@@ -60,7 +60,7 @@ class AJAX extends Action {
 	function getEContentAttachNotes()
 	{
 		$id = $_REQUEST['id'];
-		require_once 'sys/eContent/EContentAttachmentLogEntry.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentAttachmentLogEntry.php';
 		$logEntry = new EContentAttachmentLogEntry();
 		$logEntry->id = $id;
 		if ($logEntry->find(true)){
@@ -79,7 +79,7 @@ class AJAX extends Action {
 		global $interface;
 		
 		$id = $_REQUEST['id'];
-		require_once 'sys/eContent/EContentImportDetailsEntry.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentImportDetailsEntry.php';
 		$logEntry = new EContentImportDetailsEntry();
 		$logEntry->id = $id;
 		if ($logEntry->find(true)){
@@ -95,7 +95,7 @@ class AJAX extends Action {
 		global $interface;
 		
 		$id = $_REQUEST['id'];
-		require_once 'sys/eContent/PackagingDetailsEntry.php';
+		require_once ROOT_DIR . '/sys/eContent/PackagingDetailsEntry.php';
 		$logEntry = new PackagingDetailsEntry();
 		$logEntry->id = $id;
 		if ($logEntry->find(true)){

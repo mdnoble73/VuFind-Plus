@@ -18,7 +18,7 @@
  *
  */
 require_once 'Interface.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 class Voyager implements DriverInterface
 {
@@ -602,7 +602,7 @@ class Voyager implements DriverInterface
         $client = new Proxy_Request(null, array('useBrackets' => false));
         $client->setURL($this->config['Catalog']['pwebrecon'] . '?BBID=' . $recordId);
         $result = $client->sendRequest();
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             // Get HTML Page
             $body = str_replace("\n", '', $client->getResponseBody());
             $body = str_replace('<A', "\n<A", $body);  // Not sure why this is needed, but it solved the problem

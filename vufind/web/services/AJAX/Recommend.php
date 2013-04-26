@@ -25,8 +25,8 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
-require_once 'Action.php';
-require_once 'sys/Recommend/RecommendationFactory.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Recommend/RecommendationFactory.php';
 
 /**
  * AJAX recommendation module loader

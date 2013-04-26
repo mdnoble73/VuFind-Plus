@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
 class SaveSearch extends MyResearch
 {

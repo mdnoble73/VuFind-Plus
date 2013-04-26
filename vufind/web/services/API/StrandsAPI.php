@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 class StrandsAPI extends Action {
 
@@ -53,7 +53,7 @@ class StrandsAPI extends Action {
 	 * because that is what we use to link your products with its ratings
 	 */
 	function getRatingInfo() {
-		require_once 'Drivers/marmot_inc/UserRating.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 		$ratings = new UserRating();
 		$ratings->query("SELECT record_id, AVG(rating) as averageRating, count(resource.id) as numRatings from user_rating INNER JOIN resource on resourceid = resource.id GROUP BY record_id");
 		$tabbedData = '';
@@ -62,7 +62,7 @@ class StrandsAPI extends Action {
 		}
 
 		//Get eContent Ratings as well
-		require_once('sys/eContent/EContentRating.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 		$eContentRatings = new EContentRating();
 		$eContentRatings->query("SELECT recordId, AVG(rating)as averageRating, count(id) as numRatings FROM `econtent_rating` GROUP BY recordId");
 		while ($eContentRatings->fetch()){

@@ -154,9 +154,10 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	public function getMillenniumRecordInfo($id){
-		require_once 'Drivers/marmot_inc/MillenniumCache.php';
-		global $memCache;
 		global $configArray;
+
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCache.php';
+		global $memCache;
 		global $logger;
 		$scope = $this->getMillenniumScope();
 		//Clear millennium cache once per minute
@@ -230,7 +231,7 @@ class MillenniumDriver implements DriverInterface
 		if (isset($this->statuses[$id])){
 			return $this->statuses[$id];
 		}
-		require_once 'Drivers/marmot_inc/MillenniumStatusLoader.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumStatusLoader.php';
 		//Load circulation status information so we can use it later on to
 		//determine what is holdable and what is not.
 		self::loadCircStatusInfo();
@@ -832,7 +833,7 @@ class MillenniumDriver implements DriverInterface
 		);
 
 		//Get eContent info as well
-		require_once('Drivers/EContentDriver.php');
+		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 		$eContentDriver = new EContentDriver();
 		$eContentAccountSummary = $eContentDriver->getAccountSummary();
 		$profile = array_merge($profile, $eContentAccountSummary);
@@ -882,7 +883,7 @@ class MillenniumDriver implements DriverInterface
 			$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
 			$req = new Proxy_Request($req);
 			//$result = file_get_contents($req);
-			if (PEAR::isError($req->sendRequest())) {
+			if (PEAR_Singleton::isError($req->sendRequest())) {
 				return null;
 			}
 			$result = $req->getResponseBody();
@@ -2492,10 +2493,10 @@ class MillenniumDriver implements DriverInterface
 
 		//Validate that the input data is correct
 		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
-			PEAR::raiseError('The 1st location had an incorrect format.');
+			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
 		}
 		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
-			PEAR::raiseError('The 2nd location had an incorrect format.');
+			PEAR_Singleton::raiseError('The 2nd location had an incorrect format.');
 		}
 		if (isset($_REQUEST['bypassAutoLogout'])){
 			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
@@ -2520,7 +2521,7 @@ class MillenniumDriver implements DriverInterface
 			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
 			$location->find();
 			if ($location->N != 1) {
-				PEAR::raiseError('The 1st location couuld not be found in the database.');
+				PEAR_Singleton::raiseError('The 1st location couuld not be found in the database.');
 			}
 			$user->myLocation1Id = $_POST['myLocation1'];
 		}
@@ -2529,7 +2530,7 @@ class MillenniumDriver implements DriverInterface
 			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
 			$location->find();
 			if ($location->N != 1) {
-				PEAR::raiseError('The 2nd location couuld not be found in the database.');
+				PEAR_Singleton::raiseError('The 2nd location couuld not be found in the database.');
 			}
 			$user->myLocation2Id = $_POST['myLocation2'];
 		}

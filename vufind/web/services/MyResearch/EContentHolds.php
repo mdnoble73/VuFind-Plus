@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 class EContentHolds extends MyResearch {
 	function launch(){
@@ -32,11 +32,11 @@ class EContentHolds extends MyResearch {
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
 				$timer->logTime("Logged in patron to get checked out items.");
-				if (PEAR::isError($patron))
-				PEAR::raiseError($patron);
+				if (PEAR_Singleton::isError($patron))
+				PEAR_Singleton::raiseError($patron);
 
 				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR::isError($patronResult)) {
+				if (!PEAR_Singleton::isError($patronResult)) {
 					$interface->assign('profile', $patronResult);
 				}
 				$timer->logTime("Got patron profile to get checked out items.");
@@ -51,7 +51,7 @@ class EContentHolds extends MyResearch {
 				$selectedSortOption = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'dueDate';
 				$interface->assign('defaultSortOption', $selectedSortOption);
 
-				require_once 'Drivers/EContentDriver.php';
+				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 
 				if (isset($_REQUEST['multiAction']) && $_REQUEST['multiAction'] == 'suspendSelected'){

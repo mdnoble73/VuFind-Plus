@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 
 class Link extends Action {
 
@@ -44,18 +44,18 @@ class Link extends Action {
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($recordId))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		$this->record = $record;
 		$interface->assign('record', $record);
 		
 		// Process MARC Data
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 		} else {
-			PEAR::raiseError(new PEAR_Error("Failed to load the MAC record for this title."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load the MAC record for this title."));
 		}
 		
 		$linkFields = $marcRecord->getFields('856') ;
@@ -76,9 +76,9 @@ class Link extends Action {
 		$linkParts = parse_url($externalLink);
 
 		//Insert into the purchaseLinkTracking table
-		require_once('sys/BotChecker.php');
+		require_once(ROOT_DIR . '/sys/BotChecker.php');
 		if (!BotChecker::isRequestFromBot()){
-			require_once('sys/ExternalLinkTracking.php');
+			require_once(ROOT_DIR . '/sys/ExternalLinkTracking.php');
 			$externalLinkTracking = new ExternalLinkTracking();
 			$externalLinkTracking->ipAddress = $ipAddress;
 			$externalLinkTracking->recordId = $recordId;
@@ -91,7 +91,7 @@ class Link extends Action {
 		if ($externalLink != ""){
 			header( "Location:" .$externalLink);
 		} else {
-			PEAR::raiseError(new PEAR_Error("Failed to load link for this record."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load link for this record."));
 		}
 			
 	}

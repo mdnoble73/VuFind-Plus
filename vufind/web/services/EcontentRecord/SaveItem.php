@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/EContentItem.php';
-require_once 'sys/DataObjectUtil.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 
 class SaveItem extends Action{
 	function launch(){

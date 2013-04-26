@@ -19,7 +19,7 @@
  */
 
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class eContentSupport extends Action
 {
@@ -33,7 +33,7 @@ class eContentSupport extends Action
 
 		if (isset($_REQUEST['submit'])){
 			//E-mail the library with details of the support request
-			require_once 'sys/Mailer.php';
+			require_once ROOT_DIR . '/sys/Mailer.php';
 			$mail = new VuFindMailer();
 			$userLibrary = Library::getPatronHomeLibrary();
 			if ($userLibrary == null){

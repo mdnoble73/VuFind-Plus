@@ -26,7 +26,7 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 require_once 'Base.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 /**
  * Search action for Authority module.
@@ -113,7 +113,7 @@ class Search extends Base
                     $interface->assign('parseError', true);
                 } else {
                     // Unexpected error -- let's treat this as a fatal condition.
-                    PEAR::raiseError(
+                    PEAR_Singleton::raiseError(
                         new PEAR_Error(
                             'Unable to process query<br />Solr Returned: ' . $error
                         )

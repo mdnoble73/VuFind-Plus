@@ -19,12 +19,12 @@
  */
 
 require_once 'Record.php';
-require_once 'sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once 'Reviews.php';
 require_once 'UserComments.php';
 require_once 'Cite.php';
 require_once 'Holdings.php';
-require_once('sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
 class Home extends Record{
 	function launch(){
@@ -179,7 +179,7 @@ class Home extends Record{
 				$enrichment[$func] = $this->$func();
 
 				// If the current provider had no valid reviews, store nothing:
-				if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+				if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
 					unset($enrichment[$func]);
 				}
 			}

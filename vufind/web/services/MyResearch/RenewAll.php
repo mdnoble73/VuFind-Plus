@@ -17,9 +17,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class RenewAll extends Action
 {
@@ -44,7 +44,7 @@ class RenewAll extends Action
 			$renewResult = $this->catalog->driver->renewAll($user->cat_username);
 			$_SESSION['renew_message'] = $renewResult;
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
 		}
 
 		//Redirect back to the hold screen with status from the renewal

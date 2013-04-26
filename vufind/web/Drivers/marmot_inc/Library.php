@@ -4,9 +4,9 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'Drivers/marmot_inc/Holiday.php';
-require_once 'Drivers/marmot_inc/NearbyBookStore.php';
-require_once 'Drivers/marmot_inc/LibraryFacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/NearbyBookStore.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 
 class Library extends DB_DataObject
 {
@@ -210,7 +210,7 @@ class Library extends DB_DataObject
 				'showComments'  => array('property'=>'showComments', 'type'=>'checkbox', 'label'=>'Show Comments', 'description'=>'Whether or not comments are shown (also disables adding comments)', 'hideInLists' => true, 'default' => 1),
 				'hideCommentsWithBadWords'  => array('property'=>'hideCommentsWithBadWords', 'type'=>'checkbox', 'label'=>'Hide Comments with Bad Words', 'description'=>'If checked, any comments with bad words are completely removed from the user interface for everyone except the original poster.', 'hideInLists' => true,),
 				'showTagging'  => array('property'=>'showTagging', 'type'=>'checkbox', 'label'=>'Show Tagging', 'description'=>'Whether or not tags are shown (also disables adding tags)', 'hideInLists' => true, 'default' => 1),
-				'showTableOfContentsTab' => array('property'=>'showTableOfContentsTab', 'type'=>'checkbox', 'label'=>'Show Table of Contents Tab', 'description'=>'Whether or not a separate tab will be shown for table of contents 505 field.', 'default'=>'0', 'hideInLists' => true, 'default' => 1),
+				'showTableOfContentsTab' => array('property'=>'showTableOfContentsTab', 'type'=>'checkbox', 'label'=>'Show Table of Contents Tab', 'description'=>'Whether or not a separate tab will be shown for table of contents 505 field.', 'hideInLists' => true, 'default' => 1),
 				'notesTabName' => array('property'=>'notesTabName', 'type'=>'text', 'label'=>'Notes Tab Name', 'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50', 'hideInLists' => true, 'default' => 'Notes'),
 				'exportOptions' => array('property'=>'exportOptions', 'type'=>'text', 'label'=>'Export Options', 'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.', 'size'=>'40', 'hideInLists' => true,),
 				'showSeriesAsTab'  => array('property'=>'showSeriesAsTab', 'type'=>'checkbox', 'label'=>'Show Series as Tab', 'description'=>'Whether or not series information should be shown in a tab or in a scrollable window.', 'hideInLists' => true,),
@@ -337,6 +337,7 @@ class Library extends DB_DataObject
 			return $activeLibrary;
 		}
 		//Next check to see if we are in a library.
+		/** @var Location $locationSingleton */
 		global $locationSingleton;
 		$physicalLocation = $locationSingleton->getActiveLocation();
 		if (!is_null($physicalLocation)){
@@ -367,7 +368,7 @@ class Library extends DB_DataObject
 	static function getLibraryForLocation($locationId){
 		if (isset($locationId)){
 			$libLookup = new Library();
-			require_once('Drivers/marmot_inc/Location.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/Location.php');
 			$location = new Location();
 			$libLookup->whereAdd('libraryId = (SELECT libraryId FROM location WHERE locationId = ' . $libLookup->escape($locationId) . ')');
 			$libLookup->find();

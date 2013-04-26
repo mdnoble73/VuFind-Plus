@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'sys/Amazon.php';
-require_once 'sys/Proxy_Request.php';
-require_once 'Drivers/marmot_inc/ISBNConverter.php';
-require_once('sys/EditorialReview.php');
+require_once ROOT_DIR . '/sys/Amazon.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php';
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
 require_once 'Record.php';
 
@@ -67,7 +67,7 @@ class Reviews extends Record
 					$reviews[$func] = Reviews::$func($isbn, $key);
 
 					// If the current provider had no valid reviews, store nothing:
-					if (empty($reviews[$func]) || PEAR::isError($reviews[$func])) {
+					if (empty($reviews[$func]) || PEAR_Singleton::isError($reviews[$func])) {
 						unset($reviews[$func]);
 					}else{
 						if (is_array($reviews[$func])){
@@ -116,7 +116,7 @@ class Reviews extends Record
 		}
 
 		if ($reviews) {
-			if (!PEAR::isError($reviews)) {
+			if (!PEAR_Singleton::isError($reviews)) {
 				$interface->assign('reviews', $reviews);
 			}else{
 				echo($reviews);
@@ -180,10 +180,10 @@ class Reviews extends Record
 		$params = array('ResponseGroup' => 'Reviews', 'ItemId' => $isbn);
 		$request = new AWS_Request($id, 'ItemLookup', $params);
 		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
+		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$data = $unxml->getUnserializedData();
 				if ($data['Items']['Item']['CustomerReviews']['Review']['ASIN']) {
 					$data['Items']['Item']['CustomerReviews']['Review'] = array($data['Items']['Item']['CustomerReviews']['Review']);
@@ -193,7 +193,7 @@ class Reviews extends Record
 				if (!empty($data['Items']['Item']['CustomerReviews']['Review'])) {
 					foreach ($data['Items']['Item']['CustomerReviews']['Review'] as $review) {
 						$customer = $this->getAmazonCustomer($id, $review['CustomerId']);
-						if (!PEAR::isError($customer)) {
+						if (!PEAR_Singleton::isError($customer)) {
 							$result[$i]['Source'] = $customer;
 						}
 						$result[$i]['Rating'] = $review['Rating'];
@@ -239,10 +239,10 @@ class Reviews extends Record
 		$params = array('ResponseGroup' => 'EditorialReview', 'ItemId' => $isbn);
 		$request = new AWS_Request($id, 'ItemLookup', $params);
 		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
+		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$data = $unxml->getUnserializedData();
 				if (isset($data['Items']['Item'])){
 					if (isset($data['Items']['Item']['EditorialReviews']['EditorialReview']['Source'])) {
@@ -351,7 +351,7 @@ class Reviews extends Record
 		$client = new Proxy_Request();
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
-		if (PEAR::isError($http = $client->sendRequest())) {
+		if (PEAR_Singleton::isError($http = $client->sendRequest())) {
 			$logger->log("Error connecting to $url", PEAR_LOG_ERR);
 			$logger->log("$http", PEAR_LOG_ERR);
 			return $http;
@@ -372,7 +372,7 @@ class Reviews extends Record
 				$sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
 
 				$client->setURL($url);
-				if (PEAR::isError($http = $client->sendRequest())) {
+				if (PEAR_Singleton::isError($http = $client->sendRequest())) {
 					$logger->log("Error connecting to $url", PEAR_LOG_ERR);
 					$logger->log("$http", PEAR_LOG_ERR);
 					continue;
@@ -477,10 +477,10 @@ class Reviews extends Record
 		$params = array('ResponseGroup' => 'CustomerInfo', 'CustomerId' => $customerId);
 		$request = new AWS_Request($id, 'CustomerContentLookup', $params);
 		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
+		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$data = $unxml->getUnserializedData();
 				if (isset($data['Customers']['Customer']['Name'])) {
 					return $data['Customers']['Customer']['Name'];

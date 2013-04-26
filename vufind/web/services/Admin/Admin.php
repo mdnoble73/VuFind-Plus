@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 abstract class Admin extends Action
 {
@@ -69,12 +69,12 @@ abstract class Admin extends Action
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$profile = $this->catalog->getMyProfile($patron);
-					if (!PEAR::isError($profile)) {
+					if (!PEAR_Singleton::isError($profile)) {
 						$interface->assign('profile', $profile);
 					}
 				}

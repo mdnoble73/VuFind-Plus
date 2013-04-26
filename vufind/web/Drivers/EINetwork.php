@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'Drivers/Millennium.php';
+require_once ROOT_DIR . '/Drivers/Millennium.php';
 
 /**
  * VuFind Connector for Marmot's Innovative catalog (millenium)
@@ -93,7 +93,7 @@ class EINetwork extends MillenniumDriver{
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$sresult = curl_exec($curl_connection);
 			if (!preg_match('/Please enter your PIN/i', $sresult)){
-				PEAR::raiseError('Unable to register your new pin #.  Did not get to registration page.');
+				PEAR_Singleton::raiseError('Unable to register your new pin #.  Did not get to registration page.');
 			}
 
 			//Now post with both pins
@@ -117,9 +117,9 @@ class EINetwork extends MillenniumDriver{
 
 			unlink($cookie);
 			if (preg_match('/the information you submitted was invalid/i', $sresult)){
-				PEAR::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
+				PEAR_Singleton::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
 			}else if (preg_match('/PIN insertion failed/i', $sresult)){
-				PEAR::raiseError('Unable to register your new pin #.  PIN insertion failed.');
+				PEAR_Singleton::raiseError('Unable to register your new pin #.  PIN insertion failed.');
 			}
 		}
 

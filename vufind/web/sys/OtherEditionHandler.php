@@ -56,7 +56,7 @@ class OtherEditionHandler{
 			$query .= ' NOT id:' . $sourceSolrId;
 
 			$result = $db->search($query, null, null, 0, $numResourcesToLoad);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
 					return $result['response']['docs'];
 				} else {
@@ -107,7 +107,7 @@ class OtherEditionHandler{
 			$query .= ' NOT id:' . $sourceSolrId;
 
 			$result = $db->search($query, null, null, 0, $numResourcesToLoad);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
 					return $result['response']['docs'];
 				} else {
@@ -166,7 +166,7 @@ class OtherEditionHandler{
 			$query .= ' NOT id:' . $sourceSolrId;
 
 			$result = $db->search($query, null, null, 0, $numResourcesToLoad);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
 					return $result['response']['docs'];
 				} else {

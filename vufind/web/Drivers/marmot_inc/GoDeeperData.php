@@ -1,5 +1,5 @@
 <?php
-require_once('Drivers/marmot_inc/ISBNConverter.php') ;
+require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php') ;
 
 class GoDeeperData{
 	static function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
@@ -107,7 +107,7 @@ class GoDeeperData{
 
 		return $goDeeperOptions;
 	}
-	function getSummary($isbn, $upc){
+	static function getSummary($isbn, $upc){
 		global $configArray;
 		global $memCache;
 		$summaryData = $memCache->get("syndetics_summary_{$isbn}_{$upc}");

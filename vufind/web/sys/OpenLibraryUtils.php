@@ -117,7 +117,7 @@ class OpenLibraryUtils
         $client->setURL($url);
         $response = $client->sendRequest();
         // Was the request successful?
-        if (!PEAR::isError($response)) {
+        if (!PEAR_Singleton::isError($response)) {
             // grab the response:
             $json = $client->getResponseBody();
             // parse json

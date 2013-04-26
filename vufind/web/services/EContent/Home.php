@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class Home extends Action
 {
@@ -64,7 +64,7 @@ class Home extends Action
 		//Add a log entry for debugging.
 		$logger->log("Preparing to insert log entry for transaction", PEAR_LOG_INFO);
 
-		require_once('sys/eContent/AcsLog.php');
+		require_once(ROOT_DIR . '/sys/eContent/AcsLog.php');
 		$acsLog = new AcsLog();
 		$acsLog->acsTransactionId = $transactionId;
 		$acsLog->fulfilled = $isFulfilled;
@@ -75,7 +75,7 @@ class Home extends Action
 
 		//Update the database as appropriate
 		//Get the chckd out item for the transaction Id
-		require_once('sys/eContent/EContentCheckout.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentCheckout.php');
 		$checkout = new EContentCheckout();
 		$checkout->acsTransactionId = $transactionId;
 		if ($checkout->find(true)){
@@ -83,7 +83,7 @@ class Home extends Action
 			if ($isReturned){
 				if ($checkout->status == 'out'){
 					//return the item
-					require_once 'Drivers/EContentDriver.php';
+					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 					$driver = new EContentDriver();
 					$driver->returnRecord($checkout->recordId);
 				}
@@ -96,11 +96,11 @@ class Home extends Action
 					$checkout->update();
 				}
 				//Mark that the record is downloaded
-				require_once('sys/eContent/EContentRecord.php');
+				require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 				$eContentRecord = new EContentRecord();
 				$eContentRecord->id = $checkout->recordId;
 				$eContentRecord->find(true);
-				require_once 'Drivers/EContentDriver.php';
+				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				$driver->recordEContentAction($checkout->recordId, 'Download', $eContentRecord->accessType);
 			}

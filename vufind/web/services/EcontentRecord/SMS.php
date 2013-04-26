@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'Drivers/EContentDriver.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 
-require_once 'sys/Mailer.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
 
 class SMS extends Action {
 	private $sms;
@@ -38,7 +38,7 @@ class SMS extends Action {
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendSMS();
-			if (PEAR::isError($result)) {
+			if (PEAR_Singleton::isError($result)) {
 				$interface->assign('error', $result->getMessage());
 			}
 			$interface->assign('subTemplate', 'sms-status.tpl');
@@ -85,7 +85,7 @@ class SMS extends Action {
 		$eContentRecord->find(true);
 		$holdings = $driver->getHolding($id);
 		$holdingsSummary = $driver->getStatusSummary($id, $holdings);
-		if (PEAR::isError($holdingsSummary)) {
+		if (PEAR_Singleton::isError($holdingsSummary)) {
 			return $holdingsSummary;
 		}
 

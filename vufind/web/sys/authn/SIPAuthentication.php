@@ -1,5 +1,5 @@
 <?php
-require_once 'sys/SIP2.php';
+require_once ROOT_DIR . '/sys/SIP2.php';
 require_once 'Authentication.php';
 
 class SIPAuthentication implements Authentication {

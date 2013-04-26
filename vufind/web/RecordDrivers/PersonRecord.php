@@ -1,6 +1,6 @@
 <?php
-require_once 'RecordDrivers/IndexRecord.php';
-require_once 'sys/Genealogy/Person.php';
+require_once ROOT_DIR . '/RecordDrivers/IndexRecord.php';
+require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 
 /**
  * List Record Driver

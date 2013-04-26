@@ -26,7 +26,7 @@
  * @link     http://vufind.org/wiki/building_an_ils_driver Wiki
  */
 require_once 'Interface.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * XC NCIP Toolkit (v2) ILS Driver
@@ -77,8 +77,8 @@ class XCNCIP2 implements DriverInterface
         $client->addHeader('Content-type', 'application/xml; "charset=utf-8"');
         $client->setBody($xml);
         $result = $client->sendRequest();
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         // Process the NCIP response:
@@ -88,7 +88,7 @@ class XCNCIP2 implements DriverInterface
             $result->registerXPathNamespace('ns1', 'http://www.niso.org/2008/ncip');
             return $result;
         } else {
-            PEAR::raiseError(new PEAR_Error("Problem parsing XML"));
+            PEAR_Singleton::raiseError(new PEAR_Error("Problem parsing XML"));
         }
     }
 

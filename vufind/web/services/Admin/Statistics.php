@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/SolrStats.php';
-require_once 'services/Admin/Admin.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
 
 class Statistics extends Admin
 {
@@ -39,7 +39,7 @@ class Statistics extends Admin
         $result = $solr->search('*:*', null, null, 0, null,
                                 array('field' => array('ipaddress', 'browser')),
                                 '', null, null, null, HTTP_REQUEST_METHOD_GET);
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             if (isset($result['facet_counts']['facet_fields']['ipaddress'])) {
                 $interface->assign('ipList', $result['facet_counts']['facet_fields']['ipaddress']);
             } 
@@ -52,7 +52,7 @@ class Statistics extends Admin
         $result = $solr->search('phrase:[* TO *]', null, null, 0, null,
                                 array('field' => array('noresults', 'phrase')),
                                 '', null, null, null, HTTP_REQUEST_METHOD_GET);
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             $interface->assign('searchCount', $result['response']['numFound']);
             
             // Extract the count of no hit results by finding the "no hit" facet entry
@@ -75,7 +75,7 @@ class Statistics extends Admin
         $result = $solr->search('recordId:[* TO *]', null, null, 0, null,
                                 array('field' => array('recordId')),
                                 '', null, null, null, HTTP_REQUEST_METHOD_GET);
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             $interface->assign('recordViews', $result['response']['numFound']);
             $interface->assign('recordList', $result['facet_counts']['facet_fields']['recordId']);
         }

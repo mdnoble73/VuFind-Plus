@@ -50,7 +50,7 @@ class Marriage extends DB_DataObject
 		parent::insert();
 		//Load the person this is for, and update solr
 		if ($this->personId){
-			require_once 'sys/Genealogy/Person.php';
+			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = Person::staticGet('personId', $this->personId);
 			$person->saveToSolr();
 		}
@@ -60,7 +60,7 @@ class Marriage extends DB_DataObject
 		parent::update();
 		//Load the person this is for, and update solr
 		if ($this->personId){
-			require_once 'sys/Genealogy/Person.php';
+			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = Person::staticGet('personId', $this->personId);
 			$person->saveToSolr();
 		}
@@ -71,7 +71,7 @@ class Marriage extends DB_DataObject
 		$ret = parent::delete();
 		//Load the person this is for, and update solr
 		if ($personId){
-			require_once 'sys/Genealogy/Person.php';
+			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = Person::staticGet('personId', $personId);
 			$person->saveToSolr();
 		}

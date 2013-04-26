@@ -22,13 +22,24 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class Series extends Action
+class SimilarTitles extends Action
 {
+	/** @var  SearchObject_Solr $db */
+	private $db;
+
 	function launch()
 	{
 		global $configArray;
 		global $interface;
 		global $user;
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		$this->db = new $class($url);
+		if ($configArray['System']['debugSolr']) {
+			$this->db->debug = true;
+		}
 
 		//Enable and disable functionality based on library settings
 		global $library;
@@ -63,47 +74,35 @@ class Series extends Action
 		$this->id = strip_tags($_REQUEST['id']);
 		$eContentRecord->id = $this->id;
 		$eContentRecord->find(true);
+		$interface->assign('eContentRecord', $eContentRecord);
 
-		require_once 'Enrichment.php';
-		$enrichment = new Enrichment(true);
-		$enrichmentData = $enrichment->loadEnrichment($eContentRecord->getIsbn());
+		$similar = $this->db->getMoreLikeThis2($eContentRecord->getSolrId());
+		// Send the similar items to the template; if there is only one, we need
+		// to force it to be an array or things will not display correctly.
+		if (isset($similar) && count($similar['response']['docs']) > 0) {
+			$this->similarTitles = $similar['response']['docs'];
+		}else{
+			$this->similarTitles = array();
+		}
 
-		$seriesTitle = '';
-		$seriesAuthors = array();
-		$seriesTitles = array();
 		$resourceList = array();
-		if (isset($enrichmentData['novelist'])){
-			$seriesTitles = $enrichmentData['novelist']['series'];
-			//Loading the series title is not reliable.  Do not try to load it.
-
-			if (isset($seriesTitles) && is_array($seriesTitles)){
-				foreach ($seriesTitles as $key => $title){
-					if (isset($title['series']) && strlen($title['series']) > 0 && !(isset($seriesTitle))){
-						$seriesTitle = $title['series'];
-						$interface->assign('seriesTitle', $seriesTitle);
-					}
-					if (isset($title['author'])){
-						$seriesAuthors[$title['author']] = $title['author'];
-					}
-					if ($title['libraryOwned']){
-						$record = RecordDriverFactory::initRecordDriver($title);
-						$resourceList[] = $interface->fetch($record->getSearchResult($user, null, false));
-					}else{
-						$interface->assign('record', $title);
-						$resourceList[] = $interface->fetch('RecordDrivers/Index/nonowned_result.tpl');
-					}
-				}
+		if (isset($this->similarTitles) && is_array($this->similarTitles)){
+			foreach ($this->similarTitles as $title){
+				$record = RecordDriverFactory::initRecordDriver($title);
+				$resourceList[] = $interface->fetch($record->getSearchResult($user, null, false));
 			}
 		}
-		$interface->assign('seriesAuthors', $seriesAuthors);
-		$interface->assign('recordSet', $seriesTitles);
+		$interface->assign('recordSet', $this->similarTitles);
 		$interface->assign('resourceList', $resourceList);
 
 		$interface->assign('recordStart', 1);
-		$interface->assign('recordEnd', count($seriesTitles));
-		$interface->assign('recordCount', count($seriesTitles));
+		$interface->assign('recordEnd', count($this->similarTitles));
+		$interface->assign('recordCount', count($this->similarTitles));
 
-		$interface->setPageTitle($seriesTitle);
+		//Build the actual view
+		$interface->setTemplate('view-similar.tpl');
+
+		$interface->setPageTitle('Similar to ' . $eContentRecord->title);
 
 		// Display Page
 		$interface->display('layout.tpl');

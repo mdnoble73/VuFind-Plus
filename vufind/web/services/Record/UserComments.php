@@ -20,7 +20,7 @@
 
 require_once 'Record.php';
 
-require_once 'services/MyResearch/lib/Comments.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 class UserComments extends Record{
 	function launch(){

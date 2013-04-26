@@ -1,7 +1,7 @@
 <?php
-require_once('Drivers/marmot_inc/UserRating.php');
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'sys/Novelist.php';
+require_once(ROOT_DIR . '/Drivers/marmot_inc/UserRating.php');
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/sys/Novelist.php';
 
 class Suggestions{
 	/*

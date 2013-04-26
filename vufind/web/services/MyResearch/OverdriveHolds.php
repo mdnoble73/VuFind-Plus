@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 class OverdriveHolds extends MyResearch {
 	function launch(){
@@ -28,7 +28,7 @@ class OverdriveHolds extends MyResearch {
 		global $user;
 		global $timer;
 
-		require_once 'Drivers/OverDriveDriverFactory.php';
+		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveHolds = $overDriveDriver->getOverDriveHolds($user);
 		//Load the full record for each item in the wishlist

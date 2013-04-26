@@ -84,7 +84,7 @@ class UserAPI extends Action {
 	 */
 	function isLoggedIn(){
 		$user = UserAccount::isLoggedIn();
-		if ($user != false && !PEAR::isError($user)){
+		if ($user != false && !PEAR_Singleton::isError($user)){
 			return true;
 		}else{
 			return false;
@@ -118,11 +118,11 @@ class UserAPI extends Action {
 		//Login the user.  Must be called via Post parameters.
 		$user = UserAccount::isLoggedIn();
 		if (isset($_POST['username']) && isset($_POST['password'])){
-			if ($user && !PEAR::isError($user)){
+			if ($user && !PEAR_Singleton::isError($user)){
 				return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
 			}else{
 				$user = UserAccount::login();
-				if ($user && !PEAR::isError($user)){
+				if ($user && !PEAR_Singleton::isError($user)){
 					return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
 				}else{
 					return array('success'=>false);
@@ -337,7 +337,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$profile = $this->catalog->getMyProfile($user);
 			return array('success'=>true, 'profile'=>$profile);
 		}else{
@@ -456,7 +456,7 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$patronHolds = $this->catalog->getMyHolds($user);
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
@@ -540,7 +540,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$eContentHolds = $eContentDriver->getMyHolds($user);
@@ -618,7 +618,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentHolds = $eContentDriver->getOverDriveHolds($user);
@@ -656,7 +656,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentCartItems = $eContentDriver->getOverDriveCart($user);
@@ -709,7 +709,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentCheckedOutItems = $eContentDriver->getOverDriveCheckedOutItems($user);
@@ -758,7 +758,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$overDriveSummary = $eContentDriver->getOverDriveSummary($user);
@@ -810,7 +810,7 @@ class UserAPI extends Action {
 		global $user;
 		$includeMessages = isset($_REQUEST['includeMessages']) ? $_REQUEST['includeMessages'] : false;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$fines = $this->catalog->getMyFines($user, $includeMessages);
 			return array('success'=>true, 'fines'=>$fines);
 		}else{
@@ -828,7 +828,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$accountDetails = $driver->getAccountDetails($user);
@@ -913,7 +913,7 @@ class UserAPI extends Action {
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$checkedOutItems = $this->catalog->getMyTransactions($user);
 
 			if ($includeEContent === true || $includeEContent === 'true'){
@@ -981,7 +981,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$eContentTransactions = $eContentDriver->getMyTransactions($user);
@@ -1039,7 +1039,7 @@ class UserAPI extends Action {
 		$itemBarcode = $_REQUEST['itemBarcode'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->catalog->renewItem($user->cat_username, $itemBarcode);
 			return array('success'=>true, 'renewalMessage'=>$renewalMessage);
 		}else{
@@ -1077,7 +1077,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->catalog->renewAll($user->cat_username);
 			return array('success'=> $renewalMessage['result'], 'renewalMessage'=>$renewalMessage['message']);
 		}else{
@@ -1132,7 +1132,7 @@ class UserAPI extends Action {
 		$bibId = $_REQUEST['bibId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->placeHold($bibId, $user->cat_username, '', 'request');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1189,7 +1189,7 @@ class UserAPI extends Action {
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$holdMessage = $driver->placeHold($recordId, $user);
@@ -1244,7 +1244,7 @@ class UserAPI extends Action {
 		$recordId = $_REQUEST['recordId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$response = $driver->checkoutRecord($recordId, $user);
@@ -1283,7 +1283,7 @@ class UserAPI extends Action {
 		$itemId = $_REQUEST['itemId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$eContentRecord = new EContentRecord();
@@ -1395,7 +1395,7 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
@@ -1456,7 +1456,7 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);
@@ -1527,7 +1527,7 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->addItemToOverDriveCart($overDriveId, $format, $user);
@@ -1588,7 +1588,7 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
@@ -1636,7 +1636,7 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
@@ -1696,7 +1696,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'cancel');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1741,7 +1741,7 @@ class UserAPI extends Action {
 		$recordId = $_REQUEST['recordId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$holdMessage = $driver->cancelHold($recordId);
@@ -1790,7 +1790,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1846,7 +1846,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$ids = $_REQUEST['ids'];
@@ -1902,7 +1902,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1948,7 +1948,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$id = $_REQUEST['id'];
@@ -1995,7 +1995,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$id = $_REQUEST['id'];
@@ -2069,7 +2069,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$readingHistory = $this->catalog->getReadingHistory($user);
 
 			return array('success'=>true, 'readingHistory'=>$readingHistory['titles']);
@@ -2110,7 +2110,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$this->catalog->doReadingHistoryAction($user, 'optIn', array());
 			return array('success'=>true);
 		}else{
@@ -2149,7 +2149,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$this->catalog->doReadingHistoryAction($user, 'optOut', array());
 			return array('success'=>true);
 		}else{
@@ -2188,7 +2188,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$this->catalog->doReadingHistoryAction($user, 'deleteAll', array());
 			return array('success'=>true);
 		}else{
@@ -2229,7 +2229,7 @@ class UserAPI extends Action {
 		$selectedTitles = $_REQUEST['selected'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$this->catalog->doReadingHistoryAction($user, 'deleteMarked', $selectedTitles);
 			return array('success'=>true);
 		}else{

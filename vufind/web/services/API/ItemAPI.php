@@ -18,13 +18,13 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/SolrStats.php';
-require_once 'sys/Pager.php';
-require_once 'sys/ISBN.php';
-require_once 'services/Record/UserComments.php';
-require_once 'services/Record/Holdings.php';
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once ROOT_DIR . '/sys/ISBN.php';
+require_once ROOT_DIR . '/services/Record/UserComments.php';
+require_once ROOT_DIR . '/services/Record/Holdings.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 /**
  * API methods related to getting information about specific items.
@@ -93,7 +93,7 @@ class ItemAPI extends Action {
 
 	function addFileToAcsServer(){
 		global $configArray;
-		require_once('sys/AdobeContentServer.php');
+		require_once(ROOT_DIR . '/sys/AdobeContentServer.php');
 		if (!isset($_REQUEST['filename'])){
 			return array('error' => 'Filename parameter was not provided.  Please provide the filename in the library to add to the ACS server.');
 		}
@@ -137,7 +137,7 @@ class ItemAPI extends Action {
 		}
 		$this->record = $record;
 		if ($record['recordtype'] == 'econtentRecord'){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
 			if (!$eContentRecord->find(true)){
@@ -158,7 +158,7 @@ class ItemAPI extends Action {
 				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
 
-				require_once('sys/eContent/EContentRating.php');
+				require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 				$eContentRating = new EContentRating();
 				$eContentRating->recordId = $eContentRecord->id;
 				$itemData['ratingData'] = $eContentRating->getRatingData(false, false);
@@ -177,7 +177,7 @@ class ItemAPI extends Action {
 
 				$itemData['userComments'] = $resource->getComments();
 
-				require_once 'Drivers/EContentDriver.php';
+				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
 			}
@@ -187,7 +187,7 @@ class ItemAPI extends Action {
 			$timer->logTime('Initialized the Record Driver');
 
 			// Process MARC Data
-			require_once 'sys/MarcLoader.php';
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
 			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 			if ($marcRecord) {
 				$this->marcRecord = $marcRecord;
@@ -312,7 +312,7 @@ class ItemAPI extends Action {
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		$this->record = $record;
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
@@ -320,7 +320,7 @@ class ItemAPI extends Action {
 
 		// Process MARC Data
 		if ($record['recordtype'] == 'econtentRecord'){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
 			if (!$eContentRecord->find(true)){
@@ -341,14 +341,14 @@ class ItemAPI extends Action {
 				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
 
-				require_once('sys/eContent/EContentRating.php');
+				require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 				$eContentRating = new EContentRating();
 				$eContentRating->recordId = $eContentRecord->id;
 				$itemData['ratingData'] = $eContentRating->getRatingData($user, false);
 			}
 
 		}else{
-			require_once 'sys/MarcLoader.php';
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
 			$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 			if ($marcRecord) {
 				$this->marcRecord = $marcRecord;
@@ -443,17 +443,17 @@ class ItemAPI extends Action {
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		$this->record = $record;
 		if ($record['recordtype'] == 'econtentRecord'){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
 			if (!$eContentRecord->find(true)){
 				$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
 			}else{
-				require_once 'Drivers/EContentDriver.php';
+				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
 			}
@@ -537,7 +537,7 @@ class ItemAPI extends Action {
 	}
 
 	function getEnrichmentData(){
-		require_once 'services/Record/Enrichment.php';
+		require_once ROOT_DIR . '/services/Record/Enrichment.php';
 		$record = $this->loadSolrRecord($_GET['id']);
 		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
 		//Need to trim the isbn to make sure there isn't descriptive text.
@@ -545,20 +545,20 @@ class ItemAPI extends Action {
 		$enrichmentData = Enrichment::loadEnrichment($isbn);
 
 		//Load go deeper options
-		require_once('Drivers/marmot_inc/GoDeeperData.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc, false);
 
 		return array('enrichment' => $enrichmentData, 'goDeeper' => $goDeeperOptions);
 	}
 
 	function getGoDeeperData(){
-		require_once 'services/Record/Enrichment.php';
+		require_once ROOT_DIR . '/services/Record/Enrichment.php';
 		$record = $this->loadSolrRecord($_GET['id']);
 		$type = $_GET['type'];
 		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
 
 		//Load go deeper data
-		require_once('Drivers/marmot_inc/GoDeeperData.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$goDeeperOptions = GoDeeperData::getHtmlData($type, $isbn, $upc);
 
 		return $goDeeperOptions;
@@ -580,7 +580,7 @@ class ItemAPI extends Action {
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		return $record;
 	}

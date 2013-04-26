@@ -1,11 +1,11 @@
 <?php
 require_once 'Interface.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/EContentItem.php';
-require_once 'sys/eContent/EContentHold.php';
-require_once 'sys/eContent/EContentCheckout.php';
-require_once 'sys/eContent/EContentWishList.php';
-require_once 'sys/Utils/ArrayUtils.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/sys/eContent/EContentHold.php';
+require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
+require_once ROOT_DIR . '/sys/eContent/EContentWishList.php';
+require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
 
 /**
  * Handles processing of account information related to eContent.
@@ -477,8 +477,8 @@ class EContentDriver implements DriverInterface{
 				$holdings = $this->getHolding($id);
 				//Load status summary
 				$result = $this->getStatusSummary($id, $holdings);
-				if (PEAR::isError($result)) {
-					PEAR::raiseError($result);
+				if (PEAR_Singleton::isError($result)) {
+					PEAR_Singleton::raiseError($result);
 				}
 				$summaries[$id] = $result;
 			}
@@ -573,7 +573,7 @@ class EContentDriver implements DriverInterface{
 				$waitList = $this->getWaitList($eContentRecord->id);
 				$links = $this->_getCheckedOutEContentLinks($eContentRecord, null, $eContentCheckout);
 				//Get Ratings
-				require_once 'sys/eContent/EContentRating.php';
+				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 				$econtentRating = new EContentRating();
 				$econtentRating->recordId = $eContentRecord->id;
 				$ratingData = $econtentRating->getRatingData($user, false);
@@ -686,7 +686,7 @@ class EContentDriver implements DriverInterface{
 
 			//If the source is overdrive, process it as an overdrive title
 			if (strcasecmp($eContentRecord->source, 'OverDrive') == 0){
-				require_once 'Drivers/OverDriveDriverFactory.php';
+				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$overDriveResult = $overDriveDriver->placeOverDriveHold($eContentRecord->externalId, '', $user);
 				$return['result'] = $overDriveResult['result'];
@@ -965,7 +965,7 @@ class EContentDriver implements DriverInterface{
 
 	public function addRecordToReadingHistory($eContentRecord, $user){
 		//Get the resource for the record
-		require_once('services/MyResearch/lib/Resource.php');
+		require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
 		$resource = new Resource();
 		$resource->record_id = $eContentRecord->id;
 		$resource->source = 'eContent';
@@ -977,7 +977,7 @@ class EContentDriver implements DriverInterface{
 			$ret = $resource->insert();
 		}
 		//Check to see if there is an existing entry
-		require_once 'sys/ReadingHistoryEntry.php';
+		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 		$readingHistoryEntry = new ReadingHistoryEntry();
 		$readingHistoryEntry->userId = $user->id;
 		$readingHistoryEntry->resourceId = $resource->id;
@@ -999,7 +999,7 @@ class EContentDriver implements DriverInterface{
 		$resource->source = 'eContent';
 		if ($resource->find(true)){
 			//Check to see if there is an existing entry
-			require_once 'sys/ReadingHistoryEntry.php';
+			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 			$readingHistoryEntry = new ReadingHistoryEntry();
 			$readingHistoryEntry->userId = $user->id;
 			$readingHistoryEntry->resourceId = $resource->id;
@@ -1024,7 +1024,7 @@ class EContentDriver implements DriverInterface{
 		$myWishList = $this->getMyWishList($user);
 		$eContent['wishlist'] = $myWishList['items'];
 
-		/*require_once('sys/eContent/EContentHistoryEntry.php');
+		/*require_once(ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php');
 		$user_epub_history = new EContentHistoryEntry();
 		$user_epub_history->userId = $user->id;
 		$user_epub_history->orderBy('openDate DESC, title ASC');
@@ -1210,7 +1210,7 @@ class EContentDriver implements DriverInterface{
 		global $user;
 		global $logger;
 		//Get the item information for the record
-		require_once('sys/eContent/EContentCheckout.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentCheckout.php');
 		$checkout = new EContentCheckout();
 		$checkout->userId = $user->id;
 		$checkout->recordId = $id;
@@ -1268,7 +1268,7 @@ class EContentDriver implements DriverInterface{
 	}
 
 	private function _getACSEpubLinks($eContentItem, $eContentCheckout){
-		require_once 'sys/AdobeContentServer.php';
+		require_once ROOT_DIR . '/sys/AdobeContentServer.php';
 		global $configArray;
 		$links = array();
 		//Read in DCL Viewer
@@ -1289,7 +1289,7 @@ class EContentDriver implements DriverInterface{
 	}
 
 	private function _getACSPdfLinks($eContentItem, $eContentCheckout){
-		require_once 'sys/AdobeContentServer.php';
+		require_once ROOT_DIR . '/sys/AdobeContentServer.php';
 		global $configArray;
 		$links = array();
 
@@ -1303,7 +1303,7 @@ class EContentDriver implements DriverInterface{
 	}
 
 	public function isRecordCheckedOutToUser($id){
-		require_once('sys/eContent/EContentCheckout.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentCheckout.php');
 		global $user;
 		$checkout = new EContentCheckout();
 		$checkout->recordId = $id;
@@ -1322,7 +1322,7 @@ class EContentDriver implements DriverInterface{
 	public function recordEContentAction($id, $action, $accessType){
 		global $user;
 
-		require_once('sys/eContent/EContentHistoryEntry.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php');
 
 		global $configArray;
 		if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0 && $action == "Checked Out"){

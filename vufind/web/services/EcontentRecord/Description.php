@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 
 class Description extends Action{
 	private $eContentRecord;

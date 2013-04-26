@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/Mailer.php';
-require_once 'Drivers/EContentDriver.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
+require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 
 class Email extends Action
 {
@@ -34,7 +34,7 @@ class Email extends Action
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				require_once 'Home.php';
 				Home::launch();
 				exit();

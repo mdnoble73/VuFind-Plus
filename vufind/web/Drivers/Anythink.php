@@ -19,8 +19,8 @@
  */
 
 require_once 'Interface.php';
-require_once 'sys/SIP2.php';
-require_once 'Drivers/Horizon.php';
+require_once ROOT_DIR . '/sys/SIP2.php';
+require_once ROOT_DIR . '/Drivers/Horizon.php';
 
 class Anythink extends Horizon {
 	function __construct(){
@@ -359,7 +359,7 @@ class Anythink extends Horizon {
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password

@@ -143,6 +143,12 @@ class User extends DB_DataObject
 		$join->delete();
 	}
 
+	/**
+	 * Return all resources that the user has saved
+	 *
+	 * @param string[] $tags Tags to filter the resources by
+	 * @return Resource[]
+	 */
 	function getResources($tags = null) {
 		require_once 'User_resource.php';
 		$resourceList = array();
@@ -160,6 +166,7 @@ class User extends DB_DataObject
 			}
 		}
 
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -251,7 +258,7 @@ class User extends DB_DataObject
 		if ($name == 'roles'){
 			if (is_null($this->roles)){
 				//Load roles for the user from the user
-				require_once 'sys/Administration/Role.php';
+				require_once ROOT_DIR . '/sys/Administration/Role.php';
 				$role = new Role();
 				$canMasquerade = false;
 				if ($this->id){
@@ -298,7 +305,7 @@ class User extends DB_DataObject
 				return $this->roles;
 			}
 		}else{
-			return $data[$name];
+			return $this->data[$name];
 		}
 	}
 
@@ -308,13 +315,13 @@ class User extends DB_DataObject
 			//Update the database, first remove existing values
 			$this->saveRoles();
 		}else{
-			$data[$name] = $value;
+			$this->data[$name] = $value;
 		}
 	}
 
 	function saveRoles(){
 		if (isset($this->id) && isset($this->roles) && is_array($this->roles)){
-			require_once 'sys/Administration/Role.php';
+			require_once ROOT_DIR . '/sys/Administration/Role.php';
 			$role = new Role();
 			$role->query("DELETE FROM user_roles WHERE userId = {$this->id}");
 			//Now add the new values.
@@ -324,7 +331,7 @@ class User extends DB_DataObject
 					$values[] = "({$this->id},{$roleId})";
 				}
 				$values = join(', ', $values);
-				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES $values");
+				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES " . $values);
 			}
 		}
 	}
@@ -352,7 +359,7 @@ class User extends DB_DataObject
 
 	function getObjectStructure(){
 		//Lookup available roles in the system
-		require_once 'sys/Administration/Role.php';
+		require_once ROOT_DIR . '/sys/Administration/Role.php';
 		$roleList = Role::getLookup();
 
 		$structure = array(
@@ -375,7 +382,7 @@ class User extends DB_DataObject
 	}
 
 	function getFilters(){
-		require_once 'sys/Administration/Role.php';
+		require_once ROOT_DIR . '/sys/Administration/Role.php';
 		$roleList = Role::getLookup();
 		$roleList[-1] = 'Any Role';
 		return array(
@@ -386,7 +393,7 @@ class User extends DB_DataObject
 	}
 
 	function hasRatings(){
-		require_once 'Drivers/marmot_inc/UserRating.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 
 		$rating = new UserRating();
 		$rating->userid = $this->id;

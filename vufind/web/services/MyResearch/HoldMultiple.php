@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class HoldMultiple extends Action
 {
@@ -46,7 +46,7 @@ class HoldMultiple extends Action
 		if (method_exists($this->catalog->driver, 'placeHold')) {
 			$this->placeHolds();
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
 		}
 	}
 
@@ -111,7 +111,7 @@ class HoldMultiple extends Action
 					foreach ($selectedIds as $recordId => $onOff){
 						if (strpos($recordId, 'econtentRecord', 0) === 0){
 							if ($eContentDriver == null){
-								require_once('Drivers/EContentDriver.php');
+								require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 								$eContentDriver = new EContentDriver();
 							}
 
@@ -148,7 +148,7 @@ class HoldMultiple extends Action
 					$interface->assign('profile', $profile);
 
 					//Get information to show a warning if the user does not have sufficient holds
-					require_once 'Drivers/marmot_inc/PType.php';
+					require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
 					$maxHolds = -1;
 					//Determine if we should show a warning
 					$ptype = new PType();

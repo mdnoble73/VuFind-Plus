@@ -221,7 +221,7 @@ class AdobeContentServer
 				$jsonResponse = json_decode($packagingResponse, true);
 				if ($jsonResponse['success']){
 					//Save information to packaging log so it can be processed on the backend
-					require_once('sys/eContent/EContentImportDetailsEntry.php');
+					require_once(ROOT_DIR . '/sys/eContent/EContentImportDetailsEntry.php');
 					$importDetails = new EContentImportDetailsEntry();
 					$importDetails->filename = $newFilename;
 					$importDetails->libraryFilename = $filename;
@@ -421,7 +421,7 @@ class AdobeContentServer
 	}
 
 	static function signNode( $xmlDoc, $xmlNodeToBeSigned, $secretKey ){
-		require_once("sys/XMLSigningSerializer.php");
+		require_once(ROOT_DIR . "/sys/XMLSigningSerializer.php");
 		$serializer = new XMLSigningSerializer( false );
 		$signingSerialization = $serializer->serialize($xmlNodeToBeSigned);
 		$hmacData = base64_encode( hash_hmac("sha1", $signingSerialization, $secretKey, true ) );
@@ -468,7 +468,7 @@ class AdobeContentServer
 	static function loanReturn($recordId, $userId){
 		//First check to see if we have already minted a download link for this resource
 		//And this user that hasn't been returned.
-		require_once('sys/EPubTransaction.php');
+		require_once(ROOT_DIR . '/sys/EPubTransaction.php');
 		$trans = new EPubTransaction();
 		$trans->userId = $userId;
 		$trans->recordId = $recordId;

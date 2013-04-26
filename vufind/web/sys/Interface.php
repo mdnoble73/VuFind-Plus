@@ -19,7 +19,7 @@
  */
 
 require_once 'Smarty/Smarty.class.php';
-require_once 'sys/mobile_device_detect.php';
+require_once ROOT_DIR . '/sys/mobile_device_detect.php';
 
 // Smarty Extension class
 class UInterface extends Smarty

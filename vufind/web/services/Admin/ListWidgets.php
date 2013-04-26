@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'services/Admin/ObjectEditor.php';
-require_once 'sys/ListWidget.php';
-require_once 'sys/ListWidgetList.php';
-require_once 'sys/DataObjectUtil.php';
+require_once ROOT_DIR . 'Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . 'sys/ListWidget.php';
+require_once ROOT_DIR . 'sys/ListWidgetList.php';
+require_once ROOT_DIR . 'sys/DataObjectUtil.php';
 
 /**
  * Provides a method of running SQL updates to the database.

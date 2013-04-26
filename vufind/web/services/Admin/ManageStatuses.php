@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
-require_once 'sys/MaterialsRequestStatus.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
 
 class ManageStatuses extends ObjectEditor
 {

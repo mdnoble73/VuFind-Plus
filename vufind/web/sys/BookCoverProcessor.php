@@ -60,7 +60,7 @@ class BookCoverProcessor{
 
 			$this->log("Checking eContent database to see if there is a record for $this->id", PEAR_LOG_INFO);
 			//Check the database to see if there is an existing title
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$epubFile = new EContentRecord();
 			$epubFile->id = $this->id;
 			if ($epubFile->find(true)){
@@ -69,7 +69,7 @@ class BookCoverProcessor{
 				if ((strcasecmp($epubFile->source, 'OverDrive') == 0) && ($epubFile->cover == null || strlen($epubFile->cover) == 0)){
 					$this->log("Record is an OverDrive record that needs cover information fetched.", PEAR_LOG_INFO);
 					//Get the image from OverDrive
-					require_once 'Drivers/OverDriveDriverFactory.php';
+					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 					$overDriveDriver = OverDriveDriverFactory::getDriver();
 					$filename = $overDriveDriver->getCoverUrl($epubFile);
 					$this->log("Got OverDrive cover information for $epubFile->id $epubFile->sourceUrl", PEAR_LOG_INFO);
@@ -123,10 +123,10 @@ class BookCoverProcessor{
 		if (!defined('DB_DATAOBJECT_NO_OVERLOAD')){
 			define('DB_DATAOBJECT_NO_OVERLOAD', 0);
 		}
-		$options =& PEAR::getStaticProperty('DB_DataObject', 'options');
+		$options =& PEAR_Singleton::getStaticProperty('DB_DataObject', 'options');
 		$options = $this->configArray['Database'];
 		$this->logTime("Connect to databse");
-		require_once 'Drivers/marmot_inc/Library.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
 	}
 
 	private function initMemcache(){
@@ -139,7 +139,7 @@ class BookCoverProcessor{
 		// Connect to Memcache:
 		$memCache = new Memcache();
 		if (!$memCache->pconnect($host, $port, $timeout)) {
-			PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
 		}
 		$this->logTime("Initialize Memcache");
 	}
@@ -295,7 +295,7 @@ class BookCoverProcessor{
 	private function makeIsbn10And13(){
 		if (!is_null($this->isn) && strlen($this->isn) >= 10 ){
 			global $localFile;
-			require_once 'Drivers/marmot_inc/ISBNConverter.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php';
 			if (strlen($this->isn) == 10){
 				//$this->log("Provided ISBN is 10 digits.", PEAR_LOG_INFO);
 				$this->isbn10 = $this->isn;
@@ -315,7 +315,7 @@ class BookCoverProcessor{
 
 		$this->initDatabaseConnection();
 		//Process the marc record
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
 		if (!$marcRecord) {
 			return false;
@@ -650,7 +650,7 @@ class BookCoverProcessor{
 			$client->setURL($url);
 
 			$result = $client->sendRequest();
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$json = $client->getResponseBody();
 
 				// strip off addthecover( -- note that we need to account for length of ISBN (10 or 13)
@@ -684,17 +684,17 @@ class BookCoverProcessor{
 		if (is_null($this->isn)){
 			return false;
 		}
-		require_once 'sys/Amazon.php';
+		require_once ROOT_DIR . '/sys/Amazon.php';
 		require_once 'XML/Unserializer.php';
 
 		$params = array('ResponseGroup' => 'Images', 'ItemId' => $this->isn);
 		$request = new AWS_Request($id, 'ItemLookup', $params);
 		$result = $request->sendRequest();
-		if (!PEAR::isError($result)) {
+		if (!PEAR_Singleton::isError($result)) {
 			$unxml = new XML_Unserializer();
 			$unxml->unserialize($result);
 			$data = $unxml->getUnserializedData();
-			if (PEAR::isError($data)) {
+			if (PEAR_Singleton::isError($data)) {
 				return false;
 			}
 			if (isset($data['Items']['Item']) && !$data['Items']['Item']['ASIN']) {

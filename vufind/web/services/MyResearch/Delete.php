@@ -26,11 +26,11 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 
-require_once 'Action.php';
-require_once 'sys/Language.php';
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Language.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 /**
  * Delete action for MyResearch module

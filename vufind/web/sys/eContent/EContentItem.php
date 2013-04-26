@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/SolrDataObject.php';
+require_once ROOT_DIR . '/sys/SolrDataObject.php';
 
 class EContentItem extends DB_DataObject {
 	public $__table = 'econtent_item';    // table name
@@ -357,7 +357,7 @@ class EContentItem extends DB_DataObject {
 		}
 		//If the file should be protected with the ACS server, submit the file
 		//to the ACS server for protection.
-		require_once 'sys/AdobeContentServer.php';
+		require_once ROOT_DIR . '/sys/AdobeContentServer.php';
 		global $configArray;
 		global $user;
 		$fileUploaded = false;
@@ -398,7 +398,7 @@ class EContentItem extends DB_DataObject {
 			$this->reviewStatus = 'Not Reviewed';
 		}
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
-			require_once 'sys/AdobeContentServer.php';
+			require_once ROOT_DIR . '/sys/AdobeContentServer.php';
 			global $configArray;
 			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, $this->acsId, $this->getAvailableCopies());
 			if ($uploadResults['success']){
@@ -434,7 +434,7 @@ class EContentItem extends DB_DataObject {
 			if ($this->item_type == 'text'){
 				return file_get_contents($textFile);
 			}elseif ($this->item_type == 'epub'){
-				require_once('sys/eReader/ebook.php');
+				require_once(ROOT_DIR . '/sys/eReader/ebook.php');
 				$epubFile = $configArray['EContent']['library'] . '/'. $this->filename;
 				$ebook = new ebook($epubFile);
 				if (!$ebook->readErrorOccurred()){
@@ -476,7 +476,7 @@ class EContentItem extends DB_DataObject {
 
 	function getRecord(){
 		if ($this->_record == null){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$record = new EContentRecord();
 			$record->id = $this->recordId;
 			if ($record->find(true)){

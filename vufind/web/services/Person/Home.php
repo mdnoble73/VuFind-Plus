@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/SolrStats.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'sys/Genealogy/Person.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 
 class Home extends Action
 {
@@ -51,7 +51,7 @@ class Home extends Action
 
 		// Setup Search Engine Connection
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Genealogy']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Genealogy']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		// Initialise from the current search globals
@@ -60,7 +60,7 @@ class Home extends Action
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord('person' . $this->id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		$this->record = $record;
 
@@ -150,7 +150,7 @@ class Home extends Action
 					$nextResults = $nextSearchObject->getResultRecordSet();
 				}
 
-				if (PEAR::isError($result)) {
+				if (PEAR_Singleton::isError($result)) {
 					//If we get an error excuting the search, just eat it for now.
 				}else{
 					if ($searchObject->getResultTotal() < 1) {

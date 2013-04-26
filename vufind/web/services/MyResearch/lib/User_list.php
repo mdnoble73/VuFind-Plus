@@ -321,7 +321,7 @@ class User_list extends SolrDataObject
 		if ($user == false || $this->user_id != $user->id){
 			//Load all bad words.
 			global $library;
-			require_once('Drivers/marmot_inc/BadWord.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
 			$badWords = new BadWord();
 			$badWordsList = $badWords->getBadWordExpressions();
 
@@ -350,7 +350,7 @@ class User_list extends SolrDataObject
 				foreach ($badWordsList as $badWord){
 					if (preg_match($badWord,$titleText)){
 						return false;
-						//PEAR::raiseError(new PEAR_Error('You do not have permission to view this list'));
+						//PEAR_Singleton::raiseError(new PEAR_Error('You do not have permission to view this list'));
 						//break;
 					}
 				}
@@ -385,8 +385,8 @@ class User_list extends SolrDataObject
 	function removeResource($resource)
 	{
 		// Remove the Saved Resource
-		require_once 'services/MyResearch/lib/User_list.php';
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 		$join = new User_resource();
 		$join->user_id = $this->user_id;
 		$join->resource_id = $resource->id;

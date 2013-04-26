@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
-require_once 'sys/SolrStats.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Results extends Action {
 
@@ -97,7 +97,7 @@ class Results extends Action {
 		}
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Genealogy']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Genealogy']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		// Initialise from the current search globals
@@ -134,8 +134,8 @@ class Results extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 		$timer->logTime('Process Search');
 
@@ -188,7 +188,7 @@ class Results extends Action {
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR::raiseError(new PEAR_Error('Unable to process query<br />' .
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
                         'Solr Returned: ' . $error));
 				}
 			}
@@ -244,7 +244,7 @@ class Results extends Action {
 		}
 
 		/*if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-		 require_once('Drivers/marmot_inc/SearchStat.php');
+		 require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 		 $searchStat = new SearchStat();
 		 $searchStat->saveSearch( $_GET['lookfor'], $_GET['type'], $searchObject->getResultTotal());
 		 }*/
