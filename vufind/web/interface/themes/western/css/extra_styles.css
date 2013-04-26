@@ -2,12 +2,12 @@ html, body{
 	background-color: #F0F0F0;
 }
 .searchHomeForm {
-	background-color: #C5112A;
-	border-color: #9D1F35;
+	background-color: #848589;
+	border-color: #CC0000;
 }
 
 .searchHomeForm {
-	background-color: #2B627F;
+	background-color: #848589;
 	color: white;
 	border-top: black 2px solid;
 }
@@ -32,7 +32,7 @@ html, body{
 	*display: block;
 }
 #searchbar, .breadcrumbs{
-	background-color: #2B627F; 
+	background-color: #848589;
 	color: white;
 }
 
@@ -40,7 +40,8 @@ html, body{
 	color: white;
 }
 #searchbar a:hover, .breadcrumbs a:hover{
-	color: #C59019;
+	color: white;
+	text-decoration: underline;
 }
 
 div.breadcrumbs{
@@ -71,12 +72,13 @@ div.breadcrumbs span{
 	color: #222;
 }
 #ft {
-	background-color: #2B627F;
-	color: #CC9933;
+	background-color: #848589;
+	color: white;
 }
 #ft a, #ft a:visited{
-	color: #A0A0A0;
+	color: white;
 }
 #ft a:hover{
-	color: #CC9933;
+	color: white;
+	text-decoration: underline;
 }
