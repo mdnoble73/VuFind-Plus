@@ -11,39 +11,8 @@
 			<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 		{/if}
-		{if $showHoldButton}
-			{if $eContentRecord->isOverDrive()}
-				{* Place hold link *}
-				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-					<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
-				</div>
-				
-				{* Checkout link *}
-				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-					<a href="#" class="button" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
-				</div>
-			{else}
-				
-				{* Place hold link *}
-				<div class='requestThisLink' id="placeEcontentHold{$summId|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-				</div>
-				
-				{* Checkout link *}
-				<div class='checkoutLink' id="checkout{$summId|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
-				</div>
-			{/if}
-		
-			{* Access online link *}
-			<div class='accessOnlineLink' id="accessOnline{$summId|escape:"url"}" style="display:none">
-				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
-			</div>
-			{* Add to Wish List *}
-			<div class='addToWishListLink' id="addToWishList{$summId|escape:"url"}" style="display:none">
-				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
-			</div>
-		{/if}
+		{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+
 	</div>
 
 <div class="resultDetails">
@@ -99,12 +68,10 @@
 </div>
 
 <div class="resultActions">
-	{* Let the user rate this title *}
-	{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
-	{if $showComments == 1} 
-		{assign var=id value=$summId scope="global"}
-		{include file="EcontentRecord/title-review.tpl" id=$summId}
-	{/if}
+	{assign var=id value=$summId scope="global"}
+	{assign var=shortId value=$summShortId scope="global"}
+	{assign var=summTitle value=$summTitle scope="global"}
+	{include file='EcontentRecord/result-tools.tpl'}
 </div>
 
 

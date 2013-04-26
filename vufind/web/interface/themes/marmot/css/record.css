@@ -28,8 +28,8 @@
 	zoom: 1;
 	*display: inline;
 	position: absolute;
-	right: 0px;
-	top: 0px;
+	right: 0;
+	top: 0;
 	text-align: right;
 }
 #returnToSearch{
@@ -41,7 +41,7 @@
 	
 	zoom: 1;
 	*display: inline;
-	margin: 5px 4px 0px 4px;
+	margin: 5px 4px 0 4px;
 }
 
 .resultitem {
@@ -49,7 +49,7 @@
     
 }
 .resulthead {
-    padding:0px 10px 0 10px;
+    padding:0 10px 0 10px;
     margin-bottom:.5em;
     border-bottom: 1px #eee solid;
 }
@@ -122,7 +122,7 @@
 	margin-bottom: 15px;
 }
 #myrating{
-	margin: 15px 0px;
+	margin: 15px 0;
 }
 
 /* Reviews */
@@ -271,4 +271,18 @@ ul.notesList li{
     margin-bottom: 2px;
     padding-left: 10px;
     text-indent: -10px;
+}
+
+.resultActions .button{
+	margin: 4px;
+}
+
+.resultActions .button:hover{
+	margin: 4px;
+}
+
+.notInterested{
+	font-size: 11px !important;
+	font-weight: normal !important;
+	margin-top: 3px !important;
 }

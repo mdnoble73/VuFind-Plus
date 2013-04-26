@@ -1,3 +1,4 @@
+{strip}
 <form id="addForm" action="{$path}/MyResearch/HoldMultiple">
 	<div>
 		<div class='selectAllControls'>
@@ -24,10 +25,11 @@
 </form>
 
 <script type="text/javascript">
-$(document).ready(function() {literal} { {/literal}
-	doGetStatusSummaries();
-	{if $user}
-	doGetSaveStatuses();
-	{/if}
-{literal} }); {/literal}
+	$(document).ready(function() {literal} { {/literal}
+		doGetStatusSummaries();
+		{if $user}
+		doGetSaveStatuses();
+		{/if}
+	{literal} }); {/literal}
 </script>
+{/strip}

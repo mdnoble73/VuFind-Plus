@@ -36,12 +36,14 @@
 .resultActions{
 	display: inline-block;
 	vertical-align: top;
-	
 	zoom: 1;
 	*display: inline;
 	position: relative;
 	width: 120px;
-	text-align: center;
+	text-align: left;
+}
+.resultAction{
+	padding: 2px;
 }
 #searchResultTopTools{
 	max-width: 50%;
@@ -53,8 +55,7 @@
 .searchtool-top{
 	font-size: 10px;
 	display: inline-block;
-	margin-top: 1-px;
-	
+	margin-top: -1px;
 	zoom: 1;
 	*display: inline;
 }

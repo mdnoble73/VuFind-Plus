@@ -101,6 +101,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
 				<div id="recordTools">
 					<ul>
+						<li><a href="{$path}/Record/{$id|escape:"url"}/SimilarTitles" id="moreLikeThisLink"><span class="silk book_link">&nbsp;</span>{translate text="More Like This"}</a></li>
 						{if $showTextThis == 1}
 							<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
 						{/if}
@@ -168,64 +169,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		</div>
 	 
 		{* tabs for series, similar titles, and people who viewed also viewed *}
-		{if $showStrands}
-			<div id="relatedTitleInfo" class="ui-tabs">
-				<ul>
-					<li><a href="#list-similar-titles">Similar Titles</a></li>
-					<li><a href="#list-also-viewed">People who viewed this also viewed</a></li>
-					<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-				</ul>
-				
-				{assign var="scrollerName" value="SimilarTitles"}
-				{assign var="wrapperId" value="similar-titles"}
-				{assign var="scrollerVariable" value="similarTitleScroller"}
-				{include file=titleScroller.tpl}
-				
-				{assign var="scrollerName" value="AlsoViewed"}
-				{assign var="wrapperId" value="also-viewed"}
-				{assign var="scrollerVariable" value="alsoViewedScroller"}
-				{include file=titleScroller.tpl}
-				
-			
-				{assign var="scrollerName" value="Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/Record/$id/Series"}
-				{include file=titleScroller.tpl}
-				
-			</div>
-			{literal}
-			<script type="text/javascript">
-				var similarTitleScroller;
-				var alsoViewedScroller;
-				
-				$(function() {
-					$("#relatedTitleInfo").tabs();
-					
-					{/literal}
-					
-					similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
-		
-					{literal}
-					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-						if (ui.index == 0) {
-							similarTitleScroller.activateCurrentTitle();
-						}else if (ui.index == 1) { 
-							if (alsoViewedScroller == null){
-								{/literal}
-								alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
-								alsoViewedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
-							{literal}
-							}else{
-								alsoViewedScroller.activateCurrentTitle();
-							}
-						}
-					});
-				});
-			</script>
-			{/literal}
-		{elseif $showSimilarTitles}
+		{if $showSimilarTitles}
 			<div id="relatedTitleInfo" class="ui-tabs">
 				<ul>
 					<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
@@ -236,7 +180,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{assign var="scrollerName" value="SimilarTitlesVuFind"}
 					{assign var="wrapperId" value="similar-titles-vufind"}
 					{assign var="scrollerVariable" value="similarTitleVuFindScroller"}
-					{include file=titleScroller.tpl}
+					{include file='titleScroller.tpl'}
 				</div>
 
 				<div id="list-series-tab">
@@ -244,7 +188,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					{assign var="wrapperId" value="series"}
 					{assign var="scrollerVariable" value="seriesScroller"}
 					{assign var="fullListLink" value="$path/Record/$id/Series"}
-					{include file=titleScroller.tpl}
+					{include file='titleScroller.tpl'}
 				</div>
 				
 			</div>

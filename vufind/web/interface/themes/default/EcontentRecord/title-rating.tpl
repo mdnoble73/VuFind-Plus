@@ -1,17 +1,7 @@
 {strip}
-{if $showRatings == 1 || $showFavorites == 1}
+{if $showRatings == 1}
 	<div class="{$ratingClass}">
 		<div class="rateEContent{$shortId|escape} stat">
-			{if $showFavorites == 1} 
-			<div id="saveLink{$recordId|escape}">
-				<a href="{$path}/EcontentRecord/{$recordId|escape:"url"}/Save" style="padding-left:8px;" onclick="getLightbox('Record', 'Save', '{$recordId|escape}', '', '{translate text='Add to favorites'}', 'EcontentRecord', 'Save', '{$recordId|escape}'); return false;">{translate text='Add to favorites'}</a>
-				{if $user}
-				<script type="text/javascript">
-					getSaveStatuses('{$recordId|escape:"javascript"}');
-				</script>
-				{/if}
-			</div>
-			{/if}
 			{if $showRatings == 1}
 			<div class="statVal">
 				<span class="ui-rater">
