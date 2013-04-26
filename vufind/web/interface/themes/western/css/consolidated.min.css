@@ -557,7 +557,7 @@ div.footerCol{padding:0
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
 /* extra_styles.css */
-html,body{background-color:#F0F0F0}.searchHomeForm{background-color:#C5112A;border-color:#9D1F35}.searchHomeForm{background-color:#2B627F;color:white;border-top:black 2px solid}.searchHome{margin:0px}#header_logo{position:relative;left:0px;top:0px}#loginBlock{text-align:right;top:5px;left:20px}#loginBlock
-div{display:inline-block;zoom:1;*display:block}#searchbar,.breadcrumbs{background-color:#2B627F;color:white}#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{color:white}#searchbar a:hover, .breadcrumbs a:hover{color:#C59019}div.breadcrumbs{border-top:thin solid white;height:20px;line-height:20px}div.breadcrumbs
+html,body{background-color:#F0F0F0}.searchHomeForm{background-color:#848589;border-color:#C00}.searchHomeForm{background-color:#848589;color:white;border-top:black 2px solid}.searchHome{margin:0px}#header_logo{position:relative;left:0px;top:0px}#loginBlock{text-align:right;top:5px;left:20px}#loginBlock
+div{display:inline-block;zoom:1;*display:block}#searchbar,.breadcrumbs{background-color:#848589;color:white}#searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{color:white}#searchbar a:hover, .breadcrumbs a:hover{color:white;text-decoration:underline}div.breadcrumbs{border-top:thin solid white;height:20px;line-height:20px}div.breadcrumbs
 span{background:none;border-right:2px solid white;width:2px;opacity:1}.searchheader{background-color:white;color:#67676A;width:960px;margin:0px
-auto;padding:0px}.searchheader a, .searchheader a:visited{color:#67676A}.searchheader a:hover{color:#222}#ft{background-color:#2B627F;color:#C93}#ft a, #ft a:visited{color:#A0A0A0}#ft a:hover{color:#C93}
+auto;padding:0px}.searchheader a, .searchheader a:visited{color:#67676A}.searchheader a:hover{color:#222}#ft{background-color:#848589;color:white}#ft a, #ft a:visited{color:white}#ft a:hover{color:white;text-decoration:underline}
