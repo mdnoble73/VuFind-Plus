@@ -25,7 +25,7 @@ require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
 require_once 'Record.php';
 
-class Reviews extends Record
+class Record_Reviews extends Record_Record
 {
 	function launch()
 	{
@@ -50,9 +50,10 @@ class Reviews extends Record
 	 * @return array       Returns array with review data, otherwise a
 	 *                      PEAR_Error.
 	 */
-	function loadReviews($id, $isbn, $includeEditorial = false) {
+	static function loadReviews($id, $isbn, $includeEditorial = false) {
 		global $interface;
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 
 		$reviews = $memCache->get("reviews_{$isbn}");
@@ -64,7 +65,7 @@ class Reviews extends Record
 					$provider = explode(':', trim($provider));
 					$func = strtolower($provider[0]);
 					$key = $provider[1];
-					$reviews[$func] = Reviews::$func($isbn, $key);
+					$reviews[$func] = Record_Reviews::$func($isbn, $key);
 
 					// If the current provider had no valid reviews, store nothing:
 					if (empty($reviews[$func]) || PEAR_Singleton::isError($reviews[$func])) {
@@ -72,10 +73,10 @@ class Reviews extends Record
 					}else{
 						if (is_array($reviews[$func])){
 							foreach ($reviews[$func] as $key => $reviewData){
-								$reviews[$func][$key] = Reviews::cleanupReview($reviews[$func][$key]);
+								$reviews[$func][$key] = Record_Reviews::cleanupReview($reviews[$func][$key]);
 							}
 						}else{
-							$reviews[$func] = Reviews::cleanupReview($reviews[$func]);
+							$reviews[$func] = Record_Reviews::cleanupReview($reviews[$func]);
 						}
 					}
 				}
@@ -85,33 +86,44 @@ class Reviews extends Record
 
 		//Load Editorial Reviews
 		if ($includeEditorial){
-			if (isset($_REQUEST['id'])){
-				$recordId = $_REQUEST['id'];
-			}
-			$editorialReview = new EditorialReview();
-			$editorialReviewResults = array();
-			$editorialReview->whereAdd("recordId = '{$recordId}'");
-			$editorialReview->find();
-			if ($editorialReview->N > 0){
-				while ($editorialReview->fetch()){
-					$editorialReviewResults[] = clone $editorialReview;
-				}
-			}
+			if (isset($id)){
+				$recordId = $id;
 
-			//$reviews["editorialReviews"] = array();
-			if (count($editorialReviewResults) > 0) {
-				foreach ($editorialReviewResults AS $key=>$result ){
-					$reviews["editorialReviews"][$key]["Content"] = $result->review;
-					$reviews["editorialReviews"][$key]["Copyright"] = $result->source;
-					$reviews["editorialReviews"][$key]["Source"] = $result->source;
-					$reviews["editorialReviews"][$key]["ISBN"] = null;
-					$reviews["editorialReviews"][$key]["username"] = null;
-
-					$reviews["editorialReviews"][$key] = Reviews::cleanupReview($reviews["editorialReviews"][$key]);
-					if ($result->teaser){
-						$reviews["editorialReviews"][$key]["Teaser"] = $result->teaser;
+				$editorialReview = new EditorialReview();
+				$editorialReviewResults = array();
+				$editorialReview->whereAdd("recordId = '{$recordId}'");
+				$editorialReview->find();
+				if ($editorialReview->N > 0){
+					while ($editorialReview->fetch()){
+						$editorialReviewResults[] = clone $editorialReview;
 					}
 				}
+
+				//$reviews["editorialReviews"] = array();
+				if (count($editorialReviewResults) > 0) {
+					foreach ($editorialReviewResults AS $key=>$result ){
+						$reviews["editorialReviews"][$key]["Content"] = $result->review;
+						$reviews["editorialReviews"][$key]["Copyright"] = $result->source;
+						$reviews["editorialReviews"][$key]["Source"] = $result->source;
+						$reviews["editorialReviews"][$key]["ISBN"] = null;
+						$reviews["editorialReviews"][$key]["username"] = null;
+
+						$reviews["editorialReviews"][$key] = Record_Reviews::cleanupReview($reviews["editorialReviews"][$key]);
+						if ($result->teaser){
+							$reviews["editorialReviews"][$key]["Teaser"] = $result->teaser;
+						}
+					}
+				}
+			}
+		}
+
+		//Load Reviews from Good Reads
+		if ($isbn){
+			require_once ROOT_DIR . '/sys/NovelistFactory.php';
+			$novelist = NovelistFactory::getNovelist();
+			$enrichment = $novelist->loadEnrichment($isbn);
+			if (isset($enrichment['goodReads'])){
+				$reviews['goodReads'] = $enrichment['goodReads'];
 			}
 		}
 
@@ -166,6 +178,7 @@ class Reviews extends Record
 		global $library;
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
+		$result = null;
 		if (isset($library) && $location != null){
 			if ($library->showAmazonReviews == 0 || $location->showAmazonReviews == 0){
 				return $result;
@@ -426,12 +439,13 @@ class Reviews extends Record
 	 * Load review information from Content Cafe based on the ISBN
 	 *
 	 * @param $id
-	 * @return unknown_type
+	 * @return array
 	 */
 	function contentcafe($isbn, $id){
 		global $library;
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
+		$result = null;
 		if (isset($library) && $location != null){
 			if ($library->showAmazonReviews == 0 || $location->showStandardReviews == 0){
 				return $result;
@@ -477,6 +491,7 @@ class Reviews extends Record
 		$params = array('ResponseGroup' => 'CustomerInfo', 'CustomerId' => $customerId);
 		$request = new AWS_Request($id, 'CustomerContentLookup', $params);
 		$response = $request->sendRequest();
+		$result = null;
 		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);

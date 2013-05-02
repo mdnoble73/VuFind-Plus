@@ -64,6 +64,7 @@ class Rate extends Action
 		        //Save the rating
 		        $resource = new Resource();
 		        $resource->record_id = $id;
+	          $resource->source = 'VuFind';
 		        if (!$resource->find(true)) {
 		            $resource->insert();
 		        }

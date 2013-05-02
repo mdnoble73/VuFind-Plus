@@ -79,12 +79,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					</div>
 				</div>	
 			{/if}
-			
-			{* Place hold link *}
-			<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-				<a href="{$path}/Record/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-			</div>
-			
+
 			{if $goldRushLink}
 			<div class ="titledetails">
 				<a href='{$goldRushLink}' >Check for online articles</a>
@@ -99,35 +94,9 @@ function redrawSaveStatus() {literal}{{/literal}
 		<div id="record-details-column">
 			<div id="record-details-header">
 				<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
+
 				<div id="recordTools">
-					<ul>
-						<li><a href="{$path}/Record/{$id|escape:"url"}/SimilarTitles" id="moreLikeThisLink"><span class="silk book_link">&nbsp;</span>{translate text="More Like This"}</a></li>
-						{if $showTextThis == 1}
-							<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" id="smsLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
-						{/if}
-						{if $showEmailThis == 1}
-							<li><a href="{$path}/Record/{$id|escape:"url"}/Email" id="mailLink" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'><span class="silk email">&nbsp;</span>{translate text="Email this"}</a></li>
-						{/if}
-						{if is_array($exportFormats) && count($exportFormats) > 0}
-							<li>
-								<a href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" onclick="toggleMenu('exportMenu'); return false;"><span class="silk application_add">&nbsp;</span>{translate text="Export Record"}</a><br />
-								<ul class="menu" id="exportMenu">
-									{foreach from=$exportFormats item=exportFormat}
-										<li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/Record/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
-									{/foreach}
-								</ul>
-							</li>
-						{/if}
-						{if $showFavorites == 1}
-							<li id="saveLink"><a href="{$path}/Record/{$id|escape:"url"}/Save" onclick="getSaveToListForm('{$id|escape}', 'VuFind'); return false;"><span class="silk star_gold">&nbsp;</span>{translate text="Add to favorites"}</a></li>
-						{/if}
-						{if $enableBookCart == 1}
-							<li id="bookCartLink"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$recordTitleSubtitle|replace:'"':''|escape:'javascript'}', this);"><span class="silk cart">&nbsp;</span>{translate text="Add to book cart"}</a></li>
-						{/if}
-						{if !empty($addThis)}
-							<li id="addThis"><a href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}"><span class="silk tag_yellow">&nbsp;</span>{translate text='Bookmark'}</a></li>
-						{/if}
-					</ul>
+					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title}
 				</div>
 				<div class="clearer">&nbsp;</div>
 			</div>
@@ -157,12 +126,20 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div class="resultInformationLabel">{translate text='Subjects'}</div>
 					<div class="recordSubjects">
 						{foreach from=$subjects item=subject name=loop}
+							{if $smarty.foreach.loop.index == 5}
+								<div id="subjectsMoreLink"><a href="#" onclick="$('#subjectsMoreSection').toggle();$('#subjectsMoreLink').toggle();">{translate text="more"}...</a></div>
+								<div id="subjectsMoreSection" style="display:none">
+							{/if}
 							{foreach from=$subject item=subjectPart name=subloop}
 								{if !$smarty.foreach.subloop.first} -- {/if}
 								<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
 							{/foreach}
 							<br />
 						{/foreach}
+						{if $smarty.foreach.loop.index >= 5}
+							<div id="subjectsLessLink"><a href="#" onclick="$('#subjectsMoreSection').toggle();$('#subjectsMoreLink').toggle();">{translate text="less"}</a></div>
+							</div>
+						{/if}
 					</div>
 				</div>
 			{/if}
@@ -175,7 +152,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
 					<li><a href="#list-similar-titles">Similar Titles</a></li>
 				</ul>
-				
+
 				<div id="list-similar-titles" style="display:none">
 					{assign var="scrollerName" value="SimilarTitlesVuFind"}
 					{assign var="wrapperId" value="similar-titles-vufind"}
@@ -190,20 +167,20 @@ function redrawSaveStatus() {literal}{{/literal}
 					{assign var="fullListLink" value="$path/Record/$id/Series"}
 					{include file='titleScroller.tpl'}
 				</div>
-				
+
 			</div>
 			{literal}
 			<script type="text/javascript">
 				var similarTitleScroller;
-				
+
 				$(function() {
 					$("#relatedTitleInfo").tabs();
-					
+
 					{/literal}
-					
+
 					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
 					//similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
-		
+
 					{literal}
 					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
 						if (ui.index == 0) {
@@ -221,26 +198,12 @@ function redrawSaveStatus() {literal}{{/literal}
 				{assign var="wrapperId" value="series"}
 				{assign var="scrollerVariable" value="seriesScroller"}
 				{assign var="fullListLink" value="$path/Record/$id/Series"}
-				{include file=titleScroller.tpl}
+				{include file='titleScroller.tpl'}
 				
 			</div>
 			
 		{/if}
 		
-		{include file="Record/view-tabs.tpl"}
-		
+		{include file="Record/view-tabs.tpl" isbn=$isbn upc=$upc}
 	</div>
-		
 </div>
-{if $showStrands}
-{* Strands Tracking *}{literal}
-<!-- Event definition to be included in the body before the Strands js library -->
-<script type="text/javascript">
-if (typeof StrandsTrack=="undefined"){StrandsTrack=[];}
-StrandsTrack.push({
-	 event:"visited",
-	 item: "{/literal}{$id|escape}{literal}"
-});
-</script>
-{/literal}
-{/if}

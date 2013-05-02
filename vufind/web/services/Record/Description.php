@@ -20,7 +20,7 @@
 
 require_once 'Record.php';
 
-class Description extends Record{
+class Record_Description extends Record_Record{
 	function launch()    {
 		global $interface;
 
@@ -42,7 +42,7 @@ class Description extends Record{
 		if (isset($library) && $library->preferSyndeticsSummary == 0){
 			$allowExternalDescription = false;
 		}
-		return Description::loadDescriptionFromMarc($this->marcRecord, $allowExternalDescription);
+		return Record_Description::loadDescriptionFromMarc($this->marcRecord, $allowExternalDescription);
 
 	}
 
@@ -93,7 +93,7 @@ class Description extends Record{
 			if ($descriptionField = $marcRecord->getField('520')) {
 				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
 					$description = trim($descriptionSubfield->getData());
-					$marcDescription = Description::trimDescription($description);
+					$marcDescription = Record_Description::trimDescription($description);
 				}
 			}
 
@@ -105,7 +105,7 @@ class Description extends Record{
 					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
 					if (isset($summaryInfo['summary'])){
-						$descriptionArray['description'] = Description::trimDescription($summaryInfo['summary']);
+						$descriptionArray['description'] = Record_Description::trimDescription($summaryInfo['summary']);
 						$useMarcSummary = false;
 					}
 				}

@@ -21,11 +21,10 @@
 require_once 'Record.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class SimilarTitles extends Record
+class Record_SimilarTitles extends Record_Record
 {
 	function launch()
 	{
-		global $configArray;
 		global $interface;
 		global $user;
 
@@ -78,6 +77,10 @@ class SimilarTitles extends Record
 		$interface->assign('recordStart', 1);
 		$interface->assign('recordEnd', count($this->similarTitles));
 		$interface->assign('recordCount', count($this->similarTitles));
+
+		$novelist = NovelistFactory::getNovelist();
+		$enrichment = $novelist->loadEnrichment($this->isbn);
+		$interface->assign('enrichment', $enrichment);
 
 		//Build the actual view
 		$interface->setTemplate('view-similar.tpl');

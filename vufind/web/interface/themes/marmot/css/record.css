@@ -81,6 +81,7 @@
 	zoom: 1;
 	*display: inline;
 	width: 300px;
+	vertical-align: top;
 }
 
 #recordTools{
@@ -285,4 +286,8 @@ ul.notesList li{
 	font-size: 11px !important;
 	font-weight: normal !important;
 	margin-top: 3px !important;
+}
+
+#relatedTitleInfo{
+	margin-top: 10px;
 }

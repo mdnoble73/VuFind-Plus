@@ -26,10 +26,11 @@ class SaveSearch extends MyResearch
 {
 	function launch()
 	{
-		global $interface;
 		global $configArray;
 		global $user;
 
+		$searchId = null;
+		$todo = 'addSearch';
 		if (isset($_REQUEST['delete']) && $_REQUEST['delete']) {
 			$todo = 'deleteSearch';
 			$searchId = $_REQUEST['delete'];
@@ -62,6 +63,12 @@ class SaveSearch extends MyResearch
 		}
 	}
 
+
+	/**
+	 * Add a search to the database
+	 *
+	 * @param SearchEntry $search
+	 */
 	private function addSearch($search)
 	{
 		if ($search->saved != 1) {
@@ -72,6 +79,11 @@ class SaveSearch extends MyResearch
 		}
 	}
 
+	/**
+	 * Delete a search from the database
+	 *
+	 * @param SearchEntry $search
+	 */
 	private function deleteSearch($search)
 	{
 		if ($search->saved != 0) {
@@ -80,5 +92,3 @@ class SaveSearch extends MyResearch
 		}
 	}
 }
-
-?>

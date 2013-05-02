@@ -21,7 +21,8 @@ class Resource extends DB_DataObject {
 	public $format_category;
 	//public $marc;
 	public $marc_checksum;
-	public $source = 'VuFind';               // string(50)  not_null
+	public $source;               // string(50)  not_null
+	public $deleted;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Resource',$k,$v); }
@@ -38,8 +39,6 @@ class Resource extends DB_DataObject {
 	 */
 	function getTags($limit = 10)
 	{
-		//Get a reference to the scope we are in.
-		global $library;
 		global $user;
 
 		$tagList = array();
@@ -232,13 +231,17 @@ class Resource extends DB_DataObject {
 		return true;
 	}
 
+
+	/**
+	 * @param string $source
+	 * @return array
+	 */
 	function getComments($source = 'VuFind'){
 		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
-		$sql = "SELECT comments.*, concat(user.firstname, ' ', user.lastname) as fullname, user.displayName as displayName " .
+		$sql = "SELECT comments.*, CONCAT(LEFT(user.firstname,1), '. ', user.lastname) as fullname, user.displayName as displayName " .
                "FROM comments RIGHT OUTER JOIN user on comments.user_id = user.id " .
                "WHERE comments.resource_id = '$this->id' ORDER BY comments.created";
-
 		//Get a reference to the scope we are in so we can determine how to process the comments.
 		global $library;
 		global $user;
@@ -306,9 +309,11 @@ class Resource extends DB_DataObject {
 		if ($rating->N){
 			$rating->fetch();
 			$rating->rating = $ratingValue;
+			$rating->dateRated = time();
 			$rating->update();
 		}else{
 			$rating->rating = $ratingValue;
+			$rating->dateRated = time();
 			$rating->insert();
 		}
 
@@ -433,5 +438,12 @@ class Resource extends DB_DataObject {
 		imagepng($im, "images/fiveStar/{$this->record_id}.png");
 		imagedestroy($im);
 		return "images/fiveStar/{$this->record_id}.png";
+	}
+
+	function insert(){
+		if (!isset($this->source) || $this->source == ''){
+			$this->source = 'VuFind';
+		}
+		parent::insert();
 	}
 }

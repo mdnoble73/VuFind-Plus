@@ -23,10 +23,7 @@ require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 global $configArray;
 
-class AJAX extends Action {
-
-	function AJAX() {
-	}
+class Record_AJAX extends Action {
 
 	function launch() {
 		global $timer;
@@ -91,6 +88,7 @@ class AJAX extends Action {
 				$purchaseLinks = array();
 				if ($linkFields){
 					$field856Index = 0;
+					/** @var File_MARC_Data_Field[] $linkFields */
 					foreach ($linkFields as $marcField){
 						$field856Index++;
 						//Get the link
@@ -105,7 +103,6 @@ class AJAX extends Action {
 							}else{
 								$linkText = $link;
 							}
-							$showLink = true;
 							//Process some links differently so we can either hide them
 							//or show them in different areas of the catalog.
 							if (preg_match('/purchase|buy/i', $linkText) ||
@@ -151,7 +148,6 @@ class AJAX extends Action {
 											'field856Index' => $field856Index,
 									);
 								}
-								$showLink = false;
 							}
 						}
 					}
@@ -169,7 +165,7 @@ class AJAX extends Action {
 						$title = $resource->title;
 						$author = $resource->author;
 						require_once ROOT_DIR . '/services/Record/Purchase.php';
-						$purchaseLinks = Purchase::getStoresForTitle($title, $author);
+						$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
 
 						if (count($purchaseLinks) > 0){
 							$interface->assign('purchaseLinks', $purchaseLinks);
@@ -208,7 +204,7 @@ class AJAX extends Action {
 
 		$result = array();
 		if (UserAccount::isLoggedIn()) {
-			$saveService = new Save();
+			$saveService = new Record_Save();
 			$result = $saveService->saveRecord();
 			if (!PEAR_Singleton::isError($result)) {
 				$result['result'] = "Done";
@@ -234,6 +230,7 @@ class AJAX extends Action {
 		// Check if resource is saved to favorites
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
+		$resource->source = 'VuFind';
 		if ($resource->find(true)) {
 			if ($user->hasResource($resource)) {
 				return '<result>Saved</result>';
@@ -253,7 +250,7 @@ class AJAX extends Action {
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
-		$emailService = new Email();
+		$emailService = new Record_Email();
 		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
 
 		if (PEAR_Singleton::isError($result)) {
@@ -300,6 +297,7 @@ class AJAX extends Action {
 
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
+		$resource->source = 'VuFind';
 		if (!$resource->find(true)) {
 			$resource->insert();
 		}
@@ -312,7 +310,6 @@ class AJAX extends Action {
 	{
 		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 		global $user;
-		global $configArray;
 
 		// Process Delete Comment
 		if (is_object($user)) {
@@ -338,6 +335,8 @@ class AJAX extends Action {
 
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
+		$resource->source = 'VuFind';
+		$commentList = array('user'=>array(), 'staff'=> array());
 		if ($resource->find(true)) {
 			$commentList = $resource->getComments();
 		}
@@ -373,6 +372,7 @@ class AJAX extends Action {
 		$resource->addRating($rating, $user);
 		$analytics->addEvent('User Enrichment', 'Rate Title', $resource->title);
 
+		/** @var Memcache $memCache */
 		global $memCache;
 		$memCache->delete('rating_' . $_GET['id']);
 
@@ -381,7 +381,6 @@ class AJAX extends Action {
 
 	function GetGoDeeperData(){
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$id = $_REQUEST['id'];
 		$dataType = $_REQUEST['dataType'];
 		$upc = $_REQUEST['upc'];
 		$isbn = $_REQUEST['isbn'];
@@ -392,13 +391,13 @@ class AJAX extends Action {
 	}
 
 	function GetEnrichmentInfo(){
-		require_once 'Enrichment.php';
+		require_once ROOT_DIR . '/services/Record/Enrichment.php';
 		global $configArray;
 		global $library;
 		$isbn = $_REQUEST['isbn'];
 		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];
-		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
 		global $interface;
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
@@ -508,11 +507,9 @@ class AJAX extends Action {
 		//Get other titles within a series for display within the title scroller
 		require_once 'Enrichment.php';
 		$isbn = $_REQUEST['isbn'];
-		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];
-		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
 		global $interface;
-		global $configArray;
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
 
@@ -523,10 +520,10 @@ class AJAX extends Action {
 		require_once 'Holdings.php';
 		global $interface;
 		global $configArray;
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+		$interface->assign('showOtherEditionsPopup', 0);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		$holdings = Holdings::loadHoldings($id);
+		Record_Holdings::loadHoldings($id);
 		return $interface->fetch('Record/ajax-holdings.tpl');
 	}
 
@@ -537,11 +534,18 @@ class AJAX extends Action {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
+		global $library;
+		if (isset($library)){
+			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
+		}else{
+			$interface->assign('showProspectorTitlesAsTab', 1);
+		}
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr $db */
 		$db = new $class($url);
 		if ($configArray['System']['debugSolr']) {
 			$db->debug = true;
@@ -578,7 +582,7 @@ class AJAX extends Action {
 		require_once 'Reviews.php';
 		$isbn = $_REQUEST['isbn'];
 		$id = $_REQUEST['id'];
-		$enrichmentData = Reviews::loadReviews($id, $isbn);
+		$enrichmentData = Record_Reviews::loadReviews($id, $isbn);
 		global $interface;
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
@@ -586,6 +590,7 @@ class AJAX extends Action {
 	}
 
 	function getDescription(){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		global $interface;
@@ -597,7 +602,7 @@ class AJAX extends Action {
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init();
 
-			$description = new Description(true, $id);
+			$description = new Record_Description(true, $id);
 			$descriptionArray = $description->loadData();
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}

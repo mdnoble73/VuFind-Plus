@@ -13,6 +13,9 @@ class Tags extends DB_DataObject
 	public $id;                              // int(11)  not_null primary_key auto_increment
 	public $tag;                             // string(25)  not_null
 
+	/** @var  boolean dynamic property indicating whether or not the current user added this tag. */
+	public $userAddedThis;
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Tags',$k,$v); }
 
@@ -26,6 +29,8 @@ class Tags extends DB_DataObject
 		$sql = "SELECT resource.* FROM resource_tags, resource " .
                "WHERE resource.id = resource_tags.resource_id " .
                "AND resource_tags.tag_id = '$this->id'";
+
+		/** @var Resource|object $res */
 		$res = new Resource();
 		$res->query($sql);
 		if ($res->N) {

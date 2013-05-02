@@ -268,35 +268,6 @@ function redrawSaveStatus() {literal}{{/literal}
 				</div>
 			{/if}
 
-			{if $eContentRecord->isOverDrive()}
-				{* Place hold link *}
-				<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-					<a href="#" class="button" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
-				</div>
-
-				{* Checkout link *}
-				<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-					<a href="#" class="button" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
-				</div>
-			{else}
-				{* Place hold link *}
-				<div class='requestThisLink' id="placeHold{$id|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Hold" class="button">{translate text="Place Hold"}</a>
-				</div>
-
-				{* Checkout link *}
-				<div class='checkoutLink' id="checkout{$id|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Checkout" class="button">{translate text="Checkout"}</a>
-				</div>
-
-				{* Access online link *}
-				{*
-				<div class='accessOnlineLink' id="accessOnline{$id|escape:"url"}" style="display:none">
-					<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Home?detail=holdingstab" class="button">{translate text="Access Online"}</a>
-				</div>
-				*}
-			{/if}
-
 			{* Add to Wish List *}
 			<div class='addToWishListLink' id="addToWishList{$id|escape:"url"}" style="display:none">
 				<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="button">{translate text="Add To Wish List"}</a>
@@ -320,36 +291,8 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div id="prospectorHoldingsPlaceholder"></div>
 				{/if}
 				<div id="recordTools">
-					<ul>
-						{if !$tabbedDetails}
-							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Cite" id="citeLink" onclick='ajaxLightbox("{$path}/EcontentRecord/{$id|escape}/Cite?lightbox", "#citeLink"); return false;'><span class="silk report">&nbsp;</span>{translate text="Cite this"}</a></li>
-						{/if}
-						{if $showTextThis == 1}
-							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;"><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
-						{/if}
-						{if $showEmailThis == 1}
-							<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;"><span class="silk email">&nbsp;</span>{translate text="Email this"}</a></li>
-						{/if}
-						{if is_array($exportFormats) && count($exportFormats) > 0}
-							<li>
-								<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormats.0|escape:"url"}" onclick="toggleMenu('exportMenu'); return false;"><span class="silk application_add">&nbsp;</span>{translate text="Export Record"}</a><br />
-								<ul class="menu" id="exportMenu">
-									{foreach from=$exportFormats item=exportFormat}
-										<li><a {if $exportFormat=="RefWorks"} {/if}href="{$path}/EcontentRecord/{$id|escape:"url"}/Export?style={$exportFormat|escape:"url"}">{translate text="Export to"} {$exportFormat|escape}</a></li>
-									{/foreach}
-								</ul>
-							</li>
-						{/if}
-						{if $showFavorites == 1}
-							<li id="saveLink"><a href="{$path}/Resource/Save?id={$id|escape:"url"}&amp;source=eContent" onclick="getSaveToListForm('{$id|escape}', 'eContent'); return false;"><span class="silk star_gold">&nbsp;</span>{translate text="Add to favorites"}</a></li>
-						{/if}
-						{if $enableBookCart == 1}
-							<li id="bookCartLink"><a href="#" onclick="addToBag('{$id|escape}', '{$eContentRecord->title|replace:'"':''|escape:'javascript'}', this);"><span class="silk cart">&nbsp;</span>{translate text="Add to book cart"}</a></li>
-						{/if}
-						{if !empty($addThis)}
-							<li id="addThis"><a href="https://www.addthis.com/bookmark.php?v=250&amp;pub={$addThis|escape:"url"}"><span class="silk tag_yellow">&nbsp;</span>{translate text='Bookmark'}</a></li>
-						{/if}
-					</ul>
+					{include file="EcontentRecord/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title}
+
 				</div>
 
 				<div class="clearer">&nbsp;</div>
@@ -378,126 +321,15 @@ function redrawSaveStatus() {literal}{{/literal}
 
 		</div>
 
-		{* tabs for series, similar titles, and people who viewed also viewed *}
-		{if $showStrands}
-			<div id="relatedTitleInfo" class="ui-tabs">
-				<ul>
-					<li><a href="#list-similar-titles">Similar Titles</a></li>
-					<li><a href="#list-also-viewed">People who viewed this also viewed</a></li>
-					<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-				</ul>
+		<div id="relatedTitleInfo" style="display:none">
 
-				{assign var="scrollerName" value="SimilarTitles"}
-				{assign var="wrapperId" value="similar-titles"}
-				{assign var="scrollerVariable" value="similarTitleScroller"}
-				{include file=titleScroller.tpl}
-
-				{assign var="scrollerName" value="AlsoViewed"}
-				{assign var="wrapperId" value="also-viewed"}
-				{assign var="scrollerVariable" value="alsoViewedScroller"}
-				{include file=titleScroller.tpl}
-
-
-				{assign var="scrollerName" value="Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-				{include file=titleScroller.tpl}
-
-			</div>
-			{literal}
-			<script type="text/javascript">
-				var similarTitleScroller;
-				var alsoViewedScroller;
-
-				$(function() {
-					$("#relatedTitleInfo").tabs();
-					$("#moredetails-tabs").tabs();
-
-					{/literal}
-					{if $defaultDetailsTab}
-						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-					{/if}
-
-					similarTitleScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-2&recordId={$id}&scrollerName=SimilarTitles', false);
-
-					{literal}
-					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-						if (ui.index == 0) {
-							similarTitleScroller.activateCurrentTitle();
-						}else if (ui.index == 1) {
-							if (alsoViewedScroller == null){
-								{/literal}
-								alsoViewedScroller = new TitleScroller('titleScrollerAlsoViewed', 'AlsoViewed', 'also-viewed');
-								alsoViewedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:PROD-1&recordId={$id}&scrollerName=AlsoViewed', false);
-							{literal}
-							}else{
-								alsoViewedScroller.activateCurrentTitle();
-							}
-						}
-					});
-				});
-			</script>
-			{/literal}
-		{elseif $showSimilarTitles}
-			<div id="relatedTitleInfo" class="ui-tabs">
-				<ul>
-					<li><a href="#list-similar-titles">Similar Titles</a></li>
-					<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-				</ul>
-
-				{assign var="scrollerName" value="SimilarTitlesVuFind"}
-				{assign var="wrapperId" value="similar-titles-vufind"}
-				{assign var="scrollerVariable" value="similarTitleVuFindScroller"}
-				{include file=titleScroller.tpl}
-
-				{assign var="scrollerName" value="Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-				{include file=titleScroller.tpl}
-
-			</div>
-			{literal}
-			<script type="text/javascript">
-				var similarTitleScroller;
-				var alsoViewedScroller;
-
-				$(function() {
-					$("#relatedTitleInfo").tabs();
-					$("#moredetails-tabs").tabs();
-
-					{/literal}
-					{if $defaultDetailsTab}
-						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-					{/if}
-
-					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
-
-					{literal}
-					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-						if (ui.index == 0) {
-							similarTitleVuFindScroller.activateCurrentTitle();
-						}
-					});
-				});
-			</script>
-			{/literal}
-		{else}
-			<div id="relatedTitleInfo" style="display:none">
-
-				{assign var="scrollerName" value="Series"}
-				{assign var="scrollerTitle" value="Also in this Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-				{include file=titleScroller.tpl}
-
-			</div>
-
-		{/if}
+			{assign var="scrollerName" value="Series"}
+			{assign var="scrollerTitle" value="Also in this Series"}
+			{assign var="wrapperId" value="series"}
+			{assign var="scrollerVariable" value="seriesScroller"}
+			{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
+			{include file=titleScroller.tpl}
+		</div>
 
 		<a id="detailsTab" href="#detailsTab"></a>
 		<div id="moredetails-tabs">
@@ -513,12 +345,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				{if $showAmazonReviews || $showStandardReviews || $showComments}
 					{foreach from=$reviews key=key item=reviewTabInfo}
 						<li><a href="#{$key}">{translate text=$reviewTabInfo.tabName}</a></li>
-					{foreachelse}
-						<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
 					{/foreach}
-				{/if}
-				{if $showComments}
-				<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 				{/if}
 				<li><a href="#citetab">{translate text="Citation"}</a></li>
 				<li id="copiestabLink"><a href="#copiestab">{translate text="Copies"}</a></li>
@@ -561,70 +388,31 @@ function redrawSaveStatus() {literal}{{/literal}
 
 			{foreach from=$reviews key=key item=reviewTabInfo}
 				<div id="{$key}">
-					{if $showAmazonReviews || $showStandardReviews || $showComments}
-						{if $key == 'reviews'}
-							<div id = "staffReviewtab" >
-							{include file="Record/view-staff-reviews.tpl"}
-							</div>
+					{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+						<div>
+							<span class="button"><a href='{$path}/EditorialReview/Edit?recordId=econtentRecord{$id}'>Add Editorial Review</a></span>
+						</div>
+					{/if}
 
+					{if $key == 'reviews'}
+						{if $showComments}
+							{include file="$module/view-comments.tpl"}
+
+							<div id = "staffReviewtab" >
+								{include file="Record/view-staff-reviews.tpl"}
+							</div>
+						{/if}
+						{if $showStandardReviews}
 							<div id='reviewPlaceholder'></div>
 						{/if}
 					{/if}
 
-					{if $showComments}
-						{foreach from=$reviewTabInfo.reviews item=review}
-							{assign var=review value=$review}
-							{include file="Resource/view-review.tpl"}
-						{/foreach}
-
-						{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-							<div>
-								<span class="button"><a href='{$path}/EditorialReview/Edit?recordId=econtentRecord{$id}'>Add Editorial Review</a></span>
-							</div>
-						{/if}
-					{/if}
-				</div>
-			{foreachelse}
-				<div id="reviewtab">
-					{if $showComments}
-					<div id = "staffReviewtab" >
-					{include file="Record/view-staff-reviews.tpl"}
-					</div>
-					{/if}
-
-					{if $showAmazonReviews || $showStandardReviews}
-					<div id='reviewPlaceholder'></div>
-					{/if}
+					{foreach from=$reviewTabInfo.reviews item=review}
+						{assign var=review value=$review}
+						{include file="Resource/view-review.tpl"}
+					{/foreach}
 				</div>
 			{/foreach}
-
-			{if $showComments == 1}
-				<div id = "readertab" >
-					<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" onclick="$('#userreview{$id}').slideDown();"><span class="silk add">&nbsp;</span>Add a Review</span></div>
-					<div id="userreview{$id}" class="userreview">
-						<span class ="alignright unavailable closeReview" onclick="$('#userreview{$id}').slideUp();" >Close</span>
-						<div class='addReviewTitle'>Add your Review</div>
-						{assign var=id value=$id}
-						{include file="EcontentRecord/submit-comments.tpl"}
-					</div>
-					{include file="EcontentRecord/view-comments.tpl"}
-
-					{* Chili Fresh Reviews *}
-					{if $chiliFreshAccount && ($isbn || $upc || $issn)}
-						<h4>Chili Fresh Reviews</h4>
-						{if $isbn}
-						<div class="chili_review" id="isbn_{$isbn10}"></div>
-						<div id="chili_review_{$isbn10}" style="display:none" align="center" width="100%"></div>
-						{elseif $upc}
-						<div class="chili_review_{$upc}" id="isbn"></div>
-						<div id="chili_review_{$upc}" style="display:none" align="center" width="100%"></div>
-						{elseif $issn}
-						<div class="chili_review_{$issn}" id="isbn"></div>
-						<div id="chili_review_{$issn}" style="display:none" align="center" width="100%"></div>
-						{/if}
-					{/if}
-				</div>
-			{/if}
 
 			<div id = "citetab" >
 				{include file="Record/cite.tpl"}

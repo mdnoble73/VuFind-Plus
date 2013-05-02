@@ -27,7 +27,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries'))){
+		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'GetSeriesInfo'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -270,7 +270,7 @@ class AJAX extends Action {
 	{
 		require_once ROOT_DIR . '/services/Search/Email.php';
 
-		$emailService = new Email();
+		$emailService = new Search_Email();
 		$result = $emailService->sendEmail($_GET['url'], $_GET['to'], $_GET['from'], $_GET['message']);
 
 		if (PEAR_Singleton::isError($result)) {
@@ -401,6 +401,7 @@ class AJAX extends Action {
 		require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
 		global $timer;
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$searchTerm = isset($_REQUEST['searchTerm']) ? $_REQUEST['searchTerm'] : $_REQUEST['q'];
 		$searchType = isset($_REQUEST['type']) ? $_REQUEST['type'] : '';
@@ -432,6 +433,12 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
+		global $library;
+		if (isset($library)){
+			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
+		}else{
+			$interface->assign('showProspectorTitlesAsTab', 0);
+		}
 
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -469,12 +476,13 @@ class AJAX extends Action {
 	 * @return string JSON encoded data representing the list infromation
 	 */
 	function GetListTitles(){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		global $timer;
 
 		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $_GET['id']);
-		$scrollerName = strip_tags($_GET['scrollerName']);
+		$scrollerName = $listName;
 
 		//Determine the caching parameters
 		require_once(ROOT_DIR . '/services/API/ListAPI.php');
@@ -482,7 +490,7 @@ class AJAX extends Action {
 		$cacheInfo = $listAPI->getCacheInfoForList();
 
 		$listData = $memCache->get($cacheInfo['cacheName']);
-		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
+		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles']) == 0)){
 			global $interface;
 
 			$titles = $listAPI->getListTitles();
@@ -590,7 +598,9 @@ class AJAX extends Action {
 				$analytics->addEvent('Enrichment', 'Other Editions Error');
 			}
 			$interface->assign('otherEditions', $editionResources);
-			echo $interface->fetch('Resource/otherEditions.tpl');
+			$interface->assign('popupTitle', 'Other Editions');
+			$interface->assign('popupTemplate', 'Resource/otherEditions.tpl');
+			echo $interface->fetch('popup-wrapper.tpl');
 		}elseif (isset($error)){
 			$analytics->addEvent('Enrichment', 'Other Editions Error', $error);
 			echo $error;
@@ -598,6 +608,26 @@ class AJAX extends Action {
 			echo("There are no other editions for this title currently in the catalog.");
 			$analytics->addEvent('Enrichment', 'Other Editions', 0, 'No Other ISBNs');
 		}
+	}
+
+	function GetSeriesInfo(){
+		require_once ROOT_DIR . '/sys/NovelistFactory.php';
+		$novelist = NovelistFactory::getNovelist();
+		$isbns = $_REQUEST['isbn'];
+		$seriesInfo = array();
+		foreach ($isbns as $isbn){
+			$enrichment = $novelist->loadEnrichment($isbn);
+			if (isset($enrichment['seriesTitle'])){
+				$seriesInfo[$isbn] = "<a href='/Search/Results?sort=year&lookfor=series:" . urlencode($enrichment['seriesTitle']) . "'>{$enrichment['seriesTitle']}</a>" ;
+				if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
+					$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];
+				}
+			}
+		}
+		echo json_encode(array(
+			'success' => true,
+			'series' => $seriesInfo
+		));
 	}
 }
 

@@ -68,6 +68,7 @@ class SearchObjectFactory {
 	{
 		// To avoid excessive constructor calls, we'll keep a static cache of
 		// objects to use for the deminification process:
+		/** @var SearchObject_Base[] $objectCache */
 		static $objectCache = array();
 
 		// Figure out the engine type for the object we're about to construct:

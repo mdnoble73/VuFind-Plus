@@ -1,9 +1,11 @@
 <InProspector><![CDATA[{if is_array($prospectorResults) && count($prospectorResults) > 0}
+{if $showProspectorTitlesAsTab == 0}
 <div id='prospectorSidebarResults'>
 <img id='prospectorMan' src='{$path}/interface/themes/marmot/images/prospector_man_sidebar.png'/>
 <div id='prospectorSearchResultsTitle'>{translate text="In Prospector"}</div>
 <div class='clearer'>&nbsp;</div>
 </div>
+{/if}
 <ul class="similar">
   {foreach from=$prospectorResults item=prospectorTitle}
   {if $similar.recordId != -1}

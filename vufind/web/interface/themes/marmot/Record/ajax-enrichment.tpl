@@ -4,7 +4,7 @@
   <h4 title="Similar Authors from Novelist" id="similarAuthorTitle" >Similar Authors</h4>
   {foreach from=$enrichment.novelist.authors item=similarAuthor}
     <div class="sidebarLabel">
-      <a href={$path}/Author/Home?author={$similarAuthor|escape:"url"}&lookfor=>{$similarAuthor}</a>
+      <a href="{$similarAuthor.link}" title="{$similarAuthor.reason}" class="similarAuthor">{$similarAuthor.name}</a>
     </div>
   {/foreach}
 {/if}]]>
@@ -58,7 +58,7 @@
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}
   <li>
-    <a href="{$path}/Record/{$similar.recordId|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href="{$path}/Record/{$similar.recordId|escape:"url"}" {if $similar.reason}title="{$similar.reason}"{/if}>{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
     
     <span style="font-size: 80%">
     {if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}

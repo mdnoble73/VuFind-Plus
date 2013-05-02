@@ -65,7 +65,7 @@ class Series extends Action
 		$eContentRecord->find(true);
 
 		require_once 'Enrichment.php';
-		$enrichment = new Enrichment(true);
+		$enrichment = new EcontentRecord_Enrichment();
 		$enrichmentData = $enrichment->loadEnrichment($eContentRecord->getIsbn());
 
 		$seriesTitle = '';

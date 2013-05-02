@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once 'Record.php';
 
-class Holdings extends Record
+class Record_Holdings extends Record_Record
 {
 	function launch()
 	{
@@ -47,7 +47,7 @@ class Holdings extends Record
 		$interface->display('layout.tpl');
 	}
 
-	function loadHoldings($id)
+	static function loadHoldings($id)
 	{
 		global $interface;
 		global $configArray;

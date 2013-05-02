@@ -2,6 +2,9 @@
 	{* Define tabs for the display *}
 	<ul>
 		<li id="holdingstab_label"><a href="#holdingstab">{translate text="Copies"}</a></li>
+		{if is_array($otherEditions) }
+			<li id="otherEditionsTab_label"><a href="#otherEditionsTab">{translate text="Other Editions"}</a></li>
+		{/if}
 		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 			<li id="prospectortab_label"><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 		{/if}
@@ -20,9 +23,6 @@
 			{foreachelse}
 				<li><a href="#reviewtab">{translate text="Reviews"}</a></li>
 			{/foreach}
-		{/if}
-		{if $showComments}
-			<li><a href="#readertab">{translate text="Reader Comments"}</a></li>
 		{/if}
 		<li><a href="#citetab">{translate text="Citation"}</a></li>
 		<li><a href="#stafftab">{translate text="Staff View"}</a></li>
@@ -52,6 +52,12 @@
 
 	</div>
 
+	{if is_array($otherEditions) }
+		<div id="otherEditionsTab">
+			{include file='Resource/otherEditions.tpl' otherEditions=$editionResources}
+		</div>
+	{/if}
+
 	{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 		<div id="prospectorTab">
 			{* Display in Prospector Sidebar *}
@@ -62,9 +68,9 @@
 	{if $tableOfContents}
 		<div id ="tableofcontentstab">
 			<ul class='notesList'>
-			{foreach from=$tableOfContents item=note}
-				<li>{$note}</li>
-			{/foreach}
+				{foreach from=$tableOfContents item=note}
+					<li>{$note}</li>
+				{/foreach}
 			</ul>
 		</div>
 	{/if}
@@ -93,55 +99,31 @@
 
 	{foreach from=$editorialReviews key=key item=reviewTabInfo}
 		<div id="{$key}">
-			{if $showAmazonReviews || $showStandardReviews || $showComments}
-				{if $key == 'reviews'}
-					<div id = "staffReviewtab" >
-					{include file="$module/view-staff-reviews.tpl"}
-					</div>
+			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+				<div>
+					<span class="button"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
+				</div>
+			{/if}
 
+			{if $key == 'reviews'}
+				{if $showComments}
+					{include file="$module/view-comments.tpl"}
+
+					<div id = "staffReviewtab" >
+						{include file="$module/view-staff-reviews.tpl"}
+					</div>
+				{/if}
+				{if $showStandardReviews}
 					<div id='reviewPlaceholder'></div>
 				{/if}
 			{/if}
 
-			{if $showComments}
-				{foreach from=$reviewTabInfo.reviews item=review}
-					{assign var=review value=$review}
-					{include file="Resource/view-review.tpl"}
-				{/foreach}
-
-				{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-					<div>
-						<span class="button"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
-					</div>
-				{/if}
-			{/if}
-		</div>
-	{foreachelse}
-		<div id="reviewtab">
-			{if $showComments}
-			<div id = "staffReviewtab" >
-			{include file="$module/view-staff-reviews.tpl"}
-			</div>
-			{/if}
-
-			{if $showAmazonReviews || $showStandardReviews}
-			<div id='reviewPlaceholder'></div>
-			{/if}
+			{foreach from=$reviewTabInfo.reviews item=review}
+				{assign var=review value=$review}
+				{include file="Resource/view-review.tpl"}
+			{/foreach}
 		</div>
 	{/foreach}
-
-	{if $showComments == 1}
-		<div id = "readertab" >
-			<div style ="font-size:12px;" class ="alignright" id="addReview"><span id="userreviewlink" onclick="$('#userreview{$shortId}').slideDown();"><span class="silk add">&nbsp;</span>Add a Review</span></div>
-			<div id="userreview{$shortId}" class="userreview">
-				<span class ="alignright unavailable closeReview" onclick="$('#userreview{$shortId}').slideUp();" >Close</span>
-				<div class='addReviewTitle'>Add your Review</div>
-				{assign var=id value=$id}
-				{include file="$module/submit-comments.tpl"}
-			</div>
-			{include file="$module/view-comments.tpl"}
-		</div>
-	{/if}
 
 	<div id = "citetab" >
 		{include file="$module/cite.tpl"}
@@ -150,17 +132,19 @@
 	<div id = "stafftab">
 		{include file=$staffDetails}
 
+		<br/>
 		{if $user && $user->hasRole('opacAdmin')}
-			<br/>
 			<a href="{$path}/Record/{$id|escape:"url"}/AJAX?method=downloadMarc" class="button">{translate text="Download Marc"}</a>
+		{/if}
+		{if $classicId}
+			<a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" rel="external" class="button" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">View In Classic</a></div>
 		{/if}
 	</div>
 </div> {* End of tabs*}
 
-{literal}
 <script type="text/javascript">
-	$(function() {
+	$(function() {literal}{
 		$("#moredetails-tabs").tabs();
 	});
+	{/literal}
 </script>
-{/literal}

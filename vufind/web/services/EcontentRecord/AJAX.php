@@ -79,7 +79,7 @@ class AJAX extends Action {
 		$isbn = $_REQUEST['isbn'];
 		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];
-		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		$enrichmentData = EcontentRecord_Enrichment::loadEnrichment($isbn);
 		global $interface;
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
@@ -136,7 +136,6 @@ class AJAX extends Action {
 			foreach ($titles as $key => $rawData){
 				if ($rawData['id']){
 					if (strpos($rawData['id'], 'econtentRecord') === 0){
-						$fullId = $rawData['id'];
 						$shortId = str_replace('econtentRecord', '', $rawData['id']);
 						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
 								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $shortId . '">' .
@@ -183,11 +182,9 @@ class AJAX extends Action {
 		//Get other titles within a series for display within the title scroller
 		require_once './Enrichment.php';
 		$isbn = $_REQUEST['isbn'];
-		$upc = $_REQUEST['upc'];
 		$id = $_REQUEST['id'];
-		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		$enrichmentData = EcontentRecord_Enrichment::loadEnrichment($isbn);
 		global $interface;
-		global $configArray;
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
 	}
@@ -207,9 +204,9 @@ class AJAX extends Action {
 		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
 
+		/** @var EContentItem[] $holdings */
 		$holdings = $driver->getHolding($id);
 		$showEContentNotes = false;
-		$showSize = false;
 		foreach ($holdings as $holding){
 			if (strlen($holding->notes) > 0){
 				$showEContentNotes = true;
@@ -273,6 +270,7 @@ class AJAX extends Action {
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr $db */
 		$db = new $class($url);
 		if ($configArray['System']['debugSolr']) {
 			$db->debug = true;
@@ -313,7 +311,7 @@ class AJAX extends Action {
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
-		$emailService = new Email();
+		$emailService = new EcontentRecord_Email();
 		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
 
 		if (PEAR_Singleton::isError($result)) {
@@ -410,6 +408,7 @@ class AJAX extends Action {
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
 		$resource->source = 'eContent';
+		$commentList = array();
 		if ($resource->find(true)) {
 			$commentList = $resource->getComments();
 		}
@@ -461,7 +460,7 @@ class AJAX extends Action {
 		$eContentRecord->find(true);
 
 		require_once 'Description.php';
-		$descriptionInfo = Description::loadDescription($eContentRecord);
+		$descriptionInfo = EcontentRecord_Description::loadDescription($eContentRecord);
 
 		$interface->assign('description', $descriptionInfo['description']);
 		$interface->assign('length', $eContentRecord->physicalDescription);

@@ -30,6 +30,7 @@
 		{if $user}
 		doGetSaveStatuses();
 		{/if}
+		doGetSeriesInfo();
 	{literal} }); {/literal}
 </script>
 {/strip}

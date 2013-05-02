@@ -22,43 +22,16 @@ require_once ROOT_DIR . '/sys/Amazon.php';
 require_once ROOT_DIR . '/sys/Proxy_Request.php';
 require_once ROOT_DIR . '/sys/Novelist.php';
 
-require_once 'Record.php';
-
-class Enrichment extends Record
+class Record_Enrichment
 {
-	function launch()
-	{
-		global $interface;
-		global $configArray;
-		global $library;
-
-		if (!$interface->is_cached($this->cacheId)) {
-			$interface->setPageTitle('Extra Information: ' . $this->record['title_short']);
-
-			//Load the data for the reviews and populate in the user interface
-			$this->loadData();
-
-			$interface->assign('subTemplate', 'view-series.tpl');
-			$interface->setTemplate('view.tpl');
-		}
-		
-		if (isset($library)){
-			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
-		}else{
-			$interface->assign('showSeriesAsTab', 0);
-		}
-
-		// Display Page
-		$interface->display('layout.tpl', $this->cacheId);
-	}
-
 	/**
 	 * Load information from the review provider and update the interface with the data.
 	 *
+	 * @param  string   $isbn The ISBN to load data for
 	 * @return array       Returns array with review data, otherwise a
 	 *                      PEAR_Error.
 	 */
-	function loadEnrichment($isbn)
+	static function loadEnrichment($isbn)
 	{
 		global $interface;
 		global $configArray;
@@ -70,8 +43,8 @@ class Enrichment extends Record
 			foreach ($providers as $provider) {
 				$provider = explode(':', trim($provider));
 				$func = strtolower($provider[0]);
-				if (method_exists(new Enrichment(), $func)){
-					$enrichment[$func] = Enrichment::$func($isbn);
+				if (method_exists(new Record_Enrichment(), $func)){
+					$enrichment[$func] = Record_Enrichment::$func($isbn);
 	
 					// If the current provider had no valid reviews, store nothing:
 					if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
@@ -94,6 +67,7 @@ class Enrichment extends Record
 	 * This method is responsible for fetching enrichment information from NoveList
 	 * uses the REST Interface provided by NoveList
 	 *
+	 * @param   string    $isbn The ISBN to return data for
 	 * @return  array       Returns array with enrichment information, otherwise a
 	 *                      PEAR_Error.
 	 * @access  public
@@ -101,7 +75,7 @@ class Enrichment extends Record
 	 */
 	function novelist($isbn)
 	{
-		$novelist = new Novelist();
+		$novelist = NovelistFactory::getNovelist();;
 		return $novelist->loadEnrichment($isbn);
 	}
 

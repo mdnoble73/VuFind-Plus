@@ -1,29 +1,6 @@
 {assign var="curSection" value=-1}
 {strip}
 <div id="adminMenuAccordion">
-	{if false && $user->hasRole('opacAdmin') }
-	<h4><a href="#">General Configuration</a></h4>
-	<div class="sidegroupContents">
-		<div class="adminMenuLink {if $action == "Home"}active{/if}"><a href="{$path}/Admin/Home">Home</a></div>
-		<div class="adminMenuLink {if $action == "Statistics"}active{/if}"><a href="{$path}/Admin/Statistics">Statistics</a></div>
-		<div class="adminMenuLink {if $action == "Config"}active{/if}"><a href="{$path}/Admin/Config">Configuration</a>
-			{if $action == "Config"}
-			<ul style="padding-left:20px;">
-				<div><a href="{$path}/Admin/Config?file=config.ini">General Configuration</a></div>
-				<div><a href="{$path}/Admin/Config?file=searchspecs.yaml">Search Specifications</a></div>
-				<div><a href="{$path}/Admin/Config?file=searches.ini">Search Settings</a></div>
-				<div><a href="{$path}/Admin/Config?file=facets.ini">Facet Settings</a></div>
-				<div><a href="{$path}/Admin/Config?file=stopwords.txt">Stop Words</a></div>
-				<div><a href="{$path}/Admin/Config?file=synonyms.txt">Synonyms</a></div>
-				<div><a href="{$path}/Admin/Config?file=protwords.txt">Protected Words</a></div>
-				<div><a href="{$path}/Admin/Config?file=elevate.xml">Elevated Words</a></div>
-			</ul>
-			{/if}
-		</div>
-		<div class="adminMenuLink {if $action == "Maintenance"}active{/if}"><a href="{$path}/Admin/Maintenance">System Maintenance</a></div>
-	</div>		
-	{/if}
-	
 	{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 	{assign var="curSection" value=$curSection+1}
 	<h4><a href="#">VuFind Configuration</a></h4>
@@ -158,10 +135,10 @@
 {literal}
 <script type="text/javascript">
 	$(function() {
-		$("#adminMenuAccordion").accordion();
 		{/literal}
+		$("#adminMenuAccordion").accordion();
 		{if $defaultSection}
-		$("#adminMenuAccordion").accordion("option", "active", {$defaultSection});
+			$("#adminMenuAccordion").accordion("option", "active", {$defaultSection});
 		{/if}
 		{literal}
 	});

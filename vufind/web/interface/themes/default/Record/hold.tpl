@@ -38,7 +38,7 @@
 					</div>
 					<div class='loginFormRow'>
 						<input type="hidden" name="type" value="hold"/>
-						<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Request This Title'}" {if (!isset($profile))}disabled="disabled"{/if}/>
+						<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Submit Hold Request'}" {if (!isset($profile))}disabled="disabled"{/if}/>
 						<input type="checkbox" name="autologout" /> Log me out after requesting the item. 
 					</div>
 				</div>

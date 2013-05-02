@@ -24,7 +24,7 @@ require_once ROOT_DIR . '/sys/Novelist.php';
 
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
-class Enrichment
+class EcontentRecord_Enrichment
 {
 	/**
 	 * Load information from the review provider and update the interface with the data.
@@ -33,7 +33,7 @@ class Enrichment
 	 * @return array        Returns array with review data, otherwise a
 	 *                      PEAR_Error.
 	 */
-	function loadEnrichment($isbn)
+	static function loadEnrichment($isbn)
 	{
 		global $interface;
 		global $configArray;
@@ -45,8 +45,8 @@ class Enrichment
 			foreach ($providers as $provider) {
 				$provider = explode(':', trim($provider));
 				$func = strtolower($provider[0]);
-				if (method_exists(new Enrichment(), $func)){
-					$enrichment[$func] = Enrichment::$func($isbn);
+				if (method_exists(new EcontentRecord_Enrichment(), $func)){
+					$enrichment[$func] = EcontentRecord_Enrichment::$func($isbn);
 	
 					// If the current provider had no valid reviews, store nothing:
 					if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
@@ -77,7 +77,7 @@ class Enrichment
 	 */
 	function novelist($isbn)
 	{
-		$novelist = new Novelist();
+		$novelist = NovelistFactory::getNovelist();;
 		return $novelist->loadEnrichment($isbn);
 	}
 }

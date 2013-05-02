@@ -33,7 +33,6 @@ class Home extends Action
 	{
 		global $configArray;
 		global $interface;
-		global $user;
 		global $library;
 
 		// Initialise from the current search globals
@@ -47,7 +46,6 @@ class Home extends Action
 			// And we're done
 			exit();
 		}
-		// TODO : Stats
 
 		$interface->caching = false;
 
@@ -147,6 +145,7 @@ class Home extends Action
 		$interface->assign('filterList', $searchObject->getFilterList());
 
 		// Process Search
+		/** @var PEAR_Error|null $result */
 		$result = $searchObject->processSearch(false, true);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result->getMessage());
@@ -204,7 +203,7 @@ class Home extends Action
 			//Make sure to trim off any format information from the ISBN
 			$isbnParts = explode(' ', $authorIsbn);
 			$authorIsbn = $isbnParts[0];
-			$novelist = new Novelist();
+			$novelist = NovelistFactory::getNovelist();
 			$enrichment['novelist'] = $novelist->loadEnrichment($authorIsbn, false, false, true);
 			if ($enrichment) {
 				$interface->assign('enrichment', $enrichment);

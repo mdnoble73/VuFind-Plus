@@ -289,7 +289,6 @@ class Horizon implements DriverInterface{
 
 	private $holds = array();
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		global $configArray;
 		global $timer;
 
 		if (is_object($patron)){
@@ -1355,6 +1354,7 @@ public function getMyHoldsViaDB($patron)
 			foreach ($selectedTitles as $selectedId => $selectValue){
 				//Get the resourceid for the bib
 				$resource = new Resource();
+				$resource->source = 'VuFind';
 				if (is_numeric($selectValue)){
 					$resource->record_id = $selectValue;
 				}else{

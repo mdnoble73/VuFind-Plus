@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
-class Save extends Action
+class Record_Save extends Action
 {
 	private $user;
 
@@ -71,6 +71,7 @@ class Save extends Action
 
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
+		/** @var SearchObject_Solr $db */
 		$db = new $class($configArray['Index']['url']);
 		if ($configArray['System']['debugSolr']) {
 			$db->debug = true;

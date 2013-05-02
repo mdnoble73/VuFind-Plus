@@ -1101,12 +1101,17 @@ class Solr implements IndexEngine {
 
 			$timer->logTime("apply boosting");
 
-			$filters = $this->getScopingFilters($searchLibrary, $searchLocation);
+			$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
 
 			$timer->logTime("apply filters based on location");
 		}else{
 			//Non book search (genealogy)
-			$filters = array();
+			$scopingFilters = array();
+		}
+		if ($filter == null){
+			$filters = $scopingFilters;
+		}else{
+			$filters = array_merge($filter, $scopingFilters);
 		}
 
 
@@ -1161,9 +1166,11 @@ class Solr implements IndexEngine {
 		$timer->logTime("build facet options");
 
 		//Check to see if there are filters we want to show all values for
-		foreach ($filter as $key => $value){
-			if (strpos($value, 'availability_toggle') === 0){
-				$filter[$key] = '{!tag=avail}' . $value;
+		if (isset($filter) && is_array($filter)){
+			foreach ($filter as $key => $value){
+				if (strpos($value, 'availability_toggle') === 0){
+					$filter[$key] = '{!tag=avail}' . $value;
+				}
 			}
 		}
 
@@ -1281,6 +1288,34 @@ class Solr implements IndexEngine {
 			$blacklist .= ")";
 			$filter[] = $blacklist;
 		}
+
+		//Process anything that the user is not interested in.
+		require_once ROOT_DIR . '/sys/NotInterested.php';
+		if ($user){
+			$notInterested = new NotInterested();
+			$resource = new Resource();
+			$notInterested->joinAdd($resource);
+			$notInterested->userId = $user->id;
+			$notInterested->find();
+			if ($notInterested->N > 0){
+				$notInterestedFilter = " NOT(";
+				$numRecords = 0;
+				while ($notInterested->fetch()){
+					$numRecords++;
+					if ($numRecords > 1){
+						$notInterestedFilter .= " OR ";
+					}
+					if ($notInterested->source == 'VuFind'){
+						$notInterestedFilter .= "id:" . $notInterested->record_id;
+					}else{
+						$notInterestedFilter .= "id:econtentRecord" . $notInterested->record_id;
+					}
+				}
+				$notInterestedFilter .= ")";
+				$filter[] = $notInterestedFilter;
+			}
+		}
+
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){
@@ -1306,8 +1341,6 @@ class Solr implements IndexEngine {
 			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
 				$filter[] = 'collection_group:"' . $defaultCollection . '"';
 			}
-		}else{
-			echo("Scoping is disabled");
 		}
 		return $filter;
 	}

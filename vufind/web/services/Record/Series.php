@@ -21,7 +21,7 @@
 require_once 'Record.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class Series extends Record
+class Record_Series extends Record_Record
 {
 	function launch()
 	{
@@ -59,7 +59,7 @@ class Series extends Record
 		$interface->setTemplate('view-series.tpl');
 
 		require_once 'Enrichment.php';
-		$enrichment = new Enrichment(true);
+		$enrichment = new Record_Enrichment();
 		$enrichmentData = $enrichment->loadEnrichment($this->isbn);
 
 		//Loading the series title is not reliable.  Do not try to load it.

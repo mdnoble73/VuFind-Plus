@@ -1,7 +1,7 @@
 {strip}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList">
+	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
-		<div class="resultIndex">{$resultIndex}</div>
 		<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
 	</div>
 
@@ -25,6 +25,12 @@
 				</div>
 			{/if}
 		</div>
+
+		{if $summISBN}
+		<div class="resultSeries">
+			<div class="series{$summISBN}"></div>
+		</div>
+		{/if}
 
 		<div class="resultItemLine2">
 			{if $summAuthor}
@@ -68,12 +74,16 @@
 		{assign var=id value=$summId scope="global"}
 		{assign var=shortId value=$summShortId scope="global"}
 		{assign var=summTitle value=$summTitle scope="global"}
+		{assign var=ratingData value=$summRating scope="global"}
 		{include file='Record/result-tools.tpl' }
 
 	</div>
 
 	<script type="text/javascript">
 		addIdToStatusList('{$summId|escape}');
+		{if $summISBN}
+		getSeriesInfo('{$summISBN}');
+		{/if}
 		$(document).ready(function(){literal} { {/literal}
 			resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}','VuFind');
 		{literal} }); {/literal}

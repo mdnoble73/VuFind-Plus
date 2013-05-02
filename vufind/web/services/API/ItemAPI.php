@@ -416,6 +416,7 @@ class ItemAPI extends Action {
 			global $user;
 			$resource = new Resource();
 			$resource->record_id = $this->id;
+			$resource->source = 'VuFind';
 			$ratingData = $resource->getRatingData($user);
 			$itemData['ratingData'] = $ratingData;
 			$timer->logTime('Got 5 star data');

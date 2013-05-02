@@ -1,7 +1,7 @@
 <?php
 require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php') ;
 
-class Novelist{
+class Novelist2{
 
 	function loadEnrichment($isbn, $loadSeries = true, $loadSimilarTitles = true, $loadSimilarAuthors = true){
 		global $timer;
@@ -22,9 +22,10 @@ class Novelist{
 
 		$enrichment = $memCache->get("novelist_enrichment_$isbn");
 		if ($enrichment == false  || isset($_REQUEST['reload'])){
-			$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/AllContent?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$isbn}";
+			$requestUrl = "http://novselect.ebscohost.com/Data/ContentByQuery?profile=$profile&password=$pwd&ClientIdentifier={$isbn}&isbn={$isbn}&version=2.1&tmpstmp=" . time();
+			//echo($requestUrl);
 			try{
-				//Get the XML from the service
+				//Get the JSON from the service
 				disableErrorHandler();
 				$req = new Proxy_Request($requestUrl);
 				//$result = file_get_contents($req);
@@ -37,36 +38,45 @@ class Novelist{
 				$response = $req->getResponseBody();
 				$timer->logTime("Made call to Novelist for enrichment information");
 
-				//Parse the XML
-				$data = new SimpleXMLElement($response);
-				//Convert the data into a structure suitable for display
-				if (isset($data->Features->FeatureGroup)){
-					/** @var SimpleXMLElement $featureGroup */
-					foreach ($data->Features->FeatureGroup as $featureGroup){
-						$groupType = (string)$featureGroup->attributes()->type;
-						foreach ($featureGroup->Feature as $feature){
-							$featureType = (string)$feature->attributes()->type;
-							if ($featureType == 'SeriesTitles' && $loadSeries){
-								$this->loadSeriesInfo($isbn, $feature, $enrichment);
-								$timer->logTime("Loaded enrichment series info");
-							}else if ($featureType == 'SimilarTitles' && $loadSimilarTitles){
-								$this->loadSimilarTitleInfo($isbn, $feature, $enrichment);
-								$timer->logTime("Loaded similar title info");
-							}else if ($featureType == 'SimilarAuthors' && $loadSimilarAuthors){
-								$this->loadSimilarAuthorInfo($isbn, $feature, $enrichment);
-								$timer->logTime("Loaded similar title info");
-							}
+				//Parse the JSON
+				$data = json_decode($response);
+				//print_r($data);
 
-							//TODO: Load Related Content (Awards and Recommended Reading Lists)
-							//      For now, don't worry about this since the data is not worth using
+				//Related ISBNs
 
-						}
+				if (isset($data->FeatureContent)){
+					//Series Information
+					if ($loadSeries && isset($data->FeatureContent->SeriesInfo)){
+						$this->loadSeriesInfo($isbn, $data->FeatureContent->SeriesInfo, $enrichment);
 					}
 
-				}else{
-					$enrichment = null;
-				}
+					//Similar Titles
+					if ($loadSimilarTitles && isset($data->FeatureContent->SimilarTitles)){
+						$this->loadSimilarTitleInfo($isbn, $data->FeatureContent->SimilarTitles, $enrichment);
+					}
 
+					//Similar Authors
+					if ($loadSimilarAuthors && isset($data->FeatureContent->SimilarAuthors)){
+						$this->loadSimilarAuthorInfo($data->FeatureContent->SimilarAuthors, $enrichment);
+					}
+
+					//Similar Series
+					if ($loadSeries && isset($data->FeatureContent->SimilarSeries)){
+						$this->loadSimilarSeries($data->FeatureContent->SimilarSeries, $enrichment);
+					}
+
+					//Related Content
+					if (isset($data->FeatureContent->RelatedContent)){
+						$this->loadRelatedContent($data->FeatureContent->RelatedContent, $enrichment);
+					}
+
+					//GoodReads Ratings
+					if (isset($data->FeatureContent->GoodReads)){
+						$this->loadGoodReads($data->FeatureContent->GoodReads, $enrichment);
+					}
+
+					//print_r($data);
+				}
 			}catch (Exception $e) {
 				global $logger;
 				$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
@@ -82,28 +92,34 @@ class Novelist{
 		return $enrichment;
 	}
 
-	function loadSimilarAuthorInfo($originalIsbn, $feature, &$enrichment){
+	function loadSimilarAuthorInfo($feature, &$enrichment){
 		$authors = array();
-		$items = $feature->Item;
+		$items = $feature->authors;
 		foreach ($items as $item){
-			$authors[] = (string)$item->Name;
-		}
-		if (count($authors) > 0){
-			$authors = array_slice($authors, 0, 10);
+			$authors[] = array(
+				'name' => $item->full_name,
+				'reason' => $item->reason,
+				'link' => '/Union/Search/?basicType=Author&lookfor='. urlencode($item->full_name),
+			);
 		}
 		$enrichment['authors'] = $authors;
 		$enrichment['similarAuthorCount'] = count($authors);
 	}
 
-	function loadSeriesInfo($originalIsbn, $feature, &$enrichment){
-		$seriesName = (string)$feature->MetaData->Name;
+	function loadSeriesInfo($originalIsbn, $seriesData, &$enrichment){
+		$seriesName = $seriesData->full_title;
 		$seriesTitles = array();
-		$items = $feature->Item;
+		$items = $seriesData->series_titles;
 		$titlesOwned = 0;
 		foreach ($items as $item){
-			$this->loadNoveListTitle($originalIsbn, $item, $seriesTitles, $titlesOwned, $seriesName);
+			$curTitle = $this->loadNoveListTitle($originalIsbn, $item, $seriesTitles, $titlesOwned, $seriesName);
+			if ($curTitle['isCurrent'] && isset($curTitle['volume']) && strlen($curTitle['volume']) > 0){
+				$enrichment['volumeLabel'] = (isset($curTitle['volume']) ? ('volume ' . $curTitle['volume']) : '');
+			}
 		}
 		$enrichment['series'] = $seriesTitles;
+		$enrichment['seriesTitle'] = $seriesName;
+		$enrichment['seriesNote'] = $seriesData->series_note;
 		$enrichment['seriesCount'] = count($items);
 		$enrichment['seriesCountOwned'] = $titlesOwned;
 		$enrichment['seriesDefaultIndex'] = 1;
@@ -115,17 +131,30 @@ class Novelist{
 			}
 			$curIndex++;
 		}
-
 	}
 
-	function loadSimilarTitleInfo($originalIsbn, $feature, &$enrichment){
-		$similarTitles = array();
-		$items = $feature->Item;
-		$titlesOwned = 0;
-		foreach ($items as $item){
-			$this->loadNoveListTitle($originalIsbn, $item, $similarTitles, $titlesOwned);
+	function loadSimilarSeries($similarSeriesData, &$enrichment){
+		$similarSeries = array();
+		foreach ($similarSeriesData->series as $similarSeriesInfo){
+			$similarSeries[] = array(
+				'title' => $similarSeriesInfo->full_name,
+				'author' => $similarSeriesInfo->author,
+				'reason' => $similarSeriesInfo->reason,
+				'link' => 'Union/Search/?lookfor='. $similarSeriesInfo->full_name . " AND " . $similarSeriesInfo->author,
+			);
 		}
-		$enrichment['similarTitles'] = $similarTitles;
+		$enrichment['similarSeries'] = $similarSeries;
+		$enrichment['similarSeriesCount'] = count($similarSeries);
+	}
+
+	function loadSimilarTitleInfo($originalIsbn, $similarTitles, &$enrichment){
+		$items = $similarTitles->titles;
+		$titlesOwned = 0;
+		$similarTitlesReturn = array();
+		foreach ($items as $item){
+			$this->loadNoveListTitle($originalIsbn, $item, $similarTitlesReturn, $titlesOwned);
+		}
+		$enrichment['similarTitles'] = $similarTitlesReturn;
 		$enrichment['similarTitleCount'] = count($items);
 		$enrichment['similarTitleCountOwned'] = $titlesOwned;
 	}
@@ -134,10 +163,9 @@ class Novelist{
 		global $user;
 		$isbnList = array();
 		/** @var SimpleXMLElement $titleItem */
-		foreach($item->TitleList->TitleItem as $titleItem){
-			$tmpIsbn = (string)$titleItem->attributes()->value;
-			if (strlen($tmpIsbn) == 10 || strlen($tmpIsbn) == 13){
-				$isbnList[] = (string)$titleItem->attributes()->value;
+		foreach($item->isbns as $isbn){
+			if (strlen($isbn) == 10 || strlen($isbn) == 13){
+				$isbnList[] = $isbn;
 			}
 		}
 		//If there is no ISBN, don't bother loading the title
@@ -159,8 +187,8 @@ class Novelist{
 			$series = null;
 		}
 		$volume = '';
-		if ($item->Volume){
-			$volume = (string)$item->Volume;
+		if (isset($item->volume)){
+			$volume = $item->volume;
 		}
 		if (count($matchingRecords) > 0){
 			$ownedRecord = $matchingRecords[0];
@@ -196,11 +224,11 @@ class Novelist{
 
 
 			//See if we can get the series title from the record
-			$titleList[] = array(
+			$curTitle = array(
 				'title' => $ownedRecord['title'],
 				'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
 				'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
-				'publicationDate' => (string)$item->PublicationDate,
+				//'publicationDate' => (string)$item->PublicationDate,
 				'isbn' => $isbn13,
 				'isbn10' => $isbn10,
 				'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
@@ -216,16 +244,17 @@ class Novelist{
 				'volume' => $volume,
 				'ratingData' => $ratingData,
 				'fullRecordLink' => $fullRecordLink,
+				'reason' => isset($item->reason) ? $item->reason : ''
 			);
 			$titlesOwned++;
 		}else{
 			$isbn = $isbnList[0];
 			$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
 			$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
-			$titleList[] = array(
-                'title' => (string)$item->Name,
-                'author' => (string)$item->Author,
-                'publicationDate' => (string)$item->PublicationDate,
+			$curTitle = array(
+                'title' => $item->full_title,
+                'author' => $item->author,
+                //'publicationDate' => (string)$item->PublicationDate,
                 'isbn' => $isbn13,
                 'isbn10' => $isbn10,
                 'recordId' => -1,
@@ -233,7 +262,33 @@ class Novelist{
                 'isCurrent' => $isCurrent,
                 'series' => $series,
                 'volume' => $volume,
+								'reason' => isset($item->reason) ? $item->reason : ''
 			);
 		}
+		$titleList[] = $curTitle;
+		return $curTitle;
+	}
+
+	private function loadRelatedContent($relatedContent, &$enrichment) {
+		foreach ($relatedContent->doc_types as $contentSection){
+			if ($contentSection->doc_type == 'Award Winners'){
+
+			}else if ($contentSection->doc_type == 'Book Discussion Guides'){
+
+			}else if ($contentSection->doc_type == 'Book Discussion Guides'){
+
+			}
+		}
+	}
+
+	private function loadGoodReads($goodReads, &$enrichment) {
+		$goodReadsInfo = array(
+			'inGoodReads' => $goodReads->is_in_goodreads,
+			'averageRating' => $goodReads->average_rating,
+			'numRatings' => $goodReads->ratings_count,
+			'numReviews' => $goodReads->reviews_count,
+			'sampleReviewsUrl' => $goodReads->links[0]->url,
+		);
+		$enrichment['goodReads'] = $goodReadsInfo;
 	}
 }

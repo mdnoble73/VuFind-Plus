@@ -114,7 +114,6 @@ class User_list extends SolrDataObject
 		return 500;
 	}
 	function getObjectStructure(){
-		global $configArray;
 		$structure = array(
 			'id' => array(
 				'property'=>'id',
@@ -268,6 +267,7 @@ class User_list extends SolrDataObject
 			parent::updateDetailed($insertInSolr);
 		}
 	}
+
 	private $resourceList = null;
 	function getResources($tags = null)
 	{
@@ -292,6 +292,7 @@ class User_list extends SolrDataObject
 			}
 		}
 
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -368,6 +369,8 @@ class User_list extends SolrDataObject
 								"AND resource.id = resource_tags.resource_id " .
 								"AND user_resource.user_id = '$this->user_id' " .
 								"AND user_resource.list_id = '$this->id'";
+
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {

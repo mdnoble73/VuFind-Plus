@@ -24,7 +24,7 @@ require_once 'Record.php';
 
 require_once ROOT_DIR . '/sys/Mailer.php';
 
-class SMS extends Record {
+class Record_SMS extends Record_Record {
 	private $sms;
 
 	function __construct() {

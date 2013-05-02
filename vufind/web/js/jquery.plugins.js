@@ -1011,6 +1011,9 @@ $.fn.rater.rate = function($this, opts, rating) {
 							$off.fadeTo(500, 1);
 							$on.addClass('userRated');
 							$this.attr('title', 'Your rating: ' + rating.toFixed(1));
+							if ($this.data('show_review') == true){
+								doRatingReview(rating, opts.module, opts.recordId);
+							}
 						});
 					} else { // failure
 						alert(req.responseText);
@@ -1026,6 +1029,24 @@ $.fn.rater.rate = function($this, opts, rating) {
 	}
 };
 
+function doRatingReview(rating, module, id){
+	if (rating <= 2){
+		msg = "We're sorry you didn't like this title.  Would you like to add a review explaining why to help other users?";
+	}else{
+		msg = "We're glad you liked this title.  Would you like to add a review explaining why to help other users?";
+	}
+	if (confirm(msg)){
+		var reviewForm;
+		if (module == 'EcontentRecord'){
+			reviewForm = $("#userecontentreview" + id);
+
+		}else{
+			reviewForm = $("#userreview" + id);
+		}
+		reviewForm.find(".rateTitle").hide();
+		reviewForm.show();
+	}
+}
 /*
  * jQuery Tooltip plugin 1.3
  *

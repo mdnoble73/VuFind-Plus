@@ -19,7 +19,7 @@
 				{/if}
 				<div class='loginFormRow'>
 					<input type="hidden" name="type" value="hold"/>
-					<input type="submit" name="submit" id="submit" value="{translate text='Request This Title'}"/>
+					<input type="submit" name="submit" id="submit" value="{translate text='Submit Hold Request'}"/>
 				</div>
 			</div>
 		</form>

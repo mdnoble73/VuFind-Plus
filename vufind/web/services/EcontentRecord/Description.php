@@ -21,7 +21,7 @@
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 
-class Description extends Action{
+class EcontentRecord_Description extends Action{
 	private $eContentRecord;
 
 	function launch() {
@@ -52,7 +52,7 @@ class Description extends Action{
 		if (isset($library) && $library->preferSyndeticsSummary == 0){
 			$allowExternalDescription = false;
 		}
-		return Description::loadDescription($this->eContentRecord);
+		return EcontentRecord_Description::loadDescription($this->eContentRecord);
 	}
 
 	static function loadDescription($eContentRecord){
@@ -65,7 +65,7 @@ class Description extends Action{
 		$descriptionArray = array();
 		//Load the description
 		if (strlen($eContentRecord->description) > 0) {
-			$descriptionArray['description'] = Description::trimDescription($eContentRecord->description);
+			$descriptionArray['description'] = EcontentRecord_Description::trimDescription($eContentRecord->description);
 		}else{
 			//TODO: Check syndetics for eContent
 			$descriptionArray['description'] = "Description Not Provided";

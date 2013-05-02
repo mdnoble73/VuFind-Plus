@@ -1124,6 +1124,7 @@ class MillenniumDriver implements DriverInterface
 				//Get additional information from resources table
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
 					$resource = new Resource();
+					$resource->source = 'VuFind';
 					$resource->shortId = $curTitle['shortId'];
 					if ($resource->find(true)){
 						$curTitle = array_merge($curTitle, get_object_vars($resource));
@@ -1255,6 +1256,7 @@ class MillenniumDriver implements DriverInterface
 				//Get additional information from resources table
 				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
 					$resource = new Resource();
+					$resource->source = 'VuFind';
 					$resource->shortId = $historyEntry['shortId'];
 					if ($resource->find(true)){
 						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
@@ -2056,6 +2058,7 @@ class MillenniumDriver implements DriverInterface
 				}
 				if ($loadTitles){
 					$resource = new Resource();
+					$resource->source = 'VuFind';
 					$resource->shortId = $tmpBib;
 					if ($resource->find(true)){
 						if (strlen($title) > 0) $title .= ", ";
@@ -2069,6 +2072,7 @@ class MillenniumDriver implements DriverInterface
 			if (!isset($title) || $title == ''){
 				$resource = new Resource();
 				$resource->shortId = $bib;
+				$resource->source = 'VuFind';
 				if ($resource->find(true)){
 					$title = $resource->title;
 				}

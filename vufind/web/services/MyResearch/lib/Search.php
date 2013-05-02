@@ -58,19 +58,20 @@ class SearchEntry extends DB_DataObject
 	 */
 	function getExpiredSearches($daysOld = 2)
 	{
-			// Determine the expiration date:
-			$expirationDate = date('Y-m-d', time() - $daysOld * 24 * 60 * 60);
+		// Determine the expiration date:
+		$expirationDate = date('Y-m-d', time() - $daysOld * 24 * 60 * 60);
 
-			// Find expired, unsaved searches:
-			$sql = "SELECT * FROM search WHERE saved=0 AND created<\"{$expirationDate}\";";
-			$s = new SearchEntry();
-			$s->query($sql);
-			if ($s->N) {
-					while ($s->fetch()) {
-							$searches[] = clone($s);
-					}
-			}
-			return $searches;
+		// Find expired, unsaved searches:
+		$sql = 'SELECT * FROM search WHERE saved=0 AND created<"' . $expirationDate . '"';
+		$s = new SearchEntry();
+		$s->query($sql);
+		$searches = array();
+		if ($s->N) {
+				while ($s->fetch()) {
+						$searches[] = clone($s);
+				}
+		}
+		return $searches;
 	}
 
 	/* the code above is auto generated do not remove the tag below */

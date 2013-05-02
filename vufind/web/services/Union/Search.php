@@ -69,7 +69,7 @@ class Search extends Action {
 				$interface->assign('module', $module);
 				$action = 'Results';
 				$interface->assign('action', $action);
-				$results = new Results();
+				$results = new AlphaBrowse_Results();
 				return $results->launch();
 			}else{
 				require_once (ROOT_DIR . '/services/Search/Results.php');
@@ -86,7 +86,7 @@ class Search extends Action {
 						$_SESSION['shards'] = array('eContent', 'Main Catalog');
 					}
 				}
-				$results = new Results();
+				$results = new Search_Results();
 				return $results->launch();
 			}
 		}

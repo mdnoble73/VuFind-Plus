@@ -2,6 +2,7 @@ var GetSaveStatusList =[];
 var GetStatusList = [];
 var GetEContentStatusList = [];
 var GetOverDriveStatusList = [];
+var GetSeriesList = [];
 
 function createRequestObject() {	
 	// find the correct xmlHTTP, works with IE, FF and Opera
@@ -55,11 +56,10 @@ function doGetStatusSummaries()
 		eContentUrl += "&id[]=" + encodeURIComponent(GetEContentStatusList[j]);
 		callGetEContentStatusSummaries = true;
 	}
-	// url += "&id[]=" + encodeURIComponent($id);
-	
+
 	eContentUrl += "&time=" +ts;
 
-	//Since the ILS can be slow, make individual cals to print titles
+	//Since the ILS can be slow, make individual calls to print titles
 	// Modify this to return status summaries one at a time to improve
 	// the perceived performance
 	var callGetStatusSummaries = false;
@@ -102,7 +102,7 @@ function doGetStatusSummaries()
 					// Change outside border class.
 					var holdingSum= $('#holdingsSummary' + elemId);
 					if (holdingSum.length > 0){
-						divClass= items[i]['class'];
+						divClass = items[i]['class'];
 						holdingSum.addClass(divClass);
 						var formattedHoldingsSummary = items[i].formattedHoldingsSummary;
 						holdingSum.replaceWith(formattedHoldingsSummary);
@@ -113,8 +113,7 @@ function doGetStatusSummaries()
 						var eAudioLink = items[i].eAudioLink;
 						if (eAudioLink) {
 							if (eAudioLink.length > 0 && $("#eAudioLink" + elemId).length > 0) {
-								$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
-								$("#eAudioLink" + elemId).show();
+								$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>").show();
 							}
 						}
 					}
@@ -124,8 +123,7 @@ function doGetStatusSummaries()
 						var eBookLink = items[i].eBookLink;
 						if (eBookLink) {
 							if (eBookLink.length > 0 && $("#eBookLink" + elemId).length > 0) {
-								$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
-								$("#eBookLink" + elemId).show();
+								$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>").show();
 							}
 						}
 					}
@@ -218,8 +216,7 @@ function doGetStatusSummaries()
 						if ($(item).find('accessonlineurl').length > 0){
 							var url = $(item).find('accessonlineurl').text();
 							var text = $(item).find('accessonlinetext').text();
-							$("#accessOnline" + elemId + " a").attr("href", url);
-							$("#accessOnline" + elemId + " a").text($("<div/>").html(text).text());
+							$("#accessOnline" + elemId + " a").attr("href", url).text($("<div/>").html(text).text());
 						}
 						$("#accessOnline" + elemId).show();
 						
@@ -282,6 +279,29 @@ function doGetStatusSummaries()
 	GetOverDriveStatusList = new Array();
 }
 
+function getSeriesInfo(isbn){
+	GetSeriesList[GetSeriesList.length] = isbn;
+}
+
+function doGetSeriesInfo(){
+	var now = new Date();
+	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+
+	var url = path + "/Search/AJAX?method=GetSeriesInfo";
+	for (var i=0; i<GetSeriesList.length; i++) {
+		url += "&isbn[]=" + encodeURIComponent(GetSeriesList[i]);
+	}
+	url += "&time="+ts;
+	$.getJSON(url,function(data){
+		if (data.success){
+			$.each(data.series, function(key, val){
+				$(".series" + key).html(val);
+			});
+		}
+	});
+
+}
+
 function getSaveStatuses(id)
 {
 		GetSaveStatusList[GetSaveStatusList.length] = id;
@@ -324,7 +344,7 @@ function doGetSaveStatuses()
 													listNames += jsEntityEncode(lists[j].title);
 												}
 										}
-										getElem('lists' + elemId).innerHTML = '<li>' + listNames + '</li>';
+										$('#lists' + elemId).innerHTML = '<li>' + listNames + '</li>';
 								}
 						}
 				}

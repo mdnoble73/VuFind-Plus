@@ -20,8 +20,11 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class Purchase extends Action {
-
+class Record_Purchase extends Action {
+	/** @var  SearchObject_Solr $db */
+	private $db;
+	private $record;
+	private $marcRecord;
 	function launch() {
 
 		global $configArray;

@@ -45,7 +45,7 @@
 					{/if}
 					<br />
 					<input type="hidden" name="holdType" value="hold">
-					<a href="#" data-role="button" id="requestTitleButton" {if (!isset($profile))}disabled="disabled"{/if} onclick="document.placeHoldForm.submit();" >{translate text='Request This Title'}</a> 
+					<a href="#" data-role="button" id="requestTitleButton" {if (!isset($profile))}disabled="disabled"{/if} onclick="document.placeHoldForm.submit();" >{translate text='Submit Hold Request'}</a>
 				</div>
 			</div>
 		</form>

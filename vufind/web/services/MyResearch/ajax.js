@@ -87,3 +87,19 @@ function getSelectedUnavailableHolds(){
 	}
 	return selectedTitles;
 }
+
+function clearUserRating(source, recordId, shortId){
+	var url = path + '/MyResearch/AJAX?method=clearUserRating&source=' + source + '&recordId=' + recordId;
+	$.getJSON(url, function(data){
+		if (data.result == true){
+			if (source == 'VuFind'){
+				$('.rate' + shortId).find('.ui-rater-starsOn').width(0);
+			}else{
+				$('.rateEContent' + recordId).find('.ui-rater-starsOn').width(0);
+			}
+		}else{
+			alert("Unable to remove the rating.");
+		}
+	});
+	return false;
+}

@@ -1,13 +1,15 @@
 {strip}
 {if $showRatings == 1}
 	<div class="{$ratingClass}">
-		<div class="rate{$shortId|escape} stat">
+		<div class="rate{$shortId|escape} stat" data-show_review="{if $showReviewAfterRating === false}{$showReviewAfterRating}{else}true{/if}">
 			<div class="statVal">
 				<span class="ui-rater">
 					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn{if $ratingData.user >0} userRated{/if}" style="width:0px">&nbsp;</span></span><br/>
 				</span>
 			</div>
-			<span class="button notInterested"><img src='{$path}/images/tango/not_interested.png' />&nbsp;Not Interested</span>
+			{if $showNotInterested !== false}
+				<span class="button notInterested" onclick="return markNotInterested('VuFind', '{$recordId}');">Not&nbsp;Interested</span>
+			{/if}
 		</div>
 		<script type="text/javascript">
 			$(

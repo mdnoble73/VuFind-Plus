@@ -84,7 +84,6 @@ class DBMaintenance extends Admin {
 			'roles_1' => array(
 				'title' => 'Roles 1',
 				'description' => 'Add new role for epubAdmin',
-				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO roles (name, description) VALUES ('epubAdmin', 'Allows administration of eContent.')",
 				),
@@ -92,7 +91,6 @@ class DBMaintenance extends Admin {
 			'library_1' => array(
 				'title' => 'Library 1',
 				'description' => 'Update Library table to include showSeriesAsTab column',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE library ADD COLUMN showSeriesAsTab TINYINT NOT NULL DEFAULT '0';",
 					"UPDATE library SET showSeriesAsTab = '1' where subdomain in ('adams') ",
@@ -101,7 +99,6 @@ class DBMaintenance extends Admin {
 			'library_2' => array(
 				'title' => 'Library 2',
 				'description' => 'Update Library table to include showItsHere column',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE library ADD COLUMN showItsHere TINYINT NOT NULL DEFAULT '1';",
 					"UPDATE library SET showItsHere = '0' where subdomain in ('adams', 'msc') ",
@@ -110,7 +107,6 @@ class DBMaintenance extends Admin {
 			'library_3' => array(
 				'title' => 'Library 3',
 				'description' => 'Update Library table to include holdDisclaimer column',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE library ADD COLUMN holdDisclaimer TEXT;",
 					"UPDATE library SET holdDisclaimer = 'I understand that by requesting this item, information from my library patron record, including my contact information may be made available to the lending library.' where subdomain in ('msc') ",
@@ -119,7 +115,6 @@ class DBMaintenance extends Admin {
 			'library_5' => array(
 				'title' => 'Library 5',
 				'description' => 'Set up a link to boopsie in mobile',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `boopsieLink` VARCHAR(150) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL;",
 				),
@@ -127,7 +122,6 @@ class DBMaintenance extends Admin {
 			'library_6' => array(
 				'title' => 'Library 6',
 				'description' => 'Add fields orginally defined for Marmot',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 
@@ -148,7 +142,6 @@ class DBMaintenance extends Admin {
 			'library_7' => array(
 				'title' => 'Library 7',
 				'description' => 'Allow materials request to be enabled or disabled by library',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
 				),
@@ -156,7 +149,6 @@ class DBMaintenance extends Admin {
 			'library_8' => array(
 				'title' => 'Library 8',
 				'description' => 'Add eContenLinkRules to determine how to load library specific link urls',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `eContentLinkRules` VARCHAR(512) DEFAULT '';",
 				),
@@ -164,7 +156,6 @@ class DBMaintenance extends Admin {
 			'library_9' => array(
 				'title' => 'Library 9',
 				'description' => 'Add showOtherEditionsPopup to determine whether or not the Other Editions and Languages Popup is shown',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showOtherEditionsPopup` TINYINT DEFAULT '1';",
 					"ALTER TABLE `library` ADD `showTableOfContentsTab` TINYINT DEFAULT '1';",
@@ -174,7 +165,6 @@ class DBMaintenance extends Admin {
 			'library_10' => array(
 				'title' => 'Library 10',
 				'description' => 'Add fields for showing copies in holdings summary, and hold button in results list',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showHoldButtonInSearchResults` TINYINT DEFAULT '1';",
 					"ALTER TABLE `library` ADD `showCopiesLineInHoldingsSummary` TINYINT DEFAULT '1';",
@@ -183,7 +173,6 @@ class DBMaintenance extends Admin {
 			'library_11' => array(
 				'title' => 'Library 11',
 				'description' => 'Add fields for disabling some Novelist functionality and disabling boosting by number of holdings',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showSimilarAuthors` TINYINT DEFAULT '1';",
 					"ALTER TABLE `library` ADD `showSimilarTitles` TINYINT DEFAULT '1';",
@@ -198,7 +187,6 @@ class DBMaintenance extends Admin {
 			'library_12' => array(
 				'title' => 'Library 12',
 				'description' => 'Add abbreviation for library name for use in some cases where the full name is not desired.',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `abbreviatedDisplayName` VARCHAR(20) DEFAULT '';",
 					"UPDATE `library` SET `abbreviatedDisplayName` = LEFT(`displayName`, 20);",
@@ -207,7 +195,6 @@ class DBMaintenance extends Admin {
 			'library_13' => array(
 				'title' => 'Library 13',
 				'description' => 'Updates to World Cat integration for local libraries',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` CHANGE `worldCatQt` `worldCatQt` VARCHAR(40) DEFAULT '';",
 				),
@@ -215,7 +202,6 @@ class DBMaintenance extends Admin {
 			'library_14' => array(
 				'title' => 'Library 14',
 				'description' => 'Allow Go Deeper to be disabled by Library',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showGoDeeper` TINYINT DEFAULT '1';",
 				),
@@ -223,7 +209,6 @@ class DBMaintenance extends Admin {
 			'library_15' => array(
 				'title' => 'Library 15',
 				'description' => 'Add showProspectorResultsAtEndOfSearch to library so prospector titles can be removed from search results without completely diasabling prospector',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showProspectorResultsAtEndOfSearch` TINYINT DEFAULT '1';",
 				),
@@ -231,7 +216,6 @@ class DBMaintenance extends Admin {
 			'library_16' => array(
 				'title' => 'Library 16',
 				'description' => 'Add overdriveAdvantage Information to library so we can determine who advantage title should belong to. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `overdriveAdvantageName` VARCHAR(128) DEFAULT '';",
@@ -241,7 +225,6 @@ class DBMaintenance extends Admin {
 			'library_17' => array(
 				'title' => 'Library 17',
 				'description' => 'Add defaultNotNeededAfterDays and homePageWidgetId. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `defaultNotNeededAfterDays` INT DEFAULT '0';",
@@ -251,7 +234,6 @@ class DBMaintenance extends Admin {
 			'library_18' => array(
 				'title' => 'Library 18',
 				'description' => 'Add showCheckInGrid to determine how periodicals display. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showCheckInGrid` INT DEFAULT '1';",
@@ -260,7 +242,6 @@ class DBMaintenance extends Admin {
 			'library_19' => array(
 				'title' => 'Library 19',
 				'description' => 'Add the ability to specify a list of records to blacklist. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `recordsToBlackList` MEDIUMTEXT;",
@@ -269,7 +250,6 @@ class DBMaintenance extends Admin {
 			'library_20' => array(
 				'title' => 'Library 20',
 				'description' => 'Add the show or hide marmot search results in scoped searches. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showMarmotResultsAtEndOfSearch` INT(11) DEFAULT 1;",
@@ -278,7 +258,6 @@ class DBMaintenance extends Admin {
 			'library_21' => array(
 				'title' => 'Library 21',
 				'description' => 'Add the home link text so the breadcrumbs can be customized. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `homeLinkText` VARCHAR(50) DEFAULT 'Home';",
@@ -287,7 +266,6 @@ class DBMaintenance extends Admin {
 			'library_23' => array(
 				'title' => 'Library 23',
 				'description' => 'Add the ability to disable wikipedia and the Other format icon by library. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `showOtherFormatCategory` TINYINT(1) DEFAULT '1';",
@@ -297,7 +275,6 @@ class DBMaintenance extends Admin {
 			'library_24' => array(
 				'title' => 'Library 24',
 				'description' => 'Add the ability to customize the link to pay fines. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `payFinesLink` VARCHAR(512) DEFAULT 'default';",
@@ -306,7 +283,6 @@ class DBMaintenance extends Admin {
 			'library_25' => array(
 				'title' => 'Library 25',
 				'description' => 'Add the ability to customize the link text to pay fines. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `payFinesLinkText` VARCHAR(512) DEFAULT 'Click to Pay Fines Online';",
@@ -315,7 +291,6 @@ class DBMaintenance extends Admin {
 			'library_26' => array(
 				'title' => 'Library 26',
 				'description' => 'Add a support e-mail address for eContent problems.',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `eContentSupportAddress` VARCHAR(256) DEFAULT 'askmarmot@marmot.org';",
@@ -324,7 +299,6 @@ class DBMaintenance extends Admin {
 			/*'library_27' => array(
 				'title' => 'Library 27',
 				'description' => 'Remove showOtherFormatCategory.',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` DROP `showOtherFormatCategory`;",
@@ -333,7 +307,6 @@ class DBMaintenance extends Admin {
 			'library_28' => array(
 				'title' => 'Library 28',
 				'description' => 'Add ilsCode.',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `ilsCode` VARCHAR(5) DEFAULT '';",
@@ -342,7 +315,6 @@ class DBMaintenance extends Admin {
 			'library_29' => array(
 				'title' => 'Library 29',
 				'description' => 'Add systemMessage.',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` ADD `systemMessage` VARCHAR(512) DEFAULT '';",
@@ -369,7 +341,6 @@ class DBMaintenance extends Admin {
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"CREATE TABLE IF NOT EXISTS library_facet_setting (".
@@ -393,7 +364,6 @@ class DBMaintenance extends Admin {
 			'library_facets_1' => array(
 				'title' => 'Library Facets Update 1',
 				'description' => 'Add index to library facets. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE library_facet_setting ADD INDEX (`libraryId`)",
@@ -403,7 +373,6 @@ class DBMaintenance extends Admin {
 			'library_facets_2' => array(
 				'title' => 'Library Facets Update 2',
 				'description' => 'Add collapsing of facets and more values popup. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE library_facet_setting ADD collapseByDefault TINYINT DEFAULT '0'",
@@ -414,7 +383,6 @@ class DBMaintenance extends Admin {
 			'location_facets' => array(
 				'title' => 'Location Facets',
 				'description' => 'Create Location Facets table to allow library admins to customize their own facets. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"CREATE TABLE IF NOT EXISTS location_facet_setting (".
@@ -439,7 +407,6 @@ class DBMaintenance extends Admin {
 			'location_facets_1' => array(
 				'title' => 'Location Facets Update 1',
 				'description' => 'Add collapsing of facets and more values popup. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE location_facet_setting ADD collapseByDefault TINYINT DEFAULT '0'",
@@ -450,7 +417,6 @@ class DBMaintenance extends Admin {
 			'location_1' => array(
 				'title' => 'Location 1',
 				'description' => 'Add fields orginally defined for Marmot',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `location` ADD `defaultPType` INT(11) NOT NULL DEFAULT '-1';",
@@ -461,7 +427,6 @@ class DBMaintenance extends Admin {
 			'location_2' => array(
 				'title' => 'Location 2',
 				'description' => 'Add the ability to customize footers per location',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `location` ADD `footerTemplate` VARCHAR(40) NOT NULL DEFAULT 'default';",
 				),
@@ -470,7 +435,6 @@ class DBMaintenance extends Admin {
 			'location_3' => array(
 				'title' => 'Location 3',
 				'description' => 'Add the ability to set home page widget by location',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `location` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
 				),
@@ -479,7 +443,6 @@ class DBMaintenance extends Admin {
 			'location_4' => array(
 				'title' => 'Location 4',
 				'description' => 'Add the ability to specify a list of records to blacklist. ',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `location` ADD `recordsToBlackList` MEDIUMTEXT;",
@@ -489,7 +452,6 @@ class DBMaintenance extends Admin {
 			'location_5' => array(
 				'title' => 'Location 5',
 				'description' => 'Add ability to configure the automatic timeout length. ',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `location` ADD `automaticTimeoutLength` INT(11) DEFAULT '90';",
 				),
@@ -498,7 +460,6 @@ class DBMaintenance extends Admin {
 			'location_6' => array(
 				'title' => 'Location 6',
 				'description' => 'Add ability to configure the automatic timeout length when logged out. ',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `location` ADD `automaticTimeoutLengthLoggedOut` INT(11) DEFAULT '450';",
 				),
@@ -526,7 +487,6 @@ class DBMaintenance extends Admin {
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE user ADD displayName VARCHAR( 30 ) NOT NULL DEFAULT ''",
 				),
@@ -536,7 +496,6 @@ class DBMaintenance extends Admin {
 			'title' => 'User phone',
 			'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
 			),
@@ -545,7 +504,6 @@ class DBMaintenance extends Admin {
 		'user_ilsType' => array(
 			'title' => 'User Type',
 			'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
@@ -555,7 +513,6 @@ class DBMaintenance extends Admin {
 		'user_overdrive_email' => array(
 			'title' => 'User OverDrive Email',
 			'description' => 'Add overdriveEmail field to User table to allow for patrons to use a different email fo notifications when their books are ready',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE user ADD overdriveEmail VARCHAR( 250 ) NOT NULL DEFAULT ''",
@@ -567,7 +524,6 @@ class DBMaintenance extends Admin {
 			'list_widgets' => array(
 				'title' => 'Setup Configurable List Widgets',
 				'description' => 'Create list widgets tables',
-				'dependencies' => array(),
 				'sql' => array(
 					"CREATE TABLE IF NOT EXISTS list_widgets (".
 						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
@@ -591,7 +547,6 @@ class DBMaintenance extends Admin {
 			'list_widgets_update_1' => array(
 				'title' => 'List Widget List Update 1',
 				'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
 					"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
@@ -601,7 +556,6 @@ class DBMaintenance extends Admin {
 			'list_widgets_update_2' => array(
 				'title' => 'List Widget Update 2',
 				'description' => 'Add library id to list widget',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `list_widgets` ADD COLUMN `libraryId` INT(11) NOT NULL DEFAULT '-1'",
 				),
@@ -610,7 +564,6 @@ class DBMaintenance extends Admin {
 			'list_widgets_home' => array(
 				'title' => 'List Widget Home',
 				'description' => 'Create the default homepage widget',
-				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
 					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all')",
@@ -621,7 +574,6 @@ class DBMaintenance extends Admin {
 			'list_wdiget_list_update_1' => array(
 				'title' => 'List Widget List Source Length Update',
 				'description' => 'Update length of source field to accommodate search source type',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
 				),
@@ -630,7 +582,6 @@ class DBMaintenance extends Admin {
 			'index_search_stats' => array(
 				'title' => 'Index search stats table',
 				'description' => 'Add index to search stats table to improve autocomplete speed',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
 				),
@@ -638,7 +589,6 @@ class DBMaintenance extends Admin {
 			'list_wdiget_update_1' => array(
 				'title' => 'Update List Widget 1',
 				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
 					"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
@@ -647,7 +597,6 @@ class DBMaintenance extends Admin {
 			'list_widget_update_2' => array(
 				'title' => 'Update List Widget 2',
 				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `list_widgets` ADD COLUMN `style` ENUM('vertical', 'horizontal', 'single') NOT NULL DEFAULT 'horizontal'",
 					"UPDATE TABLE `list_widgets` SET `style` = 'single' WHERE showMultipleTitles = 0",
@@ -656,7 +605,6 @@ class DBMaintenance extends Admin {
 			'library_4' => array(
 				'title' => 'Library 4',
 				'description' => 'Update Library table to include enableAlphaBrowse column',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE library ADD COLUMN enableAlphaBrowse TINYINT DEFAULT '1';",
 				),
@@ -666,7 +614,6 @@ class DBMaintenance extends Admin {
 				'title' => 'Genealogy Setup',
 				'description' => 'Initial setup of genealogy information',
 				'continueOnError' => true,
-				'dependencies' => array(),
 				'sql' => array(
 					//-- setup tables related to the genealogy section
 					//-- person table
@@ -727,7 +674,6 @@ class DBMaintenance extends Admin {
 			'genealogy_1' => array(
 				'title' => 'Genealogy Update 1',
 				'description' => 'Update Genealogy 1 for Steamboat Springs to add cemetery information.',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE person ADD COLUMN veteranOf VARCHAR(100) NULL DEFAULT ''",
 					"ALTER TABLE person ADD COLUMN addition VARCHAR(100) NULL DEFAULT ''",
@@ -747,7 +693,6 @@ class DBMaintenance extends Admin {
 			'recommendations_optOut' => array(
 				'title' => 'Recommendations Opt Out',
 				'description' => 'Add tracking for whether the user wants to opt out of recommendations',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `user` ADD `disableRecommendations` TINYINT NOT NULL DEFAULT '0'",
 						),
@@ -756,7 +701,6 @@ class DBMaintenance extends Admin {
 			'editorial_review' => array(
 				'title' => 'Create Editorial Review table',
 				'description' => 'Create editorial review tables for external reviews, i.e. book-a-day blog',
-				'dependencies' => array(),
 				'sql' => array(
 					"CREATE TABLE editorial_reviews (".
 						"editorialReviewId int NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
@@ -772,7 +716,6 @@ class DBMaintenance extends Admin {
 			'editorial_review_1' => array(
 				'title' => 'Add tabName to editorial reviews',
 				'description' => 'Update editorial reviews to include a tab name',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE editorial_reviews add tabName VARCHAR(25) DEFAULT 'Reviews';",
 				),
@@ -781,7 +724,6 @@ class DBMaintenance extends Admin {
 			'editorial_review_2' => array(
 				'title' => 'Add teaser to editorial reviews',
 				'description' => 'Update editorial reviews to include a teaser',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE editorial_reviews add teaser VARCHAR(512);",
 				),
@@ -790,7 +732,6 @@ class DBMaintenance extends Admin {
 			'purchase_link_tracking' => array(
 				'title' => 'Create Purchase Link Tracking Table',
 				'description' => 'Create Purchase Links tables to track links that were clicked',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS purchase_link_tracking (' .
 					'purchaseLinkId int(11) NOT NULL AUTO_INCREMENT, '.
@@ -807,7 +748,6 @@ class DBMaintenance extends Admin {
 			/*'usage_tracking' => array(
 				'title' => 'Create Usage Tracking Table',
 				'description' => 'Create aggregate page view tracking table',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS usage_tracking (' .
 					'usageId int(11) NOT NULL AUTO_INCREMENT, '.
@@ -827,7 +767,6 @@ class DBMaintenance extends Admin {
 			'resource_update_table' => array(
 				'title' => 'Update resource table',
 				'description' => 'Update resource tracking table to include additional information resources for sorting',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE resource ADD author VARCHAR(255)',
 					'ALTER TABLE resource ADD title_sort VARCHAR(255)',
@@ -842,7 +781,6 @@ class DBMaintenance extends Admin {
 			'resource_update_table_2' => array(
 				'title' => 'Update resource table 2',
 				'description' => 'Update resource tracking table to make sure that title and author are utf8 encoded',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `resource` CHANGE `title` `title` VARCHAR( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ''",
 					"ALTER TABLE `resource` CHANGE `source` `source` VARCHAR( 50 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'VuFind'",
@@ -854,7 +792,6 @@ class DBMaintenance extends Admin {
 			'resource_update3' => array(
 				'title' => 'Update resource table 3',
 				'description' => 'Update resource table to include the checksum of the marc record so we can skip updating records that haven\'t changed',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `resource` ADD marc_checksum BIGINT",
 					"ALTER TABLE `resource` ADD date_updated INT(11)",
@@ -864,7 +801,6 @@ class DBMaintenance extends Admin {
 			'resource_update4' => array(
 				'title' => 'Update resource table 4',
 				'description' => 'Update resource table to include a field for the actual marc record',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `resource` ADD marc BLOB",
@@ -874,7 +810,6 @@ class DBMaintenance extends Admin {
 			'resource_update5' => array(
 				'title' => 'Update resource table 5',
 				'description' => 'Add a short id column for use with certain ILS i.e. Millennium',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `resource` ADD shortId VARCHAR(20)",
 					"ALTER TABLE `resource` ADD INDEX (shortId)",
@@ -884,7 +819,6 @@ class DBMaintenance extends Admin {
 			'resource_update6' => array(
 				'title' => 'Update resource table 6',
 				'description' => 'Add a deleted column to determine if a resource has been removed from the catalog',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `resource` ADD deleted TINYINT DEFAULT '0'",
@@ -895,7 +829,6 @@ class DBMaintenance extends Admin {
 			'resource_update7' => array(
 				'title' => 'Update resource table 7',
 				'description' => 'Increase the size of the marc field to avoid indexing errors updating the resources table. ',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `resource` CHANGE marc marc LONGBLOB",
 				),
@@ -924,7 +857,6 @@ class DBMaintenance extends Admin {
 			'resource_callnumber' => array(
 				'title' => 'Resource call numbers',
 				'description' => 'Build table to store call numbers for resources',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
 					'id int(11) NOT NULL AUTO_INCREMENT, '.
@@ -942,7 +874,6 @@ class DBMaintenance extends Admin {
 			'resource_subject' => array(
 				'title' => 'Resource subject',
 				'description' => 'Build table to store subjects for resources',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS subject (' .
 					'id int(11) NOT NULL AUTO_INCREMENT, '.
@@ -965,7 +896,6 @@ class DBMaintenance extends Admin {
 			/*'resource_subject_1' => array(
 				'title' => 'Resource subject update 1',
 				'description' => 'Increase the length of the subject column',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE subject CHANGE subject subject VARCHAR(512) NOT NULL'
 				),
@@ -974,7 +904,6 @@ class DBMaintenance extends Admin {
 			'readingHistory' => array(
 				'title' => 'Reading History Creation',
 				'description' => 'Update reading History to include an id table',
-				'dependencies' => array(),
 				'sql' => array(
 					"CREATE TABLE IF NOT EXISTS	user_reading_history(" .
 						"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', " .
@@ -990,7 +919,6 @@ class DBMaintenance extends Admin {
 			'coverArt_suppress' => array(
 				'title' => 'Cover Art Suppress',
 				'description' => 'Add tracking for whether the user wants to suppress cover art',
-				'dependencies' => array(),
 				'sql' => array(
 					"ALTER TABLE `user` ADD `disableCoverArt` TINYINT NOT NULL DEFAULT '0'",
 				),
@@ -999,7 +927,6 @@ class DBMaintenance extends Admin {
 			'externalLinkTracking' => array(
 				'title' => 'Create External Link Tracking Table',
 				'description' => 'Build table to track links to external sites from 856 tags or eContent',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS external_link_tracking (' .
 					'externalLinkId int(11) NOT NULL AUTO_INCREMENT, '.
@@ -1016,18 +943,41 @@ class DBMaintenance extends Admin {
 			'readingHistoryUpdate1' => array(
 				'title' => 'Reading History Update 1',
 				'description' => 'Update reading History to include an id table',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE `user_reading_history` DROP PRIMARY KEY',
 					'ALTER TABLE `user_reading_history` ADD UNIQUE `user_resource` ( `userId` , `resourceId` ) ',
 					'ALTER TABLE `user_reading_history` ADD `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY FIRST ',
 				),
 			),
+			
+			
+			'notInterested' => array(
+				'title' => 'Not Interested Table',
+				'description' => 'Create a table for records the user is not interested in so they can be ommitted from search results' ,
+				'sql' => array(
+					"CREATE TABLE `user_not_interested` (
+						id int(11) NOT NULL AUTO_INCREMENT,
+						userId int(11) NOT NULL,
+						resourceId varchar(20) NOT NULL,
+						dateMarked int(11),
+						PRIMARY KEY (id),
+						UNIQUE INDEX (userId, resourceId),
+						INDEX (userId)
+					)",
+				),
+			),
+
+			'userRatings1' => array(
+				'title' => 'User Ratings Update 1',
+				'description' => 'Add date rated for user ratings' ,
+				'sql' => array(
+					"ALTER TABLE user_rating ADD COLUMN dateRated int(11)",
+				),
+			),
 
 			'materialsRequest' => array(
 				'title' => 'Materials Request Table Creation',
 				'description' => 'Update reading History to include an id table',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS materials_request (' .
 					'id int(11) NOT NULL AUTO_INCREMENT, '.
@@ -1055,7 +1005,6 @@ class DBMaintenance extends Admin {
 			'materialsRequest_update1' => array(
 				'title' => 'Materials Request Update 1',
 				'description' => 'Material Request add fields for sending emails and creating holds',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE `materials_request` ADD `emailSent` TINYINT NOT NULL DEFAULT 0',
 					'ALTER TABLE `materials_request` ADD `holdsCreated` TINYINT NOT NULL DEFAULT 0',
@@ -1065,7 +1014,6 @@ class DBMaintenance extends Admin {
 			'materialsRequest_update2' => array(
 				'title' => 'Materials Request Update 2',
 				'description' => 'Material Request add fields phone and email so user can supply a different email address',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE `materials_request` ADD `email` VARCHAR(80)',
 					'ALTER TABLE `materials_request` ADD `phone` VARCHAR(15)',
@@ -1075,7 +1023,6 @@ class DBMaintenance extends Admin {
 			'materialsRequest_update3' => array(
 				'title' => 'Materials Request Update 3',
 				'description' => 'Material Request add fields season, magazineTitle, split isbn and upc',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE `materials_request` ADD `season` VARCHAR(80)',
 					'ALTER TABLE `materials_request` ADD `magazineTitle` VARCHAR(255)',
@@ -1096,7 +1043,6 @@ class DBMaintenance extends Admin {
 			'materialsRequest_update4' => array(
 				'title' => 'Materials Request Update 4',
 				'description' => 'Material Request add illItem field and make status field not an enum so libraries can easily add statuses',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE `materials_request` ADD `illItem` VARCHAR(80)',
 				),
@@ -1105,7 +1051,6 @@ class DBMaintenance extends Admin {
 			'materialsRequest_update5' => array(
 				'title' => 'Materials Request Update 5',
 				'description' => 'Material Request add magazine number',
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE `materials_request` ADD `magazineNumber` VARCHAR(80)',
 				),
@@ -1114,7 +1059,6 @@ class DBMaintenance extends Admin {
 			'materialsRequestStatus' => array(
 				'title' => 'Materials Request Status Table Creation',
 				'description' => 'Update reading History to include an id table',
-				'dependencies' => array(),
 				'sql' => array(
 					'CREATE TABLE IF NOT EXISTS materials_request_status (' .
 					'id int(11) NOT NULL AUTO_INCREMENT, '.
@@ -1157,7 +1101,6 @@ class DBMaintenance extends Admin {
 			'catalogingRole' => array(
 				'title' => 'Create cataloging role',
 				'description' => 'Create cataloging role to handle materials requests, econtent loading, etc.',
-				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO `roles` (`name`, `description`) VALUES ('cataloging', 'Allows user to perform cataloging activities.')",
 				),
@@ -1166,7 +1109,6 @@ class DBMaintenance extends Admin {
 			'libraryAdmin' => array(
 				'title' => 'Create library admin role',
 				'description' => 'Create library admin to allow .',
-				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO `roles` (`name`, `description`) VALUES ('libraryAdmin', 'Allows user to update library configuration for their library system only for their home location.')",
 				),
@@ -1175,7 +1117,6 @@ class DBMaintenance extends Admin {
 			'contentEditor' => array(
 				'title' => 'Create Content Editor role',
 				'description' => 'Create Content Editor Role to allow entering of editorial reviews and creation of widgets.',
-				'dependencies' => array(),
 				'sql' => array(
 					"INSERT INTO `roles` (`name`, `description`) VALUES ('contentEditor', 'Allows entering of editorial reviews and creation of widgets.')",
 				),
@@ -1184,7 +1125,6 @@ class DBMaintenance extends Admin {
 			'ip_lookup_1' => array(
 				'title' => 'IP Lookup Update 1',
 				'description' => 'Add start and end ranges for IP Lookup table to improve performance.',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE ip_lookup ADD COLUMN startIpVal BIGINT",
@@ -1198,7 +1138,6 @@ class DBMaintenance extends Admin {
 			'ip_lookup_2' => array(
 				'title' => 'IP Lookup Update 2',
 				'description' => 'Change start and end ranges to be big integers.',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `ip_lookup` CHANGE `startIpVal` `startIpVal` BIGINT NULL DEFAULT NULL ",
@@ -1210,7 +1149,6 @@ class DBMaintenance extends Admin {
 			/*'indexUsageTracking' => array(
 				'title' => 'Index Usage Tracking',
 				'description' => 'Update Usage Tracking to include index based on ip and tracking date',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `usage_tracking` ADD INDEX `IP_DATE` ( `ipId` , `trackingDate` )",
@@ -1220,7 +1158,6 @@ class DBMaintenance extends Admin {
       'variables_table' => array(
 				'title' => 'Variables Table',
 				'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
-				'dependencies' => array(),
 				'sql' => array(
 					"CREATE TABLE `variables` (
 						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -1234,7 +1171,6 @@ class DBMaintenance extends Admin {
 			'utf8_update' => array(
 			'title' => 'Update to UTF-8',
 			'description' => 'Update database to use UTF-8 encoding',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER DATABASE " . $configArray['Database']['database_vufind_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
@@ -1276,7 +1212,6 @@ class DBMaintenance extends Admin {
 			'title' => 'Index resources',
 			'description' => 'Add a new index to resources table to make record id and source unique',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				//Update resource table indexes
 				"ALTER TABLE `resource` ADD UNIQUE `records_by_source` (`record_id`, `source`)"
@@ -1287,7 +1222,6 @@ class DBMaintenance extends Admin {
 		'alpha_browse_setup_2' => array(
 			'title' => 'Setup Alphabetic Browse',
 			'description' => 'Build tables to handle alphabetic browse functionality.',
-			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE IF EXISTS `title_browse`",
 				"CREATE TABLE `title_browse` (
@@ -1370,7 +1304,6 @@ class DBMaintenance extends Admin {
 		'alpha_browse_setup_3' => array(
 			'title' => 'Alphabetic Browse Performance',
 			'description' => 'Create additional indexes and columns to improve performance of Alphabetic Browse.',
-			'dependencies' => array(),
 			'sql' => array(
 				//Author browse
 				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `browseValueId` )",
@@ -1413,7 +1346,6 @@ class DBMaintenance extends Admin {
 		'alpha_browse_setup_4' => array(
 			'title' => 'Alphabetic Browse Metadata',
 			'description' => 'Create metadata about alphabetic browsing improve performance of Alphabetic Browse.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE author_browse_metadata (
 					`scope` TINYINT( 4 ) NOT NULL ,
@@ -1457,7 +1389,6 @@ class DBMaintenance extends Admin {
 			'title' => 'Alphabetic Browse scoped tables',
 			'description' => 'Create Scoping tables for global and all libraries.',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				//Add firstChar fields
 				"ALTER TABLE `title_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
@@ -1532,7 +1463,6 @@ class DBMaintenance extends Admin {
 			'title' => 'Alphabetic Browse second letter',
 			'description' => 'Add second char to the tables.',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE `title_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
 				"ALTER TABLE title_browse ADD INDEX ( `secondChar` )",
@@ -1553,7 +1483,6 @@ class DBMaintenance extends Admin {
 			'title' => 'Alphabetic Browse change scoping engine',
 			'description' => 'Change DB Engine to INNODB for all scoping tables.',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				"setScopingTableEngine",
 			),
@@ -1563,7 +1492,6 @@ class DBMaintenance extends Admin {
 			'title' => 'Alphabetic Browse change scoping engine',
 			'description' => 'Change DB Engine to INNODB for all scoping tables.',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				"setScopingTableEngine2",
 			),
@@ -1573,7 +1501,6 @@ class DBMaintenance extends Admin {
 			'title' => 'Alphabetic Browse remove record indices',
 			'description' => 'Remove record indices since they are no longer needed and make the import slower, also use MyISAM engine since that is faster for import.',
 			'continueOnError' => true,
-			'dependencies' => array(),
 			'sql' => array(
 				"removeScopingTableIndex",
 			),
@@ -1582,7 +1509,6 @@ class DBMaintenance extends Admin {
 		'reindexLog' => array(
 			'title' => 'Reindex Log table',
 			'description' => 'Create Reindex Log table to track reindexing.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS reindex_log(" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
@@ -1612,7 +1538,6 @@ class DBMaintenance extends Admin {
 		'reindexLog_1' => array(
 			'title' => 'Reindex Log table update 1',
 			'description' => 'Update Reindex Log table to include notes and last update.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE reindex_log ADD COLUMN `notes` TEXT COMMENT 'Notes related to the overall process'",
 				"ALTER TABLE reindex_log ADD `lastUpdate` INT(11) COMMENT 'The last time the log was updated'",
@@ -1622,7 +1547,6 @@ class DBMaintenance extends Admin {
 		'reindexLog_2' => array(
 			'title' => 'Reindex Log table update 2',
 			'description' => 'Update Reindex Log table to include a count of non-marc records that have been processed.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE reindex_process_log ADD COLUMN `overDriveNonMarcRecordsProcessed` INT(11) COMMENT 'The number of overdrive records processed that do not have a marc record associated with them.'",
 			),
@@ -1632,7 +1556,6 @@ class DBMaintenance extends Admin {
 		'cronLog' => array(
 			'title' => 'Cron Log table',
 			'description' => 'Create Cron Log table to track reindexing.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS cron_log(" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
@@ -1661,7 +1584,6 @@ class DBMaintenance extends Admin {
 		'marcImport' => array(
 			'title' => 'Marc Import table',
 			'description' => 'Create a table to store information about marc records that are being imported.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS marc_import(" .
 					"`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
@@ -1673,7 +1595,6 @@ class DBMaintenance extends Admin {
 		'marcImport_1' => array(
 			'title' => 'Marc Import table Update 1',
 			'description' => 'Increase the length of the checksum field for the marc import.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id as it currently exists in the active index.'",
 			),
@@ -1681,7 +1602,6 @@ class DBMaintenance extends Admin {
 		'marcImport_2' => array(
 			'title' => 'Marc Import table Update 2',
 			'description' => 'Increase the length of the checksum field for the marc import.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE marc_import ADD COLUMN `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
 				"ALTER TABLE marc_import ADD COLUMN `eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the active index.'",
@@ -1691,7 +1611,6 @@ class DBMaintenance extends Admin {
 		'marcImport_3' => array(
 			'title' => 'Marc Import table Update 3',
 			'description' => 'Make backup fields optional.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE marc_import CHANGE `backup_checksum` `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
 				"ALTER TABLE marc_import CHANGE `backup_eContent` `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
@@ -1700,7 +1619,6 @@ class DBMaintenance extends Admin {
 		'add_indexes' => array(
 			'title' => 'Add indexes',
 			'description' => 'Add indexes to tables that were not defined originally',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `editorial_reviews` ADD INDEX `RecordId` ( `recordId` ) ',
@@ -1712,7 +1630,6 @@ class DBMaintenance extends Admin {
 		'add_indexes2' => array(
 			'title' => 'Add indexes 2',
 			'description' => 'Add additional indexes to tables that were not defined originally',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE `user_rating` ADD INDEX `Resourceid` ( `resourceid` ) ',
@@ -1727,7 +1644,6 @@ class DBMaintenance extends Admin {
 		'spelling_optimization' => array(
 			'title' => 'Spelling Optimization',
 			'description' => 'Optimizations to spelling to ensure indexes are used',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE `spelling_words` ADD `soundex` VARCHAR(20) ',
 				'ALTER TABLE `spelling_words` ADD INDEX `Soundex` (`soundex`)',
@@ -1738,7 +1654,6 @@ class DBMaintenance extends Admin {
 		'boost_disabling' => array(
 			'title' => 'Disabling Lib and Loc Boosting',
 			'description' => 'Allow boosting of library and location boosting to be disabled',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE `library` ADD `boostByLibrary` TINYINT DEFAULT '1'",
 				"ALTER TABLE `location` ADD `boostByLocation` TINYINT DEFAULT '1'",
@@ -1748,7 +1663,6 @@ class DBMaintenance extends Admin {
 		/*'cleanup_search' => array(
 			'title' => 'Cleanup Search table',
 			'description' => 'Cleanup Search table to remove unused tables and add needed indexes',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE search DROP folder_id',
 				'ALTER TABLE search DROP title',
@@ -1760,7 +1674,6 @@ class DBMaintenance extends Admin {
 		/*'remove_old_tables' => array(
 			'title' => 'Remove old tables',
 			'description' => 'Remove tables that are no longer needed due to usage of memcache',
-			'dependencies' => array(),
 			'sql' => array(
 				//Update resource table indexes
 				'DROP TABLE IF EXISTS list_cache',
@@ -1774,7 +1687,6 @@ class DBMaintenance extends Admin {
 		'remove_old_tables_2' => array(
 			'title' => 'Remove old tables 2',
 			'description' => 'Remove tables that are no longer needed due to changes in functionality',
-			'dependencies' => array(),
 			'sql' => array(
 				'DROP TABLE IF EXISTS administrators',
 				'DROP TABLE IF EXISTS administrators_to_roles',
@@ -1786,7 +1698,6 @@ class DBMaintenance extends Admin {
 		'remove_old_tables_3' => array(
 			'title' => 'Remove usage tracking tables',
 			'description' => 'Remove usage tracking tables (replaced with better analytics)',
-			'dependencies' => array(),
 			'sql' => array(
 				'DROP TABLE IF EXISTS usagetracking',
 				'DROP TABLE IF EXISTS usage_tracking',
@@ -1796,7 +1707,6 @@ class DBMaintenance extends Admin {
 		'remove_old_tables_4' => array(
 			'title' => 'Remove subject tables',
 			'description' => 'Remove subject table (replaced with browse tables)',
-			'dependencies' => array(),
 			'sql' => array(
 				'DROP TABLE IF EXISTS subject',
 			),
@@ -1805,7 +1715,6 @@ class DBMaintenance extends Admin {
 		'rename_tables' => array(
 			'title' => 'Rename tables',
 			'description' => 'Rename tables for consistency and cross platform usage',
-			'dependencies' => array(),
 			'sql' => array(
 				//Update resource table indexes
 				'RENAME TABLE usageTracking TO usage_tracking',
@@ -1820,7 +1729,6 @@ class DBMaintenance extends Admin {
 		'addTablelistWidgetListsLinks' => array(
 				'title' => 'Widget Lists',
 				'description' => 'Add a new table: list_widget_lists_links',
-				'dependencies' => array(),
 				'sql' => array('addTableListWidgetListsLinks'),
 		),
 
@@ -1828,7 +1736,6 @@ class DBMaintenance extends Admin {
 		'millenniumTables' => array(
 				'title' => 'Millennium table setup',
 				'description' => 'Add new tables for millennium installations',
-				'dependencies' => array(),
 				'continueOnError' => true,
 				'sql' => array(
 				"CREATE TABLE `millennium_cache` (
@@ -1861,7 +1768,6 @@ class DBMaintenance extends Admin {
 		'loan_rule_determiners_1' => array(
 			'title' => 'Loan Rule Determiners',
 			'description' => 'Build tables to store loan rule determiners',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS loan_rules (" .
 					"`id` INT NOT NULL AUTO_INCREMENT, " .
@@ -1896,7 +1802,6 @@ class DBMaintenance extends Admin {
 		/*'remove_old_millennium_hold_logic' => array(
 			'title' => 'Remove Old Millennium Hold Logic',
 			'description' => 'Build tables to store loan rule determiners',
-			'dependencies' => array(),
 			'sql' => array(
 				"DROP TABLE ptype_restricted_locations",
 				"DROP TABLE non_holdable_locations",
@@ -1906,7 +1811,6 @@ class DBMaintenance extends Admin {
 		'location_hours' => array(
 			'title' => 'Location Hours',
 			'description' => 'Build table to store hours for a location',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS location_hours (" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
@@ -1923,7 +1827,6 @@ class DBMaintenance extends Admin {
 		'holiday' => array(
 			'title' => 'Holidays',
 			'description' => 'Build table to store holidays',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS holiday (" .
 					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of holiday', " .
@@ -1939,7 +1842,6 @@ class DBMaintenance extends Admin {
 		'holiday_1' => array(
 			'title' => 'Holidays 1',
 			'description' => 'Update indexes for holidays',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE holiday DROP INDEX `date`",
 				"ALTER TABLE holiday ADD INDEX Date (`date`) ",
@@ -1950,7 +1852,6 @@ class DBMaintenance extends Admin {
 		'book_store' => array(
 			'title' => 'Book store table',
 			'description' => 'Create a table to store information about book stores.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS book_store(" .
 					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the book store', " .
@@ -1966,7 +1867,6 @@ class DBMaintenance extends Admin {
 		'book_store_1' => array(
 			'title' => 'Book store table update 1',
 			'description' => 'Add a default column to determine if a book store should be used if a library does not override.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE book_store ADD COLUMN `showByDefault` TINYINT NOT NULL DEFAULT 1 COMMENT 'Whether or not the book store should be used by default for al library systems.'",
 				"ALTER TABLE book_store CHANGE `image` `image` VARCHAR(256) NULL COMMENT 'The URL to the icon/image to display'",
@@ -1975,7 +1875,6 @@ class DBMaintenance extends Admin {
 		'nearby_book_store' => array(
 			'title' => 'Nearby book stores',
 			'description' => 'Create a table to store book stores near a location.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
 					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
@@ -1991,7 +1890,6 @@ class DBMaintenance extends Admin {
 		'ptype' => array(
 			'title' => 'P-Type',
 			'description' => 'Build tables to store information related to P-Types.',
-			'dependencies' => array(),
 			'sql' => array(
 				'CREATE TABLE IF NOT EXISTS ptype(
 					id INT(11) NOT NULL AUTO_INCREMENT,
@@ -2006,7 +1904,6 @@ class DBMaintenance extends Admin {
 		'analytics' => array(
 			'title' => 'Analytics',
 			'description' => 'Build tables to store analytics information.',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS analytics_session(" .
@@ -2072,7 +1969,6 @@ class DBMaintenance extends Admin {
 		'analytics_1' => array(
 			'title' => 'Analytics Update 1',
 			'description' => 'Add times to searches and events.',
-			'dependencies' => array(),
 			'continueOnError' => true,
 			'sql' => array(
 				'ALTER TABLE analytics_event ADD COLUMN eventTime INT(11)',
@@ -2083,7 +1979,6 @@ class DBMaintenance extends Admin {
 		'analytics_2' => array(
 			'title' => 'Analytics Update 2',
 			'description' => 'Adjust length of searchType Field.',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE analytics_search CHANGE COLUMN searchType searchType VARCHAR(50)'
 			),
@@ -2092,7 +1987,6 @@ class DBMaintenance extends Admin {
 		'analytics_3' => array(
 			'title' => 'Analytics Update 3',
 			'description' => 'Index filter information to improve loading seed for reports.',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE `analytics_session` ADD INDEX ( `country`)',
 				'ALTER TABLE `analytics_session` ADD INDEX ( `city`)',
@@ -2109,7 +2003,6 @@ class DBMaintenance extends Admin {
 		'analytics_4' => array(
 			'title' => 'Analytics Update 4',
 			'description' => 'Add additional data fields for events.',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE `analytics_event` ADD COLUMN data2 VARCHAR(256)',
 				'ALTER TABLE `analytics_event` ADD COLUMN data3 VARCHAR(256)',
@@ -2122,7 +2015,6 @@ class DBMaintenance extends Admin {
 		'analytics_5' => array(
 			'title' => 'Analytics Update 5',
 			'description' => 'Update analytics search to make display of reports faster.',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE analytics_search ADD INDEX(lookfor)',
 				'ALTER TABLE analytics_search ADD INDEX(numResults)',
@@ -2136,7 +2028,6 @@ class DBMaintenance extends Admin {
 		'analytics_6' => array(
 			'title' => 'Analytics Update 6',
 			'description' => 'Update analytics make display of dashboard and other reports faster.',
-			'dependencies' => array(),
 			'sql' => array(
 				'ALTER TABLE analytics_event ADD INDEX(eventTime)',
 				'ALTER TABLE analytics_page_view ADD INDEX(pageStartTime)',
@@ -2153,7 +2044,6 @@ class DBMaintenance extends Admin {
 		'analytics_7' => array(
 			'title' => 'Analytics Update 7',
 			'description' => 'Normalize Analytics Session for better performance.',
-			'dependencies' => array(),
 			'sql' => array(
 				"CREATE TABLE IF NOT EXISTS analytics_country (
 					`id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -2266,7 +2156,6 @@ class DBMaintenance extends Admin {
 			'analytics_8' => array(
 				'title' => 'Analytics Update 8',
 				'description' => "Update analytics to store page load time so it doesn't have to be calculated.",
-				'dependencies' => array(),
 				'sql' => array(
 					'ALTER TABLE analytics_page_view ADD COLUMN loadTime int',
 					'ALTER TABLE analytics_page_view ADD INDEX(loadTime)',
@@ -2277,7 +2166,6 @@ class DBMaintenance extends Admin {
 		'session_update_1' => array(
 			'title' => 'Session Update 1',
 			'description' => 'Add a field for whether or not the session was started with remember me on.',
-			'dependencies' => array(),
 			'sql' => array(
 				"ALTER TABLE session ADD COLUMN `remember_me` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not the session was started with remember me on.'",
 			),

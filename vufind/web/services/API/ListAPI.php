@@ -857,7 +857,7 @@ class ListAPI extends Action {
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
-					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
+					$descriptiveInfo = Record_Description::loadDescriptionFromMarc($marcRecord, false);
 
 					if (isset($descriptions) && isset($descriptions[$record['id']])){
 						$descriptiveInfo['description'] = $descriptions[$record['id']];
@@ -934,7 +934,7 @@ class ListAPI extends Action {
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
-					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
+					$descriptiveInfo = Record_Description::loadDescriptionFromMarc($marcRecord, false);
 				}else{
 					$descriptiveInfo = array();
 				}
@@ -995,7 +995,7 @@ class ListAPI extends Action {
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
-					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord, false);
+					$descriptiveInfo = Record_Description::loadDescriptionFromMarc($marcRecord, false);
 				}else{
 					$descriptiveInfo = array();
 				}
@@ -1043,7 +1043,7 @@ class ListAPI extends Action {
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 				if ($marcRecord) {
-					$descriptiveInfo = Description::loadDescriptionFromMarc($marcRecord);
+					$descriptiveInfo = Record_Description::loadDescriptionFromMarc($marcRecord);
 				}
 
 

@@ -36,6 +36,7 @@ if (isset($_REQUEST['test_role'])){
 
 // Start Interface
 $interface = new UInterface();
+global $timer;
 $timer->logTime('Create interface');
 if (isset($configArray['Site']['smallLogo'])){
 	$interface->assign('smallLogo', $configArray['Site']['smallLogo']);
@@ -47,6 +48,8 @@ if (isset($configArray['Site']['largeLogo'])){
 $interface->assign('focusElementId', 'lookfor');
 
 //Set footer information
+/** @var Location $locationSingleton */
+global $locationSingleton;
 $location = $locationSingleton->getActiveLocation();
 $interface->assign('footerTemplate', 'footer.tpl');
 if (isset($location) && $location->footerTemplate != 'default'){
@@ -161,16 +164,12 @@ if ($mode['online'] === false) {
 	switch ($mode['level']) {
 		// Forced Downtime
 		case "unavailable":
-			// TODO : Variable reasons, and translated
-			//$interface->assign('message', $mode['message']);
 			$interface->display($mode['template']);
 			break;
 
 			// Should never execute. checkAvailabilityMode() would
 			//    need to know we are offline, but not why.
 		default:
-			// TODO : Variable reasons, and translated
-			//$interface->assign('message', $mode['message']);
 			$interface->display($mode['template']);
 			break;
 	}
@@ -217,6 +216,7 @@ if (isset($_REQUEST['mylang'])) {
 } else {
 	$language = strip_tags((isset($_COOKIE['language'])) ? $_COOKIE['language'] : $configArray['Site']['language']);
 }
+/** @var Memcache $memCache */
 $translator = $memCache->get("translator_{$serverName}_{$language}");
 if ($translator == false){
 	// Make sure language code is valid, reset to default if bad:
@@ -335,7 +335,7 @@ if ($user){
 	$interface->assign('homeLibrary', 'n/a');
 }
 
-//Find a resonable default location to go to
+//Find a reasonable default location to go to
 if ($module == null && $action == null){
 	//We have no information about where to go, go to the default location from config
 	$module = $configArray['Site']['defaultModule'];
@@ -376,7 +376,7 @@ if (isset($_REQUEST['basicType'])){
 $interface->assign('curFormatCategory', 'Everything');
 if (isset($_REQUEST['filter'])){
 	foreach ($_REQUEST['filter'] as $curFilter){
-		$filterInfo = split(":", $curFilter);
+		$filterInfo = explode(":", $curFilter);
 		if ($filterInfo[0] == 'format_category'){
 			$curFormatCategory = str_replace('"', '', $filterInfo[1]);
 			$interface->assign('curFormatCategory', $curFormatCategory);
@@ -407,6 +407,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	}
 
 	//Load basic search types for use in the interface.
+	/** @var SearchObject_Base $searchObject */
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
 	$timer->logTime('Create Search Object');
@@ -436,6 +437,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	}
 
 	if (!($module == 'Search' && $action == 'Home')){
+		/** @var SearchObject_Base $savedSearch */
 		$savedSearch = $searchObject->loadLastSearch();
 		//Load information about the search so we can display it in the search box
 		if (!is_null($savedSearch)){
@@ -492,6 +494,7 @@ if (!is_null($ipLocation) && $ipLocation != false){
 	}else{
 		$includeAutoLogoutCode = true;
 		//Get the PType for the user
+		/** @var MillenniumDriver|CatalogConnection $catalog */
 		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 		if ($user && $catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $catalog->isUserStaff();
@@ -532,6 +535,7 @@ if (isset($_SESSION['hold_message'])) {
 }elseif (isset($_SESSION['renew_message'])){
 	$interface->assign('renew_message', formatRenewMessage($_SESSION['renew_message']));
 }elseif (isset($_SESSION['checkout_message'])){
+	global $logger;
 	$logger->log("Found checkout message", PEAR_LOG_DEBUG);
 	$checkoutMessage = $_SESSION['checkout_message'];
 	unset($_SESSION['checkout_message']);
@@ -544,16 +548,26 @@ $timer->logTime('Process Shards');
 
 // Call Action
 if (is_readable("services/$module/$action.php")) {
-	require_once "services/$module/$action.php";
-	if (class_exists($action)) {
+	$actionFile = ROOT_DIR . "/services/$module/$action.php";
+	require_once $actionFile;
+	$moduleActionClass = "{$module}_{$action}";
+	if (class_exists($action, false)) {
+		/** @var Action $service */
 		$service = new $action();
-		$timer->logTime('Start lauch of action');
+		$timer->logTime('Start launch of action');
+		$service->launch();
+		$timer->logTime('Finish launch of action');
+	}elseif (class_exists($moduleActionClass, false)) {
+		/** @var Action $service */
+		$service = new $moduleActionClass();
+		$timer->logTime('Start launch of action');
 		$service->launch();
 		$timer->logTime('Finish launch of action');
 	} else {
 		PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
 	}
 } else {
+	$requestURI = $_SERVER['REQUEST_URI'];
 	PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
 }
 $timer->logTime('Finished Index');
@@ -565,16 +579,16 @@ function processFollowup(){
 
 	switch($_REQUEST['followup']) {
 		case 'SaveRecord':
-			$result = file_get_contents($configArray['Site']['path'] .
+			file_get_contents($configArray['Site']['path'] .
                     "/Record/AJAX?method=SaveRecord&id=" . urlencode($_REQUEST['id']));
 			break;
 		case 'SaveTag':
-			$result = file_get_contents($configArray['Site']['path'] .
+			file_get_contents($configArray['Site']['path'] .
                     "/Record/AJAX?method=SaveTag&id=" . urlencode($_REQUEST['id']) .
                     "&tag=" . urlencode($_REQUEST['tag']));
 			break;
 		case 'SaveComment':
-			$result = file_get_contents($configArray['Site']['path'] .
+			file_get_contents($configArray['Site']['path'] .
                     "/Record/AJAX?method=SaveComment&id=" . urlencode($_REQUEST['id']) .
                     "&comment=" . urlencode($_REQUEST['comment']));
 			break;
@@ -646,7 +660,6 @@ function processShards()
 // Check for the various stages of functionality
 function checkAvailabilityMode() {
 	global $configArray;
-	global $locationSingleton;
 	$mode = array();
 
 	// If the config file 'available' flag is
@@ -654,33 +667,28 @@ function checkAvailabilityMode() {
 	if (!$configArray['System']['available']) {
 		//Unless the user is accessing from a maintainence IP address
 
-		$isMaintainence = false;
+		$isMaintenance = false;
 		if (isset($configArray['System']['maintainenceIps'])){
 			$activeIp = $_SERVER['REMOTE_ADDR'];
-			$maintainenceIp =  $configArray['System']['maintainenceIps'];
+			$maintenanceIp =  $configArray['System']['maintainenceIps'];
 
-			$maintainenceIps = explode(",", $maintainenceIp);
-			foreach ($maintainenceIps as $curIp){
+			$maintenanceIps = explode(",", $maintenanceIp);
+			foreach ($maintenanceIps as $curIp){
 				if ($curIp == $activeIp){
-					$isMaintainence = true;
+					$isMaintenance = true;
 					break;
 				}
 			}
 
 		}
 
-		if (!$isMaintainence){
+		if (!$isMaintenance){
 			$mode['online']   = false;
 			$mode['level']    = 'unavailable';
-			// TODO : Variable reasons passed to template... and translated
-			//$mode['message']  = $configArray['System']['available_reason'];
 			$mode['template'] = 'unavailable.tpl';
 			return $mode;
 		}
 	}
-	// TODO : Check if solr index is online
-	// TODO : Check if ILMS database is online
-	// TODO : More?
 
 	// No problems? We are online then
 	$mode['online'] = true;
@@ -710,22 +718,19 @@ function formatCheckoutMessage($checkout_message_data){
 }
 function getGitBranch(){
 	global $interface;
-	//Figure out if FETCH_HEAD or HEAD is later
-	$headTime = filemtime('../../.git/HEAD');
-	$fetchHeadTime = filemtime('../../.git/FETCH_HEAD');
-	if ($headTime >= $fetchHeadTime){
-		$stringfromfile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
-		$stringfromfile = $stringfromfile[0]; //get the string from the array
-		$explodedstring = explode("/", $stringfromfile); //seperate out by the "/" in the string
-		$branchname = $explodedstring[2]; //get the one that is always the branch name
-	}else{
-		$stringfromfile = file('../../.git/FETCH_HEAD', FILE_USE_INCLUDE_PATH);
-		$stringfromfile = $stringfromfile[0]; //get the string from the array
-		if (preg_match('/.*branch\s+\'(.*?)\'.*/', $stringfromfile, $matches)){
-			$branchname = $matches[1]; //get the branch name
+	$stringFromFile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
+	$stringFromFile = $stringFromFile[0]; //get the string from the array
+	$explodedString = explode("/", $stringFromFile); //seperate out by the "/" in the string
+	$branchName = $explodedString[2]; //get the one that is always the branch name
+
+	if (!isset($branchName)){
+		$stringFromFile = file('../../.git/FETCH_HEAD', FILE_USE_INCLUDE_PATH);
+		$stringFromFile = $stringFromFile[0]; //get the string from the array
+		if (preg_match('/.*branch\s+\'(.*?)\'.*/', $stringFromFile, $matches)){
+			$branchName = $matches[1]; //get the branch name
 		}
 	}
-	$interface->assign('gitBranch', $branchname);
+	$interface->assign('gitBranch', $branchName);
 }
 // Set up autoloader (needed for YAML)
 function vufind_autoloader($class) {
@@ -733,12 +738,18 @@ function vufind_autoloader($class) {
 		$class = substr($class, 0, strpos($class, '.php'));
 	}
 	$nameSpaceClass = str_replace('_', '/', $class) . '.php';
-	if (file_exists('sys/' . $class . '.php')){
-		require_once ROOT_DIR . '/sys/' . $class . '.php';
-	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-		require_once ROOT_DIR . '/services/MyResearch/lib/' . $class . '.php';
-	}else{
-		require_once $nameSpaceClass;
+	try{
+		if (file_exists('sys/' . $class . '.php')){
+			$className = ROOT_DIR . '/sys/' . $class . '.php';
+			require_once $className;
+		}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
+			$className = ROOT_DIR . '/services/MyResearch/lib/' . $class . '.php';
+			require_once $className;
+		}else{
+			require_once $nameSpaceClass;
+		}
+	}catch (Exception $e){
+		PEAR_Singleton::raiseError("Error loading class $class");
 	}
 }
 
@@ -801,8 +812,10 @@ function initializeSession(){
 	if (isset($configArray['Site']['cookie_domain'])){
 		session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
 	}
-	require_once ROOT_DIR . '/sys/' . $session_type . '.php';
+	$sessionClass = ROOT_DIR . '/sys/' . $session_type . '.php';
+	require_once $sessionClass;
 	if (class_exists($session_type)) {
+		/** @var SessionInterface $session */
 		$session = new $session_type();
 		$session->init($session_lifetime, $session_rememberMeLifetime);
 	}

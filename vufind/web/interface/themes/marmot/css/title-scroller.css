@@ -85,7 +85,7 @@
 	width: 25px;
 	float: left;
 	cursor: pointer;
-	margin-right: 5px;
+	margin-left: 5px;
 	margin-top: 50px;
 	/*background:url(/interface/themes/default/images/scroll-left.png) no-repeat left center;*/
 	zoom: 1;
@@ -98,7 +98,7 @@
 	width: 25px;
 	float: right;
 	cursor: pointer;
-	margin-left: 5px;
+	margin-right: 5px;
 	margin-top: 50px;
 	/*background:url(/interface/themes/default/images/scroll-right.png) no-repeat left center;*/
 	z-index: 100;

@@ -26,7 +26,7 @@ require_once 'Cite.php';
 require_once 'Holdings.php';
 require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
-class Home extends Record{
+class Record_Home extends Record_Record{
 	function launch(){
 		global $interface;
 		global $timer;
@@ -34,9 +34,9 @@ class Home extends Record{
 		global $user;
 
 		// Load Supplemental Information
-		UserComments::loadComments();
+		Record_UserComments::loadComments();
 		$timer->logTime('Loaded Comments');
-		Cite::loadCitation();
+		Record_Cite::loadCitation();
 		$timer->logTime('Loaded Citations');
 
 		if (isset($_REQUEST['id'])){
@@ -61,7 +61,6 @@ class Home extends Record{
 		$editorialReviewResults = array();
 		$editorialReview->recordId = $recordId;
 		$editorialReview->find();
-		$reviewTabs = array();
 		$editorialReviewResults['reviews'] = array(
 			'tabName' => 'Reviews',
 			'reviews' => array()
@@ -107,7 +106,7 @@ class Home extends Record{
 			$interface->assign('showComments', $library->showComments);
 			$interface->assign('tabbedDetails', $library->tabbedDetails);
 			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
-			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup);
+			$interface->assign('showOtherEditionsPopup', 0);
 			$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
 			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
 		}else{
@@ -131,13 +130,49 @@ class Home extends Record{
 			$interface->assign('showComments', 1);
 			$interface->assign('tabbedDetails', !isset($configArray['Content']['tabbedDetails']) || $configArray['Content']['tabbedDetails'] == false ? 0 : 1);
 			$interface->assign('showSeriesAsTab', 0);
-			$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+			$interface->assign('showOtherEditionsPopup', 0);
 			$interface->assign('show856LinksAsTab', 1);
 			$interface->assign('showProspectorTitlesAsTab', 0);
 		}
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
+
+		$resource = new Resource();
+		$resource->record_id = $this->id;
+		$resource->source = 'VuFind';
+		$solrId = $this->id;
+		if ($resource->find(true)){
+			$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
+			if (is_array($otherEditions)){
+				foreach ($otherEditions as $edition){
+					/** @var Resource $editionResource */
+					$editionResource = new Resource();
+					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
+						$editionResource->source = 'eContent';
+						$editionResource->record_id = trim($matches[1]);
+					}else{
+						$editionResource->record_id = $edition['id'];
+						$editionResource->source = 'VuFind';
+					}
+
+					if ($editionResource->find(true)){
+						$editionResources[] = $editionResource;
+					}else{
+						$logger= new Logger();
+						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
+					}
+				}
+			}else{
+				$editionResources = null;
+			}
+		}else{
+			$otherEditions = null;
+			$editionResources = null;
+		}
+		$interface->assign('otherEditions', $otherEditions);
+		$interface->assign('editionResources', $editionResources);
+
 		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
 		$timer->logTime('Configure UI for library and location');
 

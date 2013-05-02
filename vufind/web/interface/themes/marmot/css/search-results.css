@@ -28,7 +28,7 @@
 .resultDetails{
 	display: inline-block;
 	vertical-align: top;
-	width: 405px;
+	width: 400px;
 	
 	zoom: 1;
 	*display: inline;
@@ -77,4 +77,16 @@
 #noResultsSuggest li {
   margin-left:20px;
   list-style-type:disc
+}
+.resultIndex{
+	width: 20px;
+	display:inline-block;
+	zoom:1;
+	*display:inline;
+	font-weight: bold;
+	vertical-align:top;
+}
+.reason{
+	font-size: 11px;
+	font-style: italic;
 }

@@ -1,8 +1,10 @@
 {strip}
 <div id="record{$summId|escape}">
+	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
 		<input type="checkbox" name="selected[{$summId|escape:"url"}]" id="selected{$summId|escape:"url"}" style="display:none" />&nbsp;
 	</div>
+
 	{if $user->disableCoverArt != 1}			
 	<div class="imageColumn">
 		<a href="{$path}/MyResearch/MyList/{$summShortId}">

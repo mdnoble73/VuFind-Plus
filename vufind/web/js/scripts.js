@@ -1136,3 +1136,30 @@ function loadEContentHelpTopic(){
 		);
 	}
 }
+
+function markNotInterested(source, recordId){
+	var url = path + '/Resource/AJAX?method=MarkNotInterested&source=' + source + '&recordId=' + recordId;
+	$.getJSON(
+		url, function(data){
+			if (data.result == true){
+				alert("You won't be shown this title again.");
+			}else{
+				alert("There was an error updating the title.");
+			}
+		}
+	);
+}
+
+function clearNotInterested(notInterestedId){
+	var url = path + '/Resource/AJAX?method=ClearNotInterested&id=' + notInterestedId;
+	$.getJSON(
+			url, function(data){
+				if (data.result == false){
+					alert("There was an error updating the title.");
+				}else{
+					$("#notInterested" + notInterestedId).hide();
+				}
+			}
+	);
+}
+

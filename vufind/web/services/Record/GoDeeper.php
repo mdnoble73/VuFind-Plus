@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once 'Record.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
 
-class GoDeeper extends Record
+class Record_GoDeeper extends Record_Record
 {
 	function launch()
 	{

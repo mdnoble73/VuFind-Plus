@@ -21,7 +21,7 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Mailer.php';
 
-class Email extends Action
+class Search_Email extends Action
 {
 	function launch()
 	{

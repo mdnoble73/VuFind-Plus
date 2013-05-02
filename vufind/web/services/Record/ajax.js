@@ -47,7 +47,7 @@ function SaveComment(id, shortId, strings) {
 					if (result == "Done") {
 						$('#comment' + shortId).val('');
 						if ($('#commentList').length > 0) {
-							LoadComments(id, strings);
+							LoadComments(id);
 						} else {
 							alert('Thank you for your review.');
 						}
@@ -77,7 +77,7 @@ function deleteComment(id, commentId, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX?method=DeleteComment&commentId=" + encodeURIComponent(commentId);
 	$.ajax( {
 		url : url,
-		success : function(data) {
+		success : function() {
 			alert("Your review was deleted.");
 			LoadComments(id, strings);
 		},
@@ -87,7 +87,7 @@ function deleteComment(id, commentId, strings) {
 	});
 }
 
-function LoadComments(id, strings) {
+function LoadComments(id) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=GetComments";
 	var output = '';
@@ -96,25 +96,28 @@ function LoadComments(id, strings) {
 		var result = data.userComments;
 		if (result && result.length > 0) {
 			$("#commentList").html(result);
-		} else {
-			$("#commentList").html(strings.load_error);
+		}else{
+			$("#commentList").html("");
 		}
 
 		var staffComments = data.staffComments;
 		if (staffComments && staffComments.length > 0) {
 			$("#staffCommentList").html(staffComments);
 		} else {
-			$("#staffCommentList").html(strings.load_error);
+			$("#staffCommentList").html("");
 		}
 	});
 }
 
+/**
+ * @return {boolean}
+ */
 function GetPreferredBranches() {
 	var username = document.forms['placeHoldForm'].elements['username'].value;
 	var barcode = document.forms['placeHoldForm'].elements['password'].value;
 	var holdCount = document.forms['placeHoldForm'].elements['holdCount'].value;
 	if (username.length == 0 || barcode.length == 0) {
-		return;
+		return false;
 	}
 
 	var url = path + "/MyResearch/AJAX";
@@ -136,13 +139,6 @@ function GetPreferredBranches() {
 							locations[i].id,
 							locations[i].selected);
 				}
-				// Check to see if the user can cancel the hold
-				/*var allowHoldCancellation = $(data).find("AllowHoldCancellation").text();
-				if (allowHoldCancellation == 1) {
-					$('#cancelHoldDate').show();
-				} else {
-					$('#cancelHoldDate').hide();
-				}*/
 				if (data.showOverHoldLimit == true){
 					$(".maxHolds").html(data.maxHolds);
 					$(".currentHolds").html(data.currentHolds);
@@ -153,8 +149,7 @@ function GetPreferredBranches() {
 			} else {
 				$('#loginButton').show();
 				// document.getElementById('holdOptions').style.display = 'none';
-				$('#holdError').html('Invalid Login, please try again.');
-				$('#holdError').show();
+				$('#holdError').html('Invalid Login, please try again.').show();
 			}
 
 	  }
@@ -281,7 +276,6 @@ function GetHoldingsInfo(id) {
 							}else{
 								$("#moredetails-tabs").tabs("option", "active", 2);
 							}
-							$("#moredetails-tabs").tabs("option", "active", 1);
 							$("#holdingstab_label").hide();
 						}catch(e){
 
@@ -306,15 +300,13 @@ function GetHoldingsInfo(id) {
 			var eAudioLink = $(data).find("EAudioLink").text();
 			if (eAudioLink) {
 				if (eAudioLink.length > 0) {
-					$("#eAudioLink" + id).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
-					$("#eAudioLink" + id).show();
+					$("#eAudioLink" + id).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>").show();
 				}
 			}
 			var eBookLink = $(data).find("EBookLink").text();
 			if (eBookLink) {
 				if (eBookLink.length > 0) {
-					$("#eBookLink" + id).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
-					$("#eBookLink" + id).show();
+					$("#eBookLink" + id).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>").show();
 				}
 			}
 		}
@@ -345,15 +337,15 @@ function GetHoldingsInfoMSC(id) {
 			if (location.length > 0){
 				$("#locationValue").html(location);
 			}else{
-				var location = summaryDetails.find("location").text();
+				location = summaryDetails.find("location").text();
 				$("#locationValue").html(location);
 			}
 			var status = summaryDetails.find("status").text();
 			if (status == "Available At"){
 				status = "Available";
 			}
-			$("#statusValue").html(status);
-			$("#statusValue").addClass(summaryDetails.find("class").text());
+			$("#statusValue").html(status)
+					.addClass(summaryDetails.find("class").text());
 			if (summaryDetails.find("isDownloadable").text() == "1"){
 				$("#downloadLinkValue").html("<a href='" + decodeURIComponent(summaryDetails.find("downloadLink").text()) + "'>" + summaryDetails.find("downloadText").text() + "</a>");
 				$("#downloadLink").show();
@@ -374,10 +366,10 @@ function GetReviewInfo(id, isbn) {
 				if (reviewsData.length > 0) {
 					$("#reviewPlaceholder").html(reviewsData);
 				}else{
-					$("#reviewPlaceholder").html("There are no reviews for this title.");
+					//$("#reviewPlaceholder").html("There are no reviews for this title.");
 				}
 			}else{
-				$("#reviewPlaceholder").html("There are no reviews for this title.");
+				//$("#reviewPlaceholder").html("There are no reviews for this title.");
 			}
 		}
 	});
@@ -406,26 +398,25 @@ function GetDescription(id) {
 libraryThingWidgetsLoaded = function(){
 	var ltfl_tagbrowse_content = $('#ltfl_tagbrowse').html();
 	if (!ltfl_tagbrowse_content.match(/loading_small\.gif/)){
-		 $("#ltfl_tagbrowse_button").show();
+		$("#ltfl_tagbrowse_button").show();
 	}
 	var ltfl_series_content = $('#ltfl_series').html();
 	if (!ltfl_series_content.match(/loading_small\.gif/)){
-		 $("#ltfl_series_button").show();
+		$("#ltfl_series_button").show();
 	}
 	var ltfl_awards_content = $('#ltfl_awards').html();
 	if (!ltfl_awards_content.match(/loading_small\.gif/)){
-		 $("#ltfl_awards_button").show();
+		$("#ltfl_awards_button").show();
 	}
 	var ltfl_similars_content = $('#ltfl_similars').html();
 	if (!ltfl_similars_content.match(/loading_small\.gif/)){
-		 $("#ltfl_similars_button").show();
+		$("#ltfl_similars_button").show();
 	}
 	var ltfl_related_content = $('#ltfl_related').html();
 	if (!ltfl_related_content.match(/loading_small\.gif/)){
-		 $("#ltfl_related_button").show();
+		$("#ltfl_related_button").show();
 	}
-}
-
+};
 
 function showPurchaseOptions(id){
 	var url = path + "/Record/" + id + "/AJAX?method=getPurchaseOptions";

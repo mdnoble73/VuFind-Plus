@@ -144,7 +144,7 @@ class Suggestions{
 
 	static function getNovelistRecommendations($userRating, $isbn, $resource, $ratedTitles, &$suggestions){
 		//We now have the title, we can get the related titles from Novelist
-		$novelist = new Novelist();
+		$novelist = NovelistFactory::getNovelist();;
 		//Use loadEnrichmentInfo even though there is more data than we need since it uses caching.
 		$enrichmentInfo = $novelist->loadEnrichment($isbn);
 		$numRecommendations = 0;

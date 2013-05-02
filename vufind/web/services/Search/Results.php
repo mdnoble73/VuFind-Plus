@@ -26,7 +26,7 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class Results extends Action {
+class Search_Results extends Action {
 
 	function launch() {
 		global $interface;

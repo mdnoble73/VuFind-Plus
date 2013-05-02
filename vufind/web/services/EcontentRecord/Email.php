@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/Mailer.php';
 require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 
-class Email extends Action
+class EcontentRecord_Email extends Action
 {
 	function launch()
 	{
@@ -36,7 +36,7 @@ class Email extends Action
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
 			if (!PEAR_Singleton::isError($result)) {
 				require_once 'Home.php';
-				Home::launch();
+				EcontentRecord_Home::launch();
 				exit();
 			} else {
 				$interface->assign('message', $result->getMessage());

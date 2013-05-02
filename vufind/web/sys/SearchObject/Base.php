@@ -622,7 +622,7 @@ abstract class SearchObject_Base
 				$this->sort = $this->defaultSort;
 			}
 		}
-		//Validate the sort to make sure it is corrct.
+		//Validate the sort to make sure it is correct.
 		if (!array_key_exists($this->sort, $this->sortOptions)){
 			$this->sort = $this->defaultSort;
 		}

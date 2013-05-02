@@ -20,7 +20,7 @@
  
 require_once 'Record.php';
 
-class RDF extends Record
+class Record_RDF extends Record_Record
 {
     function launch()
     {

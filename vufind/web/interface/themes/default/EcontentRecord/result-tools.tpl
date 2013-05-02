@@ -32,7 +32,9 @@
 		<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/AddToWishList" class="button">{translate text="Add to Wishlist"}</a>
 	</div>
 {/if}
+{if $showMoreInfo !== false}
 <div class="resultAction"><a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}"><span class="silk information">&nbsp;</span>More Info</a></div>
+{/if}
 <div class="resultAction"><a href="#" class="cart" onclick="addToBag('{$id|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', this);"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 <div class="resultAction"><a href="{$path}/EcontentRecord/{$summId|escape:"url"}/SimilarTitles"><img src="/images/silk/arrow_switch.png">&nbsp;</span>More Like This</a></div>
 {if $showComments == 1}

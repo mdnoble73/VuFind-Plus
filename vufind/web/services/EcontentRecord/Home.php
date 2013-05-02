@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class Home extends Action{
+class EcontentRecord_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	protected $db;
 	private $id;
@@ -111,7 +111,7 @@ class Home extends Action{
 		$timer->logTime('Configure UI for library and location');
 
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
-		UserComments::loadEContentComments();
+		Record_UserComments::loadEContentComments();
 		$timer->logTime('Loaded Comments');
 
 		$eContentRecord = new EContentRecord();
