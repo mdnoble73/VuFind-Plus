@@ -36,7 +36,7 @@
 	</ul>
 </div>
 
-<div class="footer_end"><a href="http://western.edu/academics/library">{translate text='Leslie J. Savage Library, WSCU'}</a></div>
+<div class="footer_end"><a href="http://western.edu/academics/library">{translate text='Leslie J. Savage Library, Western State College University'}</a></div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
