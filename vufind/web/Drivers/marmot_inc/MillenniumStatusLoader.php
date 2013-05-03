@@ -219,6 +219,9 @@ class MillenniumStatusLoader{
 				}
 			}
 
+			//Set the hold queue length
+			$holding['holdQueueLength'] = $holdQueueLength;
+
 			//Add the holding to the sorted array to determine
 			$sortString = $holding['location'] . '-'. $i;
 			//$sortString = $holding['location'] . $holding['callnumber']. $i;
