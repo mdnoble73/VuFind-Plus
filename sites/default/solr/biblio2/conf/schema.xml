@@ -267,6 +267,7 @@
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="rating" type="float" indexed="true" stored="false" multiValued="false"/>
 		<field name="rating_facet" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="popularity" type="integer" indexed="true" stored="true" multiValued="false"/>
 		<!-- Special fields for Lists -->
 		<field name="num_titles" type="integer" indexed="true" stored="false" multiValued="false"/>
 		<!-- Field to get random titles --> 

@@ -142,6 +142,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->sortOptions = $searchSettings['Sorting'];
 		} else {
 			$this->sortOptions = array('relevance' => 'sort_relevance',
+								'popularity' => 'sort_popularity',
                 'year' => 'sort_year', 'year asc' => 'sort_year asc',
                 'callnumber' => 'sort_callnumber', 'author' => 'sort_author',
                 'title' => 'sort_title');

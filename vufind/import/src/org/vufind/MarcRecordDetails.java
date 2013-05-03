@@ -188,6 +188,7 @@ public class MarcRecordDetails {
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
 		boolean allItemsSuppressed = true;
+		int popularity = 0;
 		// Check the 907c field for manual suppresion
 		String manualSuppression = getFirstFieldVal("907c");
 		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")) {
@@ -282,6 +283,13 @@ public class MarcRecordDetails {
 						if (digitPattern.matcher(barcode).matches()) {
 							barcodes.add(barcode);
 						}
+					}
+					
+					//Get number of times the title has been checked out 
+					Subfield numCheckoutsField = itemField.getSubfield('h');
+					if (numCheckoutsField != null){
+						int numCheckouts = Integer.parseInt(numCheckoutsField.getData());
+						popularity += numCheckouts;
 					}
 
 					// Map iTypes
@@ -545,6 +553,7 @@ public class MarcRecordDetails {
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
+		addField(mappedFields, "popularity", Integer.toString(popularity));
 
 	}
 
