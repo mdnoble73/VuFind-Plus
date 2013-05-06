@@ -4630,9 +4630,24 @@ public class MarcRecordDetails {
 		return itemAvailability;
 	}
 
-	public String getPublicationLocation() {
-		String publicationLocation = getFirstFieldVal("260a");
-		return publicationLocation;
+	public Set<String> getPublicationLocation() {
+		Set<String> publisher = new LinkedHashSet<String>();
+		//First check for 264 fields
+		@SuppressWarnings("unchecked")
+		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+		if (rdaFields.size() > 0){
+			for (DataField curField : rdaFields){
+				if (curField.getIndicator2() == '1'){
+					Subfield subFieldB = curField.getSubfield('a');
+					if (subFieldB != null){
+						publisher.add(subFieldB.getData());
+						logger.debug("Found RDA publisher ");
+					}
+				}
+			}
+		}
+		publisher.add(getFirstFieldVal("260a"));
+		return publisher;
 	}
 
 	public String getEContentPhysicalDescription() {

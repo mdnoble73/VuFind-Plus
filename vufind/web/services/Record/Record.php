@@ -164,14 +164,8 @@ class Record_Record extends Action
 			$interface->assign('contributors', $contributors);
 		}
 
-		$marcFields = $marcRecord->getFields('260');
-		if ($marcFields){
-			$published = array();
-			foreach ($marcFields as $marcField){
-				$published[] = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c'));
-			}
-			$interface->assign('published', $published);
-		}
+		$published = $this->recordDriver->getPublicationDetails();
+		$interface->assign('published', $published);
 
 		$marcFields = $marcRecord->getFields('250');
 		if ($marcFields){

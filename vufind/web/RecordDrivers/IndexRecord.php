@@ -1474,36 +1474,35 @@ class IndexRecord implements RecordInterface
 	 */
 	protected function getPublicationDates()
 	{
-		return isset($this->fields['publishDate']) ?
-		$this->fields['publishDate'] : array();
+		return isset($this->fields['publishDate']) ? $this->fields['publishDate'] : array();
 	}
 
 	/**
 	 * Get an array of publication detail lines combining information from
 	 * getPublicationDates(), getPublishers() and getPlacesOfPublication().
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getPublicationDetails()
+	function getPublicationDetails()
 	{
 		$places = $this->getPlacesOfPublication();
 		$names = $this->getPublishers();
 		$dates = $this->getPublicationDates();
 
 		$i = 0;
-		$retval = array();
+		$returnVal = array();
 		while (isset($places[$i]) || isset($names[$i]) || isset($dates[$i])) {
 			// Put all the pieces together, and do a little processing to clean up
 			// unwanted whitespace.
-			$retval[] = trim(str_replace('  ', ' ',
-			((isset($places[$i]) ? $places[$i] . ' ' : '') .
-			(isset($names[$i]) ? $names[$i] . ' ' : '') .
-			(isset($dates[$i]) ? $dates[$i] : ''))));
+			$publicationInfo = (isset($places[$i]) ? $places[$i] . ' ' : '') .
+					(isset($names[$i]) ? $names[$i] . ' ' : '') .
+					(isset($dates[$i]) ? $dates[$i] : '');
+			$returnVal[] = trim(str_replace('  ', ' ', $publicationInfo));
 			$i++;
 		}
 
-		return $retval;
+		return $returnVal;
 	}
 
 	/**
