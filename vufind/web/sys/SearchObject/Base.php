@@ -85,6 +85,7 @@ abstract class SearchObject_Base
 	protected $spellcheck    = true;
 	protected $suggestions   = array();
 	// Recommendation modules associated with the search:
+	/** @var bool|array $recommend  */
 	protected $recommend     = false;
 	// The INI file to load recommendations settings from:
 	protected $recommendIni = 'searches';
@@ -1162,7 +1163,7 @@ abstract class SearchObject_Base
 	 *  Needs to be kept up-to-date with the minSO object at the end of this file.
 	 *
 	 * @access  public
-	 * @param   object     A minSO object
+	 * @param   object  $minified     A minSO object
 	 */
 	public function deminify($minified)
 	{
@@ -1218,6 +1219,7 @@ abstract class SearchObject_Base
 
 		// Get the list of all old searches for this session and/or user
 		$s = new SearchEntry();
+		/** @var SearchEntry[] $searchHistory */
 		$searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
 
 		// Duplicate elimination
@@ -1294,6 +1296,9 @@ abstract class SearchObject_Base
 	 * unable to load a requested saved search, return a PEAR_Error object.
 	 *
 	 * @access  protected
+	 * @var     string    $searchId
+	 * @var     boolean   $redirect
+	 * @var     boolean   $forceReload
 	 * @return  mixed               Does not return on successful load, returns
 	 *                              false if no search to restore, returns
 	 *                              PEAR_Error object in case of trouble.
@@ -1655,14 +1660,13 @@ abstract class SearchObject_Base
 	 */
 	public function getRecommendationsTemplates($location = 'top')
 	{
-		$retval = array();
-		if (isset($this->recommend[$location]) &&
-		!empty($this->recommend[$location])) {
+		$returnValue = array();
+		if (isset($this->recommend[$location]) && !empty($this->recommend[$location])) {
 			foreach($this->recommend[$location] as $current) {
-				$retval[] = $current->getTemplate();
+				$returnValue[] = $current->getTemplate();
 			}
 		}
-		return $retval;
+		return $returnValue;
 	}
 
 	/**

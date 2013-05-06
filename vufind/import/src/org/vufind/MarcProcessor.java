@@ -2,6 +2,7 @@ package org.vufind;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -27,6 +29,7 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.solrmarc.tools.Utils;
 
@@ -123,6 +126,8 @@ public class MarcProcessor {
 	public static final int								RECORD_CHANGED_SECONDARY	= 1;
 	
 	private HashMap<Integer, String> eContentITypes = new HashMap<Integer, String>();
+	
+	private HashMap<String, ArrayList<OrderRecord>> orderRecords = new HashMap<String, ArrayList<OrderRecord>>();
 	
 	private Connection vufindConn;
 	private Connection econtentConn;
@@ -394,10 +399,83 @@ public class MarcProcessor {
 		//Define iTypes that are treated as eContent. 
 		loadEContentITypes();
 		
+		loadOrderRecords();
+		
 		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
 	}
 	
+	private void loadOrderRecords() {
+		logger.debug("Loading order records");
+		//Order records have the filename format {library}.marc.orders and are in the regular marc directory
+		File marcRecordDir = new File(marcRecordPath);
+		File[] orderFiles = marcRecordDir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				if (name.endsWith(".marc.orders")){
+					return true;
+				}
+				return false;
+			}
+		});
+		for (File curFile : orderFiles){
+			String orderingLibrary = curFile.getName().substring(0, curFile.getName().indexOf('.'));
+			InputStream input;
+			try {
+				input = new FileInputStream(curFile);
+			} catch (FileNotFoundException e) {
+				logger.error("Unable to load file " + curFile + " to get order information", e);
+				continue;
+			}
+			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
+			int curRecordIdx = 0;
+			while (reader.hasNext()){
+				curRecordIdx++;
+				Record curRecord = reader.next();
+				//Get the main record number
+				DataField recordField = (DataField)curRecord.getVariableField("907");
+				if (recordField == null || recordField.getSubfield('a') == null){
+					logger.warn("Did not find a record field for record " + curRecordIdx + " in library file " + orderingLibrary);
+					continue;
+				}
+				String recordId = recordField.getSubfield('a').getData();
+				DataField orderField = (DataField)curRecord.getVariableField("908");
+				String orderRecordId = orderField.getSubfield('a').getData();
+				@SuppressWarnings("unchecked")
+				List<DataField> orderItems = (List<DataField>)curRecord.getVariableFields("988");
+				if (orderItems != null){
+					for (DataField curItem: orderItems){
+						if (curItem.getSubfield('j') == null){
+							logger.debug("Did not find a location code subfield for item in order record " + recordId + " for " + orderingLibrary);
+							continue;
+						}
+						String locationCode = curItem.getSubfield('j').getData();
+						String status = curItem.getSubfield('k').getData();
+						if (!status.equals("a") && !status.equals("z") && !status.equals("q") && !status.equals("f") && !status.equals("d")){
+							if (!(status.equals("o") || status.equals("1"))){
+								logger.debug("Found new order status " + status + " " + orderingLibrary + " " + recordId);
+							}
+							OrderRecord orderRecord = new OrderRecord();
+							orderRecord.setRecordId(recordId);
+							orderRecord.setOrderRecordId(orderRecordId);
+							orderRecord.setStatus(status);
+							orderRecord.setOrderingLibrary(orderingLibrary);
+							orderRecord.setLocationCode(locationCode);
+							if (orderRecords.containsKey(recordId)){
+								orderRecords.get(recordId).add(orderRecord);
+							}else{
+								ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
+								orderRecordColl.add(orderRecord);
+								orderRecords.put(recordId, orderRecordColl);
+							}
+						}
+					}
+				}
+			}
+		}
+		logger.debug("loaded order records for " + orderRecords.size() + " records");
+	}
+
 	private void loadEContentITypes(){
 		Properties props = null;
 		props = Utils.loadProperties(propertyFilePaths, "econtent_itype_link_type_map.properties");
@@ -1099,5 +1177,9 @@ public class MarcProcessor {
 			allPtypes.add(pType.toString());
 		}
 		return allPtypes;
+	}
+
+	public ArrayList<OrderRecord> getOrderRecordsById(String ilsId) {
+		return orderRecords.get(ilsId);
 	}
 }

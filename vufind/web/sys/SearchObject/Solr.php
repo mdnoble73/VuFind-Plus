@@ -84,7 +84,7 @@ class SearchObject_Solr extends SearchObject_Base
 		global $library;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
-		require_once ROOT_DIR . "/sys/$class.php";
+		require_once ROOT_DIR . "/sys/" . $class . '.php';
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Index']['url']);
 		$timer->logTime('Created Index Engine');
@@ -328,11 +328,14 @@ class SearchObject_Solr extends SearchObject_Base
 	public function initAdvancedFacets()
 	{
 		global $configArray;
+		global $locationSingleton;
 		// Call the standard initialization routine in the parent:
 		parent::init();
 
 		$searchLibrary = Library::getActiveLibrary();
-		$searchLocation = Location::getActiveLocation();
+
+		$searchLocation = $locationSingleton->getActiveLocation();
+		/** @var Location $userLocation */
 		$userLocation = Location::getUserHomeLocation();
 		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
@@ -437,8 +440,8 @@ class SearchObject_Solr extends SearchObject_Base
 	 * Return the specified setting from the facets.ini file.
 	 *
 	 * @access  public
-	 * @param   section   The section of the facets.ini file to look at.
-	 * @param   setting   The setting within the specified file to return.
+	 * @param   string $section   The section of the facets.ini file to look at.
+	 * @param   string $setting   The setting within the specified file to return.
 	 * @return  string    The value of the setting (blank if none).
 	 */
 	public function getFacetSetting($section, $setting)
@@ -472,12 +475,6 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->dictionary = 'basicSpell';
 	}
 
-	/**
-	 * Basic 'getters'
-	 *
-	 * @access  public
-	 * @param   various internal variables
-	 */
 	public function getQuery()          {return $this->query;}
 	public function getIndexEngine()    {return $this->indexEngine;}
 
@@ -1326,7 +1323,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 *   we are already searching for
 	 *
 	 * @access  private
-	 * @param   array    List of suggestions
+	 * @param   array    $termList List of suggestions
 	 * @return  array    Filtered list
 	 */
 	private function filterSpellingTerms($termList) {

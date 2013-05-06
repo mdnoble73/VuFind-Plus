@@ -69,8 +69,7 @@ public class MarcRecordDetails {
 	private Long eContentRecordId = null;
 	private String ilsId;
 
-	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat(
-			"yyMMdd");
+	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
 	private static Date indexDate = new Date();
 	private static String availableStatus = "-dowju";
 
@@ -153,22 +152,6 @@ public class MarcRecordDetails {
 		// Load all items
 		@SuppressWarnings("unchecked")
 		List<DataField> itemFields = record.getVariableFields("989");
-		// Also check 998a to see if there are location codes from orders.
-		Set<String> additionalLocations = this.getFieldList(record, "998a");
-		boolean changeMade = true;
-		while (changeMade) {
-			changeMade = false;
-			for (String curAdditionalLocation : additionalLocations) {
-				String replacedLocation = curAdditionalLocation.replaceAll(
-						"\\(\\d+\\)", "");
-				if (!replacedLocation.equals(curAdditionalLocation)) {
-					additionalLocations.remove(curAdditionalLocation);
-					additionalLocations.add(replacedLocation);
-					changeMade = true;
-					break;
-				}
-			}
-		}
 		Set<String> librarySystems = new LinkedHashSet<String>();
 		Set<String> locations = new LinkedHashSet<String>();
 		Set<String> barcodes = new LinkedHashSet<String>();
@@ -185,6 +168,7 @@ public class MarcRecordDetails {
 		availabilityToggleGlobal.add("Entire Collection");
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
+		LinkedHashSet<String> altIds = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
 		boolean allItemsSuppressed = true;
@@ -202,20 +186,7 @@ public class MarcRecordDetails {
 				// logger.debug("Did not find location code for item ");
 			} else {
 				String locationCode = itemField.getSubfield('d').getData().trim();
-				// Remove any additional locations that are also contained in the item
-				// fields
-				changeMade = true;
-				while (changeMade) {
-					changeMade = false;
-					for (String curAdditionalLocation : additionalLocations) {
-						if (locationCode.startsWith(curAdditionalLocation)) {
-							additionalLocations.remove(curAdditionalLocation);
-							changeMade = true;
-							break;
-						}
-					}
-				}
-
+				
 				// logger.debug("Processing locationCode " + locationCode);
 				// Figure out which location and library this item belongs to.
 				LocationIndexingInfo locationIndexingInfo = marcProcessor
@@ -444,27 +415,33 @@ public class MarcRecordDetails {
 				allItemsSuppressed = false;
 			}
 		}
-		for (String curAdditonalLocation : additionalLocations) {
-			//logger.debug("Processing supplemental location " + curAdditonalLocation);
-			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(curAdditonalLocation);
-			LibraryIndexingInfo libraryIndexingInfo = null;
-			boolean itemSuppressed = false;
-			if (locationIndexingInfo == null) {
-				logger.debug("Warning, did not find location info for additional location " + curAdditonalLocation);
-				if (curAdditonalLocation.equalsIgnoreCase("zzzz")) {
-					// logger.debug("suppressing item because location code is zzzz");
-					itemSuppressed = true;
-				}
-			} else {
-				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
-			}
-			if (!itemSuppressed) {
+		
+		//Get order records for this title. 
+		ArrayList<OrderRecord> orderRecords = marcProcessor.getOrderRecordsById(ilsId);
+		if (orderRecords != null){
+			logger.debug("Found order records for " + ilsId);
+			for (OrderRecord orderRecord : orderRecords) {
 				allItemsSuppressed = false;
+				logger.debug("Processing order record " + orderRecord.getOrderRecordId() + " " + orderRecord.getLocationCode() + " " + orderRecord.getStatus());
+				altIds.add(orderRecord.getOrderRecordId());
+				LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(orderRecord.getLocationCode());
+				if (locationIndexingInfo == null) {
+					//Try to get location information from the library 
+					locationIndexingInfo = marcProcessor.getLocationIndexingInfo(orderRecord.getOrderingLibrary());
+				}
+				if (locationIndexingInfo == null){
+					logger.warn("Could not find location information for order record " + orderRecord.getOrderRecordId() + " " + orderRecord.getLocationCode() + " " + orderRecord.getOrderingLibrary());
+				}
+				LibraryIndexingInfo libraryIndexingInfo = null;
+				if (locationIndexingInfo == null) {
+					//Try to get location information from the library 
+				} else {
+					libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
+				}
 				// Map library system (institution)
 				if (libraryIndexingInfo != null) {
 					librarySystems.add(libraryIndexingInfo.getFacetLabel());
-					LinkedHashSet<String> existingLibraryAvailability = availableAtBySystemOrLocation
-							.get(libraryIndexingInfo.getSubdomain());
+					LinkedHashSet<String> existingLibraryAvailability = availableAtBySystemOrLocation.get(libraryIndexingInfo.getSubdomain());
 					if (existingLibraryAvailability == null
 							|| existingLibraryAvailability.size() == 0) {
 						if (existingLibraryAvailability == null) {
@@ -475,13 +452,18 @@ public class MarcRecordDetails {
 								libraryIndexingInfo.getFacetLabel(),
 								existingLibraryAvailability);
 					}
+					//Add an extra location to show that the title is on order. 
+					if (orderRecord.getStatus().equals("1")){
+						locations.add(libraryIndexingInfo.getFacetLabel() + " Under Consideration");
+					}else{
+						locations.add(libraryIndexingInfo.getFacetLabel() + " On Order");
+					}
 				}
-
+	
 				// Map location (building)
 				if (locationIndexingInfo != null) {
 					locations.add(locationIndexingInfo.getFacetLabel());
-					LinkedHashSet<String> existingLocationAvailability = availableAtBySystemOrLocation
-							.get(locationIndexingInfo.getCode());
+					LinkedHashSet<String> existingLocationAvailability = availableAtBySystemOrLocation.get(locationIndexingInfo.getCode());
 					if (existingLocationAvailability == null
 							|| existingLocationAvailability.size() == 0) {
 						if (existingLocationAvailability == null) {
@@ -554,7 +536,7 @@ public class MarcRecordDetails {
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
 		addField(mappedFields, "popularity", Integer.toString(popularity));
-
+		addFields(mappedFields, "id_alt", null, altIds);
 	}
 
 	private void mapField(String fieldName, String[] fieldVal) {

@@ -304,16 +304,28 @@ SeriesProper:
 AllFields:
   DismaxFields:
     - allfields
+    - id
+    - id_alt
   QueryFields:
     allfields:
       - [and, ~]
+    id:
+      - [onephrase, ~]
+    id_alt:
+      - [onephrase, ~]
 
 AllFieldsProper:
   DismaxFields:
     - allfields_proper
+    - id
+    - id_alt
   QueryFields:
     allfields_proper:
       - [and, ~]
+    id:
+      - [onephrase, ~]
+    id_alt:
+      - [onephrase, ~]
 
 Keyword:
   QueryFields:
@@ -365,6 +377,10 @@ Keyword:
       - [or, ~]
     callnumber-subject:
       - [onephrase, ~]
+    id:
+      - [onephrase, ~]
+    id_alt:
+      - [onephrase, ~]
 
 KeywordProper:
   DismaxFields:
@@ -408,6 +424,10 @@ KeywordProper:
       - [and, 100]
       - [or, ~]      
     callnumber-subject:
+      - [onephrase, ~]
+    id:
+      - [onephrase, ~]
+    id_alt:
       - [onephrase, ~]
 
 # These are advanced searches that never use Dismax:
