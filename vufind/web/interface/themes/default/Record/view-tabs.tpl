@@ -77,10 +77,14 @@
 
 	{if $notes}
 		<div id ="notestab">
+
 			<ul class='notesList'>
-			{foreach from=$notes item=note}
-				<li>{$note}</li>
-			{/foreach}
+				{foreach from=$notes item=note}
+					<li>{$note}</li>
+				{/foreach}
+				<li>
+				<div id="relatedContentPlaceholder"></div>
+				</li>
 			</ul>
 		</div>
 	{/if}

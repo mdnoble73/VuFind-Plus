@@ -596,7 +596,7 @@ class DBMaintenance extends Admin {
 			),
 			'list_widget_update_2' => array(
 				'title' => 'Update List Widget 2',
-				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
+				'description' => 'Update List Widget to add vertical widgets',
 				'sql' => array(
 					"ALTER TABLE `list_widgets` ADD COLUMN `style` ENUM('vertical', 'horizontal', 'single') NOT NULL DEFAULT 'horizontal'",
 					"UPDATE TABLE `list_widgets` SET `style` = 'single' WHERE showMultipleTitles = 0",

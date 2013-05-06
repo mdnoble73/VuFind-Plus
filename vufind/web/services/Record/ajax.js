@@ -218,6 +218,10 @@ function GetEnrichmentInfo(id, isbn, upc, econtent) {
 				if (showGoDeeperData) {
 					$('#goDeeperLink').show();
 				}
+				var relatedContentData = $(data).find("RelatedContent").text();
+				if (relatedContentData && relatedContentData.length > 0) {
+					$("#relatedContentPlaceholder").html(relatedContentData);
+				}
 			} catch (e) {
 				alert("error during autocomplete setup" + e);
 			}

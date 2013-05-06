@@ -270,15 +270,24 @@ class Novelist2{
 	}
 
 	private function loadRelatedContent($relatedContent, &$enrichment) {
+		$relatedContentReturn = array();
 		foreach ($relatedContent->doc_types as $contentSection){
-			if ($contentSection->doc_type == 'Award Winners'){
-
-			}else if ($contentSection->doc_type == 'Book Discussion Guides'){
-
-			}else if ($contentSection->doc_type == 'Book Discussion Guides'){
-
+			$section = array(
+				'title' => $contentSection->doc_type,
+				'content' => array(),
+			);
+			foreach ($contentSection->content as $content){
+				//print_r($content);
+				$contentUrl = $content->links[0]->url;
+				$section['content'][] = array(
+					'author' => $content->feature_author,
+					'title' => $content->title,
+					'contentUrl' => $contentUrl,
+				);
 			}
+			$relatedContentReturn[] = $section;
 		}
+		$enrichment['relatedContent'] = $relatedContentReturn;
 	}
 
 	private function loadGoodReads($goodReads, &$enrichment) {

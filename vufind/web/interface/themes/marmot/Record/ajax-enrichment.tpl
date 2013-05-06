@@ -26,22 +26,22 @@
      {if $outer.recordId != -1}
         {* Display a link to the record in our catalog *}
         <a href ={$path}/Record/{$outer.recordId|escape:"url"}>
-     {else if $outer.isbn10}
+     {elseif $outer.isbn10}
        {* Display a link to the record in amazon *}
-        <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url" rel="external" onclick="window.open (this.href, 'child'); return false"}>
+        <a href =http://amazon.com/dp/{$outer.isbn10|escape:"url"} rel="external" onclick="window.open (this.href, 'child'); return false"}>
      {/if}
      {* Display the book jacket *}
      {if $outer.isbn}
         <img class='bookjacket' src="{$path}/bookcover.php?isn={$outer.isbn|@formatISBN}&amp;size=small" alt="{translate text='Cover Image'}"/>
-      {else}
+     {else}
         <img class='bookjacket' src="{$path}/bookcover.php" alt="{translate text='No Cover Image'}"/>
-      {/if}
-      {* Show the book title *}
-      <div class='seriesTitle'>{$outer.title|regex_replace:"/(\/|:)$/":""|escape}</div> 
-      {if $outer.recordId != -1 || $outer.isbn10}
-        {* close the link *}
-        </a>
-      {/if}
+     {/if}
+     {* Show the book title *}
+     <div class='seriesTitle'>{$outer.title|regex_replace:"/(\/|:)$/":""|escape}</div>
+     {if $outer.recordId != -1 || $outer.isbn10}
+	     {* close the link *}
+	     </a>
+     {/if}
     </li>
   {/foreach} 
   </ul>
@@ -70,4 +70,16 @@
 </ul>
 {/if}]]></SimilarTitles>
 <ShowGoDeeperData>{$showGoDeeper}</ShowGoDeeperData>
+{if $enrichment.novelist.relatedContent}
+<RelatedContent><![CDATA[
+{foreach from=$enrichment.novelist.relatedContent item=contentSection}
+	<div clas='relatedContentSection'>
+	<h4>{$contentSection.title}</h4>
+		{foreach from=$contentSection.content item=content}
+			<a href="{$content.contentUrl}" onclick="return ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a><br/>
+	  {/foreach}
+	</div>
+{/foreach}
+]]></RelatedContent>
+{/if}
 {/strip}
