@@ -73,8 +73,11 @@ class SuggestedTitles extends MyResearch
 		$suggestions = Suggestions::getSuggestions();
 
 		$resourceList = array();
+		$curIndex = 0;
 		if (is_array($suggestions)) {
 			foreach($suggestions as $suggestion) {
+				$interface->assign('resultIndex', ++$curIndex);
+				/** @var IndexRecord $recordDriver */
 				$recordDriver = RecordDriverFactory::initRecordDriver($suggestion['titleInfo']);
 				$resourceEntry = $interface->fetch($recordDriver->getSearchResult());
 				$resourceList[] = $resourceEntry;
