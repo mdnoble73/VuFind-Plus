@@ -44,7 +44,6 @@ class Suggestions{
 		}
 
 		//Load all titles the user has rated (eContent)
-		$allRatedTitles = array();
 		$econtentRatings = new EContentRating();
 		$econtentRatings->userId = $userId;
 		$econtentRatings->find();
@@ -130,14 +129,34 @@ class Suggestions{
 						//echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
 					}
 					if ($numRecommendations == 0){
-						$numRecommendations = Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
+						Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
 						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 					}
 				}
 			}
 		}
 
-		
+		//Get recommendations based on everything I've rated using more like this functionality
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var Solr $db */
+		$db = new $class($url);
+		//$db->debug = true;
+		$moreLikeTheseSuggestions = $db->getMoreLikeThese($allRatedTitles);
+		//print_r($moreLikeTheseSuggestions);
+		if (count($suggestions) < 30){
+			foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion){
+				//print_r($suggestion);
+				$suggestions[$suggestion['id']] = array(
+					'rating' => $suggestion['rating'] - 2.5,
+					'titleInfo' => $suggestion,
+					'basedOn' => '',
+				);
+				if (count($suggestions) == 30){
+					break;
+				}
+			}
+		}
 
 		//sort suggestions based on score from ascending to descending
 		uasort($suggestions, 'Suggestions::compareSuggestions');

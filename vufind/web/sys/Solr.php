@@ -520,6 +520,44 @@ class Solr implements IndexEngine {
 	}
 
 	/**
+	 * Get records similar to one record
+	 * Uses MoreLikeThis Request Handler
+	 *
+	 * Uses SOLR MLT Query Handler
+	 *
+	 * @access	public
+	 * @var     string[]  $ids     A list of ids to return data for
+	 * @throws	object						PEAR Error
+	 * @return	array							An array of query results
+	 *
+	 */
+	function getMoreLikeThese($ids)
+	{
+		// Query String Parameters
+		$idString = implode(' OR ', $ids);
+		$options = array('q' => "id:($idString)", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details');
+
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+		$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
+		foreach ($scopingFilters as $filter){
+			$options['fq'][] = $filter;
+		}
+		$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
+		$options['bf'] = $boostFactors;
+		if (!empty($this->_solrShards) && is_array($this->_solrShards)) {
+			$options['shards'] = implode(',',$this->_solrShards);
+		}
+
+		$result = $this->_select('GET', $options);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Get record data based on the provided field and phrase.
 	 * Used for AJAX suggestions.
 	 *
