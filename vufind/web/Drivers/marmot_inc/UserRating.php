@@ -14,6 +14,10 @@ class UserRating extends DB_DataObject
   public $rating;                   //int(5)
 	public $dateAdded;
 
+	//Variables created with joins
+	public $record_id;
+
+
   /* Static get */
   function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserRating',$k,$v); }
 

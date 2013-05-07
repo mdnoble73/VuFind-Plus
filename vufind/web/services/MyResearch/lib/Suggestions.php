@@ -1,5 +1,5 @@
 <?php
-require_once(ROOT_DIR . '/Drivers/marmot_inc/UserRating.php');
+require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/sys/Novelist.php';
 
@@ -26,13 +26,13 @@ class Suggestions{
 		$ratings = new UserRating();
 		$ratings->whereAdd("userId = $userId", 'AND');
 		$ratings->whereAdd('rating >= 3', 'AND');
-		$ratings->orderBy('rating DESC');
+		$ratings->orderBy('rating DESC, dateRated DESC');
 		//Use the 20 highest ratings to make real-time recommendations faster
-		$ratings->limit(0, 20);
+		$ratings->limit(0, 3);
 
 		$ratings->find();
 		$suggestions = array();
-		//echo("User as rated {$ratings->N} titles<br/>");
+		//echo("User has rated {$ratings->N} titles<br/>");
 		if ($ratings->N > 0){
 			while($ratings->fetch()){
 				$resourceId = $ratings->resourceid;
@@ -55,12 +55,53 @@ class Suggestions{
 
 					}
 					if ($numRecommendations == 0){
-						$numRecommendations = Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $ratedTitles, $suggestions);
+						Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $ratedTitles, $suggestions);
 						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 					}
 				}
 			}
 		}
+
+		//Also get eContent the user has rated highly
+		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
+		$econtentRatings = new EContentRating();
+		$econtentRatings->userId = $userId;
+		$econtentRatings->whereAdd('rating >= 3');
+		$econtentRatings->orderBy('rating DESC, dateRated DESC');
+		$econtentRatings->limit(0, 3);
+		$econtentRatings->find();
+		//echo("User has rated {$econtentRatings->N} econtent titles<br/>");
+		if ($econtentRatings->N > 0){
+			while($econtentRatings->fetch()){
+				echo("Processing eContent Rating {$econtentRatings->recordId}<br/>");
+				//Load the resource
+				$resource = new Resource();
+				$resource->record_id = $econtentRatings->recordId;
+				$resource->source = 'eContent';
+				$resource->find();
+				if ($resource->N != 1){
+					echo("Did not find resource for $resourceId<br/>");
+				}else{
+					$resource->fetch();
+					//echo("Found resource for $resourceId - {$resource->title}<br/>");
+					$ratedTitles[$resource->record_id] = clone $econtentRatings;
+					$numRecommendations = 0;
+					if ($resource->isbn){
+						//If there is an isbn for the title, we can load similar titles based on Novelist.
+						$isbn = $resource->isbn;
+						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $ratedTitles, $suggestions);
+						echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
+
+					}
+					if ($numRecommendations == 0){
+						$numRecommendations = Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $ratedTitles, $suggestions);
+						echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
+					}
+				}
+			}
+		}
+
+
 
 		//sort suggestions based on score from ascending to descending
 		uasort($suggestions, 'Suggestions::compareSuggestions');
@@ -70,6 +111,17 @@ class Suggestions{
 		return $suggestions;
 	}
 
+
+	/**
+	 * Load titles that have been rated by other users which are similar to this.
+	 *
+	 * @param SearchObject_Solr|SearchObject_Base $db
+	 * @param UserRating $ratedTitle
+	 * @param integer $userId
+	 * @param array $ratedTitles
+	 * @param array $suggestions
+	 * @return int The number of suggestions for this title
+	 */
 	static function getSimilarlyRatedTitles($db, $ratedTitle, $userId, $ratedTitles, &$suggestions){
 		$numRecommendations = 0;
 		//If there is no ISBN, can we come up with an alternative algorithm?
@@ -116,11 +168,13 @@ class Suggestions{
 				//See if we can get the series title from the record
 				if (isset($ownedRecord['series'])){
 					$series = $ownedRecord['series'][0];
+				}else{
+					$series = '';
 				}
 				$similarTitle = array(
 						'title' => $ownedRecord['title'],
 						'title_short' => $ownedRecord['title_short'],
-						'author' => $ownedRecord['author'],
+						'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
 						'publicationDate' => $ownedRecord['publishDate'],
 						'isbn' => $isbn13,
 						'isbn10' => $isbn10,
@@ -130,7 +184,7 @@ class Suggestions{
 						'libraryOwned' => true,
 						'isCurrent' => false,
 						'shortId' => substr($ownedRecord['id'], 1),
-						'format_category' => $ownedRecord['format_category'],
+						'format_category' => isset($ownedRecord['format_category']) ? $ownedRecord['format_category'] : '',
 						'format' => $ownedRecord['format'],
 						'recordtype' => $ownedRecord['recordtype'],
 						'series' => $series,
@@ -149,7 +203,7 @@ class Suggestions{
 		$enrichmentInfo = $novelist->loadEnrichment($isbn);
 		$numRecommendations = 0;
 
-		if ($enrichmentInfo['similarTitleCountOwned'] > 0){
+		if (isset($enrichmentInfo['similarTitleCountOwned']) && $enrichmentInfo['similarTitleCountOwned'] > 0){
 			//For each related title
 			foreach ($enrichmentInfo['similarTitles'] as $similarTitle){
 				if ($similarTitle['libraryOwned']){
