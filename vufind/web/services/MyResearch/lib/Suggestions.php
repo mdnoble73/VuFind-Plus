@@ -34,6 +34,7 @@ class Suggestions{
 
 		//Load all titles the user has rated (print)
 		$allRatedTitles = array();
+		$allLikedRatedTitles = array();
 		$ratings = new UserRating();
 		$ratings->userid = $userId;
 		$resource = new Resource();
@@ -42,6 +43,9 @@ class Suggestions{
 		$ratings->find();
 		while ($ratings->fetch()){
 			$allRatedTitles[] = $ratings->record_id;
+			if ($ratings->rating >= 4){
+				$allLikedRatedTitles[] = $ratings->record_id;
+			}
 		}
 
 		//Load all titles the user has rated (eContent)
@@ -50,6 +54,9 @@ class Suggestions{
 		$econtentRatings->find();
 		while ($econtentRatings->fetch()){
 			$allRatedTitles[] = 'econtentRecord' . $econtentRatings->recordId;
+			if ($econtentRatings->rating >= 4){
+				$allLikedRatedTitles[] = 'econtentRecord' . $econtentRatings->recordId;
+			}
 		}
 
 		// Setup Search Engine Connection
@@ -66,7 +73,7 @@ class Suggestions{
 		$ratings->whereAdd('rating >= 3', 'AND');
 		$ratings->orderBy('rating DESC, dateRated DESC, id DESC');
 		//Use the 20 highest ratings to make real-time recommendations faster
-		$ratings->limit(0, 3);
+		$ratings->limit(0, 5);
 
 		$ratings->find();
 		$suggestions = array();
@@ -105,7 +112,7 @@ class Suggestions{
 		$econtentRatings->userId = $userId;
 		$econtentRatings->whereAdd('rating >= 3');
 		$econtentRatings->orderBy('rating DESC, dateRated DESC');
-		$econtentRatings->limit(0, 3);
+		$econtentRatings->limit(0, 5);
 		$econtentRatings->find();
 		//echo("User has rated {$econtentRatings->N} econtent titles<br/>");
 		if ($econtentRatings->N > 0){
@@ -143,7 +150,7 @@ class Suggestions{
 		/** @var Solr $db */
 		$db = new $class($url);
 		//$db->debug = true;
-		$moreLikeTheseSuggestions = $db->getMoreLikeThese($allRatedTitles);
+		$moreLikeTheseSuggestions = $db->getMoreLikeThese($allLikedRatedTitles);
 		//print_r($moreLikeTheseSuggestions);
 		if (count($suggestions) < 30){
 			foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion){

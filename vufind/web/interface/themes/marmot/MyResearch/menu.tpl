@@ -41,7 +41,6 @@
 			{if $enableMaterialsRequest}
 			<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>
 			{/if}
-			<div class="myAccountLink{if $pageTemplate=="myRatings.tpl"} active{/if}"><a href="{$path}/MyResearch/MyRatings">{translate text='Rated Titles'}</a></div>
 			<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyResearch/ReadingHistory">{translate text='Reading History'}</a></div>
 			<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyResearch/Profile">{translate text='Profile'}</a></div>
 			{* Only highlight saved searches as active if user is logged in: *}
@@ -49,15 +48,14 @@
 		</div>
 	</div>
 	
-	{if $lists}
-		<div class="sidegroup">
-			<h4>{translate text='My Lists'}</h4>
-			{foreach from=$lists item=list}
-				<div class="myAccountLink"><a href="{$list.url}">{$list.name}</a></div>
-			{/foreach}
-		</div>
-	{/if}
-	
+	<div class="sidegroup">
+		<h4>{translate text='My Lists'}</h4>
+		<div class="myAccountLink{if $pageTemplate=="myRatings.tpl"} active{/if}"><a href="{$path}/MyResearch/MyRatings">{translate text='My Rated Titles'}</a></div>
+		{foreach from=$lists item=list}
+			<div class="myAccountLink"><a href="{$list.url}">{$list.name}</a></div>
+		{/foreach}
+	</div>
+
 	{if $tagList}
 		<div class="sidegroup">
 			<h4>{translate text='My Tags'}</h4>
