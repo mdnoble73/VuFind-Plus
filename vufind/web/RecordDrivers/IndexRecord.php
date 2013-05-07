@@ -1469,10 +1469,10 @@ class IndexRecord implements RecordInterface
 	/**
 	 * Get the publication dates of the record.  See also getDateSpan().
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getPublicationDates()
+	public function getPublicationDates()
 	{
 		return isset($this->fields['publishDate']) ? $this->fields['publishDate'] : array();
 	}
