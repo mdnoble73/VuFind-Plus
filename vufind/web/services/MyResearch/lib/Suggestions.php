@@ -2,6 +2,7 @@
 require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/sys/Novelist.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 
 class Suggestions{
 	/*
@@ -14,6 +15,43 @@ class Suggestions{
 			global $user;
 			$userId = $user->id;
 		}
+
+		//Load all titles the user is not interested in
+		$notInterestedTitles = array();
+		$notInterested = new NotInterested();
+		$resource = new Resource();
+		$notInterested->joinAdd($resource);
+		$notInterested->userId = $userId;
+		$notInterested->find();
+		while ($notInterested->fetch()){
+			if ($notInterested->source == 'VuFind'){
+				$fullId = $notInterested->record_id;
+			}else{
+				$fullId = 'econtentRecord' . $notInterested->record_id;
+			}
+			$notInterestedTitles[] = $fullId;
+		}
+
+		//Load all titles the user has rated (print)
+		$allRatedTitles = array();
+		$ratings = new UserRating();
+		$resource = new Resource();
+		$notInterested->joinAdd($resource);
+		$ratings->joinAdd($resource);
+		$ratings->find();
+		while ($ratings->fetch()){
+			$allRatedTitles[] = $ratings->record_id;
+		}
+
+		//Load all titles the user has rated (eContent)
+		$allRatedTitles = array();
+		$econtentRatings = new EContentRating();
+		$econtentRatings->userId = $userId;
+		$econtentRatings->find();
+		while ($econtentRatings->fetch()){
+			$allRatedTitles[] = 'econtentRecord' . $econtentRatings->recordId;
+		}
+
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
@@ -50,12 +88,12 @@ class Suggestions{
 					if ($resource->isbn){
 						//If there is an isbn for the title, we can load similar titles based on Novelist.
 						$isbn = $resource->isbn;
-						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $ratedTitles, $suggestions);
+						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $allRatedTitles, $suggestions, $notInterestedTitles);
 						//echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
 
 					}
 					if ($numRecommendations == 0){
-						Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $ratedTitles, $suggestions);
+						Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
 						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 					}
 				}
@@ -63,7 +101,6 @@ class Suggestions{
 		}
 
 		//Also get eContent the user has rated highly
-		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 		$econtentRatings = new EContentRating();
 		$econtentRatings->userId = $userId;
 		$econtentRatings->whereAdd('rating >= 3');
@@ -73,14 +110,14 @@ class Suggestions{
 		//echo("User has rated {$econtentRatings->N} econtent titles<br/>");
 		if ($econtentRatings->N > 0){
 			while($econtentRatings->fetch()){
-				echo("Processing eContent Rating {$econtentRatings->recordId}<br/>");
+				//echo("Processing eContent Rating {$econtentRatings->recordId}<br/>");
 				//Load the resource
 				$resource = new Resource();
 				$resource->record_id = $econtentRatings->recordId;
 				$resource->source = 'eContent';
 				$resource->find();
 				if ($resource->N != 1){
-					echo("Did not find resource for $resourceId<br/>");
+					//echo("Did not find resource for $resourceId<br/>");
 				}else{
 					$resource->fetch();
 					//echo("Found resource for $resourceId - {$resource->title}<br/>");
@@ -89,19 +126,18 @@ class Suggestions{
 					if ($resource->isbn){
 						//If there is an isbn for the title, we can load similar titles based on Novelist.
 						$isbn = $resource->isbn;
-						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $ratedTitles, $suggestions);
-						echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
-
+						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $allRatedTitles, $suggestions, $notInterestedTitles);
+						//echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
 					}
 					if ($numRecommendations == 0){
-						$numRecommendations = Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $ratedTitles, $suggestions);
-						echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
+						$numRecommendations = Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
+						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 					}
 				}
 			}
 		}
 
-
+		
 
 		//sort suggestions based on score from ascending to descending
 		uasort($suggestions, 'Suggestions::compareSuggestions');
@@ -120,9 +156,10 @@ class Suggestions{
 	 * @param integer $userId
 	 * @param array $ratedTitles
 	 * @param array $suggestions
+	 * @param integer[] $notInterestedTitles
 	 * @return int The number of suggestions for this title
 	 */
-	static function getSimilarlyRatedTitles($db, $ratedTitle, $userId, $ratedTitles, &$suggestions){
+	static function getSimilarlyRatedTitles($db, $ratedTitle, $userId, $ratedTitles, &$suggestions, $notInterestedTitles){
 		$numRecommendations = 0;
 		//If there is no ISBN, can we come up with an alternative algorithm?
 		//Possibly using common ratings with other patrons?
@@ -190,13 +227,13 @@ class Suggestions{
 						'series' => $series,
 				);
 				$numRecommendations++;
-				Suggestions::addTitleToSuggestions($ratedTitle, $similarTitle['title'], $similarTitle['recordId'], $similarTitle, $ratedTitles, $suggestions);
+				Suggestions::addTitleToSuggestions($ratedTitle, $similarTitle['title'], $similarTitle['recordId'], $similarTitle, $ratedTitles, $suggestions, $notInterestedTitles);
 			}
 		}
 		return $numRecommendations;
 	}
 
-	static function getNovelistRecommendations($userRating, $isbn, $resource, $ratedTitles, &$suggestions){
+	static function getNovelistRecommendations($userRating, $isbn, $resource, $ratedTitles, &$suggestions, $notInterestedTitles){
 		//We now have the title, we can get the related titles from Novelist
 		$novelist = NovelistFactory::getNovelist();;
 		//Use loadEnrichmentInfo even though there is more data than we need since it uses caching.
@@ -207,7 +244,7 @@ class Suggestions{
 			//For each related title
 			foreach ($enrichmentInfo['similarTitles'] as $similarTitle){
 				if ($similarTitle['libraryOwned']){
-					Suggestions::addTitleToSuggestions($userRating, $resource->title, $resource->record_id, $similarTitle, $ratedTitles, $suggestions);
+					Suggestions::addTitleToSuggestions($userRating, $resource->title, $resource->record_id, $similarTitle, $ratedTitles, $suggestions, $notInterestedTitles);
 					$numRecommendations++;
 				}
 			}
@@ -215,9 +252,13 @@ class Suggestions{
 		return $numRecommendations;
 	}
 
-	static function addTitleToSuggestions($userRating, $sourceTitle, $sourceId, $similarTitle, $ratedTitles, &$suggestions){
+	static function addTitleToSuggestions($userRating, $sourceTitle, $sourceId, $similarTitle, $ratedTitles, &$suggestions, $notInterestedTitles){
 		//Don't suggest titles that have already been rated
 		if (array_key_exists($similarTitle['id'], $ratedTitles)){
+			return;
+		}
+		//Don't suggest titles the user is not interested in.
+		if (array_key_exists($similarTitle['id'], $notInterestedTitles)){
 			return;
 		}
 
