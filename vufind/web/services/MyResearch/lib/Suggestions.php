@@ -64,7 +64,7 @@ class Suggestions{
 		$ratings = new UserRating();
 		$ratings->whereAdd("userId = $userId", 'AND');
 		$ratings->whereAdd('rating >= 3', 'AND');
-		$ratings->orderBy('rating DESC, dateRated DESC');
+		$ratings->orderBy('rating DESC, dateRated DESC, id DESC');
 		//Use the 20 highest ratings to make real-time recommendations faster
 		$ratings->limit(0, 3);
 
