@@ -83,11 +83,11 @@ abstract class FacetSetting extends DB_DataObject {
 	}
 
 	function insert(){
-		parent::insert();
+		return parent::insert();
 	}
 
 	function update($dataObject = false){
-		parent::update($dataObject);
+		return parent::update($dataObject);
 	}
 
 	function setupTopFacet($facetName, $displayName){

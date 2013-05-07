@@ -24,7 +24,7 @@ class LocationHours extends DB_DataObject
 		return array('id');
 	}
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		$location = new Location();
 		$location->orderBy('displayName');
 		$location->find();

@@ -42,6 +42,9 @@ class Location extends DB_DataObject
 	public $automaticTimeoutLength;
 	public $automaticTimeoutLengthLoggedOut;
 
+	/** @var  array $data */
+	protected $data;
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Location',$k,$v); }
 
@@ -175,6 +178,7 @@ class Location extends DB_DataObject
 
 	function getPickupBranches($patronProfile, $selectedBranchId) {
 		//Get the library for the patron's home branch.
+		/** @var Library $librarySingleton */
 		global $librarySingleton;
 		if ($patronProfile){
 			if (is_object($patronProfile)){
@@ -188,7 +192,7 @@ class Location extends DB_DataObject
 			if (strlen($homeLibrary->validPickupSystems) > 0){
 				$pickupIds = array();
 				$pickupIds[] = $homeLibrary->libraryId;
-				$validPickupSystems = split('\|', $homeLibrary->validPickupSystems);
+				$validPickupSystems = explode('|', $homeLibrary->validPickupSystems);
 				foreach ($validPickupSystems as $pickupSystem){
 					$pickupLocation = new Library();
 					$pickupLocation->subdomain = $pickupSystem;
@@ -382,7 +386,7 @@ class Location extends DB_DataObject
 
 	/**
 	 * The location we are in based solely on IP address.
-	 * @var unknown_type
+	 * @var string
 	 */
 	private $ipLocation = 'unset';
 	private $ipId = 'unset';
@@ -391,6 +395,7 @@ class Location extends DB_DataObject
 			return $this->ipLocation;
 		}
 		global $timer;
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		global $logger;
@@ -406,11 +411,10 @@ class Location extends DB_DataObject
 		if ($this->ipLocation == false || $this->ipId == false){
 			$timer->logTime('Starting getIPLocation');
 			//echo("Active IP is $activeIp");
-			require_once './Drivers/marmot_inc/subnet.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
 			$subnet = new subnet();
 			$ipVal = ip2long($activeIp);
 
-			$this->activeIp = '';
 			$this->ipLocation = null;
 			$this->ipId = -1;
 			if (is_numeric($ipVal)){
@@ -497,6 +501,7 @@ class Location extends DB_DataObject
 		return $facets;
 	}
 
+
 	public function __get($name){
 		if ($name == "hours") {
 			if (!isset($this->hours)){
@@ -526,7 +531,10 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->facets;
+		}else{
+			return $this->data[$name];
 		}
+
 	}
 
 	public function __set($name, $value){
@@ -534,6 +542,8 @@ class Location extends DB_DataObject
 			$this->hours = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
+		}else{
+			$this->data[$name] = $value;
 		}
 	}
 
@@ -544,12 +554,11 @@ class Location extends DB_DataObject
 	 */
 	public function update(){
 		$ret = parent::update();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
+		if ($ret !== FALSE ){
 			$this->saveHours();
 			$this->saveFacets();
 		}
+		return $ret;
 	}
 
 	/**
@@ -559,16 +568,16 @@ class Location extends DB_DataObject
 	 */
 	public function insert(){
 		$ret = parent::insert();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
+		if ($ret !== FALSE ){
 			$this->saveHours();
 			$this->saveFacets();
 		}
+		return $ret;
 	}
 
 	public function saveFacets(){
 		if (isset ($this->facets) && is_array($this->facets)){
+			/** @var LocationFacetSetting $facet */
 			foreach ($this->facets as $facet){
 				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
 					$facet->delete();
@@ -594,6 +603,7 @@ class Location extends DB_DataObject
 
 	public function saveHours(){
 		if (isset ($this->hours) && is_array($this->hours)){
+			/** @var LocationHours $hours */
 			foreach ($this->hours as $hours){
 				if (isset($hours->deleteOnSave) && $hours->deleteOnSave == true){
 					$hours->delete();
@@ -716,14 +726,14 @@ class Location extends DB_DataObject
 
 		$facet = new LocationFacetSetting();
 		$facet->setupTopFacet('format_category', 'Format Category');
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		if ($configArray['Index']['enableDetailedAvailability']){
 			$facet = new LocationFacetSetting();
 			$facet->setupTopFacet('availability_toggle', 'Available?', false);
-			$facet->libraryId = $libraryId;
+			$facet->locationId = $locationId;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
 		}
@@ -731,141 +741,141 @@ class Location extends DB_DataObject
 		if ($configArray['Index']['enableDetailedAvailability']){
 			$facet = new LocationFacetSetting();
 			$facet->setupSideFacet('available_at', 'Available Now At', false);
-			$facet->libraryId = $libraryId;
+			$facet->locationId = $locationId;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
 		}
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('format', 'Format', false);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('literary_form_full', 'Literary Form', false);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('target_audience_full', 'Reading Level', false);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$facet->numEntriesToShowByDefault = 8;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('topic_facet', 'Subject', false);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('authorStr', 'Author', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('awards_facet', 'Awards', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('econtent_device', 'Compatible Device', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('econtent_source', 'eContent Source', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('econtent_protection_type', 'eContent Protection', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('era', 'Era', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('genre_facet', 'Genre', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('itype', 'Item Type', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('language', 'Language', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('mpaa_rating', 'Movie Rating', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('institution', 'Owning System', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('building', 'Owning Branch', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('publishDate', 'Publication Date', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupAdvancedFacet('geographic_facet', 'Region', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
 		$facet->setupSideFacet('rating_facet', 'User Rating', true);
-		$facet->libraryId = $libraryId;
+		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
