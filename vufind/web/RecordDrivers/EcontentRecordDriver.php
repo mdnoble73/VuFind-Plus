@@ -271,10 +271,10 @@ class EcontentRecordDriver extends IndexRecord
 	 * Get an array of publication detail lines combining information from
 	 * getPublicationDates(), getPublishers() and getPlacesOfPublication().
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getPublicationDetails()
+	function getPublicationDetails()
 	{
 		if (isset($this->eContentRecord)){
 			return array($this->eContentRecord->publishLocation . ' ' . $this->eContentRecord->publisher . ' ' . $this->eContentRecord->publishDate);
