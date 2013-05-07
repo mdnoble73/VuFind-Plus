@@ -35,6 +35,7 @@ class Suggestions{
 		//Load all titles the user has rated (print)
 		$allRatedTitles = array();
 		$ratings = new UserRating();
+		$ratings->userid = $userId;
 		$resource = new Resource();
 		$notInterested->joinAdd($resource);
 		$ratings->joinAdd($resource);
