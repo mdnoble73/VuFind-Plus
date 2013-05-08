@@ -1764,7 +1764,9 @@ public class MarcRecordDetails {
 
 	public String getGroupingTerm() {
 		String title = getTitle();
+		title = Util.trimTrailingPunctuation(title);
 		String author = getAuthor();
+		author = Util.trimTrailingPunctuation(title);
 		return (title + " " + author).trim();
 	}
 

@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class SimilarTitles extends Action
+class EcontentRecord_SimilarTitles extends Action
 {
 	/** @var  SearchObject_Solr $db */
 	private $db;
@@ -74,8 +74,7 @@ class SimilarTitles extends Action
 		$this->id = strip_tags($_REQUEST['id']);
 		$eContentRecord->id = $this->id;
 		$eContentRecord->find(true);
-		$interface->assign('eContentRecord', $eContentRecord);
-
+		
 		$similar = $this->db->getMoreLikeThis2($eContentRecord->getSolrId());
 		// Send the similar items to the template; if there is only one, we need
 		// to force it to be an array or things will not display correctly.
@@ -86,8 +85,16 @@ class SimilarTitles extends Action
 		}
 
 		$resourceList = array();
+		$curIndex = 0;
+		$groupingTerms = array();
 		if (isset($this->similarTitles) && is_array($this->similarTitles)){
 			foreach ($this->similarTitles as $title){
+				$groupingTerm = $title['grouping_term'];
+				if (array_key_exists($groupingTerm, $groupingTerms)){
+					continue;
+				}
+				$groupingTerms[$groupingTerm] = $groupingTerm;
+				$interface->assign('resultIndex', ++$curIndex);
 				$record = RecordDriverFactory::initRecordDriver($title);
 				$resourceList[] = $interface->fetch($record->getSearchResult($user, null, false));
 			}
@@ -96,13 +103,18 @@ class SimilarTitles extends Action
 		$interface->assign('resourceList', $resourceList);
 
 		$interface->assign('recordStart', 1);
-		$interface->assign('recordEnd', count($this->similarTitles));
-		$interface->assign('recordCount', count($this->similarTitles));
+		$interface->assign('recordEnd', count($resourceList));
+		$interface->assign('recordCount', count($resourceList));
+
+		$novelist = NovelistFactory::getNovelist();
+		$enrichment = $novelist->loadEnrichment($eContentRecord->getIsbn());
+		$interface->assign('enrichment', $enrichment);
 
 		//Build the actual view
 		$interface->setTemplate('view-similar.tpl');
 
 		$interface->setPageTitle('Similar to ' . $eContentRecord->title);
+		$interface->assign('eContentRecord', $eContentRecord);
 
 		// Display Page
 		$interface->display('layout.tpl');
