@@ -31,7 +31,7 @@
 					<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 						{* This is raw HTML -- do not escape it: *}
 						{if $similarTitle.fullRecordLink}<a href='{$similarTitle.fullRecordLink}'>{/if}{$similarTitle.title}{if $similarTitle.fullRecordLink}</a>{/if}
-						by <a href="Search/Results?lookfor={$similarTitle.author|escape:url}">{$similarTitle.author}</a>
+						by <a href="/Search/Results?lookfor={$similarTitle.author|escape:url}">{$similarTitle.author}</a>
 						<div class="reason">
 							{$similarTitle.reason}
 						</div>
@@ -59,7 +59,7 @@
 				{foreach from=$enrichment.similarSeries item=series name="recordLoop"}
 					<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 						{* This is raw HTML -- do not escape it: *}
-						<a href="Search/Results?lookfor={$series.title|escape:url}">{$series.title}</a> by <a href="Search/Results?lookfor={$series.author|escape:url}">{$series.author}</a>
+						<a href="/Search/Results?lookfor={$series.title|escape:url}">{$series.title}</a> by <a href="Search/Results?lookfor={$series.author|escape:url}">{$series.author}</a>
 						<div class="reason">
 							{$series.reason}
 						</div>
