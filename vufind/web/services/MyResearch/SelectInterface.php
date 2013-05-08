@@ -47,7 +47,7 @@ class MyResearch_SelectInterface extends Action{
 
 		//Build the actual view
 		$interface->setTemplate('selectInterface.tpl');
-		$interface->setPageTitle('Select your preferred interface');
+		$interface->setPageTitle('Select Library Catalog');
 
 		// Display Page
 		$interface->display('layout.tpl');

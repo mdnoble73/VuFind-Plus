@@ -1,5 +1,5 @@
 <div id="page-content" class="content">
-	<div class="myAccountTitle">{translate text='Select your Home Library'}</div>
+	<div class="myAccountTitle">{translate text='Select the Library Catalog you wish to use'}</div>
 	<div id="selectLibraryMenu">
 		<form id="selectLibrary" method="get" action="/MyResearch/SelectInterface">
 			<div>
