@@ -228,3 +228,17 @@
 	font-family: sans-serif;
 	color: darkblue;
 }
+#selectLibraryMenu{
+	margin-left: 10px;
+	margin-top: 10px;
+}
+.selectLibraryOption{
+	margin-top: 6px;
+}
+.selectLibraryOption label{
+	margin-left: 4px;
+}
+#selectLibraryMenu #submitButton{
+	margin-top: 6px;
+	margin-left: 15px;
+}
