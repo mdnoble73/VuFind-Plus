@@ -374,7 +374,8 @@ class AdobeContentServer
 		AdobeContentServer::signNode($distributionDoc, $distributionElem, $serverPassword);
 
 		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
-		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
+		//echo("Request:<br/>" . htmlentities($distributionDoc->saveXML()) . "<br/>");
+
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
 		$logger->log("'Response:\r\n $response", PEAR_LOG_INFO);
 		//echo("Response:<br/>" . htmlentities($response) . "<br/>");
