@@ -1693,6 +1693,9 @@ public class MarcRecordDetails {
 				} else if (functionName.equals("getPublisher")) {
 					retval = getPublisher();
 					returnType = Set.class;
+				}else if (functionName.equals("getGroupingTerm")) {
+					retval = getGroupingTerm();
+					returnType = String.class;
 				} else {
 					logger.debug("Using reflection to invoke custom method "
 							+ functionName);
@@ -1710,8 +1713,9 @@ public class MarcRecordDetails {
 				}
 			} else {
 				method = marcProcessor.getCustomMethodMap().get(indexParm);
-				if (method == null)
+				if (method == null){
 					method = classThatContainsMethod.getMethod(indexParm);
+				}
 				returnType = method.getReturnType();
 				retval = method.invoke(objectThatContainsMethod);
 			}
@@ -1756,6 +1760,12 @@ public class MarcRecordDetails {
 				returnType, retval, deleteIfEmpty);
 		if (result == true)
 			throw new SolrMarcIndexerException(SolrMarcIndexerException.DELETE);
+	}
+
+	public String getGroupingTerm() {
+		String title = getTitle();
+		String author = getAuthor();
+		return (title + " " + author).trim();
 	}
 
 	public String getRecordType() {

@@ -470,13 +470,13 @@ class Solr implements IndexEngine {
 		if ($originalResult){
 			$options['fq'] = array();
 			if (isset($originalResult['target_audience_full'])){
-				$options['fq'][] = 'target_audience_full:' . $originalResult['target_audience_full'];
+				$options['fq'][] = 'target_audience_full:"' . $originalResult['target_audience_full'] . '"';
 			}
 			if (isset($originalResult['literary_form'])){
-				$options['fq'][] = 'literary_form:' . $originalResult['literary_form'];
+				$options['fq'][] = 'literary_form:"' . $originalResult['literary_form'] . '"';
 			}
 			if (isset($originalResult['language'])){
-				$options['fq'][] = 'language:' . $originalResult['language'][0];
+				$options['fq'][] = 'language:"' . $originalResult['language'][0] . '"';
 			}
 			//Don't want to get other editions of the same work (that's a different query)
 			if (isset($originalResult['isbn'])){
@@ -535,12 +535,12 @@ class Solr implements IndexEngine {
 	{
 		// Query String Parameters
 		$idString = implode(' OR ', $ids);
-		$options = array('q' => "id:($idString)", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details');
+		$options = array('q' => "id:($idString)", 'qt' => 'morelikethese', 'mlt.interestingTerms' => 'details');
 
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
 		$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
-		$options['fq'][] = "!id:($idString)";
+		$options['fq'][] = "-id:($idString)";
 		foreach ($scopingFilters as $filter){
 			$options['fq'][] = $filter;
 		}
@@ -1024,6 +1024,9 @@ class Solr implements IndexEngine {
 		global $timer;
 		// Query String Parameters
 		$options = array('q' => $query, 'rows' => $limit, 'start' => $start, 'indent' => 'yes');
+		//For FRBR, enable this and then update display
+		//$options['group'] = 'true';
+		//$options['group.field'] = 'grouping_term';
 
 		// Add Sorting
 		if ($sort && !empty($sort)) {

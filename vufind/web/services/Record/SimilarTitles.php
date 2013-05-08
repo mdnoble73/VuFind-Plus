@@ -55,6 +55,7 @@ class Record_SimilarTitles extends Record_Record
 			$interface->assign('showFavorites', 1);
 		}
 
+		//$this->db->debug = true;
 		$similar = $this->db->getMoreLikeThis2($this->id);
 		// Send the similar items to the template; if there is only one, we need
 		// to force it to be an array or things will not display correctly.

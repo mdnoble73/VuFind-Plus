@@ -160,6 +160,7 @@
 		<field name="authorStr" type="textFacet" indexed="true" stored="false"/>
 		<field name="auth_author" type="textProper" indexed="true" stored="true"/>
 		<field name="auth_authorStr" type="string" indexed="true" stored="true"/>
+		<field name="grouping_term" type="string" indexed="true" stored="true"/>
 		<field name="title" type="text" indexed="true" stored="true">
 			<analyzer>
 				<tokenizer class="solr.PatternTokenizerFactory" pattern="\w" group="1"/>

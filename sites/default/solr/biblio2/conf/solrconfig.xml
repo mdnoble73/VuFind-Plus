@@ -467,6 +467,26 @@
       <str name="mlt.boost">true</str>
     </lst>
   </requestHandler>
+  
+  <requestHandler name="morelikethese" class="solr.MoreLikeThisHandler">
+    <lst name="defaults">
+      <str name="mlt.fl">topic_facet,awards_facet,genre_facet,geographic_facet,callnumber-label,era,author,target_audience_full,literary_form_full</str>
+      <str name="mlt.qf">
+        topic_facet^600
+        callnumber-label^200
+        awards_facet^100
+        author^75
+        era^50
+        genre_facet^50
+        geographic_facet^50
+		target_audience_full^25
+		literary_form_full^25
+      </str>
+      <int name="mlt.mintf">1</int>
+      <int name="mlt.mindf">1</int>
+      <str name="mlt.boost">true</str>
+    </lst>
+  </requestHandler>
 
   <searchComponent name="spellcheck" class="org.apache.solr.handler.component.SpellCheckComponent">
     <lst name="spellchecker">
