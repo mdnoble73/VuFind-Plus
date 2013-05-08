@@ -20,8 +20,10 @@
 			{include file=$userNoticeFile}
 		{/if}
 
-		{foreach from=$resourceList item=suggestion}
-			{$suggestion}
+		{foreach from=$resourceList item=suggestion name=recordLoop}
+			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+				{$suggestion}
+			</div>
 		{/foreach}
 	</div>
 	{* Load Ratings *}

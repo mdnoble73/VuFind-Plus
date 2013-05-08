@@ -144,6 +144,12 @@ class Suggestions{
 			}
 		}
 
+		$groupedTitles = array();
+		foreach ($suggestions as $suggestion){
+			$groupingTerm = $suggestion['titleInfo']['grouping_term'];
+			$groupedTitles[] = $groupingTerm;
+		}
+
 		//Get recommendations based on everything I've rated using more like this functionality
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
@@ -154,17 +160,24 @@ class Suggestions{
 		//print_r($moreLikeTheseSuggestions);
 		if (count($suggestions) < 30){
 			foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion){
+				$groupingTerm = $suggestion['grouping_term'];
+				if (array_key_exists($groupingTerm, $groupedTitles)){
+					//echo ($suggestion['grouping_term'] . " is already in the suggestions");
+					continue;
+				}
+				$groupedTitles[$groupingTerm] = $groupingTerm;
 				//print_r($suggestion);
 				$suggestions[$suggestion['id']] = array(
 					'rating' => $suggestion['rating'] - 2.5,
 					'titleInfo' => $suggestion,
-					'basedOn' => '',
+					'basedOn' => 'MetaData for all titles rated',
 				);
 				if (count($suggestions) == 30){
 					break;
 				}
 			}
 		}
+		//print_r($groupedTitles);
 
 		//sort suggestions based on score from ascending to descending
 		uasort($suggestions, 'Suggestions::compareSuggestions');
@@ -252,6 +265,7 @@ class Suggestions{
 						'format' => $ownedRecord['format'],
 						'recordtype' => $ownedRecord['recordtype'],
 						'series' => $series,
+						'grouping_term' => $ownedRecord['grouping_term'],
 				);
 				$numRecommendations++;
 				Suggestions::addTitleToSuggestions($ratedTitle, $similarTitle['title'], $similarTitle['recordId'], $similarTitle, $ratedTitles, $suggestions, $notInterestedTitles);

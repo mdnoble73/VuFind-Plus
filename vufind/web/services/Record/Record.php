@@ -48,7 +48,7 @@ class Record_Record extends Action
 
 	public $cacheId;
 
-	/** @var  SearchObject_Solr */
+	/** @var  Solr */
 	public $db;
 
 	public $description;

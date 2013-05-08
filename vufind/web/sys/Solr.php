@@ -466,7 +466,7 @@ class Solr implements IndexEngine {
 			$originalResult = $this->getRecord($id);
 		}
 		// Query String Parameters
-		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details');
+		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25);
 		if ($originalResult){
 			$options['fq'] = array();
 			if (isset($originalResult['target_audience_full'])){
@@ -535,7 +535,7 @@ class Solr implements IndexEngine {
 	{
 		// Query String Parameters
 		$idString = implode(' OR ', $ids);
-		$options = array('q' => "id:($idString)", 'qt' => 'morelikethese', 'mlt.interestingTerms' => 'details');
+		$options = array('q' => "id:($idString)", 'qt' => 'morelikethese', 'mlt.interestingTerms' => 'details', 'rows' => 25);
 
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
