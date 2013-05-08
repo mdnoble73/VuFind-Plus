@@ -682,7 +682,10 @@ function checkAvailabilityMode() {
 
 		}
 
-		if (!$isMaintenance){
+		if ($isMaintenance){
+			global $interface;
+			$interface->assign('systemMessage', 'You are currently accessing the site in maintenance mode. Remember to turn off maintenance when you are done.');
+		}else{
 			$mode['online']   = false;
 			$mode['level']    = 'unavailable';
 			$mode['template'] = 'unavailable.tpl';
