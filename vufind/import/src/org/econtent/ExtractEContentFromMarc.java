@@ -53,10 +53,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private Connection econtentConn;
 	
 	private String localWebDir;
-	
+
+	private boolean clearEContentRecordsAtStartOfIndex;
 	private boolean extractEContentFromUnchangedRecords;
 	private int numOverDriveTitlesToLoadFromAPI;
-	private String econtentDBConnectionInfo;
 	private ArrayList<GutenbergItemInfo> gutenbergItemInfo = null;
 	
 	private String vufindUrl;
@@ -132,7 +132,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		//Check to see if we should clear the existing index
 		String clearEContentRecordsAtStartOfIndexVal = configIni.get("Reindex", "clearEContentRecordsAtStartOfIndex");
-		boolean clearEContentRecordsAtStartOfIndex;
 		if (clearEContentRecordsAtStartOfIndexVal == null){
 			clearEContentRecordsAtStartOfIndex = false;
 		}else{
@@ -286,10 +285,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			results.saveResults();
 		}
 		
-		return loadOverDriveTitlesFromDB(configIni);
-		//return loadOverDriveTitlesFromAPI(configIni);
+		return loadOverDriveTitlesFromDB();
 	}
-	
+
 	
 	private void deleteEContentRecord(EcontentRecordInfo econtentInfo) {
 		try {
@@ -314,10 +312,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	/**
 	 * Load overdrive information from the database
 	 * 
-	 * @param configIni
-	 * @return
+	 * @return true or false depending on if the titles could be loaded from the database.
 	 */
-	private boolean loadOverDriveTitlesFromDB(Ini configIni) {
+	private boolean loadOverDriveTitlesFromDB() {
 		results.addNote("Loading OverDrive information from Database");
 		results.saveResults();
 		
@@ -342,6 +339,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			results.addNote("error loading OverDrive information from database " + e.toString());
 			results.incErrors();
 			logger.error("Error loading OverDrive information from database", e);
+			return false;
 		}
 		
 		return true;
@@ -365,7 +363,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						logger.debug("Record " + econtentInfo.getIlsId() + " is no longer eContent, removing");
 						deleteEContentRecord.setLong(1, econtentInfo.getRecordId());
 						deleteEContentRecord.executeUpdate();
-						deleteRecord(econtentInfo.getRecordId());
+						if (!clearEContentRecordsAtStartOfIndex){
+								deleteRecord(econtentInfo.getRecordId());
+						}
 						results.incDeleted();
 					}else{
 						results.incSkipped();
@@ -1011,7 +1011,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	}
 
 	protected boolean loadConfig(Ini configIni, Logger logger) {
-		econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
+		String econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
 			logger.error("Database connection information for eContent database not found in General Settings.  Please specify connection information in a econtentDatabase key.");
 			return false;

@@ -55,12 +55,13 @@ data-import
 *.log.5
 *.sqlite
 
-# Eclipse Files #
+# IDE Files #
 #################
 .buildpath
 .project
 .classpath
 org.eclipse.*.prefs
+*.iml
 
 # OS generated files #
 ######################
