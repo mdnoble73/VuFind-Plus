@@ -36,9 +36,13 @@ class MyResearch_SelectInterface extends Action{
 			$urlPortions = explode('://', $baseUrl);
 			$logger->log("Redirecting from $baseUrl " . print_r($urlPortions, true), PEAR_LOG_DEBUG);
 			//Get rid of extra portions of the url
-			$urlPortions[1] = str_replace('opac2.', '', $urlPortions[1]);
+			$subdomain = $selectedLibrary['subdomain'];
+			if (strpos($urlPortions[1], 'opac2') !== false){
+				$urlPortions[1] = str_replace('opac2.', '', $urlPortions[1]);
+				$subdomain .= '2';
+			}
 			$urlPortions[1] = str_replace('opac.', '', $urlPortions[1]);
-			$baseUrl = $urlPortions[0] . '://' . $selectedLibrary['subdomain'] . '.' . $urlPortions[1];
+			$baseUrl = $urlPortions[0] . '://' . $subdomain . '.' . $urlPortions[1];
 
 			$logger->log("Redirecting to $baseUrl", PEAR_LOG_DEBUG);
 			header('Location:' . $baseUrl);
