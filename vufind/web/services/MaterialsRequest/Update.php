@@ -22,7 +22,7 @@
  */
 
 require_once ROOT_DIR . "/Action.php";
-require_once ROOT_DIR . "sys/MaterialsRequest.php";
+require_once ROOT_DIR . "/sys/MaterialsRequest.php";
 
 /**
  * MaterialsRequest Update Page, updates an existing materials request.
