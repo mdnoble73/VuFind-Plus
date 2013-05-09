@@ -43,6 +43,10 @@ class MaterialsRequest extends DB_DataObject
 	public $holdPickupLocation;
 	public $bookmobileStop;
 
+	//Dynamic properties setup by joins
+	public $numRequests;
+	public $description;
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('MaterialsRequest',$k,$v); }
 
@@ -86,7 +90,7 @@ class MaterialsRequest extends DB_DataObject
 			if ($enableMaterialsRequest && isset($library) && $library->enableMaterialsRequest == 0){
 				$enableMaterialsRequest = false;
 			}elseif ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
-				//Check to see if we need to do additonal restrictions by patron type
+				//Check to see if we need to do additional restrictions by patron type
 				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
 				if (strlen($allowablePatronTypes) > 0 && $user){
 					if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){

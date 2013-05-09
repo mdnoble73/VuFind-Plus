@@ -24,20 +24,18 @@
 require_once ROOT_DIR . "/Action.php";
 
 /**
- * MyResearch Home Page, should only get here when going to the login page.
+ * Materials Request Home Page to view a request after it has been submitted.
  *
  * This controller needs some cleanup and organization.
  *
  * @version  $Revision: 1.27 $
  */
-class Home extends Action
+class MaterialsRequest_Home extends Action
 {
 
 	function launch()
 	{
-		global $configArray;
 		global $interface;
-		global $user;
 
 		$interface->setTemplate('home.tpl');
 		

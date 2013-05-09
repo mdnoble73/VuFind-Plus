@@ -1,7 +1,7 @@
 {if $materialsRequest && !$new}
 <input type="hidden" name="id" value="{$materialsRequest->id}" />
 {else}
-<fieldset>
+<fieldset class="collapsible">
 	<legend>User Information</legend>
 	{if !$user}
 	<div id="materialsRequestLogin">
@@ -121,7 +121,7 @@
 			<input name="issn" id="issn" size="8" maxlength="8" value="{$materialsRequest->issn}"/>
 		</div>
 		<div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-			<label for="oclcNumber">OCLC Number</label>
+			<label for="oclcNumber">OCLC Number:</label>
 			<input name="oclcNumber" id="oclcNumber" size="15" maxlength="30" value="{$materialsRequest->oclcNumber}"/>
 		</div>
 	</fieldset>

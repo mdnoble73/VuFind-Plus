@@ -30,13 +30,11 @@ require_once(ROOT_DIR . "/sys/pChart/class/pDraw.class.php");
 require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class SummaryReport extends Admin {
+class MaterialsRequest_SummaryReport extends Admin {
 
 	function launch()
 	{
-		global $configArray;
 		global $interface;
-		global $user;
 
 		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
 		if ($period == 'week'){
@@ -45,7 +43,7 @@ class SummaryReport extends Admin {
 			$periodLength = new DateInterval("P1D");
 		}elseif ($period == 'month'){
 			$periodLength = new DateInterval("P1M");
-		}elseif ($period == 'year'){
+		}else{ //year
 			$periodLength = new DateInterval("P1Y");
 		}
 		$interface->assign('period', $period);
@@ -68,7 +66,7 @@ class SummaryReport extends Admin {
 				$numDays = $endDate->format("d");
 				$endDate->modify(" -$numDays days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 6 months");
-			}elseif ($period == 'year'){
+			}else{ //year
 				$endDate->modify("+1 year");
 				$numDays = $endDate->format("m");
 				$endDate->modify(" -$numDays months");
@@ -101,10 +99,11 @@ class SummaryReport extends Admin {
 		//Status 3
 		$periodData = array();
 		for ($i = 0; $i < count($periods) - 1; $i++){
+			/** @var DateTime $periodStart */
 			$periodStart = clone $periods[$i];
-			//$periodStart->setTime(0,0,0);
+			/** @var DateTime $periodEnd */
 			$periodEnd = clone $periods[$i+1];
-			//$periodStart->setTime(23, 59, 59);
+
 			$periodData[$periodStart->getTimestamp()] = array();
 			//Determine how many requests were created
 			$materialsRequest = new MaterialsRequest();
@@ -134,7 +133,7 @@ class SummaryReport extends Admin {
 
 		//Get a list of all of the statuses that will be shown
 		$statuses = array();
-		foreach ($periodData as $periodDate => $periodInfo){
+		foreach ($periodData as $periodInfo){
 			foreach ($periodInfo as $status => $numRequests){
 				$statuses[$status] = translate($status);
 			}
@@ -143,10 +142,10 @@ class SummaryReport extends Admin {
 
 		//Check to see if we are exporting to Excel
 		if (isset($_REQUEST['exportToExcel'])){
-			$this->exportToExcel($periodData, $periods, $statuses);
+			$this->exportToExcel($periodData, $statuses);
 		}else{
 			//Generate the graph
-			$this->generateGraph($periodData, $periods, $statuses);
+			$this->generateGraph($periodData, $statuses);
 		}
 
 		$interface->setTemplate('summaryReport.tpl');
@@ -154,20 +153,17 @@ class SummaryReport extends Admin {
 		$interface->display('layout.tpl');
 	}
 
-	function exportToExcel($periodData, $periods, $statuses){
+	function exportToExcel($periodData, $statuses){
 		global $configArray;
-		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
 
 		// Set properties
 		$objPHPExcel->getProperties()->setCreator($configArray['Site']['title'])
-		->setLastModifiedBy($configArray['Site']['title'])
-		->setTitle("Office 2007 XLSX Document")
-		->setSubject("Office 2007 XLSX Document")
-		->setDescription("Office 2007 XLSX, generated using PHP.")
-		->setKeywords("office 2007 openxml php")
-		->setCategory("Materials Request Summary Report");
+				->setLastModifiedBy($configArray['Site']['title'])
+				->setTitle("Materials Request Summary Report")
+				->setSubject("Materials Request")
+				->setCategory("Materials Request Summary Report");
 
 		// Add some data
 		$objPHPExcel->setActiveSheetIndex(0);
@@ -175,7 +171,7 @@ class SummaryReport extends Admin {
 		$activeSheet->setCellValue('A1', 'Materials Request Summary Report');
 		$activeSheet->setCellValue('A3', 'Date');
 		$column = 1;
-		foreach ($statuses as $status => $statusLabel){
+		foreach ($statuses as $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
 		}
 
@@ -208,7 +204,7 @@ class SummaryReport extends Admin {
 
 	}
 
-	function generateGraph($periodData, $periods, $statuses){
+	function generateGraph($periodData, $statuses){
 		global $configArray;
 		global $interface;
 		$reportData = new pData();

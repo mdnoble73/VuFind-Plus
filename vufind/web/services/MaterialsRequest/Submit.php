@@ -22,14 +22,14 @@
  */
 
 require_once ROOT_DIR . "/Action.php";
-require_once "sys/MaterialsRequest.php";
-require_once "sys/MaterialsRequestStatus.php";
+require_once ROOT_DIR . "sys/MaterialsRequest.php";
+require_once ROOT_DIR . "sys/MaterialsRequestStatus.php";
 
 /**
  * MaterialsRequest Submission processing, processes a new request for the user and
  * displays a success/fail message to the user.
  */
-class Submit extends Action
+class MaterialsRequest_Submit extends Action
 {
 
 	function launch()
@@ -41,8 +41,6 @@ class Submit extends Action
 		//Make sure that the user is valid
 		$processForm = true;
 		if (!$user){
-			$username = $_REQUEST['username'];
-			$password = $_REQUEST['password'];
 			$user = UserAccount::login();
 			if ($user == null){
 				$interface->assign('error', 'Sorry, we could not log you in.  Please enter a valid barcode and pin number submit a materials request.');

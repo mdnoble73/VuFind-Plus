@@ -28,7 +28,7 @@ require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
 /**
  * MaterialsRequest AJAX Page, handles returing asynchronous information about Materials Requests.
  */
-class AJAX extends Action{
+class MaterialsRequest_AJAX extends Action{
 	
 	function AJAX() {
 	}
@@ -231,6 +231,7 @@ class AJAX extends Action{
 			//print_r($worldCatData);
 			$worldCatResults = array();
 			foreach($worldCatData->channel->item as $item){
+				/** @var SimpleXMLElement $item */
 				$curTitle= array(
 					'title' => (string)$item->title,
 					'author' => (string)$item->author->name,
@@ -240,6 +241,7 @@ class AJAX extends Action{
 				
 				$oclcChildren = $item->children('oclcterms', TRUE);
 				foreach ($oclcChildren as $child){
+					/** @var SimpleXMLElement $child */
 					if ($child->getName() == 'recordIdentifier'){
 						$curTitle['oclcNumber'] = (string)$child;
 					}

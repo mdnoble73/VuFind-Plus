@@ -29,7 +29,7 @@ require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 /**
  * MaterialsRequest MyRequests Page, displays materials request information for the active user.
  */
-class MyRequests extends MyResearch
+class MaterialsRequest_MyRequests extends MyResearch
 {
 
 	function launch()

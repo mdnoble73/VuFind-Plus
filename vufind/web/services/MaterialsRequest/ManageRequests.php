@@ -26,7 +26,7 @@ require_once(ROOT_DIR . '/services/Admin/Admin.php');
 require_once(ROOT_DIR . '/sys/MaterialsRequest.php');
 require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
 
-class ManageRequests extends Admin {
+class MaterialsRequest_ManageRequests extends Admin {
 
 	function launch()
 	{
@@ -130,7 +130,7 @@ class ManageRequests extends Admin {
 				$statusSql = "";
 				foreach ($statusesToShow as $status){
 					if (strlen($statusSql) > 0) $statusSql .= ",";
-					$statusSql .= "'" . mysql_escape_string($status) . "'";
+					$statusSql .= "'" . $materialsRequests->escape($status) . "'";
 				}
 				$materialsRequests->whereAdd("status in ($statusSql)");
 			}
@@ -140,7 +140,7 @@ class ManageRequests extends Admin {
 				$formatSql = "";
 				foreach ($formatsToShow as $format){
 					if (strlen($formatSql) > 0) $formatSql .= ",";
-					$formatSql .= "'" . mysql_escape_string($format) . "'";
+					$formatSql .= "'" . $materialsRequests->escape($format) . "'";
 				}
 				$materialsRequests->whereAdd("format in ($formatSql)");
 			}
