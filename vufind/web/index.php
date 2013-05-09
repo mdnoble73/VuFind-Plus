@@ -306,7 +306,6 @@ if ($user) {
 			exit();
 		}
 	}
-	//TODO: Redirect to that location?
 	if (isset($_REQUEST['followup']) || isset($_REQUEST['followupModule'])){
 		$module = isset($_REQUEST['followupModule']) ? $_REQUEST['followupModule'] : $configArray['Site']['defaultModule'];
 		$action = isset($_REQUEST['followup']) ? $_REQUEST['followup'] : (isset($_REQUEST['followupAction']) ? $_REQUEST['followupAction'] : 'Home');
