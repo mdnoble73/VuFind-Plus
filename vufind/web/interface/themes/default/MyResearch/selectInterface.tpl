@@ -8,7 +8,10 @@
 						<input type="radio" id="library{$libraryInfo.id}" name="library" value="{$libraryInfo.id}"/><label for="library{$libraryInfo.id}">{$libraryInfo.displayName}</label>
 					</div>
 				{/foreach}
-				<input type="submit" value="Set Library" id="submitButton"/>
+				<div class="selectLibraryOption">
+					<input type="checkbox" name="rememberThis" checked="checked" id="rememberThis"><label for="rememberThis"><b>Remember This</b></label>
+				</div>
+				<input type="submit" name="submit" value="Select Library Catalog" id="submitButton"/>
 			</div>
 		</form>
 	</div>

@@ -521,79 +521,88 @@ class DBMaintenance extends Admin {
 			),
 		),
 
-			'list_widgets' => array(
-				'title' => 'Setup Configurable List Widgets',
-				'description' => 'Create list widgets tables',
-				'sql' => array(
-					"CREATE TABLE IF NOT EXISTS list_widgets (".
-						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
-						"`name` VARCHAR(50) NOT NULL, " .
-						"`description` TEXT, " .
-						"`showTitleDescriptions` TINYINT DEFAULT 1, " .
-						"`onSelectCallback` VARCHAR(255) DEFAULT '' " .
-					") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
-					"CREATE TABLE IF NOT EXISTS list_widget_lists (".
-						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
-						"`listWidgetId` INT NOT NULL, " .
-						"`weight` INT NOT NULL DEFAULT 0, " .
-						"`displayFor` ENUM('all', 'loggedIn', 'notLoggedIn') NOT NULL DEFAULT 'all', " .
-						"`name` VARCHAR(50) NOT NULL, " .
-						"`source` VARCHAR(500) NOT NULL, " .
-						"`fullListLink` VARCHAR(500) DEFAULT '' " .
-					") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
-				),
+		'user_preferred_library_interface' => array(
+			'title' => 'User Preferred Library Interface',
+			'description' => 'Add preferred library interface to ',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE user ADD preferredLibraryInterface INT(11) DEFAULT NULL",
 			),
+		),
 
-			'list_widgets_update_1' => array(
-				'title' => 'List Widget List Update 1',
-				'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
-				'sql' => array(
-					"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
-					"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
-				),
+		'list_widgets' => array(
+			'title' => 'Setup Configurable List Widgets',
+			'description' => 'Create list widgets tables',
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS list_widgets (".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+					"`name` VARCHAR(50) NOT NULL, " .
+					"`description` TEXT, " .
+					"`showTitleDescriptions` TINYINT DEFAULT 1, " .
+					"`onSelectCallback` VARCHAR(255) DEFAULT '' " .
+				") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
+				"CREATE TABLE IF NOT EXISTS list_widget_lists (".
+					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+					"`listWidgetId` INT NOT NULL, " .
+					"`weight` INT NOT NULL DEFAULT 0, " .
+					"`displayFor` ENUM('all', 'loggedIn', 'notLoggedIn') NOT NULL DEFAULT 'all', " .
+					"`name` VARCHAR(50) NOT NULL, " .
+					"`source` VARCHAR(500) NOT NULL, " .
+					"`fullListLink` VARCHAR(500) DEFAULT '' " .
+				") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
 			),
+		),
 
-			'list_widgets_update_2' => array(
-				'title' => 'List Widget Update 2',
-				'description' => 'Add library id to list widget',
-				'sql' => array(
-					"ALTER TABLE `list_widgets` ADD COLUMN `libraryId` INT(11) NOT NULL DEFAULT '-1'",
-				),
+		'list_widgets_update_1' => array(
+			'title' => 'List Widget List Update 1',
+			'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
+				"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
 			),
+		),
 
-			'list_widgets_home' => array(
-				'title' => 'List Widget Home',
-				'description' => 'Create the default homepage widget',
-				'sql' => array(
-					"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
-					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all')",
-					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all')",
-				),
+		'list_widgets_update_2' => array(
+			'title' => 'List Widget Update 2',
+			'description' => 'Add library id to list widget',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` ADD COLUMN `libraryId` INT(11) NOT NULL DEFAULT '-1'",
 			),
+		),
 
-			'list_wdiget_list_update_1' => array(
-				'title' => 'List Widget List Source Length Update',
-				'description' => 'Update length of source field to accommodate search source type',
-				'sql' => array(
-					"ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
-				),
+		'list_widgets_home' => array(
+			'title' => 'List Widget Home',
+			'description' => 'Create the default homepage widget',
+			'sql' => array(
+				"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
+				"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all')",
+				"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all')",
 			),
+		),
 
-			'index_search_stats' => array(
-				'title' => 'Index search stats table',
-				'description' => 'Add index to search stats table to improve autocomplete speed',
-				'sql' => array(
-					"ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
-				),
+		'list_wdiget_list_update_1' => array(
+			'title' => 'List Widget List Source Length Update',
+			'description' => 'Update length of source field to accommodate search source type',
+			'sql' => array(
+				"ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
 			),
-			'list_wdiget_update_1' => array(
-				'title' => 'Update List Widget 1',
-				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
-				'sql' => array(
-					"ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
-					"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
-				),
+		),
+
+		'index_search_stats' => array(
+			'title' => 'Index search stats table',
+			'description' => 'Add index to search stats table to improve autocomplete speed',
+			'sql' => array(
+				"ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
 			),
+		),
+		'list_wdiget_update_1' => array(
+			'title' => 'Update List Widget 1',
+			'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
+				"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
+			),
+		),
 			'list_widget_update_2' => array(
 				'title' => 'Update List Widget 2',
 				'description' => 'Update List Widget to add vertical widgets',

@@ -34,6 +34,7 @@ class User extends DB_DataObject
 	public $disableCoverArt;     //tinyint
 	public $overdriveEmail;
 	public $promptForOverdriveEmail;
+	public $preferredLibraryInterface;
 	private $roles;
 	private $data = array();
 
@@ -45,7 +46,7 @@ class User extends DB_DataObject
 
 	function __sleep()
 	{
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail');
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface');
 	}
 
 	function __wakeup()
