@@ -122,9 +122,22 @@ class MaterialsRequest_ManageRequests extends Admin {
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->joinAdd(new Location(), "LEFT");
 			$materialsRequests->joinAdd(new MaterialsRequestStatus());
-			$materialsRequests->joinAdd(new User());
+			$materialsRequests->joinAdd(new User(), 'INNER', 'user');
 			$materialsRequests->selectAdd();
 			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, firstname, lastname, ' . $configArray['Catalog']['barcodeProperty'] . ' as barcode');
+			if ($user->hasRole('library_material_requests')){
+				//Need to limit to only requests submitted for the user's home location
+				$userHomeLibrary = Library::getPatronHomeLibrary();
+				$locations = new Location();
+				$locations->libraryId = $userHomeLibrary->libraryId;
+				$locations->find();
+				$locationsForLibrary = array();
+				while ($locations->fetch()){
+					$locationsForLibrary[] = $locations->locationId;
+				}
+
+				$materialsRequests->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			}
 
 			if (count($availableStatuses) > count($statusesToShow)){
 				$statusSql = "";
@@ -310,7 +323,7 @@ class MaterialsRequest_ManageRequests extends Admin {
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $value);
 				}
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status));
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
+				$activeSheet->setCellValueByColumnAndRow($curCol, $curRow, date('m/d/Y', $request->dateCreated));
 			}
 		}
 
@@ -332,6 +345,6 @@ class MaterialsRequest_ManageRequests extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('cataloging', 'library_material_requests');
 	}
 }

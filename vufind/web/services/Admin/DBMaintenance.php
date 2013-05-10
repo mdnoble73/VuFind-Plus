@@ -1115,6 +1115,14 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'materialRequestsRole' => array(
+				'title' => 'Create library material requests role',
+				'description' => 'Create library materials request role to handle material requests for a specific library system.',
+				'sql' => array(
+					"INSERT INTO `roles` (`name`, `description`) VALUES ('library_material_requests', 'Allows user to manage material requests for a specific library.')",
+				),
+			),
+
 			'libraryAdmin' => array(
 				'title' => 'Create library admin role',
 				'description' => 'Create library admin to allow .',

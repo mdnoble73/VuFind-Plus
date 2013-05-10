@@ -97,9 +97,26 @@ class MaterialsRequest_AJAX extends Action{
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
 			if ($materialsRequest->find(true)){
-				
+				$canUpdate = false;
+				//Load user information
+				$requestUser = new User();
+				$requestUser->id = $materialsRequest->createdBy;
+				if ($requestUser->find(true)){
+					$interface->assign('requestUser', $requestUser);
+				}
+
 				global $user;
-				if ($user && ($user->hasRole('cataloging') || ($user->id == $materialsRequest->createdBy))){
+				if ($user){
+					if ($user->hasRole('cataloging')){
+						$canUpdate = true;
+					}elseif ($user->id == $materialsRequest->createdBy){
+						$canUpdate = true;
+					}else if ($user->hasRole('library_material_requests')){
+						//User can update if the home library of the requester is their library
+						$canUpdate = Library::getLibraryForLocation($requestUser->homeLocationId)->libraryId == Library::getLibraryForLocation($user->homeLocationId)->libraryId;
+					}
+				}
+				if ($canUpdate){
 					//Get a list of formats to show 
 					$availableFormats = MaterialsRequest::getFormats();
 					$interface->assign('availableFormats', $availableFormats);
@@ -115,12 +132,7 @@ class MaterialsRequest_AJAX extends Action{
 		
 					$interface->assign('materialsRequest', $materialsRequest);
 					$interface->assign('showUserInformation', true);
-					//Load user information 
-					$requestUser = new User();
-					$requestUser->id = $materialsRequest->createdBy;
-					if ($requestUser->find(true)){
-						$interface->assign('requestUser', $requestUser);
-					}
+
 				}else{
 					$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
 				}
@@ -150,7 +162,7 @@ class MaterialsRequest_AJAX extends Action{
 				$interface->assign('materialsRequest', $materialsRequest);
 				
 				global $user;
-				if ($user && $user->hasRole('cataloging')){
+				if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests')){
 					$interface->assign('showUserInformation', true);
 					//Load user information 
 					$requestUser = new User();

@@ -72,7 +72,7 @@
 	</div>
 	{/if}
 	
-	{if $user && $user->hasRole('cataloging')}
+	{if $user && ($user->hasRole('cataloging') || $user->hasRole('library_material_requests'))}
 	{assign var="curSection" value=$curSection+1}
 	<h4><a href="#">Materials Requests</a></h4>
 	<div class="sidegroupContents">		

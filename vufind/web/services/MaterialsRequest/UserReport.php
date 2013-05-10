@@ -38,11 +38,7 @@ class MaterialsRequest_UserReport extends Admin {
 		global $interface;
 		global $user;
 
-		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
-		$startDate = (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0) ? strtotime($_REQUEST['startDate']) : '';
-		$endDate = (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) ? strtotime($_REQUEST['endDate']) : '';
-
-		//Load status information 
+		//Load status information
 		$materialsRequestStatus = new MaterialsRequestStatus();
 		$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
 		$materialsRequestStatus->find();
@@ -70,23 +66,36 @@ class MaterialsRequest_UserReport extends Admin {
 		$materialsRequest->selectAdd();
 		$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests');
 		$materialsRequest->selectAdd('user.id as userId, status, description, user.firstName, user.lastName, user.cat_username, user.cat_password');
+		if ($user->hasRole('library_material_requests')){
+			//Need to limit to only requests submitted for the user's home location
+			$userHomeLibrary = Library::getPatronHomeLibrary();
+			$locations = new Location();
+			$locations->libraryId = $userHomeLibrary->libraryId;
+			$locations->find();
+			$locationsForLibrary = array();
+			while ($locations->fetch()){
+				$locationsForLibrary[] = $locations->locationId;
+			}
+
+			$materialsRequest->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+		}
 		$statusSql = "";
 		foreach ($statusesToShow as $status){
 			if (strlen($statusSql) > 0) $statusSql .= ",";
-			$statusSql .= "'" . mysql_escape_string($status) . "'";
+			$statusSql .= "'" . $materialsRequest->escape($status) . "'";
 		}
 		$materialsRequest->whereAdd("status in ($statusSql)");
 		$materialsRequest->groupBy('userId, status');
 		$materialsRequest->find();
 
 		$userData = array();
-		$userInfo = array();
 		while ($materialsRequest->fetch()){
 			if (!array_key_exists($materialsRequest->userId, $userData)){
 				$userData[$materialsRequest->userId] = array();
 				$userData[$materialsRequest->userId]['firstName'] = $materialsRequest->firstName;
 				$userData[$materialsRequest->userId]['lastName'] = $materialsRequest->lastName;
-				$userData[$materialsRequest->userId]['barcode'] = $materialsRequest->cat_username;
+				$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+				$userData[$materialsRequest->userId]['barcode'] = $materialsRequest->$barcodeProperty;
 				$userData[$materialsRequest->userId]['requestsByStatus'] = array();
 			}
 			$userData[$materialsRequest->userId]['requestsByStatus'][$materialsRequest->description] = $materialsRequest->numRequests;
@@ -95,7 +104,7 @@ class MaterialsRequest_UserReport extends Admin {
 
 		//Get a list of all of the statuses that will be shown
 		$statuses = array();
-		foreach ($userData as $userId => $userInfo){
+		foreach ($userData as $userInfo){
 			foreach ($userInfo['requestsByStatus'] as $status => $numRequests){
 				$statuses[$status] = translate($status);
 			}
@@ -135,14 +144,14 @@ class MaterialsRequest_UserReport extends Admin {
 		$activeSheet->setCellValue('B3', 'First Name');
 		$activeSheet->setCellValue('C3', 'Barcode');
 		$column = 3;
-		foreach ($statuses as $status => $statusLabel){
+		foreach ($statuses as $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
 		}
 
 		$row = 4;
 		$column = 0;
 		//Loop Through The Report Data
-		foreach ($userData as $userId => $userInfo) {
+		foreach ($userData as $userInfo) {
 			$activeSheet->setCellValueByColumnAndRow($column++, $row, $userInfo['lastName']);
 			$activeSheet->setCellValueByColumnAndRow($column++, $row, $userInfo['firstName']);
 			$activeSheet->setCellValueByColumnAndRow($column++, $row, $userInfo['barcode']);
@@ -171,6 +180,6 @@ class MaterialsRequest_UserReport extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('cataloging', 'library_material_requests');
 	}
 }

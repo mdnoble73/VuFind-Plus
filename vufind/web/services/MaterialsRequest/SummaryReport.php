@@ -35,6 +35,7 @@ class MaterialsRequest_SummaryReport extends Admin {
 	function launch()
 	{
 		global $interface;
+		global $user;
 
 		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
 		if ($period == 'week'){
@@ -107,9 +108,23 @@ class MaterialsRequest_SummaryReport extends Admin {
 			$periodData[$periodStart->getTimestamp()] = array();
 			//Determine how many requests were created
 			$materialsRequest = new MaterialsRequest();
+			$materialsRequest->joinAdd(new User(), 'INNER', 'user');
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(id) as numRequests');
 			$materialsRequest->whereAdd('dateCreated >= ' . $periodStart->getTimestamp() . ' AND dateCreated < ' . $periodEnd->getTimestamp());
+			if ($user->hasRole('library_material_requests')){
+				//Need to limit to only requests submitted for the user's home location
+				$userHomeLibrary = Library::getPatronHomeLibrary();
+				$locations = new Location();
+				$locations->libraryId = $userHomeLibrary->libraryId;
+				$locations->find();
+				$locationsForLibrary = array();
+				while ($locations->fetch()){
+					$locationsForLibrary[] = $locations->locationId;
+				}
+
+				$materialsRequest->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			}
 			$materialsRequest->find();
 			while ($materialsRequest->fetch()){
 				$periodData[$periodStart->getTimestamp()]['Created'] = $materialsRequest->numRequests;
@@ -118,9 +133,23 @@ class MaterialsRequest_SummaryReport extends Admin {
 			//Get a list of all requests by the status of the request
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->joinAdd(new MaterialsRequestStatus());
+			$materialsRequest->joinAdd(new User(), 'INNER', 'user');
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
 			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
+			if ($user->hasRole('library_material_requests')){
+				//Need to limit to only requests submitted for the user's home location
+				$userHomeLibrary = Library::getPatronHomeLibrary();
+				$locations = new Location();
+				$locations->libraryId = $userHomeLibrary->libraryId;
+				$locations->find();
+				$locationsForLibrary = array();
+				while ($locations->fetch()){
+					$locationsForLibrary[] = $locations->locationId;
+				}
+
+				$materialsRequest->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			}
 			$materialsRequest->groupBy('status');
 			$materialsRequest->orderBy('status');
 			$materialsRequest->find();
@@ -253,6 +282,6 @@ class MaterialsRequest_SummaryReport extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('cataloging', 'library_material_requests');
 	}
 }
