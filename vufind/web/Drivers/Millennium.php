@@ -82,6 +82,7 @@ class MillenniumDriver implements DriverInterface
 	var $loanRuleDeterminers = null;
 	private function loadLoanRules(){
 		if (is_null($this->loanRules)){
+			/** @var Memcache $memCache */
 			global $memCache;
 			global $configArray;
 			$this->loanRules = $memCache->get('loan_rules');
@@ -157,6 +158,7 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCache.php';
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $logger;
 		$scope = $this->getMillenniumScope();
@@ -863,6 +865,7 @@ class MillenniumDriver implements DriverInterface
 	protected function _getPatronDump($barcode, $forceReload = false)
 	{
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $timer;
 		$patronDump = $memCache->get("patron_dump_$barcode");
@@ -1020,13 +1023,14 @@ class MillenniumDriver implements DriverInterface
 
 		//Get patron's location to determine if renewals are allowed.
 		global $locationSingleton;
+		/** @var Location $patronLocation */
 		$patronLocation = $locationSingleton->getUserHomeLocation();
 		if (isset($patronLocation)){
 			$patronPtype = $this->getPType();
 			$patronCanRenew = false;
 			if ($patronLocation->ptypesToAllowRenewals == '*'){
 				$patronCanRenew = true;
-			}else if (preg_match("/^({$patronLocation->ptypesToAllowRenewal})$/", $patronPtype)){
+			}else if (preg_match("/^({$patronLocation->ptypesToAllowRenewals})$/", $patronPtype)){
 				$patronCanRenew = true;
 			}
 		}else{
@@ -2169,6 +2173,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		//Make sure to clear any cached data
+		/** @var Memcache $memCache */
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->_getBarcode()}");
 		usleep(250);
@@ -2202,6 +2207,7 @@ class MillenniumDriver implements DriverInterface
 	public function renewAll($patronId){
 		global $logger;
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 
 		//Setup the call to Millennium
@@ -2464,6 +2470,7 @@ class MillenniumDriver implements DriverInterface
 			unlink($cookieJar);
 
 			//Make sure to clear any cached data
+			/** @var Memcache $memCache */
 			global $memCache;
 			$memCache->delete("patron_dump_{$this->_getBarcode()}");
 			usleep(250);
