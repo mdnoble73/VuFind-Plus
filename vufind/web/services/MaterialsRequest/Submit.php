@@ -135,6 +135,8 @@ class MaterialsRequest_Submit extends Action
 					}
 					$defaultStatus = new MaterialsRequestStatus();
 					$defaultStatus->isDefault = 1;
+					$userLibraryId = Library::getPatronHomeLibrary();
+					$defaultStatus->libraryId = $userLibraryId->libraryId;
 					if (!$defaultStatus->find(true)){
 						$interface->assign('success', false);
 						$interface->assign('error', 'There was an error submitting your materials request, could not determine the default status.');
@@ -156,7 +158,7 @@ class MaterialsRequest_Submit extends Action
 			}
 		}
 
-		$interface->setTemplate('submision-result.tpl');
+		$interface->setTemplate('submission-result.tpl');
 		$interface->setPageTitle('Submission Result');
 		$interface->display('layout.tpl');
 	}

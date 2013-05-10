@@ -1107,6 +1107,15 @@ class DBMaintenance extends Admin {
 			),
 			),
 
+			'materialsRequestStatus_update1' => array(
+				'title' => 'Materials Request Status Update 1',
+				'description' => 'Material Request Status add library id',
+				'sql' => array(
+					"ALTER TABLE `materials_request_status` ADD `libraryId` INT(11) DEFAULT '-1'",
+					'ALTER TABLE `materials_request_status` ADD INDEX (`libraryId`)',
+				),
+			),
+
 			'catalogingRole' => array(
 				'title' => 'Create cataloging role',
 				'description' => 'Create cataloging role to handle materials requests, econtent loading, etc.',

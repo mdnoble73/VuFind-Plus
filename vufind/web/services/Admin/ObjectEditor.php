@@ -247,7 +247,7 @@ abstract class ObjectEditor extends Admin
 			$filepath = $_FILES['uploadedfile']['tmp_name'];
 			$handle = fopen($filepath, "r");
 			$row = 1;
-			$columnHeaders;
+			$columnHeaders = null;
 			$importedData = array();
 			$objectType = $this->getObjectType();
 			$primaryKey = $this->getPrimaryKeyColumn();
