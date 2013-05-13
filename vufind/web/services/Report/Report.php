@@ -23,7 +23,7 @@ require_once(ROOT_DIR . '/services/Admin/Admin.php');
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 
-class Report extends Admin
+class Report_Report extends Admin
 {
 	protected $db;
 	protected $catalog;

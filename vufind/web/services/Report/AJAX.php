@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class AJAX extends Action {
+class Report_AJAX extends Action {
 
 	function launch() {
 		global $timer;

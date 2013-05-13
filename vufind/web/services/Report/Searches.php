@@ -21,12 +21,10 @@
 require_once ROOT_DIR . '/services/Report/AnalyticsReport.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class Searches extends AnalyticsReport{
+class Report_Searches extends Report_AnalyticsReport{
 
 	function launch(){
-		global $configArray;
 		global $interface;
-		global $user;
 		global $analytics;
 
 		//Setup filters
@@ -38,22 +36,22 @@ class Searches extends AnalyticsReport{
 
 		$search = new Analytics_Search();
 		$search->selectAdd();
-		$search->selectAdd("count(analytics_search.id) as timesSearched");
+		$search->selectAdd("count(analytics_search.id) as numSearches");
 		$search->selectAdd("lookfor");
 		if ($session != null){
 			$search->joinAdd($session);
 		}
 		$search->whereAdd("numResults = 0");
 		$search->groupBy('lookfor');
-		$search->orderBy('timesSearched DESC');
+		$search->orderBy('numSearches DESC');
 		$search->limit(0, 20);
 		$search->find();
 		$topNoHitSearches = array();
 		while ($search->fetch()){
 			if (!is_null($search->lookfor) || strlen(trim($search->lookfor)) > 0){
-				$topNoHitSearches[] = "{$search->lookfor} ({$search->timesSearched})";
+				$topNoHitSearches[] = "{$search->lookfor} ({$search->numSearches})";
 			}else{
-				$topNoHitSearches[] = "<blank> ({$search->timesSearched})";
+				$topNoHitSearches[] = "<blank> ({$search->numSearches})";
 			}
 		}
 		$interface->assign('topNoHitSearches', $topNoHitSearches);

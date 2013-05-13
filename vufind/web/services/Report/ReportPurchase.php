@@ -25,7 +25,7 @@ require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class ReportPurchase extends Report{
+class Report_ReportPurchase extends Report_Report{
 
 	function launch(){
 		global $configArray;

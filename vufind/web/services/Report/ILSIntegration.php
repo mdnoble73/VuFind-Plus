@@ -22,12 +22,10 @@ require_once ROOT_DIR . '/services/Report/AnalyticsReport.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class ILSIntegration extends AnalyticsReport{
+class Report_ILSIntegration extends Report_AnalyticsReport{
 
 	function launch(){
-		global $configArray;
 		global $interface;
-		global $user;
 
 		//Setup filters
 		$this->setupFilters();

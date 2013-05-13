@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/services/Report/AnalyticsReport.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . '/PHPExcel.php');
 
-class Dashboard extends AnalyticsReport{
+class Report_Dashboard extends Report_AnalyticsReport{
 
 	function launch(){
 		global $interface;

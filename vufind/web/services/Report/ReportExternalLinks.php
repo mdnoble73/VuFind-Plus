@@ -26,7 +26,7 @@ require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . "/PHPExcel.php");
 require_once(ROOT_DIR . '/sys/ExternalLinkTracking.php');
 
-class ReportExternalLinks extends Report{
+class Report_ReportExternalLinks extends Report_Report{
 
 	function launch(){
 		global $configArray;
