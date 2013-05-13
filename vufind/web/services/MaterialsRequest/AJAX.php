@@ -58,15 +58,18 @@ class MaterialsRequest_AJAX extends Action{
 		}elseif (!isset($_REQUEST['id'])){
 			return array('success' => false, 'error' => 'Could not cancel the request, no id provided.');
 		}else{
-			$cancelledStatus = new MaterialsRequestStatus();
-			$cancelledStatus->isPatronCancel = 1;
-			$cancelledStatus->find(true);
-			
 			$id = $_REQUEST['id'];
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
 			$materialsRequest->createdBy = $user->id;
 			if ($materialsRequest->find(true)){
+				//get the correct status to set based on the user's home library
+				$homeLibrary = Library::getPatronHomeLibrary();
+				$cancelledStatus = new MaterialsRequestStatus();
+				$cancelledStatus->isPatronCancel = 1;
+				$cancelledStatus->libraryId = $homeLibrary->libraryId;
+				$cancelledStatus->find(true);
+
 				$materialsRequest->dateUpdated = time();
 				$materialsRequest->status = $cancelledStatus->id;
 				if ($materialsRequest->update()){

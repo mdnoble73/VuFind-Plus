@@ -57,6 +57,8 @@ class MaterialsRequest_MyRequests extends MyResearch
 			$materialsRequests->orderBy('title, dateCreated');
 			$statusQuery = new MaterialsRequestStatus();
 			if ($showOpen){
+				$homeLibrary = Library::getPatronHomeLibrary();
+				$statusQuery->libraryId = $homeLibrary->libraryId;
 				$statusQuery->isOpen = 1;
 			}
 			$materialsRequests->joinAdd($statusQuery);

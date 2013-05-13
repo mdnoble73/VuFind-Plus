@@ -70,6 +70,8 @@ class MaterialsRequest_Submit extends Action
 				$materialsRequest = new MaterialsRequest();
 				$materialsRequest->createdBy = $user->id;
 				$statusQuery = new MaterialsRequestStatus();
+				$homeLibrary = Library::getPatronHomeLibrary();
+				$statusQuery->libraryId = $homeLibrary->libraryId;
 				$statusQuery->isOpen = 1;
 				$materialsRequest->joinAdd($statusQuery);
 				$materialsRequest->selectAdd();

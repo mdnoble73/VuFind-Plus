@@ -844,8 +844,10 @@ class MillenniumDriver implements DriverInterface
 		if ($user){
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->createdBy = $user->id;
+			$homeLibrary = Library::getPatronHomeLibrary();
 			$statusQuery = new MaterialsRequestStatus();
 			$statusQuery->isOpen = 1;
+			$statusQuery->libraryId = $homeLibrary->libraryId;
 			$materialsRequest->joinAdd($statusQuery);
 			$materialsRequest->find();
 			$profile['numMaterialsRequests'] = $materialsRequest->N;
