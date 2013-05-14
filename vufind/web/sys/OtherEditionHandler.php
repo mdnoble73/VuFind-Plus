@@ -9,12 +9,14 @@
 class OtherEditionHandler{
 	static function getEditions($sourceSolrId, $isbn, $issn, $numResourcesToLoad = 5) {
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$editions = $memCache->get('other_editions_' . $isbn);
 		if (!$editions){
 			
 			// Setup Search Engine Connection
 			$class = $configArray['Index']['engine'];
+			/** @var Solr $db */
 			$db = new $class($configArray['Index']['url']);
 			if ($configArray['System']['debugSolr']) {
 				$db->debug = true;
@@ -36,7 +38,14 @@ class OtherEditionHandler{
 		}
 		return $editions;
 	}
-	
+
+	/**
+	 * @param string $sourceSolrId
+	 * @param string $isbn
+	 * @param integer $numResourcesToLoad
+	 * @param Solr $db
+	 * @return null
+	 */
 	private static function getLibraryThingRelatedRecords($sourceSolrId, $isbn, $numResourcesToLoad, $db){
 		$url = "http://www.librarything.com/api/thingISBN/$isbn" ;
 
@@ -69,7 +78,14 @@ class OtherEditionHandler{
 			return null;
 		}
 	}
-	
+
+	/**
+	 * @param string $sourceSolrId
+	 * @param string $isbn
+	 * @param integer $numResourcesToLoad
+	 * @param Solr $db
+	 * @return null
+	 */
 	private static function getXISBN($sourceSolrId, $isbn, $numResourcesToLoad, $db) {
 		global $configArray;
 
@@ -87,8 +103,8 @@ class OtherEditionHandler{
 		}
 
 		// Fetch results
+		$query = '';
 		if ($fp = @fopen($url, "r")) {
-			$query = '';
 			while (($data = fgetcsv($fp, 1000, ",")) !== FALSE) {
 				// If we got an error message, don't treat it as an ISBN!
 				if ($data[0] == 'overlimit') {
@@ -101,8 +117,22 @@ class OtherEditionHandler{
 				}
 			}
 		}
+		if ($query != '') {
+			//Get ISBNs from the record itself
+			$record = $db->getRecord($sourceSolrId);
+			if ($record && isset($record['isbn'])){
+				$isbns = is_array($record['isbn']) ? $record['isbn'] : array($record['isbn']);
+				foreach ($isbns as $tmpIsbn){
+					if ($query != '') {
+						$query .= ' OR isbn:' .$tmpIsbn;
+					} else {
+						$query = 'isbn:' . $tmpIsbn;
+					}
+				}
+			}
+		}
 
-		if (isset($query) && ($query != '')) {
+		if ($query != '') {
 			// Filter out current record
 			$query .= ' NOT id:' . $sourceSolrId;
 
@@ -121,6 +151,13 @@ class OtherEditionHandler{
 		}
 	}
 
+	/**
+	 * @param string $sourceSolrId
+	 * @param string $issn
+	 * @param integer $numResourcesToLoad
+	 * @param Solr $db
+	 * @return null
+	 */
 	private static function getXISSN($sourceSolrId, $issn, $numResourcesToLoad, $db) {
 		global $configArray;
 
