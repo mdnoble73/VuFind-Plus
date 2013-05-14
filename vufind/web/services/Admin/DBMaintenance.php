@@ -501,7 +501,7 @@ class DBMaintenance extends Admin_Admin {
 						libraryId INT(11) NOT NULL DEFAULT -1,
 						label VARCHAR(50) NOT NULL,
 						weight INT NOT NULL DEFAULT 0,
-						searchWhat ENUM('catalog', 'genealogy', 'overdrive', 'worldcat', 'prospector', 'goldrush', 'title_browse', 'author_browse', 'subject_browse', 'tag'),
+						searchWhat ENUM('catalog', 'genealogy', 'overdrive', 'worldcat', 'prospector', 'goldrush', 'title_browse', 'author_browse', 'subject_browse', 'tags'),
 						defaultFilter TEXT,
 						defaultSort ENUM('relevance', 'popularity', 'newest_to_oldest', 'oldest_to_newest', 'author', 'title', 'user_rating'),
 						INDEX (libraryId)
@@ -511,7 +511,7 @@ class DBMaintenance extends Admin_Admin {
 						locationId INT(11) NOT NULL DEFAULT -1,
 						label VARCHAR(50) NOT NULL,
 						weight INT NOT NULL DEFAULT 0,
-						searchWhat ENUM('catalog', 'genealogy', 'overdrive', 'worldcat', 'prospector', 'goldrush', 'title_browse', 'author_browse', 'subject_browse', 'tag'),
+						searchWhat ENUM('catalog', 'genealogy', 'overdrive', 'worldcat', 'prospector', 'goldrush', 'title_browse', 'author_browse', 'subject_browse', 'tags'),
 						defaultFilter TEXT,
 						defaultSort ENUM('relevance', 'popularity', 'newest_to_oldest', 'oldest_to_newest', 'author', 'title', 'user_rating'),
 						INDEX (locationId)

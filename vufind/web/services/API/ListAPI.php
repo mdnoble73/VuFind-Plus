@@ -433,9 +433,7 @@ class ListAPI extends Action {
 	 * - Title, Author, Bookcover URL, description, record id
 	 */
 	function getListTitles($listId = NULL, Pagination $pagination = NULL) {
-		global $interface;
 		global $configArray;
-		global $timer;
 
 		if (!$listId){
 			if (!isset($_REQUEST['id'])){
@@ -586,8 +584,7 @@ class ListAPI extends Action {
 					$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
 				}
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			}
-			elseif ($listId == 'highestRated'){
+			} elseif ($listId == 'highestRated'){
 				$query = "SELECT record_id, AVG(rating) FROM `user_rating` inner join resource on resourceid = resource.id GROUP BY resourceId order by AVG(rating) DESC LIMIT 30";
 				$result = mysql_query($query);
 				$ids = array();
@@ -596,23 +593,19 @@ class ListAPI extends Action {
 				}
 				$titles = $this->loadTitleInformationForIds($ids);
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			}
-			elseif ($listId == 'highestRatedEContent')
-			{
+			} elseif ($listId == 'highestRatedEContent') {
 				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 				$econtentRating = new EContentRating();
 				$records=$econtentRating->getRecordsListAvgRating("DESC",30);
-				if(!empty($records))
-				{
-					$titles = array();
+				$titles = array();
+				if(!empty($records)){
 					foreach ($records as $eContentRecord)
 					{
 						$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
 					}
 				}
 				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>1);
-			}
-			elseif ($listId == 'recentlyReviewed'){
+			} elseif ($listId == 'recentlyReviewed'){
 				$query = "SELECT record_id, MAX(created) FROM `comments` inner join resource on resource_id = resource.id group by resource_id order by max(created) DESC LIMIT 30";
 				$result = mysql_query($query);
 				$ids = array();
@@ -633,19 +626,21 @@ class ListAPI extends Action {
 			}elseif ($listId == 'recommendations'){
 				if (!$user){
 					return array('success'=>false, 'message'=>'A valid user must be provided to load recommendations.');
+				}else{
+					$userId = $user->id;
+					require_once(ROOT_DIR . '/services/MyResearch/lib/Suggestions.php');
+					$suggestions = Suggestions::getSuggestions($userId);
+					$titles = array();
+					foreach ($suggestions as $id=>$suggestion){
+						$titles[] = array(
+	            'id' => $id,
+	            'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $id . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
+	            'title' => $suggestion['titleInfo']['title'],
+	            'author' => $suggestion['titleInfo']['author']
+						);
+					}
+					return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>0);
 				}
-				require_once(ROOT_DIR . '/services/MyResearch/lib/Suggestions.php');
-				$suggestions = Suggestions::getSuggestions($userId);
-				$titles = array();
-				foreach ($suggestions as $id=>$suggestion){
-					$titles[] = array(
-            'id' => $id,
-            'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $id . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
-            'title' => $suggestion['titleInfo']['title'],
-            'author' => $suggestion['titleInfo']['author']
-					);
-				}
-				return array('success'=>true, 'listTitle' => $systemList['title'], 'listDescription' => $systemList['description'], 'titles'=>$titles, 'cacheLength'=>0);
 			}else{
 				$titles = $this->getRandomSystemListTitles($listId);
 				if (count($titles) > 0 ){
@@ -688,6 +683,12 @@ class ListAPI extends Action {
 		return $results;
 	}
 
+	/**
+	 * Get econtent information for a title.
+	 *
+	 * @param EContentRecord $eContentRecord
+	 * @return array
+	 */
 	private function setEcontentRecordInfoForList($eContentRecord)
 	{
 		global $configArray;
@@ -712,9 +713,7 @@ class ListAPI extends Action {
 	 * or for a single product.
 	 */
 	function getCacheInfoForList() {
-		global $interface;
 		global $configArray;
-		global $timer;
 
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 			$username = $_REQUEST['username'];
@@ -901,6 +900,7 @@ class ListAPI extends Action {
 	}
 
 	function getSavedSearchTitles($searchId){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		$cacheId = 'saved_search_titles_' . $searchId;
@@ -908,6 +908,7 @@ class ListAPI extends Action {
 		if ($listTitles == false || isset($_REQUEST['reload'])){
 			require_once(ROOT_DIR . '/services/Record/Description.php');
 			//return a random selection of 30 titles from the list.
+			/** @var SearchObject_Solr|SearchObject_Base $searchObj */
 			$searchObj = SearchObjectFactory::initSearchObject();
 			$searchObj->init();
 			$searchObj = $searchObj->restoreSavedSearch($searchId, false, true);
@@ -943,6 +944,7 @@ class ListAPI extends Action {
 					'id' => $record['id'],
 					'recordtype' => $record['recordtype'],
 					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+					'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
 					'title' => $record['title'],
 					'author' => isset($record['author']) ? $record['author'] : '',
 					'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
@@ -958,6 +960,7 @@ class ListAPI extends Action {
 	}
 
 	function getRandomSystemListTitles($listName){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		$listTitles = $memCache->get('system_list_titles_' . $listName);
@@ -1003,7 +1006,8 @@ class ListAPI extends Action {
 				$listTitles[] = array(
 	          'id' => $record['id'],
 	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-	          'title' => $record['title'],
+						'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+						'title' => $record['title'],
 	          'author' => isset($record['author']) ? $record['author'] : '',
 				    'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
 	          'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
@@ -1017,6 +1021,7 @@ class ListAPI extends Action {
 	}
 
 	function getSystemListTitles($listName){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		$listTitles = $memCache->get('system_list_titles_' . $listName);
@@ -1050,11 +1055,12 @@ class ListAPI extends Action {
 				$listTitles[] = array(
 	          'id' => $record['id'],
 	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
-	          'title' => $record['title'],
+						'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
+						'title' => $record['title'],
 	          'author' => $record['author'],
-				    'description' => $descriptiveInfo['description'],
-				    'length' => $descriptiveInfo['length'],
-				    'publisher' => $descriptiveInfo['publisher'],
+				    'description' => isset($descriptiveInfo) ? $descriptiveInfo['description'] : null,
+				    'length' => isset($descriptiveInfo) ? $descriptiveInfo['length'] : null,
+				    'publisher' => isset($descriptiveInfo) ? $descriptiveInfo['publisher'] : null,
 				);
 			}
 
@@ -1080,8 +1086,8 @@ class ListAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success � true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
-	 * <li>listId � te id of the new list that is created.</li>
+	 * <li>success - true if the account is valid and the list could be created, false if the username or password were incorrect or the list could not be created.</li>
+	 * <li>listId - te id of the new list that is created.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1138,9 +1144,9 @@ class ListAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success � true if the account is valid and the titles could be added to the list, false if the username or password were incorrect or the list could not be created.</li>
-	 * <li>listId � the id of the list that titles were added to.</li>
-	 * <li>numAdded � the number of titles that were added to the list.</li>
+	 * <li>success - true if the account is valid and the titles could be added to the list, false if the username or password were incorrect or the list could not be created.</li>
+	 * <li>listId - the id of the list that titles were added to.</li>
+	 * <li>numAdded - the number of titles that were added to the list.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
