@@ -84,7 +84,8 @@ class SearchObject_Solr extends SearchObject_Base
 		global $library;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
-		require_once ROOT_DIR . "/sys/" . $class . '.php';
+		$classWithExtension = $class . '.php';
+		require_once ROOT_DIR . "/sys/" . $classWithExtension;
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Index']['url']);
 		$timer->logTime('Created Index Engine');
@@ -197,15 +198,18 @@ class SearchObject_Solr extends SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
+	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
 	 * @return  boolean
 	 */
-	public function init()
+	public function init($searchSource = null)
 	{
 		global $module;
 		global $action;
 
 		// Call the standard initialization routine in the parent:
-		parent::init();
+		parent::init($searchSource);
+
+		$this->indexEngine->setSearchSource($searchSource);
 
 		//********************
 		// Check if we have a saved search to restore -- if restored successfully,
@@ -253,7 +257,6 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->initAdvancedSearch();
 		}
 
-		$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
 		//********************
 		// Author screens - handled slightly differently
 		if ($module == 'Author') {
@@ -959,7 +962,6 @@ class SearchObject_Solr extends SearchObject_Base
 		$newSearch = array();
 		if ($tag->find(true)) {
 			// Grab the list of records tagged with this tag
-			$resourceList = array();
 			$resourceList = $tag->getResources();
 			if (count($resourceList)) {
 				$newSearch[0] = array('join' => 'OR', 'group' => array());
@@ -1425,9 +1427,9 @@ class SearchObject_Solr extends SearchObject_Base
 		// Loop through every field returned by the result set
 		$validFields = array_keys($filter);
 
-		global $librarySingleton;
 		global $locationSingleton;
-		$currentLibrary = $librarySingleton->getActiveLibrary();
+		/** @var Library $currentLibrary */
+		$currentLibrary = Library::getActiveLibrary();
 		$activeLocationFacet = null;
 		$activeLocation = $locationSingleton->getActiveLocation();
 		if (!is_null($activeLocation)){
@@ -1438,7 +1440,7 @@ class SearchObject_Solr extends SearchObject_Base
 		if (!is_null($currentLibrary)){
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
 		}
-		$homeLibrary = $librarySingleton->getPatronHomeLibrary();
+		$homeLibrary = Library::getPatronHomeLibrary();
 		if (!is_null($homeLibrary)){
 			$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
 		}
@@ -1501,6 +1503,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 				//Setup the key to allow sorting alphabetically if needed.
 				$valueKey = $facet[0];
+				$okToAdd = true;
 				if ($doInstitutionProcessing){
 					//Special processing for Marmot digital library
 					if ($facet[0] == $currentLibrary->facetLabel){
@@ -1515,6 +1518,8 @@ class SearchObject_Solr extends SearchObject_Base
 						$valueKey = '2' . $valueKey;
 						$foundInstitution = true;
 						$numValidLibraries++;
+					}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
+						$okToAdd = false;
 					}
 				}else if ($doBranchProcessing){
 					if (strlen($facet[0]) > 0){
@@ -1534,19 +1539,23 @@ class SearchObject_Solr extends SearchObject_Base
 						}else if (!is_null($relatedHomeLocationFacets) && in_array($facet[0], $relatedHomeLocationFacets)){
 							$valueKey = '2' . $valueKey;
 							$numValidRelatedLocations++;
-						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
-							$valueKey = '4' . $valueKey;
-							$numValidRelatedLocations++;
 						}elseif (!is_null($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
 							$valueKey = '3' . $valueKey;
 							$numValidRelatedLocations++;
+						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
+							$valueKey = '4' . $valueKey;
+							$numValidRelatedLocations++;
+						}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
+							$okToAdd = false;
 						}
 					}
 				}
 
 
 				// Store the collected values:
-				$list[$field]['list'][$valueKey] = $currentSettings;
+				if ($okToAdd){
+					$list[$field]['list'][$valueKey] = $currentSettings;
+				}
 			}
 
 			if (!$foundInstitution && $doInstitutionProcessing){
@@ -1724,7 +1733,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * Turn our results into an Excel document
 	 *
 	 * @access  public
-	 * @public  array      $result      Existing result set (null to do new search)
+	 * @var  array      $result      Existing result set (null to do new search)
 	 * @return  string                  Excel document
 	 */
 	public function buildExcel($result = null)
@@ -1738,8 +1747,8 @@ class SearchObject_Solr extends SearchObject_Base
 
 		// Prepare the spreadsheet
 		ini_set('include_path', ini_get('include_path'.';/PHPExcel/Classes'));
-		include 'PHPExcel.php';
-		include 'PHPExcel/Writer/Excel2007.php';
+		include ROOT_DIR . '/PHPExcel.php';
+		include ROOT_DIR . '/PHPExcel/Writer/Excel2007.php';
 		$objPHPExcel = new PHPExcel();
 		$objPHPExcel->getProperties()->setTitle("Search Results");
 

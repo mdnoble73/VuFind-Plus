@@ -58,7 +58,6 @@ abstract class FacetSetting extends DB_DataObject {
 	}
 
 	static function getObjectStructure(){
-		global $user;
 
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),
@@ -76,18 +75,6 @@ abstract class FacetSetting extends DB_DataObject {
 			'useMoreFacetPopup' => array('property' => 'useMoreFacetPopup', 'type' => 'checkbox', 'label' => 'Use More Facet Popup', 'description'=>'Whether or not mroe facet options are shown in a popup box.', 'default'=>1),
 		);
 		return $structure;
-	}
-
-	function getEditLink(){
-		return '/Admin/LibraryFacetSettings?objectAction=edit&id=' . $this->id;
-	}
-
-	function insert(){
-		return parent::insert();
-	}
-
-	function update($dataObject = false){
-		return parent::update($dataObject);
 	}
 
 	function setupTopFacet($facetName, $displayName){

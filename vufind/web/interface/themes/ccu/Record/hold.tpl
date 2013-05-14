@@ -11,6 +11,11 @@
 				{if $holdDisclaimer}
 					<div id="holdDisclaimer">{$holdDisclaimer}</div>
 				{/if}
+				<p class="note">
+					Holds allow you to request that a title be delivered to your home library.
+					Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
+					You will then have 8 days to pickup the title from your home library.
+				</p>
 				{if (!isset($profile)) }
 					<label for="username">{translate text='Your Name'}:</label>
 					<input type="text" name="username" id="username" size="40" /><br/>

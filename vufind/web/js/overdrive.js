@@ -19,7 +19,12 @@ function selectOverDriveFormat(overdriveId, nextAction){
 	ajaxLightbox(ajaxUrl);
 }
 
+var overDriveCheckoutInProgress = false;
 function checkoutOverDriveItemOneClick(overdriveId){
+	if (overDriveCheckoutInProgress){
+		return false;
+	}
+	overDriveCheckoutInProgress = true;
 	if (loggedIn){
 		showProcessingIndicator("Checking out the title for you in OverDrive.  This may take a minute.");
 		var ajaxUrl = path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId;
@@ -52,9 +57,11 @@ function checkoutOverDriveItemOneClick(overdriveId){
 		});
 	}else{
 		ajaxLogin(function(){
+			overDriveCheckoutInProgress = false;
 			checkoutOverDriveItemOneClick(overdriveId);
 		});
 	}
+	overDriveCheckoutInProgress = false;
 	
 }
 function checkoutOverDriveItemStep2(overdriveId, formatId){
@@ -110,7 +117,12 @@ function processOverDriveHoldPrompts(){
 	doOverDriveHold(overdriveId, formatId, overdriveEmail, promptForOverdriveEmail);
 }
 
+var overDriveHoldInProgress = false;
 function placeOverDriveHold(overDriveId, formatId){
+	if (overDriveHoldInProgress){
+		return;
+	}
+	overDriveHoldInProgress = true;
 	if (loggedIn){
 		//Get any prompts needed for placing holds (e-mail and format depending on the interface.
 		var promptInfo = getOverDriveHoldPrompts(overDriveId, formatId, 'hold');
@@ -119,9 +131,11 @@ function placeOverDriveHold(overDriveId, formatId){
 		}
 	}else{
 		ajaxLogin(function(){
+			overDriveHoldInProgress = false;
 			placeOverDriveHold(overDriveId, formatId);
 		});
 	}
+	overDriveHoldInProgress = false;
 	return false;
 }
 

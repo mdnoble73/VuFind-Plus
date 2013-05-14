@@ -8,12 +8,22 @@
 				{foreach from=$ids item=id}
 					<input type="hidden" name="selected[{$id|escape:url}]" value="on" />
 				{/foreach}
+				<ol class="showNumbers">
+				{foreach from=$holdings item=holding}
+					<li>{$holding}</li>
+				{/foreach}
+				</ol>
 				<input type="hidden" name="holdCount" id="holdCount" value="{$ids|@count}"/>
 				<div class="pageWarning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: There is a maximum of <span class='maxHolds'>{$maxHolds}</span> holds allowed on your account.  You currently have <span class='currentHolds'>{$currentHolds}</span> on your account. Holds for more than <span class='maxHolds'>{$maxHolds}</span> will not be placed.</div>
 			</div>
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>
 			{/if}
+			<p class="note">
+				Holds allow you to request that a title be delivered to your home library.
+				Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
+				You will then have 8 days to pickup the title from your home library.
+			</p>
 			{foreach from=$ids item=id}
 				 <input type="hidden" name="selected[{$id|escape:url}]" value="on">
 			{/foreach}

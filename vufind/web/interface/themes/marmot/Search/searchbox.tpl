@@ -15,7 +15,7 @@
 				{/foreach}
 			</select>
 			for
-			<input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." />
+			<input id="lookfor" placeholder="Search term (blank to browse)" type="search" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." />
 			by
 			<select name="basicType" id="basicSearchTypes" {if $searchSource == 'genealogy'}style='display:none'{/if}>
 			{foreach from=$basicSearchTypes item=searchDesc key=searchVal}

@@ -28,7 +28,7 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
  * @author Mark Noble
  *
  */
-class DBMaintenance extends Admin {
+class DBMaintenance extends Admin_Admin {
 	function launch() 	{
 		global $configArray;
 		global $interface;
@@ -338,6 +338,14 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'library_32' => array(
+				'title' => 'Library 32',
+				'description' => 'Add restrictOwningBranchesAndSystems option to allow libraries to only show "their" systems and branches',
+				'sql' => array(
+					"ALTER TABLE library ADD restrictOwningBranchesAndSystems TINYINT(1) DEFAULT '1'",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
@@ -483,6 +491,34 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE location DROP defaultLocationFacet",
 				),
 			),
+
+			'search_sources' => array(
+				'title' => 'Search Sources',
+				'description' => 'Setup Library and Location Search Source Table',
+				'sql' => array(
+					"CREATE TABLE library_search_source (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						libraryId INT(11) NOT NULL DEFAULT -1,
+						label VARCHAR(50) NOT NULL,
+						weight INT NOT NULL DEFAULT 0,
+						searchWhat ENUM('catalog', 'genealogy', 'overdrive', 'worldcat', 'prospector', 'goldrush', 'title_browse', 'author_browse', 'subject_browse', 'tag'),
+						defaultFilter TEXT,
+						defaultSort ENUM('relevance', 'popularity', 'newest_to_oldest', 'oldest_to_newest', 'author', 'title', 'user_rating'),
+						INDEX (libraryId)
+					)",
+					"CREATE TABLE location_search_source (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						locationId INT(11) NOT NULL DEFAULT -1,
+						label VARCHAR(50) NOT NULL,
+						weight INT NOT NULL DEFAULT 0,
+						searchWhat ENUM('catalog', 'genealogy', 'overdrive', 'worldcat', 'prospector', 'goldrush', 'title_browse', 'author_browse', 'subject_browse', 'tag'),
+						defaultFilter TEXT,
+						defaultSort ENUM('relevance', 'popularity', 'newest_to_oldest', 'oldest_to_newest', 'author', 'title', 'user_rating'),
+						INDEX (locationId)
+					)"
+				),
+			),
+
 
 			'user_display_name' => array(
 				'title' => 'User display name',

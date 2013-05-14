@@ -2014,3 +2014,6 @@ div.popupBox ul li a {
 	font-size: 13px;
 	font-weight: bold;
 }
+ol.showNumbers li{
+	list-style: decimal inside none;
+}

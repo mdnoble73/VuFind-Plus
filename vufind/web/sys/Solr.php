@@ -116,6 +116,9 @@ class Solr implements IndexEngine {
 	 */
 	private $scopingDisabled = false;
 
+	/** @var LibrarySearchSource|LocationSearchSource  */
+	private $searchSource = null;
+
 	/**
 	 * Constructor
 	 *
@@ -1114,6 +1117,13 @@ class Solr implements IndexEngine {
 			$options['fl'] = '*,score';
 		}
 
+		if (is_object($this->searchSource)){
+			$defaultFilters = preg_split('/\r\n/', $this->searchSource->defaultFilter);
+			foreach ($defaultFilters as $tmpFilter){
+				$filter[] = $tmpFilter;
+			}
+		}
+
 		//Apply automatic boosting (only to biblio and econtent queries)
 		if (preg_match('/.*(biblio|econtent).*/i', $this->host)){
 			//unset($options['qt']); //Force the query to never use dismax handling
@@ -1150,10 +1160,15 @@ class Solr implements IndexEngine {
 			//Non book search (genealogy)
 			$scopingFilters = array();
 		}
-		if ($filter == null){
+		if ($filter != null && $scopingFilters != null){
+			if (!is_array($filter)){
+				$filter = array($filter);
+			}
+			$filters = array_merge($filter, $scopingFilters);
+		}else if ($filter == null){
 			$filters = $scopingFilters;
 		}else{
-			$filters = array_merge($filter, $scopingFilters);
+			$filters = $filter;
 		}
 
 
@@ -2132,6 +2147,10 @@ class Solr implements IndexEngine {
 		} else {
 			return $result;
 		}
+	}
+
+	public function setSearchSource($searchSource){
+		$this->searchSource = $searchSource;
 	}
 }
 

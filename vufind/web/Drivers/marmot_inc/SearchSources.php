@@ -1,6 +1,25 @@
 <?php
 class SearchSources{
 	static function getSearchSources(){
+		$activeLibrary = Library::getActiveLibrary();
+		if ($activeLibrary == null || count($activeLibrary->searchSources) == 0 ){
+			$searchSources = SearchSources::getSearchSourcesDefault();
+		}else{
+			$searchSources = SearchSources::getSearchSourcesLibrary($activeLibrary);
+		}
+		return $searchSources;
+	}
+	private static function getSearchSourcesLibrary($library){
+		$searchOptions = array();
+		foreach ($library->searchSources as $searchSource){
+			$searchOptions['library' . $searchSource->id] = array(
+				'name' => $searchSource->label,
+				'description' => $searchSource->label,
+			);
+		}
+		return $searchOptions;
+	}
+	private static function getSearchSourcesDefault(){
 		$searchOptions = array();
 		//Check to see if marmot catalog is a valid option
 		global $library;
@@ -235,6 +254,9 @@ class SearchSources{
 	}
 
 	public function getExternalLink($searchSource, $type, $lookFor){
+		if (is_object($searchSource)){
+			$searchSource = $searchSource->searchWhat;
+		}
 		global $library;
 		if ($searchSource =='goldrush'){
 			$goldRushType = $this->getGoldRushSearchType($type);

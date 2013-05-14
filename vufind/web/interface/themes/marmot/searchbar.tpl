@@ -16,7 +16,7 @@
 				{/foreach}
 			</select>
 			&nbsp;for&nbsp;
-			<input id="lookfor" type="text" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."/>
+			<input id="lookfor" placeholder="Search term (blank to browse)" type="search" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."/>
 			&nbsp;by&nbsp;
 			<select name="basicType" id="basicSearchTypes" {if $searchSource == 'genealogy'}style='display:none'{/if}>
 			{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
@@ -28,7 +28,7 @@
 				<option value="{$searchVal}"{if $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 			{/foreach}
 			</select>
-			
+
 			{if $filterList || $hasCheckboxFilters}
 				<div id="keepFilters">
 					<input id="keepFiltersSwitch" type="checkbox" onclick="filterAll(this);" /> <label for="keepFiltersSwitch">{translate text="basic_search_keep_filters"}</label>

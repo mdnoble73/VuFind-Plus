@@ -34,7 +34,16 @@ class Search_Results extends Action {
 		global $timer;
 		global $analytics;
 
+		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		if (preg_match('/library\d+/', $searchSource)){
+			$trimmedId = str_replace('library', '', $searchSource);
+			$searchSourceObj = new LibrarySearchSource();
+			$searchSourceObj->id = $trimmedId;
+			if ($searchSourceObj->find(true)){
+				$searchSource = $searchSourceObj;
+			}
+		}
 
 		if (isset($_REQUEST['replacementTerm'])){
 			$replacementTerm = $_REQUEST['replacementTerm'];
@@ -246,13 +255,17 @@ class Search_Results extends Action {
 
 		//Check to see if we should show unscoped results
 		$enableUnscopedSearch = false;
-		$searchLibrary = Library::getSearchLibrary();
-		if ($searchLibrary != null){
-			$searchSources = new SearchSources();
-			$searchOptions = $searchSources->getSearchSources();
-			if (isset($searchOptions['marmot']) && $searchLibrary->showMarmotResultsAtEndOfSearch){
-				$unscopedSearch = clone($searchObject);
-				$enableUnscopedSearch = true;
+		if (is_object($searchSource)){
+			$enableUnscopedSearch = false;
+		}else{
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary != null){
+				$searchSources = new SearchSources();
+				$searchOptions = $searchSources->getSearchSources();
+				if (isset($searchOptions['marmot']) && $searchLibrary->showMarmotResultsAtEndOfSearch){
+					$unscopedSearch = clone($searchObject);
+					$enableUnscopedSearch = true;
+				}
 			}
 		}
 
@@ -275,11 +288,15 @@ class Search_Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
-		$allSearchSources = SearchSources::getSearchSources();
-		if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
-			$searchSource = 'local';
+		if (is_object($searchSource)){
+			$translatedSearch = $searchSource->label;
+		}else{
+			$allSearchSources = SearchSources::getSearchSources();
+			if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
+				$searchSource = 'local';
+			}
+			$translatedSearch = $allSearchSources[$searchSource]['name'];
 		}
-		$translatedSearch = $allSearchSources[$searchSource]['name'];
 		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
 			//We didn't find anything.  Look for search Suggestions

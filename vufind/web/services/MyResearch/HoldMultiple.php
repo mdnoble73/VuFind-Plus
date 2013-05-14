@@ -22,14 +22,13 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once ROOT_DIR . '/Action.php';
 
-class HoldMultiple extends Action
+class MyResearch_HoldMultiple extends Action
 {
 	var $catalog;
 
 	function launch()
 	{
 		global $configArray;
-		global $user;
 
 		try {
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
@@ -74,11 +73,27 @@ class HoldMultiple extends Action
 			$allItemsEContent = true;
 			foreach ($selectedIds as $recordId => $onOff){
 				$ids[] = $recordId;
+				//Get the title for the item
+				$resource = new Resource();
 				if (strpos($recordId, 'econtentRecord') !== 0){
 					$allItemsEContent = false;
+					$resource->record_id = '.' . $recordId;
+					$resource->source = 'VuFind';
+					$resource->deleted = 0;
+				}else{
+					$shortId = str_replace('econtentRecord', '', $recordId);
+					$resource->record_id = $shortId;
+					$resource->source = 'eContent';
+					$resource->deleted = 0;
+				}
+				if ($resource->find(true)){
+					$holdings[] = $resource->title;
+				}else{
+					echo("Could not find resource for record id $recordId");
 				}
 			}
 			$interface->assign('ids', $ids);
+			$interface->assign('holdings', $holdings);
 
 			$hold_message_data = array(
 	          'successful' => 'all',

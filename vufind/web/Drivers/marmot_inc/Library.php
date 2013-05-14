@@ -7,6 +7,7 @@ require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/NearbyBookStore.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
 
 class Library extends DB_DataObject
 {
@@ -100,6 +101,7 @@ class Library extends DB_DataObject
 	public $recordsToBlackList;
 	public $showWikipediaContent;
 	public $eContentSupportAddress;
+	public $restrictOwningBranchesAndSystems;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -126,6 +128,10 @@ class Library extends DB_DataObject
 		unset($facetSettingStructure['numEntriesToShowByDefault']);
 		unset($facetSettingStructure['showAsDropDown']);
 		unset($facetSettingStructure['sortMode']);
+
+		$searchSourceStructure = LibrarySearchSource::getObjectStructure();
+		unset($searchSourceStructure['weight']);
+		unset($searchSourceStructure['libraryId']);
 
 		$structure = array(
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
@@ -180,6 +186,7 @@ class Library extends DB_DataObject
 				'includeDigitalCollection' => array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),
 				'includeOutOfSystemExternalLinks' => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for Marmot global scope.', 'hideInLists' => true, 'default'=>0),
 				'boostByLibrary' => array('property'=>'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
+				'restrictOwningBranchesAndSystems' => array('property'=>'restrictOwningBranchesAndSystems', 'type'=>'checkbox', 'label'=>'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
 				'searchesFile' => array('property'=>'searchesFile', 'type'=>'text', 'label'=>'Searches File', 'description'=>'The name of the searches file which should be used while searching', 'hideInLists' => true,),
 				'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
 				'systemsToRepeatIn'  => array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
@@ -286,6 +293,22 @@ class Library extends DB_DataObject
 				'allowEdit' => true,
 				'canEdit' => true,
 			),
+
+			'searchSources' => array(
+				'property'=>'searchSources',
+				'type'=>'oneToMany',
+				'label'=>'Search Sources',
+				'description'=>'Searches to display to the user',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibrarySearchSource',
+				'structure' => $searchSourceStructure,
+				//'hideInLists' => true,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => true,
+				'canEdit' => true,
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			if (isset($field['property'])){
@@ -323,7 +346,6 @@ class Library extends DB_DataObject
 	}
 
 	static function getActiveLibrary(){
-		global $user;
 		global $library;
 		//First check to see if we have a library loaded based on subdomain (loaded in index)
 		if (isset($library)) {
@@ -344,13 +366,7 @@ class Library extends DB_DataObject
 			//Load the library based on the home branch for the user
 			return self::getLibraryForLocation($physicalLocation->libraryId);
 		}
-		//Finally check to see if the user has logged in and if so, use that library
-		//MDN 7/9/2012 - Do not use home branch since that can lead to some very odd behavior.
-		/*if (isset($user) && $user != false){
-			//Load the library based on the home branch for the user
-			return self::getLibraryForLocation($user->homeLocationId);
-		}*/
-
+		return null;
 	}
 
 	static function getPatronHomeLibrary(){
@@ -418,6 +434,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->facets;
+		}elseif ($name == 'searchSources'){
+			if (!isset($this->searchSources) && $this->libraryId){
+				$this->searchSources = array();
+				$searchSource = new LibrarySearchSource();
+				$searchSource->libraryId = $this->libraryId;
+				$searchSource->orderBy('weight');
+				$searchSource->find();
+				while($searchSource->fetch()){
+					$this->searchSources[$searchSource->id] = clone($searchSource);
+				}
+			}
+			return $this->searchSources;
 		}
 	}
 
@@ -428,6 +456,8 @@ class Library extends DB_DataObject
 			$this->nearbyBookStores = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
+		}elseif ($name == 'searchSources'){
+			$this->searchSources = $value;
 		}
 	}
 
@@ -444,6 +474,7 @@ class Library extends DB_DataObject
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
+			$this->saveSearchSources();
 		}
 	}
 
@@ -460,6 +491,25 @@ class Library extends DB_DataObject
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
+			$this->saveSearchSources();
+		}
+	}
+
+	public function saveSearchSources(){
+		if (isset ($this->searchSources) && is_array($this->searchSources)){
+			foreach ($this->searchSources as $searchSource){
+				if (isset($searchSource->deleteOnSave) && $searchSource->deleteOnSave == true){
+					$searchSource->delete();
+				}else{
+					if (isset($searchSource->id) && is_numeric($searchSource->id)){
+						$ret = $searchSource->update();
+					}else{
+						$searchSource->libraryId = $this->libraryId;
+						$searchSource->insert();
+					}
+				}
+			}
+			unset($this->facets);
 		}
 	}
 

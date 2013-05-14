@@ -39,6 +39,7 @@ abstract class SearchObject_Base
 	protected $sort = null;
 	protected $defaultSort = 'relevance';
 	protected $defaultSortByType = array();
+	/** @var string|LibrarySearchSource|LocationSearchSource */
 	protected $searchSource = 'local';
 
 	// Filters
@@ -608,11 +609,23 @@ abstract class SearchObject_Base
 	 */
 	protected function initSort()
 	{
+		$defaultSort = '';
+		if (is_object($this->searchSource)){
+			$defaultSort = $this->searchSource->defaultSort;
+			if ($defaultSort == 'newest_to_oldest'){
+				$defaultSort = 'year';
+			}else if ($defaultSort == 'oldest_to_newest'){
+				$defaultSort = 'year asc';
+			}else if ($defaultSort == 'user_rating'){
+				$defaultSort = 'rating desc';
+			}else if ($defaultSort == 'popularity'){
+				$defaultSort = 'popularity desc';
+			}
+		}
 		if (isset($_REQUEST['sort'])) {
 			$this->sort = $_REQUEST['sort'];
-			$_SESSION['lastSearchSort'] = $_REQUEST['sort'];
-		} elseif (isset($_SESSION['lastSearchSort'])) {
-			$this->sort = $_SESSION['lastSearchSort'];
+		}else if ($defaultSort != ''){
+			$this->sort = $defaultSort;
 		} else {
 			// Is there a search-specific sort type set?
 			$type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
@@ -1352,13 +1365,16 @@ abstract class SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
+	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
 	 * @return  boolean
 	 */
-	public function init()
+	public function init($searchSource = null)
 	{
 		// Start the timer
 		$mtime = explode(' ', microtime());
 		$this->initTime = $mtime[1] + $mtime[0];
+
+		$this->searchSource = $searchSource;
 		return true;
 	}
 
