@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
-class Home extends Admin
+class Home extends Admin_Admin
 {
     function launch()
     {

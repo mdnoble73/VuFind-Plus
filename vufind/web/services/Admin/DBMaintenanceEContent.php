@@ -28,7 +28,7 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
  * @author Mark Noble
  *
  */
-class DBMaintenanceEContent extends Admin {
+class DBMaintenanceEContent extends Admin_Admin {
 	function launch() 	{
 		global $configArray;
 		global $interface;

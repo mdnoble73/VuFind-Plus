@@ -24,7 +24,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentAttachmentLogEntry.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class CronLog extends Admin
+class CronLog extends Admin_Admin
 {
 	function launch()
 	{

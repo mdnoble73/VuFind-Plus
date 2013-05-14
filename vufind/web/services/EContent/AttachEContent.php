@@ -24,7 +24,7 @@ require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/eContent/EContentAttachmentLogEntry.php';
 
-class AttachEContent extends Admin
+class AttachEContent extends Admin_Admin
 {
 	function launch()
 	{

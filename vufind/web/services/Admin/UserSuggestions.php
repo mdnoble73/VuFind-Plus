@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/UserSuggestion.php';
 require_once 'XML/Unserializer.php';
 
-class UserSuggestions extends Admin
+class UserSuggestions extends Admin_Admin
 {
     function launch()
     {
@@ -61,7 +61,6 @@ class UserSuggestions extends Admin
             }
             header("Location: {$configArray['Site']['path']}/Admin/UserSuggestions");
             die();
-            break;
         }
         
         //Show a list of user suggestions. 

@@ -26,7 +26,7 @@ require_once(ROOT_DIR . '/services/Admin/Admin.php');
 require_once(ROOT_DIR . '/sys/MaterialsRequest.php');
 require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
 
-class MaterialsRequest_ManageRequests extends Admin {
+class MaterialsRequest_ManageRequests extends Admin_Admin {
 
 	function launch()
 	{

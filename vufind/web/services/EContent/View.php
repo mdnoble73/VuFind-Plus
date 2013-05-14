@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 
-class View extends Admin {
+class View extends Admin_Admin {
 
 	function launch()
 	{

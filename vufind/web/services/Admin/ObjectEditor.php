@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
-abstract class ObjectEditor extends Admin
+abstract class ObjectEditor extends Admin_Admin
 {
 	function launch()
 	{
@@ -129,6 +129,11 @@ abstract class ObjectEditor extends Admin
 		//Check to see if we are getting default values from the
 		$this->updateFromUI($newObject, $structure);
 		$ret = $newObject->insert();
+		if (!$ret){
+			global $logger;
+			$logger->log('Could not insert new object ' . $ret, PEAR_LOG_DEBUG);
+			return false;
+		}
 		return $newObject;
 	}
 	function setDefaultValues($object, $structure){
@@ -355,6 +360,9 @@ abstract class ObjectEditor extends Admin
 		if (empty($id) || $id < 0){
 			//Insert a new record
 			$curObject = $this->insertObject($structure);
+			if ($curObject == false){
+				$interface->assign('title', "An error occurred inserting new {$this->getObjectType()}");
+			}
 		}else{
 			//Work with an existing record
 			$curObject = $this->getExistingObjectById($id);

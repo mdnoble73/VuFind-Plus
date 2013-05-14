@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/BookStore.php';
 
-class BookStores extends ObjectEditor
+class Admin_BookStores extends ObjectEditor
 {
 	
 	function getObjectType(){

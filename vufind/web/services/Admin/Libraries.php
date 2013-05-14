@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
 
-class Libraries extends ObjectEditor
+class Admin_Libraries extends ObjectEditor
 {
 
 	function getObjectType(){
@@ -90,6 +90,15 @@ class Libraries extends ObjectEditor
 			$objectActions[] = array(
 				'text' => 'Copy Library Facets',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
+			);
+
+			$objectActions[] = array(
+				'text' => 'Edit Search Sources',
+				'url' => '/Admin/LibrarySearchSources?libraryId=' . $existingObject->libraryId,
+			);
+			$objectActions[] = array(
+				'text' => 'Copy Library Search Sources',
+				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copySearchSourcesFromLibrary',
 			);
 		}else{
 			echo("Existing object is null");

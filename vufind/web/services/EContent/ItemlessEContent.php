@@ -27,7 +27,7 @@ require_once ROOT_DIR . '/sys/pChart/class/pImage.class.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/PHPExcel.php';
 
-class ItemlessEContent extends Admin
+class ItemlessEContent extends Admin_Admin
 {
 	function launch()
 	{

@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/ConfigArray.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 
-class Config extends Admin
+class Admin_Config extends Admin_Admin
 {
 	function launch()
 	{

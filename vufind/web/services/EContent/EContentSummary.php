@@ -26,7 +26,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class EContentSummary extends Admin
+class EContentSummary extends Admin_Admin
 {
 	function launch()
 	{

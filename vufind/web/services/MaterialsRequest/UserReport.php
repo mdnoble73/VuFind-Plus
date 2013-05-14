@@ -30,7 +30,7 @@ require_once(ROOT_DIR . "/sys/pChart/class/pDraw.class.php");
 require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class MaterialsRequest_UserReport extends Admin {
+class MaterialsRequest_UserReport extends Admin_Admin {
 
 	function launch()
 	{

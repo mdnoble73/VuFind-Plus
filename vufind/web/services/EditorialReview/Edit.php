@@ -23,7 +23,7 @@ require_once(ROOT_DIR . '/services/Admin/Admin.php');
 require_once(ROOT_DIR . '/sys/EditorialReview.php');
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 
-class Edit extends Admin {
+class Edit extends Admin_Admin {
 
 	function launch()
 	{

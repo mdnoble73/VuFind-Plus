@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
-class GenealogyFixDates extends Admin{
+class GenealogyFixDates extends Admin_Admin{
     function launch(){
         global $configArray;
         global $interface;

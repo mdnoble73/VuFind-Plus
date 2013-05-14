@@ -25,7 +25,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class Search extends Admin {
+class Search extends Admin_Admin {
 
 	function launch()
 	{

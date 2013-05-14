@@ -24,7 +24,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class EContentPurchaseAlert extends Admin
+class EContentPurchaseAlert extends Admin_Admin
 {
 	function launch()
 	{

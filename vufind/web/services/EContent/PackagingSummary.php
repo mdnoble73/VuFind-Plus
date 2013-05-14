@@ -26,7 +26,7 @@ require_once( ROOT_DIR . '/sys/pChart/class/pDraw.class.php"');
 require_once( ROOT_DIR . '/sys/pChart/class/pImage.class.php');
 require_once( ROOT_DIR . '/PHPExcel.php');
 
-class PackagingSummary extends Admin {
+class PackagingSummary extends Admin_Admin {
 
 	function launch()
 	{

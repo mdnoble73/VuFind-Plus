@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/eContent/PackagingDetailsEntry.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once 'Structures/DataGrid.php';
-class PackagingDetails extends Admin
+class PackagingDetails extends Admin_Admin
 {
 	function launch()
 	{

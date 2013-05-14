@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/CirculationStatus.php';
 require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
 
-class CirculationStatuses extends ObjectEditor
+class Admin_CirculationStatuses extends ObjectEditor
 {
 	function getObjectType(){
 		return 'CirculationStatus';

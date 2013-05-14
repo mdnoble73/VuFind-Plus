@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
-class GenealogyImport extends Admin{
+class GenealogyImport extends Admin_Admin{
     function launch(){
         global $configArray;
         global $interface;

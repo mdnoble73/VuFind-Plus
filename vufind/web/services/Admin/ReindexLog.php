@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class ReindexLog extends Admin
+class ReindexLog extends Admin_Admin
 {
 	function launch()
 	{

@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 
-class Statistics extends Admin
+class Statistics extends Admin_Admin
 {
     function launch()
     {

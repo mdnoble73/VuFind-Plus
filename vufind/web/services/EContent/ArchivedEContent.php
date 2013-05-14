@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class ArchivedEContent extends Admin
+class ArchivedEContent extends Admin_Admin
 {
 	function launch()
 	{

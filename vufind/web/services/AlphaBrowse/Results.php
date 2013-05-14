@@ -48,20 +48,29 @@ class AlphaBrowse_Results extends AlphaBrowse_Home {
 		global $configArray;
 		global $analytics;
 
-		// Connect to Solr:
-		$db = ConnectionManager::connectToIndex();
-
 		// Process incoming parameters:
 		$source = isset($_GET['source']) ? $_GET['source'] : false;
 		$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
 
-		if ($source == false && $type){
-			$source = $type;
-			if (strpos($source, 'browse') === 0){
-				$source = substr($source, strlen('browse'));
-				$source = strtolower( substr($source,0,1) ) . substr($source,1);
+		if ($source == false){
+			$searchSource = $_REQUEST['searchSource'];
+			if (preg_match('/library\d+/', $searchSource)){
+				$trimmedId = str_replace('library', '', $searchSource);
+				$searchSourceObj = new LibrarySearchSource();
+				$searchSourceObj->id = $trimmedId;
+				if ($searchSourceObj->find(true)){
+					$source = $searchSourceObj->searchWhat;
+					$source = str_replace('_browse', '', $source);
+				}
+			}else if ($type){
+				$source = $type;
+				if (strpos($source, 'browse') === 0){
+					$source = substr($source, strlen('browse'));
+					$source = strtolower( substr($source,0,1) ) . substr($source,1);
+				}
 			}
 		}
+
 		$interface->assign('searchIndex', 'browse' . ucfirst($source));
 		$from = isset($_GET['from']) ? $_GET['from'] : false;
 		if ($from == false & isset($_REQUEST['lookfor'])){

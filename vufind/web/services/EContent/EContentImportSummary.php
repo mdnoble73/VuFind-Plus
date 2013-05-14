@@ -29,7 +29,7 @@ require_once(ROOT_DIR . "/sys/pChart/class/pDraw.class.php");
 require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
 require_once(ROOT_DIR . "/PHPExcel.php");
 
-class EContentImportSummary extends Admin {
+class EContentImportSummary extends Admin_Admin {
 
 	function launch()
 	{
