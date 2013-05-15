@@ -419,6 +419,7 @@ public class MarcProcessor {
 			}
 		});
 		for (File curFile : orderFiles){
+			ReindexProcess.addNoteToCronLog("Loading order record file " + curFile);
 			String orderingLibrary = curFile.getName().substring(0, curFile.getName().indexOf('.'));
 			InputStream input;
 			try {
