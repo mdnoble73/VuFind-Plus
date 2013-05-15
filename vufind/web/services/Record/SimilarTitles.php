@@ -91,6 +91,8 @@ class Record_SimilarTitles extends Record_Record
 		$enrichment = $novelist->loadEnrichment($this->isbn);
 		$interface->assign('enrichment', $enrichment);
 
+		$interface->assign('id', $this->id);
+
 		//Build the actual view
 		$interface->setTemplate('view-similar.tpl');
 

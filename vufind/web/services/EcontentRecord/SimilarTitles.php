@@ -110,6 +110,8 @@ class EcontentRecord_SimilarTitles extends Action
 		$enrichment = $novelist->loadEnrichment($eContentRecord->getIsbn());
 		$interface->assign('enrichment', $enrichment);
 
+		$interface->assign('id', $this->id);
+
 		//Build the actual view
 		$interface->setTemplate('view-similar.tpl');
 
