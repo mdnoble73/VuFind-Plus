@@ -133,7 +133,7 @@ class OtherEditionHandler{
 					}
 				}
 				if (isset($record['grouping_term'])){
-					$query .= ' OR grouping_term:' . $record['grouping_term'];
+					$query .= ' OR grouping_term:"' . $record['grouping_term'] . '"';
 				}
 			}
 		}
