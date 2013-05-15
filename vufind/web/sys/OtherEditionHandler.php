@@ -12,7 +12,7 @@ class OtherEditionHandler{
 		/** @var Memcache $memCache */
 		global $memCache;
 		$editions = $memCache->get('other_editions_' . $isbn);
-		if (!$editions){
+		if (!$editions || isset($_REQUEST['reload'])){
 			
 			// Setup Search Engine Connection
 			$class = $configArray['Index']['engine'];
