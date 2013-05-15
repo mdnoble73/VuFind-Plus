@@ -63,11 +63,14 @@
 					</select></div>
 			</div>
 		{/if}
+
 		{if $useWorldCat}
 			<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
 				<input type="button" id="suggestIdentifiers" value="Find exact match" onclick="return getWorldCatIdentifiers();"/>
+				<img width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png">
 			</div>
 		{/if}
+
 		<div id="suggestedIdentifiers"></div>
 		{if !$materialsRequest || $new}
 			{if $showPlaceHoldField || $showIllField}

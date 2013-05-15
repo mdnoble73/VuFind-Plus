@@ -10,11 +10,6 @@
 							</a>
 							<div id='descriptionPlaceholder{$resource->record_id|regex_replace:"/\./":""|escape}' style='display:none'></div>
 						 {/if}
-
-							{* Place hold link *}
-							<div class='requestThisLink' id="placeHold{$resource->record_id|escape:"url"}" style="display:none">
-								<a href="{$path}/{if strtoupper($resource->source) == 'VUFIND'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold"><img src="{img filename="place_hold.png"}" alt="Place Hold"/></a>
-							</div>
 					</div>
 
 					<div class="resultDetails">
@@ -50,6 +45,13 @@
 							</div>
 						</div>
 						{/if}
+					</div>
+
+					<div class="resultActions">
+						{* Place hold link *}
+						<div class='requestThisLink  resultAction button' id="placeHold{$resource->record_id|escape:"url"}" style="display:none">
+							<a href="{$path}/{if strtoupper($resource->source) == 'VUFIND'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
+						</div>
 					</div>
 				</div>
 			</div>
