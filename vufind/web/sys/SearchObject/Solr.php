@@ -1514,6 +1514,10 @@ class SearchObject_Solr extends SearchObject_Base
 						$valueKey = '1' . $valueKey;
 						$foundInstitution = true;
 						$numValidLibraries++;
+					}elseif ($facet[0] == $currentLibrary->facetLabel . ' On Order' || $facet[0] == $currentLibrary->facetLabel . ' Under Consideration'){
+						$valueKey = '1' . $valueKey;
+						$foundInstitution = true;
+						$numValidLibraries++;
 					}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'Marmot Digital Library'){
 						$valueKey = '2' . $valueKey;
 						$foundInstitution = true;
@@ -1528,6 +1532,9 @@ class SearchObject_Solr extends SearchObject_Base
 							$foundBranch = true;
 							$numValidRelatedLocations++;
 						}elseif (isset($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
+							$valueKey = '1' . $valueKey;
+							$numValidRelatedLocations++;
+						}elseif (isset($currentLibrary) && ($facet[0] == $currentLibrary->facetLabel . ' On Order' || $facet[0] == $currentLibrary->facetLabel . ' Under Consideration')){
 							$valueKey = '1' . $valueKey;
 							$numValidRelatedLocations++;
 						}else if (!is_null($relatedLocationFacets) && in_array($facet[0], $relatedLocationFacets)){
