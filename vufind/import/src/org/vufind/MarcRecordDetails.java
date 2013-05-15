@@ -1766,7 +1766,7 @@ public class MarcRecordDetails {
 		String title = getTitle();
 		title = Util.trimTrailingPunctuation(title);
 		String author = getAuthor();
-		author = Util.trimTrailingPunctuation(title);
+		author = Util.trimTrailingPunctuation(author);
 		return (title + " " + author).trim();
 	}
 
