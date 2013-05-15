@@ -12,35 +12,35 @@
 		</div>
 		<div class="form-item formatSpecificField articleField">
 			<div><label for="magazineTitle">Magazine/Journal Title <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineTitle" id="magazineTitle" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/></div>
+			<div><input name="magazineTitle" id="magazineTitle" size="90" maxlength="255" class="required" value="{$materialsRequest->magazineTitle}"/></div>
 		</div>
 		<div class="form-item ">
 			<div><label for="title" id="titleLabel">Title <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="title" id="title" maxlength="255" class="required" value="{$materialsRequest->title}"/></div>
+			<div><input name="title" id="title" size="90" maxlength="255" class="required" value="{$materialsRequest->title}"/></div>
 		</div>
 		<div class="form-item formatSpecificField dvdField blurayField vhsField">
 			<div><label for="season">Season:</label></div>
-			<div><input name="season" id="season" maxlength="80" value="{$materialsRequest->season}"/></div>
+			<div><input name="season" id="season" size="90" maxlength="80" value="{$materialsRequest->season}"/></div>
 		</div>
 		<div class="form-item">
 			<div><label for="author" id="authorFieldLabel">Author <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="author" id="author" maxlength="255" class="required" value="{$materialsRequest->author}"/></div>
+			<div><input name="author" id="author" size="90" maxlength="255" class="required" value="{$materialsRequest->author}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
 			<div><label for="magazineDate">Date <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineDate" id="magazineDate" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineDate}"/></div>
+			<div><input name="magazineDate" id="magazineDate" size="20" maxlength="20" class="required" value="{$materialsRequest->magazineDate}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
 			<div><label for="magazineVolume">Volume <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineVolume" id="magazineVolume" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineVolume}"/></div>
+			<div><input name="magazineVolume" id="magazineVolume" size="20" maxlength="20" class="required" value="{$materialsRequest->magazineVolume}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
 			<div><label for="magazineNumber">Number <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineNumber" id="magazineNumber" size="10" maxlength="20" class="required" value="{$materialsRequest->magazineNumber}"/></div>
+			<div><input name="magazineNumber" id="magazineNumber" size="20" maxlength="20" class="required" value="{$materialsRequest->magazineNumber}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
 			<div><label for="magazinePageNumbers">Page Numbers <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazinePageNumbers" id="magazinePageNumbers" size="10" maxlength="20" class="required" value="{$materialsRequest->magazinePageNumbers}"/></div>
+			<div><input name="magazinePageNumbers" id="magazinePageNumbers" size="20" maxlength="20" class="required" value="{$materialsRequest->magazinePageNumbers}"/></div>
 		</div>
 		{if $showEbookFormatField}
 			<div class="form-item formatSpecificField ebookField">
@@ -68,7 +68,7 @@
 				<input type="button" id="suggestIdentifiers" value="Find exact match" onclick="return getWorldCatIdentifiers();"/>
 			</div>
 		{/if}
-		<div id="identifiers-wrapper"></div>
+		<div id="suggestedIdentifiers"></div>
 		{if !$materialsRequest || $new}
 			{if $showPlaceHoldField || $showIllField}
 				<fieldset>
@@ -77,6 +77,7 @@
 						<div class="form-item">
 							<div>Place a hold for me when the item is available:</div>
 							<input type="radio" name="placeHoldWhenAvailable" value="1" id="placeHoldYes" checked="checked" onclick="updateHoldOptions();"/>&nbsp;<label for="placeHoldYes">Yes</label>
+							&nbsp;&nbsp;
 							<input type="radio" name="placeHoldWhenAvailable" value="0" id="placeHoldNo" onclick="updateHoldOptions();"/>&nbsp;<label for="placeHoldNo">No</label>
 						</div>
 						<div id="pickupLocationField" class="form-item">
@@ -97,6 +98,7 @@
 							<div>Do you want us to borrow from another library if not purchased?:</div>
 							<div>
 								<input type="radio" name="illItem" value="1" id="illItemYes" />&nbsp;<label for="illItemYes">Yes</label>
+								&nbsp;&nbsp;
 								<input type="radio" name="illItem" value="0" id="illItemNo" checked="checked" />&nbsp;<label for="illItemNo">No</label>
 							</div>
 						</div>
@@ -161,11 +163,11 @@
 
 				<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
 					<div><label for="publisher">Publisher:</label></div>
-					<div><input name="publisher" id="publisher" maxlength="255" value="{$materialsRequest->publisher}"/></div>
+					<div><input name="publisher" id="publisher" size="40" maxlength="255" value="{$materialsRequest->publisher}"/></div>
 				</div>
 				<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
 					<div><label for="publicationYear">Publication Year:</label></div>
-					<div><input name="publicationYear" id="publicationYear" size="4" maxlength="4" value="{$materialsRequest->publicationYear}"/></div>
+					<div><input name="publicationYear" id="publicationYear" size="6" maxlength="4" value="{$materialsRequest->publicationYear}"/></div>
 				</div>
 			</div>
 		</fieldset>
@@ -209,16 +211,16 @@
 			<legend>Contact info</legend>
 			<div id="materialRequestContactInfo">
 				<p>Review the contact details below to confirm we have your latest info on file.</p>
+				<div class="form-item">
+					<div><label for="email">{translate text='Email'}: </label></div>
+					<div><input type="text" name="email" id="email" size="40" maxlength="80" value="{$defaultEmail}"/></div>
+				</div>
 				{if $showPhoneField}
 					<div class="form-item">
 						<div><label for="phone">{translate text='Phone'}: </label></div>
 						<div><input type="text" name="phone" id="phone" size="15" class="tel" value="{$defaultPhone}"/></div>
 					</div>
 				{/if}
-				<div class="form-item">
-					<div><label for="email">{translate text='Email'}: </label></div>
-					<div><input type="text" name="email" id="email" maxlength="80" value="{$defaultEmail}"/></div>
-				</div>
 			</div>
 		</fieldset>
 	</div>

@@ -2017,3 +2017,15 @@ div.popupBox ul li a {
 ol.showNumbers li{
 	list-style: decimal inside none;
 }
+
+/* Materials Request Styling */
+.suggestedIdentifierTable td, .suggestedIdentifierTable th{
+	padding: 4px 2px;
+	vertical-align: top;
+}
+.suggestedIdentifierTable tr{
+	border-bottom: 1px solid darkgray;
+}
+.form-item{
+	padding: 2px 0px;
+}
