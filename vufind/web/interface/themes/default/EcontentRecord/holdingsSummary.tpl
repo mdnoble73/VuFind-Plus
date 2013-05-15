@@ -41,10 +41,10 @@
 		{/if}
 	{/if} 
 	
-	{if $showOtherEditionsPopup}
+	{* {if $showOtherEditionsPopup}
 		<div class="otherEditions">
 			<a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', true)">Other Formats and Languages</a>
 		</div>
-	{/if}
+	{/if} *}
  </div>
  {/strip}
