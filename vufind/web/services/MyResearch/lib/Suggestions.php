@@ -150,6 +150,10 @@ class Suggestions{
 			$groupedTitles[] = $groupingTerm;
 		}
 
+		//If the user has not rated anything, return nothing.
+		if (count($allLikedRatedTitles) == 0){
+			return array();
+		}
 		//Get recommendations based on everything I've rated using more like this functionality
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];

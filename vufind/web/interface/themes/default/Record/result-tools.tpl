@@ -14,7 +14,7 @@
 {/if}
 {if $showFavorites == 1}
 <div id="saveLink{$recordId|escape}" class="resultAction">
-	<a href="{$path}/Resource/Save?id={$recordId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$recordId|escape}', 'VuFind'); return false;"><span class="silk star_gold">&nbsp;</span>{translate text='Add to favorites'}</a>
+	<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;"><span class="silk star_gold">&nbsp;</span>{translate text='Add to favorites'}</a>
 	{if $user}
 	<script type="text/javascript">
 		getSaveStatuses('{$recordId|escape:"javascript"}');
