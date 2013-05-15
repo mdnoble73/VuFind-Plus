@@ -3,6 +3,8 @@
 	<div id="selectLibraryMenu">
 		<form id="selectLibrary" method="get" action="/MyResearch/SelectInterface">
 			<div>
+				<input type="hidden" name="gotoModule" value="{$gotoModule}"/>
+				<input type="hidden" name="gotoAction" value="{$gotoAction}"/>
 				{foreach from=$libraries item=libraryInfo}
 					<div class="selectLibraryOption">
 						<input type="radio" id="library{$libraryInfo.id}" name="library" value="{$libraryInfo.id}"/><label for="library{$libraryInfo.id}">{$libraryInfo.displayName}</label>

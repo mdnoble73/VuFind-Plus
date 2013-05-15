@@ -30,6 +30,10 @@ class MyResearch_SelectInterface extends Action{
 		global $locationSingleton;
 		$physicalLocation = $locationSingleton->getActiveLocation();
 
+		$gotoModule = $_REQUEST['gotoModule'];
+		$interface->assign('gotoModule', $gotoModule);
+		$gotoAction = $_REQUEST['gotoAction'];
+		$interface->assign('gotoAction', $gotoAction);
 
 		$redirectLibrary = null;
 		if (isset($_REQUEST['library'])){
@@ -55,6 +59,12 @@ class MyResearch_SelectInterface extends Action{
 			}
 			$urlPortions[1] = str_replace('opac.', '', $urlPortions[1]);
 			$baseUrl = $urlPortions[0] . '://' . $subdomain . '.' . $urlPortions[1];
+			if ($gotoModule){
+				$baseUrl .= '/' . $gotoModule;
+			}
+			if ($gotoAction){
+				$baseUrl .= '/' . $gotoAction;
+			}
 			if (isset($_REQUEST['rememberThis']) && isset($_REQUEST['submit'])){
 				if ($user){
 					$user->preferredLibraryInterface = $redirectLibrary;
