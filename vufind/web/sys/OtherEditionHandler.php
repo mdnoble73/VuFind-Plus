@@ -120,15 +120,20 @@ class OtherEditionHandler{
 		if (strlen($query) == 0) {
 			//Get ISBNs from the record itself
 			$record = $db->getRecord($sourceSolrId);
-			if ($record && isset($record['isbn'])){
-				$isbns = is_array($record['isbn']) ? $record['isbn'] : array($record['isbn']);
-				foreach ($isbns as $tmpIsbn){
-					$tmpIsbn = ISBN::normalizeISBN($tmpIsbn);
-					if ($query != '') {
-						$query .= ' OR isbn:' .$tmpIsbn;
-					} else {
-						$query = 'isbn:' . $tmpIsbn;
+			if ($record){
+				if (isset($record['isbn'])){
+					$isbns = is_array($record['isbn']) ? $record['isbn'] : array($record['isbn']);
+					foreach ($isbns as $tmpIsbn){
+						$tmpIsbn = ISBN::normalizeISBN($tmpIsbn);
+						if ($query != '') {
+							$query .= ' OR isbn:' .$tmpIsbn;
+						} else {
+							$query = 'isbn:' . $tmpIsbn;
+						}
 					}
+				}
+				if (isset($record['grouping_term'])){
+					$query .= ' OR grouping_term:' . $record['grouping_term'];
 				}
 			}
 		}
