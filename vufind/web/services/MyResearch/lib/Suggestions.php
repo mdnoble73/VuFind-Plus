@@ -42,7 +42,7 @@ class Suggestions{
 		$ratings->joinAdd($resource);
 		$ratings->find();
 		while ($ratings->fetch()){
-			$allRatedTitles[] = $ratings->record_id;
+			$allRatedTitles[$ratings->record_id] = $ratings->record_id;
 			if ($ratings->rating >= 4){
 				$allLikedRatedTitles[] = $ratings->record_id;
 			}
@@ -53,7 +53,7 @@ class Suggestions{
 		$econtentRatings->userId = $userId;
 		$econtentRatings->find();
 		while ($econtentRatings->fetch()){
-			$allRatedTitles[] = 'econtentRecord' . $econtentRatings->recordId;
+			$allRatedTitles['econtentRecord' . $econtentRatings->recordId] = 'econtentRecord' . $econtentRatings->recordId;
 			if ($econtentRatings->rating >= 4){
 				$allLikedRatedTitles[] = 'econtentRecord' . $econtentRatings->recordId;
 			}
@@ -171,11 +171,13 @@ class Suggestions{
 				}
 				$groupedTitles[$groupingTerm] = $groupingTerm;
 				//print_r($suggestion);
-				$suggestions[$suggestion['id']] = array(
-					'rating' => $suggestion['rating'] - 2.5,
-					'titleInfo' => $suggestion,
-					'basedOn' => 'MetaData for all titles rated',
-				);
+				if (!array_key_exists($suggestion['id'], $allRatedTitles)){
+					$suggestions[$suggestion['id']] = array(
+						'rating' => $suggestion['rating'] - 2.5,
+						'titleInfo' => $suggestion,
+						'basedOn' => 'MetaData for all titles rated',
+					);
+				}
 				if (count($suggestions) == 30){
 					break;
 				}
@@ -278,7 +280,7 @@ class Suggestions{
 		return $numRecommendations;
 	}
 
-	static function getNovelistRecommendations($userRating, $isbn, $resource, $ratedTitles, &$suggestions, $notInterestedTitles){
+	static function getNovelistRecommendations($userRating, $isbn, $resource, $allRatedTitles, &$suggestions, $notInterestedTitles){
 		//We now have the title, we can get the related titles from Novelist
 		$novelist = NovelistFactory::getNovelist();;
 		//Use loadEnrichmentInfo even though there is more data than we need since it uses caching.
@@ -289,7 +291,7 @@ class Suggestions{
 			//For each related title
 			foreach ($enrichmentInfo['similarTitles'] as $similarTitle){
 				if ($similarTitle['libraryOwned']){
-					Suggestions::addTitleToSuggestions($userRating, $resource->title, $resource->record_id, $similarTitle, $ratedTitles, $suggestions, $notInterestedTitles);
+					Suggestions::addTitleToSuggestions($userRating, $resource->title, $resource->record_id, $similarTitle, $allRatedTitles, $suggestions, $notInterestedTitles);
 					$numRecommendations++;
 				}
 			}
@@ -297,9 +299,9 @@ class Suggestions{
 		return $numRecommendations;
 	}
 
-	static function addTitleToSuggestions($userRating, $sourceTitle, $sourceId, $similarTitle, $ratedTitles, &$suggestions, $notInterestedTitles){
+	static function addTitleToSuggestions($userRating, $sourceTitle, $sourceId, $similarTitle, $allRatedTitles, &$suggestions, $notInterestedTitles){
 		//Don't suggest titles that have already been rated
-		if (array_key_exists($similarTitle['id'], $ratedTitles)){
+		if (array_key_exists($similarTitle['id'], $allRatedTitles)){
 			return;
 		}
 		//Don't suggest titles the user is not interested in.
