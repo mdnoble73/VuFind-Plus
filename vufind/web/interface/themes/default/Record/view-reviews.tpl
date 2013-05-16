@@ -16,11 +16,11 @@
 				<div id = 'review{php}$index ++;{/php}{$index}'>
 				{if $review.Teaser}
 					 <div class="reviewTeaser" id="reviewTeaser{php}echo $index;{/php}">
-					 {$review.Teaser} <span onclick="$('#reviewTeaser{$index}').hide();$('#reviewContent{$index}').show();" class='reviewMoreLink'>(more)</span>
+					 {$review.Teaser} <span onclick="$('#reviewTeaser{php}echo $index;{/php}').hide();$('#reviewContent{php}echo $index;{/php}').show();" class='reviewMoreLink'>(more)</span>
 					 </div>
 					 <div class="reviewTeaser" id="reviewContent{php}echo $index;{/php}" style='display:none'>
 					 {$review.Content}
-					 <span onclick="$('#reviewTeaser{$index}').show();$('#reviewContent{$index}').hide();" class='reviewMoreLink'> (less)</span>
+					 <span onclick="$('#reviewTeaser{php}echo $index;{/php}').show();$('#reviewContent{php}echo $index;{/php}').hide();" class='reviewMoreLink'> (less)</span>
 					 </div>
 				{else}
 					 <div class="reviewContent">{$review.Content}</div>
