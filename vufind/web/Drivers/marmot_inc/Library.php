@@ -320,15 +320,16 @@ class Library extends DB_DataObject
 	}
 
 	static function getSearchLibrary($searchSource = null){
-		if ($searchSource == null){
+		if (is_null($searchSource)){
 			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
 			if (strpos($searchSource, 'library') === 0){
 				$trimmedSearchSource = str_replace('library', '', $searchSource);
 				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
 				$librarySearchSource = new LibrarySearchSource();
 				$librarySearchSource->id = $trimmedSearchSource;
-				$librarySearchSource->find(true);
-				$searchSource = $librarySearchSource;
+				if ($librarySearchSource->find(true)){
+					$searchSource = $librarySearchSource;
+				}
 			}
 		}
 		if (is_object($searchSource)){
@@ -345,7 +346,7 @@ class Library extends DB_DataObject
 			if (is_null($location)){
 				//Check to see if we have a library for the subdomain
 				$library = new Library();
-				$library->subdomain = $searchSource;
+				$library->subdomain = $scopingSetting;
 				$library->find();
 				if ($library->N > 0){
 					$library->fetch();
