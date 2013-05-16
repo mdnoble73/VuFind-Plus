@@ -24,7 +24,7 @@
 			<li><a href="#similarSeriesNoveList">Similar Series from NoveList</a></li>
 			{/if}
 			{if $recordCount > 0}
-			<li><a href="#similarTitlesVuFind">Similar Titles In The Catalog</a></li>
+			<li><a href="#similarTitlesVuFind">Similar Titles</a></li>
 			{/if}
 		</ul>
 		{if $enrichment.similarTitleCount > 0}
