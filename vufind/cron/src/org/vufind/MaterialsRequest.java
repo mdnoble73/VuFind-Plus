@@ -41,13 +41,7 @@ public class MaterialsRequest implements IProcessHandler{
 	private CronProcessLogEntry processLog;
 	private String vufindUrl;
 	private Logger logger;
-	private String installPath;
-	private String libraryName;
-	private String circulationPhone;
-	private String circulationEmail;
-	private String circulationUrl;
-	private String emailFrom;
-	
+
 	@Override
 	public void doCronProcess(String serverName, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Materials Request");
@@ -173,33 +167,6 @@ public class MaterialsRequest implements IProcessHandler{
 	protected boolean loadConfig(Ini ini, Logger logger) {
 		vufindUrl = Util.cleanIniValue(ini.get("Site", "url"));
 		
-		installPath = ini.get("Site", "installPath");
-		if (installPath == null || installPath.length() == 0) {
-			logger.error("Local path to vufind installation not found in General Settings.  Please specify location in local key.");
-			return false;
-		}
-		emailFrom = ini.get("MaterialsRequest", "emailFrom");
-		if (emailFrom == null || emailFrom.length() == 0) {
-			logger.error("Email From address not found in Process Settings.  Please specify host in emailPort key.");
-			return false;
-		}
-		
-		libraryName = ini.get("Site", "libraryName");
-		if (libraryName == null || libraryName.length() == 0) {
-			logger.warn("Library Name not found in Process Settings.  Please specify add libraryName key.");
-		}
-		circulationPhone = ini.get("MaterialsRequest", "phone");
-		if (circulationPhone == null || circulationPhone.length() == 0) {
-			logger.warn("Circulation Department Phone Number not found in Process Settings.  Please specify add circulationPhone key.");
-		}
-		circulationEmail = ini.get("MaterialsRequest", "email");
-		if (circulationEmail == null || circulationEmail.length() == 0) {
-			logger.warn("Circulation Department Email not found in Process Settings.  Please specify add circulationPhone key.");
-		}
-		circulationUrl = ini.get("MaterialsRequest", "url");
-		if (circulationUrl == null || circulationUrl.length() == 0) {
-			logger.warn("Circulation Department not found in Process Settings.  Please specify add circulationUrl key.");
-		}
 		return true;
 	}
 
