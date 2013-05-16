@@ -3,7 +3,8 @@ require_once 'Authentication.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 class ILSAuthentication implements Authentication {
-
+	private $username;
+	private $password;
 	public function authenticate(){
 		global $configArray;
 
@@ -35,7 +36,7 @@ class ILSAuthentication implements Authentication {
 	}
 
 	private function processILSUser($info){
-		require_once "services/MyResearch/lib/User.php";
+		require_once ROOT_DIR . "/services/MyResearch/lib/User.php";
 
 		$user = new User();
 		//Marmot make sure we are using the username which is the

@@ -85,8 +85,8 @@ class MaterialsRequest extends DB_DataObject
 	}
 
 	static $materialsRequestEnabled = null;
-	static function enableMaterialsRequest(){
-		if (MaterialsRequest::$materialsRequestEnabled != null){
+	static function enableMaterialsRequest($forceReload = false){
+		if (MaterialsRequest::$materialsRequestEnabled != null && $forceReload == false){
 			return MaterialsRequest::$materialsRequestEnabled;
 		}
 		global $configArray;
@@ -102,7 +102,9 @@ class MaterialsRequest extends DB_DataObject
 					$enableMaterialsRequest = false;
 				}else if ($user){
 					$homeLibrary = Library::getPatronHomeLibrary();
-					if ($homeLibrary->enableMaterialsRequest == 0){
+					if (is_null($homeLibrary)){
+						$enableMaterialsRequest = false;
+					}else if ($homeLibrary->enableMaterialsRequest == 0){
 						$enableMaterialsRequest = false;
 					}else if ($homeLibrary->libraryId != $library->libraryId){
 						$enableMaterialsRequest = false;

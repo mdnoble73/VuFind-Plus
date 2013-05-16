@@ -123,8 +123,7 @@ class JSON extends Action {
 			}
 		}
 
-		global $locationSingleton;
-		$patronHomeBranch = $locationSingleton->getUserHomeLocation();
+		$patronHomeBranch = Location::getUserHomeLocation();
 		//Check to see if materials request should be activated
 		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
 		return array(
@@ -133,7 +132,7 @@ class JSON extends Action {
 			'phone'=>$user->phone,
 			'email'=>$user->email,
 			'homeLocation'=> isset($patronHomeBranch) ? $patronHomeBranch->code : '',
-			'enableMaterialsRequest' => MaterialsRequest::enableMaterialsRequest(),
+			'enableMaterialsRequest' => MaterialsRequest::enableMaterialsRequest(true),
 		);
 	}
 
