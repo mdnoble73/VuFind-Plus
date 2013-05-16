@@ -1,5 +1,6 @@
 package org.vufind;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
@@ -33,8 +34,7 @@ import org.json.JSONObject;
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * @author Mark Noble <mnoble@turningleaftech.com>
- * @copyright Copyright (C) Anythink Libraries 2012.
- * 
+ *
  */
 public class MaterialsRequest implements IProcessHandler{
 	private Connection vufindConn = null;
@@ -48,7 +48,7 @@ public class MaterialsRequest implements IProcessHandler{
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
 		this.vufindConn = vufindConn;
-		if (!loadConfig(configIni, logger)){
+		if (!loadConfig(configIni)){
 			return;
 		}
 		
@@ -80,74 +80,11 @@ public class MaterialsRequest implements IProcessHandler{
 				String holdPickupLocation = requestsToCreateHolds.getString("holdPickupLocation");
 				String cat_username = requestsToCreateHolds.getString("cat_username");
 				String cat_password = requestsToCreateHolds.getString("cat_password");
-				
-				String recordId = null;
-				//Search for the isbn 
-				if ((requestIsbn != null && requestIsbn.length() > 0) || (requestIssn != null && requestIssn.length() > 0) || (requestUpc != null && requestUpc.length() > 0) || (requestOclcNumber != null && requestOclcNumber.length() > 0)){
-					URL searchUrl;
-					if (requestIsbn != null && requestIsbn.length() > 0){
-						searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestIsbn + "&type=isn");
-					}else if (requestIssn != null && requestIssn.length() > 0){
-						searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestIssn + "&type=isn");
-					}else if (requestUpc != null && requestUpc.length() > 0){
-						searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestUpc + "&type=isn");
-					}else{
-						searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=oclc" + requestOclcNumber + "&type=allfields");
-					}
-					Object searchDataRaw = searchUrl.getContent();
-					if (searchDataRaw instanceof InputStream) {
-						String searchDataJson = Util.convertStreamToString((InputStream) searchDataRaw);
-						try {
-							JSONObject searchData = new JSONObject(searchDataJson);
-							JSONObject result = searchData.getJSONObject("result");
-							if (result.getInt("recordCount") > 0){
-								//Found a record
-								JSONArray recordSet = result.getJSONArray("recordSet");
-								JSONObject firstRecord = recordSet.getJSONObject(0);
-								recordId = firstRecord.getString("id");
-							}
-						} catch (JSONException e) {
-							logger.error("Unable to load search result", e);
-							processLog.incErrors();
-							processLog.addNote("Unable to load search result " + e.toString());
-						}
-					}else{
-						logger.error("Error searching for isbn " + requestIsbn);
-						processLog.incErrors();
-						processLog.addNote("Error searching for isbn " + requestIsbn);
-					}
-				}
+
+				String recordId = getRecordIdForRequest(requestIsbn, requestIssn, requestUpc, requestOclcNumber);
 				
 				if (recordId != null){
-					//Place a hold on the title for the user
-					URL placeHoldUrl;
-					if (recordId.matches("econtentRecord\\d+")){
-						placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeEContentHold&username=" + cat_username + "&password=" + cat_password + "&recordId=" + recordId);
-					}else{
-						placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeHold&username=" + cat_username + "&password=" + cat_password + "&bibId=" + recordId + "&campus=" + holdPickupLocation);
-					}
-					logger.info("Place Hold URL: " + placeHoldUrl);
-					Object placeHoldDataRaw = placeHoldUrl.getContent();
-					if (placeHoldDataRaw instanceof InputStream) {
-						String placeHoldDataJson = Util.convertStreamToString((InputStream) placeHoldDataRaw);
-						try {
-							JSONObject placeHoldData = new JSONObject(placeHoldDataJson);
-							JSONObject result = placeHoldData.getJSONObject("result");
-							holdCreated = result.getBoolean("success");
-							if (holdCreated){
-								logger.info("hold was created successfully.");
-								processLog.incUpdated();
-							}else{
-								logger.info("hold could not be created " + result.getString("holdMessage"));
-								processLog.incErrors();
-								processLog.addNote("hold could not be created " + result.getString("holdMessage"));
-							}
-						} catch (JSONException e) {
-							logger.error("Unable to load results of placing the hold", e);
-							processLog.incErrors();
-							processLog.addNote("Unable to load results of placing the hold " + e.toString());
-						}
-					}
+					holdCreated = placeHoldForPatron(holdCreated, holdPickupLocation, cat_username, cat_password, recordId);
 				}
 			
 				if (holdCreated){
@@ -163,8 +100,81 @@ public class MaterialsRequest implements IProcessHandler{
 			processLog.addNote("Error generating holds for purchased requests " + e.toString());
 		}
 	}
-	
-	protected boolean loadConfig(Ini ini, Logger logger) {
+
+	private boolean placeHoldForPatron(boolean holdCreated, String holdPickupLocation, String cat_username, String cat_password, String recordId) throws IOException {
+		//Place a hold on the title for the user
+		URL placeHoldUrl;
+		if (recordId.matches("econtentRecord\\d+")){
+			placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeEContentHold&username=" + cat_username + "&password=" + cat_password + "&recordId=" + recordId);
+		}else{
+			placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeHold&username=" + cat_username + "&password=" + cat_password + "&bibId=" + recordId + "&campus=" + holdPickupLocation);
+		}
+		logger.info("Place Hold URL: " + placeHoldUrl);
+		Object placeHoldDataRaw = placeHoldUrl.getContent();
+		if (placeHoldDataRaw instanceof InputStream) {
+			String placeHoldDataJson = Util.convertStreamToString((InputStream) placeHoldDataRaw);
+			try {
+				JSONObject placeHoldData = new JSONObject(placeHoldDataJson);
+				JSONObject result = placeHoldData.getJSONObject("result");
+				holdCreated = result.getBoolean("success");
+				if (holdCreated){
+					logger.info("hold was created successfully.");
+					processLog.incUpdated();
+				}else{
+					logger.info("hold could not be created " + result.getString("holdMessage"));
+					processLog.incErrors();
+					processLog.addNote("hold could not be created " + result.getString("holdMessage"));
+				}
+			} catch (JSONException e) {
+				logger.error("Unable to load results of placing the hold", e);
+				processLog.incErrors();
+				processLog.addNote("Unable to load results of placing the hold " + e.toString());
+			}
+		}
+		return holdCreated;
+	}
+
+	private String getRecordIdForRequest(String requestIsbn, String requestIssn, String requestUpc, String requestOclcNumber) throws IOException {
+		String recordId = null;
+		//Search for the isbn
+		if ((requestIsbn != null && requestIsbn.length() > 0) || (requestIssn != null && requestIssn.length() > 0) || (requestUpc != null && requestUpc.length() > 0) || (requestOclcNumber != null && requestOclcNumber.length() > 0)){
+			URL searchUrl;
+			if (requestIsbn != null && requestIsbn.length() > 0){
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestIsbn + "&type=isn");
+			}else if (requestIssn != null && requestIssn.length() > 0){
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestIssn + "&type=isn");
+			}else if (requestUpc != null && requestUpc.length() > 0){
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestUpc + "&type=isn");
+			}else{
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=oclc" + requestOclcNumber + "&type=allfields");
+			}
+			Object searchDataRaw = searchUrl.getContent();
+			if (searchDataRaw instanceof InputStream) {
+				String searchDataJson = Util.convertStreamToString((InputStream) searchDataRaw);
+				try {
+					JSONObject searchData = new JSONObject(searchDataJson);
+					JSONObject result = searchData.getJSONObject("result");
+					if (result.getInt("recordCount") > 0){
+						//Found a record
+						JSONArray recordSet = result.getJSONArray("recordSet");
+						JSONObject firstRecord = recordSet.getJSONObject(0);
+						recordId = firstRecord.getString("id");
+					}
+				} catch (JSONException e) {
+					logger.error("Unable to load search result", e);
+					processLog.incErrors();
+					processLog.addNote("Unable to load search result " + e.toString());
+				}
+			}else{
+				logger.error("Error searching for isbn " + requestIsbn);
+				processLog.incErrors();
+				processLog.addNote("Error searching for isbn " + requestIsbn);
+			}
+		}
+		return recordId;
+	}
+
+	protected boolean loadConfig(Ini ini) {
 		vufindUrl = Util.cleanIniValue(ini.get("Site", "url"));
 		
 		return true;

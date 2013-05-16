@@ -512,6 +512,13 @@ class Library extends DB_DataObject
 		}
 	}
 
+	public function clearSearchSources(){
+		$facets = new LibrarySearchSource();
+		$facets->libraryId = $this->libraryId;
+		$facets->delete();
+		$this->searchSources = array();
+	}
+
 	public function saveFacets(){
 		if (isset ($this->facets) && is_array($this->facets)){
 			foreach ($this->facets as $facet){
