@@ -73,7 +73,7 @@ class AJAX extends Action {
 	}
 
 	function GetEnrichmentInfo(){
-		require_once './Enrichment.php';
+		require_once ROOT_DIR . '/services/EcontentRecord/Enrichment.php';
 		global $configArray;
 		global $library;
 		$isbn = $_REQUEST['isbn'];
