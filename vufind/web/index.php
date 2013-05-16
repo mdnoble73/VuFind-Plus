@@ -723,11 +723,18 @@ function getGitBranch(){
 	global $configArray;
 
 	$gitName = $configArray['System']['gitVersionFile'];
-	$stringFromFile = file('../../.git/' . $gitName, FILE_USE_INCLUDE_PATH);
-	$stringFromFile = $stringFromFile[0]; //get the string from the array
-	$explodedString = explode("/", $stringFromFile); //seperate out by the "/" in the string
-	$branchName = $explodedString[2]; //get the one that is always the branch name
-
+	if ($gitName == 'HEAD'){
+		$stringFromFile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
+		$stringFromFile = $stringFromFile[0]; //get the string from the array
+		$explodedString = explode("/", $stringFromFile); //seperate out by the "/" in the string
+		$branchName = $explodedString[2]; //get the one that is always the branch name
+	}else{
+		$stringFromFile = file('../../.git/FETCH_HEAD', FILE_USE_INCLUDE_PATH);
+		$stringFromFile = $stringFromFile[0]; //get the string from the array
+		if (preg_match('/.*branch\s+\'(.*?)\'.*/', $stringFromFile, $matches)){
+			$branchName = $matches[1]; //get the branch name
+		}
+	}
 	$interface->assign('gitBranch', $branchName);
 }
 // Set up autoloader (needed for YAML)
