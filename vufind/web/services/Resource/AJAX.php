@@ -176,4 +176,14 @@ class AJAX extends Action {
 		}
 		return json_encode($result);
 	}
+
+	function GetNovelistData(){
+		$url = $_REQUEST['novelistUrl'];
+		$rawNovelistData = file_get_contents($url);
+		//Trim off the wrapping data ();
+		$rawNovelistData = substr($rawNovelistData, 1, -2);
+		$jsonData = json_decode($rawNovelistData);
+		$novelistData = $jsonData->body;
+		echo($novelistData);
+	}
 }
