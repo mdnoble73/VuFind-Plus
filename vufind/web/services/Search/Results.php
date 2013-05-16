@@ -255,14 +255,15 @@ class Search_Results extends Action {
 
 		//Check to see if we should show unscoped results
 		$enableUnscopedSearch = false;
-		if (is_object($searchSource)){
-			$enableUnscopedSearch = false;
-		}else{
-			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary != null){
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
+			if (is_object($searchSource)){
+				$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
+				$unscopedSearch = clone($searchObject);
+			}else{
 				$searchSources = new SearchSources();
 				$searchOptions = $searchSources->getSearchSources();
-				if (isset($searchOptions['marmot']) && $searchLibrary->showMarmotResultsAtEndOfSearch){
+				if (isset($searchOptions['marmot'])){
 					$unscopedSearch = clone($searchObject);
 					$enableUnscopedSearch = true;
 				}
