@@ -49,7 +49,7 @@ public class MaterialsRequest implements IProcessHandler{
 	private String emailFrom;
 	
 	@Override
-	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
+	public void doCronProcess(String serverName, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Materials Request");
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
@@ -71,7 +71,7 @@ public class MaterialsRequest implements IProcessHandler{
 		processLog.addNote("Generating holds for materials requests that have arrived");
 		//Get a list of requests to generate holds for
 		try {
-			PreparedStatement requestsToEmailStmt = vufindConn.prepareStatement("SELECT materials_request.*, cat_username, cat_password FROM materials_request inner join user on user.id = materials_request.createdBy WHERE placeHoldWhenAvailable = 1 and holdsCreated = 0 and status IN ('owned', 'purchased')");
+			PreparedStatement requestsToEmailStmt = vufindConn.prepareStatement("SELECT materials_request.*, cat_username, cat_password FROM materials_request inner join user on user.id = materials_request.createdBy WHERE placeHoldWhenAvailable = 1 and holdsCreated = 0");
 			PreparedStatement setHoldsCreatedStmt = vufindConn.prepareStatement("UPDATE materials_request SET holdsCreated=1 where id =?");
 			ResultSet requestsToCreateHolds = requestsToEmailStmt.executeQuery();
 			//For each request, 
