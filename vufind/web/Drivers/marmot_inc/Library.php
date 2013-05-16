@@ -322,10 +322,23 @@ class Library extends DB_DataObject
 	static function getSearchLibrary($searchSource = null){
 		if ($searchSource == null){
 			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			if (strpos($searchSource, 'library') === 0){
+				$trimmedSearchSource = str_replace('library', '', $searchSource);
+				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
+				$librarySearchSource = new LibrarySearchSource();
+				$librarySearchSource->id = $trimmedSearchSource;
+				$librarySearchSource->find(true);
+				$searchSource = $librarySearchSource;
+			}
 		}
-		if ($searchSource == 'local' || $searchSource == 'econtent'){
+		if (is_object($searchSource)){
+			$scopingSetting = $searchSource->catalogScoping;
+		}else{
+			$scopingSetting = $searchSource;
+		}
+		if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
 			return Library::getActiveLibrary();
-		}else if ($searchSource == 'marmot'){
+		}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
 			return null;
 		}else{
 			$location = Location::getSearchLocation();

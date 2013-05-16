@@ -519,6 +519,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'search_sources_1' => array(
+				'title' => 'Search Sources Update 1',
+				'description' => 'Add scoping information to search scope',
+				'sql' => array(
+					"ALTER TABLE library_search_source ADD COLUMN catalogScoping ENUM('unscoped', 'library', 'location')",
+					"ALTER TABLE location_search_source ADD COLUMN catalogScoping ENUM('unscoped', 'library', 'location')"
+				),
+			),
+
 
 			'user_display_name' => array(
 				'title' => 'User display name',

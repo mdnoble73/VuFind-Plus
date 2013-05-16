@@ -1127,9 +1127,9 @@ class Solr implements IndexEngine {
 		//Apply automatic boosting (only to biblio and econtent queries)
 		if (preg_match('/.*(biblio|econtent).*/i', $this->host)){
 			//unset($options['qt']); //Force the query to never use dismax handling
-			$searchLibrary = Library::getSearchLibrary();
+			$searchLibrary = Library::getSearchLibrary($this->searchSource);
 			//Boost items owned at our location
-			$searchLocation = Location::getSearchLocation();
+			$searchLocation = Location::getSearchLocation($this->searchSource);
 
 			$boostFactors = $this->getBoostFactors($searchLibrary, $searchLocation);
 
@@ -1281,6 +1281,13 @@ class Solr implements IndexEngine {
 		return $result;
 	}
 
+
+	/**
+	 * Get filters based on scoping for the search
+	 * @param Library $searchLibrary
+	 * @param Location $searchLocation
+	 * @return array
+	 */
 	public function getScopingFilters($searchLibrary, $searchLocation){
 		global $user;
 		global $configArray;
@@ -1298,6 +1305,7 @@ class Solr implements IndexEngine {
 		$owningSystem = '';
 		$owningLibrary = '';
 		$canUseDefaultPType = !$this->scopingDisabled;
+
 		if ($user){
 			$pType = $user->patronType;
 		}elseif (isset($searchLocation) && $searchLocation->defaultPType > 0 && $canUseDefaultPType){
