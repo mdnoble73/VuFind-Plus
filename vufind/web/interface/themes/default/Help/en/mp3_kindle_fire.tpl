@@ -1,6 +1,6 @@
 {strip}
 <div class="helpText">
-	<h3>To download MP3 audiobooks to your Kindle Fire:</h3>
+	<h3>To download MP3 audio books to your Kindle Fire:</h3>
 	<a target='_blank' href='{$path}/files/econtent_help/mp3_kindle_fire.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 	<ol>
 		<li>Install the OverDrive Media Console (OMC) App on your Kindle Fire.  It is available in the App Store.
@@ -13,14 +13,14 @@
 				<li>After the application is installed, you can select <b>Open</b> to open the OverDrive Media Console.</li>
 			</ol>
 		</li>
-		<li>Now you can search the library's catalog for MP3 audiobooks to download onto your Kindle Fire.</li>
+		<li>Now you can search the library's catalog for MP3 audio books to download onto your Kindle Fire.</li>
 		<li>If the book is currently available to check out, follow the following steps to check it out and download it:
 			<ol>
 				<li>Click the <b>Checkout</b> button.</li>
 				<li>If you have not logged in yet you will be prompted for your name and library card number.</li>
 				<li>Enter how long you want to checkout the title (7, 14, or 21 days) and click - "Check Out".</li>
-				<li>After the title is checked out you can acces it within your account.</li>
-				<li>From your account, select the <b>Download OverDrive MP3 Audiobook</b> button.</li>
+				<li>After the title is checked out you can access it within your account.</li>
+				<li>From your account, select the <b>Download OverDrive MP3 Audio book</b> button.</li>
 				<li>The title will be opened within the OverDrive Media Console.</li>
 				<li>To listen to the title simply click on it within the OverDrive Media Console.</li>
 			</ol>

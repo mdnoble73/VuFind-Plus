@@ -6,10 +6,10 @@
 
  or navigate to the following address:
 http://www.overdrive.com/software/omc/</li>
-<li>Select the PC version and click "Download Now" and follow the prompts to install the OMC software</li>
+<li>Select the Windows version and click "Download for Windows" and follow the prompts to install the OMC software</li>
 <li>Once OMC is installed on the computer, within the software, click "Tools > Windows Media Player Security Upgrade > OK > Play"</li>
 <li>Return to the library's catalog click "Check Out" (or "Place Hold")</li>
-<li>You will be prompted to enter your name and library card number</li>
+<li>If you are not already logged in, you will be prompted to enter your name and library card number</li>
 <li>Click - Login</li>
 <li>If the video is currently available to check out, select a checkout period (3, 5, or 7 days) and click "Check Out"</li>
 <li>If the video is not currently available to check out, you will be prompted to enter your email address. You will receive an email when the eVideo becomes available to download</li>

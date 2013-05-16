@@ -1,7 +1,6 @@
 <div class="helpText">
 <h3>
-Step-by-step one-time setup instructions for downloading audiobooks to a
-mobile device such as a phone or tablet
+Step-by-step one-time setup instructions for downloading audio books to a mobile device such as a phone or tablet
 </h3>
 <a target='_blank' href='{$path}/files/econtent_help/audiobook_mobile.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
@@ -17,11 +16,11 @@ mobile device such as a phone or tablet
 <li>Return to the library's catalog click "Check Out" (or "Place Hold")</li>
 <li>You will be prompted to enter your name and library card number</li>
 <li>Click - Login</li>
-<li>If the audiobook is currently available to check out, select a checkout period (7, 14 or 21 days) and click "Check Out"</li>
-<li>If the audiobook is not currently available to check out, you will be prompted to enter your email address. You will receive an email when the audiobook becomes available to download</li>
+<li>If the audio book is currently available to check out, select a checkout period (7, 14 or 21 days) and click "Check Out"</li>
+<li>If the audio book is not currently available to check out, you will be prompted to enter your email address. You will receive an email when the audio book becomes available to download</li>
 <li>You will be taken to your account where you can click - "Download" and select the mobile version. The video will download into the OverDrive app</li>
 </ol>
 <p><em>
-*Note - Audiobooks return automatically on the due date. At this time there are no overdue fines and no renewals on titles
+*Note - Audio books return automatically on the due date. At this time there are no overdue fines and no renewals on titles
 </em></p>
 </div>

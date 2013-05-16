@@ -2,10 +2,9 @@
 <h3>Step-by-step, one-time setup instructions for downloading eMusic to PC</h3>
 <a target='_blank' href='{$path}/files/econtent_help/emusic_pc.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
-<li>First time users of library eMusic need to download the OverDrive Media Console (OMC) free software onto their computer. Either click the link at the bottom of the page containing the desired eMusic
-
- or navigate to the following address:
-http://www.overdrive.com/software/omc/</li>
+<li>First time users of library eMusic need to download the OverDrive Media Console (OMC) free software onto their computer.
+	Either click the link at the bottom of the page containing the desired eMusic or navigate to the following address:
+	<a target='_blank' href="http://www.overdrive.com/software/omc" rel="external">http://www.overdrive.com/software/omc/</a></li>
 <li>Select the PC version and click "Download Now" and follow the prompts to install the OMC software</li>
 <li>Once OMC is installed on the computer, within the software, click "Tools > Windows Media Player Security Upgrade > OK > Play"</li>
 <li>Return to the library's catalog click "Check Out" (or "Place Hold")</li>
@@ -21,5 +20,7 @@ http://www.overdrive.com/software/omc/</li>
 </ol>
 <p><em>
 *Note - music will return automatically on the due date. At this time there are no overdue fines, no way to return eMusic early, and no renewals
+<br/>
+*Note - you will need to have iTunes installed for Apple devices
 </em></p>
 </div>
