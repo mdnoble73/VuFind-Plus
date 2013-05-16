@@ -4,19 +4,20 @@ function getWorldCatIdentifiers(){
 	var format = $("#format").val();
 	if (title == '' && author == ''){
 		alert("Please enter a title and author before checking for an ISBN and OCLC Number");
-		return false;
 	}else{
 		var requestUrl = path + "/MaterialsRequest/AJAX?method=GetWorldCatIdentifiers&title=" + encodeURIComponent(title) + "&author=" + encodeURIComponent(author)  + "&format=" + encodeURIComponent(format);
 		$.getJSON(requestUrl, function(data){
 			if (data.success == true){
 				//Dislay the results of the suggestions
-				$("#suggestedIdentifiers").html(data.formattedSuggestions);
-				$("#suggestedIdentifiers").slideDown();
+				var suggestedIdentifiers = $("#suggestedIdentifiers");
+				suggestedIdentifiers.html(data.formattedSuggestions);
+				suggestedIdentifiers.slideDown();
 			}else{
 				alert(data.error);
 			}
 		});
 	}
+	return false;
 }
 
 function cancelMaterialsRequest(id){
@@ -28,11 +29,9 @@ function cancelMaterialsRequest(id){
 				if (data.success){
 					alert("Your request was cancelled successfully.");
 					window.location.reload();
-					return true;
 				}else{
 					alert(data.error);
 				}
-				
 			}
 		);
 		return false;
@@ -65,10 +64,7 @@ function updateSelectedRequests(){
 		return false;
 	}
 	var selectedRequests = getSelectedRequests();
-	if (selectedRequests.length == 0){
-		return false;
-	}
-	return true;
+	return selectedRequests.length != 0;
 }
 
 function getSelectedRequests(){
@@ -147,7 +143,7 @@ function updateHoldOptions(){
 } 
 
 function materialsRequestLogin(){
-	var url = path + "/AJAX/JSON?method=loginUser"
+	var url = path + "/AJAX/JSON?method=loginUser";
 	$.ajax({url: url,
 		data: {username: $('#username').val(), password: $('#password').val()},
 		success: function(response){
@@ -157,7 +153,7 @@ function materialsRequestLogin(){
 				$('.loginOptions').hide();
         $('.logoutOptions').show();
 				$('#myAccountNameLink').html(response.result.name);
-				if (response.result.enableMaterialsRequest){
+				if (response.result.enableMaterialsRequest == 1){
 					$('#materialsRequestLogin').hide();
 					$('.materialsRequestLoggedInFields').show();
 					if (response.result.phone){

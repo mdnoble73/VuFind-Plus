@@ -167,7 +167,15 @@ function toggleInBag(id, title, checkBox) {
  * @param id
  * @param title
  */
-function addToBag(id, title) {
+function addToBag(id, title, shortId) {
+	if (shortId != undefined){
+		var selectCheckbox = $("#selected" + shortId);
+		if (selectCheckbox.length > 0){
+			selectCheckbox.prop('checked', !selectCheckbox.checked);
+		}
+	}
+
+
 	book = new Object();
 	book.id = id;
 	book.title = title; 
@@ -176,7 +184,8 @@ function addToBag(id, title) {
 	
 	_saveBagAsCookie();
 	
-	updateBag();	
+	updateBag();
+	return false;
 }
 
 /** Create a list and then save all items in the book cart to it */
@@ -233,9 +242,9 @@ function _addToBag(book) {
 	}
 	
 	if (bookInBag == false){
-	// add to bag 
-	bookBag.push(book);
-}
+		// add to bag
+		bookBag.push(book);
+	}
 }
 
 // Remove a Book From Bag
