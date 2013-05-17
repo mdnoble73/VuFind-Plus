@@ -29,7 +29,7 @@ class Suggestions{
 			}else{
 				$fullId = 'econtentRecord' . $notInterested->record_id;
 			}
-			$notInterestedTitles[] = $fullId;
+			$notInterestedTitles[$fullId] = $fullId;
 		}
 
 		//Load all titles the user has rated (print)
@@ -171,7 +171,7 @@ class Suggestions{
 				}
 				$groupedTitles[$groupingTerm] = $groupingTerm;
 				//print_r($suggestion);
-				if (!array_key_exists($suggestion['id'], $allRatedTitles)){
+				if (!array_key_exists($suggestion['id'], $allRatedTitles) && !array_key_exists($suggestion['id'], $notInterestedTitles)){
 					$suggestions[$suggestion['id']] = array(
 						'rating' => $suggestion['rating'] - 2.5,
 						'titleInfo' => $suggestion,
