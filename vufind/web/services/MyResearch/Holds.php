@@ -19,7 +19,7 @@
  */
 require_once ROOT_DIR . '/CatalogConnection.php';
 require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
-require_once(ROOT_DIR . "/PHPExcel.php");
+require_once ROOT_DIR . '/PHPExcel.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class Holds extends MyResearch
@@ -34,11 +34,9 @@ class Holds extends MyResearch
 		if (isset($_REQUEST['multiAction'])){
 			$multiAction = $_REQUEST['multiAction'];
 			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
-			$i = 0;
-			$xnum = array();
 			$cancelId = array();
-			$requestId = array();
 			$freeze = '';
+			$type = 'update';
 			if ($multiAction == 'cancelSelected'){
 				$type = 'cancel';
 				$freeze = '';
@@ -54,7 +52,8 @@ class Holds extends MyResearch
 				$type = 'update';
 				$freeze = '';
 			}
-			$result = $this->catalog->driver->updateHoldDetailed($requestId, $user->password, $type, '', null, $cancelId, $locationId, $freeze);
+			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
+			$interface->assign('holdResult', $result);
 
 			//Redirect back here without the extra parameters.
 			$redirectUrl = $configArray['Site']['path'] . '/MyResearch/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
@@ -65,7 +64,6 @@ class Holds extends MyResearch
 			die();
 		}
 
-		global $librarySingleton;
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
@@ -101,6 +99,7 @@ class Holds extends MyResearch
 		$interface->assign('showPosition', $showPosition);
 
 		// Get My Transactions
+		$patron = null;
 		if ($this->catalog->status) {
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
@@ -132,7 +131,6 @@ class Holds extends MyResearch
 						}
 						$interface->assign('pickupLocations', $locationList);
 
-						$xnum = -01;
 						foreach ($result['holds'] as $sectionKey => $sectionData) {
 							if ($sectionKey == 'unavailable'){
 								$link = $_SERVER['REQUEST_URI'];
@@ -269,21 +267,14 @@ class Holds extends MyResearch
 			}else{
 				$authorCell = '';
 			}
-			if (is_array($row['format'])){
-				$formatString = implode(', ', $row['format']);
+			if (isset($row['format'])){
+				if (is_array($row['format'])){
+					$formatString = implode(', ', $row['format']);
+				}else{
+					$formatString = $row['format'];
+				}
 			}else{
-				$formatString = $row['format'];
-			}
-
-			//Grab the available time
-			if (isset($row['availableTime'])) {
-				$availableTime = $row['availableTime'];
-				$availDate = getDate($availableTime);
-				$availableValue = $availDate["mon"]."/".$availDate["mday"]."/".$availDate["year"];
-
-			}
-			else {
-				$availableValue = "Now";
+				$formatString = '';
 			}
 
 			if ($exportType == "available") {
