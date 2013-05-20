@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'CatalogConnection.php';
-require_once 'services/MyResearch/MyResearch.php';
-require_once("PHPExcel.php");
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/PHPExcel.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Holds extends MyResearch
 {
@@ -34,11 +34,9 @@ class Holds extends MyResearch
 		if (isset($_REQUEST['multiAction'])){
 			$multiAction = $_REQUEST['multiAction'];
 			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
-			$i = 0;
-			$xnum = array();
 			$cancelId = array();
-			$requestId = array();
 			$freeze = '';
+			$type = 'update';
 			if ($multiAction == 'cancelSelected'){
 				$type = 'cancel';
 				$freeze = '';
@@ -54,7 +52,7 @@ class Holds extends MyResearch
 				$type = 'update';
 				$freeze = '';
 			}
-			$result = $this->catalog->driver->updateHoldDetailed($requestId, $user->password, $type, '', null, $cancelId, $locationId, $freeze);
+			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
 
 			//Redirect back here without the extra parameters.
 			$redirectUrl = $configArray['Site']['path'] . '/MyResearch/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
@@ -65,7 +63,6 @@ class Holds extends MyResearch
 			die();
 		}
 
-		global $librarySingleton;
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
@@ -132,7 +129,6 @@ class Holds extends MyResearch
 						}
 						$interface->assign('pickupLocations', $locationList);
 
-						$xnum = -01;
 						foreach ($result['holds'] as $sectionKey => $sectionData) {
 							if ($sectionKey == 'unavailable'){
 								$link = $_SERVER['REQUEST_URI'];
@@ -269,21 +265,14 @@ class Holds extends MyResearch
 			}else{
 				$authorCell = '';
 			}
-			if (is_array($row['format'])){
-				$formatString = implode(', ', $row['format']);
+			if (isset($row['format'])){
+				if (is_array($row['format'])){
+					$formatString = implode(', ', $row['format']);
+				}else{
+					$formatString = $row['format'];
+				}
 			}else{
-				$formatString = $row['format'];
-			}
-
-			//Grab the available time
-			if (isset($row['availableTime'])) {
-				$availableTime = $row['availableTime'];
-				$availDate = getDate($availableTime);
-				$availableValue = $availDate["mon"]."/".$availDate["mday"]."/".$availDate["year"];
-
-			}
-			else {
-				$availableValue = "Now";
+				$formatString = '';
 			}
 
 			if ($exportType == "available") {
@@ -335,7 +324,7 @@ class Holds extends MyResearch
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Holds');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a clientï¿½s web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="Holds.xls"');
 		header('Cache-Control: max-age=0');

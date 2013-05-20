@@ -160,6 +160,7 @@ class User extends DB_DataObject
 			}
 		}
 
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -249,56 +250,9 @@ class User extends DB_DataObject
 
 	function __get($name){
 		if ($name == 'roles'){
-			if (is_null($this->roles)){
-				//Load roles for the user from the user
-				require_once 'sys/Administration/Role.php';
-				$role = new Role();
-				$canMasquerade = false;
-				if ($this->id){
-					$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = {$this->id} ORDER BY name");
-					$this->roles = array();
-					while ($role->fetch()){
-						$this->roles[$role->roleId] = $role->name;
-						if ($role->name == 'userAdmin'){
-							$canMasquerade = true;
-						}
-					}
-				}
-
-				//Setup masquerading as different users
-				$testRole = '';
-				if (isset($_REQUEST['test_role'])){
-					$testRole = $_REQUEST['test_role'];
-				}elseif (isset($_COOKIE['test_role'])){
-					$testRole = $_COOKIE['test_role'];
-				}
-				if ($canMasquerade && $testRole != ''){
-					$this->roles = array();
-					$testRoles = array();
-					if (is_array($testRole)){
-						$testRoles = $testRole;
-					}else{
-						$testRoles = array($testRole);
-					}
-					foreach ($testRoles as $tmpRole){
-						$role = new Role();
-						if (is_numeric($tmpRole)){
-							$role->roleId = $tmpRole;
-						}else{
-							$role->name = $tmpRole;
-						}
-						$found = $role->find(true);
-						if ($found == true){
-							$this->roles[$role->roleId] = $role->name;
-						}
-					}
-				}
-				return $this->roles;
-			}else{
-				return $this->roles;
-			}
+			return $this->getRoles();
 		}else{
-			return $data[$name];
+			return $this->data[$name];
 		}
 	}
 
@@ -308,7 +262,58 @@ class User extends DB_DataObject
 			//Update the database, first remove existing values
 			$this->saveRoles();
 		}else{
-			$data[$name] = $value;
+			$this->data[$name] = $value;
+		}
+	}
+
+	function getRoles(){
+		if (is_null($this->roles)){
+			//Load roles for the user from the user
+			require_once ROOT_DIR . '/sys/Administration/Role.php';
+			$role = new Role();
+			$canMasquerade = false;
+			if ($this->id){
+				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = {$this->id} ORDER BY name");
+				$this->roles = array();
+				while ($role->fetch()){
+					$this->roles[$role->roleId] = $role->name;
+					if ($role->name == 'userAdmin'){
+						$canMasquerade = true;
+					}
+				}
+			}
+
+			//Setup masquerading as different users
+			$testRole = '';
+			if (isset($_REQUEST['test_role'])){
+				$testRole = $_REQUEST['test_role'];
+			}elseif (isset($_COOKIE['test_role'])){
+				$testRole = $_COOKIE['test_role'];
+			}
+			if ($canMasquerade && $testRole != ''){
+				$this->roles = array();
+				$testRoles = array();
+				if (is_array($testRole)){
+					$testRoles = $testRole;
+				}else{
+					$testRoles = array($testRole);
+				}
+				foreach ($testRoles as $tmpRole){
+					$role = new Role();
+					if (is_numeric($tmpRole)){
+						$role->roleId = $tmpRole;
+					}else{
+						$role->name = $tmpRole;
+					}
+					$found = $role->find(true);
+					if ($found == true){
+						$this->roles[$role->roleId] = $role->name;
+					}
+				}
+			}
+			return $this->roles;
+		}else{
+			return $this->roles;
 		}
 	}
 
@@ -324,7 +329,7 @@ class User extends DB_DataObject
 					$values[] = "({$this->id},{$roleId})";
 				}
 				$values = join(', ', $values);
-				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES $values");
+				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES " . $values);
 			}
 		}
 	}
