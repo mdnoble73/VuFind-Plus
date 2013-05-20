@@ -589,4 +589,198 @@ class MillenniumHolds{
 			'numUnavailableHolds' => $numUnavailableHolds,
 		);
 	}
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $patronId   The id of the patron
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @param   string  $type       The date when the hold should be cancelled if any
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
+
+		$bib1= $recordId;
+		if (substr($bib1, 0, 1) != '.'){
+			$bib1 = '.' . $bib1;
+		}
+
+		$bib = substr(str_replace('.b', 'b', $bib1), 0, -1);
+		if (strlen($bib) == 0){
+			return array(
+				'result' => false,
+				'message' => 'A valid record id was not provided. Please try again.');
+		}
+
+		//Get the title of the book.
+		global $configArray;
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		$this->driver->db = new $class($url);
+		if ($configArray['System']['debugSolr']) {
+			$this->driver->db->debug = true;
+		}
+
+		// Retrieve Full Marc Record
+		if (!($record = $this->driver->db->getRecord($bib1))) {
+			$title = null;
+		}else{
+			if (isset($record['title_full'][0])){
+				$title = $record['title_full'][0];
+			}else{
+				$title = $record['title'];
+			}
+		}
+
+		//Cancel a hold
+		if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
+			$result = $this->updateHold($recordId, $patronId, $type, $title);
+			$result['title'] = $title;
+			$result['bid'] = $bib1;
+			return $result;
+
+		} else {
+
+			//User is logged in before they get here, always use the info from patrondump
+			$username = $patronDump['PATRN_NAME'];
+
+			if (isset($_REQUEST['canceldate']) && !is_null($_REQUEST['canceldate']) && $_REQUEST['canceldate'] != ''){
+				$date = $_REQUEST['canceldate'];
+			}else{
+				//Default to a date 6 months (half a year) in the future.
+				$sixMonthsFromNow = time() + 182.5 * 24 * 60 * 60;
+				$date = date('m/d/Y', $sixMonthsFromNow);
+			}
+
+			if (isset($_POST['campus'])){
+				$campus=trim($_POST['campus']);
+			}else{
+				global $user;
+				$campus = $user->homeLocationId;
+			}
+
+			if (is_numeric($campus)){
+				$location = new Location();
+				$location->locationId = $campus;
+				if ($location->find(true)){
+					$campus = $location->code;
+				}
+			}
+
+			list($Month, $Day, $Year)=explode("/", $date);
+
+			//------------BEGIN CURL-----------------------------------------------------------------
+			$fullName = $patronDump['PATRN_NAME'];
+			$nameParts = explode(', ',$fullName);
+			$lastName = $nameParts[0];
+			if (isset($nameParts[1])){
+				$secondName = $nameParts[1];
+				$secondNameParts = explode(' ', $secondName);
+				$firstName = $secondNameParts[0];
+				if (isset($secondNameParts[1])){
+					$middleName = $secondNameParts[1];
+				}
+			}
+
+			list($first, $last)=explode(' ', $username);
+
+			$header=array();
+			$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+			$header[] = "Cache-Control: max-age=0";
+			$header[] = "Connection: keep-alive";
+			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+			$header[] = "Accept-Language: en-us,en;q=0.5";
+			$id=$patronDump['RECORD_#'];
+			$cookie = tempnam ("/tmp", "CURLCOOKIE");
+
+			$curl_connection = curl_init();
+			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+			curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
+			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
+			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+			curl_setopt($curl_connection, CURLOPT_HEADER, false);
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+
+			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
+				//User must be logged in as a separate step to placing holds
+				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+				$post_data = $this->driver->_getLoginFormValues($patronDump);
+				$post_data['submit.x']="35";
+				$post_data['submit.y']="21";
+				$post_data['submit']="submit";
+				curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
+				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+				$post_items = array();
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . $value;
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				curl_exec($curl_connection);
+				$post_data = array();
+			}else{
+				$post_data = $this->driver->_getLoginFormValues($patronDump);
+			}
+			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
+			//echo "$curl_url";
+			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+
+			$post_data['needby_Month']= $Month;
+			$post_data['needby_Day']= $Day;
+			$post_data['needby_Year']=$Year;
+			$post_data['submit.x']="35";
+			$post_data['submit.y']="21";
+			$post_data['submit']="submit";
+			$post_data['locx00']= str_pad($campus, 5-strlen($campus), '+');
+			if (!is_null($itemId) && $itemId != -1){
+				$post_data['radio']=$itemId;
+			}
+			$post_data['x']="48";
+			$post_data['y']="15";
+
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sresult = curl_exec($curl_connection);
+
+			global $logger;
+			$logger->log("Placing hold $curl_url?$post_string", PEAR_LOG_INFO);
+
+			$sresult = preg_replace("/<!--([^(-->)]*)-->/","",$sresult);
+
+			curl_close($curl_connection);
+
+			//Parse the response to get the status message
+			$hold_result = $this->_getHoldResult($sresult);
+			$hold_result['title']  = $title;
+			$hold_result['bid'] = $bib1;
+			global $analytics;
+			if ($analytics){
+				if ($hold_result['result'] == true){
+					$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+				}else{
+					$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+				}
+			}
+			return $hold_result;
+		}
+	}
 }
