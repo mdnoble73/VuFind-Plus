@@ -21,7 +21,7 @@ class MillenniumReadingHistory {
 		global $timer;
 		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
-		//Load the information from millenium using CURL
+		//Load the information from millennium using CURL
 		$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory');
 
 		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
@@ -175,7 +175,7 @@ class MillenniumReadingHistory {
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues($patronDump);
+		$post_data = $this->driver->_getLoginFormValues();
 		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);

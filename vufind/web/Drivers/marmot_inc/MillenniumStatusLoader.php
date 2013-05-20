@@ -5,22 +5,27 @@
  * Processes status information from Millennium to load holdings.
  */
 class MillenniumStatusLoader{
+	/** @var  MillenniumDriver $driver */
+	private $driver;
+
+	public function __construct($driver){
+		$this->driver = $driver;
+	}
 
 	/**
 	 * Load status (holdings) for a record and filter them based on the logged in user information.
 	 *
 	 * @param string            $id     the id of the record
-	 * @param MillenniumDriver  $driver
 	 * @return array A list of holdings for the record
 	 */
-	public static function getStatus($id, $driver){
+	public function getStatus($id){
 		global $library;
 		global $user;
 		global $timer;
 		global $logger;
 
 		//Get information about holdings, order information, and issue information
-		$millenniumInfo = $driver->getMillenniumRecordInfo($id);
+		$millenniumInfo = $this->driver->getMillenniumRecordInfo($id);
 
 		//Get the number of holds
 		if ($millenniumInfo->framesetInfo){
@@ -41,8 +46,8 @@ class MillenniumStatusLoader{
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 		$itemFields = $marcRecord->getFields("989");
 		$marcItemData = array();
-		$pType = $driver->getPType();
-		$scope = $driver->getMillenniumScope();
+		$pType = $this->driver->getPType();
+		$scope = $this->driver->getMillenniumScope();
 
 		//Load item information from marc record
 		foreach ($itemFields as $itemField){
@@ -58,7 +63,7 @@ class MillenniumStatusLoader{
 		}
 
 		//Process each row in the callnumber table.
-		$ret = MillenniumStatusLoader::parseHoldingRows($driver, $id, $rows);
+		$ret = $this->parseHoldingRows($id, $rows);
 
 		$timer->logTime('processed all holdings rows');
 
@@ -163,12 +168,12 @@ class MillenniumStatusLoader{
 
 			//Determine if the holding is available or not.
 			//First check the status
-			if (preg_match('/^(' . $driver->availableStatiRegex . ')$/', $holding['status'])){
+			if (preg_match('/^(' . $this->driver->availableStatiRegex . ')$/', $holding['status'])){
 				$holding['availability'] = 1;
 			}else{
 				$holding['availability'] = 0;
 			}
-			if (preg_match('/^(' . $driver->holdableStatiRegex . ')$/', $holding['status'])){
+			if (preg_match('/^(' . $this->driver->holdableStatiRegex . ')$/', $holding['status'])){
 				$holding['holdable'] = 1;
 			}else{
 				$holding['holdable'] = 0;
@@ -192,10 +197,9 @@ class MillenniumStatusLoader{
 
 			//Now that we have the location code, try to match with the marc record
 			$holding['iType'] = 0;
-			foreach ($marcItemData as $itemKey => $itemData){
+			foreach ($marcItemData as $itemData){
 				if (!$itemData['matched']){
 					$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
-					$callNumberMatched = false;
 					if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
 						$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
 					}else{
@@ -211,7 +215,7 @@ class MillenniumStatusLoader{
 			//Check to see if this item can be held by the current patron.  Only important when
 			//we know what pType is in use and we are showing all items.
 			if ($scope == 93 && $pType > 0){
-				if (!$driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
+				if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
 					//$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
 					//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
 					unset($ret[$holdingKey]);
@@ -220,7 +224,7 @@ class MillenniumStatusLoader{
 			}
 
 			//Set the hold queue length
-			$holding['holdQueueLength'] = $holdQueueLength;
+			$holding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
 
 			//Add the holding to the sorted array to determine
 			$sortString = $holding['location'] . '-'. $i;
@@ -261,7 +265,7 @@ class MillenniumStatusLoader{
 		$timer->logTime('finished processing holdings');
 
 		//Check to see if the title is holdable
-		$holdable = $driver->isRecordHoldable($marcRecord, $id);
+		$holdable = $this->driver->isRecordHoldable($marcRecord);
 		foreach ($sorted_array as $key => $holding){
 			$holding['holdable'] = $holdable ? 1 : 0;
 			$sorted_array[$key] = $holding;
@@ -306,7 +310,7 @@ class MillenniumStatusLoader{
 			}
 		}
 
-		$issueSummaries = $driver->getIssueSummaries($id, $millenniumInfo);
+		$issueSummaries = $this->driver->getIssueSummaries($millenniumInfo);
 		$timer->logTime('loaded issue summaries');
 		if (!is_null($issueSummaries)){
 			krsort($sorted_array);
@@ -348,12 +352,11 @@ class MillenniumStatusLoader{
 	}
 
 	/**
-	 * @param MillenniumDriver  $driver   The main driver for processing records
 	 * @param string            $id       The id of the record in the database
 	 * @param array             $rows     An array of strings for each row in the Millennium holdings table
 	 * @return array
 	 */
-	private static function parseHoldingRows($driver, $id, $rows){
+	private function parseHoldingRows($id, $rows){
 		$keys = array_pad(array(),10,"");
 
 		global $configArray;
@@ -453,8 +456,6 @@ class MillenniumStatusLoader{
 							//Trim off the courier code if one exists
 							if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $curHolding['location'], $locationParts)){
 								$curHolding['location'] = $locationParts[1];
-							}else{
-								$curHolding['location'] = $curHolding['location'];
 							}
 						}
 						if (stripos($keys[$i],$reserves_col_name) > -1) {
@@ -479,8 +480,8 @@ class MillenniumStatusLoader{
 							}
 
 							$statfull = strip_tags($cellValue);
-							if (isset($driver->statusTranslations[$statfull])){
-								$statfull = $driver->statusTranslations[$statfull];
+							if (isset($this->driver->statusTranslations[$statfull])){
+								$statfull = $this->driver->statusTranslations[$statfull];
 							}else{
 								$statfull = strtolower($statfull);
 								$statfull = ucwords($statfull);
@@ -502,5 +503,310 @@ class MillenniumStatusLoader{
 			$count++;
 		} //End looping through rows
 		return $ret;
+	}
+
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
+	 * @return array an associative array with a summary of the holdings.
+	 */
+	public function getStatusSummary($id, $forSearch = false){
+		$holdings = MillenniumStatusLoader::getStatus($id);
+		$summaryInformation = array();
+		$summaryInformation['recordId'] = $id;
+		$summaryInformation['shortId'] = substr($id, 1);
+		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
+
+		global $library;
+		/** Location $locationSingleton */
+		global $locationSingleton;
+		$location = $locationSingleton->getActiveLocation();
+		$canShowHoldButton = true;
+		if ($library){
+			if ($forSearch){
+				$canShowHoldButton = ($library->showHoldButtonInSearchResults != 0);
+			}else{
+				$canShowHoldButton = ($library->showHoldButton != 0);
+			}
+		}
+		if ($location){
+			if ($forSearch){
+				if ($library){
+					$canShowHoldButton = ($library->showHoldButtonInSearchResults != 0);
+				}else{
+					$canShowHoldButton = ($location->showHoldButton != 0);
+				}
+			}else{
+				$canShowHoldButton = ($location->showHoldButton != 0);
+			}
+		}
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
+
+		//Check to see if we are getting issue summaries or actual holdings
+		if (count($holdings) > 0){
+			$lastHolding = end($holdings);
+			if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
+				$issueSummaries = $holdings;
+				$holdings = array();
+				foreach ($issueSummaries as $issueSummary){
+					if (isset($issueSummary['holdings'])){
+						$holdings = array_merge($holdings, $issueSummary['holdings']);
+					}else{
+						//Create a fake holding for subscriptions so something
+						//will be displayed in the holdings summary.
+						$holdings[$issueSummary['location']] = array(
+							'availability' => '1',
+							'location' => $issueSummary['location'],
+							'libraryDisplayName' => $issueSummary['location'],
+							'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
+							'showPlaceHold' => $canShowHoldButton,
+						);
+						$summaryInformation['status'] = 'Available';
+						$summaryInformation['statusfull'] = 'Available';
+						$summaryInformation['class'] = 'available';
+					}
+				}
+			}
+		}
+
+		//Valid statuses are:
+		//It's here
+		//  - at the physical location and not checked out
+		//  - also show the call number for the location
+		//  - do not show place hold button
+		//It's at *location*
+		//  - at the user's home branch or preferred location and not checked out
+		//  - also show the call number for the location
+		//  - show place hold button
+		//Available by Request
+		//  - not at the user's home branch or preferred location, but at least one copy is not checked out
+		//  - do not show the call number
+		//  - show place hold button
+		//Checked Out
+		//  - all copies are checked out
+		//  - show the call number for the local library if any
+		//  - show place hold button
+		//Downloadable
+		//  - there is at least one download link for the record.
+		$numAvailableCopies = 0;
+		$numHoldableCopies = 0;
+		$numCopies = 0;
+		$numCopiesOnOrder = 0;
+		$availableLocations = array();
+		$additionalAvailableLocations = array();
+		$unavailableStatus = null;
+		$holdQueueLength = 0;
+		//The status of all items.  Will be set to an actual status if all are the same
+		//or null if the item statuses are inconsistent
+		$allItemStatus = '';
+		$firstCallNumber = null;
+		$firstLocation = null;
+		foreach ($holdings as $holdingKey => $holding){
+			if (is_null($allItemStatus)){
+				//Do nothing, the status is not distinct
+			}else if ($allItemStatus == '' && isset($holding['statusfull'])){
+				$allItemStatus = $holding['statusfull'];
+			}elseif(isset($holding['statusfull']) && $allItemStatus != $holding['statusfull']){
+				$allItemStatus = null;
+			}
+			if (isset($holding['holdQueueLength'])){
+				$holdQueueLength = $holding['holdQueueLength'];
+			}
+			if (isset($holding['availability']) && $holding['availability'] == 1){
+				$numAvailableCopies++;
+				$addToAvailableLocation = false;
+				$addToAdditionalAvailableLocation = false;
+				//Check to see if the location should be listed in the list of locations that the title is available at.
+				//Can only be in this system if there is a system active.
+				if (sizeof($availableLocations) < 3 && !in_array($holding['libraryDisplayName'], $availableLocations)){
+					if (isset($library)){
+						//Check to see if the location is within this library system. It is if the key is less than or equal to 5
+						if (substr($holdingKey, 0, 1) <= 5){
+							$addToAvailableLocation = true;
+						}
+					}else{
+						$addToAvailableLocation = true;
+					}
+				}
+				//Check to see if the location is listed in the count of additional locations (can be any system).
+				if (!$addToAvailableLocation && !in_array($holding['libraryDisplayName'], $availableLocations) && !in_array($holding['libraryDisplayName'], $additionalAvailableLocations)){
+					$addToAdditionalAvailableLocation = true;
+				}
+				if ($addToAvailableLocation){
+					$availableLocations[] = $holding['libraryDisplayName'];
+				}elseif ($addToAdditionalAvailableLocation){
+					$additionalAvailableLocations[] = $holding['libraryDisplayName'];
+				}
+			}else{
+				if ($unavailableStatus == null && isset($holding['status'])){
+					$unavailableStatus = $holding['status'];
+				}
+			}
+
+			if (isset($holding['holdable']) && $holding['holdable'] == 1){
+				$numHoldableCopies++;
+			}
+			$numCopies++;
+
+			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
+			$showItsHere = ($library == null) ? true : ($library->showItsHere == 1);
+			if (in_array(substr($holdingKey, 0, 1), array('1', '2', '3', '4', '5')) && !isset($summaryInformation['callnumber'])){
+				//Try to get an available non reserver call number
+				if ($holding['availability'] == 1 && $holding['holdable'] == 1){
+					//echo("Including call number " . $holding['callnumber'] . " because is  holdable");
+					$summaryInformation['callnumber'] = $holding['callnumber'];
+				}else if (is_null($firstCallNumber)){
+					//echo("Skipping call number " . $holding['callnumber'] . " because it is holdable");
+					$firstCallNumber = $holding['callnumber'];
+				}else if (is_null($firstLocation)){
+					//echo("Skipping call number " . $holding['callnumber'] . " because it is holdable");
+					$firstLocation = $holding['location'];
+				}
+			}
+			if ($showItsHere && substr($holdingKey, 0, 1) == '1' && $holding['availability'] == 1){
+				//The item is available within the physical library.  Patron should go get it off the shelf
+				$summaryInformation['status'] = "It's here";
+				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+				$summaryInformation['class'] = 'here';
+				$summaryInformation['location'] = $holding['location'];
+			}elseif ($showItsHere && !isset($summaryInformation['status']) &&
+					substr($holdingKey, 0, 1) >= 2 && (substr($holdingKey, 0, 1) <= 4) &&
+					$holding['availability'] == 1 ){
+				if (!isset($summaryInformation['class']) || $summaryInformation['class'] != 'here'){
+					//The item is at one of the patron's preferred branches.
+					$summaryInformation['status'] = "It's at " . $holding['location'];
+					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					$summaryInformation['class'] = 'nearby';
+					$summaryInformation['location'] = $holding['location'];
+				}
+			}elseif (!isset($summaryInformation['status']) &&
+					((!$showItsHere && substr($holdingKey, 0, 1) <= 5) || substr($holdingKey, 0, 1) == 5 || !isset($library) ) &&
+					(isset($holding['availability']) && $holding['availability'] == 1)){
+				if (!isset($summaryInformation['class']) || ($summaryInformation['class'] != 'here' && $summaryInformation['class'] = 'nearby')){
+					//The item is at a location either in the same system or another system.
+					$summaryInformation['status'] = "Available At";
+					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					if ($physicalLocation != null){
+						$summaryInformation['class'] = 'availableOther';
+					}else{
+						$summaryInformation['class'] = 'available';
+					}
+				}
+			}elseif (!isset($summaryInformation['status']) &&
+					(substr($holdingKey, 0, 1) == 6 ) &&
+					(isset($holding['availability']) && $holding['availability'] == 1)){
+				//The item is at a location either in the same system or another system.
+				$summaryInformation['status'] = "Marmot";
+				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+				$summaryInformation['class'] = 'available';
+			}elseif (substr($holdingKey, 0, 1) == 7){
+				$numCopiesOnOrder++;
+				$numCopies--; //Don't increment number of copies for titles we don't have yet.
+			}
+		}
+
+		//If all items are checked out the status will still be blank
+		$summaryInformation['availableCopies'] = $numAvailableCopies;
+		$summaryInformation['holdableCopies'] = $numHoldableCopies;
+		if ($numHoldableCopies == 0){
+			$summaryInformation['showPlaceHold'] = false;
+		}
+
+		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
+		//Do some basic sanity checking to make sure that we show the total copies
+		//With at least as many copies as the number of copies on order.
+		if ($numCopies < $numCopiesOnOrder){
+			$summaryInformation['numCopies'] = $numCopiesOnOrder;
+		}else{
+			$summaryInformation['numCopies'] = $numCopies;
+		}
+
+		$summaryInformation['holdQueueLength'] = $holdQueueLength;
+
+		if ($unavailableStatus != 'ONLINE'){
+			$summaryInformation['unavailableStatus'] = $unavailableStatus;
+		}
+
+		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
+			//Replace all spaces in the name of a location with no break spaces
+			foreach ($availableLocations as $key => $location){
+				$availableLocations[$key] = str_replace(' ', ' ', $location);
+			}
+			$summaryInformation['availableAt'] = join(', ', $availableLocations);
+			if ($summaryInformation['status'] == 'Marmot'){
+				$summaryInformation['numAvailableOther'] = count($additionalAvailableLocations) + count($availableLocations);
+			}else{
+				$summaryInformation['numAvailableOther'] = count($additionalAvailableLocations);
+			}
+		}
+
+		//If Status is still not set, apply some logic based on number of copies
+		if (!isset($summaryInformation['status'])){
+			if ($numCopies == 0){
+				if ($numCopiesOnOrder > 0){
+					//No copies are currently available, but we do have some that are on order.
+					//show the status as on order and make it available.
+					$summaryInformation['status'] = "On Order";
+					$summaryInformation['class'] = 'available';
+					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+				}else{
+					//Deal with weird cases where there are no items by saying it is unavailable
+					$summaryInformation['status'] = "Unavailable";
+					$summaryInformation['showPlaceHold'] = false;
+					$summaryInformation['class'] = 'unavailable';
+				}
+			}else{
+				if ($numHoldableCopies == 0 && $canShowHoldButton){
+					$summaryInformation['status'] = "Not Available For Checkout";
+					$summaryInformation['showPlaceHold'] = false;
+					$summaryInformation['class'] = 'reserve';
+				}else{
+					$summaryInformation['status'] = "Checked Out";
+					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					$summaryInformation['class'] = 'checkedOut';
+				}
+			}
+		}
+
+		//Reset status if the status for all items is consistent.
+		//That way it will jive with the actual full record display.
+		if ($allItemStatus != null && $allItemStatus != ''){
+			//Only override this for statuses that don't have special meaning
+			if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At' && $summaryInformation['class'] != 'here' && $summaryInformation['class'] != 'nearby'){
+				$summaryInformation['status'] = $allItemStatus;
+			}
+		}
+		if ($allItemStatus == 'In Library Use Only'){
+			$summaryInformation['inLibraryUseOnly'] = true;
+		}else{
+			$summaryInformation['inLibraryUseOnly'] = false;
+		}
+
+
+		if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
+			$summaryInformation['showAvailabilityLine'] = false;
+		}else{
+			$summaryInformation['showAvailabilityLine'] = true;
+		}
+
+		//Clear unavailable status if it matches the status
+		if (isset($summaryInformation['unavailableStatus']) && strcasecmp(trim($summaryInformation['unavailableStatus']), trim($summaryInformation['status'])) == 0){
+			$summaryInformation['unavailableStatus'] = '';
+		}
+
+		//Reset call number as needed
+		if (!is_null($firstCallNumber) && !isset($summaryInformation['callnumber'])){
+			$summaryInformation['callnumber'] = $firstCallNumber;
+		}
+		//Reset location as needed
+		if (!is_null($firstLocation) && !isset($summaryInformation['location'])){
+			$summaryInformation['location'] = $firstLocation;
+		}
+
+		return $summaryInformation;
 	}
 }

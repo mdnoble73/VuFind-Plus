@@ -239,7 +239,7 @@ class EINetwork extends MillenniumDriver{
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 		//$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
 
-		$this->_updateVuFindPatronInfo($patronId);
+		$this->_updateVuFindPatronInfo();
 
 		//Update profile information
 		$extraPostInfo = array();

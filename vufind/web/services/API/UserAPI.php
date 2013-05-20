@@ -2111,7 +2111,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction($user, 'optIn', array());
+			$this->catalog->doReadingHistoryAction('optIn', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2150,7 +2150,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction($user, 'optOut', array());
+			$this->catalog->doReadingHistoryAction('optOut', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2189,7 +2189,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction($user, 'deleteAll', array());
+			$this->catalog->doReadingHistoryAction('deleteAll', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2230,7 +2230,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction($user, 'deleteMarked', $selectedTitles);
+			$this->catalog->doReadingHistoryAction('deleteMarked', $selectedTitles);
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');

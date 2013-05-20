@@ -44,7 +44,7 @@ class Renew extends Action
 		//Renew the hold
 		if (method_exists($this->catalog->driver, 'renewItem')) {
 			$logger->log("Renewing item " . $_REQUEST['itemId'], PEAR_LOG_INFO);
-			$renewResult = $this->catalog->driver->renewItem($user->password, $_REQUEST['itemId'], $_REQUEST['itemIndex']);
+			$renewResult = $this->catalog->driver->renewItem($_REQUEST['itemId'], $_REQUEST['itemIndex']);
 			$logger->log("Result = " . print_r($renewResult, true), PEAR_LOG_INFO);
 			$_SESSION['renew_message']['Total'] = 1;
 			$_SESSION['renew_message']['Renewed'] = 0;

@@ -211,7 +211,7 @@ class MillenniumHolds{
 		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->driver->_getLoginFormValues($patronDump);
+		$post_data = $this->driver->_getLoginFormValues();
 		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
@@ -719,7 +719,7 @@ class MillenniumHolds{
 			if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
 				//User must be logged in as a separate step to placing holds
 				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-				$post_data = $this->driver->_getLoginFormValues($patronDump);
+				$post_data = $this->driver->_getLoginFormValues();
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
@@ -734,7 +734,7 @@ class MillenniumHolds{
 				curl_exec($curl_connection);
 				$post_data = array();
 			}else{
-				$post_data = $this->driver->_getLoginFormValues($patronDump);
+				$post_data = $this->driver->_getLoginFormValues();
 			}
 			$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
 			//echo "$curl_url";

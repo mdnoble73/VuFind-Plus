@@ -66,7 +66,7 @@ class CheckedOut extends MyResearch{
 					$page = 1;
 				}
 
-				$result = $this->catalog->getMyTransactions($patron, $page, $recordsPerPage, $selectedSortOption);
+				$result = $this->catalog->getMyTransactions($page, $recordsPerPage, $selectedSortOption);
 				$timer->logTime("Loaded transactions from catalog.");
 				if (!PEAR_Singleton::isError($result)) {
 

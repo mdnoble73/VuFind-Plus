@@ -38,7 +38,7 @@ class Profile extends MyResearch
 		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 
 		if (isset($_POST['update'])) {
-			$result = $this->catalog->updatePatronInfo($user->cat_password, $canUpdateContactInfo);
+			$result = $this->catalog->updatePatronInfo($canUpdateContactInfo);
 			$_SESSION['profileUpdateErrors'] = $result;
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$overDriveDriver = OverDriveDriverFactory::getDriver();

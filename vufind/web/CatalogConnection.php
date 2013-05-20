@@ -344,15 +344,17 @@ class CatalogConnection
 	 * This is responsible for retrieving all transactions (i.e. checked out items)
 	 * by a specific patron.
 	 *
-	 * @param array $patron The patron array from patronLogin
+	 * @param integer $page current     page to retrieve data for
+	 * @param integer $recordsPerPage   current page to retrieve data for
+	 * @param string  $sortOption       how the dates should sort.
 	 *
 	 * @return mixed        Array of the patron's transactions on success,
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
+	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
 	{
-		return $this->driver->getMyTransactions($patron, $page, $recordsPerPage, $sortOption);
+		return $this->driver->getMyTransactions($page, $recordsPerPage, $sortOption);
 	}
 
 	/**
@@ -396,8 +398,8 @@ class CatalogConnection
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($patron, $action, $selectedTitles){
-		return $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
+	function doReadingHistoryAction($action, $selectedTitles){
+		return $this->driver->doReadingHistoryAction($action, $selectedTitles);
 	}
 
 
@@ -486,9 +488,9 @@ class CatalogConnection
 		return $this->driver->getHoldLink($recordId);
 	}
 
-	function updatePatronInfo($patronId, $canUpdateContactInfo)
+	function updatePatronInfo($canUpdateContactInfo)
 	{
-		return $this->driver->updatePatronInfo($patronId, $canUpdateContactInfo);
+		return $this->driver->updatePatronInfo($canUpdateContactInfo);
 	}
 
 	function selfRegister(){

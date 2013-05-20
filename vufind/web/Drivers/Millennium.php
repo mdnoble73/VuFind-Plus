@@ -80,7 +80,9 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
+	/** @var LoanRule[] $loanRules  */
 	var $loanRules = null;
+	/** @var LoanRuleDeterminer[] $loanRuleDeterminers */
 	var $loanRuleDeterminers = null;
 	private function loadLoanRules(){
 		if (is_null($this->loanRules)){
@@ -235,13 +237,14 @@ class MillenniumDriver implements DriverInterface
 			return $this->statuses[$id];
 		}
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumStatusLoader.php';
+		$millenniumStatusLoader = new MillenniumStatusLoader($this);
 		//Load circulation status information so we can use it later on to
 		//determine what is holdable and what is not.
 		self::loadCircStatusInfo();
 		self::loadLoanRules();
 		$timer->logTime('loadCircStatusInfo, loadLoanRules');
 
-		$this->statuses[$id] = MillenniumStatusLoader::getStatus($id, $this);
+		$this->statuses[$id] = $millenniumStatusLoader->getStatus($id);
 
 		return $this->statuses[$id];
 	}
@@ -266,306 +269,14 @@ class MillenniumDriver implements DriverInterface
 	 * @return array an associative array with a summary of the holdings.
 	 */
 	public function getStatusSummary($id, $forSearch = false){
-		global $timer;
-		$holdings = $this->getStatus($id);
+		//Load circulation status information so we can use it later on to
+		//determine what is holdable and what is not.
+		self::loadCircStatusInfo();
+		self::loadLoanRules();
 
-		$counter = 0;
-		$summaryInformation = array();
-		$summaryInformation['recordId'] = $id;
-		$summaryInformation['shortId'] = substr($id, 1);
-		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
-
-		global $library;
-		/** Location $locationSingleton */
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		$canShowHoldButton = true;
-		if ($library){
-			if ($forSearch){
-				$canShowHoldButton = ($library->showHoldButtonInSearchResults != 0);
-			}else{
-				$canShowHoldButton = ($library->showHoldButton != 0);
-			}
-		}
-		if ($location){
-			if ($forSearch){
-				if ($library){
-					$canShowHoldButton = ($library->showHoldButtonInSearchResults != 0);
-				}else{
-					$canShowHoldButton = ($location->showHoldButton != 0);
-				}
-			}else{
-				$canShowHoldButton = ($location->showHoldButton != 0);
-			}
-		}
-		$physicalLocation = $locationSingleton->getPhysicalLocation();
-
-		//Check to see if we are getting issue summaries or actual holdings
-		$isIssueSummary = false;
-		$numSubscriptions = 0;
-		if (count($holdings) > 0){
-			$lastHolding = end($holdings);
-			if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
-				$isIssueSummary = true;
-				$issueSummaries = $holdings;
-				$numSubscriptions = count($issueSummaries);
-				$holdings = array();
-				foreach ($issueSummaries as $issueSummary){
-					if (isset($issueSummary['holdings'])){
-						$holdings = array_merge($holdings, $issueSummary['holdings']);
-					}else{
-						//Create a fake holding for subscriptions so something
-						//will be displayed in the holdings summary.
-						$holdings[$issueSummary['location']] = array(
-                            'availability' => '1',
-                            'location' => $issueSummary['location'],
-                            'libraryDisplayName' => $issueSummary['location'],
-                            'callnumber' => isset($issueSummary['cALL']) ? $issueSummary['cALL'] : '',
-                            'showPlaceHold' => $canShowHoldButton,
-						);
-						$summaryInformation['status'] = 'Available';
-						$summaryInformation['statusfull'] = 'Available';
-						$summaryInformation['class'] = 'available';
-					}
-				}
-			}
-		}
-
-		//Valid statuses are:
-		//It's here
-		//  - at the physical location and not checked out
-		//  - also show the call number for the location
-		//  - do not show place hold button
-		//It's at *location*
-		//  - at the user's home branch or preferred location and not checked out
-		//  - also show the call number for the location
-		//  - show place hold button
-		//Available by Request
-		//  - not at the user's home branch or preferred location, but at least one copy is not checked out
-		//  - do not show the call number
-		//  - show place hold button
-		//Checked Out
-		//  - all copies are checked out
-		//  - show the call number for the local library if any
-		//  - show place hold button
-		//Downloadable
-		//  - there is at least one download link for the record.
-		$numAvailableCopies = 0;
-		$numHoldableCopies = 0;
-		$numCopies = 0;
-		$numCopiesOnOrder = 0;
-		$availableLocations = array();
-		$additionalAvailableLocations = array();
-		$unavailableStatus = null;
-		$holdQueueLength = 0;
-		//The status of all items.  Will be set to an actual status if all are the same
-		//or null if the item statuses are inconsistent
-		$allItemStatus = '';
-		$firstCallNumber = null;
-		$firstLocation = null;
-		foreach ($holdings as $holdingKey => $holding){
-			if (is_null($allItemStatus)){
-				//Do nothing, the status is not distinct
-			}else if ($allItemStatus == '' && isset($holding['statusfull'])){
-				$allItemStatus = $holding['statusfull'];
-			}elseif(isset($holding['statusfull']) && $allItemStatus != $holding['statusfull']){
-				$allItemStatus = null;
-			}
-			if (isset($holding['holdQueueLength'])){
-				$holdQueueLength = $holding['holdQueueLength'];
-			}
-			if (isset($holding['availability']) && $holding['availability'] == 1){
-				$numAvailableCopies++;
-				$addToAvailableLocation = false;
-				$addToAdditionalAvailableLocation = false;
-				//Check to see if the location should be listed in the list of locations that the title is available at.
-				//Can only be in this system if there is a system active.
-				if (sizeof($availableLocations) < 3 && !in_array($holding['libraryDisplayName'], $availableLocations)){
-					if (isset($library)){
-						//Check to see if the location is within this library system. It is if the key is less than or equal to 5
-						if (substr($holdingKey, 0, 1) <= 5){
-							$addToAvailableLocation = true;
-						}
-					}else{
-						$addToAvailableLocation = true;
-					}
-				}
-				//Check to see if the location is listed in the count of additional locations (can be any system).
-				if (!$addToAvailableLocation && !in_array($holding['libraryDisplayName'], $availableLocations) && !in_array($holding['libraryDisplayName'], $additionalAvailableLocations)){
-					$addToAdditionalAvailableLocation = true;
-				}
-				if ($addToAvailableLocation){
-					$availableLocations[] = $holding['libraryDisplayName'];
-				}elseif ($addToAdditionalAvailableLocation){
-					$additionalAvailableLocations[] = $holding['libraryDisplayName'];
-				}
-			}else{
-				if ($unavailableStatus == null && isset($holding['status'])){
-					$unavailableStatus = $holding['status'];
-				}
-			}
-
-			if (isset($holding['holdable']) && $holding['holdable'] == 1){
-				$numHoldableCopies++;
-			}
-			$numCopies++;
-
-			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
-			$showItsHere = ($library == null) ? true : ($library->showItsHere == 1);
-			if (in_array(substr($holdingKey, 0, 1), array('1', '2', '3', '4', '5')) && !isset($summaryInformation['callnumber'])){
-				//Try to get an available non reserver call number
-				if ($holding['availability'] == 1 && $holding['holdable'] == 1){
-					//echo("Including call number " . $holding['callnumber'] . " because is  holdable");
-					$summaryInformation['callnumber'] = $holding['callnumber'];
-				}else if (is_null($firstCallNumber)){
-					//echo("Skipping call number " . $holding['callnumber'] . " because it is holdable");
-					$firstCallNumber = $holding['callnumber'];
-				}else if (is_null($firstLocation)){
-					//echo("Skipping call number " . $holding['callnumber'] . " because it is holdable");
-					$firstLocation = $holding['location'];
-				}
-			}
-			if ($showItsHere && substr($holdingKey, 0, 1) == '1' && $holding['availability'] == 1){
-				//The item is available within the physical library.  Patron should go get it off the shelf
-				$summaryInformation['status'] = "It's here";
-				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-				$summaryInformation['class'] = 'here';
-				$summaryInformation['location'] = $holding['location'];
-			}elseif ($showItsHere && !isset($summaryInformation['status']) &&
-			substr($holdingKey, 0, 1) >= 2 && (substr($holdingKey, 0, 1) <= 4) &&
-			$holding['availability'] == 1 ){
-				if (!isset($summaryInformation['class']) || $summaryInformation['class'] != 'here'){
-					//The item is at one of the patron's preferred branches.
-					$summaryInformation['status'] = "It's at " . $holding['location'];
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-					$summaryInformation['class'] = 'nearby';
-					$summaryInformation['location'] = $holding['location'];
-				}
-			}elseif (!isset($summaryInformation['status']) &&
-			((!$showItsHere && substr($holdingKey, 0, 1) <= 5) || substr($holdingKey, 0, 1) == 5 || !isset($library) ) &&
-			(isset($holding['availability']) && $holding['availability'] == 1)){
-				if (!isset($summaryInformation['class']) || ($summaryInformation['class'] != 'here' && $summaryInformation['class'] = 'nearby')){
-					//The item is at a location either in the same system or another system.
-					$summaryInformation['status'] = "Available At";
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-					if ($physicalLocation != null){
-						$summaryInformation['class'] = 'availableOther';
-					}else{
-						$summaryInformation['class'] = 'available';
-					}
-				}
-			}elseif (!isset($summaryInformation['status']) &&
-			(substr($holdingKey, 0, 1) == 6 ) &&
-			(isset($holding['availability']) && $holding['availability'] == 1)){
-				//The item is at a location either in the same system or another system.
-				$summaryInformation['status'] = "Marmot";
-				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-				$summaryInformation['class'] = 'available';
-			}elseif (substr($holdingKey, 0, 1) == 7){
-				$numCopiesOnOrder++;
-				$numCopies--; //Don't increment number of copies for titles we don't have yet.
-			}
-		}
-
-		//If all items are checked out the status will still be blank
-		$summaryInformation['availableCopies'] = $numAvailableCopies;
-		$summaryInformation['holdableCopies'] = $numHoldableCopies;
-		if ($numHoldableCopies == 0){
-			$summaryInformation['showPlaceHold'] = false;
-		}
-
-		$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
-		//Do some basic sanity checking to make sure that we show the total copies
-		//With at least as many copies as the number of copies on order.
-		if ($numCopies < $numCopiesOnOrder){
-			$summaryInformation['numCopies'] = $numCopiesOnOrder;
-		}else{
-			$summaryInformation['numCopies'] = $numCopies;
-		}
-
-		$summaryInformation['holdQueueLength'] = $holdQueueLength;
-
-		if ($unavailableStatus != 'ONLINE'){
-			$summaryInformation['unavailableStatus'] = $unavailableStatus;
-		}
-
-		if (isset($summaryInformation['status']) && $summaryInformation['status'] != "It's here"){
-			//Replace all spaces in the name of a location with no break spaces
-			foreach ($availableLocations as $key => $location){
-				$availableLocations[$key] = str_replace(' ', ' ', $location);
-			}
-			$summaryInformation['availableAt'] = join(', ', $availableLocations);
-			if ($summaryInformation['status'] == 'Marmot'){
-				$summaryInformation['numAvailableOther'] = count($additionalAvailableLocations) + count($availableLocations);
-			}else{
-				$summaryInformation['numAvailableOther'] = count($additionalAvailableLocations);
-			}
-		}
-
-		//If Status is still not set, apply some logic based on number of copies
-		if (!isset($summaryInformation['status'])){
-			if ($numCopies == 0){
-				if ($numCopiesOnOrder > 0){
-					//No copies are currently available, but we do have some that are on order.
-					//show the status as on order and make it available.
-					$summaryInformation['status'] = "On Order";
-					$summaryInformation['class'] = 'available';
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-				}else{
-					//Deal with weird cases where there are no items by saying it is unavailable
-					$summaryInformation['status'] = "Unavailable";
-					$summaryInformation['showPlaceHold'] = false;
-					$summaryInformation['class'] = 'unavailable';
-				}
-			}else{
-				if ($numHoldableCopies == 0 && $canShowHoldButton){
-					$summaryInformation['status'] = "Not Available For Checkout";
-					$summaryInformation['showPlaceHold'] = false;
-					$summaryInformation['class'] = 'reserve';
-				}else{
-					$summaryInformation['status'] = "Checked Out";
-					$summaryInformation['showPlaceHold'] = $canShowHoldButton;
-					$summaryInformation['class'] = 'checkedOut';
-				}
-			}
-		}
-
-		//Reset status if the status for all items is consistent.
-		//That way it will jive with the actual full record display.
-		if ($allItemStatus != null && $allItemStatus != ''){
-			//Only override this for statuses that don't have special meaning
-			if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At' && $summaryInformation['class'] != 'here' && $summaryInformation['class'] != 'nearby'){
-				$summaryInformation['status'] = $allItemStatus;
-			}
-		}
-		if ($allItemStatus == 'In Library Use Only'){
-			$summaryInformation['inLibraryUseOnly'] = true;
-		}else{
-			$summaryInformation['inLibraryUseOnly'] = false;
-		}
-
-
-		if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
-			$summaryInformation['showAvailabilityLine'] = false;
-		}else{
-			$summaryInformation['showAvailabilityLine'] = true;
-		}
-
-		//Clear unavailable status if it matches the status
-		if (isset($summaryInformation['unavailableStatus']) && strcasecmp(trim($summaryInformation['unavailableStatus']), trim($summaryInformation['status'])) == 0){
-			$summaryInformation['unavailableStatus'] = '';
-		}
-
-		//Reset call number as needed
-		if (!is_null($firstCallNumber) && !isset($summaryInformation['callnumber'])){
-			$summaryInformation['callnumber'] = $firstCallNumber;
-		}
-		//Reset location as needed
-		if (!is_null($firstLocation) && !isset($summaryInformation['location'])){
-			$summaryInformation['location'] = $firstLocation;
-		}
-
-		return $summaryInformation;
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumStatusLoader.php';
+		$millenniumStatusLoader = new MillenniumStatusLoader($this);
+		return $millenniumStatusLoader->getStatusSummary($id, $forSearch);
 	}
 
 	/**
@@ -650,9 +361,9 @@ class MillenniumDriver implements DriverInterface
 			$user = array(
                 'id'        => $password,
                 'username'  => $patronDump['RECORD_#'],
-                'firstname' => $firstname,
-                'lastname'  => $lastname,
-                'fullname'  => $Fullname,     //Added to array for possible display later.
+                'firstname' => isset($firstname) ? $firstname : '',
+                'lastname'  => isset($lastname) ? $lastname : '',
+                'fullname'  => isset($Fullname) ? $Fullname : '',     //Added to array for possible display later.
                 'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
                 'cat_password' => $password,
 
@@ -686,7 +397,6 @@ class MillenniumDriver implements DriverInterface
 	public function getMyProfile($patron)
 	{
 		global $timer;
-		global $user;
 		global $configArray;
 
 		if (is_object($patron)){
@@ -724,23 +434,22 @@ class MillenniumDriver implements DriverInterface
 			$Zip = "";
 		}
 
-		$Fullname = $patronDump['PATRN_NAME'];
+		$fullName = $patronDump['PATRN_NAME'];
 
-		$nameParts = explode(', ',$Fullname);
-		$lastname = $nameParts[0];
-		$secondname = isset($nameParts[1]) ? $nameParts[1] : '';
-		if (strpos($secondname, ' ')){
-			list($firstname, $middlename)=explode(' ', $secondname);
+		$nameParts = explode(', ',$fullName);
+		$lastName = $nameParts[0];
+		$secondName = isset($nameParts[1]) ? $nameParts[1] : '';
+		if (strpos($secondName, ' ')){
+			$nameParts2 = explode(' ', $secondName);
+			$firstName = $nameParts2[0];
 		}else{
-			$firstname = $secondname;
-			$middlename = '';
+			$firstName = $secondName;
 		}
 
 		//Get additional information about the patron's home branch for display.
 		$homeBranchCode = $patronDump['HOME_LIBR'];
 		//Translate home branch to plain text
 		global $user;
-		$homeBranch = $homeBranchCode;
 
 		$location = new Location();
 		$location->whereAdd("code = '$homeBranchCode'");
@@ -767,12 +476,12 @@ class MillenniumDriver implements DriverInterface
 				}
 			}
 
-			//Get displayname for prefered location 1
+			//Get display name for preferred location 1
 			$myLocation1 = new Location();
 			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
 			$myLocation1->find(1);
 
-			//Get displayname for prefered location 1
+			//Get display name for preferred location 1
 			$myLocation2 = new Location();
 			$myLocation2->whereAdd("locationId = '$user->myLocation2Id'");
 			$myLocation2->find(1);
@@ -803,9 +512,9 @@ class MillenniumDriver implements DriverInterface
 				}
 			}
 		}
-		$profile = array('lastname' => $lastname,
-				'firstname' => $firstname,
-				'fullname' => $Fullname,
+		$profile = array('lastname' => $lastName,
+				'firstname' => $firstName,
+				'fullname' => $fullName,
 				'address1' => $Address1,
 				'address2' => $City . ', ' . $State,
 				'city' => $City,
@@ -861,10 +570,12 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	/**
-	 * Get a dump of information from Millenium that can be used in other
+	 * Get a dump of information from Millennium that can be used in other
 	 * routines.
 	 *
-	 * @param string $barcode the patron's barcode
+	 * @param string  $barcode the patron's barcode
+	 * @param boolean $forceReload whether or not cached data can be used.
+	 * @return array
 	 */
 	public function _getPatronDump($barcode, $forceReload = false)
 	{
@@ -895,12 +606,12 @@ class MillenniumDriver implements DriverInterface
 			}
 			$result = $req->getResponseBody();
 
-			//Strip the acutal contents out of the body of the page.
+			//Strip the actual contents out of the body of the page.
 			$r = substr($result, stripos($result, 'BODY'));
 			$r = substr($r,strpos($r,">")+1);
 			$r = substr($r,0,stripos($r,"</BODY"));
 
-			//Remove the bracketted information from each row
+			//Remove the bracketed information from each row
 			$r = preg_replace("/\[.+?]=/","=",$r);
 
 			//Split the rows on each BR tag.
@@ -913,7 +624,6 @@ class MillenniumDriver implements DriverInterface
 			$rows = preg_replace("/<BR.*?>/","*",$r);
 			$rows = explode("*",$rows);
 			//Add the key and value from each row into an associative array.
-			$ret = array();
 			$patronDump = array();
 			foreach ($rows as $row) {
 				if (strlen(trim($row)) > 0){
@@ -943,24 +653,26 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	private $curl_connection;
+	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
+		$millenniumCheckouts = new MillenniumCheckouts($this);
+		return $millenniumCheckouts->getMyTransactions($page, $recordsPerPage, $sortOption);
+	}
+
 	/**
-	 * Uses CURL to fetch a page from millenium and return the raw results
+	 * Uses CURL to fetch a page from millennium and return the raw results
 	 * for further processing.
 	 *
 	 * Performs minimal processing on it's own to remove HTML comments.
 	 *
-	 * @param array  $patronInfo information about a patron fetched from millenium
-	 * @param string $page       The page to load within millenium
+	 * @param array     $patronInfo information about a patron fetched from millenium
+	 * @param string    $page       The page to load within millenium
 	 *
 	 * @return string the result of the page load.
 	 */
-	public function _fetchPatronInfoPage($patronInfo, $page, $additionalGetInfo = array(), $additionalPostInfo = array(), $cookieJar = null, $admin = false, $startNewSession = true, $closeSession = true)
-	{
-		$deleteCookie = false;
-		if (is_null($cookieJar)){
-			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-			$deleteCookie = true;
-		}
+	public function _fetchPatronInfoPage($patronInfo, $page){
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$deleteCookie = true;
 		global $logger;
 		//$logger->log('PatronInfo cookie ' . $cookie, PEAR_LOG_INFO);
 		global $configArray;
@@ -979,13 +691,14 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
 
-		$post_data = $this->_getLoginFormValues($patronInfo, $admin);
+		$post_data = $this->_getLoginFormValues();
+		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($this->curl_connection);
+		$sResult = curl_exec($this->curl_connection);
 
 		if (true){
 			curl_close($this->curl_connection);
@@ -998,196 +711,8 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		//Strip HTML comments
-		$sresult = preg_replace("/<!--([^(-->)]*)-->/"," ",$sresult);
-		return $sresult;
-	}
-
-	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
-	{
-		$id2= $patron['id'];
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
-
-		//Load the information from millenium using CURL
-		$sresult = $this->_fetchPatronInfoPage($patronDump, 'items');
-
-		$sresult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* ITEM.? CHECKED OUT<[^<]+?>\W<[^<]+?>/", "", $sresult);
-
-		$s = substr($sresult, stripos($sresult, 'patFunc'));
-
-		$s = substr($s,strpos($s,">")+1);
-
-		$s = substr($s,0,stripos($s,"</table"));
-
-		$s = preg_replace ("/<br \/>/","", $s);
-
-		$srows = preg_split("/<tr([^>]*)>/",$s);
-		$scount = 0;
-		$skeys = array_pad(array(),10,"");
-		$checkedOutTitles = array();
-
-		//Get patron's location to determine if renewals are allowed.
-		global $locationSingleton;
-		/** @var Location $patronLocation */
-		$patronLocation = $locationSingleton->getUserHomeLocation();
-		if (isset($patronLocation)){
-			$patronPtype = $this->getPType();
-			$patronCanRenew = false;
-			if ($patronLocation->ptypesToAllowRenewals == '*'){
-				$patronCanRenew = true;
-			}else if (preg_match("/^({$patronLocation->ptypesToAllowRenewals})$/", $patronPtype)){
-				$patronCanRenew = true;
-			}
-		}else{
-			$patronCanRenew = true;
-		}
-
-		foreach ($srows as $srow) {
-			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
-			$curTitle = array();
-			for ($i=0; $i < sizeof($scols); $i++) {
-				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
-				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
-				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
-				//print_r($scols[$i]);
-				if ($scount == 1) {
-					$skeys[$i] = $scols[$i];
-				} else if ($scount > 1) {
-
-					if (stripos($skeys[$i],"TITLE") > -1) {
-
-						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
-							$shortId = $matches[1];
-							$bibid = '.' . $matches[1];
-							$title = $matches[2];
-						}else{
-							$title = $scols[$i];
-							$shortId = '';
-							$bibid = '';
-						}
-						$curTitle['shortId'] = $shortId;
-						$curTitle['id'] = $bibid;
-						$curTitle['title'] = $title;
-					}
-
-					if (stripos($skeys[$i],"STATUS") > -1) {
-						// $sret[$scount-2]['duedate'] = strip_tags($scols[$i]);
-						$due = trim(str_replace("DUE", "", strip_tags($scols[$i])));
-						$renewCount = 0;
-						if (preg_match('/FINE\(up to now\) (\$\d+\.\d+)/i', $due, $matches)){
-							$curTitle['fine'] = trim($matches[1]);
-						}
-						if (preg_match('/(.*)Renewed (\d+) time(?:s)?/i', $due, $matches)){
-							$due = trim($matches[1]);
-							$renewCount = $matches[2];
-						}else if (preg_match('/(.*)\+\d+ HOLD.*/i', $due, $matches)){
-							$due = trim($matches[1]);
-						}
-						if (preg_match('/(\d{2}-\d{2}-\d{2})/', $due, $dueMatches)){
-							$dateDue = DateTime::createFromFormat('m-d-y', $dueMatches[1]);
-							if ($dateDue){
-								$dueTime = $dateDue->getTimestamp();
-							}else{
-								$dueTime = null;
-							}
-						}else{
-							$dueTime = strtotime($due);
-						}
-						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$curTitle['duedate'] = $dueTime;
-							$curTitle['overdue'] = $overdue;
-							$curTitle['daysUntilDue'] = $daysUntilDue;
-						}
-						$curTitle['renewCount'] = $renewCount;
-
-					}
-
-					if (stripos($skeys[$i],"BARCODE") > -1) {
-						$curTitle['barcode'] = strip_tags($scols[$i]);
-					}
-
-
-					if (stripos($skeys[$i],"RENEW") > -1) {
-						$matches = array();
-						if (preg_match('/<input\s*type="checkbox"\s*name="renew(\d+)"\s*id="renew(\d+)"\s*value="(.*?)"\s*\/>/', $scols[$i], $matches)){
-							$curTitle['canrenew'] = $patronCanRenew;
-							$curTitle['itemindex'] = $matches[1];
-							$curTitle['itemid'] = $matches[3];
-							$curTitle['renewIndicator'] = $curTitle['itemid'] . '|' . $curTitle['itemindex'];
-						}else{
-							$curTitle['canrenew'] = false;
-						}
-
-					}
-
-
-					if (stripos($skeys[$i],"CALL NUMBER") > -1) {
-						$curTitle['request'] = "null";
-					}
-				}
-
-			}
-			if ($scount > 1){
-				//Get additional information from resources table
-				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
-					$resource = new Resource();
-					$resource->source = 'VuFind';
-					$resource->shortId = $curTitle['shortId'];
-					if ($resource->find(true)){
-						$curTitle = array_merge($curTitle, get_object_vars($resource));
-						$curTitle['recordId'] = $resource->record_id;
-						$curTitle['id'] = $resource->record_id;
-					}else{
-						//echo("Warning did not find resource for {$historyEntry['shortId']}");
-					}
-				}
-				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
-				$sortKey = $sortTitle;
-				if ($sortOption == 'title'){
-					$sortKey = $sortTitle;
-				}elseif ($sortOption == 'author'){
-					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
-				}elseif ($sortOption == 'dueDate'){
-					if (isset($curTitle['duedate'])){
-						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
-							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-						} else {
-							$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
-						}
-					}
-				}elseif ($sortOption == 'format'){
-					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
-				}elseif ($sortOption == 'renewed'){
-					$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
-				}elseif ($sortOption == 'holdQueueLength'){
-					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
-				}
-				$sortKey .= "_$scount";
-				$checkedOutTitles[$sortKey] = $curTitle;
-
-			}
-
-			$scount++;
-		}
-		ksort($checkedOutTitles);
-
-		$numTransactions = count($checkedOutTitles);
-		//Process pagination
-		if ($recordsPerPage != -1){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			if ($startRecord > $numTransactions){
-				$page = 0;
-				$startRecord = 0;
-			}
-			$checkedOutTitles = array_slice($checkedOutTitles, $startRecord, $recordsPerPage);
-		}
-
-		return array(
-			'transactions' => $checkedOutTitles,
-			'numTransactions' => $numTransactions
-		);
-
+		$sResult = preg_replace("/<!--([^(-->)]*)-->/"," ",$sResult);
+		return $sResult;
 	}
 
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
@@ -1203,14 +728,13 @@ class MillenniumDriver implements DriverInterface
 	 * exportList
 	 * optOut
 	 *
-	 * @param   array   $patron         The patron array
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($patron, $action, $selectedTitles){
+	function doReadingHistoryAction($action, $selectedTitles){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumReadingHistory.php';
 		$millenniumReadingHistory = new MillenniumReadingHistory($this);
-		return $millenniumReadingHistory->doReadingHistoryAction($action, $selectedTitles);
+		$millenniumReadingHistory->doReadingHistoryAction($action, $selectedTitles);
 	}
 
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
@@ -1277,212 +801,27 @@ class MillenniumDriver implements DriverInterface
 		$millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
-	public function renewAll($patronId){
-		global $logger;
-		global $configArray;
-		/** @var Memcache $memCache */
-		global $memCache;
-
-		//Setup the call to Millennium
-		$barcode = $this->_getBarcode();
-		$patronDump = $this->_getPatronDump($barcode);
-		$curCheckedOut = $patronDump['CUR_CHKOUT'];
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->_getLoginFormValues($patronDump);
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
-
-		//Go to the items page
-		$scope = $this->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		$sresult = curl_exec($curl_connection);
-
-		//Post renewal information
-		$extraGetInfo = array(
-			'currentsortorder' => 'current_checkout',
-			'renewall' => 'YES',
-		);
-
-		$get_items = array();
-		foreach ($extraGetInfo as $key => $value) {
-			$get_items[] = $key . '=' . urlencode($value);
-		}
-		$renewItemParams = implode ('&', $get_items);
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$sresult = curl_exec($curl_connection);
-		$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
-
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
-		//Clear the existing patron info and get new information.
-		$hold_result = array();
-		$hold_result['Total'] = $curCheckedOut;
-		preg_match_all("/RENEWED successfully/si", $sresult, $matches);
-		$numRenewals = count($matches[0]);
-		$hold_result['Renewed'] = $numRenewals;
-		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
-		if ($hold_result['Unrenewed'] > 0) {
-			$hold_result['result'] = false;
-			$message = 'Some items could not be renewed.';
-		}else{
-			$hold_result['result'] = true;
-			$hold_result['message'] = "All items were renewed successfully.";
-		}
-
-		return $hold_result;
+	public function renewAll(){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
+		$millenniumCheckouts = new MillenniumCheckouts($this);
+		return $millenniumCheckouts->renewAll();
 	}
 
-	public function renewItem($patronId, $itemId, $itemIndex){
-		global $logger;
-		global $configArray;
-		global $analytics;
-
-		//Setup the call to Millennium
-		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
-
-		$extraGetInfo = array(
-            'currentsortorder' => 'current_checkout',
-            'renewsome' => 'YES',
-            'renew' . $itemIndex => $itemId,
-		);
-
-		$get_items = array();
-		foreach ($extraGetInfo as $key => $value) {
-			$get_items[] = $key . '=' . urlencode($value);
-		}
-		$renewItemParams = implode ('&', $get_items);
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-		//$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->_getLoginFormValues($patronDump);
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		curl_exec($curl_connection);
-
-		//Go to the items page
-		$scope = $this->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		curl_exec($curl_connection);
-
-		//Post renewal information
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/items";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
-		$checkedOutPageText = curl_exec($curl_connection);
-
-		//Parse the checked out titles into individual rows
-		$message = 'Unable to load renewal information for this entry';
-		$success = false;
-		if (preg_match('/<h2>\\s*You cannot renew items because:\\s*<\/h2><ul><li>(.*?)<\/ul>/si', $checkedOutPageText, $matches)) {
-			$success = false;
-			$message = 'Unable to renew this item, ' . strtolower($matches[1]) . '.';
-			if ($analytics){
-				$analytics->addEvent('ILS Integration', 'Renew Failed', strtolower($matches[1]));
-			}
-		}else if (preg_match('/Your record is in use/si', $checkedOutPageText, $matches)) {
-			$success = false;
-			$message = 'Unable to renew this item now, your account is in use by the system.  Please try again later.';
-			if ($analytics){
-				$analytics->addEvent('ILS Integration', 'Renew Failed', 'Account in Use');
-			}
-		}else if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/s', $checkedOutPageText, $matches)) {
-			$checkedOutTitleTable = $matches[1];
-			//$logger->log("Found checked out titles table", PEAR_LOG_DEBUG);
-			if (preg_match_all('/<tr class="patFuncEntry">(.*?)<\/tr>/s', $checkedOutTitleTable, $rowMatches, PREG_SET_ORDER)){
-				//$logger->log("Checked out titles table has " . count($rowMatches) . "rows", PEAR_LOG_DEBUG);
-				//$logger->log(print_r($rowMatches, true), PEAR_LOG_DEBUG);
-				for ($i = 0; $i < count($rowMatches); $i++) {
-					$rowData = $rowMatches[$i][1];
-					if (preg_match("/{$itemId}/", $rowData)){
-						//$logger->log("Found the row for this item", PEAR_LOG_DEBUG);
-						//Extract the renewal message
-						if (preg_match('/<td align="left" class="patFuncStatus">.*?<em><font color="red">(.*?)<\/font><\/em>.*?<\/td>/s', $rowData, $statusMatches)){
-							$success = false;
-							$message = 'Unable to renew this item, ' . $statusMatches[1];
-						}elseif (preg_match('/<td align="left" class="patFuncStatus">.*?<em>(.*?)<\/em>.*?<\/td>/s', $rowData, $statusMatches)){
-							$success = true;
-							$message = 'Your item was successfully renewed';
-						}
-						$logger->log("Renew success = $success, $message", PEAR_LOG_DEBUG);
-					}
-				}
-			}else{
-				$logger->log("Did not find any rows for the table $checkedOutTitleTable", PEAR_LOG_DEBUG);
-			}
-		}else{
-			$success = true;
-			$message = 'Your item was successfully renewed';
-			if ($analytics){
-				$analytics->addEvent('ILS Integration', 'Renew Successful');
-			}
-		}
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
-		return array(
-                    'itemId' => $itemId,
-                    'result'  => $success,
-                    'message' => $message);
+	public function renewItem($itemId, $itemIndex){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumCheckouts.php';
+		$millenniumCheckouts = new MillenniumCheckouts($this);
+		return $millenniumCheckouts->renewItem($itemId, $itemIndex);
 	}
 
-	public function updatePatronInfo($patronId, $canUpdateContactInfo){
+	public function updatePatronInfo($canUpdateContactInfo){
 		global $user;
 		global $configArray;
 		global $analytics;
 
 		//Setup the call to Millennium
-		$id2= $patronId;
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
-		$this->_updateVuFindPatronInfo($patronId);
+		$this->_updateVuFindPatronInfo();
 
 		if ($canUpdateContactInfo){
 			$scope = $this->getMillenniumScope();
@@ -1503,7 +842,6 @@ class MillenniumDriver implements DriverInterface
 
 			//Login to the patron's account
 			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-			$success = false;
 
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 
@@ -1517,13 +855,14 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 			curl_setopt($curl_connection, CURLOPT_POST, true);
-			$post_data = $this->_getLoginFormValues($patronDump);
+			$post_data = $this->_getLoginFormValues();
+			$post_items = array();
 			foreach ($post_data as $key => $value) {
 				$post_items[] = $key . '=' . urlencode($value);
 			}
 			$post_string = implode ('&', $post_items);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sresult = curl_exec($curl_connection);
+			curl_exec($curl_connection);
 
 			//Issue a post request to update the patron information
 			$post_items = array();
@@ -1547,7 +886,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		//Should get Patron Information Updated on success
-		if (preg_match('/Patron information updated/', $sresult)){
+		if (isset($sresult) && preg_match('/Patron information updated/', $sresult)){
 			if ($canUpdateContactInfo){
 				$user->phone = $_REQUEST['phone'];
 				$user->email = $_REQUEST['email'];
@@ -1568,9 +907,8 @@ class MillenniumDriver implements DriverInterface
 
 	}
 
-	protected function _updateVuFindPatronInfo($barcode){
+	protected function _updateVuFindPatronInfo(){
 		global $user;
-		global $configArray;
 
 		//Validate that the input data is correct
 		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
@@ -1602,16 +940,17 @@ class MillenniumDriver implements DriverInterface
 			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
 			$location->find();
 			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 1st location couuld not be found in the database.');
+				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
 			}
 			$user->myLocation1Id = $_POST['myLocation1'];
 		}
 		if (isset($_POST['myLocation2'])){
+			$location = new Location();
 			$location->whereAdd();
 			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
 			$location->find();
 			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 2nd location couuld not be found in the database.');
+				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
 			}
 			$user->myLocation2Id = $_POST['myLocation2'];
 		}
@@ -1620,7 +959,7 @@ class MillenniumDriver implements DriverInterface
 		$_SESSION['userinfo'] = serialize($user);
 	}
 
-	var $ptype;
+	var $pType;
 	/**
 	 * returns the patron type identifier if a patron is logged in or if the patron
 	 * is not logged in, it will return the default PType for the library domain.
@@ -1629,39 +968,25 @@ class MillenniumDriver implements DriverInterface
 	 * @return int
 	 */
 	public function getPType(){
-		if (!(isset($ptype)) || $this->ptype == null){
+		if ($this->pType == null){
 			/** @var $user User */
 			global $user;
-			/** @var $user Library */
-			global $library;
 			/** @var $locationSingleton Location */
 			global $locationSingleton;
-			/** @var $location Location */
-			$activeLocation = $locationSingleton->getActiveLocation();
 			$searchLocation = $locationSingleton->getSearchLocation();
 			$searchLibrary = Library::getSearchLibrary();
-      $canUseDefaultPType = true;
-      if ($this->getMillenniumScope() == $this->getDefaultScope()){
-        //If the user is searching the global scope, we don't want to use the default pType
-	      //Unless the default scope is unscoped.
-	      if (isset($activeLocation) && !$activeLocation->useScope){
-		      $canUseDefaultPType = false;
-	      }elseif (isset($library) && !$library->useScope){
-		      $canUseDefaultPType = false;
-	      }
-      }
 			if (isset($user) && $user != false){
 				$patronDump = $this->_getPatronDump($this->_getBarcode());
-				$this->ptype = $patronDump['P_TYPE'];
+				$this->pType = $patronDump['P_TYPE'];
 			}else if (isset($searchLocation) && $searchLocation->defaultPType > 0){
-				$this->ptype = $searchLocation->defaultPType;
+				$this->pType = $searchLocation->defaultPType;
 			}else if (isset($searchLibrary) && $searchLibrary->defaultPType > 0){
-				$this->ptype = $searchLibrary->defaultPType;
+				$this->pType = $searchLibrary->defaultPType;
 			}else{
-				$this->ptype = -1;
+				$this->pType = -1;
 			}
 		}
-		return $this->ptype;
+		return $this->pType;
 	}
 
 	public function _getBarcode(){
@@ -1675,20 +1000,18 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	/**
-	 * Checks millenium to determine if there are issue summaries available.
+	 * Checks millennium to determine if there are issue summaries available.
 	 * If there are issue summaries available, it will return them in an array.
 	 * With holdings below them.
 	 *
 	 * If there are no issue summaries, null will be returned from the summary.
 	 *
-	 * @param string $id - The Id of the bib record to load summaries for.
+	 * @param MillenniumCache $millenniumInfo - Information from Millennium to load issue information from.
+	 *
 	 * @return mixed - array or null
 	 */
-	public function getIssueSummaries($id, $millenniumInfo){
+	public function getIssueSummaries($millenniumInfo){
 		//Issue summaries are loaded from the main record page.
-		global $library;
-		global $user;
-		global $configArray;
 
 		if (preg_match('/class\\s*=\\s*\\"bibHoldings\\"/s', $millenniumInfo->framesetInfo)){
 			//There are issue summaries available
@@ -1747,13 +1070,14 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
-	function isRecordHoldable($marcRecord, $id){
-		global $logger;
+	/**
+	 * @param File_MARC_Record $marcRecord
+	 * @return bool
+	 */
+	function isRecordHoldable($marcRecord){
 		$pType = $this->getPType();
+		/** @var File_MARC_Data_Field[] $items */
 		$items = $marcRecord->getFields('989');
-		$holdable = false;
-		//$logger->log("Checking Holdablity for $id, patron type is $pType", PEAR_LOG_DEBUG);
-		//$logger->log("Found " . count($items) . " items", PEAR_LOG_DEBUG);
 		$holdable = false;
 		$itemNumber = 0;
 		foreach ($items as $item){
@@ -1789,7 +1113,6 @@ class MillenniumDriver implements DriverInterface
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
 		$holdable = false;
-		global $logger;
 		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
 		foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
 			//Check the location to be sure the determiner applies to this item
@@ -1819,8 +1142,6 @@ class MillenniumDriver implements DriverInterface
 
 	function getCheckInGrid($id, $checkInGridId){
 		//Issue summaries are loaded from the main record page.
-		global $library;
-		global $user;
 		global $configArray;
 
 		// Strip ID
@@ -1885,12 +1206,13 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 		$post_data['name'] = $configArray['Catalog']['ils_admin_user'];
 		$post_data['code'] = $configArray['Catalog']['ils_admin_pwd'];
+		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
+		curl_exec($curl_connection);
 
 		foreach ($holdings as $itemNumber => $holding){
 			//Get the staff page for the record
@@ -1907,27 +1229,30 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie );
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-			$sresult = curl_exec($curl_connection);
+			$sResult = curl_exec($curl_connection);
 
-			//Extract Item infromation
-			if (preg_match('/<!-- Fixfields -->.*?<table.*?>(.*?)<\/table>.*?<!-- Varfields -->.*?<table.*?>(.*?)<\/table>.*?<!-- Lnkfields -->.*?<table.*?>(.*?)<\/table>/s', $sresult, $matches)) {
+			//Extract Item information
+			if (preg_match('/<!-- Fixfields -->.*?<table.*?>(.*?)<\/table>.*?<!-- Varfields -->.*?<table.*?>(.*?)<\/table>.*?<!-- Lnkfields -->.*?<table.*?>(.*?)<\/table>/s', $sResult, $matches)) {
 				$fixFieldString = $matches[1];
 				$varFieldString = $matches[2];
-				$linkFieldString = $matches[3];
 			}
 
 			//Extract the fixFields into an array of name value pairs
-			preg_match_all('/<td><font size="-1"><em>(.*?)<\/em><\/font>&nbsp;<strong>(.*?)<\/strong><\/td>/s', $fixFieldString, $fieldData, PREG_PATTERN_ORDER);
 			$fixFields = array();
-			for ($i = 0; $i < count($fieldData[0]); $i++) {
-				$fixFields[$fieldData[1][$i]] = $fieldData[2][$i];
+			if (isset($fixFieldString)){
+				preg_match_all('/<td><font size="-1"><em>(.*?)<\/em><\/font>&nbsp;<strong>(.*?)<\/strong><\/td>/s', $fixFieldString, $fieldData, PREG_PATTERN_ORDER);
+				for ($i = 0; $i < count($fieldData[0]); $i++) {
+					$fixFields[$fieldData[1][$i]] = $fieldData[2][$i];
+				}
 			}
 
 			//Extract the fixFields into an array of name value pairs
-			preg_match_all('/<td.*?><font size="-1"><em>(.*?)<\/em><\/font><\/td><td width="80%">(.*?)<\/td>/s', $varFieldString, $fieldData, PREG_PATTERN_ORDER);
 			$varFields = array();
-			for ($i = 0; $i < count($fieldData[0]); $i++) {
-				$varFields[$fieldData[1][$i]] = $fieldData[2][$i];
+			if (isset($varFieldString)){
+				preg_match_all('/<td.*?><font size="-1"><em>(.*?)<\/em><\/font><\/td><td width="80%">(.*?)<\/td>/s', $varFieldString, $fieldData, PREG_PATTERN_ORDER);
+				for ($i = 0; $i < count($fieldData[0]); $i++) {
+					$varFields[$fieldData[1][$i]] = $fieldData[2][$i];
+				}
 			}
 
 			//Add on the item information
@@ -1967,6 +1292,7 @@ class MillenniumDriver implements DriverInterface
 		$post_data['stat_aaddress'] = $state;
 		$post_data['post_aaddress'] = $zip;
 		$post_data['zemailaddr'] = $email;
+		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -1987,257 +1313,18 @@ class MillenniumDriver implements DriverInterface
 
 	}
 
-	public function _getLoginFormValues($patronInfo, $admin = false){
+	public function _getLoginFormValues(){
 		$loginData = array();
-		if ($admin){
-			global $configArray;
-			$loginData['name'] = $configArray['Catalog']['ils_admin_user'];
-			$loginData['code'] = $configArray['Catalog']['ils_admin_pwd'];
-		}else{
-			global $user;
-			$loginData['name'] = $user->cat_username;
-			$loginData['code'] = $user->cat_password;
-		}
+		global $user;
+		$loginData['name'] = $user->cat_username;
+		$loginData['code'] = $user->cat_password;
 
 		return $loginData;
 	}
 
 	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
-		global $configArray;
-		global $logger;
-		$results = array();
-		if (!isset($configArray['Catalog']['url'])){
-			return array(
-				'success' => false,
-				'message' => 'There is not a url to millennium set in the config.ini file.  Please update the configuration',
-			);
-		}
-		if ($login == '' || $password1 == '' || $initials == '' || $password2 == ''){
-			return array(
-				'success' => false,
-				'message' => 'Login information not provided correctly.  Please fill out all login fields',
-			);
-		}
-
-		if (strlen($barcodes) == 0){
-			return array(
-				'success' => false,
-				'message' => 'Please enter at least one barcode to inventory.',
-			);
-		}else{
-			$barcodes = preg_split('/[\\s\\r\\n]+/', $barcodes);
-			if (count($barcodes) == 0){
-				return array(
-					'success' => false,
-					'message' => 'Please enter at least one barcode to inventory.',
-				);
-			}
-		}
-
-		//Setup Solr to be able to get additional information about the title
-		global $configArray;
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
-
-		$circaUrl = $configArray['Catalog']['url'] . '/iii/airwkst/airwkstcore';
-		//Setup curl
-		$curl_url = $circaUrl;
-		$this->curl_connection = curl_init($curl_url);
-
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-
-		curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
-		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
-
-		//First get the login page
-		$sresult = curl_exec($this->curl_connection);
-
-		//Login to circa
-		$post_data = array(
-			'action' => 'ValidateAirWkstUserAction',
-			'login' => $login,
-			'loginpassword' => $password1,
-			'nextaction' => 'null',
-			'purpose' => 'null',
-			'submit.x' => 41,
-			'submit.y' => 10,
-			'subpurpose' => 'null',
-			'validationstatus' => 'needlogin',
-		);
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($this->curl_connection, CURLOPT_POST, true);
-		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($this->curl_connection);
-		$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
-		//$logger->log("result of circa login $sresult", PEAR_LOG_DEBUG);
-
-		//Check that we logged in successfully
-		if (!preg_match('/Invalid login\/password/i', $sresult) && preg_match('/initials/i', $sresult)){
-			//we logged in successfully.
-			//enter initials
-			$post_data = array(
-				'action' => 'ValidateAirWkstUserAction',
-				'initials' => $initials,
-				'initialspassword' => $password2,
-				'nextaction' => 'null',
-				'purpose' => 'null',
-				'submit.x' => 30,
-				'submit.y' => 10,
-				'subpurpose' => 'null',
-				'validationstatus' => 'needinitials',
-			);
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
-			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sresult = curl_exec($this->curl_connection);
-			$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
-			//$logger->log("result of circa initials $sresult", PEAR_LOG_DEBUG);
-
-			if (!preg_match('/You are not authorized to use Circa/i', $sresult) && preg_match('/inventory control/i', $sresult)){
-				//Logged in and authorized, check in each barcode
-				//Go to the Inventory page
-				curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
-				curl_setopt($this->curl_connection, CURLOPT_URL, $circaUrl . '/iii/airwkst/?action=GetAirWkstUserInfoAction&purpose=updinvdt');
-				$sresult = curl_exec($this->curl_connection);
-
-				curl_setopt($this->curl_connection, CURLOPT_POST, true);
-				curl_setopt($this->curl_connection, CURLOPT_URL, $curl_url);
-				$results['barcodes']= array();
-				foreach ($barcodes as $barcode){
-					set_time_limit(60);
-					$post_data = array(
-						'action' => 'GetAirWkstItemOneAction',
-						'prevscreen' => 'AirWkstItemRequestPage',
-						'purpose' => 'updinvdt',
-						'searchstring' => $barcode,
-						'searchtype' => 'b',
-						'sourcebrowse' => 'airwkstpage',
-					);
-					$post_items = array();
-					foreach ($post_data as $key => $value) {
-						$post_items[] = $key . '=' . urlencode($value);
-					}
-					$post_string = implode ('&', $post_items);
-					curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-
-					$sresult = curl_exec($this->curl_connection);
-					$titleInfo = $this->db->getRecordByBarcode($barcode);
-
-					$marcInfo = MarcLoader::loadMarcRecordFromRecord($titleInfo);
-					//Get the matching item from the item records
-					$itemFields = $marcInfo->getFields('989');
-					$itemInfo = null;
-					if ($itemFields){
-						foreach ($itemFields as $fieldInfo){
-							if ($fieldInfo->getSubfield('b')->getData() == $barcode){
-								$itemInfo = $fieldInfo;
-							}
-						}
-					}else{
-						$logger->log("Did not find item records $barcode", PEAR_LOG_ERR);
-					}
-					if ($itemInfo == null){
-						$logger->log("Did not find an item for barcode $barcode", PEAR_LOG_ERR);
-					}
-
-					if (preg_match("/$barcode updated successfully/i", $sresult)){
-						$results['barcodes'][$barcode] = array(
-							'inventoryResult' => 'Updated successfully.',
-							'title' => $titleInfo['title'],
-							'callNumber' => is_null($itemInfo) ? '' : $itemInfo->getSubfield('a')->getData(),
-						);
-						if (preg_match('/Unexpected status; adjust below if appropriate/i', $sresult)){
-							if ($updateIncorrectStatuses){
-								//Automatically update the item to checked in
-								//extract the current status and item record
-								preg_match('/<input type="hidden" name="olditemstatuscode" value="(.*?)">/', $sresult, $matches);
-								$lastStatus = $matches[1];
-								preg_match('/<input type="hidden" name="itemrecordkey" value="(.*?)">/', $sresult, $matches);
-								$itemrecordkey = $matches[1];
-								$post_data = array(
-									'action' => 'UpdateAirWkstItemOneAction',
-									'itemrecordkey' => $itemrecordkey,
-									'lastaction' => 'updstatus',
-									'lastactionstatus' => 'good',
-									'lastitembarcode' => $barcode,
-									'newitemstatuscode' => '-',
-									'olditemstatuscode' => $lastStatus,
-									'purpose' => 'updstatus',
-									'submit.x' => 40,
-									'submit.y' => 10,
-									'ulang' => 'eng',
-								);
-								$post_items = array();
-								foreach ($post_data as $key => $value) {
-									$post_items[] = $key . '=' . urlencode($value);
-								}
-								$post_string = implode ('&', $post_items);
-								curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-
-								$sresult = curl_exec($this->curl_connection);
-
-								if (preg_match("/$barcode updated successfully/i", $sresult)){
-									$results['barcodes'][$barcode]['inventoryResult'] = "Automatically changed status from $lastStatus to on shelf";
-									$results['barcodes'][$barcode]['needsAdditionalProcessing'] = false;
-								}else{
-									$logger->log("Could not update status for barcode $barcode/r/n$sresult", PEAR_LOG_ERR);
-									$results['barcodes'][$barcode]['inventoryResult'] = "Could not automatically fix status, old status is $lastStatus";
-									$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
-								}
-							}else{
-								$results['barcodes'][$barcode]['inventoryResult'] = "Unexpected Status, Needs Update";
-								$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
-							}
-						}elseif (preg_match('/Unexpected status; pull this item for correction/i', $sresult)){
-							$results['barcodes'][$barcode]['inventoryResult'] .= " Pull this item for status correction";
-							$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
-						}else{
-							$results['barcodes'][$barcode]['needsAdditionalProcessing'] = false;
-						}
-					}else{
-						$results['barcodes'][$barcode] = array(
-							'inventoryResult' => 'Not updated',
-							'title' => $titleInfo['title'],
-							'callNumber' => is_null($itemInfo) ? '' : $itemInfo->getSubfield('a')->getData(),
-						);
-					}
-				}
-
-				$results['success'] = true;
-			}else{
-				//Did not log in correctly.
-				$results['success'] = false;
-				$results['message'] = "The initals or password were incorrect or you are not authorized to use circa.";
-			}
-
-		}else{
-			//Did not log in correctly.
-			$results['success'] = false;
-			$results['message'] = "The login or password were incorrect.  Please reenter.";
-		}
-
-		//Cleanup
-		curl_close($this->curl_connection);
-		unlink($cookieJar);
-
-		return $results;
+		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumInventory.php';
+		$millenniumInventory = new MillenniumInventory($this);
+		return $millenniumInventory->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
 	}
 }

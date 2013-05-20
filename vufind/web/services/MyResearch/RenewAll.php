@@ -41,7 +41,7 @@ class RenewAll extends Action
 
 		//Renew the hold
 		if (method_exists($this->catalog->driver, 'renewAll')) {
-			$renewResult = $this->catalog->driver->renewAll($user->cat_username);
+			$renewResult = $this->catalog->driver->renewAll();
 			$_SESSION['renew_message'] = $renewResult;
 		} else {
 			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
