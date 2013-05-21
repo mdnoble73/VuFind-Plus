@@ -386,11 +386,11 @@ class Location extends DB_DataObject
 		if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
 			global $locationSingleton;
 			return $locationSingleton->getActiveLocation();
-		}else if ($searchSource == 'marmot' || $scopingSetting == 'unscoped'){
+		}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
 			return null;
 		}else{
 			$location = new Location();
-			$location->code = $searchSource;
+			$location->code = $scopingSetting;
 			$location->find();
 			if ($location->N > 0){
 				$location->fetch();
