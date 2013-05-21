@@ -365,12 +365,28 @@ class Location extends DB_DataObject
 		return $this->physicalLocation;
 	}
 
-	static function getSearchLocation(){
-		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if ($searchSource == 'local' || $searchSource == 'econtent'){
+	static function getSearchLocation($searchSource = null){
+		if (is_null($searchSource)){
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			if (strpos($searchSource, 'library') === 0){
+				$trimmedSearchSource = str_replace('library', '', $searchSource);
+				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
+				$librarySearchSource = new LibrarySearchSource();
+				$librarySearchSource->id = $trimmedSearchSource;
+				if ($librarySearchSource->find(true)){
+					$searchSource = $librarySearchSource;
+				}
+			}
+		}
+		if (is_object($searchSource)){
+			$scopingSetting = $searchSource->catalogScoping;
+		}else{
+			$scopingSetting = $searchSource;
+		}
+		if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
 			global $locationSingleton;
 			return $locationSingleton->getActiveLocation();
-		}else if ($searchSource == 'marmot'){
+		}else if ($searchSource == 'marmot' || $scopingSetting == 'unscoped'){
 			return null;
 		}else{
 			$location = new Location();

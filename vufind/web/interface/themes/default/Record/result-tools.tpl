@@ -7,7 +7,9 @@
 {if $showMoreInfo !== false}
 <div class="resultAction"><a href="{$path}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}"><span class="silk information">&nbsp;</span>More Info</a></div>
 {/if}
+{*
 <div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
+*}
 <div class="resultAction"><a href="{$path}/Record/{$summId|escape:"url"}/SimilarTitles"><img src="/images/silk/arrow_switch.png">&nbsp;More Like This</a></div>
 {if $showComments == 1}
 	{include file="Record/title-review.tpl"}
@@ -21,4 +23,10 @@
 	</script>
 	{/if}
 </div>
+{/if}
+{if $showTextThis == 1}
+	<li><a href="{$path}/Record/{$id|escape:"url"}/SMS" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;'><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
+{/if}
+{if $showEmailThis == 1}
+	<li><a href="{$path}/Record/{$id|escape:"url"}/Email" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/Email?lightbox", "#mailLink"); return false;'><span class="silk email">&nbsp;</span>{translate text="Email this"}</a></li>
 {/if}

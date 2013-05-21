@@ -35,7 +35,9 @@
 {if $showMoreInfo !== false}
 <div class="resultAction"><a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}"><span class="silk information">&nbsp;</span>More Info</a></div>
 {/if}
+{*
 <div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$id|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', 'EcontentRecord{$summId|escape:"url"}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
+*}
 <div class="resultAction"><a href="{$path}/EcontentRecord/{$summId|escape:"url"}/SimilarTitles"><img src="/images/silk/arrow_switch.png">&nbsp;</span>More Like This</a></div>
 {if $showComments == 1}
 	{assign var=id value=$summId scope="global"}
@@ -51,5 +53,10 @@
 		{/if}
 	</div>
 {/if}
-
+{if $showTextThis == 1}
+	<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" id="smsLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;"><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a></li>
+{/if}
+{if $showEmailThis == 1}
+	<li><a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" id="mailLink" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;"><span class="silk email">&nbsp;</span>{translate text="Email this"}</a></li>
+{/if}
 {/strip}
