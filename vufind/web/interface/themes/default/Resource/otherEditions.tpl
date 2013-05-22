@@ -59,11 +59,16 @@
 			Sorry, we couldn't find any other copies of this title in different languages or formats.
 		{/foreach}
 	</div>
+	<script type="text/javascript">
+		{foreach from=$otherEditions item=resource}
+		addIdToStatusList('{$resource->record_id|escape:"javascript"}', '{$resource->source}');
+		resultDescription('{$resource->record_id}','{$resource->shortId}', '{$resource->source}');
+		{/foreach}
+		doGetStatusSummaries();
+	</script>
 {/if}
-<script type="text/javascript">
-{foreach from=$otherEditions item=resource}
-	addIdToStatusList('{$resource->record_id|escape:"javascript"}', '{$resource->source}');
-	resultDescription('{$resource->record_id}','{$resource->shortId}', '{$resource->source}');
-{/foreach}
-	doGetStatusSummaries();
-</script>
+{if $enableMaterialsRequest}
+	<p>
+		Need this in another format? You can <a href="{$path}/MaterialsRequest/NewRequest">request it here</a>.
+	</p>
+{/if}

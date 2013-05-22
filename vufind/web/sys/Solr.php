@@ -1406,6 +1406,10 @@ class Solr implements IndexEngine {
 			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
 				$filter[] = 'collection_group:"' . $defaultCollection . '"';
 			}
+
+			if ($this->searchSource == 'econtent'){
+				$filter[] = 'recordtype:"econtentRecord"';
+			}
 		}
 		return $filter;
 	}

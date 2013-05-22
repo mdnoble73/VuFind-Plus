@@ -96,6 +96,10 @@
 				<div id='prospectorSearchResultsPlaceholder'></div>
 			{/if}
 
+			{if $enableMaterialsRequest}
+				<p>Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</p>
+			{/if}
+
 			<div class="searchtools">
 				<strong>{translate text='Search Tools'}:</strong>
 				<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>

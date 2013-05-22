@@ -2,8 +2,8 @@
 	{* Define tabs for the display *}
 	<ul>
 		<li id="holdingstab_label"><a href="#holdingstab">{translate text="Copies"}</a></li>
-		{if is_array($otherEditions) }
-			<li id="otherEditionsTab_label"><a href="#otherEditionsTab">{translate text="Other Editions"}</a></li>
+		{if $enableMaterialsRequest || is_array($otherEditions) }
+			<li id="otherEditionsTab_label"><a href="#otherEditionsTab">{translate text="Other Formats"}</a></li>
 		{/if}
 		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 			<li id="prospectortab_label"><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
@@ -52,7 +52,7 @@
 
 	</div>
 
-	{if is_array($otherEditions) }
+	{if $enableMaterialsRequest || is_array($otherEditions) }
 		<div id="otherEditionsTab">
 			{include file='Resource/otherEditions.tpl' otherEditions=$editionResources}
 		</div>

@@ -2,6 +2,9 @@ html, body {
 	height: 100%;
 	background-color:#CCC;
 }
+legend {
+	font-weight: bold;
+}
 .center{
 	text-align: center;
 }

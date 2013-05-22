@@ -108,19 +108,19 @@ function setFieldVisibility(){
 	
 	if (selectedFormat == 'article'){
 		$("#magazineTitle").addClass('required');
-		$("#magazineDate").addClass('required');
-		$("#magazineVolume").addClass('required');
-		$("#magazineNumber").addClass('required');
-		$("#magazinePageNumbers").addClass('required');
+		//$("#magazineDate").addClass('required');
+		//$("#magazineVolume").addClass('required');
+		//$("#magazineNumber").addClass('required');
+		//$("#magazinePageNumbers").addClass('required');
 		$("#acceptCopyrightYes").addClass('required');
 		$("#supplementalDetails").hide();
 		$("#titleLabel").html("Article Title <span class='requiredIndicator'>*</span>:");
 	}else{
 		$("#magazineTitle").removeClass('required');
-		$("#magazineDate").removeClass('required');
-		$("#magazineVolume").removeClass('required');
-		$("#magazineNumber").removeClass('required');
-		$("#magazinePageNumbers").removeClass('required');
+		//$("#magazineDate").removeClass('required');
+		//$("#magazineVolume").removeClass('required');
+		//$("#magazineNumber").removeClass('required');
+		//$("#magazinePageNumbers").removeClass('required');
 		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
 		$("#titleLabel").html("Title <span class='requiredIndicator'>*</span>:");

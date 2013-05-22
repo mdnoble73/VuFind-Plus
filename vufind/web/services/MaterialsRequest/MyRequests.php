@@ -46,6 +46,7 @@ class MaterialsRequest_MyRequests extends MyResearch
 		
 		$defaultStatus = new MaterialsRequestStatus();
 		$defaultStatus->isDefault = 1;
+		$defaultStatus->libraryId = Library::getPatronHomeLibrary()->libraryId;
 		$defaultStatus->find(true);
 		$interface->assign('defaultStatus', $defaultStatus->id);
 		

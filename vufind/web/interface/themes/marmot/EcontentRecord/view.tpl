@@ -166,36 +166,6 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 		</div>
 
-		<div class="sidegroup" id="similarAuthorsSidegroup">
-			<div id="similarAuthorPlaceholder"></div>
-		</div>
-
-		{if is_array($editions) && !$showOtherEditionsPopup}
-			<div class="sidegroup" id="otherEditionsSidegroup">
-				<h4>{translate text="Other Editions"}</h4>
-				{foreach from=$editions item=edition}
-					<div class="sidebarLabel">
-						{if $edition.recordtype == 'econtentRecord'}
-							<a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-						{else}
-							<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-						{/if}
-					</div>
-					<div class="sidebarValue">
-						{if is_array($edition.format)}
-							{foreach from=$edition.format item=format}
-								<span class="{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
-							{/foreach}
-						{else}
-							<span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">{$edition.format}</span>
-						{/if}
-						{$edition.edition|escape}
-						{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
-					</div>
-				{/foreach}
-			</div>
-		{/if}
-
 		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 0}
 			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
 				{* Display in Prospector Sidebar *}
@@ -336,6 +306,9 @@ function redrawSaveStatus() {literal}{{/literal}
 			{* Define tabs for the display *}
 			<ul>
 				<li id="formatstabLink"><a href="#formatstab">{translate text="Formats"}</a></li>
+				{if $enableMaterialsRequest || is_array($otherEditions) }
+					<li id="otherEditionsTab_label"><a href="#otherEditionsTab">{translate text="Other Formats"}</a></li>
+				{/if}
 				{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 					<li><a href="#prospectorTab">{translate text="In Prospector"}</a></li>
 				{/if}
@@ -368,6 +341,12 @@ function redrawSaveStatus() {literal}{{/literal}
 					{/if}
 			 	</div>
 			</div>
+
+			{if $enableMaterialsRequest || is_array($otherEditions) }
+				<div id="otherEditionsTab">
+					{include file='Resource/otherEditions.tpl' otherEditions=$editionResources}
+				</div>
+			{/if}
 
 			{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 				<div id="prospectorTab">

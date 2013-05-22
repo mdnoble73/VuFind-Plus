@@ -27,20 +27,20 @@
 			<div><input name="author" id="author" size="90" maxlength="255" class="required" value="{$materialsRequest->author}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
-			<div><label for="magazineDate">Date <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineDate" id="magazineDate" size="20" maxlength="20" class="required" value="{$materialsRequest->magazineDate}"/></div>
+			<div><label for="magazineDate">Date:</label></div>
+			<div><input name="magazineDate" id="magazineDate" size="20" maxlength="20" value="{$materialsRequest->magazineDate}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
-			<div><label for="magazineVolume">Volume <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineVolume" id="magazineVolume" size="20" maxlength="20" class="required" value="{$materialsRequest->magazineVolume}"/></div>
+			<div><label for="magazineVolume">Volume:</label></div>
+			<div><input name="magazineVolume" id="magazineVolume" size="20" maxlength="20" value="{$materialsRequest->magazineVolume}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
-			<div><label for="magazineNumber">Number <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazineNumber" id="magazineNumber" size="20" maxlength="20" class="required" value="{$materialsRequest->magazineNumber}"/></div>
+			<div><label for="magazineNumber">Number:</label></div>
+			<div><input name="magazineNumber" id="magazineNumber" size="20" maxlength="20" value="{$materialsRequest->magazineNumber}"/></div>
 		</div>
 		<div class="form-item formatSpecificField articleField">
-			<div><label for="magazinePageNumbers">Page Numbers <span class="requiredIndicator">*</span>:</label></div>
-			<div><input name="magazinePageNumbers" id="magazinePageNumbers" size="20" maxlength="20" class="required" value="{$materialsRequest->magazinePageNumbers}"/></div>
+			<div><label for="magazinePageNumbers">Page Numbers:</label></div>
+			<div><input name="magazinePageNumbers" id="magazinePageNumbers" size="20" maxlength="20" value="{$materialsRequest->magazinePageNumbers}"/></div>
 		</div>
 		{if $showEbookFormatField}
 			<div class="form-item formatSpecificField ebookField">
@@ -100,9 +100,9 @@
 						<div>
 							<div>Do you want us to borrow from another library if not purchased?:</div>
 							<div>
-								<input type="radio" name="illItem" value="1" id="illItemYes" />&nbsp;<label for="illItemYes">Yes</label>
+								<input type="radio" name="illItem" value="1" id="illItemYes" checked="checked" />&nbsp;<label for="illItemYes">Yes</label>
 								&nbsp;&nbsp;
-								<input type="radio" name="illItem" value="0" id="illItemNo" checked="checked" />&nbsp;<label for="illItemNo">No</label>
+								<input type="radio" name="illItem" value="0" id="illItemNo" />&nbsp;<label for="illItemNo">No</label>
 							</div>
 						</div>
 					{/if}
@@ -111,7 +111,7 @@
 		{/if}
 	</fieldset>
 	<fieldset>
-		<legend>Tell us more</legend>
+		<legend class="collapsible">Tell us more (optional)</legend>
 		<div>
 			<p>Tell us more about the item you’re looking for. The more information you provide, the easier for us to find exactly what you need.</p>
 			{* The following is set with JS, so we should probably leave for now.*}
@@ -143,7 +143,7 @@
 								<option value="adult"{if $materialsRequest->ageLevel=='adult'}selected='selected'{/if}>Adult</option>
 								<option value="teen"{if $materialsRequest->ageLevel=='teen'}selected='selected'{/if}>Teen</option>
 								<option value="children"{if $materialsRequest->ageLevel=='children'}selected='selected'{/if}>Children</option>
-								<option value="unknown"{if $materialsRequest->ageLevel=='unknown'}selected='selected'{/if}>Don't Know</option>
+								<option value="unknown"{if !isset($materialsRequest->ageLevel) || $materialsRequest->ageLevel=='unknown'}selected='selected'{/if}>Don't Know</option>
 							</select></div>
 					</div>
 				{/if}
@@ -159,7 +159,7 @@
 							<option value="fiction"{if $materialsRequest->bookType=='fiction'}selected='selected'{/if}>Fiction</option>
 							<option value="nonfiction"{if $materialsRequest->bookType=='nonfiction'}selected='selected'{/if}>Non-Fiction</option>
 							<option value="graphicNovel"{if $materialsRequest->bookType=='graphicNovel'}selected='selected'{/if}>Graphic Novel</option>
-							<option value="unknown"{if $materialsRequest->bookType=='unknown'}selected='selected'{/if}>Don't Know</option>
+							<option value="unknown"{if (!isset($materialsRequest->bookType) || $materialsRequest->bookType=='unknown')}selected='selected'{/if}>Don't Know</option>
 						</select>
 					</div>
 				{/if}
@@ -228,4 +228,7 @@
 		</fieldset>
 	</div>
 {/if}
+<script type="text/javascript">
+	setupFieldsetToggles();
+</script>
 {/strip}
