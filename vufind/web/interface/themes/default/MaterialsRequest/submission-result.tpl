@@ -7,7 +7,12 @@
 			</div>
 		{else}
 			<div class="result">
-			Your request for {$materialsRequest->title} by {$materialsRequest->author} was submitted successfully.  You can view the status of all your material requests <a href='{$path}/MaterialsRequest/MyRequests'>here</a>. 
+				<p>
+					Your request for {$materialsRequest->title} by {$materialsRequest->author} was submitted successfully.
+				</p>
+				<p>
+					You can view the status of all your material requests <a href='{$path}/MaterialsRequest/MyRequests'>here</a>.
+				</p>
 			</div>
 		{/if}
 	</div>
