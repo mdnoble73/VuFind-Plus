@@ -91,7 +91,7 @@ class Location extends DB_DataObject
 		unset($facetSettingStructure['locationId']);
 		unset($facetSettingStructure['numEntriesToShowByDefault']);
 		unset($facetSettingStructure['showAsDropDown']);
-		unset($facetSettingStructure['sortMode']);
+		//unset($facetSettingStructure['sortMode']);
 
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),

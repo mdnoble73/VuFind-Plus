@@ -127,7 +127,7 @@ class Library extends DB_DataObject
 		unset($facetSettingStructure['libraryId']);
 		unset($facetSettingStructure['numEntriesToShowByDefault']);
 		unset($facetSettingStructure['showAsDropDown']);
-		unset($facetSettingStructure['sortMode']);
+		//unset($facetSettingStructure['sortMode']);
 
 		$searchSourceStructure = LibrarySearchSource::getObjectStructure();
 		unset($searchSourceStructure['weight']);
