@@ -8,7 +8,7 @@
 		{else}
 			<div class="result">
 				<p>
-					Your request for {$materialsRequest->title} by {$materialsRequest->author} was submitted successfully.
+					Your request for <b>{$materialsRequest->title}</b> by <b>{$materialsRequest->author}</b> was submitted successfully.
 				</p>
 				<p>
 					You can view the status of all your material requests <a href='{$path}/MaterialsRequest/MyRequests'>here</a>.
