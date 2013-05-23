@@ -125,7 +125,7 @@ class Anythink extends Horizon {
         'ext' => 'In Motion Bookmobile',
         'ng'  => 'Huron Street',
         'pm' => 'Perl Mack',
-        'th'  => 'Washington Street',
+        'th'  => 'York Street',
         'wf' => 'Wright Farms',
         );
         return isset($locationMap[$locationCode]) ? $locationMap[$locationCode] : 'Unknown' ;
