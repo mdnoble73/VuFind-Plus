@@ -577,7 +577,7 @@ class SearchObject_Solr extends SearchObject_Base
 		return $html;
 	}
 
-	public function getSupplementalResultRecordHTML($mainResults, $maxResultsToShow){
+	public function getSupplementalResultRecordHTML($mainResults, $maxResultsToShow, $startIndex = 0){
 		global $interface;
 		$html = array();
 		$numResultsShown = 0;
@@ -594,11 +594,11 @@ class SearchObject_Solr extends SearchObject_Base
 			if ($supplementalInMainResults){
 				continue;
 			}
-			$interface->assign('recordIndex', $numResultsShown + 1);
-			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit));
+			$interface->assign('recordIndex', $numResultsShown + 1 );
+			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit) + $startIndex);
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$numResultsShown++;
-			$html[] = $interface->fetch($record->getSupplementalSearchResult());
+			$html[] = $interface->fetch($record->getSearchResult());
 			if ($numResultsShown >= $maxResultsToShow){
 				break;
 			}

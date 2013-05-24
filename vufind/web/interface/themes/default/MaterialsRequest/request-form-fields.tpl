@@ -64,7 +64,7 @@
 			</div>
 		{/if}
 
-		{if $useWorldCat}
+		{if !$new && $useWorldCat}
 			<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eAudioField playawayField cassetteField vhsField">
 				<input type="button" id="suggestIdentifiers" value="Find exact match" onclick="return getWorldCatIdentifiers();"/>
 				<img width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png">
@@ -97,7 +97,7 @@
 						</div>
 					{/if}
 					{if $showIllField}
-						<div>
+						<div id="illInfo">
 							<div>Do you want us to borrow from another library if not purchased?:</div>
 							<div>
 								<input type="radio" name="illItem" value="1" id="illItemYes" checked="checked" />&nbsp;<label for="illItemYes">Yes</label>
@@ -110,11 +110,10 @@
 			{/if}
 		{/if}
 	</fieldset>
-	<fieldset>
-		<legend class="collapsible">Tell us more (optional)</legend>
-		<div>
+	<div>
+		{* The following is set with JS, so we should probably leave for now.*}
+		{if !$new}
 			<p>Tell us more about the item you’re looking for. The more information you provide, the easier for us to find exactly what you need.</p>
-			{* The following is set with JS, so we should probably leave for now.*}
 			<fieldset>
 				<legend>Identifiers</legend>
 				<div class="formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
@@ -134,58 +133,59 @@
 					<div><input type="text" name="oclcNumber" id="oclcNumber" value="{$materialsRequest->oclcNumber}"/></div>
 				</div>
 			</fieldset>
-			<fieldset id="supplementalDetails">
-				<legend>Supplemental Details</legend>
-				{if $showAgeField}
-					<div class="form-item formatSpecificField bookField largePrintField cdAudioField ebookField eaudioField playawayField cassetteField">
-						<div><label for="ageLevel">Age Level:</label></div>
-						<div><select name="ageLevel">
-								<option value="adult"{if $materialsRequest->ageLevel=='adult'}selected='selected'{/if}>Adult</option>
-								<option value="teen"{if $materialsRequest->ageLevel=='teen'}selected='selected'{/if}>Teen</option>
-								<option value="children"{if $materialsRequest->ageLevel=='children'}selected='selected'{/if}>Children</option>
-								<option value="unknown"{if !isset($materialsRequest->ageLevel) || $materialsRequest->ageLevel=='unknown'}selected='selected'{/if}>Don't Know</option>
-							</select></div>
-					</div>
-				{/if}
-				<div class="form-item formatSpecificField cdAudioField eaudioField playawayField cassetteField">
-					<input type="radio" name="abridged" value="unabridged" id="unabridged" {if $materialsRequest->abridged == 0}checked='checked'{/if}/><label for="unabridged">Unabridged</label>
-					<input type="radio" name="abridged" value="abridged" id="abridged" {if $materialsRequest->abridged == 1}checked='checked'{/if}/><label for="abridged">Abridged</label>
-					<input type="radio" name="abridged" value="na" id="na" {if $materialsRequest->abridged == 2}checked='checked'{/if}/><label for="na">Not Applicable</label>
-				</div>
-				{if $showBookTypeField}
-					<div class="form-item formatSpecificField bookField largePrintField ebookField">
-						<div><label for="bookType">Type:</label></div>
-						<select name="bookType">
-							<option value="fiction"{if $materialsRequest->bookType=='fiction'}selected='selected'{/if}>Fiction</option>
-							<option value="nonfiction"{if $materialsRequest->bookType=='nonfiction'}selected='selected'{/if}>Non-Fiction</option>
-							<option value="graphicNovel"{if $materialsRequest->bookType=='graphicNovel'}selected='selected'{/if}>Graphic Novel</option>
-							<option value="unknown"{if (!isset($materialsRequest->bookType) || $materialsRequest->bookType=='unknown')}selected='selected'{/if}>Don't Know</option>
+		{/if}
+		<fieldset id="supplementalDetails">
+			<legend>Supplemental Details (optional)</legend>
+			{if $showAgeField}
+				<div class="form-item formatSpecificField bookField largePrintField cdAudioField ebookField eaudioField playawayField cassetteField">
+					<div><label for="ageLevel">Age Level:</label></div>
+					<div><select name="ageLevel" id="ageLevel">
+							<option value="adult"{if $materialsRequest->ageLevel=='adult'}selected='selected'{/if}>Adult</option>
+							<option value="teen"{if $materialsRequest->ageLevel=='teen'}selected='selected'{/if}>Teen</option>
+							<option value="children"{if $materialsRequest->ageLevel=='children'}selected='selected'{/if}>Children</option>
+							<option value="unknown"{if !isset($materialsRequest->ageLevel) || $materialsRequest->ageLevel=='unknown'}selected='selected'{/if}>Don't Know</option>
 						</select>
 					</div>
-				{/if}
+				</div>
+			{/if}
+			<div class="form-item formatSpecificField cdAudioField eaudioField playawayField cassetteField">
+				<input type="radio" name="abridged" value="unabridged" id="unabridged" {if $materialsRequest->abridged == 0}checked='checked'{/if}/><label for="unabridged">Unabridged</label>
+				<input type="radio" name="abridged" value="abridged" id="abridged" {if $materialsRequest->abridged == 1}checked='checked'{/if}/><label for="abridged">Abridged</label>
+				<input type="radio" name="abridged" value="na" id="na" {if $materialsRequest->abridged == 2}checked='checked'{/if}/><label for="na">Not Applicable</label>
+			</div>
+			{if $showBookTypeField}
+				<div class="form-item formatSpecificField bookField largePrintField ebookField">
+					<div><label for="bookType">Type:</label></div>
+					<select name="bookType" id="bookType">
+						<option value="fiction"{if $materialsRequest->bookType=='fiction'}selected='selected'{/if}>Fiction</option>
+						<option value="nonfiction"{if $materialsRequest->bookType=='nonfiction'}selected='selected'{/if}>Non-Fiction</option>
+						<option value="graphicNovel"{if $materialsRequest->bookType=='graphicNovel'}selected='selected'{/if}>Graphic Novel</option>
+						<option value="unknown"{if (!isset($materialsRequest->bookType) || $materialsRequest->bookType=='unknown')}selected='selected'{/if}>Don't Know</option>
+					</select>
+				</div>
+			{/if}
 
-				<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-					<div><label for="publisher">Publisher:</label></div>
-					<div><input name="publisher" id="publisher" size="40" maxlength="255" value="{$materialsRequest->publisher}"/></div>
-				</div>
-				<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
-					<div><label for="publicationYear">Publication Year:</label></div>
-					<div><input name="publicationYear" id="publicationYear" size="6" maxlength="4" value="{$materialsRequest->publicationYear}"/></div>
-				</div>
+			<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
+				<div><label for="publisher">Publisher:</label></div>
+				<div><input name="publisher" id="publisher" size="40" maxlength="255" value="{$materialsRequest->publisher}"/></div>
+			</div>
+			<div class="form-item formatSpecificField bookField largePrintField dvdField blurayField cdAudioField cdMusicField ebookField eaudioField playawayField cassetteField vhsField otherField">
+				<div><label for="publicationYear">Publication Year:</label></div>
+				<div><input name="publicationYear" id="publicationYear" size="6" maxlength="4" value="{$materialsRequest->publicationYear}"/></div>
 			</div>
 		</fieldset>
+	</div>
 
-		{if !$materialsRequest || $new}
-			<div class="form-item">
-				<label for="about">How / where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
-				<textarea name="about" id="about" rows="3" cols="80" {if $requireAboutField}class="required"{/if}>{$materialsRequest->about}</textarea>
-			</div>
-		{/if}
+	{if !$materialsRequest || $new}
 		<div class="form-item">
-			<label for="comments">Comments:</label>
-			<textarea name="comments" id="comments" rows="3" cols="80">{$materialsRequest->comments}</textarea>
+			<label for="about">How / where did you hear about this title{if $requireAboutField} <span class="requiredIndicator">*</span>{/if}:</label>
+			<textarea name="about" id="about" rows="3" cols="80" {if $requireAboutField}class="required"{/if}>{$materialsRequest->about}</textarea>
 		</div>
-	</fieldset>
+	{/if}
+	<div class="form-item">
+		<label for="comments">Comments:</label>
+		<textarea name="comments" id="comments" rows="3" cols="80">{$materialsRequest->comments}</textarea>
+	</div>
 </div>
 {if $materialsRequest && !$new}
 	<input type="hidden" name="id" value="{$materialsRequest->id}" />
@@ -228,7 +228,4 @@
 		</fieldset>
 	</div>
 {/if}
-<script type="text/javascript">
-	setupFieldsetToggles();
-</script>
 {/strip}

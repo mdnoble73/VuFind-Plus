@@ -608,14 +608,17 @@ function searchSubmit(){
 }
 
 function setupFieldsetToggles(){
-	$('legend.collapsible').siblings().hide();
-	$('legend.collapsible').addClass("collapsed");
-	$('legend.collapsible').click(function() {
-		$(this).toggleClass("expanded");
-		$(this).toggleClass("collapsed");
-		$(this).siblings().slideToggle();
-		return false;
+	$('legend.collapsible').each(function(index){
+		$(this).siblings().hide();
+		$(this).addClass("collapsed");
+		$(this).click(function() {
+			$(this).toggleClass("expanded");
+			$(this).toggleClass("collapsed");
+			$(this).siblings().slideToggle();
+			return false;
+		});
 	});
+
 }
 
 function pwdToText(fieldId){

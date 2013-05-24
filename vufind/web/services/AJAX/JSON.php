@@ -132,6 +132,7 @@ class JSON extends Action {
 			'phone'=>$user->phone,
 			'email'=>$user->email,
 			'homeLocation'=> isset($patronHomeBranch) ? $patronHomeBranch->code : '',
+			'homeLocationId'=> isset($patronHomeBranch) ? $patronHomeBranch->locationId : '',
 			'enableMaterialsRequest' => MaterialsRequest::enableMaterialsRequest(true),
 		);
 	}

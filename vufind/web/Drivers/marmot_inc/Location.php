@@ -214,7 +214,7 @@ class Location extends DB_DataObject
 			$this->whereAdd("validHoldPickupBranch = 1");
 		}
 
-		if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
+		if (isset($selectedBranchId) && is_numeric($selectedBranchId) && $selectedBranchId > 0){
 			$this->whereAdd("locationId = $selectedBranchId", 'OR');
 		}
 		$this->orderBy('displayName');
@@ -306,6 +306,12 @@ class Location extends DB_DataObject
 	}
 
 	private static $userHomeLocation = 'unset';
+
+	/**
+	 * Get the home location for the currently logged in user.
+	 *
+	 * @return Location
+	 */
 	static function getUserHomeLocation(){
 		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 

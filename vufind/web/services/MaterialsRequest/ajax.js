@@ -97,9 +97,11 @@ function setFieldVisibility(){
 	var selectedFormat = $("#format option:selected").val();
 	$("." + selectedFormat + "Field").show();
 	
-	//Update labels as neded 
-	if (selectedFormat == 'dvd' || selectedFormat == 'vhs'){
-		$("#authorFieldLabel").html("Actor / Director <span class='requiredIndicator'>*</span>:");
+	//Update labels as neded
+	$("#author").addClass("required");
+	if (selectedFormat == 'bluray' || selectedFormat == 'dvd' || selectedFormat == 'vhs'){
+		$("#authorFieldLabel").html("Actor / Director:");
+		$("#author").removeClass("required");
 	}else if (selectedFormat == 'cdMusic'){
 		$("#authorFieldLabel").html("Artist / Composer <span class='requiredIndicator'>*</span>:");
 	}else{
@@ -124,6 +126,13 @@ function setFieldVisibility(){
 		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
 		$("#titleLabel").html("Title <span class='requiredIndicator'>*</span>:");
+	}
+	if (selectedFormat == 'ebook' || selectedFormat == 'eaudio'){
+		$("#illInfo").hide();
+		$("#pickupLocationField").hide();
+	}else{
+		$("#illInfo").show();
+		$("#pickupLocationField").show();
 	}
 }
 
@@ -162,8 +171,9 @@ function materialsRequestLogin(){
 					if (response.result.email){
 						$('#email').val(response.result.email);
 					}
-					if (response.result.homeLocation){
-						$("#pickupLocation").val(response.result.homeLocation);
+					if (response.result.homeLocationId){
+						var optionToSelect = $("#pickupLocation option[value=" + response.result.homeLocationId + "]");
+						optionToSelect.attr("selected", "selected");
 					}
 				}else{
 					alert("Sorry, materials request functionality is only available to residents at this time.");

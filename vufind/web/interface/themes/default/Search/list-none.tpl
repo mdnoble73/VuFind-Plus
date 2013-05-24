@@ -1,3 +1,4 @@
+{strip}
 <div id="page-content" class="content">
 	{* Narrow Search Options *}
 	<div id="sidebar">
@@ -29,7 +30,11 @@
 				{include file=$recommendations}
 			{/foreach}
 		{/if}
-		<h2>{translate text='nohit_heading'}</h2>
+		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+			<h2>No Results for </h2>
+		{else}
+			<h2>{translate text='nohit_heading'}</h2>
+		{/if}
 			
 		<p class="error">{translate text='nohit_prefix'} - <b>{if $lookfor}{$lookfor|escape:"html"}{else}&lt;empty&gt;{/if}</b> - {translate text='nohit_suffix'}</p>
 		
@@ -94,7 +99,8 @@
 			{/if}
 
 			{if $enableMaterialsRequest}
-				<p>Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</p>
+				<h2>Didn't find it?</h2>
+				<p>Can't find what you are looking for? <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$lookfor}&basicType={$searchIndex}">Suggest a purchase</a>.</p>
 			{/if}
 			
 			<div class="searchtools">
@@ -105,3 +111,13 @@
 		</div>
 	</div>
 </div>
+<script type="text/javascript">
+	$(document).ready(function() {literal} { {/literal}
+		doGetStatusSummaries();
+		{if $user}
+		doGetSaveStatuses();
+		{/if}
+		doGetSeriesInfo();
+		{literal} }); {/literal}
+</script>
+{/strip}

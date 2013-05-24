@@ -78,7 +78,7 @@
 			{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 			
 			{if $unscopedResults > 0}
-				<h2>Sample Results from entire Marmot Catalog</h2>
+				<h2>More results from the Marmot Catalog</h2>
 				<div class="unscopedResultCount">
 					There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 				</div>
@@ -97,7 +97,8 @@
 			{/if}
 
 			{if $enableMaterialsRequest}
-				<p>Can't find what you are looking for? Try our <a href="{$path}/MaterialsRequest/NewRequest">Materials Request Service</a>.</p>
+				<h2>Didn't find it?</h2>
+				<p>Can't find what you are looking for? <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$lookfor}&basicType={$searchIndex}">Suggest a purchase</a>.</p>
 			{/if}
 
 			<div class="searchtools">

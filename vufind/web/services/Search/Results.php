@@ -461,7 +461,7 @@ class Search_Results extends Action {
 			$unscopedSearchUrl .= "&amp;shard=";
 			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
 			if ($numUnscopedTitlesToLoad > 0){
-				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad);
+				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad, $searchObject->getResultTotal());
 				$interface->assign('unscopedResults', $unscopedResults);
 			}
 		}
