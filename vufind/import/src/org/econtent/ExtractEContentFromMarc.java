@@ -1121,7 +1121,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Load contributors
 				loadOverDriveContributorsStmt.setLong(1, recordInfo.getId());
 				ResultSet loadContributorsRS = loadOverDriveContributorsStmt.executeQuery();
-				StringBuffer contributors = new StringBuffer();
+				StringBuilder contributors = new StringBuilder();
 				LinkedHashSet<String> contributorsSet = new LinkedHashSet<String>();
 				while (loadContributorsRS.next()){
 					if (contributors.length() > 0) contributors.append("\r\n");
@@ -1140,7 +1140,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Load subjects
 				loadOverDriveSubjectsStmt.setLong(1, recordInfo.getId());
 				ResultSet loadSubjectsRS = loadOverDriveSubjectsStmt.executeQuery();
-				StringBuffer subjects = new StringBuffer();
+				StringBuilder subjects = new StringBuilder();
 				LinkedHashSet<String> subjectsSet = new LinkedHashSet<String>();
 				while (loadSubjectsRS.next()){
 					if (subjects.length() > 0) subjects.append("\r\n");
@@ -1181,7 +1181,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				LexileData lexileData = null;
 				loadOverDriveISBNStmt.setLong(1, recordInfo.getId());
 				ResultSet loadISBNsRS = loadOverDriveISBNStmt.executeQuery();
-				StringBuffer isbns = new StringBuffer();
+				StringBuilder isbns = new StringBuilder();
 				Set<String> isbnSet = new LinkedHashSet<String>();
 				while (loadISBNsRS.next()){
 					String isbn = loadISBNsRS.getString("value");
@@ -1209,7 +1209,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				//Load UPCs
 				loadOverDriveUPCStmt.setLong(1, recordInfo.getId());
 				ResultSet loadUPCsRS = loadOverDriveUPCStmt.executeQuery();
-				StringBuffer upcs = new StringBuffer();
+				StringBuilder upcs = new StringBuilder();
 				Set<String> upcSet = new LinkedHashSet<String>();
 				while (loadUPCsRS.next()){
 					if (upcs.length() > 0) upcs.append("\r\n");

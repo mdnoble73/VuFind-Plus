@@ -1,14 +1,8 @@
 package org.vufind;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -90,6 +84,7 @@ public class MarcProcessor {
 
 	protected int													recordsProcessed		= 0;
 	protected int													maxRecordsToProcess	= -1;
+	private boolean                       forceIndividualMarcFileWrite = false;
 	private PreparedStatement							insertMarcInfoStmt;
 	private PreparedStatement							updateMarcInfoStmt;
 
@@ -162,6 +157,11 @@ public class MarcProcessor {
 			logger.debug("Did not load a set of idsToProcess");
 		}else{
 			logger.debug("idsToProcess = " + idsToProcess);
+		}
+
+		String forceIndividualMarcFileWriteStr = configIni.get("Reindex", "forceIndividualMarcFileWrite");
+		if (forceIndividualMarcFileWriteStr != null && forceIndividualMarcFileWriteStr.equalsIgnoreCase("true")){
+			forceIndividualMarcFileWrite = true;
 		}
 
 		// Setup where to look for translation maps
@@ -899,12 +899,13 @@ public class MarcProcessor {
 						String basePath = individualMarcPath + "/" + firstChars;
 						String individualFilename = basePath + "/" + shortId + ".mrc";
 						File individualFile = new File(individualFilename);
-						if (recordStatus == RECORD_NEW || recordStatus == RECORD_CHANGED_PRIMARY || !individualFile.exists()){
+						if (recordStatus == RECORD_NEW || recordStatus == RECORD_CHANGED_PRIMARY || !individualFile.exists() || forceIndividualMarcFileWrite){
 							File baseFile = new File(basePath);
 							if (!baseFile.exists()){
 								baseFile.mkdirs();
 							}
-							FileWriter writer = new FileWriter(individualFile,false);
+
+							OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
 							writer.write(marcInfo.getRawRecord());
 							writer.close();
 						}
