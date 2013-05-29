@@ -1141,16 +1141,21 @@ function loadEContentHelpTopic(){
 }
 
 function markNotInterested(source, recordId){
-	var url = path + '/Resource/AJAX?method=MarkNotInterested&source=' + source + '&recordId=' + recordId;
-	$.getJSON(
-		url, function(data){
-			if (data.result == true){
-				alert("You won't be shown this title again.");
-			}else{
-				alert("There was an error updating the title.");
-			}
-		}
-	);
+	if (loggedIn){
+		var url = path + '/Resource/AJAX?method=MarkNotInterested&source=' + source + '&recordId=' + recordId;
+		$.getJSON(
+				url, function(data){
+					if (data.result == true){
+						alert("You won't be shown this title again.");
+					}else{
+						alert("There was an error updating the title.");
+					}
+				}
+		);
+		return false;
+	}else{
+		return ajaxLogin(function(){markNotInterested(source, recordId)});
+	}
 }
 
 function clearNotInterested(notInterestedId){
