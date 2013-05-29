@@ -7,10 +7,10 @@
 					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn{if $ratingData.user >0} userRated{/if}" style="width:0px">&nbsp;</span></span><br/>
 				</span>
 			</div>
-			{if $showNotInterested !== false}
-				<span class="button notInterested" onclick="return markNotInterested('VuFind', '{$recordId}');">Not&nbsp;Interested</span>
-			{/if}
 		</div>
+		{if $showNotInterested == true}
+			<span class="button notInterested" title="Select Not Interested if you don't want to see this title again." onclick="return markNotInterested('VuFind', '{$recordId}');">Not&nbsp;Interested</span>
+		{/if}
 		<script type="text/javascript">
 			$(
 				function() {literal} { {/literal}

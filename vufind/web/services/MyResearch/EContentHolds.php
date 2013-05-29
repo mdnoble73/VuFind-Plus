@@ -50,6 +50,7 @@ class EContentHolds extends MyResearch {
 				$interface->assign('sortOptions', $sortOptions);
 				$selectedSortOption = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'dueDate';
 				$interface->assign('defaultSortOption', $selectedSortOption);
+				$interface->assign('showNotInterested', false);
 
 				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();

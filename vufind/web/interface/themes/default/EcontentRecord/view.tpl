@@ -156,62 +156,6 @@ function redrawSaveStatus() {literal}{{/literal}
     </div>
     {/if}
 
-  	<div class="sidegroup" id="similarTitlesSidegroup">
-     {* Display either similar tiles from novelist or from the catalog*}
-     <div id="similarTitlePlaceholder"></div>
-     {if is_array($similarRecords)}
-     <div id="relatedTitles">
-      <h4>{translate text="Other Titles"}</h4>
-      <ul class="similar">
-        {foreach from=$similarRecords item=similar}
-        <li>
-          {if is_array($similar.format)}
-            <span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-          {else}
-            <span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-          {/if}
-          <a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-          </span>
-          <span style="font-size: 80%">
-          {if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
-          </span>
-        </li>
-        {/foreach}
-      </ul>
-     </div>
-     {/if}
-    </div>
-
-    <div class="sidegroup" id="similarAuthorsSidegroup">
-      <div id="similarAuthorPlaceholder"></div>
-    </div>
-
-    {if is_array($editions) && !$showOtherEditionsPopup}
-    <div class="sidegroup" id="otherEditionsSidegroup">
-      <h4>{translate text="Other Editions"}</h4>
-        {foreach from=$editions item=edition}
-          <div class="sidebarLabel">
-          	{if $edition.recordtype == 'econtentRecord'}
-          	<a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-          	{else}
-          	<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-          	{/if}
-          </div>
-          <div class="sidebarValue">
-          {if is_array($edition.format)}
-          	{foreach from=$edition.format item=format}
-            	<span class="{$format|lower|regex_replace:"/[^a-z0-9]/":""}">{$format}</span>
-            {/foreach}
-          {else}
-            <span class="{$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">{$edition.format}</span>
-          {/if}
-          {$edition.edition|escape}
-          {if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
-          </div>
-        {/foreach}
-    </div>
-    {/if}
-
     {if $enablePospectorIntegration == 1}
     <div class="sidegroup">
     {* Display in Prospector Sidebar *}
@@ -383,63 +327,13 @@ function redrawSaveStatus() {literal}{{/literal}
 
     </div>
 
-		{if $showSimilarTitles}
-			<div id="relatedTitleInfo" class="ui-tabs">
-	    	<ul>
-	    		<li><a href="#list-similar-titles">Similar Titles</a></li>
-	    		<li><a id="list-series-tab" href="#list-series" style="display:none">Also in this series</a></li>
-	    	</ul>
-
-	    	{assign var="scrollerName" value="SimilarTitlesVuFind"}
-				{assign var="wrapperId" value="similar-titles-vufind"}
-				{assign var="scrollerVariable" value="similarTitleVuFindScroller"}
-				{include file=titleScroller.tpl}
-
-				{assign var="scrollerName" value="Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/EcontentRecord/$id/Econtent"}
-				{include file=titleScroller.tpl}
-
-			</div>
-			{literal}
-			<script type="text/javascript">
-				var similarTitleScroller;
-				var alsoViewedScroller;
-
-				$(function() {
-					$("#relatedTitleInfo").tabs();
-					$("#moredetails-tabs").tabs();
-
-					{/literal}
-					{if $defaultDetailsTab}
-						$("#moredetails-tabs").tabs('select', '{$defaultDetailsTab}');
-					{/if}
-
-					similarTitleVuFindScroller = new TitleScroller('titleScrollerSimilarTitles', 'SimilarTitles', 'similar-titles');
-					similarTitleVuFindScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=similarTitles&recordId={$id}&scrollerName=SimilarTitles', false);
-
-					{literal}
-					$('#relatedTitleInfo').bind('tabsshow', function(event, ui) {
-						if (ui.index == 0) {
-							similarTitleVuFindScroller.activateCurrentTitle();
-						}
-					});
-				});
-			</script>
-			{/literal}
-		{else}
-			<div id="relatedTitleInfo" style="display:none">
-
-				{assign var="scrollerName" value="Series"}
-				{assign var="wrapperId" value="series"}
-				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-				{include file='titleScroller.tpl'}
-
-			</div>
-
-		{/if}
+		<div id="relatedTitleInfo" style="display:none">
+			{assign var="scrollerName" value="Series"}
+			{assign var="wrapperId" value="series"}
+			{assign var="scrollerVariable" value="seriesScroller"}
+			{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
+			{include file='titleScroller.tpl'}
+		</div>
 
 		<a id="detailsTabAnchor" name="detailsTab" href="#detailsTab"></a>
     <div id="moredetails-tabs">

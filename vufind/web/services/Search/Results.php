@@ -229,6 +229,7 @@ class Search_Results extends Action {
 		$location = $locationSingleton->getActiveLocation();
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
+		$interface->assign('showNotInterested', false);
 		if (isset($library) && $location != null){
 			$interface->assign('showFavorites', $library->showFavorites);
 			$interface->assign('showComments', $library->showComments);

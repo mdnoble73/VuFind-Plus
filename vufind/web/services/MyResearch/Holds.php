@@ -97,6 +97,7 @@ class Holds extends MyResearch
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 
 		$interface->assign('showPosition', $showPosition);
+		$interface->assign('showNotInterested', false);
 
 		// Get My Transactions
 		$patron = null;

@@ -69,6 +69,7 @@ class SuggestedTitles extends MyResearch
 			$showHoldButtonInSearchResults = 0;
 		}
 		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
+		$interface->assign('showNotInterested', true);
 
 		$suggestions = Suggestions::getSuggestions();
 

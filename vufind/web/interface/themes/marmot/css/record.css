@@ -274,14 +274,6 @@ ul.notesList li{
     text-indent: -10px;
 }
 
-.resultActions .button{
-	margin: 4px;
-}
-
-.resultActions .button:hover{
-	margin: 4px;
-}
-
 .notInterested{
 	font-size: 11px !important;
 	font-weight: normal !important;

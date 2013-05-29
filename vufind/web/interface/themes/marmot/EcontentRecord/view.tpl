@@ -139,33 +139,6 @@ function redrawSaveStatus() {literal}{{/literal}
 
 		{include file="EcontentRecord/tag_sidegroup.tpl"}
 
-
-		<div class="sidegroup" id="similarTitlesSidegroup">
-			{* Display either similar tiles from novelist or from the catalog*}
-			<div id="similarTitlePlaceholder"></div>
-			{if is_array($similarRecords)}
-				<div id="relatedTitles">
-					<h4>{translate text="Other Titles"}</h4>
-					<ul class="similar">
-						{foreach from=$similarRecords item=similar}
-						<li>
-							{if is_array($similar.format)}
-								<span class="{$similar.format[0]|lower|regex_replace:"/[^a-z0-9]/":""}">
-							{else}
-								<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
-							{/if}
-							<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
-							</span>
-							<span style="font-size: 80%">
-							{if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
-							</span>
-						</li>
-						{/foreach}
-					</ul>
-				</div>
-			{/if}
-		</div>
-
 		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 0}
 			<div class="sidegroup" id="inProspectorSidegroup" style="display:none">
 				{* Display in Prospector Sidebar *}
@@ -298,7 +271,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{assign var="wrapperId" value="series"}
 			{assign var="scrollerVariable" value="seriesScroller"}
 			{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-			{include file=titleScroller.tpl}
+			{include file="titleScroller.tpl"}
 		</div>
 
 		<a id="detailsTab" href="#detailsTab"></a>

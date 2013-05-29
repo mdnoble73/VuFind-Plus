@@ -25,24 +25,6 @@ function GetEContentEnrichmentInfo(id, isbn, upc, econtent) {
 	$.ajax( {
 		url : fullUrl,
 		success : function(data) {
-			var similarAuthorData = $(data).find("SimilarAuthors").text();
-			if (similarAuthorData) {
-				if (similarAuthorData.length > 0) {
-					$("#similarAuthorPlaceholder").html(similarAuthorData);
-					$("#similarAuthorsSidegroup").show();
-
-				}
-			}
-			var similarTitleData = $(data).find("SimilarTitles").text();
-			if (similarTitleData) {
-				if (similarTitleData.length > 0) {
-					$("#similarTitlePlaceholder").html(similarTitleData);
-					$("#relatedTitles").hide();
-					$("#similarTitles").show();
-					$("#similarTitlePlaceholder").show();
-					$("#similarTitlesSidegroup").show();
-				}
-			}
 			var seriesData = $(data).find("SeriesInfo").text();
 			if (seriesData && seriesData.length > 0) {
 				

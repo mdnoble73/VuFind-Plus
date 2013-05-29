@@ -88,7 +88,7 @@ class CheckedOut extends MyResearch{
 						$interface->assign('pageLinks', $pager->getLinks());
 					}
 
-					$transList = array();
+					$interface->assign('showNotInterested', false);
 					foreach ($result['transactions'] as $i => $data) {
 						//Get Rating
 						$resource = new Resource();

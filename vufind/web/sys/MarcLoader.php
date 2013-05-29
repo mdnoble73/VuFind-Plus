@@ -13,7 +13,6 @@ class MarcLoader{
 	public static function loadMarcRecordFromRecord($record){
 		if ($record['recordtype'] == 'marc'){
 			return MarcLoader::loadMarcRecordByILSId($record['id'], $record['recordtype']);
-			$resource->source = 'VuFind';
 		}elseif ($record['recordtype'] == 'econtentRecord'){
 			$econtentRecord = new EContentRecord();
 			$econtentRecord->id = $record['id'];
@@ -46,6 +45,7 @@ class MarcLoader{
 	 * @return File_MARC_Record
 	 */
 	public static function loadMarcRecordByILSId($ilsId, $recordType = 'marc'){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		$shortId = str_replace('.', '', $ilsId);

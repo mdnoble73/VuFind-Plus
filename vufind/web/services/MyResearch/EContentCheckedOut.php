@@ -50,6 +50,7 @@ class EContentCheckedOut extends MyResearch {
 				$interface->assign('sortOptions', $sortOptions);
 				$selectedSortOption = isset($_REQUEST['sort']) ? $_REQUEST['sort'] : 'dueDate';
 				$interface->assign('defaultSortOption', $selectedSortOption);
+				$interface->assign('showNotInterested', false);
 
 				//Vars for the IDCLREADER TEMPLATE
 				$interface->assign('ButtonBack',true);
