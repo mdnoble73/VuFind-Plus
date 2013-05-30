@@ -1058,6 +1058,8 @@ class Solr implements IndexEngine {
 
 		// Determine which handler to use
 		if (!$this->isAdvanced($query)) {
+			//Escape : to make sure that the query isn't treated as a field spec.
+			$query = str_replace(':', '\:', $query);
 			$ss = is_null($handler) ? null : $this->_getSearchSpecs($handler);
 			// Is this a Dismax search?
 			if (isset($ss['DismaxFields'])) {
@@ -2003,8 +2005,13 @@ class Solr implements IndexEngine {
 		$query = preg_replace('/"[^"]*"/', 'quoted', $query);
 
 		// Check for field specifiers:
-		if (preg_match("/[^\s]\:[^\s]/", $query)) {
-			return true;
+		if (preg_match("/([^\s\:]+)\:[^\s]/", $query, $matches)) {
+			//Make sure the field is actually one of our fields
+			$fieldName = $matches[1];
+			$fields = $this->_loadValidFields();
+			if (in_array($fieldName, $fields)){
+				return true;
+			}
 		}
 
 		// Check for parentheses and range operators:
@@ -2163,6 +2170,24 @@ class Solr implements IndexEngine {
 
 	public function setSearchSource($searchSource){
 		$this->searchSource = $searchSource;
+	}
+
+	private function _loadValidFields(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		$fields = $memCache->get('schema_fields');
+		if (!$fields){
+			global $configArray;
+			$schema = simplexml_load_file($configArray['Site']['local'] . '/../../sites/default/solr/biblio/conf/schema.xml');
+			$fields = array();
+			/** @var SimpleXMLElement $field */
+			foreach ($schema->fields->field as $field){
+				//print_r($field);
+				$fields[] = (string)$field['name'];
+			}
+			$memCache->set('schema_fields', $fields, 24 * 60 * 60);
+		}
+		return $fields;
 	}
 }
 
