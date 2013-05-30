@@ -1117,6 +1117,20 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'materialsRequest_update6' => array(
+				'title' => 'Materials Request Update 6',
+				'description' => 'Updater Materials Requests to add indexes for improved performance',
+				'sql' => array(
+					'ALTER TABLE `materials_request` ADD INDEX(createdBy)',
+					'ALTER TABLE `materials_request` ADD INDEX(dateUpdated)',
+					'ALTER TABLE `materials_request` ADD INDEX(dateCreated)',
+					'ALTER TABLE `materials_request` ADD INDEX(emailSent)',
+					'ALTER TABLE `materials_request` ADD INDEX(holdsCreated)',
+					'ALTER TABLE `materials_request` ADD INDEX(format)',
+					'ALTER TABLE `materials_request` ADD INDEX(subFormat)',
+				),
+			),
+
 			'materialsRequestStatus' => array(
 				'title' => 'Materials Request Status Table Creation',
 				'description' => 'Update reading History to include an id table',
