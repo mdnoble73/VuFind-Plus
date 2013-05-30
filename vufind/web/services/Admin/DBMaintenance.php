@@ -523,6 +523,14 @@ class DBMaintenance extends Admin {
 				),
 			),
 
+			'location_9' => array(
+				'title' => 'Location 9',
+				'description' => 'Allow suppressing all items from a location',
+				'sql' => array(
+					"ALTER TABLE location ADD suppressHoldings TINYINT(1) DEFAULT '0'",
+				),
+			),
+
 			'user_display_name' => array(
 				'title' => 'User display name',
 				'description' => 'Add displayName field to User table to allow users to have aliases',

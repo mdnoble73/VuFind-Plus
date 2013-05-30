@@ -129,6 +129,7 @@ class MillenniumStatusLoader{
 		$location->find();
 		$libraryLocationLabels = array();
 		$locationCodes = array();
+		$suppressedLocationCodes = array();
 		while ($location->fetch()){
 			if (strlen($location->holdingBranchLabel) > 0 && $location->holdingBranchLabel != '???'){
 				if ($library && $library->libraryId == $location->libraryId){
@@ -138,6 +139,9 @@ class MillenniumStatusLoader{
 
 				$locationLabels[$location->holdingBranchLabel] = $location->displayName;
 				$locationCodes[$location->code] = $location->holdingBranchLabel;
+				if ($location->suppressHoldings == 1){
+					$suppressedLocationCodes[$location->code] = $location->code;
+				}
 			}
 		}
 		if (count($libraryLocationLabels) > 0){
@@ -188,6 +192,10 @@ class MillenniumStatusLoader{
 			}
 			if ($holding['locationCode'] == '?????'){
 				$logger->log("Did not find location code for " . $holding['location'] , PEAR_LOG_DEBUG);
+			}
+			if (array_key_exists($holding['locationCode'], $suppressedLocationCodes)){
+				$logger->log("Location " . $holding['locationCode'] . " is suppressed", PEAR_LOG_DEBUG);
+				continue;
 			}
 
 			//Now that we have the location code, try to match with the marc record
