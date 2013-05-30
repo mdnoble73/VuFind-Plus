@@ -197,6 +197,9 @@ public class MarcRecordDetails {
 					}
 				} else {
 					libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
+					if (locationIndexingInfo.isSuppressHoldings()){
+						itemSuppressed = true;
+					}
 				}
 
 				// Load availability (local, system, marmot)
@@ -2285,7 +2288,7 @@ public class MarcRecordDetails {
 	/**
 	 * return an int for the passed string
 	 * 
-	 * @param str
+	 * @param str The String value of the integer to prompt
 	 * @param defValue
 	 *          - default value, if string doesn't parse into int
 	 */

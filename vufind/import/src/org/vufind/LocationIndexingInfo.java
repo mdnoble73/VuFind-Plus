@@ -9,6 +9,17 @@ public class LocationIndexingInfo {
 	private Long libraryId;
 	private String code;
 	private boolean scoped;
+
+	public boolean isSuppressHoldings() {
+		return suppressHoldings;
+	}
+
+	public void setSuppressHoldings(boolean suppressHoldings) {
+		this.suppressHoldings = suppressHoldings;
+	}
+
+	private boolean suppressHoldings;
+
 	public String getFacetLabel() {
 		return facetLabel;
 	}

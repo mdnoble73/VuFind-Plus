@@ -492,6 +492,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'location_9' => array(
+				'title' => 'Location 9',
+				'description' => 'Allow suppressing all items from a location',
+				'sql' => array(
+					"ALTER TABLE location ADD suppressHoldings TINYINT(1) DEFAULT '0'",
+				),
+			),
+
 			'search_sources' => array(
 				'title' => 'Search Sources',
 				'description' => 'Setup Library and Location Search Source Table',
@@ -527,7 +535,6 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE location_search_source ADD COLUMN catalogScoping ENUM('unscoped', 'library', 'location') DEFAULT 'unscoped'"
 				),
 			),
-
 
 			'user_display_name' => array(
 				'title' => 'User display name',

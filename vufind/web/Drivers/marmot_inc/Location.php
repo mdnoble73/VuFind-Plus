@@ -41,6 +41,7 @@ class Location extends DB_DataObject
 	public $recordsToBlackList;
 	public $automaticTimeoutLength;
 	public $automaticTimeoutLengthLoggedOut;
+	public $suppressHoldings;
 
 	/** @var  array $data */
 	protected $data;
@@ -117,6 +118,7 @@ class Location extends DB_DataObject
 				array('property'=>'validHoldPickupBranch', 'type'=>'checkbox', 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true),
 				array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true),
 				array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
+				array('property'=>'suppressHoldings','type'=>'checkbox', 'label'=>'Suppress Holdings', 'description'=>'Whether or not all items for the title should be suppressed', 'hideInLists' => true),
 			)),
 
 			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
@@ -208,15 +210,15 @@ class Location extends DB_DataObject
 			}else{
 				$this->whereAdd("libraryId = {$homeLibrary->libraryId}", 'AND');
 				$this->whereAdd("validHoldPickupBranch = 1", 'AND');
-				$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
+				//$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
 			}
 		}else{
 			$this->whereAdd("validHoldPickupBranch = 1");
 		}
 
-		if (isset($selectedBranchId) && is_numeric($selectedBranchId) && $selectedBranchId > 0){
+		/*if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
 			$this->whereAdd("locationId = $selectedBranchId", 'OR');
-		}
+		}*/
 		$this->orderBy('displayName');
 
 		$this->find();
