@@ -206,15 +206,15 @@ class Location extends DB_DataObject
 			}else{
 				$this->whereAdd("libraryId = {$homeLibrary->libraryId}", 'AND');
 				$this->whereAdd("validHoldPickupBranch = 1", 'AND');
-				$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
+				//$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
 			}
 		}else{
 			$this->whereAdd("validHoldPickupBranch = 1");
 		}
 
-		if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
+		/*if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
 			$this->whereAdd("locationId = $selectedBranchId", 'OR');
-		}
+		}*/
 		$this->orderBy('displayName');
 
 		$this->find();
