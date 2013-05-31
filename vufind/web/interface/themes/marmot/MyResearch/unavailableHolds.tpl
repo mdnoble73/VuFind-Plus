@@ -46,6 +46,7 @@
 						<form id='withSelectedHoldsFormTop{$sectionKey}' action='{$fullPath}'>
 							<div>
 								<input type="hidden" name="withSelectedAction" value="" />
+								<input type="hidden" name="section" value="unavailable" />
 								<div id='holdsUpdateSelected{$sectionKey}'>
 									{if $allowFreezeHolds}
 										{if $showDateWhenSuspending}
@@ -256,7 +257,11 @@
 								{if $allowChangeLocation}
 									<div id='holdsUpdateBranchSelection'>
 										Change Pickup Location for Selected Items to:
-										{html_options name="withSelectedLocation" options=$pickupLocations selected=$resource.currentPickupId}
+										<select name="withSelectedLocation" id="withSelectedLocation">
+											{foreach from=$pickupLocations item=locationLabel key=locationId}
+												<option value="{$locationId}" {if $locationId == $resource.currentPickupId}selected="selected"{/if}>{$locationLabel}</option>
+											{/foreach}
+										</select>
 										<input type="submit" name="updateSelected" value="Go" onclick="return updateSelectedHolds();"/>
 									</div>
 								{/if}

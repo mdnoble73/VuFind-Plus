@@ -3,7 +3,7 @@ function updateSelectedHolds(){
 	if (selectedTitles.length == 0){
 		return false;
 	}
-	var newLocation = $('select:[name=withSelectedLocation]').val();
+	var newLocation = $('#withSelectedLocation').find(':selected').val();
 	var url = path + '/MyResearch/Holds?multiAction=updateSelected&location=' + newLocation + "&" + selectedTitles;
 	var queryParams = getQuerystringParameters();
 	if ($.inArray('section', queryParams)){
