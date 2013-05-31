@@ -4,11 +4,9 @@ import java.util.regex.Pattern;
 
 public class LocationIndexingInfo {
 	private String facetLabel;
-	private String extraLocationCodesToInclude;
 	private Long locationId;
 	private Long libraryId;
 	private String code;
-	private boolean scoped;
 
 	public boolean isSuppressHoldings() {
 		return suppressHoldings;
@@ -38,12 +36,6 @@ public class LocationIndexingInfo {
 	public void setCode(String code) {
 		this.code = code;
 	}
-	public boolean isScoped() {
-		return scoped;
-	}
-	public void setScoped(boolean scoped) {
-		this.scoped = scoped;
-	}
 	public Long getLocationId() {
 		return locationId;
 	}
@@ -51,18 +43,11 @@ public class LocationIndexingInfo {
 		this.locationId = locationId;
 	}
 	public boolean matchesExtraLocation(String locationCode) {
-		if (extraLocationPattern == null){
-			return false;
-		}else{
-			return extraLocationPattern.matcher(locationCode).matches();
-		}
+		return extraLocationPattern != null && extraLocationPattern.matcher(locationCode).matches();
 	}
-	public String getExtraLocationCodesToInclude() {
-		return extraLocationCodesToInclude;
-	}
+
 	private Pattern extraLocationPattern = null;
 	public void setExtraLocationCodesToInclude(String extraLocationCodesToInclude) {
-		this.extraLocationCodesToInclude = extraLocationCodesToInclude;
 		if (extraLocationCodesToInclude.length() > 0){
 			extraLocationPattern = Pattern.compile(extraLocationCodesToInclude);
 		}else{

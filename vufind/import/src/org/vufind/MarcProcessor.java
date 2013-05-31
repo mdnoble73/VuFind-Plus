@@ -111,8 +111,6 @@ public class MarcProcessor {
 	private String												locationSubfield;
 	private String												urlSubfield;
 	private String												sharedEContentLocation;
-	private boolean												scrapeItemsForLinks;
-	private String												catalogUrl;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -201,13 +199,8 @@ public class MarcProcessor {
 		urlSubfield = configIni.get("Reindex", "itemUrlSubfield");
 		locationSubfield = configIni.get("Reindex", "locationSubfield");
 		sharedEContentLocation = configIni.get("Reindex", "sharedEContentLocation");
-		String scrapeItemsForLinksStr = configIni.get("Reindex", "scrapeItemsForLinks");
-		if (scrapeItemsForLinksStr != null) {
-			scrapeItemsForLinks = Boolean.parseBoolean(scrapeItemsForLinksStr);
-		}
-		catalogUrl = configIni.get("Catalog", "url");
 
-		// Load the checksums of any marc records that have been loaded already
+		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
 		// or is deleted
 		logger.info("Loading existing checksums for records");
@@ -279,14 +272,13 @@ public class MarcProcessor {
 			while (librarySystemFacetRS.next()) {
 				Long libraryId = librarySystemFacetRS.getLong("libraryId");
 				String facetLabel = librarySystemFacetRS.getString("facetLabel");
-				String defaultLibraryFacet = librarySystemFacetRS.getString("defaultLibraryFacet");
 				String librarySubdomain = librarySystemFacetRS.getString("subdomain");
 				String ilsCode = librarySystemFacetRS.getString("ilsCode");
 				LibraryIndexingInfo libraryInfo = new LibraryIndexingInfo();
 				librarySubdomains.add(librarySubdomain);
 				libraryInfo.setLibraryId(libraryId);
 				libraryInfo.setSubdomain(librarySubdomain);
-				libraryInfo.setScoped(defaultLibraryFacet.length() > 0);
+				//libraryInfo.setScoped(defaultLibraryFacet.length() > 0);
 				libraryInfo.setFacetLabel(facetLabel);
 				libraryInfo.setIlsCode(ilsCode);
 				libraryIndexingInfo.put(libraryId, libraryInfo);
@@ -319,7 +311,7 @@ public class MarcProcessor {
 				String facetLabel = locationFacetRS.getString("facetLabel");
 				String code = locationFacetRS.getString("code").trim();
 				locationCodes.add(code);
-				boolean restrictSearchByLocation = locationFacetRS.getBoolean("restrictSearchByLocation");
+				//boolean restrictSearchByLocation = locationFacetRS.getBoolean("restrictSearchByLocation");
 				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
 				locationFacets.put(facetLabel, locationId);
 				//Load information for indexing items
@@ -329,7 +321,7 @@ public class MarcProcessor {
 				locationInfo.setLibraryId(libraryId);
 				locationInfo.setLocationId(locationId);
 				locationInfo.setFacetLabel(facetLabel);
-				locationInfo.setScoped(restrictSearchByLocation);
+				//locationInfo.setScoped(restrictSearchByLocation);
 				locationInfo.setCode(code);
 				locationInfo.setExtraLocationCodesToInclude(locationFacetRS.getString("extraLocationCodesToInclude").trim());
 				locationInfo.setSuppressHoldings(locationFacetRS.getBoolean("suppressHoldings"));
@@ -413,10 +405,7 @@ public class MarcProcessor {
 		File[] orderFiles = marcRecordDir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				if (name.endsWith(".marc.orders")){
-					return true;
-				}
-				return false;
+				return name.endsWith(".marc.orders");
 			}
 		});
 		for (File curFile : orderFiles){
@@ -479,8 +468,7 @@ public class MarcProcessor {
 	}
 
 	private void loadEContentITypes(){
-		Properties props = null;
-		props = Utils.loadProperties(propertyFilePaths, "econtent_itype_link_type_map.properties");
+		Properties props = Utils.loadProperties(propertyFilePaths, "econtent_itype_link_type_map.properties");
 		for (Object iTypeObj : props.keySet()){
 			String iType = (String)iTypeObj;
 			eContentITypes.put(Integer.parseInt(iType), props.getProperty(iType));
@@ -530,10 +518,6 @@ public class MarcProcessor {
 		}
 	}
 
-	public Set<String> getExistingEContentIds() {
-		return existingEContentIds;
-	}
-
 	public Map<String, Float> getPrintRatings() {
 		return printRatings;
 	}
@@ -545,7 +529,7 @@ public class MarcProcessor {
 	/**
 	 * Parse the properties
 	 * 
-	 * @param marcProperties
+	 * @param marcProperties properties file for defining the marc record creation
 	 */
 	private void processMarcFieldProperties(Properties marcProperties) {
 		Enumeration<?> en = marcProperties.propertyNames();
@@ -562,115 +546,116 @@ public class MarcProcessor {
 					// value is a constant if it starts with a quote
 					fieldDef[1] = "constant";
 					fieldDef[2] = propValue.trim().replaceAll("\"", "");
-				} else
-				// not a constant
-				{
-					// split it into two pieces at first comma or space
-					String values[] = propValue.split("[, ]+", 2);
-					if (values[0].startsWith("custom") || values[0].startsWith("script")) {
-						fieldDef[1] = values[0];
-
-						// parse sections of custom value assignment line in
-						// _index.properties file
-						String lastValues[];
-						// get rid of empty parens
-						if (values[1].indexOf("()") != -1) values[1] = values[1].replace("()", "");
-
-						// index of first open paren after custom method name
-						int parenIx = values[1].indexOf('(');
-
-						// index of first unescaped comma after method name
-						int commaIx = Utils.getIxUnescapedComma(values[1]);
-
-						if (parenIx != -1 && commaIx != -1 && parenIx < commaIx) {
-							// remainder should be split after close paren
-							// followed by comma (optional spaces in between)
-							lastValues = values[1].trim().split("\\) *,", 2);
-
-							// Reattach the closing parenthesis:
-							if (lastValues.length == 2) lastValues[0] += ")";
-						} else
-							// no parens - split comma preceded by optional spaces
-							lastValues = values[1].trim().split(" *,", 2);
-
-						fieldDef[2] = lastValues[0].trim();
-
-						fieldDef[3] = lastValues.length > 1 ? lastValues[1].trim() : null;
-						// is this a translation map?
-						if (fieldDef[3] != null && fieldDef[3].contains("map")) {
-							try {
-								fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
-							} catch (IllegalArgumentException e) {
-								logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
-								throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
-							}
-						}
-					} // end custom
-					else if (values[0].equals("xml") || values[0].equals("raw") || values[0].equals("date") || values[0].equals("json") || values[0].equals("json2")
-							|| values[0].equals("index_date") || values[0].equals("era")) {
-						fieldDef[1] = "std";
-						fieldDef[2] = values[0];
-						fieldDef[3] = values.length > 1 ? values[1].trim() : null;
-						// NOTE: assuming no translation map here
-						if (fieldDef[2].equals("era") && fieldDef[3] != null) {
-							try {
-								fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
-							} catch (IllegalArgumentException e) {
-								logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
-								throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
-							}
-						}
-					} else if (values[0].equalsIgnoreCase("FullRecordAsXML") || values[0].equalsIgnoreCase("FullRecordAsMARC")
-							|| values[0].equalsIgnoreCase("FullRecordAsJson") || values[0].equalsIgnoreCase("FullRecordAsJson2")
-							|| values[0].equalsIgnoreCase("FullRecordAsText") || values[0].equalsIgnoreCase("DateOfPublication")
-							|| values[0].equalsIgnoreCase("DateRecordIndexed")) {
-						fieldDef[1] = "std";
-						fieldDef[2] = values[0];
-						fieldDef[3] = values.length > 1 ? values[1].trim() : null;
-						// NOTE: assuming no translation map here
-					} else if (values.length == 1) {
-						fieldDef[1] = "all";
-						fieldDef[2] = values[0];
-						fieldDef[3] = null;
-					} else
-					// other cases of field definitions
-					{
-						String values2[] = values[1].trim().split("[ ]*,[ ]*", 2);
-						fieldDef[1] = "all";
-						if (values2[0].equals("first") || (values2.length > 1 && values2[1].equals("first"))) fieldDef[1] = "first";
-
-						if (values2[0].startsWith("join")) fieldDef[1] = values2[0];
-
-						if ((values2.length > 1 && values2[1].startsWith("join"))) fieldDef[1] = values2[1];
-
-						if (values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty") || (values2.length > 1 && values2[1].equalsIgnoreCase("DeleteRecordIfFieldEmpty")))
-							fieldDef[1] = "DeleteRecordIfFieldEmpty";
-
-						fieldDef[2] = values[0];
-						fieldDef[3] = null;
-
-						// might we have a translation map?
-						if (!values2[0].equals("all") && !values2[0].equals("first") && !values2[0].startsWith("join")
-								&& !values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty")) {
-							fieldDef[3] = values2[0].trim();
-							if (fieldDef[3] != null) {
-								try {
-									fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
-								} catch (IllegalArgumentException e) {
-									logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
-									throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
-								}
-							}
-						}
-					} // other cases of field definitions
-
-				} // not a constant
+				} else { // not a constant
+					processNonConstantMarcField(marcProperties, propValue, fieldDef);
+				}
 
 				marcFieldProps.put(propName, fieldDef);
 
 			} // if not map or pattern_map
 
 		} // while enumerating through property names
+	}
+
+	private void processNonConstantMarcField(Properties marcProperties, String propValue, String[] fieldDef) {
+		// split it into two pieces at first comma or space
+		String values[] = propValue.split("[, ]+", 2);
+		if (values[0].startsWith("custom") || values[0].startsWith("script")) {
+			fieldDef[1] = values[0];
+
+			// parse sections of custom value assignment line in
+			// _index.properties file
+			String lastValues[];
+			// get rid of empty parens
+			if (values[1].contains("()")) values[1] = values[1].replace("()", "");
+
+			// index of first open paren after custom method name
+			int parenIx = values[1].indexOf('(');
+
+			// index of first unescaped comma after method name
+			int commaIx = Utils.getIxUnescapedComma(values[1]);
+
+			if (parenIx != -1 && commaIx != -1 && parenIx < commaIx) {
+				// remainder should be split after close paren
+				// followed by comma (optional spaces in between)
+				lastValues = values[1].trim().split("\\) *,", 2);
+
+				// Reattach the closing parenthesis:
+				if (lastValues.length == 2) lastValues[0] += ")";
+			} else
+				// no parens - split comma preceded by optional spaces
+				lastValues = values[1].trim().split(" *,", 2);
+
+			fieldDef[2] = lastValues[0].trim();
+
+			fieldDef[3] = lastValues.length > 1 ? lastValues[1].trim() : null;
+			// is this a translation map?
+			if (fieldDef[3] != null && fieldDef[3].contains("map")) {
+				try {
+					fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
+				} catch (IllegalArgumentException e) {
+					logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
+					throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
+				}
+			}
+		} // end custom
+		else if (values[0].equals("xml") || values[0].equals("raw") || values[0].equals("date") || values[0].equals("json") || values[0].equals("json2")
+				|| values[0].equals("index_date") || values[0].equals("era")) {
+			fieldDef[1] = "std";
+			fieldDef[2] = values[0];
+			fieldDef[3] = values.length > 1 ? values[1].trim() : null;
+			// NOTE: assuming no translation map here
+			if (fieldDef[2].equals("era") && fieldDef[3] != null) {
+				try {
+					fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
+				} catch (IllegalArgumentException e) {
+					logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
+					throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
+				}
+			}
+		} else if (values[0].equalsIgnoreCase("FullRecordAsXML") || values[0].equalsIgnoreCase("FullRecordAsMARC")
+				|| values[0].equalsIgnoreCase("FullRecordAsJson") || values[0].equalsIgnoreCase("FullRecordAsJson2")
+				|| values[0].equalsIgnoreCase("FullRecordAsText") || values[0].equalsIgnoreCase("DateOfPublication")
+				|| values[0].equalsIgnoreCase("DateRecordIndexed")) {
+			fieldDef[1] = "std";
+			fieldDef[2] = values[0];
+			fieldDef[3] = values.length > 1 ? values[1].trim() : null;
+			// NOTE: assuming no translation map here
+		} else if (values.length == 1) {
+			fieldDef[1] = "all";
+			fieldDef[2] = values[0];
+			fieldDef[3] = null;
+		} else
+		// other cases of field definitions
+		{
+			String values2[] = values[1].trim().split("[ ]*,[ ]*", 2);
+			fieldDef[1] = "all";
+			if (values2[0].equals("first") || (values2.length > 1 && values2[1].equals("first"))) fieldDef[1] = "first";
+
+			if (values2[0].startsWith("join")) fieldDef[1] = values2[0];
+
+			if ((values2.length > 1 && values2[1].startsWith("join"))) fieldDef[1] = values2[1];
+
+			if (values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty") || (values2.length > 1 && values2[1].equalsIgnoreCase("DeleteRecordIfFieldEmpty")))
+				fieldDef[1] = "DeleteRecordIfFieldEmpty";
+
+			fieldDef[2] = values[0];
+			fieldDef[3] = null;
+
+			// might we have a translation map?
+			if (!values2[0].equals("all") && !values2[0].equals("first") && !values2[0].startsWith("join")
+					&& !values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty")) {
+				fieldDef[3] = values2[0].trim();
+				if (fieldDef[3] != null) {
+					try {
+						fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
+					} catch (IllegalArgumentException e) {
+						logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
+						throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
+					}
+				}
+			}
+		} // other cases of field definitions
 	}
 
 	/**
@@ -686,8 +671,8 @@ public class MarcProcessor {
 	protected String loadTranslationMap(Properties indexProps, String translationMapSpec) {
 		if (translationMapSpec.length() == 0) return null;
 
-		String mapName = null;
-		String mapKeyPrefix = null;
+		String mapName;
+		String mapKeyPrefix;
 		if (translationMapSpec.startsWith("(") && translationMapSpec.endsWith(")")) {
 			// translation map entries are in passed Properties object
 			mapName = translationMapSpec.replaceAll("[\\(\\)]", "");
@@ -695,19 +680,19 @@ public class MarcProcessor {
 			loadTranslationMapValues(indexProps, mapName, mapKeyPrefix);
 		} else {
 			// translation map is a separate file
-			String transMapFname = null;
+			String transMapFileName;
 			if (translationMapSpec.contains("(") && translationMapSpec.endsWith(")")) {
 				String mapSpec[] = translationMapSpec.split("(//s|[()])+");
-				transMapFname = mapSpec[0];
+				transMapFileName = mapSpec[0];
 				mapName = mapSpec[1];
 				mapKeyPrefix = mapName;
 			} else {
-				transMapFname = translationMapSpec;
+				transMapFileName = translationMapSpec;
 				mapName = translationMapSpec.replaceAll(".properties", "");
 				mapKeyPrefix = "";
 			}
 
-			if (findMap(mapName) == null) loadTranslationMapValues(transMapFname, mapName, mapKeyPrefix);
+			if (findMap(mapName) == null) loadTranslationMapValues(transMapFileName, mapName, mapKeyPrefix);
 		}
 
 		return mapName;
@@ -745,8 +730,7 @@ public class MarcProcessor {
 	 *          transMapMap)
 	 */
 	public void loadTranslationMapValues(String transMapName, String mapName, String mapKeyPrefix) {
-		Properties props = null;
-		props = Utils.loadProperties(propertyFilePaths, transMapName);
+		Properties props = Utils.loadProperties(propertyFilePaths, transMapName);
 		//logger.debug("Loading Custom Map: " + transMapName + " found " + props.size() + " properties");
 		loadTranslationMapValues(props, mapName, mapKeyPrefix);
 	}
@@ -791,13 +775,12 @@ public class MarcProcessor {
 	 * Process the marc record and extract all fields from the raw marc record
 	 * according to field rules.
 	 * 
-	 * @param marcRecord
-	 * @param logger
-	 * @return
+	 * @param marcRecord - The record to process
+	 * @param logger - logger to log to
+	 * @return information about the record that has been processed
 	 */
 	protected MarcRecordDetails mapMarcInfo(Record marcRecord, Logger logger) {
-		MarcRecordDetails basicInfo = new MarcRecordDetails(this, marcRecord, logger);
-		return basicInfo;
+		return new MarcRecordDetails(this, marcRecord, logger);
 	}
 
 	protected boolean processMarcFiles(final ArrayList<IMarcRecordProcessor> recordProcessors, final Logger logger) {
@@ -809,11 +792,7 @@ public class MarcProcessor {
 				marcFiles = marcRecordDirectory.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
-						if (name.matches("(?i).*?\\.(marc|mrc)")) {
-							return true;
-						} else {
-							return false;
-						}
+						return name.matches("(?i).*?\\.(marc|mrc)");
 					}
 				});
 			} else {
@@ -859,7 +838,10 @@ public class MarcProcessor {
 						String id = marcInfo.getId();
 						if (id == null) {
 							System.out.println("Could not load id for marc record " + recordNumber);
-							System.out.println(marcFieldProps.get("id").toString());
+							String[] marcId = marcFieldProps.get("id");
+							if (marcId.length > 0){
+								System.out.println(marcId[0]);
+							}
 							continue;
 						}
 						//Check the list of ids to process if any to see if we should skip this recod
@@ -903,7 +885,9 @@ public class MarcProcessor {
 						if (recordStatus == RECORD_NEW || recordStatus == RECORD_CHANGED_PRIMARY || !individualFile.exists() || forceIndividualMarcFileWrite){
 							File baseFile = new File(basePath);
 							if (!baseFile.exists()){
-								baseFile.mkdirs();
+								if (!baseFile.mkdirs()){
+									logger.warn("Could not create ");
+								}
 							}
 
 							OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
@@ -918,7 +902,6 @@ public class MarcProcessor {
 
 						updateMarcRecordChecksum(marcRecordId, marcInfo, recordStatus, marcIndexedInfo);
 					}
-					marcInfo = null;
 					recordsProcessed++;
 					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
 						ReindexProcess.addNoteToCronLog("Stopping processing because maximum number of records to process was reached.");
@@ -982,8 +965,8 @@ public class MarcProcessor {
 	 * a new BeanShell Interpreter, and have that Interpreter process the named
 	 * script.
 	 * 
-	 * @param scriptFileName
-	 * @return
+	 * @param scriptFileName - The name of the BeanShell script to run
+	 * @return An interpreter to process the field
 	 */
 	public Interpreter getInterpreterForScript(String scriptFileName) {
 		if (scriptMap.containsKey(scriptFileName)) {
@@ -1038,14 +1021,6 @@ public class MarcProcessor {
 			}
 		}
 		return -1L;
-	}
-
-	public boolean isScrapeItemsForLinks() {
-		return scrapeItemsForLinks;
-	}
-
-	public String getCatalogUrl() {
-		return catalogUrl;
 	}
 
 	public LexileData getLexileDataForIsbn(String isbn) {
@@ -1124,11 +1099,6 @@ public class MarcProcessor {
 	
 	public ArrayList<Long> getLibraryIds() {
 		return libraryIds;
-	}
-
-	public boolean isUsableByPType(String iType, String pType) {
-		//TODO: Check loan rules to see if the iType is available to the specified ptype
-		return true;
 	}
 
 	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<String, LinkedHashSet<String>>();
