@@ -1225,10 +1225,10 @@ class Solr implements IndexEngine {
 		$timer->logTime("build facet options");
 
 		//Check to see if there are filters we want to show all values for
-		if (isset($filter) && is_array($filter)){
-			foreach ($filter as $key => $value){
+		if (isset($filters) && is_array($filters)){
+			foreach ($filters as $key => $value){
 				if (strpos($value, 'availability_toggle') === 0){
-					$filter[$key] = '{!tag=avail}' . $value;
+					$filters[$key] = '{!tag=avail}' . $value;
 				}
 			}
 		}
