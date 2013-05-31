@@ -1319,11 +1319,11 @@ class Solr implements IndexEngine {
 		}
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			if (strlen($owningLibrary) > 0){
-				$filter[] = "(usable_by:$pType OR building:\"$owningLibrary\")";
+				$filter[] = "(usable_by:($pType OR all) OR building:\"$owningLibrary\")";
 			}else	if (strlen($owningSystem) > 0){
-				$filter[] = "(usable_by:$pType OR institution:\"$owningSystem\")";
+				$filter[] = "(usable_by:($pType OR all) OR institution:\"$owningSystem\")";
 			}else{
-				$filter[] = 'usable_by:'.$pType;
+				$filter[] = 'usable_by:('.$pType . ' OR all)';
 			}
 		}
 

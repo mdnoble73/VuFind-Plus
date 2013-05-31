@@ -235,6 +235,13 @@ class User_list extends SolrDataObject
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
+			'usable_by' => array(
+				'property'=>'usable_by',
+				'type'=>'method',
+				'methodName'=>'usable_by',
+				'storeDb' => false,
+				'storeSolr' => true,
+			)
 		);
 
 		return $structure;
@@ -413,5 +420,7 @@ class User_list extends SolrDataObject
 			$this->removeResource($tags);
 		}
 	}
-
+	function usable_by(){
+		return 'all';
+	}
 }
