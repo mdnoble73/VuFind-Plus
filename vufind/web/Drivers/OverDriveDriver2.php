@@ -46,6 +46,7 @@ class OverDriveDriver2 {
 	}
 
 	private function _connectToAPI($forceNewConnection = false){
+		/** @var Memcache $memCache */
 		global $memCache;
 		$tokenData = $memCache->get('overdrive_token');
 		if ($forceNewConnection || $tokenData == false){
@@ -144,7 +145,6 @@ class OverDriveDriver2 {
 
 	public function _parseOverDriveCheckedOutItems($checkedOutSection, $overDriveInfo){
 		global $user;
-		global $logger;
 		$bookshelf = array();
 		$bookshelf['items'] = array();
 		if (preg_match_all('/<li class="mobile-four bookshelf-title-li".*?data-transaction="(.*?)".*?>.*?<div class="is-enhanced" data-transaction=".*?" title="(.*?)".*?<img.*?class="lrgImg" src="(.*?)".*?data-crid="(.*?)".*?<div.*?class="dwnld-container".*?>(.*?)<div class="expiration-date".*?<noscript>(.*?)<\/noscript>.*?data-earlyreturn="(.*?)"/si', $checkedOutSection, $bookshelfInfo, PREG_SET_ORDER)) {
@@ -237,7 +237,6 @@ class OverDriveDriver2 {
 		$firstTitlePos = strpos($holdsSection, '<li class="mobile-four">');
 		$holdsSection = substr($holdsSection, $firstTitlePos);
 		$heldTitles = explode('<li class="mobile-four">', $holdsSection);
-		$i = 0;
 		foreach ($heldTitles as $titleHtml){
 			//echo("\r\nSection " . $i++ . "\r\n$titleHtml");
 			if (preg_match('/<div class="coverID">.*?<a href="ContentDetails\\.htm\\?id=(.*?)">.*?<img class="lrgImg" src="(.*?)".*?<div class="trunc-title-line".*?title="(.*?)".*?<div class="trunc-author-line".*?title="(.*?)".*?<div class="(?:holds-info)?".*?>(.*)/si', $titleHtml, $holdInfo)){
@@ -322,20 +321,12 @@ class OverDriveDriver2 {
 	 * @return array
 	 */
 	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
-		global $memCache;
-		global $configArray;
-		global $timer;
-
 		$summary = $this->getAccountDetails($user);
 		$checkedOutTitles = $summary['checkedOut'];
 		return $checkedOutTitles;
 	}
 
 	public function getOverDriveHolds($user, $overDriveInfo = null){
-		global $memCache;
-		global $configArray;
-		global $timer;
-
 		$summary = $this->getAccountDetails($user);
 		$holds = array();
 		$holds['holds'] = $summary['holds'];
@@ -346,7 +337,6 @@ class OverDriveDriver2 {
 	 * Returns a summary of information about the user's account in OverDrive.
 	 *
 	 * @param User $user
-	 * @param array $overDriveInfo optional array of information loaded from _loginToOverDrive to improve performance.
 	 *
 	 * @return array
 	 */
@@ -368,6 +358,7 @@ class OverDriveDriver2 {
 	}
 
 	public function getAccountDetails($user){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		global $timer;
@@ -440,8 +431,11 @@ class OverDriveDriver2 {
 	 * @param string $overDriveId
 	 * @param int $format
 	 * @param User $user
+	 *
+	 * @return array (result, message)
 	 */
 	public function placeOverDriveHold($overDriveId, $format, $user){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		global $logger;
@@ -605,7 +599,9 @@ class OverDriveDriver2 {
 	}
 
 	public function cancelOverDriveHold($overDriveId, $format, $user){
+		/** @var Memcache $memCache */
 		global $memCache;
+		global $analytics;
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -629,10 +625,12 @@ class OverDriveDriver2 {
 
 			//Delete the cache for the record
 			$memCache->delete('overdrive_record_' . $overDriveId);
+			$analytics->addEvent('OverDrive', 'Cancel Hold', 'succeeded');
 		}else{
-			echo($cancellationResult);
+			//echo($cancellationResult);
 			$cancelHoldResult['result'] = false;
 			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
+			$analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 
 		curl_close($overDriveInfo['ch']);
@@ -648,10 +646,14 @@ class OverDriveDriver2 {
 	 * @param int $format
 	 * @param int $lendingPeriod  the number of days that the user would like to have the title chacked out. or -1 to use the default
 	 * @param User $user
+	 *
+	 * @return array results (result, message)
 	 */
 	public function checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user){
 		global $logger;
+		/** @var Memcache $memCache */
 		global $memCache;
+		global $analytics;
 		$accountSummaryBeforeCheckout = $this->getOverDriveSummary($user);
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
@@ -659,6 +661,7 @@ class OverDriveDriver2 {
 			if (!$overDriveInfo['result']){
 			$result['result'] = false;
 			$result['message'] = $overDriveInfo['message'];
+			$analytics->addEvent('OverDrive', 'Checkout Item', 'login failed');
 		}else{
 			$closeSession = true;
 
@@ -682,11 +685,13 @@ class OverDriveDriver2 {
 				$result['result'] = true;
 				$result['message'] = "Your title was checked out successfully. You may now download the title from your Account.";
 				$memCache->delete('overdrive_summary_' . $user->id);
+				$analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
 			}else{
 				$logger->log("OverDrive checkout failed calling page $checkoutUrl", PEAR_LOG_ERR);
 				$logger->log($checkoutPage, PEAR_LOG_INFO);
 				$result['result'] = false;
 				$result['message'] = 'Sorry, we could not checkout this title to you.  Please try again later';
+				$analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 			}
 		}
 		curl_close($ch);
@@ -704,6 +709,7 @@ class OverDriveDriver2 {
 	 */
 	private function _loginToOverDrive($ch, $user){
 		global $configArray;
+		global $analytics;
 		$overdriveUrl = $configArray['OverDrive']['url'];
 		curl_setopt_array($ch, array(
 			CURLOPT_FOLLOWLOCATION => true,
@@ -713,7 +719,6 @@ class OverDriveDriver2 {
 			CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1) Gecko/20100101 Firefox/8.0.1",
 			CURLOPT_AUTOREFERER => true,
 			CURLOPT_SSL_VERIFYPEER => false,
-			//CURLOPT_COOKIEJAR => $cookieJar
 		));
 		$initialPage = curl_exec($ch);
 		$pageInfo = curl_getinfo($ch);
@@ -773,26 +778,22 @@ class OverDriveDriver2 {
 				'result' => true,
 				'ch' => $ch,
 			);
+			$analytics->addEvent('OverDrive', 'Login', 'success');
 		}else if (preg_match('/You are barred from borrowing/si', $myAccountMenuContent)){
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
-
-		}else if (preg_match('/You are barred from borrowing/si', $myAccountMenuContent)){
-			$overDriveInfo = array();
-			$overDriveInfo['result'] = false;
-			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
-
+			$analytics->addEvent('OverDrive', 'Login', 'barred');
 		}else if (preg_match('/Library card has expired/si', $myAccountMenuContent)){
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your library card has expired. Please contact your library to renew.";
-
+			$analytics->addEvent('OverDrive', 'Login', 'expired');
 		}else if (preg_match('/more than (.*?) in library fines are outstanding/si', $myAccountMenuContent)){
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your account cannot borrow from OverDrive because you have unpaid fines.";
-
+			$analytics->addEvent('OverDrive', 'Login', 'over fine limit');
 		}else{
 			global $logger;
 			$logger->log("Could not login to OverDrive ($matchAccount), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
@@ -800,6 +801,7 @@ class OverDriveDriver2 {
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "Unknown error logging in to OverDrive.";
+			$analytics->addEvent('OverDrive', 'Login', 'unknown error');
 		}
 		//global $logger;
 		//$logger->log(print_r($overDriveInfo, true) , PEAR_LOG_INFO);
@@ -816,7 +818,9 @@ class OverDriveDriver2 {
 
 	public function returnOverDriveItem($overDriveId, $transactionId, $user){
 		global $logger;
+		/** @var Memcache $memCache */
 		global $memCache;
+		global $analytics;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
@@ -843,18 +847,21 @@ class OverDriveDriver2 {
 			$memCache->delete('overdrive_summary_' . $user->id);
 			//Delete the cache for the record
 			$memCache->delete('overdrive_record_' . $overDriveId);
+			$analytics->addEvent('OverDrive', 'Return Item', 'success');
 		}else{
 			$logger->log("OverDrive return failed", PEAR_LOG_ERR);
 			$logger->log($returnPage, PEAR_LOG_INFO);
 			$result['result'] = false;
 			$result['message'] = 'Sorry, we could not return this title for you.  Please try again later';
+			$analytics->addEvent('OverDrive', 'Return Item', 'failed');
 		}
 		curl_close($ch);
 		return $result;
 	}
 
 	public function selectOverDriveDownloadFormat($overDriveId, $formatId, $user){
-		global $logger;
+		global $analytics;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
@@ -868,16 +875,18 @@ class OverDriveDriver2 {
 		);
 		$memCache->delete('overdrive_summary_' . $user->id);
 		curl_close($ch);
+		$analytics->addEvent('OverDrive', 'Select Download Format');
 		return $result;
 	}
 
 	public function updateLendingOptions(){
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $user;
 		global $logger;
+		global $analytics;
 		$ch = curl_init();
 		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-		$closeSession = true;
 
 		$updateSettingsUrl = $overDriveInfo['baseLoginUrl']  . 'BANGAuthenticate.dll?Action=EditUserLendingPeriodsFormatClass';
 		$postParams = array(
@@ -904,6 +913,8 @@ class OverDriveDriver2 {
 		//$logger->log($lendingOptionsPage, PEAR_LOG_DEBUG);
 
 		$memCache->delete('overdrive_summary_' . $user->id);
+
+		$analytics->addEvent('OverDrive', 'Update Lending Periods');
 		return true;
 	}
 }

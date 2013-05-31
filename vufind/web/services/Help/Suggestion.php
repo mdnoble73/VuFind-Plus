@@ -20,7 +20,7 @@
 
 
 require_once ROOT_DIR . '/Action.php';
-require_once('recaptcha/recaptchalib.php');
+require_once ROOT_DIR . '/recaptcha/recaptchalib.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/UserSuggestion.php';
 require_once ROOT_DIR . '/sys/Mailer.php';
 
