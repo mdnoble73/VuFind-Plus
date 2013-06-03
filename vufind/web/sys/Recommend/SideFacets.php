@@ -194,9 +194,6 @@ class SideFacets implements RecommendationInterface
 					$oldFacetValues = $sideFacets['available_at']['list'];
 					ksort($oldFacetValues);
 
-					global $locationSingleton;
-					global $user;
-					global $library;
 					$filters = $this->searchObject->getFilterList();
 					//print_r($filters);
 					$appliedAvailability = array();
@@ -218,7 +215,7 @@ class SideFacets implements RecommendationInterface
 						}
 					}
 
-					$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
+					/*$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
 					//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
 					if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
 						$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
@@ -231,7 +228,7 @@ class SideFacets implements RecommendationInterface
 							'isApplied' => array_key_exists('*', $appliedAvailability),
 							'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
 						);
-					}
+					}*/
 
 					$sideFacets['available_at']['list'] = $availableAtFacets;
 				}else{

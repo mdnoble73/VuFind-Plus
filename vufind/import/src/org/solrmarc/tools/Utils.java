@@ -502,7 +502,7 @@ public final class Utils {
 	 * 
 	 * @param origStr
 	 *          the string to be cleaned
-	 * @param charsB4periodRegEx
+	 * @param precedingCharsRegEx
 	 *          a regular expression that must immediately precede a trailing
 	 *          period IN ORDER FOR THE PERIOD TO BE REMOVED. Note that the
 	 *          regular expression will NOT have the period or '$' at the end.
@@ -644,7 +644,7 @@ public final class Utils {
 	 * field is only supposed to return the first matching mappable value, then
 	 * the default mapping should be done in the calling method
 	 * 
-	 * @param fieldVal
+	 * @param set
 	 *          - the raw value to be mapped
 	 * @param map
 	 *          - the map to be used

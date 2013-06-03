@@ -1010,6 +1010,9 @@ public class MarcProcessor {
 	public String getLibrarySystemFacetForId(Long libraryId){
 		return libraryIdToSystemFacets.get(libraryId);
 	}
+	public Set<String> getLibrarySystemFacets(){
+		return librarySystemFacets.keySet();
+	}
 	public Long getLocationIdFromFacet(String locationFacet){
 		return locationFacets.get(locationFacet);
 	}

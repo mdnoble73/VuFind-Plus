@@ -136,6 +136,14 @@ public class ReindexProcess {
 						addNoteToCronLog("Error setting auto commit " + e.toString());
 					}
 				}
+
+				addNoteToCronLog("index passed checks, swapping cores so new index is active.");
+				URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
+				if (!response.isSuccess()){
+					addNoteToCronLog("Error swapping cores " + response.getMessage());
+				}else{
+					addNoteToCronLog("Result of swapping cores " + response.getMessage());
+				}
 			}
 		} catch (Error e) {
 			logger.error("Error processing reindex ", e);
@@ -175,7 +183,7 @@ public class ReindexProcess {
 				logger.info("Unable to copy schema to biblio2");
 				addNoteToCronLog("Unable to copy schema to biblio2");
 			}
-			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/econtent/conf/schema.xml");
+			/*logger.debug("Copying " + "../../sites/default/solr/biblio/conf/schema.xml" + " to " + "../../sites/default/solr/econtent/conf/schema.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/econtent/conf/schema.xml"))){
 				logger.info("Unable to copy schema to econtent");
 				addNoteToCronLog("Unable to copy schema to econtent");
@@ -184,14 +192,14 @@ public class ReindexProcess {
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/schema.xml"), new File("../../sites/default/solr/econtent2/conf/schema.xml"))){
 				logger.info("Unable to copy schema to econtent2");
 				addNoteToCronLog("Unable to copy schema to econtent2");
-			}
+			}*/
 			//Synonyms
 			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/biblio2/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/biblio2/conf/synonyms.txt"))){
 				logger.info("Unable to copy synonyms.txt to biblio2");
 				addNoteToCronLog("Unable to copy synonyms.txt to biblio2");
 			}
-			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/econtent/conf/synonyms.txt");
+			/*logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/econtent/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/econtent/conf/synonyms.txt"))){
 				logger.info("Unable to copy synonyms.txt to econtent");
 				addNoteToCronLog("Unable to copy synonyms.txt to econtent");
@@ -200,7 +208,7 @@ public class ReindexProcess {
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/econtent2/conf/synonyms.txt"))){
 				logger.info("Unable to copy synonyms.txt to econtent2");
 				addNoteToCronLog("Unable to copy synonyms.txt to econtent2");
-			}
+			}*/
 		} catch (IOException e) {
 			logger.error("error reloading copying default scehmas", e);
 			addNoteToCronLog("error reloading copying default scehmas " + e.toString());
@@ -210,9 +218,9 @@ public class ReindexProcess {
 		//biblio2
 		reloadSchema("biblio2");
 		//econtent
-		reloadSchema("econtent");
+		//reloadSchema("econtent");
 		//econtent2
-		reloadSchema("econtent2");
+		//reloadSchema("econtent2");
 		//genealogy
 		reloadSchema("genealogy");
 	}

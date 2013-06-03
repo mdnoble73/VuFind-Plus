@@ -513,7 +513,7 @@ class Record_Record extends Action
 			$interface->assign('arData', $arData);
 		}
 
-		if (isset($record['lexile_score'])){
+		if (isset($record['lexile_score']) && $record['lexile_score'] > -1){
 			$lexileScore = $record['lexile_score'];
 			if (isset($record['lexile_code'])){
 				$lexileScore = $record['lexile_code'] . $lexileScore;

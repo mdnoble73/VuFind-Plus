@@ -331,8 +331,7 @@ public class MarcRecordDetails {
 			}
 		}
 		for (String code : availableAtBySystemOrLocation.keySet()) {
-			addFields(mappedFields, "availability_toggle_" + code, null,
-					availableAtBySystemOrLocation.get(code));
+			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
@@ -367,9 +366,7 @@ public class MarcRecordDetails {
 					existingLibraryAvailability = new LinkedHashSet<String>();
 				}
 				existingLibraryAvailability.add("Entire Collection");
-				availableAtBySystemOrLocation.put(
-						libraryIndexingInfo.getFacetLabel(),
-						existingLibraryAvailability);
+				availableAtBySystemOrLocation.put(libraryIndexingInfo.getFacetLabel(), existingLibraryAvailability);
 			}
 			//Add an extra location to show that the title is on order.
 			if (orderRecord.getStatus().equals("1")){
@@ -501,8 +498,7 @@ public class MarcRecordDetails {
 			}
 			if (existingAvailability == null
 					|| locationAvailability.size() > existingAvailability.size()) {
-				availableAtBySystemOrLocation
-						.put(curCode, locationAvailability);
+				availableAtBySystemOrLocation.put(curCode, locationAvailability);
 			}
 		}
 
@@ -789,8 +785,7 @@ public class MarcRecordDetails {
 	 * @param fieldVal
 	 *          - the (untranslated) field value to add to the solr doc field
 	 */
-	protected void addField(Map<String, Object> indexMap, String ixFldName,
-			String mapName, String fieldVal) {
+	protected void addField(Map<String, Object> indexMap, String ixFldName, String mapName, String fieldVal) {
 		if (mapName != null) {
 			if (marcProcessor.findMap(mapName) != null) {
 				fieldVal = Utils.remap(fieldVal, marcProcessor.findMap(mapName), true);
@@ -799,8 +794,26 @@ public class MarcRecordDetails {
 			}
 		}
 
-		if (fieldVal != null && fieldVal.length() > 0)
+		if (fieldVal != null && fieldVal.length() > 0) {
 			indexMap.put(ixFldName, fieldVal);
+		}
+	}
+
+	/**
+	 * Add a field-value pair to the indexMap representation of a solr doc. The
+	 * value will be "translated" per the translation map indicated.
+	 *
+	 * @param indexMap
+	 *          - the mapping of solr doc field names to values
+	 * @param ixFldName
+	 *          - the name of the field to add to the solr doc
+	 * @param fieldVal
+	 *          - the (untranslated) field value to add to the solr doc field
+	 */
+	protected void addField(Map<String, Object> indexMap, String ixFldName, Integer fieldVal) {
+		if (fieldVal != null) {
+			indexMap.put(ixFldName, fieldVal);
+		}
 	}
 
 	/**
@@ -4177,8 +4190,7 @@ public class MarcRecordDetails {
 	}
 
 	@SuppressWarnings("unchecked")
-	public SolrInputDocument getEContentSolrDocument(long econtentRecordId,
-			ResultSet eContentInfo, ResultSet itemInfo, ResultSet availabilityInfo)
+	public SolrInputDocument getEContentSolrDocument(long econtentRecordId,ResultSet eContentInfo, ResultSet itemInfo, ResultSet availabilityInfo)
 			throws SQLException {
 		SolrInputDocument doc = new SolrInputDocument();
 
@@ -4195,7 +4207,7 @@ public class MarcRecordDetails {
 		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
 		availabilityToggleGlobal.add("Entire Collection");
 		Set<String> buildings = new HashSet<String>();
-		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
+		//LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 
 		// Generate information based on items.
 		while (itemInfo.next()) {
@@ -4210,33 +4222,32 @@ public class MarcRecordDetails {
 			}
 			// TODO: determine if acs and single use titles are actually available
 			if (libraryId == -1L) {
-				usableByPTypes.addAll(marcProcessor.getAllPTypes());
+				//usableByPTypes.addAll(marcProcessor.getAllPTypes());
+				//usableByPTypes.add("all");
 				availabilityToggleGlobal.add("Available Now");
 				// Loop through all libraries and mark this title as available
 				for (Long curLibraryId : marcProcessor.getLibraryIds()) {
-					LibraryIndexingInfo libraryIndexingInfo = marcProcessor
-							.getLibraryIndexingInfo(curLibraryId);
+					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
 					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
 					libraryAvailability.add("Entire Collection");
 					// TODO: determine if acs and single use titles are actually available
 					libraryAvailability.add("Available Now");
-					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(),
-							libraryAvailability);
+					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
 					// Since we don't have availability by location for online titles, add
 					// the same availability to all locations
-					for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
+					/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
 						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
 						availableAt.add(curLocationInfo.getFacetLabel());
-					}
+					} */
 				}
 
-				buildings.add("Digital Collection");
-				buildings = addSharedAvailability(source, buildings);
-				availableAt.add("Digital Collection");
-				availableAt = addSharedAvailability(source, availableAt);
+				//buildings.add("Digital Collection");
+				buildings = addOnlineAvailability(source, buildings);
+				//availableAt.add("Digital Collection");
+				availableAt = addOnlineAvailability(source, availableAt);
 				availabilityToggleGlobal.add("Available Now");
 			} else {
-				usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
+				//usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
 				availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				logger.debug(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
@@ -4248,89 +4259,85 @@ public class MarcRecordDetails {
 				availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
 				// Since we don't have availability by location for online titles, add
 				// the same availability to all locations
-				for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
+				/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
 					availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
-				}
+				}*/
 			}
 		}// end processing items
 
 		int numHoldings = 0;
 		// If we have availability information, use that.
 		boolean hasAvailabilityInfo = false;
+
+		logger.debug("Num Available At locations: " + availableAt.size());
 		while (availabilityInfo.next()) {
 			if (!hasAvailabilityInfo) {
-				// This is the first availability line. We may have information from the
-				// items
+				logger.debug("Record has availability information");
+				// This is the first availability line. We may have information from the items
 				// which need to be cleared so we can use availability.
 				buildings.clear();
+				availableAt.clear();
 				availableAtBySystemOrLocation.clear();
 				availabilityToggleGlobal.clear();
 				availabilityToggleGlobal.add("Entire Collection");
-				usableByPTypes.clear();
+				//usableByPTypes.clear();
 				hasAvailabilityInfo = true;
 			}
 			int copiesOwned = availabilityInfo.getInt("copiesOwned");
 			int availableCopies = availabilityInfo.getInt("availableCopies");
 			long libraryId = availabilityInfo.getLong("libraryId");
-			if (libraryId == -1L) {
+			/*if (libraryId == -1L) {
 				usableByPTypes.addAll(marcProcessor.getAllPTypes());
 			} else {
-				usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188",
-						marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
-			}
+				usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
+			}*/
 			if (availableCopies > 0) {
 				availabilityToggleGlobal.add("Available Now");
+				logger.debug("Title is available to library " + libraryId );
 				if (libraryId == -1L) {
-					availableAt.add("Digital Collection");
-					availableAt = addSharedAvailability(source, availableAt);
-					buildings.add("Digital Collection");
-					buildings = addSharedAvailability(source, buildings);
+					//availableAt.add("Digital Collection");
+					availableAt = addOnlineAvailability(source, availableAt);
+					//buildings.add("Digital Collection");
+					buildings = addOnlineAvailability(source, buildings);
 					for (Long curLibraryId : marcProcessor.getLibraryIds()) {
-						LibraryIndexingInfo libraryIndexingInfo = marcProcessor
-								.getLibraryIndexingInfo(curLibraryId);
+						LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
 						LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
 						libraryAvailability.add("Entire Collection");
 						libraryAvailability.add("Available Now");
-						availableAtBySystemOrLocation.put(
-								libraryIndexingInfo.getSubdomain(), libraryAvailability);
+						availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain() + " Online", libraryAvailability);
 						// Since we don't have availability by location for online titles,
 						// add the same availability to all locations
-						for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo
-								.getLocations().values()) {
-							availableAtBySystemOrLocation.put(curLocationInfo.getCode(),
-									libraryAvailability);
-						}
+						/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
+							availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+						} */
 					}
 				} else {
-					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId)
-							+ " Online");
-					LibraryIndexingInfo libraryIndexingInfo = marcProcessor
-							.getLibraryIndexingInfo(libraryId);
+					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
 					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
 					libraryAvailability.add("Entire Collection");
 					libraryAvailability.add("Available Now");
 					availableAt.add(libraryIndexingInfo.getFacetLabel() + " Online");
-					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(),
-							libraryAvailability);
+					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain() + " Online", libraryAvailability);
 					// Since we don't have availability by location for online titles, add
 					// the same availability to all locations
-					for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo
-							.getLocations().values()) {
-						availableAtBySystemOrLocation.put(curLocationInfo.getCode(),
-								libraryAvailability);
-					}
+					/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
+						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
+					} */
 				}
 			} else {
+				logger.debug("Title is not available to library " + libraryId);
+				//No available copies
 				if (libraryId == -1L) {
-					buildings.add("Digital Collection");
-					buildings = addSharedAvailability(source, buildings);
+					//buildings.add("Digital Collection");
+					buildings = addOnlineAvailability(source, buildings);
 				} else {
-					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId)
-							+ " Online");
+					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
 				}
 			}
 			numHoldings += copiesOwned;
 		}
+		logger.debug("Num Available At locations: " + availableAt.size());
 		if (!hasAvailabilityInfo) {
 			// logger.debug("Title does not have availability information, using item availability");
 			if (itemLevelOwnership == 1) {
@@ -4344,14 +4351,18 @@ public class MarcRecordDetails {
 		if (numHoldings > 1000) {
 			numHoldings = 5;
 		}
+		mappedFields.remove("institution");
+		mappedFields.remove("building");
+		mappedFields.remove("available_at");
+		mappedFields.remove("availability_toggle");
+		mappedFields.remove("usable_by");
 		if (buildings.size() > 0) {
 			addFields(mappedFields, "institution", null, buildings);
 			addFields(mappedFields, "building", null, buildings);
 		}
 		// mappedFields.remove("format");
 		addFields(mappedFields, "format", "format_map", formats);
-		mappedFields.remove("usable_by");
-		addFields(mappedFields, "usable_by", null, usableByPTypes);
+		//addFields(mappedFields, "usable_by", null, usableByPTypes);
 		if (formats.size() > 0) {
 			String firstFormat = formats.iterator().next();
 			mappedFields.remove("format_category");
@@ -4361,14 +4372,12 @@ public class MarcRecordDetails {
 			addField(mappedFields, "format_boost", "format_boost_map", firstFormat);
 		}
 		// Load device compatibility
-		addField(mappedFields, "num_holdings", Integer.toString(numHoldings));
+		addField(mappedFields, "num_holdings", numHoldings);
 		// TODO: Index eContent Text? econtentText
 		// logger.debug("The record is available at " + availableAt.size() +
 		// " libraries");
 		// Add availability
-		mappedFields.remove("available_at");
 		addFields(mappedFields, "available_at", null, availableAt);
-		mappedFields.remove("availability_toggle");
 		addFields(mappedFields, "availability_toggle", null,
 				availabilityToggleGlobal);
 		for (String code : availableAtBySystemOrLocation.keySet()) {
@@ -4430,18 +4439,13 @@ public class MarcRecordDetails {
 			}
 		}
 
-		// logger.debug(doc.toString());
+		logger.debug(doc.toString());
 		return doc;
 	}
 
-	private Set<String> addSharedAvailability(String source,
-			Set<String> itemAvailability) {
-		// logger.debug("Determining if shared availability should be added");
-		if (source.matches("(?i)^overdrive.*")) {
-			// logger.debug("Adding shared availability");
-			for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()) {
-				itemAvailability.add(libraryFacet + " Online");
-			}
+	private Set<String> addOnlineAvailability(String source, Set<String> itemAvailability) {
+		for (String libraryFacet : marcProcessor.getLibrarySystemFacets()) {
+			itemAvailability.add(libraryFacet + " Online");
 		}
 		return itemAvailability;
 	}

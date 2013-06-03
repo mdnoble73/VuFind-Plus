@@ -1216,7 +1216,7 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
-			$options['f.available_at.facet.missing'] = 'true';
+			//$options['f.available_at.facet.missing'] = 'true';
 
 			foreach($facet as $param => $value) {
 				$options[$param] = $value;
@@ -1319,9 +1319,9 @@ class Solr implements IndexEngine {
 		}
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			if (strlen($owningLibrary) > 0){
-				$filter[] = "(usable_by:($pType OR all) OR building:\"$owningLibrary\")";
+				$filter[] = "(usable_by:($pType OR all) OR building:\"$owningLibrary\" OR building:\"$owningLibrary Online\")";
 			}else	if (strlen($owningSystem) > 0){
-				$filter[] = "(usable_by:($pType OR all) OR institution:\"$owningSystem\")";
+				$filter[] = "(usable_by:($pType OR all) OR institution:\"$owningSystem\" OR building:\"$owningSystem Online\")";
 			}else{
 				$filter[] = 'usable_by:('.$pType . ' OR all)';
 			}

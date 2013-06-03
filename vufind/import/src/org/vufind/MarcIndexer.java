@@ -84,17 +84,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		if (!response.isSuccess()){
 			results.addNote("Error optimizing index " + response.getMessage());
 		}*/
-		if (checkMarcImport()){
-			results.addNote("index passed checks, swapping cores so new index is active.");
-			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
-			if (!response.isSuccess()){
-				results.addNote("Error swapping cores " + response.getMessage());
-			}else{
-				results.addNote("Result of swapping cores " + response.getMessage());
-			}
-		}else{
-			results.addNote("index did not pass check, not swapping");
-		}
+
 		results.saveResults();
 	}
 

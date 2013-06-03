@@ -1102,7 +1102,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				addFieldToDoc(doc, "id_alt", recordInfo.getOverdriveId());
 				addFieldToDoc(doc, "collection", "Western Colorado Catalog");
 				addFieldToDoc(doc, "id", "econtentRecord" + econtentRecordId);
-				addFieldToDoc(doc, "id_sort", "econtentRecord" + econtentRecordId);
 				addFieldToDoc(doc, "bib_suppression", "notsuppressed");
 				addFieldToDoc(doc, "collection_group", "Electronic Access");
 				addFieldToDoc(doc, "econtent_source", "OverDrive");
@@ -1267,10 +1266,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 								availableSystems.add(curLibraryId);
 							}
 							if (curLibraryId == -1){
-								addFieldToDoc(doc, "institution", "Digital Collection");
-								addFieldToDoc(doc, "building", "Digital Collection");
+								//addFieldToDoc(doc, "institution", "Digital Collection");
+								//addFieldToDoc(doc, "building", "Digital Collection");
 								usableByPTypes.addAll(marcProcessor.getAllPTypes());
-								for (String libraryFacet : marcProcessor.getAdvantageLibraryFacets()){
+								for (String libraryFacet : marcProcessor.getLibrarySystemFacets()){
 									addFieldToDoc(doc, "institution", libraryFacet + " Online");
 									addFieldToDoc(doc, "building", libraryFacet + " Online");
 									if (isAvailable){
@@ -1279,7 +1278,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 								}
 								if (isAvailable){
 									availabilityToggleGlobal.add("Available Now");
-									availableAt.add("Digital Collection");
+									//availableAt.add("Digital Collection");
 								}
 								
 							}else{
@@ -1449,18 +1448,18 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				results.incErrors();
 				results.addNote("Error committing changes " + response.getMessage());
 			}
-			if (checkMarcImport()){
+			/*if (checkMarcImport()){
 				results.addNote("index passed checks, swapping cores so new index is active.");
-				URLPostResponse postResponse = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
-				if (!postResponse.isSuccess()){
-					results.addNote("Error swapping cores " + postResponse.getMessage());
-				}else{
-					results.addNote("Result of swapping cores " + postResponse.getMessage());
-				}
+				//URLPostResponse postResponse = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=econtent2&other=econtent", logger);
+				//if (!postResponse.isSuccess()){
+				//	results.addNote("Error swapping cores " + postResponse.getMessage());
+				//}else{
+				//	results.addNote("Result of swapping cores " + postResponse.getMessage());
+				//}
 			}else{
 				results.incErrors();
 				results.addNote("index did not pass check, not swapping");
-			}
+			}*/
 			
 		} catch (Exception e) {
 			results.addNote("Error finalizing index " + e.toString());
