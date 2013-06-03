@@ -1113,6 +1113,7 @@ class MillenniumDriver implements DriverInterface
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
 		$holdable = false;
+		//global $logger;
 		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
 		foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
 			//Check the location to be sure the determiner applies to this item
@@ -1128,13 +1129,13 @@ class MillenniumDriver implements DriverInterface
 						$holdable = ($loanRule->holdable == 1);
 						break;
 					}else{
-						//$logger->log("PType incorect", PEAR_LOG_DEBUG);
+						//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 					}
 				}else{
-					//$logger->log("IType incorect", PEAR_LOG_DEBUG);
+					//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
 				}
 			}else{
-				//$logger->log("Location incorect {$loanRuleDeterminer->location} != {$location}", PEAR_LOG_DEBUG);
+				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$location}", PEAR_LOG_DEBUG);
 			}
 		}
 		return $holdable;
