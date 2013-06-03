@@ -260,8 +260,7 @@ class Solr implements IndexEngine {
 	{
 		// Generate cache key:
 		$key = md5(
-		basename($this->searchSpecsFile) . '-' .
-		filemtime($this->searchSpecsFile)
+			basename($this->searchSpecsFile) . '-' . filemtime($this->searchSpecsFile)
 		);
 
 		// Load cache manager:
@@ -270,7 +269,7 @@ class Solr implements IndexEngine {
 		// Generate data if not found in cache:
 		if (!($results = $cache->load($key))) {
 			$results = Horde_Yaml::load(
-			file_get_contents($this->searchSpecsFile)
+				file_get_contents($this->searchSpecsFile)
 			);
 			$cache->save($results, $key);
 		}

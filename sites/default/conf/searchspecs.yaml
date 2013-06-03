@@ -239,33 +239,29 @@ JournalTitle:
 
 Title:
   QueryFields:
-    - title_proper:
+    -
+      - [OR, 50]
+      - title_proper:
+        - [exact, 800]
+        - [onephrase, 500]
+        - [and, 200]
+      - title:
+        - [onephrase, 200]
+        - [and, 125]
+      - title_alt:
+        - [and, 100]
+      - title_new:
+        - [and, 50]
+    series_proper:
       - [exact, 800]
-      - [onephrase, 600]
-    - title_short:
-      - [onephrase, 1200]
-    #Do not search title full since that includes the author name
-    #- title_full:
-    #  - [onephrase, 400]
-    - title:
       - [onephrase, 300]
-      - [and, 250]
-    - title_alt:
-      - [onephrase, 250]
-      - [and, 200]
-    - title_new:
-      - [and, 100]
-    - title_old:
-      - [and, ~]  
-    - series_proper:
-      - [onephrase, 200]
-      - [and, 100]
-    - series:
-      - [onephrase, 100]
       - [and, 50]
-    - series2:
-      - [onephrase, 50]
-      - [and , ~]
+    series:
+      - [exact, 600]
+      - [onephrase, 200]
+      - [and, 50]
+    series2:
+      - [and, 30]
 
 TitleProper:
   DismaxFields:

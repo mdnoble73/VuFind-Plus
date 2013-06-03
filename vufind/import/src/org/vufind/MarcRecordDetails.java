@@ -4269,7 +4269,7 @@ public class MarcRecordDetails {
 		// If we have availability information, use that.
 		boolean hasAvailabilityInfo = false;
 
-		logger.debug("Num Available At locations: " + availableAt.size());
+		//logger.debug("Num Available At locations: " + availableAt.size());
 		while (availabilityInfo.next()) {
 			if (!hasAvailabilityInfo) {
 				logger.debug("Record has availability information");
@@ -4337,7 +4337,7 @@ public class MarcRecordDetails {
 			}
 			numHoldings += copiesOwned;
 		}
-		logger.debug("Num Available At locations: " + availableAt.size());
+		//logger.debug("Num Available At locations: " + availableAt.size());
 		if (!hasAvailabilityInfo) {
 			// logger.debug("Title does not have availability information, using item availability");
 			if (itemLevelOwnership == 1) {
@@ -4439,7 +4439,7 @@ public class MarcRecordDetails {
 			}
 		}
 
-		logger.debug(doc.toString());
+		//logger.debug(doc.toString());
 		return doc;
 	}
 
