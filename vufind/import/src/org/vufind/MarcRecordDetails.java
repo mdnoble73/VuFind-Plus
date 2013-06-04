@@ -45,7 +45,6 @@ public class MarcRecordDetails {
 	private Long eContentRecordId = null;
 	private String ilsId;
 
-	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
 	private static Date indexDate = new Date();
 
 	/**
@@ -155,133 +154,10 @@ public class MarcRecordDetails {
 		}
 		// logger.debug("Found " + itemFields.size() + " items");
 		for (DataField itemField : itemFields) {
-			boolean itemSuppressed = false;
-			if (itemField.getSubfield('d') == null) {
-				logger.debug("Did not find location code for item ");
-			} else {
-				String locationCode = itemField.getSubfield('d').getData().trim();
-				logger.debug("Processing locationCode " + locationCode);
-				// Figure out which location and library this item belongs to.
-				LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(locationCode);
-				LibraryIndexingInfo libraryIndexingInfo = null;
-				if (locationIndexingInfo == null) {
-					logger.debug("Warning, did not find location info for location " + locationCode);
-					if (locationCode.equalsIgnoreCase("zzzz")) {
-						// logger.debug("suppressing item because location code is zzzz");
-						itemSuppressed = true;
-					}
-				} else {
-					libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
-					if (locationIndexingInfo.isSuppressHoldings()){
-						itemSuppressed = true;
-					}
-				}
-
-				// Load availability (local, system, marmot)
-				Subfield statusSubfield = itemField.getSubfield('g');
-				Subfield dueDateField = itemField.getSubfield('m');
-				Subfield icode2Subfield = itemField.getSubfield('o');
-				boolean available = false;
-				if (statusSubfield != null) {
-					String status = statusSubfield.getData();
-					String dueDate = dueDateField == null ? "" : dueDateField.getData()
-							.trim();
-					String availableStatus = "-dowju";
-					if (availableStatus.indexOf(status.charAt(0)) >= 0) {
-						if (dueDate.length() == 0) {
-							if (icode2Subfield != null) {
-								String icode2 = icode2Subfield.getData().toLowerCase().trim();
-								if (icode2.equals("n") || icode2.equals("x")) {
-									// logger.debug("Suppressing item because icode2 is " +
-									// icode2);
-									itemSuppressed = true;
-								} else {
-									available = true;
-								}
-							}
-						}
-					}
-				}
-
-				if (!itemSuppressed) {
-					// Map library system (institution)
-					if (libraryIndexingInfo != null) {
-						librarySystems.add(libraryIndexingInfo.getFacetLabel());
-					}
-
-					// Map location (building)
-					if (locationIndexingInfo != null) {
-						locations.add(locationIndexingInfo.getFacetLabel());
-					}
-					// Check for extra locations
-					LinkedHashSet<String> extraLocations = marcProcessor.getExtraLocations(locationCode);
-					if (extraLocations.size() > 0) {
-						locations.addAll(extraLocations);
-					}
-
-					// Barcodes
-					@SuppressWarnings("unchecked")
-					List<Subfield> barcodeFields = itemField.getSubfields('b');
-					for (Subfield curSubfield : barcodeFields) {
-						String barcode = curSubfield.getData();
-						if (digitPattern.matcher(barcode).matches()) {
-							barcodes.add(barcode);
-						}
-					}
-					
-					//Get number of times the title has been checked out 
-					Subfield numCheckoutsField = itemField.getSubfield('h');
-					if (numCheckoutsField != null){
-						int numCheckouts = Integer.parseInt(numCheckoutsField.getData());
-						popularity += numCheckouts;
-					}
-
-					// Map iTypes
-					Subfield iTypeSubfield = itemField.getSubfield('j');
-					String iType = "0";
-					if (iTypeSubfield != null) {
-						iType = processItemIcode(iTypes, iTypesBySystem, libraryIndexingInfo, iTypeSubfield);
-					}
-
-					// Get Location Codes
-					locationCodes.add(locationCode);
-					// Get Location Codes By System
-					if (libraryIndexingInfo != null) {
-						LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(libraryIndexingInfo.getSubdomain());
-						if (detailedLocationVals == null) {
-							detailedLocationVals = new LinkedHashSet<String>();
-							locationsCodesBySystem.put(libraryIndexingInfo.getSubdomain(), detailedLocationVals);
-						}
-						detailedLocationVals.add(locationCode);
-					}
-
-					// Get Location Codes By Location
-					if (locationIndexingInfo != null) {
-						LinkedHashSet<String> detailedLocationVals = locationsCodesBySystem.get(locationIndexingInfo.getCode());
-						if (detailedLocationVals == null) {
-							detailedLocationVals = new LinkedHashSet<String>();
-							locationsCodesBySystem.put(locationIndexingInfo.getCode(), detailedLocationVals);
-						}
-						detailedLocationVals.add(locationCode);
-					}
-
-					// Map time since added (library & location)
-					Subfield dateAddedField = itemField.getSubfield('k');
-					if (dateAddedField != null) {
-						timeSinceAdded = processItemDateAdded(timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, locationIndexingInfo, libraryIndexingInfo, dateAddedField);
-					}
-
-					// Add availability
-					if (!itemSuppressed && !manuallySuppressed) {
-						processItemAvailability(availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, locationCode, locationIndexingInfo, libraryIndexingInfo, available, iType);
-					}
-				} else {
-					logger.debug("Item/Bib is suppressed.");
-				}
-			}
-			if (!itemSuppressed) {
-				allItemsSuppressed = false;
-			}
+			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
+			allItemsSuppressed = printItemSolrProcessor.isAllItemsSuppressed();
+			timeSinceAdded = printItemSolrProcessor.getTimeSinceAdded();
+			popularity = printItemSolrProcessor.getPopularity();
 		}
 		
 		//Get order records for this title. 
@@ -392,119 +268,6 @@ public class MarcRecordDetails {
 			}
 		}
 		return allItemsSuppressed;
-	}
-
-	private String processItemIcode(Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, LibraryIndexingInfo libraryIndexingInfo, Subfield iTypeSubfield) {
-		String iType;
-		iType = iTypeSubfield.getData();
-		iTypes.add(iType);
-		if (libraryIndexingInfo != null) {
-			LinkedHashSet<String> iTypesBySystemVals;
-			if (iTypesBySystem
-					.containsKey(libraryIndexingInfo.getSubdomain())) {
-				iTypesBySystemVals = iTypesBySystem.get(libraryIndexingInfo.getSubdomain());
-			} else {
-				iTypesBySystemVals = new LinkedHashSet<String>();
-				iTypesBySystem.put(libraryIndexingInfo.getSubdomain(), iTypesBySystemVals);
-			}
-
-			iTypesBySystemVals.add(iType);
-		}
-		return iType;
-	}
-
-	private Set<String> processItemDateAdded(Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, LocationIndexingInfo locationIndexingInfo, LibraryIndexingInfo libraryIndexingInfo, Subfield dateAddedField) {
-		String dateAddedStr = dateAddedField.getData();
-		try {
-			Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
-			LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
-			if (itemTimeSinceAdded.size() > timeSinceAdded.size()) {
-				timeSinceAdded = itemTimeSinceAdded;
-			}
-			// Check library specific time since added
-			if (libraryIndexingInfo != null) {
-				LinkedHashSet<String> timeSinceAddedBySystemVals = timeSinceAddedBySystem
-						.get(libraryIndexingInfo.getSubdomain());
-				if (timeSinceAddedBySystemVals == null
-						|| itemTimeSinceAdded.size() > timeSinceAddedBySystemVals
-								.size()) {
-					timeSinceAddedBySystem.put(
-							libraryIndexingInfo.getSubdomain(), itemTimeSinceAdded);
-				}
-			}
-			// Check location specific time since added
-			if (locationIndexingInfo != null) {
-				LinkedHashSet<String> timeSinceAddedByLocationVals = timeSinceAddedByLocation
-						.get(locationIndexingInfo.getCode());
-				if (timeSinceAddedByLocationVals == null
-						|| itemTimeSinceAdded.size() > timeSinceAddedByLocationVals
-								.size()) {
-					timeSinceAddedByLocation.put(locationIndexingInfo.getCode(),
-							itemTimeSinceAdded);
-				}
-			}
-		} catch (ParseException e) {
-			logger.error("Error processing date added", e);
-		}
-		return timeSinceAdded;
-	}
-
-	private void processItemAvailability(Set<String> availableAt, Set<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, String locationCode, LocationIndexingInfo locationIndexingInfo, LibraryIndexingInfo libraryIndexingInfo, boolean available, String iType) {
-		if (available) {
-			availabilityToggleGlobal.add("Available Now");
-		}
-		// logger.debug("item is available at " + locationCode);
-		// Loop through all libraries
-		for (String curSubdomain : marcProcessor.getLibrarySubdomains()) {
-			LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation
-					.get(curSubdomain);
-			if (existingAvailability != null
-					&& existingAvailability.size() == 2) {
-				continue;
-			}
-			LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
-			libraryAvailability.add("Entire Collection");
-			if (available) {
-				if (libraryIndexingInfo != null
-						&& libraryIndexingInfo.getSubdomain().equalsIgnoreCase(
-								curSubdomain)) {
-					libraryAvailability.add("Available Now");
-				}
-			}
-			if (existingAvailability == null
-					|| libraryAvailability.size() > existingAvailability.size()) {
-				availableAtBySystemOrLocation.put(curSubdomain,
-						libraryAvailability);
-			}
-		}
-
-		// Loop through all locations
-		for (String curCode : marcProcessor.getLocationCodes()) {
-			LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation
-					.get(curCode);
-			if (existingAvailability != null
-					&& existingAvailability.size() == 2) {
-				// Can't get better availability
-				continue;
-			}
-			LinkedHashSet<String> locationAvailability = new LinkedHashSet<String>();
-			locationAvailability.add("Entire Collection");
-			if (available) {
-				if (locationIndexingInfo != null
-						&& locationIndexingInfo.getCode().equalsIgnoreCase(curCode)) {
-					locationAvailability.add("Available Now");
-					availableAt.add(locationIndexingInfo.getFacetLabel());
-				}
-			}
-			if (existingAvailability == null
-					|| locationAvailability.size() > existingAvailability.size()) {
-				availableAtBySystemOrLocation.put(curCode, locationAvailability);
-			}
-		}
-
-		LinkedHashSet<String> itemUsableByPTypes = marcProcessor
-				.getCompatiblePTypes(iType, locationCode);
-		usableByPTypes.addAll(itemUsableByPTypes);
 	}
 
 	private void mapField(String fieldName, String[] fieldVal) {
@@ -1328,8 +1091,6 @@ public class MarcRecordDetails {
 	 */
 	protected String writeXml(Record record) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		// TODO: see if this works better
-		// MarcWriter writer = new MarcXmlWriter(out, false);
 		MarcWriter writer = new MarcXmlWriter(out, "UTF-8");
 		writer.write(record);
 		writer.close();
@@ -4207,137 +3968,28 @@ public class MarcRecordDetails {
 		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
 		availabilityToggleGlobal.add("Entire Collection");
 		Set<String> buildings = new HashSet<String>();
-		//LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 
 		// Generate information based on items.
 		while (itemInfo.next()) {
-			String item_type = itemInfo.getString("item_type");
-			String externalFormat = itemInfo.getString("externalFormat");
-			long libraryId = itemInfo.getLong("libraryId");
-			numItems++;
-			if (externalFormat != null && externalFormat.length() > 0) {
-				formats.add(externalFormat.replaceAll("\\s", "_"));
-			} else {
-				formats.add(item_type);
-			}
-			// TODO: determine if acs and single use titles are actually available
-			if (libraryId == -1L) {
-				//usableByPTypes.addAll(marcProcessor.getAllPTypes());
-				//usableByPTypes.add("all");
-				availabilityToggleGlobal.add("Available Now");
-				// Loop through all libraries and mark this title as available
-				for (Long curLibraryId : marcProcessor.getLibraryIds()) {
-					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
-					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
-					libraryAvailability.add("Entire Collection");
-					// TODO: determine if acs and single use titles are actually available
-					libraryAvailability.add("Available Now");
-					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
-					// Since we don't have availability by location for online titles, add
-					// the same availability to all locations
-					/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
-						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
-						availableAt.add(curLocationInfo.getFacetLabel());
-					} */
-				}
-
-				//buildings.add("Digital Collection");
-				buildings = addOnlineAvailability(source, buildings);
-				//availableAt.add("Digital Collection");
-				availableAt = addOnlineAvailability(source, availableAt);
-				availabilityToggleGlobal.add("Available Now");
-			} else {
-				//usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
-				availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-				buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-				logger.debug(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-				LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
-				LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
-				libraryAvailability.add("Entire Collection");
-				// TODO: determine if acs and single use titles are actually available
-				libraryAvailability.add("Available Now");
-				availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
-				// Since we don't have availability by location for online titles, add
-				// the same availability to all locations
-				/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
-					availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
-				}*/
-			}
+			EContentItemSolrProcessor EContentItemSolrProcessor = new EContentItemSolrProcessor(logger, marcProcessor, itemInfo, source, formats, numItems, availableAt, availableAtBySystemOrLocation, availabilityToggleGlobal, buildings).invoke();
+			buildings = EContentItemSolrProcessor.getBuildings();
+			availableAt = EContentItemSolrProcessor.getAvailableAt();
+			numItems = EContentItemSolrProcessor.getNumItems();
 		}// end processing items
+		logger.debug("Num Available At locations from items: " + availableAt.size());
 
 		int numHoldings = 0;
 		// If we have availability information, use that.
 		boolean hasAvailabilityInfo = false;
-
-		//logger.debug("Num Available At locations: " + availableAt.size());
 		while (availabilityInfo.next()) {
-			if (!hasAvailabilityInfo) {
-				logger.debug("Record has availability information");
-				// This is the first availability line. We may have information from the items
-				// which need to be cleared so we can use availability.
-				buildings.clear();
-				availableAt.clear();
-				availableAtBySystemOrLocation.clear();
-				availabilityToggleGlobal.clear();
-				availabilityToggleGlobal.add("Entire Collection");
-				//usableByPTypes.clear();
-				hasAvailabilityInfo = true;
-			}
-			int copiesOwned = availabilityInfo.getInt("copiesOwned");
-			int availableCopies = availabilityInfo.getInt("availableCopies");
-			long libraryId = availabilityInfo.getLong("libraryId");
-			/*if (libraryId == -1L) {
-				usableByPTypes.addAll(marcProcessor.getAllPTypes());
-			} else {
-				usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
-			}*/
-			if (availableCopies > 0) {
-				availabilityToggleGlobal.add("Available Now");
-				logger.debug("Title is available to library " + libraryId );
-				if (libraryId == -1L) {
-					//availableAt.add("Digital Collection");
-					availableAt = addOnlineAvailability(source, availableAt);
-					//buildings.add("Digital Collection");
-					buildings = addOnlineAvailability(source, buildings);
-					for (Long curLibraryId : marcProcessor.getLibraryIds()) {
-						LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(curLibraryId);
-						LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
-						libraryAvailability.add("Entire Collection");
-						libraryAvailability.add("Available Now");
-						availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain() + " Online", libraryAvailability);
-						// Since we don't have availability by location for online titles,
-						// add the same availability to all locations
-						/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
-							availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
-						} */
-					}
-				} else {
-					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
-					LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
-					libraryAvailability.add("Entire Collection");
-					libraryAvailability.add("Available Now");
-					availableAt.add(libraryIndexingInfo.getFacetLabel() + " Online");
-					availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain() + " Online", libraryAvailability);
-					// Since we don't have availability by location for online titles, add
-					// the same availability to all locations
-					/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
-						availableAtBySystemOrLocation.put(curLocationInfo.getCode(), libraryAvailability);
-					} */
-				}
-			} else {
-				logger.debug("Title is not available to library " + libraryId);
-				//No available copies
-				if (libraryId == -1L) {
-					//buildings.add("Digital Collection");
-					buildings = addOnlineAvailability(source, buildings);
-				} else {
-					buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-				}
-			}
-			numHoldings += copiesOwned;
+			EContentAvailabilityProcessor EContentAvailabilityProcessor = new EContentAvailabilityProcessor(logger, marcProcessor, availabilityInfo, availableAt, availableAtBySystemOrLocation, availabilityToggleGlobal, buildings, numHoldings, hasAvailabilityInfo).invoke();
+			hasAvailabilityInfo = EContentAvailabilityProcessor.isHasAvailabilityInfo();
+			numHoldings = EContentAvailabilityProcessor.getNumHoldings();
+			buildings = EContentAvailabilityProcessor.getBuildings();
+			availableAt = EContentAvailabilityProcessor.getAvailableAt();
 		}
-		//logger.debug("Num Available At locations: " + availableAt.size());
+		logger.debug("Num Available At locations from availability: " + availableAt.size());
+
 		if (!hasAvailabilityInfo) {
 			// logger.debug("Title does not have availability information, using item availability");
 			if (itemLevelOwnership == 1) {
@@ -4373,17 +4025,14 @@ public class MarcRecordDetails {
 		}
 		// Load device compatibility
 		addField(mappedFields, "num_holdings", numHoldings);
-		// TODO: Index eContent Text? econtentText
-		// logger.debug("The record is available at " + availableAt.size() +
-		// " libraries");
+		logger.debug("The record is available at " + availableAt.size() +  " libraries");
 		// Add availability
 		addFields(mappedFields, "available_at", null, availableAt);
 		addFields(mappedFields, "availability_toggle", null,
 				availabilityToggleGlobal);
 		for (String code : availableAtBySystemOrLocation.keySet()) {
 			mappedFields.remove("availability_toggle_" + code);
-			addFields(mappedFields, "availability_toggle_" + code, null,
-					availableAtBySystemOrLocation.get(code));
+			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
 		}
 
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
@@ -4404,51 +4053,53 @@ public class MarcRecordDetails {
 		for (String fieldName : allFields.keySet()) {
 			Object value = allFields.get(fieldName);
 			if (fieldName.equals("keywords") || fieldName.equals("allfields")) {
-				// Add formats to keywords and allfields
-				String existingValues = (String) value;
-				Object existingFormatsObj = allFields.get("format");
-				Set<String> existingFormats;
-				if (existingFormatsObj instanceof String) {
-					existingFormats = new LinkedHashSet<String>();
-					existingFormats.add((String) existingFormatsObj);
-				} else {
-					existingFormats = (Set<String>) existingFormatsObj;
-				}
+				String existingValues = addSpecialFieldsToKeywords(allFields, (String) value);
 
-				for (String format : existingFormats) {
-					existingValues += " " + format;
-				}
-				// Add format category to keywords and allfields
-				Object formatCategoriesObj = allFields.get("format_category");
-				if (formatCategoriesObj == null) {
-					formatCategoriesObj = new LinkedHashSet<String>();
-				}
-				Set<String> formatCategories;
-				if (formatCategoriesObj instanceof String) {
-					formatCategories = new LinkedHashSet<String>();
-					formatCategories.add((String) formatCategoriesObj);
-				} else {
-					formatCategories = (Set<String>) formatCategoriesObj;
-				}
-				for (String formatCategory : formatCategories) {
-					existingValues += " " + formatCategory;
-				}
 				doc.addField(fieldName, existingValues);
 			} else {
 				doc.addField(fieldName, value);
 			}
 		}
 
-		//logger.debug(doc.toString());
+		logger.debug(doc.toString());
 		return doc;
 	}
 
-	private Set<String> addOnlineAvailability(String source, Set<String> itemAvailability) {
-		for (String libraryFacet : marcProcessor.getLibrarySystemFacets()) {
-			itemAvailability.add(libraryFacet + " Online");
+	@SuppressWarnings("unchecked")
+	private String addSpecialFieldsToKeywords(HashMap<String, Object> allFields, String value) {
+		// Add formats to keywords and allfields
+		String existingValues = value;
+		Object existingFormatsObj = allFields.get("format");
+		Set<String> existingFormats;
+		if (existingFormatsObj instanceof String) {
+			existingFormats = new LinkedHashSet<String>();
+			existingFormats.add((String) existingFormatsObj);
+		} else {
+			existingFormats = (Set<String>) existingFormatsObj;
 		}
-		return itemAvailability;
+
+		for (String format : existingFormats) {
+			existingValues += " " + format;
+		}
+		// Add format category to keywords and allfields
+		Object formatCategoriesObj = allFields.get("format_category");
+		if (formatCategoriesObj == null) {
+			formatCategoriesObj = new LinkedHashSet<String>();
+		}
+		Set<String> formatCategories;
+		if (formatCategoriesObj instanceof String) {
+			formatCategories = new LinkedHashSet<String>();
+			formatCategories.add((String) formatCategoriesObj);
+		} else {
+			formatCategories = (Set<String>) formatCategoriesObj;
+		}
+		for (String formatCategory : formatCategories) {
+			existingValues += " " + formatCategory;
+		}
+		return existingValues;
 	}
+
+
 
 	public Set<String> getPublicationLocation() {
 		Set<String> publisher = new LinkedHashSet<String>();

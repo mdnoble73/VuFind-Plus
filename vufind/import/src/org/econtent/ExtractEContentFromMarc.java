@@ -1264,13 +1264,14 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							boolean isAvailable = overDriveAvailability.getBoolean("available");
 							if (isAvailable){
 								availableSystems.add(curLibraryId);
+								logger.debug("Available for library " + curLibraryId);
 							}
 							if (curLibraryId == -1){
 								//addFieldToDoc(doc, "institution", "Digital Collection");
 								//addFieldToDoc(doc, "building", "Digital Collection");
-								usableByPTypes.addAll(marcProcessor.getAllPTypes());
+								//usableByPTypes.addAll(marcProcessor.getAllPTypes());
 								for (String libraryFacet : marcProcessor.getLibrarySystemFacets()){
-									addFieldToDoc(doc, "institution", libraryFacet + " Online");
+									//addFieldToDoc(doc, "institution", libraryFacet + " Online");
 									addFieldToDoc(doc, "building", libraryFacet + " Online");
 									if (isAvailable){
 										availableAt.add(libraryFacet + " Online");
@@ -1282,9 +1283,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 								}
 								
 							}else{
-								usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(curLibraryId).getIlsCode()));
+								//usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(curLibraryId).getIlsCode()));
 								String libraryName = marcProcessor.getLibrarySystemFacetForId(curLibraryId);
-								addFieldToDoc(doc, "institution", libraryName + " Online");
+								//addFieldToDoc(doc, "institution", libraryName + " Online");
 								addFieldToDoc(doc, "building", libraryName + " Online");
 								if (isAvailable){
 									availabilityToggleGlobal.add("Available Now");
@@ -1307,6 +1308,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							}else if (availableSystems.contains(libraryId)){
 								libraryAvailability.add("Available Now");
 							}
+
 							availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
 							//Since we don't have availability by location for online titles, add the same availability to all locations
 							for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()){
