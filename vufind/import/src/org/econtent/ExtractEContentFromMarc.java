@@ -5,10 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -81,6 +78,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private PreparedStatement doesOverDriveItemExist;
 	private PreparedStatement addOverDriveItem;
+	private PreparedStatement deleteOldOverDriveItems;
 	private PreparedStatement updateOverDriveItem;
 	
 	private PreparedStatement getEContentRecordStmt;
@@ -132,11 +130,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		
 		//Check to see if we should clear the existing index
 		String clearEContentRecordsAtStartOfIndexVal = configIni.get("Reindex", "clearEContentRecordsAtStartOfIndex");
-		if (clearEContentRecordsAtStartOfIndexVal == null){
-			clearEContentRecordsAtStartOfIndex = false;
-		}else{
-			clearEContentRecordsAtStartOfIndex = Boolean.parseBoolean(clearEContentRecordsAtStartOfIndexVal);
-		}
+		clearEContentRecordsAtStartOfIndex = clearEContentRecordsAtStartOfIndexVal != null && Boolean.parseBoolean(clearEContentRecordsAtStartOfIndexVal);
+
 		results.addNote("clearEContentRecordsAtStartOfIndex = " + clearEContentRecordsAtStartOfIndex);
 		if (clearEContentRecordsAtStartOfIndex){
 			logger.info("Clearing existing econtent records from index");
@@ -188,7 +183,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			updateSourceUrl = econtentConn.prepareStatement("UPDATE econtent_item SET link = ?, date_updated = ?, item_type = ?, notes = ? WHERE id = ?");
 			
 			doesOverDriveItemExist =  econtentConn.prepareStatement("SELECT id from econtent_item WHERE recordId = ? AND externalFormatId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			addOverDriveItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, externalFormat, externalFormatId, externalFormatNumeric, identifier, sampleName_1, sampleUrl_1, sampleName_2, sampleUrl_2, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			addOverDriveItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, externalFormat, externalFormatId, externalFormatNumeric, identifier, sampleName_1, sampleUrl_1, sampleName_2, sampleUrl_2, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			deleteOldOverDriveItems = econtentConn.prepareStatement("DELETE FROM econtent_item WHERE recordId = ? and id NOT IN (?)");
 			updateOverDriveItem = econtentConn.prepareStatement("UPDATE econtent_item SET externalFormat = ?, externalFormatId = ?, externalFormatNumeric = ?, identifier = ?, sampleName_1 = ?, sampleUrl_1 = ?, sampleName_2 = ?, sampleUrl_2 = ?, date_updated =? WHERE id = ?");
 			
 			doesOverDriveAvailabilityExist = econtentConn.prepareStatement("SELECT id from econtent_availability where recordId = ? and libraryId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -826,15 +822,20 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			ResultSet overDriveFormats = loadOverDriveFormatsStmt.executeQuery();
 			
 			int numItemsFound = 0;
+			StringBuilder econtentItemIds = new StringBuilder();
 			while (overDriveFormats.next()){
 				numItemsFound++;
 				try {
 					doesOverDriveItemExist.setLong(1, eContentRecordId);
 					doesOverDriveItemExist.setString(2, overDriveFormats.getString("textId"));
 					ResultSet existingOverDriveId = doesOverDriveItemExist.executeQuery();
+					if (econtentItemIds.length() != 0){
+						econtentItemIds.append(", ");
+					}
 					if (existingOverDriveId.next()){
 						//logger.debug("There is an existing item for this id");
 						Long existingItemId = existingOverDriveId.getLong("id");
+						econtentItemIds.append(existingItemId);
 						//Url does not match, add it to the record. 
 						updateOverDriveItem.setString(1, overDriveFormats.getString("name"));
 						updateOverDriveItem.setString(2, overDriveFormats.getString("textId"));
@@ -864,6 +865,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						addOverDriveItem.setLong(12, -1);
 						addOverDriveItem.setLong(13, new Date().getTime());
 						addOverDriveItem.executeUpdate();
+						ResultSet addItemKeys = addOverDriveItem.getGeneratedKeys();
+						if (addItemKeys.next()){
+							String generatedKey = addItemKeys.getString(1);
+							econtentItemIds.append(generatedKey);
+						}
 						//logger.debug("Added new item to record " + eContentRecordId);
 					}
 				} catch (SQLException e) {
@@ -873,6 +879,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				}
 			}
 			logger.debug("  Found " + numItemsFound + " items for the title");
+
+			//Delete any items that have been removed
+			deleteOldOverDriveItems.setLong(1, eContentRecordId);
+			deleteOldOverDriveItems.setString(2, econtentItemIds.toString());
+			deleteOldOverDriveItems.executeUpdate();
 			
 			//logger.debug("loaded availability, found " + overDriveInfo.getAvailabilityInfo().size() + " items.");
 			loadOverDriveAvailabilityStmt.setLong(1, overDriveInfo.getId());
