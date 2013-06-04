@@ -1311,21 +1311,30 @@ class Solr implements IndexEngine {
 			$pType = $user->patronType;
 		}elseif (isset($searchLocation) && $searchLocation->defaultPType > 0 && $canUseDefaultPType){
 			$pType = $searchLocation->defaultPType;
-			$owningLibrary = $searchLocation->facetLabel;
 		}elseif (isset($searchLibrary) && $searchLibrary->defaultPType > 0 && $canUseDefaultPType){
 			$pType = $searchLibrary->defaultPType;
+		}
+		if (isset($searchLocation)){
+			$owningLibrary = $searchLocation->facetLabel;
+		}
+		if (isset($searchLibrary)){
 			$owningSystem = $searchLibrary->facetLabel;
 		}
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
+			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			if (strlen($owningLibrary) > 0){
-				$filter[] = "(usable_by:($pType OR all) OR building:\"$owningLibrary\" OR building:\"$owningLibrary Online\")";
-			}else	if (strlen($owningSystem) > 0){
-				$filter[] = "(usable_by:($pType OR all) OR institution:\"$owningSystem\" OR building:\"$owningSystem Online\")";
-			}else{
-				$filter[] = 'usable_by:('.$pType . ' OR all)';
+				$usableFilter .= " OR building:\"$owningLibrary\" OR building:\"$owningLibrary Online\"";
 			}
+			if (strlen($owningSystem) > 0){
+				$usableFilter .= " OR institution:\"$owningSystem\" OR building:\"$owningSystem Online\"";
+			}
+			$homeLibrary = Library::getPatronHomeLibrary();
+			if ($homeLibrary != $searchLibrary){
+				$homeLibraryFacet = $homeLibrary->facetLabel;
+				$usableFilter .= " OR building:\"$homeLibraryFacet\" OR building:\"$homeLibraryFacet Online\"";
+			}
+			$filter[] = '(' . $usableFilter . ')';
 		}
-
 
 		$blacklistRecords = null;
 		if (isset($searchLocation) && strlen($searchLocation->recordsToBlackList) > 0){
