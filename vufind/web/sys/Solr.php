@@ -1215,7 +1215,9 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
-			//$options['f.available_at.facet.missing'] = 'true';
+			if ($searchLibrary && $searchLibrary->showAvailableAtAnyLocation){
+				$options['f.available_at.facet.missing'] = 'true';
+			}
 
 			foreach($facet as $param => $value) {
 				$options[$param] = $value;
@@ -1329,7 +1331,7 @@ class Solr implements IndexEngine {
 				$usableFilter .= " OR institution:\"$owningSystem\" OR building:\"$owningSystem Online\"";
 			}
 			$homeLibrary = Library::getPatronHomeLibrary();
-			if ($homeLibrary != $searchLibrary){
+			if ($homeLibrary && $homeLibrary != $searchLibrary){
 				$homeLibraryFacet = $homeLibrary->facetLabel;
 				$usableFilter .= " OR building:\"$homeLibraryFacet\" OR building:\"$homeLibraryFacet Online\"";
 			}

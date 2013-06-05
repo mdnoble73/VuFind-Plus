@@ -27,6 +27,7 @@ require_once ROOT_DIR . '/sys/Recommend/Interface.php';
  */
 class SideFacets implements RecommendationInterface
 {
+	/** @var  SearchObject_Solr|SearchObject_Genealogy $searchObject */
 	private $searchObject;
 	private $facetSettings;
 	private $mainFacets;
@@ -56,7 +57,8 @@ class SideFacets implements RecommendationInterface
 			$this->mainFacets = isset($config[$mainSection]) ? $config[$mainSection] : array();
 		}else{
 			$searchLibrary = Library::getActiveLibrary();
-			$searchLocation = Location::getActiveLocation();
+			global $locationSingleton;
+			$searchLocation = $locationSingleton->getActiveLocation();
 			$userLocation = Location::getUserHomeLocation();
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
@@ -144,21 +146,8 @@ class SideFacets implements RecommendationInterface
 	 */
 	public function process() {
 		global $interface;
-		global $configArray;
 
 		//Get Facet settings for processing display
-		$searchLibrary = Library::getActiveLibrary();
-		$searchLocation = Location::getActiveLocation();
-		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
-		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
-		if ($hasSearchLocationFacets){
-			$facets = $searchLocation->facets;
-		}elseif ($hasSearchLibraryFacets){
-			$facets = $searchLibrary->facets;
-		}else{
-			$facets = Library::getDefaultFacets();
-		}
-
 		$interface->assign('checkboxFilters', $this->searchObject->getCheckboxFacets());
 		//Get applied facets
 		$filterList = $this->searchObject->getFilterList(true);
@@ -172,9 +161,7 @@ class SideFacets implements RecommendationInterface
 		//Process the side facet set to handle the Added In Last facet which we only want to be
 		//visible if there is not a value selected for the facet (makes it single select
 		$sideFacets = $this->searchObject->getFacetList($this->mainFacets);
-		global $librarySingleton;
-		$searchLibrary = $librarySingleton->getSearchLibrary();
-		$searchLocation = Location::getSearchLocation();
+		$searchLibrary = Library::getSearchLibrary();
 
 		//Do additional processing of facets for non-genealogy searches
 		if ($this->searchObject->getSearchType() != 'genealogy'){
@@ -206,18 +193,22 @@ class SideFacets implements RecommendationInterface
 					}
 
 					$availableAtFacets = array();
-					foreach ($oldFacetValues as $facetKey => $facetInfo){
-						if (strlen($facetKey) > 1){
-							$sortIndicator = substr($facetKey, 0, 1);
+					foreach ($oldFacetValues as $facetKey2 => $facetInfo){
+						if (strlen($facetKey2) > 1){
+							$sortIndicator = substr($facetKey2, 0, 1);
 							if ($sortIndicator >= '1' && $sortIndicator <= '4'){
-								$availableAtFacets[$facetKey] = $facetInfo;
+								$availableAtFacets[$facetKey2] = $facetInfo;
 							}
 						}
 					}
 
-					/*$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
+					$includeAnyLocationFacet = $this->searchObject->getFacetSetting("Availability", "includeAnyLocationFacet");
+					$includeAnyLocationFacet = ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true');
+					if ($searchLibrary){
+						$includeAnyLocationFacet = $searchLibrary->showAvailableAtAnyLocation;
+					}
 					//print_r ("includeAnyLocationFacet = $includeAnyLocationFacet");
-					if ($includeAnyLocationFacet == '' || $includeAnyLocationFacet == 'true'){
+					if ($includeAnyLocationFacet){
 						$anyLocationLabel = $this->searchObject->getFacetSetting("Availability", "anyLocationLabel");
 						//print_r ("anyLocationLabel = $anyLocationLabel");
 						$availableAtFacets['*'] = array(
@@ -228,7 +219,7 @@ class SideFacets implements RecommendationInterface
 							'isApplied' => array_key_exists('*', $appliedAvailability),
 							'removalUrl' => array_key_exists('*', $appliedAvailability) ? $appliedAvailability['*'] : null
 						);
-					}*/
+					}
 
 					$sideFacets['available_at']['list'] = $availableAtFacets;
 				}else{
@@ -266,7 +257,7 @@ class SideFacets implements RecommendationInterface
 	private function updateTimeSinceAddedFacet($timeSinceAddedFacet){
 		//See if there is a value selected
 		$valueSelected = false;
-		foreach ($timeSinceAddedFacet['list'] as $facetKey => $facetValue){
+		foreach ($timeSinceAddedFacet['list'] as $facetValue){
 			if (isset($facetValue['isApplied']) && $facetValue['isApplied'] == true){
 				$valueSelected = true;
 			}
@@ -291,6 +282,7 @@ class SideFacets implements RecommendationInterface
 	private function updateUserRatingsFacet($userRatingFacet){
 		global $interface;
 		$ratingApplied = false;
+		$ratingLabels = array();
 		foreach ($userRatingFacet['list'] as $facetValue ){
 			if ($facetValue['isApplied']){
 				$ratingApplied = true;

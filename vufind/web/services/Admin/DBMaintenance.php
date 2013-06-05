@@ -346,6 +346,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_33' => array(
+				'title' => 'Library 33',
+				'description' => 'Add additional configuration for Available At facet',
+				'sql' => array(
+					"ALTER TABLE library ADD showAvailableAtAnyLocation TINYINT(1) DEFAULT '1'",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

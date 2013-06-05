@@ -51,6 +51,7 @@ class Library extends DB_DataObject
 	public $suggestAPurchase;
 	public $boopsieLink;
 	public $facetLabel;
+	public $showAvailableAtAnyLocation;
 	public $showEcommerceLink;
 	public $payFinesLink;
 	public $payFinesLinkText;
@@ -187,6 +188,7 @@ class Library extends DB_DataObject
 				'includeOutOfSystemExternalLinks' => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for Marmot global scope.', 'hideInLists' => true, 'default'=>0),
 				'boostByLibrary' => array('property'=>'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
 				'restrictOwningBranchesAndSystems' => array('property'=>'restrictOwningBranchesAndSystems', 'type'=>'checkbox', 'label'=>'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
+				'showAvailableAtAnyLocation' => array('property'=>'showAvailableAtAnyLocation', 'type'=>'checkbox', 'label'=>'Show Available At Any Location?', 'description'=>'Whether or not to show any Marmot Location within the Available At facet', 'hideInLists' => true),
 				'searchesFile' => array('property'=>'searchesFile', 'type'=>'text', 'label'=>'Searches File', 'description'=>'The name of the searches file which should be used while searching', 'hideInLists' => true,),
 				'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
 				'systemsToRepeatIn'  => array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
@@ -405,11 +407,11 @@ class Library extends DB_DataObject
 				$libLookup->fetch();
 				return clone $libLookup;
 			}
-		}else{
-			return null;
 		}
+		return null;
 	}
 
+	private $data = array();
 	public function __get($name){
 		if ($name == "holidays") {
 			if (!isset($this->holidays) && $this->libraryId){
@@ -459,6 +461,8 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->searchSources;
+		}else{
+			return $this->data[$name];
 		}
 	}
 
@@ -471,6 +475,8 @@ class Library extends DB_DataObject
 			$this->facets = $value;
 		}elseif ($name == 'searchSources'){
 			$this->searchSources = $value;
+		}else{
+			$this->data[$name] = $value;
 		}
 	}
 
@@ -488,6 +494,7 @@ class Library extends DB_DataObject
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
 			$this->saveSearchSources();
+			return $ret;
 		}
 	}
 
@@ -505,11 +512,13 @@ class Library extends DB_DataObject
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
 			$this->saveSearchSources();
+			return $ret;
 		}
 	}
 
 	public function saveSearchSources(){
 		if (isset ($this->searchSources) && is_array($this->searchSources)){
+			/** @var SearchSource $searchSource */
 			foreach ($this->searchSources as $searchSource){
 				if (isset($searchSource->deleteOnSave) && $searchSource->deleteOnSave == true){
 					$searchSource->delete();
@@ -535,6 +544,7 @@ class Library extends DB_DataObject
 
 	public function saveFacets(){
 		if (isset ($this->facets) && is_array($this->facets)){
+			/** @var LibraryFacetSetting $facet */
 			foreach ($this->facets as $facet){
 				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
 					$facet->delete();
@@ -560,6 +570,7 @@ class Library extends DB_DataObject
 
 	public function saveHolidays(){
 		if (isset ($this->holidays) && is_array($this->holidays)){
+			/** @var Holiday $holiday */
 			foreach ($this->holidays as $holiday){
 				if (isset($holiday->deleteOnSave) && $holiday->deleteOnSave == true){
 					$holiday->delete();
@@ -578,6 +589,7 @@ class Library extends DB_DataObject
 
 	public function saveNearByBookStores(){
 		if (isset ($this->nearbyBookStores) && is_array($this->nearbyBookStores)){
+			/** @var NearbyBookStore $store */
 			foreach ($this->nearbyBookStores as $store){
 				if (isset($store->deleteOnSave) && $store->deleteOnSave == true){
 					$store->delete();
