@@ -19,7 +19,6 @@ class MyRatings extends MyResearch{
 		$resource = new Resource();
 		$rating->joinAdd($resource);
 		$rating->userid = $user->id;
-		$rating->deleted = 0;
 		$rating->find();
 		$ratings = array();
 		while($rating->fetch()){
@@ -89,13 +88,15 @@ class MyRatings extends MyResearch{
 			}else{
 				$link = '/EcontentRecord/' . $notInterestedObj->record_id;
 			}
-			$notInterested[] = array(
-				'id' => $notInterestedObj->user_not_interested_id,
-				'title' => $notInterestedObj->title,
-				'author' => $notInterestedObj->author,
-				'dateMarked' => $notInterestedObj->dateMarked,
-				'link' => $link
-			);
+			if ($notInterestedObj->deleted == 0){
+				$notInterested[] = array(
+					'id' => $notInterestedObj->user_not_interested_id,
+					'title' => $notInterestedObj->title,
+					'author' => $notInterestedObj->author,
+					'dateMarked' => $notInterestedObj->dateMarked,
+					'link' => $link
+				);
+			}
 		}
 
 
