@@ -8,7 +8,7 @@
 		<div id='descriptionPlaceholder{$summShortId|escape}' style='display:none' class='descriptionTooltip'></div>
 		<div class="listResultImage">
 			<a href="{$path}/Record/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}&amp;searchSource={$searchSource}" id="descriptionTrigger{$summShortId|escape:"url"}">
-				<img src="{$path}/bookcover.php?id={$summId}&amp;issn={$summIssn}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" alt="{translate text='Cover Image'}"/>
+				<img src="{$path}/bookcover.php?id={$summId}&amp;issn={$summISSN}&amp;isn={$summISBN|@formatISBN}&amp;size=small&amp;upc={$summUPC}&amp;category={$summFormatCategory.0|escape:"url"}&amp;format={$summFormats.0|escape:"url"}" alt="{translate text='Cover Image'}"/>
 			</a>
 			
 			{* Let the user rate this title *}

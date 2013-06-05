@@ -1,5 +1,5 @@
 <div>
-	<a href="#" id="userecontentreviewlink{$id}" class="userreviewlink resultAction" onclick="$('.userecontentreview').slideUp();$('#userecontentreview{$id}').slideDown();">
+	<a href="#" id="userecontentreviewlink{$id}" class="userreviewlink resultAction" onclick="return showReviewForm('{$id}', 'econtent')">
 		<span class="silk comment_add">&nbsp;</span>Add a Review
 	</a>
 </div>

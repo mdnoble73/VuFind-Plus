@@ -933,6 +933,20 @@ function lessFacets(name)
 	document.getElementById("narrowGroupHidden_" + name).style.display="none";
 }
 
+function showReviewForm(id, source){
+	if (loggedIn){
+		if (source == 'VuFind'){
+			$('.userreview').slideUp();$('#userreview' + id).slideDown();
+		}else{
+			$('.userecontentreview').slideUp();$('#userecontentreview' + id).slideDown();
+		}
+	}else{
+		ajaxLogin(function (){
+			showReviewForm(id, source);
+		});
+	}
+	return false;
+}
 function getSaveToListForm(id, source){
 	if (loggedIn){
 		var url = path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;

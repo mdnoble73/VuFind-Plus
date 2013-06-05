@@ -1,6 +1,6 @@
 {strip}
 <div>
-	<a href="#" id="userreviewlink{$shortId}" class="userreviewlink resultAction" onclick="$('.userreview').slideUp();$('#userreview{$shortId}').slideDown();">
+	<a href="#" id="userreviewlink{$shortId}" class="userreviewlink resultAction" onclick="return showReviewForm('{$shortId}', 'VuFind')">
 		<span class="silk comment_add">&nbsp;</span>Add a Review
 	</a>
 </div>

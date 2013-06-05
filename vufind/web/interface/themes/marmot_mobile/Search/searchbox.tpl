@@ -12,7 +12,7 @@
 		</select>
 
 		<label class="offscreen" for="searchForm_type">{translate text="Search Type"}</label>
-		<select id="searchForm_type" name="basicType" data-native-menu="false">
+		<select id="searchForm_type" name="basicType" data-native-menu="false" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results.">
 			{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 				<option value="{$searchVal}"{if $searchType == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 			{/foreach}

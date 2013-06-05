@@ -44,6 +44,7 @@ class Record_Record extends Action
 	public $similarTitles;
 
 	public $isbn;
+	public $issn;
 	public $upc;
 
 	public $cacheId;
@@ -500,7 +501,7 @@ class Record_Record extends Action
 		}
 
 		//Determine the cover to use
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;issn={$this->issn}&amp;isn={$this->isbn}&amp;issn={$this->issn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;issn={$this->issn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
 		$interface->assign('bookCoverUrl', $bookCoverUrl);
 
 		//Load accelerated reader data
