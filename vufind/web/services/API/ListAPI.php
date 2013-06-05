@@ -634,7 +634,7 @@ class ListAPI extends Action {
 					foreach ($suggestions as $id=>$suggestion){
 						$titles[] = array(
 	            'id' => $id,
-	            'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $id . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
+	            'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $id . "&issn=" . $suggestion['titleInfo']['issn'] . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
 	            'title' => $suggestion['titleInfo']['title'],
 	            'author' => $suggestion['titleInfo']['author']
 						);
@@ -694,9 +694,9 @@ class ListAPI extends Action {
 		global $configArray;
 		return array(
 				'id' => 'econtentRecord' . $eContentRecord->id,
-				'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=medium&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-				'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=large&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
-				'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&isn=" . $eContentRecord->getIsbn() . "&size=small&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
+				'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&issn=" . $eContentRecord->getissn() . "&isn=" . $eContentRecord->getIsbn() . "&size=medium&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
+				'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&issn=" . $eContentRecord->getissn() . "&isn=" . $eContentRecord->getIsbn() . "&size=large&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
+				'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $eContentRecord->id . "&issn=" . $eContentRecord->getissn() . "&isn=" . $eContentRecord->getIsbn() . "&size=small&upc=" . $eContentRecord->getUpc() . "&category=EMedia&econtent=true",
 				'title' => $eContentRecord->title,
 				'author' => $eContentRecord->author,
 				'description' => $eContentRecord->description,
@@ -840,7 +840,7 @@ class ListAPI extends Action {
 		$titles = array();
 		if (count($ids) > 0){
 			$searchObject->setQueryIDs($ids);
-			$result = $searchObject->processSearch();
+			$searchObject->processSearch();
 			$matchingRecords = $searchObject->getResultRecordSet();
 			foreach ($matchingRecords as $record){
 				if (isset($record['isbn'])){
@@ -850,6 +850,14 @@ class ListAPI extends Action {
 					}
 				}else{
 					$isbn = '';
+				}
+				if (isset($record['issn'])){
+					$issn = $record['issn'][0];
+					if (strpos($issn, ' ') > 0){
+						$issn = substr($isbn, 0, strpos($issn, ' '));
+					}
+				}else{
+					$issn = '';
 				}
 
 				// Process MARC Data
@@ -882,9 +890,9 @@ class ListAPI extends Action {
 
 				$titles[] = array(
 				    'id' => $record['id'],
-				    'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
-				    'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=large&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
-				    'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
+				    'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
+				    'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=large&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
+				    'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
 				    'title' => $record['title'],
 				    'author' => isset($record['author']) ? $record['author'] : '',
 				    'description' => $description,
@@ -930,6 +938,14 @@ class ListAPI extends Action {
 				}else{
 					$isbn = "";
 				}
+				if (isset($record['issn'])){
+					$issn = $record['issn'][0];
+					if (strpos($issn, ' ') > 0){
+						$issn = substr($isbn, 0, strpos($issn, ' '));
+					}
+				}else{
+					$issn = '';
+				}
 
 				// Process MARC Data
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
@@ -943,8 +959,8 @@ class ListAPI extends Action {
 				$listTitles[] = array(
 					'id' => $record['id'],
 					'recordtype' => $record['recordtype'],
-					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-					'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+					'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
 					'title' => $record['title'],
 					'author' => isset($record['author']) ? $record['author'] : '',
 					'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
@@ -993,6 +1009,14 @@ class ListAPI extends Action {
 				}else{
 					$isbn = "";
 				}
+				if (isset($record['issn'])){
+					$issn = $record['issn'][0];
+					if (strpos($issn, ' ') > 0){
+						$issn = substr($isbn, 0, strpos($issn, ' '));
+					}
+				}else{
+					$issn = '';
+				}
 
 				// Process MARC Data
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
@@ -1005,8 +1029,8 @@ class ListAPI extends Action {
 
 				$listTitles[] = array(
 	          'id' => $record['id'],
-	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-						'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+						'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
 						'title' => $record['title'],
 	          'author' => isset($record['author']) ? $record['author'] : '',
 				    'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
@@ -1043,6 +1067,14 @@ class ListAPI extends Action {
 				if (strpos($isbn, ' ') > 0){
 					$isbn = substr($isbn, 0, strpos($isbn, ' '));
 				}
+				if (isset($record['issn'])){
+					$issn = $record['issn'][0];
+					if (strpos($issn, ' ') > 0){
+						$issn = substr($isbn, 0, strpos($issn, ' '));
+					}
+				}else{
+					$issn = '';
+				}
 
 				// Process MARC Data
 				require_once ROOT_DIR . '/sys/MarcLoader.php';
@@ -1054,8 +1086,8 @@ class ListAPI extends Action {
 
 				$listTitles[] = array(
 	          'id' => $record['id'],
-	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
-						'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&isn=" . $isbn . "&size=small&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
+	          'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
+						'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . $record['upc'][0] . "&category=" . $record['format_category'][0],
 						'title' => $record['title'],
 	          'author' => $record['author'],
 				    'description' => isset($descriptiveInfo) ? $descriptiveInfo['description'] : null,

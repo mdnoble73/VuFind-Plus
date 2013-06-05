@@ -14,7 +14,7 @@
       <div class='suggestedTitleInfo'>
         {* Display the cover *}
         <a href='{$path}/Record/{$suggestion.titleInfo.id}'>
-        <img src="{$coverUrl}/bookcover.php?id={$suggestion.titleInfo.id}&amp;isn={$suggestion.titleInfo.isbn10|@formatISBN}&amp;size=small&amp;upc={$suggestion.titleInfo.upc}&amp;category={$suggestion.titleInfo.format_category|escape:"url"}" class="suggestionImage" alt="{translate text='Cover Image'}" />
+        <img src="{$coverUrl}/bookcover.php?id={$suggestion.titleInfo.id}&amp;isn={$suggestion.titleInfo.isbn10|@formatISBN}&amp;size=small&amp;upc={$suggestion.titleInfo.upc}&amp;issn={$suggestion.titleInfo.issn}&amp;category={$suggestion.titleInfo.format_category|escape:"url"}" class="suggestionImage" alt="{translate text='Cover Image'}" />
         </a>
         {* Let the user rate this title *}
         {if $showRatings == 1}

@@ -143,9 +143,9 @@ class EcontentRecordDriver extends IndexRecord
 		return '';
 	}
 
-	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
+	function getBookcoverUrl($id, $upc, $formatCategory, $format){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;econtent=true&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;econtent=true&amp;issn={$this->getCleanISSN()}&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		return $bookCoverUrl;
 	}
 
@@ -162,6 +162,7 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('listTitle', $this->getTitle());
 		$interface->assign('listAuthor', $this->getPrimaryAuthor());
 		$interface->assign('listISBN', $this->getCleanISBN());
+		$interface->assign('listISSN', $this->getCleanISSN());
 		$interface->assign('listUPC', $this->getUPC());
 		$interface->assign('listFormatCategory', $this->getFormatCategory());
 		$interface->assign('listFormats', $this->getFormats());

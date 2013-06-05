@@ -34,7 +34,7 @@ class Timer{
 		$this->timingsEnabled = $enable;
 	}
 
-	function writeTimings(){
+	public function writeTimings(){
 		if ($this->timingsEnabled){
 			$curTime = microtime(true);
 			$elapsedTime = round($curTime - $this->lastTime, 4);

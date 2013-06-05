@@ -20,7 +20,7 @@
 						{/if}
 							<div class="yui-ge">
 								<div class="yui-u first">
-									<img src="{$coverUrl}/bookcover.php?id={$resource.id}&amp;isn={$resource.isbn|@formatISBN}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" class="alignleft">
+									<img src="{$coverUrl}/bookcover.php?id={$resource.id}&amp;isn={$resource.isbn|@formatISBN}&amp;issn={$resource.issn}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" class="alignleft">
 		
 									<div class="resultitem">
 										<a href="{$path}/Record/{$resource.id|escape:"url"}" class="title">{$resource.title|escape}</a><br />

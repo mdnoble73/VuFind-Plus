@@ -5,7 +5,7 @@
 			<input type="checkbox" name="selected[{$listShortId|escape:"url"}]" id="selected{$listShortId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('{$listId|escape:"url"}', '{$listTitle|regex_replace:"/(\/|:)$/":""|regex_replace:"/\"/":"&quot;"|escape:"javascript"}', this);"{/if} />&nbsp;
 		</div>
 	
-		<img src="{$path}/bookcover.php?isn={$listISBN|escape:"url"}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" alt='Cover Image' class="alignleft">
+		<img src="{$path}/bookcover.php?isn={$listISBN|escape:"url"}&amp;issn={$listISSN}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" alt='Cover Image' class="alignleft">
 
 		<div class="resultitem">
 			<a href="{$path}/Record/{$listId|escape:"url"}" class="title">{$listTitle|regex_replace:"/(\/|:)$/":""|escape}</a><br />

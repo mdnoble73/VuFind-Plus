@@ -1,6 +1,6 @@
 <div class="selectTitle">&nbsp;</div>
 <div class="imageColumn">
-	<img src="{$path}/bookcover.php?isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+	<img src="{$path}/bookcover.php?isn={$record.isbn|@formatISBN}&amp;issn={$record.issn}&amp;size=small&amp;upc={$record.upc}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 </div>
 <div class="resultDetails">
 	<div class="resultItemLine1">

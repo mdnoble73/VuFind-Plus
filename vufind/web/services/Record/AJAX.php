@@ -438,6 +438,9 @@ class Record_AJAX extends Action {
 				if (isset($record['upc'])){
 					$cover .= "&upc=" . $record['upc'];
 				}
+				if (isset($record['issn'])){
+					$cover .= "&issn=" . $record['issn'];
+				}
 				if (isset($record['format_category'])){
 					$cover .= "&category=" . $record['format_category'][0];
 				}

@@ -1,10 +1,13 @@
 <?php
 class BookCoverProcessor{
 	private $bookCoverPath;
+	private $localFile;
 	private $category;
 	private $format;
+	private $size;
 	private $id;
 	private $isn;
+	private $issn;
 	private $isbn10;
 	private $isbn13;
 	private $upc;
@@ -13,8 +16,10 @@ class BookCoverProcessor{
 	private $cacheFile;
 	public $error;
 	private $reload;
+	/** @var  Logger $logger */
 	private $logger;
 	private $configArray;
+	/** @var  Timer $timer */
 	private $timer;
 	public function loadCover($configArray, $timer, $logger){
 		$this->configArray = $configArray;
@@ -34,9 +39,8 @@ class BookCoverProcessor{
 
 		if ($this->isEContent){
 			$this->initDatabaseConnection();
-			if ($this->getCoverFromEContent()){
-				return;
-			}
+			//Will exit if we find a cover
+			$this->getCoverFromEContent();
 		}
 
 		$this->log("Looking for cover from providers", PEAR_LOG_INFO);
@@ -76,7 +80,7 @@ class BookCoverProcessor{
 					$this->log("Received filename $filename", PEAR_LOG_INFO);
 					if ($filename != null){
 						$epubFile->cover = $filename;
-						$ret = $epubFile->updateDetailed(false); //Don't update solr for performance reasons
+						$ret = $epubFile->update(); //Don't update solr for performance reasons
 						$this->log("Result of saving cover url is $ret", PEAR_LOG_INFO);
 					}
 				}elseif (preg_match('/Colorado State Gov\\. Docs/si', $epubFile->source) == 1 || $epubFile->source == 'CO State Gov Docs' ){
@@ -100,8 +104,7 @@ class BookCoverProcessor{
 						}
 					}else{
 						$filename = $this->bookCoverPath . '/original/' . $epubFile->cover;
-						global $localFile;
-						$localFile = $this->bookCoverPath . '/' . $this->size . '/' . $cacheName . '.png';
+						$this->localFile = $this->bookCoverPath . '/' . $this->size . '/' . $this->cacheName . '.png';
 						if (file_exists($filename)){
 
 							if ($this->processImageURL($filename, true)){
@@ -167,6 +170,10 @@ class BookCoverProcessor{
 		if (strlen($this->upc) == 0){
 			$this->upc = null;
 		}
+		$this->issn = isset($_GET['issn']) ? preg_replace('/[^0-9xX]/', '', $_GET['issn']) : null;
+		if (strlen($this->issn) == 0){
+			$this->issn = null;
+		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
@@ -175,7 +182,7 @@ class BookCoverProcessor{
 		if (preg_match('/econtentRecord\d+/', $this->id)){
 			$this->isEContent = true;
 			$this->id = substr($this->id, strlen('econtentRecord'));
-			$this->log("Record is eContent short id is $id", PEAR_LOG_INFO);
+			$this->log("Record is eContent short id is $this->id", PEAR_LOG_INFO);
 		}
 		if (!is_null($this->id)){
 			if ($this->isEContent){
@@ -187,6 +194,8 @@ class BookCoverProcessor{
 			$this->cacheName = $this->isn;
 		}else if (!is_null($this->upc)){
 			$this->cacheName = $this->upc;
+		}else if (!is_null($this->issn)){
+			$this->cacheName = $this->issn;
 		}else{
 			$this->error = "ISN, UPC, or id must be provided.";
 			return false;
@@ -248,7 +257,7 @@ class BookCoverProcessor{
 			ob_clean();
 			flush();
 			readfile($localPath);
-			$this->log("Read file $localPath");
+			$this->log("Read file $localPath", PEAR_LOG_DEBUG);
 			$this->logTime("echo file $localPath");
 		}else{
 			$this->logTime("Added modification headers");
@@ -257,7 +266,7 @@ class BookCoverProcessor{
 
 	private function getCoverFromProvider(){
 		// Update to allow retrieval of covers based on upc
-		if (!is_null($this->isn) || !is_null($this->upc)) {
+		if (!is_null($this->isn) || !is_null($this->upc) || !is_null($this->issn)) {
 			$this->log("Looking for picture based on isbn and upc.", PEAR_LOG_INFO);
 
 			// Fetch from provider
@@ -279,9 +288,9 @@ class BookCoverProcessor{
 
 				//Have not found an image yet, check files uploaded by publisher
 				if ($this->configArray['Content']['loadPublisherCovers'] && isset($this->isn) ){
-					$this->log("Looking for image from publisher isbn10: $isbn10 isbn13: $isbn13 in $bookCoverPath/original/.", PEAR_LOG_INFO);
+					$this->log("Looking for image from publisher isbn10: $this->isbn10 isbn13: $this->isbn13 in $this->bookCoverPath/original/.", PEAR_LOG_INFO);
 					$this->makeIsbn10And13();
-					if ($this->getCoverFromPublisher($bookCoverPath . '/original/')){
+					if ($this->getCoverFromPublisher($this->bookCoverPath . '/original/')){
 						return true;
 					}
 					$this->log("Did not find a file in publisher folder.", PEAR_LOG_INFO);
@@ -290,17 +299,17 @@ class BookCoverProcessor{
 				$this->log("Could not find a cover, using default based on category $this->category.", PEAR_LOG_INFO);
 			}
 		}
+		return false;
 	}
 
 	private function makeIsbn10And13(){
 		if (!is_null($this->isn) && strlen($this->isn) >= 10 ){
-			global $localFile;
 			require_once ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php';
 			if (strlen($this->isn) == 10){
 				//$this->log("Provided ISBN is 10 digits.", PEAR_LOG_INFO);
 				$this->isbn10 = $this->isn;
 				$this->isbn13 = ISBNConverter::convertISBN10to13($this->isbn10);
-			}elseif (strlen($isbn) == 13){
+			}elseif (strlen($this->isn) == 13){
 				//$this->log("Provided ISBN is 13 digits.", PEAR_LOG_INFO);
 				$this->isbn13 = $this->isn;
 				$this->isbn10 = ISBNConverter::convertISBN13to10($this->isbn13);
@@ -324,7 +333,7 @@ class BookCoverProcessor{
 			//Get the 856 tags
 			$marcFields = $marcRecord->getFields('856');
 			if ($marcFields){
-				$links = array();
+				/** @var File_MARC_Data_Field $marcField */
 				foreach ($marcFields as $marcField){
 					if ($marcField->getSubfield('y')){
 						$subfield_y = $marcField->getSubfield('y')->getData();
@@ -344,7 +353,6 @@ class BookCoverProcessor{
 		$marcFields = $marcRecord->getFields('690');
 		if ($marcFields){
 			$this->log("Found 690 field", PEAR_LOG_INFO);
-			$links = array();
 			foreach ($marcFields as $marcField){
 				if ($marcField->getSubfield('a')){
 					$this->log("Found 690a subfield", PEAR_LOG_INFO);
@@ -362,15 +370,17 @@ class BookCoverProcessor{
 				}
 			}
 		}
+		return false;
 	}
+
 	private function getCachedCover(){
 		$imageFound = false;
-		$filenames = array(
+		$fileNames = array(
 			"{$this->bookCoverPath}/{$this->size}/{$this->cacheName}.png" => 'png',
 			//"{$this->bookCoverPath}/{$this->size}/{$this->cacheName}.jpg" => 'jpg',
 		);
 
-		foreach ($filenames as $filename => $type){
+		foreach ($fileNames as $filename => $type){
 			$this->log("Checking $filename", PEAR_LOG_INFO);
 			if (is_readable($filename)) {
 				// Load local cache if available
@@ -395,23 +405,24 @@ class BookCoverProcessor{
 
 		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
 		$themeName = $this->configArray['Site']['theme'];
+		$noCoverUrl = "interface/themes/default/images/noCover2.png";
 		if (isset($this->format) && strlen($this->format) > 0){
 
 			if (is_readable("interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png")){
 				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
-				$nocoverurl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
+				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->format}.png")){
-				$nocoverurl = "interface/themes/{$themeName}/images/{$this->format}.png";
+				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/default/images/{$this->format}_{$this->size}.png")){
 				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
-				$nocoverurl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
+				$noCoverUrl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/default/images/$this->format.png")){
-				$nocoverurl = "interface/themes/default/images/$this->format.png";
+				$noCoverUrl = "interface/themes/default/images/$this->format.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}
@@ -419,33 +430,32 @@ class BookCoverProcessor{
 		if ($useDefaultNoCover && isset($this->category) && strlen($this->category) > 0){
 			if (is_readable("interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png")){
 				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
-				$nocoverurl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
+				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->category}.png")){
-				$nocoverurl = "interface/themes/{$themeName}/images/{$this->category}.png";
+				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/default/images/{$this->category}_{$this->size}.png")){
 				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
-				$nocoverurl = "interface/themes/default/images/{$this->category}_{$this->size}.png";
+				$noCoverUrl = "interface/themes/default/images/{$this->category}_{$this->size}.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}elseif (is_readable("interface/themes/default/images/$this->category.png")){
-				$nocoverurl = "interface/themes/default/images/$this->category.png";
+				$noCoverUrl = "interface/themes/default/images/$this->category.png";
 				header('Content-type: image/png');
 				$useDefaultNoCover = false;
 			}
 		}
 
 		if ($useDefaultNoCover){
-			$nocoverurl = "interface/themes/default/images/noCover2.png";
 			header('Content-type: image/png');
 		}
 
-		$ret = $this->processImageURL($nocoverurl, true);
+		$ret = $this->processImageURL($noCoverUrl, true);
 		//$ret = copy($nocoverurl, $this->cacheFile);
 		if (!$ret){
-			$this->error = "Unable to copy file $nocoverurl to $this->cacheFile";
+			$this->error = "Unable to copy file $noCoverUrl to $this->cacheFile";
 			return false;
 		}else{
 			return true;
@@ -510,18 +520,18 @@ class BookCoverProcessor{
 				$imageResource = imagecreatefromstring($image);
 				// copy and resize old image into new image
 				if (!imagecopyresampled( $tmp_img, $imageResource, 0, 0, 0, 0, $new_width, $new_height, $width, $height )){
-					$this->log("Could not resize image $url to $localFile", PEAR_LOG_ERR);
+					$this->log("Could not resize image $url to $this->localFile", PEAR_LOG_ERR);
 					return false;
 				}
 
 				// save thumbnail into a file
 				if (file_exists($finalFile)){
-					$this->log("File $finalFile already exists, deleting");
+					$this->log("File $finalFile already exists, deleting", PEAR_LOG_DEBUG);
 					unlink($finalFile);
 				}
 
 				if (!@imagepng( $tmp_img, $finalFile, 9)){
-					$this->log("Could not save resized file $localFile", PEAR_LOG_ERR);
+					$this->log("Could not save resized file $$this->localFile", PEAR_LOG_ERR);
 					return false;
 				}
 
@@ -540,7 +550,7 @@ class BookCoverProcessor{
 						$conversionOk = false;
 					}
 					if (!@imagepng($imageGD, $finalFile, 9)) {
-						$this->log("Could not save image to file $url $localFile", PEAR_LOG_ERR);
+						$this->log("Could not save image to file $url $this->localFile", PEAR_LOG_ERR);
 						$conversionOk = false;
 					}
 					// We no longer need the temp file:
@@ -572,18 +582,9 @@ class BookCoverProcessor{
 		}
 	}
 
-	/**
-	 * Load image from URL, store in cache if requested, display if possible.
-	 *
-	 * @param   $url        URL to load image from
-	 * @param   $cache      Boolean -- should we store in local cache?
-	 * @return  bool        True if image displayed, false on failure.
-	 */
-
-
-	function syndetics($id)
+	function syndetics($key)
 	{
-		if (is_null($this->isn) && is_null($this->upc)){
+		if (is_null($this->isn) && is_null($this->upc) && is_null($this->issn)){
 			return false;
 		}
 		switch ($this->size) {
@@ -599,16 +600,23 @@ class BookCoverProcessor{
 		}
 
 		$url = isset($this->configArray['Syndetics']['url']) ? $this->configArray['Syndetics']['url'] : 'http://syndetics.com';
-		$url .= "/index.aspx?type=xw12&isbn={$this->isn}/{$size}&client={$id}&upc=" . (!is_null($this->upc) ? $this->upc : '');
+		$url .= "/index.aspx?type=xw12&isbn={$this->isn}&pagename={$size}&client={$key}";
+		if ($this->upc){
+			$url .= "&upc=" . (!is_null($this->upc) ? $this->upc : '');
+		}
+		if ($this->issn){
+			$url .= "&issn=" . (!is_null($this->issn) ? $this->issn : '');
+		}
+		$this->log("Syndetics url: $url", PEAR_LOG_DEBUG);
 		return $this->processImageURL($url);
 	}
 
-	function librarything($id)
+	function librarything($key)
 	{
 		if (is_null($this->isn)){
 			return false;
 		}
-		$url = 'http://covers.librarything.com/devkey/' . $id . '/' . $this->size . '/isbn/' . $this->isn;
+		$url = 'http://covers.librarything.com/devkey/' . $key . '/' . $this->size . '/isbn/' . $this->isn;
 		return $this->processImageURL($url);
 	}
 
@@ -731,7 +739,7 @@ class BookCoverProcessor{
 	function getCoverFromPublisher($folderToCheck){
 		if (!file_exists($folderToCheck)){
 			$this->log("No publisher directory, expected to find in $folderToCheck", PEAR_LOG_INFO);
-			return;
+			return false;
 		}
 		//$this->log("Looking in folder $folderToCheck for cover image supplied by publisher.", PEAR_LOG_INFO);
 		//Check to see if the file exists in the folder
@@ -771,13 +779,15 @@ class BookCoverProcessor{
 		return false;
 	}
 
-	function log($message, $level){
-		return;
-		$this->logger->log($message, $level);
+	function log($message, $level = PEAR_LOG_DEBUG){
+		if (true){
+			$this->logger->log($message, $level);
+		}
 	}
 
 	function logTime($message){
-		return;
-		$this->timer->logTime($message);
+		if (false){
+			$this->timer->logTime($message);
+		}
 	}
 }

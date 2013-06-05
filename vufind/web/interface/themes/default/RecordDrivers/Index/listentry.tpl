@@ -6,7 +6,7 @@
 	<div class="imageColumn"> 
 		{if $user->disableCoverArt != 1}
 			<a href="{$path}/Record/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$listId|escape:"url"}">
-			<img src="{$path}/bookcover.php?id={$listId}&amp;isn={$listISBN|@formatISBN}&amp;size=small&amp;upc={$listUPC}&amp;category={$listFormatCategory.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+			<img src="{$path}/bookcover.php?id={$listId}&amp;issn={$listISSN}&amp;isn={$listISBN|@formatISBN}&amp;size=small&amp;upc={$listUPC}&amp;category={$listFormatCategory.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 			<div id='descriptionPlaceholder{$listId|escape}' style='display:none'></div>
 		{/if}

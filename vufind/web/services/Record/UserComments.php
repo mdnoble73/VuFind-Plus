@@ -101,7 +101,7 @@ class Record_UserComments extends Record_Record{
 	 * @param $id
 	 * @return array|null
 	 */
-	function getComments($id){
+	static function getComments($id){
 		$resource = new Resource();
 		$resource->record_id = $id;
 		$resource->source = 'VuFind';

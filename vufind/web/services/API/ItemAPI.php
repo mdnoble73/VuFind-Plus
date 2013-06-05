@@ -49,6 +49,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class ItemAPI extends Action {
+	/** @var  MillenniumDriver|DriverInterface */
 	protected $catalog;
 
 	public $id;
@@ -62,10 +63,12 @@ class ItemAPI extends Action {
 	public $record;
 
 	public $isbn;
+	public $issn;
 	public $upc;
 
 	public $cacheId;
 
+	/** @var  Solr $db */
 	public $db;
 
 	function launch()
@@ -144,6 +147,7 @@ class ItemAPI extends Action {
 				$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
 			}else{
 				$itemData['isbn'] = $eContentRecord->getIsbn();
+				$itemData['issn'] = $eContentRecord->getissn();
 				$itemData['upc'] = $eContentRecord->getUpc();
 				$itemData['issn'] = '';
 				$itemData['title'] = $record['title'];
@@ -155,7 +159,7 @@ class ItemAPI extends Action {
 				$itemData['format'] = $eContentRecord->format();
 				$itemData['formatCategory'] = $eContentRecord->format_category();
 				$itemData['language'] = $eContentRecord->language;
-				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
+				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&issn={$itemData['issn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
 
 				require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
@@ -168,7 +172,6 @@ class ItemAPI extends Action {
 				$resource = new Resource();
 				$resource->record_id = $eContentRecord->id;
 				$resource->source = 'eContent';
-				$tags = array();
 				if ($tags = $resource->getTags()) {
 					array_slice($tags, 0, $limit);
 				}
@@ -199,6 +202,7 @@ class ItemAPI extends Action {
 			// Get ISBN for cover and review use
 			if ($isbnFields = $this->marcRecord->getFields('020')) {
 				//Use the first good ISBN we find.
+				/** @var File_MARC_Data_Field[] $isbnFields */
 				foreach ($isbnFields as $isbnField){
 					if ($isbnField = $isbnField->getSubfield('a')) {
 						$this->isbn = trim($isbnField->getData());
@@ -213,15 +217,17 @@ class ItemAPI extends Action {
 					}
 				}
 			}
+			/** @var File_MARC_Data_Field $upcField */
 			if ($upcField = $this->marcRecord->getField('024')) {
-				if ($upcField = $upcField->getSubfield('a')) {
-					$this->upc = trim($upcField->getData());
+				if ($upcSubfield = $upcField->getSubfield('a')) {
+					$this->upc = trim($upcSubfield->getData());
 					$itemData['upc'] = $this->upc;
 				}
 			}
+			/** @var File_MARC_Data_Field $issnField */
 			if ($issnField = $this->marcRecord->getField('022')) {
-				if ($issnField = $issnField->getSubfield('a')) {
-					$this->issn = trim($issnField->getData());
+				if ($issnSubfield = $issnField->getSubfield('a')) {
+					$this->issn = trim($issnSubfield->getData());
 					if ($pos = strpos($this->issn, ' ')) {
 						$this->issn = substr($this->issn, 0, $pos);
 					}
@@ -251,9 +257,10 @@ class ItemAPI extends Action {
 
 			//Retrieve description from MARC file
 			$description = '';
+			/** @var File_MARC_Data_Field $descriptionField */
 			if ($descriptionField = $this->marcRecord->getField('520')) {
-				if ($descriptionField = $descriptionField->getSubfield('a')) {
-					$description = trim($descriptionField->getData());
+				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
+					$description = trim($descriptionSubfield->getData());
 				}
 			}
 			$itemData['description'] = $description;
@@ -263,7 +270,6 @@ class ItemAPI extends Action {
 			$resource = new Resource();
 			$resource->record_id = $this->id;
 			$resource->source = 'VuFind';
-			$tags = array();
 			if ($tags = $resource->getTags()) {
 				array_slice($tags, 0, $limit);
 			}
@@ -277,11 +283,11 @@ class ItemAPI extends Action {
 			$timer->logTime('Got 5 star data');
 
 			// Load User comments
-			$itemData['userComments'] =  UserComments::getComments($this->id);
+			$itemData['userComments'] =  Record_UserComments::getComments($this->id);
 			$timer->logTime('Loaded Comments');
 
 			//Load Holdings
-			$itemData['holdings'] = Holdings::loadHoldings($this->id);
+			$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
 			$timer->logTime('Loaded Holdings');
 
 			// Add Marc Record to the output
@@ -327,6 +333,7 @@ class ItemAPI extends Action {
 				$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
 			}else{
 				$itemData['isbn'] = $eContentRecord->getIsbn();
+				$itemData['issn'] = $eContentRecord->getissn();
 				$itemData['upc'] = $eContentRecord->getUpc();
 				$itemData['issn'] = '';
 				$itemData['title'] = $record['title'];
@@ -338,12 +345,13 @@ class ItemAPI extends Action {
 				$itemData['format'] = $eContentRecord->format();
 				$itemData['formatCategory'] = $eContentRecord->format_category();
 				$itemData['language'] = $eContentRecord->language;
-				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
+				$itemData['cover'] = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&issn={$itemData['issn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}&size=medium";
 				$itemData['description'] = $eContentRecord->description;
 
 				require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 				$eContentRating = new EContentRating();
 				$eContentRating->recordId = $eContentRecord->id;
+				global $user;
 				$itemData['ratingData'] = $eContentRating->getRatingData($user, false);
 			}
 
@@ -360,9 +368,10 @@ class ItemAPI extends Action {
 			// Get ISBN for cover and review use
 			if ($isbnFields = $this->marcRecord->getFields('020')) {
 				//Use the first good ISBN we find.
+				/** @var File_MARC_Data_Field $isbnField */
 				foreach ($isbnFields as $isbnField){
-					if ($isbnField = $isbnField->getSubfield('a')) {
-						$this->isbn = trim($isbnField->getData());
+					if ($isbnSubfield = $isbnField->getSubfield('a')) {
+						$this->isbn = trim($isbnSubfield->getData());
 						if ($pos = strpos($this->isbn, ' ')) {
 							$this->isbn = substr($this->isbn, 0, $pos);
 						}
@@ -374,15 +383,17 @@ class ItemAPI extends Action {
 					}
 				}
 			}
+			/** @var File_MARC_Data_Field $upcField */
 			if ($upcField = $this->marcRecord->getField('024')) {
-				if ($upcField = $upcField->getSubfield('a')) {
-					$this->upc = trim($upcField->getData());
+				if ($upcSubField = $upcField->getSubfield('a')) {
+					$this->upc = trim($upcSubField->getData());
 					$itemData['upc'] = $this->upc;
 				}
 			}
+			/** @var File_MARC_Data_Field $issnField */
 			if ($issnField = $this->marcRecord->getField('022')) {
-				if ($issnField = $issnField->getSubfield('a')) {
-					$this->issn = trim($issnField->getData());
+				if ($issnSubfield = $issnField->getSubfield('a')) {
+					$this->issn = trim($issnSubfield->getData());
 					if ($pos = strpos($this->issn, ' ')) {
 						$this->issn = substr($this->issn, 0, $pos);
 					}
@@ -398,16 +409,18 @@ class ItemAPI extends Action {
 			$itemData['allIsbn'] = $record['isbn'];
 			$itemData['allUpc'] = $record['upc'];
 			$itemData['allIssn'] = $record['issn'];
+			$itemData['issn'] = $record['issn'];
 			$itemData['format'] = isset($record['format']) ? $record['format'][0] : '';
 			$itemData['formatCategory'] = $record['format_category'][0];
 			$itemData['language'] = $record['language'];
-			$itemData['cover'] = $configArray['Site']['path'] . "/bookcover.php?id={$itemData['id']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
+			$itemData['cover'] = $configArray['Site']['path'] . "/bookcover.php?id={$itemData['id']}&issn={$itemData['issn']}&isbn={$itemData['isbn']}&upc={$itemData['upc']}&category={$itemData['formatCategory']}&format={$itemData['format'][0]}";
 
 			//Retrieve description from MARC file
 			$description = '';
+			/** @var File_MARC_Data_Field $descriptionField */
 			if ($descriptionField = $this->marcRecord->getField('520')) {
-				if ($descriptionField = $descriptionField->getSubfield('a')) {
-					$description = trim($descriptionField->getData());
+				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
+					$description = trim($descriptionSubfield->getData());
 				}
 			}
 			$itemData['description'] = $description;
@@ -463,7 +476,7 @@ class ItemAPI extends Action {
 			$timer->logTime('Initialized the Record Driver');
 
 			//Load Holdings
-			$itemData['holdings'] = Holdings::loadHoldings($this->id);
+			$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
 			$timer->logTime('Loaded Holdings');
 		}
 
@@ -471,20 +484,20 @@ class ItemAPI extends Action {
 	}
 
 	function getBookcoverById(){
-		global $timer;
-		global $configArray;
-		$itemData = array();
-
 		$record = $this->loadSolrRecord($_GET['id']);
 		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
 		$upc = isset($record['upc']) ? $record['upc'][0] : null;
+		$id = isset($record['id']) ? $record['id'][0] : null;
+		$issn = isset($record['issn']) ? $record['issn'][0] : null;
 		$formatCategory = isset($record['format_category']) ? $record['format_category'][0] : null;
-		return $this->getBookCover($isbn, $upc, $formatCategory, $id);
+		$this->getBookCover($isbn, $upc, $formatCategory, $id, $issn);
 	}
 
-	function getBookCover($isbn = null, $upc = null, $formatCategory = null, $size = null, $id = null){
+	function getBookCover($isbn = null, $upc = null, $formatCategory = null, $size = null, $id = null, $issn = null){
 		if (is_null($isbn)) {$isbn = $_GET['isbn'];}
 		$_GET['isn'] = ISBN::normalizeISBN($isbn);
+		if (is_null($issn)) {$issn = $_GET['issn'];}
+		$_GET['iss'] = $issn;
 		if (is_null($upc)) {$upc = $_GET['upc'];}
 		$_GET['upc'] = $upc;
 		if (is_null($formatCategory)) {$formatCategory = $_GET['formatCategory'];}
@@ -493,7 +506,7 @@ class ItemAPI extends Action {
 		$_GET['size'] = $size;
 		if (is_null($id)) {$id = $_GET['id'];}
 		$_GET['id'] = $id;
-		include_once('bookcover.php');
+		include_once(ROOT_DIR . '/bookcover.php');
 	}
 
 	function clearBookCoverCacheById(){
@@ -543,7 +556,7 @@ class ItemAPI extends Action {
 		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
 		//Need to trim the isbn to make sure there isn't descriptive text.
 		$upc = isset($record['upc']) ? $record['upc'][0] : null;
-		$enrichmentData = Enrichment::loadEnrichment($isbn);
+		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
 
 		//Load go deeper options
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
@@ -557,10 +570,11 @@ class ItemAPI extends Action {
 		$record = $this->loadSolrRecord($_GET['id']);
 		$type = $_GET['type'];
 		$isbn = isset($record['isbn']) ? ISBN::normalizeISBN($record['isbn'][0]) : null;
+		$upc = isset($record['upc']) ? $record['upc'][0] : null;
 
 		//Load go deeper data
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$goDeeperOptions = GoDeeperData::getHtmlData($type, $isbn, $upc);
+		$goDeeperOptions = GoDeeperData::getHtmlData($type, 'vufind', $isbn, $upc);
 
 		return $goDeeperOptions;
 	}
@@ -584,37 +598,5 @@ class ItemAPI extends Action {
 			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		return $record;
-	}
-
-	/**
-	 * Gets a list of all online items with expired holds so they can be returned.
-	 */
-	function getExpiredOnlineItemsWithHolds(){
-		$expiredItemsWithOnlineHolds = $this->catalog->getExpiredOnlineItemsWithHolds();
-		return $expiredItemsWithOnlineHolds;
-	}
-
-	function getOverdueOnlineItems(){
-		$overdueOnlineItems = $this->catalog->getOverdueOnlineItems();
-		return $overdueOnlineItems;
-	}
-
-	function getOnlineItemsToReturn(){
-		$expiredItemsWithOnlineHolds = $this->catalog->getExpiredOnlineItemsWithHolds();
-		$overdueOnlineItems = $this->catalog->getOverdueOnlineItems();
-		return $expiredItemsWithOnlineHolds + $overdueOnlineItems;
-	}
-
-	/**
-	 * Returns an item in the catalog.
-	 */
-	function checkInItem(){
-		if (isset($_REQUEST['barcode'])){
-			$barcode = $_REQUEST['barcode'];
-			$result = $this->catalog->checkInItem($barcode);
-			return $result;
-		}else{
-			return array('success' => false, 'message' => 'You must provide a barcode to check in.');
-		}
 	}
 }

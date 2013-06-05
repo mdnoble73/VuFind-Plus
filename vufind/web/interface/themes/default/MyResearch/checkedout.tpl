@@ -107,7 +107,7 @@
 							<div class="imageColumn"> 
 								{if $record.id}
 								<a href="{$path}/Record/{$record.id|escape:"url"}" id="descriptionTrigger{$record.id|escape:"url"}">
-								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;issn={$record.issn}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 								</a>
 								{/if}
 								<div id='descriptionPlaceholder{$record.id|escape}' style='display:none'></div>

@@ -105,7 +105,7 @@
 				    	<div class="imageColumn"> 
 						    
 						    <a href="{$path}/{if strcasecmp($record.source, 'vufind') == 0}Record{else}EcontentRecord{/if}/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-						    <img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+						    <img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;issn={$record.issn}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 						    </a>
 						    
 						    <div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>

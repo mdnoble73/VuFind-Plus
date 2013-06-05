@@ -188,7 +188,7 @@ class EcontentRecord_Home extends Action{
 			$interface->assign('ratingData', $eContentRating->getRatingData($user, false));
 
 			//Determine the cover to use
-			$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
+			$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;issn={$eContentRecord->getIssn()}&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
 			$interface->assign('bookCoverUrl', $bookCoverUrl);
 
 			if (isset($_REQUEST['detail'])){

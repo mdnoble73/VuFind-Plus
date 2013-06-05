@@ -500,7 +500,7 @@ class Record_Record extends Action
 		}
 
 		//Determine the cover to use
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;issn={$this->issn}&amp;isn={$this->isbn}&amp;issn={$this->issn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
 		$interface->assign('bookCoverUrl', $bookCoverUrl);
 
 		//Load accelerated reader data
@@ -563,7 +563,6 @@ class Record_Record extends Action
 		$resource->record_id = $_GET['id'];
 		$resource->source = 'VuFind';
 		$resource->find(true);
-		$tags = array();
 		$tags = $resource->getTags($limit);
 		$interface->assign('tagList', $tags);
 		$timer->logTime('Got tag list');
@@ -571,6 +570,7 @@ class Record_Record extends Action
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
 
 		// Find Similar Records
+		/** @var Memcache $memCache */
 		global $memCache;
 		$similar = $memCache->get('similar_titles_' . $this->id);
 		if ($similar == false){
@@ -595,7 +595,7 @@ class Record_Record extends Action
 			if (!PEAR_Singleton::isError($editions)) {
 				$interface->assign('editions', $editions);
 			}else{
-				$logger->logTime("Did not find any other editions");
+				$timer->logTime("Did not find any other editions");
 			}
 			$timer->logTime('Got Other editions');
 		}
@@ -636,10 +636,16 @@ class Record_Record extends Action
 		$interface->assign('staffDetails', $this->recordDriver->getStaffView());
 	}
 
+	/**
+	 * @param File_MARC_Data_Field[] $allFields
+	 * @return array
+	 */
 	function processNoteFields($allFields){
 		$notes = array();
+		/** File_MARC_Data_Field $marcField */
 		foreach ($allFields as $marcField){
-			foreach ($marcField->getSubFields() as $subfield){
+			/** @var File_MARC_Subfield $subfield */
+			foreach ($marcField->getSubfields() as $subfield){
 				$note = $subfield->getData();
 				if ($subfield->getCode() == 't'){
 					$note = "&nbsp;&nbsp;&nbsp;" . $note;
@@ -653,11 +659,16 @@ class Record_Record extends Action
 		return $notes;
 	}
 
+	/**
+	 * @param File_MARC_Data_Field[] $allFields
+	 * @return array
+	 */
 	function processTableOfContentsFields($allFields){
 		$notes = array();
 		foreach ($allFields as $marcField){
 			$curNote = '';
-			foreach ($marcField->getSubFields() as $subfield){
+			/** @var File_MARC_Subfield $subfield */
+			foreach ($marcField->getSubfields() as $subfield){
 				$note = $subfield->getData();
 				$curNote .= " " . $note;
 				$curNote = trim($curNote);
@@ -692,6 +703,11 @@ class Record_Record extends Action
 		}*/
 	}
 
+	/**
+	 * @param File_MARC_Data_Field $marcField
+	 * @param File_MARC_Subfield $subField
+	 * @return string
+	 */
 	public function getSubfieldData($marcField, $subField){
 		if ($marcField){
 			return $marcField->getSubfield($subField) ? $marcField->getSubfield($subField)->getData() : '';

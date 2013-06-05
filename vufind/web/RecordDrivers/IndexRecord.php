@@ -471,6 +471,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('listTitle', $this->getTitle());
 		$interface->assign('listAuthor', $this->getPrimaryAuthor());
 		$interface->assign('listISBN', $this->getCleanISBN());
+		$interface->assign('listISSN', $this->getCleanISSN());
 		$interface->assign('listUPC', $this->getUPC());
 		$interface->assign('listFormatCategory', $this->getFormatCategory());
 		$interface->assign('listFormats', $this->getFormats());
@@ -733,7 +734,7 @@ class IndexRecord implements RecordInterface
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
 		$format = isset($formats[0]) ? $formats[0] : '';
 
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -801,7 +802,7 @@ class IndexRecord implements RecordInterface
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
 		$format = isset($formats[0]) ? $formats[0] : '';
 
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -811,9 +812,20 @@ class IndexRecord implements RecordInterface
 		return 'RecordDrivers/Index/supplementalResult.tpl';
 	}
 
-	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
+	function getBookcoverUrl($id, $upc, $formatCategory, $format){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size=small&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$isbn = $this->getCleanISBN();
+		if ($isbn){
+			$bookCoverUrl .= "&amp;isn={$isbn}";
+		}
+		if ($upc){
+			$bookCoverUrl .= "&amp;upc={$upc}";
+		}
+		$issn = $this->getCleanISSN();
+		if ($issn){
+			$bookCoverUrl .= "&amp;issn={$issn}";
+		}
 		return $bookCoverUrl;
 	}
 
