@@ -45,7 +45,7 @@
 {/if}
 {if $showFavorites == 1}
 	<div id="saveLink{$recordId|escape}" class="resultAction">
-		<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Save" onclick="getLightbox('EcontentRecord', 'Save', '{$summId|escape}', '', '{translate text='Add to favorites'}', 'EcontentRecord', 'Save', '{$recordId|escape}'); return false;"><span class="silk star_gold">&nbsp;</span>{translate text='Add to favorites'}</a>
+		<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" onclick="getSaveToListForm('{$summId|escape}', 'eContent');return false;"><span class="silk star_gold">&nbsp;</span>{translate text='Add to favorites'}</a>
 		{if $user}
 			<script type="text/javascript">
 				getSaveStatuses('{$recordId|escape:"javascript"}');

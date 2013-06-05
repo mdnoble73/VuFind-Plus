@@ -224,7 +224,7 @@ class MillenniumStatusLoader{
 			//we know what pType is in use and we are showing all items.
 			if ($scope == 93 && $pType > 0){
 				//Never remove the title if it is owned by the current library (could be in library use only)
-				if (isset($library) && strpos($holding['locationCode'], $library->ilsCode) === 0){
+				if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
 					$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 				}else{
 					if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
