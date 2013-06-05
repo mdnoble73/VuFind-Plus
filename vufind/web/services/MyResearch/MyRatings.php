@@ -19,6 +19,7 @@ class MyRatings extends MyResearch{
 		$resource = new Resource();
 		$rating->joinAdd($resource);
 		$rating->userid = $user->id;
+		$rating->deleted = 0;
 		$rating->find();
 		$ratings = array();
 		while($rating->fetch()){
@@ -79,6 +80,7 @@ class MyRatings extends MyResearch{
 		$resource = new Resource();
 		$notInterestedObj->joinAdd($resource);
 		$notInterestedObj->userId = $user->id;
+		$notInterestedObj->deleted = 0;
 		$notInterestedObj->selectAdd('user_not_interested.id as user_not_interested_id');
 		$notInterestedObj->find();
 		while ($notInterestedObj->fetch()){
