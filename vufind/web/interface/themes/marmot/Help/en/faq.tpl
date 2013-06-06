@@ -4,6 +4,10 @@
 	Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
 	You will then have 8 days to pickup the title from your home library.</div>
 
+<div class='faqQuestion'>Q. I placed a hold, how long will it take to get here?</div>
+<div class='faqAnswer'>A. Holds are filled in the order they were placed as people return copies of the title.
+	Items owned by a library go to patrons of that library first.  If no patrons of the library have a hold on the title it may be transferred to another library for usage.</div>
+
 <div class='faqQuestion'>Q. How can I keep a book longer?</div>
 <div class='faqAnswer'>A. To keep a book longer, login to your account and renew titles from your list of Checked Out titles.  </div>
 
