@@ -36,6 +36,7 @@ class MillenniumHolds{
 				$reason = '';
 			}
 
+			$hold_result['title'] = $book;
 			if (preg_match('/success/', $cleanResponse) && preg_match('/request denied/', $cleanResponse) == 0){
 				//Hold was successful
 				$hold_result['result'] = true;
@@ -109,8 +110,11 @@ class MillenniumHolds{
 
 		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
-		//Recall Holds
-		$bib = $cancelId;
+		// Millennium has a "quirk" where you can still freeze and thaw a hold even if it is in the wrong status.
+		// therefore we need to check the current status before we freeze or unfreeze.
+		if ($type == 'update'){
+			$holds = $this->getMyHolds();
+		}
 
 		if (!isset($xNum) ){
 			$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
@@ -131,53 +135,54 @@ class MillenniumHolds{
 
 		$cancelValue = ($type == 'cancel' || $type == 'recall') ? 'on' : 'off';
 
-		if (is_array($xNum)){
-			$loadTitles = (!isset($title) || strlen($title) == 0);
-			$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG);
-			$extraGetInfo = array(
-				'updateholdssome' => 'YES',
-				'currentsortorder' => 'current_pickup',
-			);
-			foreach ($xNum as $tmpXnumInfo){
-				list($tmpBib, $tmpXnum) = explode("~", $tmpXnumInfo);
+		if (!is_array($xNum)){
+			$xNum = array($xNum);
+		}
+
+		$loadTitles = (!isset($title) || strlen($title) == 0);
+		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG);
+		$extraGetInfo = array(
+			'updateholdssome' => 'YES',
+			'currentsortorder' => 'current_pickup',
+		);
+		foreach ($xNum as $tmpXnumInfo){
+			list($tmpBib, $tmpXnum) = explode("~", $tmpXnumInfo);
+			if ($type == 'cancel'){
 				$extraGetInfo['cancel' . $tmpBib . 'x' . $tmpXnum] = $cancelValue;
-				if (isset($paddedLocation)){
-					$extraGetInfo['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
+			}
+			if ($type == 'update'){
+				$holdForXNum = $this->getHoldByXNum($holds, $tmpXnum);
+				$canUpdate = false;
+				if ($holdForXNum != null){
+					if ($freezeValue == 'off'){
+						if ($holdForXNum['frozen']){
+							$canUpdate = true;
+						}
+					} else {
+						if (!$holdForXNum['frozen']){
+							$canUpdate = true;
+						}
+					}
 				}
-				if (strlen($freezeValue) > 0){
-					$extraGetInfo['freeze' . $tmpBib . 'x' . $tmpXnum] = $freezeValue;
-				}
-				if ($loadTitles){
-					$resource = new Resource();
-					$resource->shortId = $tmpBib;
-					if ($resource->find(true)){
-						if (strlen($title) > 0) $title .= ", ";
-						$title .= $resource->title;
-					}else{
-						$logger->log("Did not find bib for = $tmpBib", PEAR_LOG_DEBUG);
+				if ($canUpdate){
+					if (isset($paddedLocation)){
+						$extraGetInfo['loc' . $tmpBib . 'x' . $tmpXnum] = $paddedLocation;
+					}
+					if (strlen($freezeValue) > 0){
+						$extraGetInfo['freeze' . $tmpBib . 'x' . $tmpXnum] = $freezeValue;
 					}
 				}
 			}
-		}else{
-			if (!isset($title) || $title == ''){
+			if ($loadTitles){
 				$resource = new Resource();
-				$resource->shortId = $bib;
+				$resource->shortId = $tmpBib;
 				if ($resource->find(true)){
-					$title = $resource->title;
+					if (strlen($title) > 0) $title .= ", ";
+					$title .= $resource->title;
+				}else{
+					$logger->log("Did not find bib for = $tmpBib", PEAR_LOG_DEBUG);
 				}
 			}
-			$extraGetInfo = array(
-				'updateholdssome' => 'YES',
-				'cancel' . $bib . $xNum => $cancelValue,
-				'currentsortorder' => 'current_pickup',
-			);
-			if (isset($paddedLocation)){
-				$extraGetInfo['loc' . $bib . $xNum] = $paddedLocation;
-			}
-			if (strlen($freezeValue) > 0){
-				$extraGetInfo['freeze' . $bib] = $freezeValue;
-			}
-
 		}
 
 		$get_items = array();
@@ -466,18 +471,18 @@ class MillenniumHolds{
 		return $holds;
 	}
 
-	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
+	public function getMyHolds($patron = null, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
 	{
 		global $timer;
 		global $configArray;
 		global $user;
 		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
-		//Load the information from millenium using CURL
-		$sresult = $this->driver->_fetchPatronInfoPage($patronDump, 'holds');
+		//Load the information from millennium using CURL
+		$sResult = $this->driver->_fetchPatronInfoPage($patronDump, 'holds');
 		$timer->logTime("Got holds page from Millennium");
 
-		$holds = $this->parseHoldsPage($sresult);
+		$holds = $this->parseHoldsPage($sResult);
 		$timer->logTime("Parsed Holds page");
 
 		//Get a list of all record id so we can load supplemental information
@@ -579,10 +584,11 @@ class MillenniumHolds{
 		if (!isset($holds['unavailable'])){
 			$holds['unavailable'] = array();
 		}
-		//Sort the hold sections so vailable holds are first.
+		//Sort the hold sections so available holds are first.
 		ksort($holds);
 
-		$this->holds[$patron['id']] = $holds;
+		$patronId = isset($patron) ? $patron['id'] : $this->driver->_getBarcode();
+		$this->holds[$patronId] = $holds;
 		$timer->logTime("Processed hold pagination and sorting");
 		return array(
 			'holds' => $holds,
@@ -782,5 +788,16 @@ class MillenniumHolds{
 			}
 			return $hold_result;
 		}
+	}
+
+	private function getHoldByXNum($holds, $tmpXnum) {
+		$patronHolds = reset($this->holds);
+		$unavailableHolds = $patronHolds['unavailable'];
+		foreach ($unavailableHolds as $hold){
+			if ($hold['xnum'] == $tmpXnum){
+				return $hold;
+			}
+		}
+		return null;
 	}
 }

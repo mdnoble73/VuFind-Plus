@@ -269,6 +269,9 @@
 							</div>
 						</div>
 					</form>
+					{if $allowFreezeHolds}
+						<p class="note">Note: titles can only be suspended if they are in Pending status.</p>
+					{/if}
 				</div>
 			{else} {* Check to see if records are available *}
 				{translate text='You do not have any holds that are not available yet'}.

@@ -1659,8 +1659,9 @@ display:none;
 }
 
 .note{
-	font-size: 10px;
+	font-size: 12px;
 	font-style: italic;
+	color: darkcyan;
 }
 
 /* Language Links*/
