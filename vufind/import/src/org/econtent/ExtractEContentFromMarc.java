@@ -78,7 +78,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	
 	private PreparedStatement doesOverDriveItemExist;
 	private PreparedStatement addOverDriveItem;
-	private PreparedStatement deleteOldOverDriveItems;
 	private PreparedStatement updateOverDriveItem;
 	
 	private PreparedStatement getEContentRecordStmt;
@@ -124,8 +123,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/biblio2", 500, 10);
 			//updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/econtent2", 500, 10);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Error updating solr", e);
 		}
 		
 		//Check to see if we should clear the existing index
@@ -184,7 +182,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			
 			doesOverDriveItemExist =  econtentConn.prepareStatement("SELECT id from econtent_item WHERE recordId = ? AND externalFormatId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			addOverDriveItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, externalFormat, externalFormatId, externalFormatNumeric, identifier, sampleName_1, sampleUrl_1, sampleName_2, sampleUrl_2, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-			deleteOldOverDriveItems = econtentConn.prepareStatement("DELETE FROM econtent_item WHERE recordId = ? and id NOT IN (?)");
 			updateOverDriveItem = econtentConn.prepareStatement("UPDATE econtent_item SET externalFormat = ?, externalFormatId = ?, externalFormatNumeric = ?, identifier = ?, sampleName_1 = ?, sampleUrl_1 = ?, sampleName_2 = ?, sampleUrl_2 = ?, date_updated =? WHERE id = ?");
 			
 			doesOverDriveAvailabilityExist = econtentConn.prepareStatement("SELECT id from econtent_availability where recordId = ? and libraryId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -713,8 +710,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				deleteEContentItem.setLong(1, tmpLinkInfo.getItemId());
 				deleteEContentItem.executeUpdate();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Error deleting eContent item", e);
 			}
 		}
 	}
@@ -830,7 +826,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					doesOverDriveItemExist.setString(2, overDriveFormats.getString("textId"));
 					ResultSet existingOverDriveId = doesOverDriveItemExist.executeQuery();
 					if (econtentItemIds.length() != 0){
-						econtentItemIds.append(", ");
+						econtentItemIds.append("', '");
 					}
 					if (existingOverDriveId.next()){
 						//logger.debug("There is an existing item for this id");
@@ -868,7 +864,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						ResultSet addItemKeys = addOverDriveItem.getGeneratedKeys();
 						if (addItemKeys.next()){
 							String generatedKey = addItemKeys.getString(1);
+							logger.debug("added new item " + generatedKey);
 							econtentItemIds.append(generatedKey);
+						}else{
+							logger.debug("Could not get generated key when adding item");
 						}
 						//logger.debug("Added new item to record " + eContentRecordId);
 					}
@@ -878,12 +877,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					results.incErrors();
 				}
 			}
-			logger.debug("  Found " + numItemsFound + " items for the title");
+			logger.debug("  Found " + numItemsFound + " items for the title, removing any items except " + econtentItemIds.toString());
 
 			//Delete any items that have been removed
-			deleteOldOverDriveItems.setLong(1, eContentRecordId);
-			deleteOldOverDriveItems.setString(2, econtentItemIds.toString());
-			deleteOldOverDriveItems.executeUpdate();
+			String deleteOldItemsSql = "DELETE FROM econtent_item WHERE recordId = " + eContentRecordId + " and id NOT IN ('" + econtentItemIds.toString() + "')";
+			PreparedStatement deleteOldOverDriveItems = econtentConn.prepareStatement(deleteOldItemsSql);
+			int numDeleted = deleteOldOverDriveItems.executeUpdate();
+			logger.debug("Deleted " + numDeleted + " items");
 			
 			//logger.debug("loaded availability, found " + overDriveInfo.getAvailabilityInfo().size() + " items.");
 			loadOverDriveAvailabilityStmt.setLong(1, overDriveInfo.getId());
