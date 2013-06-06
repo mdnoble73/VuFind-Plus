@@ -112,9 +112,10 @@ class MillenniumHolds{
 
 		// Millennium has a "quirk" where you can still freeze and thaw a hold even if it is in the wrong status.
 		// therefore we need to check the current status before we freeze or unfreeze.
-		if ($type == 'update'){
-			$holds = $this->getMyHolds();
-		}
+		$scope = $this->driver->getDefaultScope();
+		//go to the holds page and get the number of holds on the account
+		$holds = $this->getMyHolds();
+		$numHoldsStart = count($holds['available'] + $holds['unavailable']);
 
 		if (!isset($xNum) ){
 			$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
@@ -159,7 +160,7 @@ class MillenniumHolds{
 							$canUpdate = true;
 						}
 					} else {
-						if (!$holdForXNum['frozen']){
+						if (!$holdForXNum['frozen'] && $holdForXNum['freezable']){
 							$canUpdate = true;
 						}
 					}
@@ -225,15 +226,6 @@ class MillenniumHolds{
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		//Load the page, but we don't need to do anything with the results.
 		curl_exec($curl_connection);
-
-		$scope = $this->driver->getDefaultScope();
-		//go to the holds page and get the number of holds on the account
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		$sResult = curl_exec($curl_connection);
-		$holds = $this->parseHoldsPage($sResult);
-		$numHoldsStart = count($holds['available'] + $holds['unavailable']);
 
 		//Issue a get request with the information about what to do with the holds
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";

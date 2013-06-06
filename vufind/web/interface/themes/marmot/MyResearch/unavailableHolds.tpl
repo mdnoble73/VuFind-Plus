@@ -270,7 +270,7 @@
 						</div>
 					</form>
 					{if $allowFreezeHolds}
-						<p class="note">Note: titles can only be suspended if they are in Pending status.</p>
+						<p class="note">Note: titles can only be frozen if they are in Pending status.</p>
 					{/if}
 				</div>
 			{else} {* Check to see if records are available *}
