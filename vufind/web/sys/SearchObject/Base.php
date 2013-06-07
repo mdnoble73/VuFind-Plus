@@ -1325,6 +1325,10 @@ abstract class SearchObject_Base
 			// Yes, retrieve it
 			$search = new SearchEntry();
 			$search->id = strip_tags(isset($_REQUEST['saved']) ? $_REQUEST['saved'] : $searchId);
+			if (isset($_REQUEST['saved'])){
+				$redirect = true;
+				$forceReload = true;
+			}
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search
