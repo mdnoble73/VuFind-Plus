@@ -34,6 +34,9 @@ function smarty_function_implode($params, &$smarty)
 		$smarty->trigger_error("implode: missing 'assign' parameter");
 		return;
 	}
-
-	$smarty->assign($params['assign'], implode($params['glue'], $params['subject']));
+	if (is_array($params['subject'])){
+		$smarty->assign($params['assign'], implode($params['glue'], $params['subject']));
+	}else{
+		$smarty->assign($params['assign'], $params['subject']);
+	}
 }
