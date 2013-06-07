@@ -118,7 +118,7 @@
 	
 	<script type="text/javascript">
 		$(document).ready(function(){literal} { {/literal}
-			addIdToStatusList('{$summId|escape:"javascript"}');
+			addIdToStatusList('{$summId|escape:"javascript"}', 'VuFind', '{$useUnscopedHoldingsSummary}');
 			resultDescription('{$summShortId}','{$summId}', 'VuFind');
 		{literal} }); {/literal}
 	</script>

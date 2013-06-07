@@ -71,9 +71,13 @@ class EcontentRecordDriver extends IndexRecord
 	 * search results.
 	 *
 	 * @access  public
+	 *
+	 * @param string $view The current view.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
+	 *
 	 * @return  string              Name of Smarty template file to display.
 	 */
-	public function getSearchResult()
+	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false)
 	{
 		global $interface;
 		global $user;
@@ -85,6 +89,7 @@ class EcontentRecordDriver extends IndexRecord
 		}
 		$interface->assign('source', $this->eContentRecord->source);
 		$interface->assign('eContentRecord', $this->eContentRecord);
+		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 		parent::getSearchResult();
 
 		//Get Rating

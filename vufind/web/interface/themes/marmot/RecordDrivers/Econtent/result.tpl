@@ -84,7 +84,7 @@
 
 
 <script type="text/javascript">
-	addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if});
+	addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if}, '{$useUnscopedHoldingsSummary}');
 	{if $summISBN}
 	getSeriesInfo('{$summISBN}');
 	{/if}

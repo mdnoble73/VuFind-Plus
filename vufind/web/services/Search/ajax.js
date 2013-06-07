@@ -32,16 +32,19 @@ function getElem(id) {
 	}
 }
 
-function addIdToStatusList(id, type) {
+function addIdToStatusList(id, type, useUnscopedHoldingsSummary) {
 	if (type == undefined){
 		type = 'VuFind';
 	}
+	var idVal = [];
+	idVal['id'] = id;
+	idVal['useUnscopedHoldingsSummary'] = useUnscopedHoldingsSummary;
 	if (type.toUpperCase() === 'VUFIND'){
-		GetStatusList[GetStatusList.length] = id;
+		GetStatusList[GetStatusList.length] = idVal;
 	}else if (type.toUpperCase() == 'OVERDRIVE'){
-		GetOverDriveStatusList[GetOverDriveStatusList.length] = id;
+		GetOverDriveStatusList[GetOverDriveStatusList.length] = idVal;
 	}else{
-		GetEContentStatusList[GetEContentStatusList.length] = id;
+		GetEContentStatusList[GetEContentStatusList.length] = idVal;
 	}
 }
 
@@ -53,7 +56,10 @@ function doGetStatusSummaries()
 	var callGetEContentStatusSummaries = false;
 	var eContentUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
 	for (var j=0; j<GetEContentStatusList.length; j++) {
-		eContentUrl += "&id[]=" + encodeURIComponent(GetEContentStatusList[j]);
+		eContentUrl += "&id[]=" + encodeURIComponent(GetEContentStatusList[j]['id']);
+		if (GetEContentStatusList[j]['useUnscopedHoldingsSummary']){
+			eContentUrl += "&useUnscopedHoldingsSummary=true";
+		}
 		callGetEContentStatusSummaries = true;
 	}
 
@@ -65,7 +71,10 @@ function doGetStatusSummaries()
 	var callGetStatusSummaries = false;
 	for (var j=0; j<GetStatusList.length; j++) {
 		var url = path + "/Search/AJAX?method=GetStatusSummaries";
-		url += "&id[]=" + encodeURIComponent(GetStatusList[j]);
+		url += "&id[]=" + encodeURIComponent(GetStatusList[j]['id']);
+		if (GetStatusList[j]['useUnscopedHoldingsSummary']){
+			url += "&useUnscopedHoldingsSummary=true";
+		}
 		url += "&time="+ts;
 		$.getJSON(url, function(data){
 			var items = data.items;
@@ -242,7 +251,7 @@ function doGetStatusSummaries()
 	// seconds to load
 	for (var j=0; j<GetOverDriveStatusList.length; j++) {
 		var overDriveUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
-		overDriveUrl += "&id[]=" + encodeURIComponent(GetOverDriveStatusList[j]);
+		overDriveUrl += "&id[]=" + encodeURIComponent(GetOverDriveStatusList[j]['id']);
 		$.ajax({
 			url: overDriveUrl, 
 			success: function(data){

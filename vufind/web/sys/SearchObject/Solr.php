@@ -596,9 +596,10 @@ class SearchObject_Solr extends SearchObject_Base
 			}
 			$interface->assign('recordIndex', $numResultsShown + 1 );
 			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit) + $startIndex);
+			/** @var IndexRecord|MarcRecord|EcontentRecordDriver $record */
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$numResultsShown++;
-			$html[] = $interface->fetch($record->getSearchResult());
+			$html[] = $interface->fetch($record->getSearchResult('list', true));
 			if ($numResultsShown >= $maxResultsToShow){
 				break;
 			}

@@ -102,7 +102,7 @@
 	</div>
 	
 	<script type="text/javascript">
-		addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if});
+		addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if}, '{$useUnscopedHoldingsSummary}');
 		$(document).ready(function(){literal} { {/literal}
 			resultDescription('{$summId}','{$summId}', 'eContent');
 		{literal} }); {/literal}

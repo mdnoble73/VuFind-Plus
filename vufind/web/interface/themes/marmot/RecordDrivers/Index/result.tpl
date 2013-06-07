@@ -80,7 +80,7 @@
 	</div>
 
 	<script type="text/javascript">
-		addIdToStatusList('{$summId|escape}');
+		addIdToStatusList('{$summId|escape}', 'VuFind', '{$useUnscopedHoldingsSummary}');
 		{if $summISBN}
 		getSeriesInfo('{$summISBN}');
 		{/if}

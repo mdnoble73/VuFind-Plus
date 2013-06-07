@@ -163,18 +163,19 @@ class MarcRecord extends IndexRecord
 	 * search results.
 	 *
 	 * @param string $view The current view.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
 	 *
 	 * @return string      Name of Smarty template file to display.
 	 * @access public
 	 */
-	public function getSearchResult($view = 'list')
+	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false)
 	{
 		global $interface;
 
 		// MARC results work just like index results, except that we want to
 		// enable the AJAX status display since we assume that MARC records
 		// come from the ILS:
-		$template = parent::getSearchResult($view);
+		$template = parent::getSearchResult($view, $useUnscopedHoldingsSummary);
 		$interface->assign('summAjaxStatus', true);
 		return $template;
 	}

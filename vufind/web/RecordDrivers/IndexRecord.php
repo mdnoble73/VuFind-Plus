@@ -657,13 +657,19 @@ class IndexRecord implements RecordInterface
 	 * search results.
 	 *
 	 * @access  public
+
+	 * @param string $view The current view.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
+	 *
 	 * @return  string              Name of Smarty template file to display.
 	 */
-	public function getSearchResult()
+	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false)
 	{
 		global $configArray;
 		global $interface;
 		global $user;
+
+		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
