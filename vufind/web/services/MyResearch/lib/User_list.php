@@ -317,9 +317,13 @@ class User_list extends SolrDataObject
 	}
 
 	var $catalog;
+
+	/**
+	 * @param $resource - The resource to be cleaned
+	 * @return Resource|bool
+	 */
 	function cleanResource($resource){
 		global $configArray;
-		global $interface;
 		global $user;
 
 		// Connect to Database

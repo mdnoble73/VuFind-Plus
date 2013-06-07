@@ -41,6 +41,10 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 		//Load status information
 		$materialsRequestStatus = new MaterialsRequestStatus();
 		$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
+		if ($user->hasRole('library_material_requests')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$materialsRequestStatus->libraryId = $homeLibrary->libraryId;
+		}
 		$materialsRequestStatus->find();
 		$availableStatuses = array();
 		$defaultStatusesToShow = array();

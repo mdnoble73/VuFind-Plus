@@ -668,7 +668,7 @@ class DBMaintenance extends Admin_Admin {
 				'description' => 'Update List Widget to add vertical widgets',
 				'sql' => array(
 					"ALTER TABLE `list_widgets` ADD COLUMN `style` ENUM('vertical', 'horizontal', 'single') NOT NULL DEFAULT 'horizontal'",
-					"UPDATE TABLE `list_widgets` SET `style` = 'single' WHERE showMultipleTitles = 0",
+					"UPDATE `list_widgets` SET `style` = 'single' WHERE showMultipleTitles = 0",
 				),
 			),
 			'library_4' => array(
