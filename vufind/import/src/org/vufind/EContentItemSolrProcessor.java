@@ -18,7 +18,6 @@ import java.util.Set;
  */
 public class EContentItemSolrProcessor {
 	private ResultSet itemInfo;
-	private String source;
 	private Set<String> formats;
 	private int numItems;
 	private Set<String> availableAt;
@@ -28,11 +27,10 @@ public class EContentItemSolrProcessor {
 	private Logger logger;
 	private MarcProcessor marcProcessor;
 
-	public EContentItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, ResultSet itemInfo, String source, Set<String> formats, int numItems, Set<String> availableAt, HashMap<String, HashSet<String>> availableAtBySystemOrLocation, Set<String> availabilityToggleGlobal, Set<String> buildings) {
+	public EContentItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, ResultSet itemInfo, Set<String> formats, int numItems, Set<String> availableAt, HashMap<String, HashSet<String>> availableAtBySystemOrLocation, Set<String> availabilityToggleGlobal, Set<String> buildings) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.itemInfo = itemInfo;
-		this.source = source;
 		this.formats = formats;
 		this.numItems = numItems;
 		this.availableAt = availableAt;
@@ -63,7 +61,6 @@ public class EContentItemSolrProcessor {
 		} else {
 			formats.add(item_type);
 		}
-		// TODO: determine if acs and single use titles are actually available
 		if (libraryId == -1L) {
 			//usableByPTypes.addAll(marcProcessor.getAllPTypes());
 			//usableByPTypes.add("all");

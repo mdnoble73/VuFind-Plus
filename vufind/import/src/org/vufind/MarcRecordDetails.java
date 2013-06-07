@@ -152,7 +152,7 @@ public class MarcRecordDetails {
 			// logger.debug("The record is manually suppressed.");
 			manuallySuppressed = true;
 		}
-		// logger.debug("Found " + itemFields.size() + " items");
+		logger.debug("Found " + itemFields.size() + " items");
 		for (DataField itemField : itemFields) {
 			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
 			allItemsSuppressed = printItemSolrProcessor.isAllItemsSuppressed();
@@ -3971,14 +3971,16 @@ public class MarcRecordDetails {
 
 		// Generate information based on items.
 		while (itemInfo.next()) {
-			EContentItemSolrProcessor EContentItemSolrProcessor = new EContentItemSolrProcessor(logger, marcProcessor, itemInfo, source, formats, numItems, availableAt, availableAtBySystemOrLocation, availabilityToggleGlobal, buildings).invoke();
+			EContentItemSolrProcessor EContentItemSolrProcessor = new EContentItemSolrProcessor(logger, marcProcessor, itemInfo, formats, numItems, availableAt, availableAtBySystemOrLocation, availabilityToggleGlobal, buildings).invoke();
 			buildings = EContentItemSolrProcessor.getBuildings();
 			availableAt = EContentItemSolrProcessor.getAvailableAt();
 			numItems = EContentItemSolrProcessor.getNumItems();
 		}// end processing items
+		logger.debug("Number of items processed " + numItems);
 		logger.debug("Num Available At locations from items: " + availableAt.size());
 
 		int numHoldings = 0;
+		int numAvailabilityItems = 0;
 		// If we have availability information, use that.
 		boolean hasAvailabilityInfo = false;
 		while (availabilityInfo.next()) {
@@ -3987,7 +3989,9 @@ public class MarcRecordDetails {
 			numHoldings = EContentAvailabilityProcessor.getNumHoldings();
 			buildings = EContentAvailabilityProcessor.getBuildings();
 			availableAt = EContentAvailabilityProcessor.getAvailableAt();
+			numAvailabilityItems++;
 		}
+		logger.debug("Num availability lines processed: " + numAvailabilityItems);
 		logger.debug("Num Available At locations from availability: " + availableAt.size());
 
 		if (!hasAvailabilityInfo) {
@@ -4003,14 +4007,24 @@ public class MarcRecordDetails {
 		if (numHoldings > 1000) {
 			numHoldings = 5;
 		}
-		mappedFields.remove("institution");
-		mappedFields.remove("building");
-		mappedFields.remove("available_at");
-		mappedFields.remove("availability_toggle");
 		mappedFields.remove("usable_by");
-		if (buildings.size() > 0) {
-			addFields(mappedFields, "institution", null, buildings);
-			addFields(mappedFields, "building", null, buildings);
+		if (numItems > 0 || numAvailabilityItems > 0){
+			mappedFields.remove("institution");
+			mappedFields.remove("building");
+			mappedFields.remove("available_at");
+			mappedFields.remove("availability_toggle");
+			if (buildings.size() > 0) {
+				addFields(mappedFields, "institution", null, buildings);
+				addFields(mappedFields, "building", null, buildings);
+			}
+			logger.debug("The record is available at " + availableAt.size() +  " libraries");
+			// Add availability
+			addFields(mappedFields, "available_at", null, availableAt);
+			addFields(mappedFields, "availability_toggle", null, availabilityToggleGlobal);
+			for (String code : availableAtBySystemOrLocation.keySet()) {
+				mappedFields.remove("availability_toggle_" + code);
+				addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
+			}
 		}
 		// mappedFields.remove("format");
 		addFields(mappedFields, "format", "format_map", formats);
@@ -4025,15 +4039,6 @@ public class MarcRecordDetails {
 		}
 		// Load device compatibility
 		addField(mappedFields, "num_holdings", numHoldings);
-		logger.debug("The record is available at " + availableAt.size() +  " libraries");
-		// Add availability
-		addFields(mappedFields, "available_at", null, availableAt);
-		addFields(mappedFields, "availability_toggle", null,
-				availabilityToggleGlobal);
-		for (String code : availableAtBySystemOrLocation.keySet()) {
-			mappedFields.remove("availability_toggle_" + code);
-			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
-		}
 
 		addField(mappedFields, "rating", getEContentRating(econtentRecordId));
 		addFields(mappedFields, "rating_facet", null,
