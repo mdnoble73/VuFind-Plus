@@ -14,6 +14,7 @@ class MarcLoader{
 		if ($record['recordtype'] == 'marc'){
 			return MarcLoader::loadMarcRecordByILSId($record['id'], $record['recordtype']);
 		}elseif ($record['recordtype'] == 'econtentRecord'){
+			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 			$econtentRecord = new EContentRecord();
 			$econtentRecord->id = $record['id'];
 			if ($econtentRecord->find(true)){

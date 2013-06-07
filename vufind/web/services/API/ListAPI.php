@@ -959,8 +959,8 @@ class ListAPI extends Action {
 				$listTitles[] = array(
 					'id' => $record['id'],
 					'recordtype' => $record['recordtype'],
-					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
-					'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . $record['format_category'][0],
+					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . (isset( $record['format_category']) ? $record['format_category'][0] : ''),
+					'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . (isset( $record['format_category']) ? $record['format_category'][0] : ''),
 					'title' => $record['title'],
 					'author' => isset($record['author']) ? $record['author'] : '',
 					'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,

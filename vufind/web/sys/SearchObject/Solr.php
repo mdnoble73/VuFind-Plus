@@ -215,7 +215,7 @@ class SearchObject_Solr extends SearchObject_Base
 		// Check if we have a saved search to restore -- if restored successfully,
 		// our work here is done; if there is an error, we should report failure;
 		// if restoreSavedSearch returns false, we should proceed as normal.
-		$restored = $this->restoreSavedSearch();
+		$restored = $this->restoreSavedSearch(null, true, true);
 		if ($restored === true) {
 			return true;
 		} else if (PEAR_Singleton::isError($restored)) {
