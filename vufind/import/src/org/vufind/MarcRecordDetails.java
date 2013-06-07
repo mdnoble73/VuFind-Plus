@@ -3617,8 +3617,7 @@ public class MarcRecordDetails {
 			isEContent = false;
 			// Check the items
 			@SuppressWarnings("unchecked")
-			List<DataField> itemFields = (List<DataField>) record
-					.getVariableFields("989");
+			List<DataField> itemFields = (List<DataField>) record.getVariableFields("989");
 			String eContentSource = checkEContentBasedOnItems(itemFields);
 			if (!isEContent) {
 				// Check the 037 second
@@ -3638,15 +3637,17 @@ public class MarcRecordDetails {
 					boolean allITypesAreEContent = true;
 					if (marcProcessor.hasEContentITypes()) {
 						for (DataField itemField : itemFields) {
-							if (itemField.getSubfield('j') == null) {
-								allITypesAreEContent = false;
-								logger.debug("Record is not eContent because item did not have iType set");
-							} else {
-								String iType = itemField.getSubfield('j').getData();
-								if (!marcProcessor.isITypeEContent(Integer.parseInt(iType))) {
+							//Make sure the item has a location subfield since some items just have call numbers
+							if (itemField.getSubfield('d') != null){
+								if (itemField.getSubfield('j') == null) {
 									allITypesAreEContent = false;
-									logger.debug("Record is not eContent because iType " + iType
-											+ " is not an eContent iType");
+									logger.debug("Record is not eContent because item did not have iType set");
+								} else {
+									String iType = itemField.getSubfield('j').getData();
+									if (!marcProcessor.isITypeEContent(Integer.parseInt(iType))) {
+										allITypesAreEContent = false;
+										logger.debug("Record is not eContent because iType " + iType + " is not an eContent iType");
+									}
 								}
 							}
 							if (!allITypesAreEContent) {
@@ -3695,14 +3696,14 @@ public class MarcRecordDetails {
 	private String checkEContentBasedOnItems(List<DataField> itemFields) {
 		String eContentSource = null;
 		for (DataField itemField : itemFields) {
+			//First make sure that we have a location subField since some items just have call numbers
 			Subfield subFieldW = itemField.getSubfield('w');
 			if (subFieldW != null) {
 				String[] parts = subFieldW.getData().split(":");
 				if (parts.length > 0) {
 					String source = parts[0].trim();
 					String protectionType = parts[1].trim();
-					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(
-							source, protectionType);
+					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
 					if (tempDetectionSettings != null) {
 						eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
 						isEContent = true;
