@@ -1,6 +1,7 @@
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
+		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&basicType=Keyword&filter[]=literary_form_full%3A%22Fiction%22&filter[]=target_audience_full%3A%22Adult%22&sort=popularity+desc&view=list&searchSource=local'>{translate text='Popular Adult Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_salida%3A"Week"'>{translate text='New This Week'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_salida%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_salida3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
