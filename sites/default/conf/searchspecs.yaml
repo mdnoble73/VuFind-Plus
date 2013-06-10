@@ -371,8 +371,10 @@ Keyword:
     upc:
       - [and, 100]
       - [or, ~]
-    callnumber-subject:
-      - [onephrase, ~]
+    callnumber_exact:
+      - [onephrase, 50]
+    callnumber_left:
+      - [onephrase, 25]
     id:
       - [onephrase, ~]
     id_alt:
@@ -421,6 +423,8 @@ KeywordProper:
       - [or, ~]      
     callnumber-subject:
       - [onephrase, ~]
+    callnumber_browse:
+      - [exact, ~]
     id:
       - [onephrase, ~]
     id_alt:

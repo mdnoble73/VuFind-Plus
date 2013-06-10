@@ -9,7 +9,8 @@
 			<analyzer>
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
 				<!-- strip trailing punctuation from facets: -->
-				<filter class="solr.PatternReplaceFilterFactory" pattern="(?&lt;!\b[A-Z])[.\s]*$" replacement="" replace="first"/>
+				<filter class="solr.PatternReplaceFilterFactory" pattern="(?&lt;!\b[A-Z])[.\s]*$" replacement=""
+				        replace="first"/>
 			</analyzer>
 		</fieldType>
 		<fieldType name="text" class="solr.TextField" positionIncrementGap="100">
@@ -72,7 +73,7 @@
 				<tokenizer class="solr.PatternTokenizerFactory" pattern="^(\S*)\s*.*$" group="1"/>
 				<filter class="solr.LowerCaseFilterFactory"/>
 				<filter class="solr.PatternReplaceFilterFactory" pattern="[^0-9x]" replacement="" replace="all"/>
-				<filter class="solr.LengthFilterFactory" min="1" max="100" />
+				<filter class="solr.LengthFilterFactory" min="1" max="100"/>
 			</analyzer>
 		</fieldType>
 		<!-- This is an example of using the KeywordTokenizer along
@@ -88,9 +89,9 @@
 				<!-- The LowerCase TokenFilter does what you expect, which can be
              when you want your sorting to be case insensitive
           -->
-				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->
-				<filter class="solr.TrimFilterFactory" />
+				<filter class="solr.TrimFilterFactory"/>
 				<!-- The PatternReplaceFilter gives you the flexibility to use
              Java Regular expression to replace any sequence of characters
              matching a pattern with an arbitrary replacement string, 
@@ -102,24 +103,73 @@
              
              http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/package-summary.html
           -->
-				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z1-9\s])" replacement="" replace="all" />
+				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z1-9\s])" replacement="" replace="all"/>
 			</analyzer>
 		</fieldType>
 		<fieldType name="callnumber-search" class="solr.TextField" sortMissingLast="true" omitNorms="true">
 			<analyzer>
 				<!-- KeywordTokenizer does no actual tokenizing, so the entire
-             input string is preserved as a single token
-          -->
+		 input string is preserved as a single token
+	-->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
 				<!-- The LowerCase TokenFilter does what you expect, which can be
              when you want your sorting to be case insensitive
           -->
-				<filter class="solr.LowerCaseFilterFactory" />
+				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->
-				<filter class="solr.TrimFilterFactory" />
+				<filter class="solr.TrimFilterFactory"/>
 			</analyzer>
 		</fieldType>
-		<fieldType name="random" class="solr.RandomSortField" />
+		<fieldType name="callnumber-exact" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+			<analyzer>
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^(.*)$" replacement="AAAA $1 ZZZZ"/>
+				<!-- KeywordTokenizer does no actual tokenizing, so the entire
+		 input string is preserved as a single token
+	-->
+				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<!-- The LowerCase TokenFilter does what you expect, which can be
+		 when you want your sorting to be case insensitive
+	-->
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<!-- The TrimFilter removes any leading or trailing whitespace -->
+				<filter class="solr.TrimFilterFactory"/>
+			</analyzer>
+		</fieldType>
+		<fieldType name="callnumber-left" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+			<analyzer type="index">
+				<tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter=" "/>
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^(.*)$" replacement="AAAA $1"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<!-- The TrimFilter removes any leading or trailing whitespace -->
+				<filter class="solr.TrimFilterFactory"/>
+				<filter class="solr.LengthFilterFactory" min="6" max="999" />
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^(.*)$" replacement="AAAA $1"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<!-- The TrimFilter removes any leading or trailing whitespace -->
+				<filter class="solr.TrimFilterFactory"/>
+			</analyzer>
+		</fieldType>
+		<fieldType name="callnumber-right" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+			<analyzer type="index">
+				<tokenizer class="solr.PathHierarchyTokenizerFactory" delimiter=" " reverse="true"/>
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^(.*)$" replacement="$1 ZZZZ"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<!-- The TrimFilter removes any leading or trailing whitespace -->
+				<filter class="solr.TrimFilterFactory"/>
+				<filter class="solr.LengthFilterFactory" min="6" max="999"/>
+			</analyzer>
+			<analyzer type="query">
+				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^(.*)$" replacement="$1 ZZZZ"/>
+				<filter class="solr.LowerCaseFilterFactory"/>
+				<!-- The TrimFilter removes any leading or trailing whitespace -->
+				<filter class="solr.TrimFilterFactory"/>
+			</analyzer>
+		</fieldType>
+		<fieldType name="random" class="solr.RandomSortField"/>
 	</types>
 	<fields>
 		<!-- Core Fields  -->
@@ -149,10 +199,13 @@
 		<dynamicField name="detailed_location_*" type="textFacet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
 		<!-- Generic Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
-		<field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
+		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"
+		       default="0"/>
+		<field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"
+		       default="0"/>
 		<field name="format" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
+		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"
+		       default="0"/>
 		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
@@ -201,7 +254,7 @@
 		<field name="dewey-tens" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="dewey-ones" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="dewey-full" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="dewey-sort" type="string" indexed="true" stored="true" />
+		<field name="dewey-sort" type="string" indexed="true" stored="true"/>
 		<field name="author2" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2Str" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="author2-role" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -223,6 +276,9 @@
 		<field name="author_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="callnumber_browse" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_exact" type="callnumber-exact" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_left" type="callnumber-left" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_right" type="callnumber-right" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
@@ -236,9 +292,10 @@
 		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="target_audience" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false" default="0"/>
+		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false"
+		       default="0"/>
 		<field name="mpaa_rating" type="string" indexed="true" stored="false" multiValued="true"/>
-		<field name="system_list" type="textFacet" indexed="true" stored="false" multiValued="true"/> 
+		<field name="system_list" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<field name="barcode" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="word_think_heading" type="textFacet" indexed="true" stored="true" multiValued="true"/>
@@ -246,7 +303,8 @@
 		<field name="lexile_code" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_interest_level" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false" default="0"/>
-		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false" default="0"/>
+		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false"
+		       default="0"/>
 		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>
@@ -270,9 +328,9 @@
 		<field name="popularity" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
 		<!-- Special fields for Lists -->
 		<field name="num_titles" type="integer" indexed="true" stored="false" multiValued="false" default="0"/>
-		<!-- Field to get random titles --> 
+		<!-- Field to get random titles -->
 		<dynamicField name="random*" type="random" indexed="true" stored="false"/>
-		
+
 	</fields>
 	<uniqueKey>id</uniqueKey>
 	<defaultSearchField>keywords</defaultSearchField>
@@ -304,9 +362,12 @@
 	<copyField source="keywords" dest="keywords_proper"/>
 	<copyField source="allfields" dest="allfields_proper"/>
 	<!-- CopyFields for Alphabetic Browse -->
-	<copyField source="topic"    dest="topic_browse"/>
-	<copyField source="author"    dest="author_browse"/>
-	<copyField source="author2"    dest="author_browse"/> 
+	<copyField source="topic" dest="topic_browse"/>
+	<copyField source="author" dest="author_browse"/>
+	<copyField source="author2" dest="author_browse"/>
+	<copyField source="callnumber_browse" dest="callnumber_exact"/>
+	<copyField source="callnumber_browse" dest="callnumber_left"/>
+	<copyField source="callnumber_browse" dest="callnumber_right"/>
 	<!-- Default Boolean Operator -->
 	<solrQueryParser defaultOperator="AND"/>
 </schema>
