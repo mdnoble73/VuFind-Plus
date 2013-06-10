@@ -17,7 +17,7 @@
 
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
 	<ul>
-		<li><a href="http://www.englewoodgov.org/inside-city-hall/city-departments/library/library-title-request-form.1271" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Request A Title'}</a></li>
+		<li><a href="http://englewood.marmot.org/MaterialsRequest/NewRequest" >{translate text='Request A Title'}</a></li>
 		<li><a href="mailto:epl@englewoodgov.org" >{translate text='Ask a Librarian'}</a></li>
 	</ul>
 </div>
