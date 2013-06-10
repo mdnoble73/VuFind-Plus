@@ -159,10 +159,12 @@ class MillenniumHolds{
 						if ($holdForXNum['frozen']){
 							$canUpdate = true;
 						}
-					} else {
+					} else if ($freezeValue == 'on'){
 						if (!$holdForXNum['frozen'] && $holdForXNum['freezable']){
 							$canUpdate = true;
 						}
+					} else if ($freezeValue == '' && isset($paddedLocation) && $holdForXNum['locationUpdateable']){
+						$canUpdate = true;
 					}
 				}
 				if ($canUpdate){
