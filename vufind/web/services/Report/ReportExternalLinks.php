@@ -166,8 +166,7 @@ class Report_ReportExternalLinks extends Report_Report{
 		}
 
 		$resPurchases = mysql_query($baseQueryLinks);
-		echo($baseQueryLinks);
-
+		
 		$resultsPurchases = array();
 		if ($resPurchases > 0){
 			//Build an array based on the data to dump out to the grid
@@ -202,7 +201,6 @@ class Report_ReportExternalLinks extends Report_Report{
 				$resultsPurchases[$i++] = $tmp;
 			}
 		}
-		print_r($resultsPurchases);
 		$interface->assign('resultLinks', $resultsPurchases);
 
 		//////////Paging Array
