@@ -31,10 +31,8 @@ class Report_ReportExternalLinks extends Report_Report{
 	function launch(){
 		global $configArray;
 		global $interface;
-		global $user;
 
 		//////////Populate the Date Filter Start
-		$today = getdate();
 		//Grab the Selected Date Start
 		if (isset($_REQUEST['dateFilterStart'])){
 			if (preg_match('/\\d{1,2}\/\\d{1,2}\/\\d{4}/', $_REQUEST['dateFilterStart'])){
@@ -70,14 +68,12 @@ class Report_ReportExternalLinks extends Report_Report{
 		$externalLinkTracking->query($queryHostsFilter);
 
 		$allHosts = array();
-		$i=0;
 		while ($externalLinkTracking->fetch()) {
 			$allHosts[] = $externalLinkTracking->linkHost;
 		}
 		$interface->assign('hostFilter', $allHosts);
 			
 		//////////Grab the Selected Hosts Filter Value
-		$selectedHosts = array();
 		if (isset($_REQUEST['hostFilter'])){
 			$selectedHosts = $_REQUEST['hostFilter'];
 		}else {
@@ -85,14 +81,14 @@ class Report_ReportExternalLinks extends Report_Report{
 		}
 		$interface->assign('selectedHosts', $selectedHosts);
 
-		$baseQueryLinks = "SELECT COUNT(externalLinkId) AS timesFollowed, linkUrl, linkHost ".
+		$baseQueryLinks = "SELECT COUNT(externalLinkId) AS timesFollowed, recordId, linkUrl, linkHost ".
 				"FROM external_link_tracking ".
 				"WHERE (DATE_FORMAT(trackingDate, '%Y-%m-%d')) BETWEEN '". $selectedDateStart . "' AND '". $selectedDateEnd . "' "; 
 		if (count($selectedHosts) > 0) {
 			$hosts = join("','",$selectedHosts);
 			$baseQueryLinks .= "AND linkHost IN ('". $hosts . "') ";
 		}
-		$baseQueryLinks .= "GROUP BY linkUrl ";
+		$baseQueryLinks .= "GROUP BY recordId, linkUrl ";
 
 		//////////Get a count of the page view data
 		$queryPurchasesCount = "SELECT COUNT(*) AS RowCount from ( ". $baseQueryLinks . ") As ResultCount";
@@ -103,11 +99,9 @@ class Report_ReportExternalLinks extends Report_Report{
 			$totalResultCount = $rowCount->RowCount;
 		}else{
 			$totalResultCount = 0;
-			$rowCount = 0;
 		}
 
 		//////////Create the items per page array
-		$itemsPerPageList = array();
 		$itemsPerPageList = $this->getItemsPerPageList();
 
 		///////////////////PAGING
@@ -144,7 +138,7 @@ class Report_ReportExternalLinks extends Report_Report{
 				// There are less records returned then one page, use total results
 				$endRecord = $resultTotal;
 			} else if (($currentPage * $itemsPerPage) > $resultTotal) {
-				// The end of the curent page runs past the last record, use total results
+				// The end of the current page runs past the last record, use total results
 				$endRecord = $resultTotal;
 			} else {
 				// Otherwise use the last record on this page
@@ -172,20 +166,43 @@ class Report_ReportExternalLinks extends Report_Report{
 		}
 
 		$resPurchases = mysql_query($baseQueryLinks);
+		echo($baseQueryLinks);
 
 		$resultsPurchases = array();
 		if ($resPurchases > 0){
 			//Build an array based on the data to dump out to the grid
 			$i=0;
 			while ($r=mysql_fetch_array($resPurchases)) {
+				$recordId = $r['recordId'];
+				$fullId = $r['recordId'];
+
+				if (preg_match('/econtentRecord(\d+)/', $recordId, $matches)){
+					require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+					$econtentRecord = new EContentRecord();
+					$econtentRecord->id = $matches[1];
+					$econtentRecord->find(true);
+					$recordId = $econtentRecord->ilsId;
+					$title = $econtentRecord->title;
+				}else{
+					$resource = new Resource();
+					$resource->record_id = $recordId;
+					$resource->source = 'VuFind';
+					$resource->find(true);
+					$title = $resource->title;
+				}
+
 				$tmp = array(
-	      	'timesFollowed' => $r['timesFollowed'],  
+					'recordId' => $recordId,
+					'recordUrl' => '/Record/' . $fullId,
+					'title' => $title,
+					'timesFollowed' => $r['timesFollowed'],
 					'linkHost' => $r['linkHost'],
 					'linkUrl' => $r['linkUrl']
 				);
 				$resultsPurchases[$i++] = $tmp;
 			}
 		}
+		print_r($resultsPurchases);
 		$interface->assign('resultLinks', $resultsPurchases);
 
 		//////////Paging Array
@@ -320,29 +337,26 @@ class Report_ReportExternalLinks extends Report_Report{
 			$objPHPExcel = new PHPExcel();
 
 			// Set properties
-			$objPHPExcel->getProperties()->setCreator("DCL")
-			->setLastModifiedBy("DCL")
-			->setTitle("Office 2007 XLSX Document")
-			->setSubject("Office 2007 XLSX Document")
-			->setDescription("Office 2007 XLSX, generated using PHP.")
-			->setKeywords("office 2007 openxml php")
-			->setCategory("External Link Usage Report");
+			$objPHPExcel->getProperties()
+					->setTitle("External Link Usage Report")
+					->setCategory("External Link Usage Report");
 
 			// Add some data
 			$objPHPExcel->setActiveSheetIndex(0)
-			->setCellValue('A1', 'External Link Usage Report')
-			->setCellValue('A3', 'Url')
-			->setCellValue('B3', 'Host')
-			->setCellValue('C3', 'Usage');
+					->setCellValue('A1', 'External Link Usage Report')
+					->setCellValue('A3', 'Record Id')
+					->setCellValue('B3', 'Url')
+					->setCellValue('C3', 'Host')
+					->setCellValue('D3', 'Usage');
 
 			$a=4;
 			//Loop Through The Report Data
-			foreach ($resultsPurchases as $resultsPurchases) {
-					
+			foreach ($resultsPurchases as $resultsPurchase) {
 				$objPHPExcel->setActiveSheetIndex(0)
-				->setCellValue('A'.$a, $resultsPurchases['linkUrl'])
-				->setCellValue('B'.$a, $resultsPurchases['linkHost'])
-				->setCellValue('C'.$a, $resultsPurchases['timesFollowed']);
+						->setCellValue('A'.$a, $resultsPurchase['recordId'])
+						->setCellValue('B'.$a, $resultsPurchase['linkUrl'])
+						->setCellValue('C'.$a, $resultsPurchase['linkHost'])
+						->setCellValue('D'.$a, $resultsPurchase['timesFollowed']);
 				$a++;
 			}
 			$objPHPExcel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
