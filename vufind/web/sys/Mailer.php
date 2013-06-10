@@ -66,15 +66,18 @@ class VuFindMailer {
 	 * @param   string  $from       Sender email address
 	 * @param   string  $subject    Subject line for message
 	 * @param   string  $body       Message body
+	 * @param   string  $replyTo    Someone to reply to
+	 *
 	 * @return  mixed               PEAR error on error, boolean true otherwise
 	 */
-	public function send($to, $from, $subject, $body) {
+	public function send($to, $from, $subject, $body, $replyTo = null) {
 		global $logger;
 		// Validate sender and recipient
-		if (!Mail_RFC822::isValidInetAddress($to)) {
+		$validator = new Mail_RFC822();
+		if (!$validator->isValidInetAddress($to)) {
 			return new PEAR_Error('Invalid Recipient Email Address');
 		}
-		if (!Mail_RFC822::isValidInetAddress($from)) {
+		if (!$validator->isValidInetAddress($from)) {
 			return new PEAR_Error('Invalid Sender Email Address');
 		}
 		
@@ -88,11 +91,14 @@ class VuFindMailer {
 		}else{
 			$headers['From'] = $from;
 		}
+		if ($replyTo != null){
+			$headers['Reply-To'] = $replyTo;
+		}
 
 		// Get mail object
 		if ($this->settings['host'] != false){
-			
-			$mail =& Mail::factory('smtp', $this->settings);
+			$mailFactory = new Mail();
+			$mail =& $mailFactory->factory('smtp', $this->settings);
 			if (PEAR_Singleton::isError($mail)) {
 				return $mail;
 			}
@@ -110,7 +116,7 @@ class VuFindMailer {
 			$logger->log("From = $from", PEAR_LOG_INFO);
 			$logger->log("To = $to", PEAR_LOG_INFO);
 			$logger->log($subject, PEAR_LOG_INFO);
-			$logger->log($body, PEAR_LOG_INFO);
+			$logger->log($formattedMail, PEAR_LOG_INFO);
 			return true;
 		}
 

@@ -76,9 +76,10 @@ class Suggestion extends Action
 					$mail = new VuFindMailer();
 					$to = $configArray['Site']['suggestionEmail'];
 					$from = $configArray['Site']['email'];
+					$replyTo = $email;
 					$subject = "New Suggestion within VuFind";
 					$body = "Suggestion from: $name ($email)\r\n$suggestion";
-					$mail->send($to, $from, $subject, $body);
+					$mail->send($to, $from, $subject, $body, $replyTo);
 				}
 
 

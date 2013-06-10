@@ -1060,14 +1060,21 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				gutenbergReader.readNext();
 				String[] curItemInfo = gutenbergReader.readNext();
 				while (curItemInfo != null){
-					GutenbergItemInfo itemInfo = new GutenbergItemInfo(curItemInfo[1], curItemInfo[2], curItemInfo[3], curItemInfo[4], curItemInfo[5]);
+					//element 0 is a record id
+					String sourceUrl = curItemInfo[1];
+					String format = curItemInfo[2];
+					String filename = curItemInfo[3];
+					String folder = curItemInfo.length >= 5 ? curItemInfo[4] : "";
+					String notes = curItemInfo.length >= 6 ? curItemInfo[5] : "";
+
+					GutenbergItemInfo itemInfo = new GutenbergItemInfo(sourceUrl, format, filename, folder, notes);
 					
 					gutenbergItemInfo.add(itemInfo);
 					curItemInfo = gutenbergReader.readNext();
 				}
 				gutenbergReader.close();
 			} catch (Exception e) {
-				logger.error("Could not read Gutenberg Item file");
+				logger.error("Could not read Gutenberg Item file", e);
 			}
 			
 		}
