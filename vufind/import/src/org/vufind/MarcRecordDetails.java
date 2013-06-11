@@ -3958,7 +3958,6 @@ public class MarcRecordDetails {
 
 		// Process availability and items
 		eContentInfo.next();
-		String source = eContentInfo.getString("source");
 		int availableCopiesRecord = eContentInfo.getInt("availableCopies");
 		int itemLevelOwnership = eContentInfo.getInt("itemLevelOwnership");
 
@@ -4131,10 +4130,7 @@ public class MarcRecordDetails {
 		return getFirstFieldVal("300ab");
 	}
 
-	Pattern digitPattern = Pattern.compile("^\\d+$");
-
 	private String recordId = null;
-
 	public String getMillenniumId(String fieldSpec) {
 		if (this.recordId != null) {
 			return this.recordId;
