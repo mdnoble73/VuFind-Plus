@@ -96,7 +96,7 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
 
 				<div id="recordTools">
-					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title}
+					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 				</div>
 				<div class="clearer">&nbsp;</div>
 			</div>

@@ -8,8 +8,8 @@
 	<div class="imageColumn"> 
 		<div id='descriptionPlaceholder{$summId|escape}' style='display:none' class='descriptionTooltip'></div>
 		{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}	
-			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$summId|escape:"url"}">
-			<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+			<a href="{$summUrl}" id="descriptionTrigger{$summId|escape:"url"}">
+				<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 		{/if}
 		{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
@@ -19,7 +19,7 @@
 <div class="resultDetails">
 	<div class="resultItemLine1">
 	{if $summScore}({$summScore}) {/if}
-	<a href="{$path}/EcontentRecord/{$summId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	<a href="{$summUrl}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $summTitleStatement}
 		<div class="searchResultSectionInfo">
 			{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -75,11 +75,7 @@
 </div>
 
 <div class="resultActions">
-	{assign var=id value=$summId scope="global"}
-	{assign var=shortId value=$summShortId scope="global"}
-	{assign var=summTitle value=$summTitle scope="global"}
-	{assign var=ratingData value=$summRating scope="global"}
-	{include file='EcontentRecord/result-tools.tpl'}
+	{include file='EcontentRecord/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 </div>
 
 
