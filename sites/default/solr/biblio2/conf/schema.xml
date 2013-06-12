@@ -352,7 +352,7 @@
 	<copyField source="author_additional" dest="author_additionalStr"/>
 	<copyField source="publisher" dest="publisherStr"/>
 	<!-- CopyFields for Proper (Unstemmed) searching -->
-	<copyField source="title_full" dest="title_proper"/>
+	<copyField source="title" dest="title_proper"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>
 	<copyField source="geographic" dest="geographic_proper"/>
