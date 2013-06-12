@@ -264,9 +264,6 @@ Title:
       - [and, 30]
 
 TitleProper:
-  DismaxFields:
-    - title_proper^500
-    - series_proper^100
   QueryFields:
     - title_proper:
       - [onephrase, 500]
