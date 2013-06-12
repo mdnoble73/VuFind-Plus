@@ -81,16 +81,25 @@ class EcontentRecordDriver extends IndexRecord
 	{
 		global $interface;
 		global $user;
-		global $logger;
+
 		if (!isset($this->eContentRecord)){
 			$this->eContentRecord = new EContentRecord();
 			$this->eContentRecord->id = $this->getUniqueID();
 			$this->eContentRecord->find(true);
 		}
+
 		$interface->assign('source', $this->eContentRecord->source);
 		$interface->assign('eContentRecord', $this->eContentRecord);
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 		parent::getSearchResult();
+
+		$linkUrl = '/EcontentRecord/' . $this->getUniqueID() . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if ($useUnscopedHoldingsSummary){
+			$linkUrl .= '&amp;searchSource=marmot';
+		}else{
+			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		$interface->assign('summUrl', $linkUrl);
 
 		//Get Rating
 		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
@@ -400,11 +409,10 @@ class EcontentRecordDriver extends IndexRecord
 		return $matches;
 	}
 
-	public function getSupplementalSearchResult(){
+	public function getSupplementalSearchResult() {
 		global $configArray;
 		global $interface;
 		global $user;
-		global $logger;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);

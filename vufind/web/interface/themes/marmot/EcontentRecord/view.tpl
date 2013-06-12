@@ -234,7 +234,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div id="prospectorHoldingsPlaceholder"></div>
 				{/if}
 				<div id="recordTools">
-					{include file="EcontentRecord/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title}
+					{include file="EcontentRecord/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUr}
 
 				</div>
 
