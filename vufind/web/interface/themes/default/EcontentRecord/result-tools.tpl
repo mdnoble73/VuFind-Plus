@@ -33,7 +33,7 @@
 	</div>
 {/if}
 {if $showMoreInfo !== false}
-<div class="resultAction"><a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}"><span class="silk information">&nbsp;</span>More Info</a></div>
+<div class="resultAction"><a href="{$recordUrl}"><span class="silk information">&nbsp;</span>More Info</a></div>
 {/if}
 {*
 <div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$id|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', 'EcontentRecord{$summId|escape:"url"}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
