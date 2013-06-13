@@ -30,10 +30,14 @@ class MyResearch_SelectInterface extends Action{
 		global $locationSingleton;
 		$physicalLocation = $locationSingleton->getActiveLocation();
 
-		$gotoModule = $_REQUEST['gotoModule'];
-		$interface->assign('gotoModule', $gotoModule);
-		$gotoAction = $_REQUEST['gotoAction'];
-		$interface->assign('gotoAction', $gotoAction);
+		if (isset($_REQUEST['gotoModule'])){
+			$gotoModule = $_REQUEST['gotoModule'];
+			$interface->assign('gotoModule', $gotoModule);
+		}
+		if (isset($_REQUEST['gotoAction'])){
+			$gotoAction = $_REQUEST['gotoAction'];
+			$interface->assign('gotoAction', $gotoAction);
+		}
 
 		$redirectLibrary = null;
 		if (isset($_REQUEST['library'])){
