@@ -137,7 +137,7 @@ public class MarcRecordDetails {
 		HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem = new HashMap<String, LinkedHashSet<String>>();
 		HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation = new HashMap<String, LinkedHashSet<String>>();
 		Set<String> availableAt = new LinkedHashSet<String>();
-		Set<String> availabilityToggleGlobal = new LinkedHashSet<String>();
+		LinkedHashSet<String> availabilityToggleGlobal = new LinkedHashSet<String>();
 		availabilityToggleGlobal.add("Entire Collection");
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();

@@ -100,7 +100,7 @@ class EContentDriver implements DriverInterface{
 		global $user;
 		global $configArray;
 
-		$libaryScopeId = $this->getLibraryScopingId();
+		$libraryScopeId = $this->getLibraryScopingId();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
@@ -136,8 +136,8 @@ class EContentDriver implements DriverInterface{
 
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $id;
-			if ($libaryScopeId != -1){
-				$eContentItem->whereAdd("libraryId = -1 or libraryId = $libaryScopeId");
+			if ($libraryScopeId != -1){
+				$eContentItem->whereAdd("libraryId = -1 or libraryId = $libraryScopeId");
 			}
 			$items = array();
 			$eContentItem->find();
@@ -177,7 +177,7 @@ class EContentDriver implements DriverInterface{
 						}
 					}else{
 						//Non shared item, check to see if we are in the correct scope to show it
-						if ($libaryScopeId == -1 || $availableFrom->libraryId == $libaryScopeId){
+						if ($libraryScopeId == -1 || $availableFrom->libraryId == $libraryScopeId){
 							if ($availableFrom->availableCopies > 0){
 								$addCheckoutLink = true;
 							}else{
@@ -218,9 +218,9 @@ class EContentDriver implements DriverInterface{
 					$items[$key] = $item;
 				}
 			}
-			if ($libaryScopeId != -1){
+			if ($libraryScopeId != -1){
 				foreach ($items as $key => $item){
-					if ($item->libraryId != -1 && $item->libraryId != $libaryScopeId ){
+					if ($item->libraryId != -1 && $item->libraryId != $libraryScopeId ){
 						unset($items[$key]);
 					}
 				}

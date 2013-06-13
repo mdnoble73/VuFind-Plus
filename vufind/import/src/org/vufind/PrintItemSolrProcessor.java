@@ -28,7 +28,7 @@ public class PrintItemSolrProcessor {
 	private HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem;
 	private HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation;
 	private Set<String> availableAt;
-	private Set<String> availabilityToggleGlobal;
+	private LinkedHashSet<String> availabilityToggleGlobal;
 	private HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation;
 	private LinkedHashSet<String> localCallNumbers;
 	private LinkedHashSet<String> usableByPTypes;
@@ -43,7 +43,7 @@ public class PrintItemSolrProcessor {
 	private static Date indexDate = new Date();
 
 
-	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, Set<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, boolean manuallySuppressed, boolean allItemsSuppressed, int popularity, DataField itemField) {
+	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, boolean manuallySuppressed, boolean allItemsSuppressed, int popularity, DataField itemField) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.librarySystems = librarySystems;
@@ -293,9 +293,10 @@ public class PrintItemSolrProcessor {
 		return timeSinceAdded;
 	}
 
-	private void processItemAvailability(Set<String> availableAt, Set<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, String locationCode, LocationIndexingInfo locationIndexingInfo, LibraryIndexingInfo libraryIndexingInfo, boolean available, String iType) {
+	private void processItemAvailability(Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, String locationCode, LocationIndexingInfo locationIndexingInfo, LibraryIndexingInfo libraryIndexingInfo, boolean available, String iType) {
 		if (available) {
 			availabilityToggleGlobal.add("Available Now");
+			availableAtBySystemOrLocation.put("marmot", availabilityToggleGlobal);
 		}
 		// logger.debug("item is available at " + locationCode);
 		// Loop through all libraries
@@ -309,25 +310,19 @@ public class PrintItemSolrProcessor {
 			LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
 			libraryAvailability.add("Entire Collection");
 			if (available) {
-				if (libraryIndexingInfo != null
-						&& libraryIndexingInfo.getSubdomain().equalsIgnoreCase(
-						curSubdomain)) {
+				if (libraryIndexingInfo != null && libraryIndexingInfo.getSubdomain().equalsIgnoreCase(curSubdomain)) {
 					libraryAvailability.add("Available Now");
 				}
 			}
-			if (existingAvailability == null
-					|| libraryAvailability.size() > existingAvailability.size()) {
-				availableAtBySystemOrLocation.put(curSubdomain,
-						libraryAvailability);
+			if (existingAvailability == null || libraryAvailability.size() > existingAvailability.size()) {
+				availableAtBySystemOrLocation.put(curSubdomain, libraryAvailability);
 			}
 		}
 
 		// Loop through all locations
 		for (String curCode : marcProcessor.getLocationCodes()) {
-			LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation
-					.get(curCode);
-			if (existingAvailability != null
-					&& existingAvailability.size() == 2) {
+			LinkedHashSet<String> existingAvailability = availableAtBySystemOrLocation .get(curCode);
+			if (existingAvailability != null && existingAvailability.size() == 2) {
 				// Can't get better availability
 				continue;
 			}
