@@ -371,10 +371,6 @@ Keyword:
     upc:
       - [and, 100]
       - [or, ~]
-    callnumber_exact:
-      - [onephrase, 50]
-    callnumber_left:
-      - [onephrase, 25]
     id:
       - [onephrase, ~]
     id_alt:
@@ -474,23 +470,32 @@ LccBrowse:
     - callnumber-a:
       - [onephrase, ~]
 
-CallNumber:
-  CustomMunge:
-    callnumber:
-      - [uppercase]
-      # Strip whitespace and quotes:
-      - [preg_replace, '/[ "]/', ""]
-      # Strip pre-existing trailing asterisks:
-      - [preg_replace, "/\*+$/", ""]
-      # Ensure we have just one trailing asterisk.  The trailing space inside
-      #     the quotes has no effect on searching; it is a workaround for a
-      #     Horde::YAML parsing glitch -- see VUFIND-160 in JIRA for details.
-      - [append, "* "]
+LocalCallNumber:
   QueryFields:
-    - callnumber:
-      - [callnumber, ~]
-    - dewey-full:
-      - [callnumber, ~]
+    - local_callnumber_exact:
+      - [localized_callnumber, 800]
+    - local_callnumber_left:
+      - [localized_callnumber, 300]
+    - callnumber_browse:
+      - [exact, ~]
+
+LCCallNumber:
+  QueryFields:
+    - lc_callnumber_exact:
+      - [localized_callnumber, 800]
+    - lc_callnumber_left:
+      - [localized_callnumber, 300]
+    - lc_callnumber:
+      - [exact, ~]
+
+DeweyCallNumber:
+  QueryFields:
+    - dewey_callnumber_exact:
+      - [localized_callnumber, 800]
+    - dewey_callnumber_left:
+      - [localized_callnumber, 300]
+    - dewey_callnumber:
+      - [exact, ~]
 
 callnumber_browse:
   QueryFields:

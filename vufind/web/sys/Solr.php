@@ -739,6 +739,18 @@ class Solr implements IndexEngine {
 			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor);
 		}
 
+		//Create localized call number
+		$searchLibrary = Library::getSearchLibrary($this->searchSource);
+		$noWildCardLookFor = str_replace('*', '', $lookfor);
+		if (strpos($lookfor, '*') !== false){
+			$noWildCardLookFor = str_replace('*', '', $lookfor);
+		}
+		if ($searchLibrary != null){
+			$values['localized_callnumber'] = '"' . str_replace('"', '', $searchLibrary->subdomain . ' ' . $noWildCardLookFor) . '"';
+		}else{
+			$values['localized_callnumber'] = '"' . str_replace('"', '', $noWildCardLookFor) . '"';
+		}
+
 		// Apply custom munge operations if necessary:
 		if (is_array($custom) && $basic) {
 			foreach($custom as $mungeName => $mungeOps) {

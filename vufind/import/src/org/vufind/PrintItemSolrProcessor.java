@@ -30,6 +30,7 @@ public class PrintItemSolrProcessor {
 	private Set<String> availableAt;
 	private Set<String> availabilityToggleGlobal;
 	private HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation;
+	private LinkedHashSet<String> localCallNumbers;
 	private LinkedHashSet<String> usableByPTypes;
 	private boolean manuallySuppressed;
 	private boolean allItemsSuppressed;
@@ -42,7 +43,7 @@ public class PrintItemSolrProcessor {
 	private static Date indexDate = new Date();
 
 
-	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, Set<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, boolean manuallySuppressed, boolean allItemsSuppressed, int popularity, DataField itemField) {
+	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, Set<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, boolean manuallySuppressed, boolean allItemsSuppressed, int popularity, DataField itemField) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.librarySystems = librarySystems;
@@ -59,6 +60,7 @@ public class PrintItemSolrProcessor {
 		this.availabilityToggleGlobal = availabilityToggleGlobal;
 		this.availableAtBySystemOrLocation = availableAtBySystemOrLocation;
 		this.usableByPTypes = usableByPTypes;
+		this.localCallNumbers = localCallNumbers;
 		this.manuallySuppressed = manuallySuppressed;
 		this.allItemsSuppressed = allItemsSuppressed;
 		this.popularity = popularity;
@@ -99,6 +101,34 @@ public class PrintItemSolrProcessor {
 					itemSuppressed = true;
 				}
 			}
+
+			StringBuilder callNumber = new StringBuilder();
+
+			Subfield callNumberFieldS = itemField.getSubfield('s');
+			if (callNumberFieldS != null){
+				callNumber.append(callNumberFieldS.getData().trim());
+			}
+			Subfield callNumberFieldA = itemField.getSubfield('a');
+			if (callNumberFieldA != null){
+				callNumber.append(callNumberFieldA.getData().trim());
+			}
+			Subfield callNumberFieldR = itemField.getSubfield('r');
+			if (callNumberFieldR != null){
+				callNumber.append(callNumberFieldR.getData().trim());
+			}
+
+			if (callNumber.length() > 0){
+				localCallNumbers.add(callNumber.toString());
+				if (libraryIndexingInfo != null){
+					StringBuilder localCallNumber = new StringBuilder();
+					localCallNumber.append(libraryIndexingInfo.getSubdomain());
+					localCallNumber.append(" ");
+					localCallNumber.append(callNumber);
+					localCallNumbers.add(localCallNumber.toString());
+				}
+			}
+
+			//logger.debug(callNumber.toString() + ", " + localCallNumber.toString());
 
 			// Load availability (local, system, marmot)
 			Subfield statusSubfield = itemField.getSubfield('g');

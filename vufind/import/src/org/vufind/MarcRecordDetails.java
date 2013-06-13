@@ -141,6 +141,7 @@ public class MarcRecordDetails {
 		availabilityToggleGlobal.add("Entire Collection");
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
+		LinkedHashSet<String> callNumbers = new LinkedHashSet<String>();
 		LinkedHashSet<String> altIds = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
@@ -154,7 +155,7 @@ public class MarcRecordDetails {
 		}
 		logger.debug("Found " + itemFields.size() + " items");
 		for (DataField itemField : itemFields) {
-			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
+			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
 			allItemsSuppressed = printItemSolrProcessor.isAllItemsSuppressed();
 			timeSinceAdded = printItemSolrProcessor.getTimeSinceAdded();
 			popularity = printItemSolrProcessor.getPopularity();
@@ -178,6 +179,8 @@ public class MarcRecordDetails {
 		}
 
 		addField(mappedFields, "bib_suppression", bibSuppressed ? "suppressed" : "notsuppressed");
+		addFields(mappedFields, "callnumber_browse", null, callNumbers);
+		//logger.debug("Found " + callNumbers.size() + " callnumbers");
 		addFields(mappedFields, "institution", null, librarySystems);
 		addFields(mappedFields, "building", null, locations);
 		addFields(mappedFields, "barcode", null, barcodes);
@@ -4066,7 +4069,7 @@ public class MarcRecordDetails {
 			}
 		}
 
-		logger.debug(doc.toString());
+		// logger.debug(doc.toString());
 		return doc;
 	}
 
