@@ -23,7 +23,7 @@
 									<div><span style="color: #acacac; font-size: medium;">Telluride, CO 81435</span></div>
 									<div>
 										<span style="font-size:medium">
-											<a id="mailLink" href="#" style="color: #75A6C2;">This email address is being protected from spambots. You need JavaScript enabled to view it.</a>
+											<a id="mailLinkFooter" href="#" style="color: #75A6C2;">This email address is being protected from spambots. You need JavaScript enabled to view it.</a>
 										</span>
 									</div>
 								</div>
@@ -121,6 +121,6 @@
 	var mail_path = 'hr' + 'ef' + '=';
 	var addy22065 = 'askus' + '@';
 	addy22065 = addy22065 + 'telluridelibrary' + '.' + 'org';
-	$("#mailLink").attr('href', prefix + ':' + addy22065);
-	$("#mailLink").html(addy22065);
+	$("#mailLinkFooter").attr('href', prefix + ':' + addy22065);
+	$("#mailLinkFooter").html(addy22065);
 </script>
