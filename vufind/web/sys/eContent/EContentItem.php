@@ -374,7 +374,7 @@ class EContentItem extends DB_DataObject {
 				$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, false, $this->getAvailableCopies());
 				if ($uploadResults['success']){
 					$this->acsId = $uploadResults['acsId'];
-					$fileUploaded  = true;
+					parent::update();
 				}else{
 					return 0;
 				}

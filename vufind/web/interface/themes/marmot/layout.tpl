@@ -27,11 +27,11 @@
 	<body class="{$module} {$action}">
 		{*- Set focus to the correct location by default *}
 		{if $focusElementId}
-		<script type="text/javascript">{literal}
-		jQuery(function (){
-			jQuery('#{/literal}{$focusElementId}{literal}').focus().select();
-		});{/literal}
-		</script>
+			<script type="text/javascript">{literal}
+			jQuery(function (){
+				jQuery('#{/literal}{$focusElementId}{literal}').focus().select();
+			});{/literal}
+			</script>
 		{/if}
 		{include file="bookcart.tpl"}
 
@@ -116,6 +116,6 @@
 				</div>
 			</div> {* End outer_span *}
  		</div>
-		{include file=tracking.tpl}
-	</body>
+		{include file='tracking.tpl'}
+</body>
 </html>{/strip}

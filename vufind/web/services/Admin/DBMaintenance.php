@@ -354,6 +354,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_34' => array(
+				'title' => 'Library 34',
+				'description' => 'Remove Facet File',
+				'sql' => array(
+					"ALTER TABLE library DROP COLUMN facetFile",
+					"ALTER TABLE library DROP COLUMN defaultLibraryFacet",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

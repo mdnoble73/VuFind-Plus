@@ -132,6 +132,7 @@ abstract class ObjectEditor extends Admin_Admin
 		if (!$ret){
 			global $logger;
 			$logger->log('Could not insert new object ' . $ret, PEAR_LOG_DEBUG);
+			$logger->log(mysql_error(), PEAR_LOG_DEBUG);
 			return false;
 		}
 		return $newObject;

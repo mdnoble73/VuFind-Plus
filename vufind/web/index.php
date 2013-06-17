@@ -271,6 +271,7 @@ $interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRe
 
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
+$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 if ($user) {
 	$interface->assign('user', $user);
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
@@ -287,6 +288,7 @@ if ($user) {
 		exit();
 	}
 	$interface->assign('user', $user);
+	$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 	//Check to see if there is a followup module and if so, use that module and action for the next page load
 	if (isset($_REQUEST['returnUrl'])) {
 		$followupUrl =  $_REQUEST['returnUrl'];
