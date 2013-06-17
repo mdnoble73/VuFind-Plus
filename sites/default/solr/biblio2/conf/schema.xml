@@ -109,9 +109,10 @@
 		<fieldType name="callnumber-search" class="solr.TextField" sortMissingLast="true" omitNorms="true">
 			<analyzer>
 				<!-- KeywordTokenizer does no actual tokenizing, so the entire
-		 input string is preserved as a single token
-	-->
+					 input string is preserved as a single token
+				-->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="0" splitOnNumerics="1" preserveOriginal="1"/>
 				<!-- The LowerCase TokenFilter does what you expect, which can be
              when you want your sorting to be case insensitive
           -->
@@ -124,8 +125,8 @@
 			<analyzer>
 				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^(.*)$" replacement="AAAA $1 ZZZZ"/>
 				<!-- KeywordTokenizer does no actual tokenizing, so the entire
-		 input string is preserved as a single token
-	-->
+					 input string is preserved as a single token
+				-->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
 				<!-- The LowerCase TokenFilter does what you expect, which can be
 		 when you want your sorting to be case insensitive
@@ -143,7 +144,7 @@
 				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->
 				<filter class="solr.TrimFilterFactory"/>
-				<filter class="solr.EdgeNGramFilterFactory" minGramSize="6" maxGramSize="20" side="front"/>
+				<filter class="solr.EdgeNGramFilterFactory" minGramSize="6" maxGramSize="40" side="front"/>
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
 			</analyzer>
 			<analyzer type="query">
@@ -229,10 +230,10 @@
 		<field name="issn" type="isn" indexed="true" stored="true" multiValued="true"/>
 		<field name="upc" type="isn" indexed="true" stored="true" multiValued="true"/>
 		<field name="callnumber" type="string" indexed="true" stored="true"/>
-		<field name="lc_callnumber" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
+		<field name="lc_callnumber" type="callnumber-search" indexed="true" stored="true" multiValued="true"/>
 		<field name="lc_callnumber_exact" type="callnumber-exact" indexed="true" stored="false" multiValued="true"/>
 		<field name="lc_callnumber_left" type="callnumber-left" indexed="true" stored="false" multiValued="true"/>
-		<field name="dewey_callnumber" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
+		<field name="dewey_callnumber" type="callnumber-search" indexed="true" stored="true" multiValued="true"/>
 		<field name="dewey_callnumber_exact" type="callnumber-exact" indexed="true" stored="false" multiValued="true"/>
 		<field name="dewey_callnumber_left" type="callnumber-left" indexed="true" stored="false" multiValued="true"/>
 		<field name="callnumber-a" type="string" indexed="true" stored="true"/>
@@ -267,8 +268,9 @@
 		<field name="author_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="callnumber_browse" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
-		<field name="local_callnumber_exact" type="callnumber-exact" indexed="true" stored="true" multiValued="true"/>
-		<field name="local_callnumber_left" type="callnumber-left" indexed="true" stored="true" multiValued="true"/>
+		<field name="local_callnumber" type="callnumber-search" indexed="true" stored="true" multiValued="true"/>
+		<field name="local_callnumber_exact" type="callnumber-exact" indexed="true" stored="false" multiValued="true"/>
+		<field name="local_callnumber_left" type="callnumber-left" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
@@ -355,6 +357,7 @@
 	<copyField source="topic" dest="topic_browse"/>
 	<copyField source="author" dest="author_browse"/>
 	<copyField source="author2" dest="author_browse"/>
+	<copyField source="callnumber_browse" dest="local_callnumber"/>
 	<copyField source="callnumber_browse" dest="local_callnumber_exact"/>
 	<copyField source="callnumber_browse" dest="local_callnumber_left"/>
 	<copyField source="lc_callnumber" dest="lc_callnumber_exact"/>

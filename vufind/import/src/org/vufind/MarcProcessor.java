@@ -95,7 +95,6 @@ public class MarcProcessor {
 	private Map<Long, String>					libraryIdToSystemFacets	= Collections.synchronizedMap(new HashMap<Long, String>());
 	private Map<String, Long>					locationFacets					= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<String, Long>					eContentLinkRules				= Collections.synchronizedMap(new HashMap<String, Long>());
-	private ArrayList<String>					advantageLibraryFacets	= new ArrayList<String>();
 	private ArrayList<String>					locationCodes						= new ArrayList<String>();
 	private ArrayList<String>					librarySubdomains				= new ArrayList<String>();
 	private ArrayList<Long>						libraryIds				= new ArrayList<Long>();
@@ -267,7 +266,7 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, defaultLibraryFacet, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
 				Long libraryId = librarySystemFacetRS.getLong("libraryId");
@@ -278,7 +277,6 @@ public class MarcProcessor {
 				librarySubdomains.add(librarySubdomain);
 				libraryInfo.setLibraryId(libraryId);
 				libraryInfo.setSubdomain(librarySubdomain);
-				//libraryInfo.setScoped(defaultLibraryFacet.length() > 0);
 				libraryInfo.setFacetLabel(facetLabel);
 				libraryInfo.setIlsCode(ilsCode);
 				libraryIndexingInfo.put(libraryId, libraryInfo);
@@ -291,10 +289,6 @@ public class MarcProcessor {
 					eContentLinkRules.put(eContentLinkRulesStr, librarySystemFacetRS.getLong("libraryId"));
 				}
 				libraryIdToSystemFacets.put(librarySystemFacetRS.getLong("libraryId"), facetLabel);
-				String overdriveAdvantageProductsKey = librarySystemFacetRS.getString("overdriveAdvantageProductsKey");
-				if (overdriveAdvantageProductsKey != null && overdriveAdvantageProductsKey.length() > 0){
-					advantageLibraryFacets.add(facetLabel);
-				}
 			}
 			logger.debug("Loaded " + librarySubdomains.size() + " librarySubdomains");
 		} catch (SQLException e) {
@@ -1051,10 +1045,6 @@ public class MarcProcessor {
 			ratingFacet.add("Unrated");
 		}
 		return ratingFacet;
-	}
-
-	public ArrayList<String> getAdvantageLibraryFacets() {
-		return advantageLibraryFacets;
 	}
 
 	public LibraryIndexingInfo getLibraryIndexingInfo(Long libraryId) {

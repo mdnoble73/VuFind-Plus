@@ -476,7 +476,7 @@ LocalCallNumber:
       - [localized_callnumber, 800]
     - local_callnumber_left:
       - [localized_callnumber, 300]
-    - callnumber_browse:
+    - local_callnumber:
       - [exact, ~]
 
 LCCallNumber:
