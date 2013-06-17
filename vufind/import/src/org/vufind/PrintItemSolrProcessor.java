@@ -85,7 +85,7 @@ public class PrintItemSolrProcessor {
 			logger.debug("Did not find location code for item ");
 		} else {
 			String locationCode = itemField.getSubfield('d').getData().trim();
-			logger.debug("Processing locationCode " + locationCode);
+			//logger.debug("Processing locationCode " + locationCode);
 			// Figure out which location and library this item belongs to.
 			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(locationCode);
 			LibraryIndexingInfo libraryIndexingInfo = null;
@@ -110,11 +110,11 @@ public class PrintItemSolrProcessor {
 			}
 			Subfield callNumberFieldA = itemField.getSubfield('a');
 			if (callNumberFieldA != null){
-				callNumber.append(callNumberFieldA.getData().trim());
+				callNumber.append(" " + callNumberFieldA.getData().trim());
 			}
 			Subfield callNumberFieldR = itemField.getSubfield('r');
 			if (callNumberFieldR != null){
-				callNumber.append(callNumberFieldR.getData().trim());
+				callNumber.append(" " + callNumberFieldR.getData().trim());
 			}
 
 			if (callNumber.length() > 0){
@@ -128,7 +128,7 @@ public class PrintItemSolrProcessor {
 				}
 			}
 
-			//logger.debug(callNumber.toString() + ", " + localCallNumber.toString());
+			//logger.debug(callNumber.toString());
 
 			// Load availability (local, system, marmot)
 			Subfield statusSubfield = itemField.getSubfield('g');
