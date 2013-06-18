@@ -5,3 +5,4 @@
 
 # Dynamic CSS
 AddType text/css .css
+AddType text/css .less

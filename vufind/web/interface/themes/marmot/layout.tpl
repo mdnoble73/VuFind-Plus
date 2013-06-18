@@ -29,7 +29,8 @@
 		{if $focusElementId}
 			<script type="text/javascript">{literal}
 			jQuery(function (){
-				jQuery('#{/literal}{$focusElementId}{literal}').focus().select();
+				var focusElementId = '#{/literal}{$focusElementId}{literal}';
+				jQuery(focusElementId).focus().select();
 			});{/literal}
 			</script>
 		{/if}
@@ -53,9 +54,9 @@
 				<div id="content_span">
 					{if $showTopSearchBox}
 						<div id='searchbar'>
-						{if $pageTemplate != 'advanced.tpl'}
-							{include file="searchbar.tpl"}
-						{/if}
+							{if $pageTemplate != 'advanced.tpl'}
+								{include file="searchbar.tpl"}
+							{/if}
 						</div>
 					{/if}
 

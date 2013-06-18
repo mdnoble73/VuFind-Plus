@@ -1,0 +1,34 @@
+@header-background: #255A8B;
+@header-color: #FBEADE;
+@searchbar-background: #EEEDF2;
+
+.masthead {
+  background-color: @header-background;
+  color: @header-color;
+}
+
+.masthead a, .masthead a:hover, .masthead a:visited {
+  color: @header-color;
+}
+
+#searchbar {
+  background-color: @searchbar-background;
+}
+
+#searchbar form {
+  margin-bottom: 0;
+  padding: 3px 5px;
+}
+
+.expanded, .collapsed {
+  cursor: pointer;
+}
+
+.expanded:before {
+  content: "▼ ";
+}
+
+.collapsed:before {
+  content: "► ";
+}
+

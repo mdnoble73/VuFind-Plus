@@ -2,12 +2,13 @@
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row-fluid">
 	<div class="span1">
 		<div class="selectTitle">
-			<span class="resultIndex">{$resultIndex} </span>
-			<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
+			<label for="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" class="resultIndex checkbox">{$resultIndex}
+				<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
+			</label>
 		</div>
 	</div>
 
-	<div class="imageColumn span2 pull-right">
+	<div class="imageColumn span2 text-center">
 		{if $user->disableCoverArt != 1}
 			<div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none' class='descriptionTooltip'></div>
 			<a href="{$summUrl}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
@@ -17,13 +18,13 @@
 		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 	</div>
 
-	<div class="resultDetails span7">
+	<div class="resultDetails span6">
 		<div class="resultItemLine1">
 			{if $summScore}({$summScore}) {/if}
-			<a href="{$summUrl}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+			<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 			{if $summTitleStatement}
 				<div class="searchResultSectionInfo">
-					{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 				</div>
 			{/if}
 		</div>
@@ -72,13 +73,13 @@
 		</div>
 	</div>
 
-	<div class="resultActions" class="span2">
+	<div class="resultActions span2">
 		{include file='Record/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 
 	</div>
 
 	<script type="text/javascript">
-		addIdToStatusList('{$summId|escape}', 'VuFind', '{$useUnscopedHoldingsSummary}');
+		VuFind.Holdings.addIdToStatusList('{$summId|escape}', 'VuFind', '{$useUnscopedHoldingsSummary}');
 		{if $summISBN}
 		getSeriesInfo('{$summISBN}');
 		{/if}

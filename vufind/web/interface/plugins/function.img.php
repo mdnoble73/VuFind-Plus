@@ -36,7 +36,6 @@ function smarty_function_img($params, &$smarty)
 	//Didn't find a theme specific image, try the images directory
 	if (file_exists("{$local}/images/{$filename}")) {
 		return "{$path}/images/{$filename}";
-		break;
 	}
 
 	// We couldn't find the file, return an empty value:

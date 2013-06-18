@@ -1,5 +1,5 @@
 {strip}
-<form id="addForm" action="{$path}/MyResearch/HoldMultiple">
+<form id="addForm" action="{$path}/MyResearch/HoldMultiple" class="">
 	<div>
 		<div class='selectAllControls'>
 			{* Make sure to trigger the proper events when selecting and deselecting *}
@@ -26,7 +26,7 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
-		doGetStatusSummaries();
+		holdings.loadStatusSummaries();
 		{if $user}
 		doGetSaveStatuses();
 		{/if}

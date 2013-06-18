@@ -11,17 +11,21 @@
 		{* Include css as appropriate *}
 		<link href="{$path}/interface/themes/responsive/css/bootstrap.css" rel="stylesheet" media="screen">
 		<link href="{$path}/interface/themes/responsive/css/bootstrap-responsive.css" rel="stylesheet" media="screen">
-		<link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen">
+		<link href="{$path}/interface/themes/responsive/css/marmot.less" rel="stylesheet/less" media="screen">
+
+		{* Process less files *}
+		<script src="{$path}/interface/themes/responsive/js/less.js"></script>
 
 		{* Include correct javascript *}
 		<script type="text/javascript">
-			path = '{$path}';
-			url = '{$url}';
-			loggedIn = {$loggedIn};
-			automaticTimeoutLength = {$automaticTimeoutLength};
-			automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
+			var path = '{$path}';
+			var url = '{$url}';
+			var loggedIn = {$loggedIn};
+			var automaticTimeoutLength = {$automaticTimeoutLength};
+			var automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 		</script>
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/scripts.js"></script>
 
 		{if $includeAutoLogoutCode == true}
 			<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
@@ -30,6 +34,14 @@
 	<body class="module_{$module} action_{$action}">
 		<div class="container-fluid">
 			{include file='header.tpl'}
+
+			{if $showTopSearchBox}
+				<div id='searchbar'>
+					{if $pageTemplate != 'advanced.tpl'}
+						{include file="searchbar.tpl"}
+					{/if}
+				</div>
+			{/if}
 
 			{if $showBreadcrumbs}
 				<ul class="breadcrumb">

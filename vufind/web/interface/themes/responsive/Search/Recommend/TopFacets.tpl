@@ -26,22 +26,17 @@
 				</div>
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
-			<div id="availabilityControl">
-				{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
-					{if $thisFacet.isApplied}
-						<input type="radio" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" checked="checked" name="availabilityControls" /><label for="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}">{$thisFacet.value|escape} ({$thisFacet.count})</label>
-					{else}
-						<input type="radio" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" name="availabilityControls" data-url="{$thisFacet.url|escape}" onclick="window.location = $(this).data('url')" /><label for="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}">{$thisFacet.value|escape} ({$thisFacet.count})</label>
-					{/if}
-				{/foreach}
+			<div class="row-fluid text-center">
+				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
+					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
+						{if $thisFacet.isApplied}
+							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" checked="checked" name="availabilityControls" /><label for="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}">{$thisFacet.value|escape} ({$thisFacet.count})</label>
+						{else}
+							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn" name="availabilityControls" data-url="{$thisFacet.url|escape}" onclick="window.location = $(this).data('url')" /><label for="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}">{$thisFacet.value|escape} ({$thisFacet.count})</label>
+						{/if}
+					{/foreach}
+				</div>
 			</div>
-			<script type="text/javascript">
-			{literal}
-			$(function() {
-				$( "#availabilityControl" ).buttonset();
-			});
-			{/literal}
-			</script>
 		{else}
 			<div class="authorbox">
 				<table class="facetsTop navmenu narrow_begin">
