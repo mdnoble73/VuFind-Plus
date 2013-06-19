@@ -7,7 +7,7 @@
 			</div>
 		{else}
 
-			<img src = "{if $largeLogo}{$largeLogo}{else}{img filename="logo_large.png"}{/if}" alt='{$librarySystemName} Logo'/>
+			<img id="largeLogo" src="{if $largeLogo}{$largeLogo}{else}{img filename="logo_large.png"}{/if}" alt='{$librarySystemName} Logo'/>
 		{/if}
 		
 		<div class="searchHomeForm">

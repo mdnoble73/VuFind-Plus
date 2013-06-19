@@ -24,6 +24,9 @@
 					<li><a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">{translate text='Search Tips'}</a></li>
 					<li><a href="{$path}/Help/Home?topic=faq" class="modalDialogTrigger" data-title="{translate text='FAQs'}">{translate text='FAQs'}</a></li>
 					<li><a href="{$path}/Help/eContentHelp?lightbox" class="modalDialogTrigger" data-title="{translate text='eBooks &amp; eAudio'}">{translate text='eBooks &amp; eAudio'}</a></li>
+					{if $enableMaterialsRequest}
+						<li><a href="{$path}/MaterialsRequest/NewRequest">{translate text='Suggest a Purchase'}</a></li>
+					{/if}
 					<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 				</ul>
 			</div>
