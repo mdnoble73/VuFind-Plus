@@ -10,9 +10,14 @@
 
 	<div class="imageColumn span2 text-center">
 		{if $user->disableCoverArt != 1}
-			<div id='descriptionPlaceholder{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}' style='display:none' class='descriptionTooltip'></div>
-			<a href="{$summUrl}" id="descriptionTrigger{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-				<img src="{$bookCoverUrl}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+			<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>
+			<a href="{$summUrl}">
+				<img src="{$bookCoverUrl}"
+				     class="listResultImage img-polaroid descriptionTrigger"
+				     alt="{translate text='Cover Image'}"
+				     data-record_id="{$summId}"
+				     data-source="VuFind"
+				     data-content_class=".descriptionContent{$summShortId|escape}"/>
 			</a>
 		{/if}
 		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
@@ -66,7 +71,7 @@
 			{/if}
 		</div>
 
-		<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary">
+		<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary well well-small">
 			<div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
 				<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
 			</div>
@@ -79,13 +84,10 @@
 	</div>
 
 	<script type="text/javascript">
-		VuFind.Holdings.addIdToStatusList('{$summId|escape}', 'VuFind', '{$useUnscopedHoldingsSummary}');
+		VuFind.ResultsList.addIdToStatusList('{$summId|escape}', 'VuFind', '{$useUnscopedHoldingsSummary}');
 		{if $summISBN}
-		getSeriesInfo('{$summISBN}');
+		VuFind.ResultsList.addIdToSeriesList('{$summISBN}');
 		{/if}
-		$(document).ready(function(){literal} { {/literal}
-			resultDescription('{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}','{$summId}','VuFind');
-		{literal} }); {/literal}
 	</script>
 </div>
 {/strip}

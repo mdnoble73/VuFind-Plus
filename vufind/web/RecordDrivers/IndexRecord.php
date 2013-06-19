@@ -741,6 +741,9 @@ class IndexRecord implements RecordInterface
 		//print_r($ratingData);
 		$interface->assign('summRating', $ratingData);
 
+		//Description
+		$interface->assign('summDescription', $this->getDescription());
+
 		//Determine the cover to use
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
@@ -754,6 +757,30 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summAjaxStatus', false);
 
 		return 'RecordDrivers/Index/result.tpl';
+	}
+
+	function getDescription(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $interface;
+		$id = $this->getUniqueID();
+		//Bypass loading solr, etc if we already have loaded the descriptive info before
+		$descriptionArray = $memCache->get("record_description_{$id}");
+		if (!$descriptionArray){
+			require_once ROOT_DIR . '/services/Record/Description.php';
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
+
+			$description = new Record_Description(true, $id);
+			$descriptionArray = $description->loadData();
+			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+		}
+		$interface->assign('description', $descriptionArray['description']);
+		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
+		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
+
+		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 
 	public function getSupplementalSearchResult(){

@@ -1,25 +1,45 @@
+/**
+ * Variables for configuration, can be modified
+ **/
 @header-background: #255A8B;
 @header-color: #FBEADE;
 @searchbar-background: #EEEDF2;
+@footer-background: white;
 
+/**
+ * Overall Page layout
+ */
 .masthead {
   background-color: @header-background;
   color: @header-color;
-}
-
-.masthead a, .masthead a:hover, .masthead a:visited {
-  color: @header-color;
+  a {
+    color: @header-color;
+  }
 }
 
 #searchbar {
   background-color: @searchbar-background;
+  form{
+    margin-bottom: 0;
+    padding: 3px 5px;
+  }
 }
 
-#searchbar form {
-  margin-bottom: 0;
-  padding: 3px 5px;
+.rounded-corners (@radius: 5px) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  -ms-border-radius: @radius;
+  -o-border-radius: @radius;
+  border-radius: @radius;
 }
 
+.footer{
+  border-top: 2px solid @header-background;
+  background-color: @footer-background;
+}
+/**
+ * Style overrides
+ */
 .expanded, .collapsed {
   cursor: pointer;
 }
@@ -31,4 +51,9 @@
 .collapsed:before {
   content: "► ";
 }
+
+@import "help.less";
+@import "record.less";
+@import "results-list.less";
+@import "/interface/themes/default/css/ratings.css";
 

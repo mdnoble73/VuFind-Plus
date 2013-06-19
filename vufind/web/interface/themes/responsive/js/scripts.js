@@ -5,9 +5,34 @@
  * Time: 3:47 PM
  */
 
+var Globals = Globals || {};
+Globals.path = '/';
+Globals.url = '/';
+Globals.loggedIn = false;
+Globals.automaticTimeoutLength = 0;
+Globals.automaticTimeoutLengthLoggedOut = 0;
+
 var VuFind = VuFind || {};
-VuFind.Holdings = {
+VuFind.initializeModalDialogs = function() {
+	$(".modalDialogTrigger").each(function(){
+		$(this).click(function(eventObject){
+			var trigger = $(this);
+			var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
+			var dialogDestination = trigger.attr("href");
+			$("#modal-title").text(dialogTitle);
+			$(".modal-body").load(dialogDestination);
+			$("#modalDialog").modal({
+				show:true
+			});
+			return false;
+		});
+
+	});
+};
+
+VuFind.ResultsList = {
 	statusList: [],
+	seriesList: [],
 
 	addIdToStatusList: function(id, type, useUnscopedHoldingsSummary) {
 		if (type == undefined){
@@ -25,16 +50,16 @@ VuFind.Holdings = {
 		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
 
 		var callGetEContentStatusSummaries = false;
-		var eContentUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
+		var eContentUrl = Globals.path + "/Search/AJAX?method=GetEContentStatusSummaries";
 		for (var j=0; j< this.statusList.length; j++) {
-			if (this.statusList['type'] == 'eContent'){
-				eContentUrl += "&id[]=" + encodeURIComponent(statusList[j]['id']);
+			if (this.statusList[j]['type'] == 'eContent'){
+				eContentUrl += "&id[]=" + encodeURIComponent(this.statusList[j]['id']);
 				if (this.statusList[j]['useUnscopedHoldingsSummary']){
 					eContentUrl += "&useUnscopedHoldingsSummary=true";
 				}
 				callGetEContentStatusSummaries = true;
-			}else if (this.statusList['type'] == 'VuFind'){
-				var url = path + "/Search/AJAX?method=GetStatusSummaries";
+			}else if (this.statusList[j]['type'] == 'VuFind'){
+				var url = Globals.path + "/Search/AJAX?method=GetStatusSummaries";
 				url += "&id[]=" + encodeURIComponent(this.statusList[j]['id']);
 				if (this.statusList[j]['useUnscopedHoldingsSummary']){
 					url += "&useUnscopedHoldingsSummary=true";
@@ -149,15 +174,16 @@ VuFind.Holdings = {
 				});
 			}else{
 				//OverDrive record
-				var overDriveUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
-				overDriveUrl += "&id[]=" + encodeURIComponent(GetOverDriveStatusList[j]['id']);
+				var overDriveUrl = Globals.path + "/Search/AJAX?method=GetEContentStatusSummaries";
+				overDriveUrl += "&id[]=" + encodeURIComponent(this.statusList[j]['id']);
 				$.ajax({
 					url: overDriveUrl,
 					success: function(data){
 						var items = $(data).find('item');
 						$(items).each(function(index, item){
 							var elemId = $(item).attr("id") ;
-							$('#holdingsEContentSummary' + elemId).replaceWith($(item).find('formattedHoldingsSummary').text());
+							var holdingsSummaryId = '#holdingsEContentSummary' + elemId;
+							$(holdingsSummaryId).replaceWith($(item).find('formattedHoldingsSummary').text());
 							if ($(item).find('showplacehold').text() == 1){
 								$("#placeEcontentHold" + elemId).show();
 							}else if ($(item).find('showcheckout').text() == 1){
@@ -167,15 +193,16 @@ VuFind.Holdings = {
 							}else if ($(item).find('showaddtowishlist').text() == 1){
 								$("#addToWishList" + elemId).show();
 							}
-							if ($("#statusValue" + elemId).length > 0){
+							var statusId = "#statusValue" + elemId;
+							if ($(statusId).length > 0){
 								var status = $(item).find('status').text();
-								$("#statusValue" + elemId).text(status);
+								$(statusId).text(status);
 								var statusClass = $(item).find('class').text();
 								if (statusClass){
-									$("#statusValue" + elemId).addClass(statusClass);
+									$(statusId).addClass(statusClass);
 								}
 							}
-							$('#holdingsEContentSummary' + elemId).addClass('loaded');
+							$(holdingsSummaryId).addClass('loaded');
 						});
 					}
 				});
@@ -224,7 +251,94 @@ VuFind.Holdings = {
 		}
 
 		//Clear the status lists so we don't reprocess later if we need more status summaries..
-		statusList = [];
+		this.statusList = [];
+	},
+
+	addIdToSeriesList: function(isbn){
+		this.seriesList[this.seriesList.length] = isbn;
+	},
+
+	loadSeriesInfo: function(){
+		var now = new Date();
+		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+
+		var url = Globals.path + "/Search/AJAX?method=GetSeriesInfo";
+		for (var i=0; i < this.seriesList.length; i++) {
+			url += "&isbn[]=" + encodeURIComponent(this.seriesList[i]);
+		}
+		url += "&time="+ts;
+		$.getJSON(url,function(data){
+			if (data.success){
+				$.each(data.series, function(key, val){
+					$(".series" + key).html(val);
+				});
+			}
+		});
+	},
+
+	initializeDescriptions: function(){
+		$(".descriptionTrigger").each(function(){
+			var descElement = $(this);
+			var descriptionContentClass = descElement.data("content_class");
+			options = {
+				html: true,
+				trigger: 'hover',
+				title: 'Description',
+				content: VuFind.ResultsList.loadDescription(descriptionContentClass)
+			};
+			descElement.popover(options);
+		});
+	},
+
+	loadDescription: function(descriptionContentClass){
+		var contentHolder = $(descriptionContentClass);
+		return contentHolder[0].innerHTML;
 	}
 };
+
+VuFind.Ratings = {
+	initializeRaters: function(){
+		$(".rater").each(function(){
+			var ratingElement = $(this);
+			//Add additional elements to the div
+
+			var module = ratingElement.data("module");
+			var userRating = ratingElement.data("user_rating");
+			//Setup the rater
+			var options = {
+				module: module,
+				recordId: ratingElement.data("short_id"),
+				rating: parseFloat(userRating > 0 ? userRating : ratingElement.data("average_rating")) ,
+				postHref: Globals.path + "/" + module + "/" + ratingElement.data("record_id") + "/AJAX?method=RateTitle"
+			};
+			ratingElement.rater(options);
+		});
+	},
+
+	doRatingReview: function (rating, module, id){
+		if (rating <= 2){
+			msg = "We're sorry you didn't like this title.  Would you like to add a review explaining why to help other users?";
+		}else{
+			msg = "We're glad you liked this title.  Would you like to add a review explaining why to help other users?";
+		}
+		if (confirm(msg)){
+			var reviewForm;
+			if (module == 'EcontentRecord'){
+				reviewForm = $("#userecontentreview" + id);
+
+			}else{
+				reviewForm = $("#userreview" + id);
+			}
+			reviewForm.find(".rateTitle").hide();
+			reviewForm.show();
+		}
+	}
+};
+
+$(document).ready(function(){
+	VuFind.Ratings.initializeRaters();
+	VuFind.initializeModalDialogs();
+
+
+});
 

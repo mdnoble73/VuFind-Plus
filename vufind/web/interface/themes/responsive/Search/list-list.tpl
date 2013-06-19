@@ -23,14 +23,14 @@
 		{/if}
 	</div>
 </form>
-
+{/strip}
 <script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
-		holdings.loadStatusSummaries();
+		VuFind.ResultsList.loadStatusSummaries();
+		VuFind.ResultsList.initializeDescriptions();
 		{if $user}
 		doGetSaveStatuses();
 		{/if}
-		doGetSeriesInfo();
+		VuFind.ResultsList.loadSeriesInfo();
 	{literal} }); {/literal}
 </script>
-{/strip}
