@@ -572,7 +572,11 @@ class SearchObject_Solr extends SearchObject_Base
 			$interface->assign('recordIndex', $x + 1);
 			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getSearchResult());
+			if (!PEAR_Singleton::isError($record)){
+				$html[] = $interface->fetch($record->getSearchResult());
+			}else{
+				$html[] = "Unable to find record";
+			}
 		}
 		return $html;
 	}

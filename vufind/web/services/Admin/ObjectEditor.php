@@ -26,7 +26,6 @@ abstract class ObjectEditor extends Admin_Admin
 {
 	function launch()
 	{
-		global $configArray;
 		global $interface;
 
 		$interface->assign('canAddNew', $this->canAddNew());
@@ -99,6 +98,7 @@ abstract class ObjectEditor extends Admin_Admin
 
 	function getExistingObjectByPrimaryKey($objectType, $value){
 		$primaryKeyColumn = $this->getPrimaryKeyColumn();
+		/** @var DB_DataObject $curLibrary */
 		$curLibrary = new $objectType();
 		$curLibrary->$primaryKeyColumn = $value;
 		$curLibrary->find();
@@ -112,6 +112,7 @@ abstract class ObjectEditor extends Admin_Admin
 	function getExistingObjectById($id){
 		$objectType = $this->getObjectType();
 		$idColumn = $this->getIdKeyColumn();
+		/** @var DB_DataObject $curLibrary */
 		$curLibrary = new $objectType;
 		$curLibrary->$idColumn = $id;
 		$curLibrary->find();
@@ -125,6 +126,7 @@ abstract class ObjectEditor extends Admin_Admin
 
 	function insertObject($structure){
 		$objectType = $this->getObjectType();
+		/** @var DB_DataObject $newObject */
 		$newObject = new $objectType;
 		//Check to see if we are getting default values from the
 		$this->updateFromUI($newObject, $structure);
@@ -147,7 +149,7 @@ abstract class ObjectEditor extends Admin_Admin
 	}
 	function updateFromUI($object, $structure){
 		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
-		return DataObjectUtil::updateFromUI($object, $structure);
+		DataObjectUtil::updateFromUI($object, $structure);
 	}
 	function viewExistingObjects(){
 		global $interface;
@@ -170,6 +172,8 @@ abstract class ObjectEditor extends Admin_Admin
 			if (method_exists($existingObject, 'label')){
 				$interface->assign('objectName', $existingObject->label());
 			}
+		}else{
+			$existingObject = null;
 		}
 		if (!isset($_REQUEST['id']) || $existingObject == null){
 			$objectType = $this->getObjectType();
@@ -191,7 +195,6 @@ abstract class ObjectEditor extends Admin_Admin
 	}
 
 	function exportObjectsToFile($structure){
-		global $interface;
 		//Load all of the rows in the table
 		$objects = $this->getAllObjects();
 
@@ -205,8 +208,6 @@ abstract class ObjectEditor extends Admin_Admin
 		header('Content-Type: text/csv');
 		header("Content-disposition: attachment; filename=\"{$_SERVER['SERVER_NAME']}_{$this->getObjectType()}_$curDate.csv\"");
 
-		//Format as a csv file
-		$csvData = array();
 		//Output system and date
 		$curRow = array(
           'Export Of:',
@@ -280,6 +281,7 @@ abstract class ObjectEditor extends Admin_Admin
 						die();
 					}
 					//Data row
+					/** @var DB_DataObject $object */
 					$object = new $objectType;
 					$columnNumber = 0;
 					foreach ($data as $cell){
@@ -330,6 +332,7 @@ abstract class ObjectEditor extends Admin_Admin
 			}
 
 			//Check for any deleted objects.
+			/** @var DB_DataObject $existingObject */
 			foreach ($existingObjects as $key => $existingObject){
 				if (!array_key_exists($key, $importedData)){
 					if ($objectAction == 'import'){
@@ -378,6 +381,9 @@ abstract class ObjectEditor extends Admin_Admin
 				}else if ($objectAction =='delete'){
 					//Delete the record
 					$ret = $curObject->delete();
+					if ($ret == false){
+						$interface->assign('title', "Unable to delete {$this->getObjectType()} with id of $id");
+					}
 				}
 			}else{
 				//Couldn't find the record.  Something went haywire.

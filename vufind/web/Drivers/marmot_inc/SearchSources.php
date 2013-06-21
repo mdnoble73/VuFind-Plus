@@ -66,17 +66,20 @@ class SearchSources{
 			$searchOptions['local'] = array(
               'name' => $location->displayName,
               'description' => "The {$location->displayName} catalog.",
+							'catalogType' => 'catalog'
 			);
 		}elseif (isset($library)){
 			$searchOptions['local'] = array(
               'name' => $library->displayName,
               'description' => "The {$library->displayName} catalog.",
+							'catalogType' => 'catalog'
 			);
 		}else{
 			$marmotAdded = true;
 			$searchOptions['local'] = array(
               'name' => 'Marmot Catalog',
               'description' => "The entire Marmot catalog.",
+							'catalogType' => 'catalog'
 			);
 		}
 
@@ -85,8 +88,9 @@ class SearchSources{
 		($location->useScope && $location->restrictSearchByLocation)
 		){
 			$searchOptions[$library->subdomain] = array(
-              'name' => $library->displayName,
-              'description' => "The entire {$library->displayName} catalog not limited to a particular branch.",
+        'name' => $library->displayName,
+        'description' => "The entire {$library->displayName} catalog not limited to a particular branch.",
+				'catalogType' => 'catalog'
 			);
 		}
 
@@ -101,8 +105,9 @@ class SearchSources{
 						$repeatInLibrary->fetch();
 
 						$searchOptions[$repeatInLibrary->subdomain] = array(
-                          'name' => $repeatInLibrary->displayName,
-                          'description' => '',
+              'name' => $repeatInLibrary->displayName,
+              'description' => '',
+							'catalogType' => 'catalog'
 						);
 					}else{
 						//See if this is a repeat within a location
@@ -113,8 +118,9 @@ class SearchSources{
 							$repeatInLocation->fetch();
 
 							$searchOptions[$repeatInLocation->code] = array(
-                              'name' => $repeatInLocation->displayName,
-                              'description' => '',
+                'name' => $repeatInLocation->displayName,
+                'description' => '',
+								'catalogType' => 'catalog'
 							);
 						}
 					}
@@ -125,8 +131,9 @@ class SearchSources{
 
 		//eContent Search
 		$searchOptions['econtent'] = array(
-              'name' => 'Online Collection',
-              'description' => 'Digital Media available for use online and with portable devices',
+      'name' => 'Online Collection',
+      'description' => 'Digital Media available for use online and with portable devices',
+			'catalogType' => 'catalog'
 		);
 
 		//Marmot Global search
@@ -137,33 +144,37 @@ class SearchSources{
 		){
 
 			$searchOptions['marmot'] = array(
-              'name' => 'Marmot Catalog',
-              'description' => 'A shared catalog of public, academic, and school libraries on the Western Slope.',
+        'name' => 'Marmot Catalog',
+        'description' => 'A shared catalog of public, academic, and school libraries on the Western Slope.',
+				'catalogType' => 'catalog'
 			);
 		}
 
 		//Genealogy Search
 		if ($searchGenealogy && !$interface->isMobile()){
 			$searchOptions['genealogy'] = array(
-              'name' => 'Genealogy Records',
-              'description' => 'Genealogy Records from Colorado',
+        'name' => 'Genealogy Records',
+        'description' => 'Genealogy Records from Colorado',
+				'catalogType' => 'genealogy'
 			);
 		}
 
 		//Overdrive
 		if ($repeatInOverdrive && !$interface->isMobile()){
 			$searchOptions['overdrive'] = array(
-              'name' => 'OverDrive Digital Catalog',
-              'description' => 'Downloadable Books, Videos, Music, and eBooks with free use for library card holders.',
-              'external' => true,
+        'name' => 'OverDrive Digital Catalog',
+        'description' => 'Downloadable Books, Videos, Music, and eBooks with free use for library card holders.',
+        'external' => true,
+				'catalogType' => 'catalog'
 			);
 		}
 
 		if ($repeatInProspector && !$interface->isMobile()){
 			$searchOptions['prospector'] = array(
-              'name' => 'Prospector Catalog',
-              'description' => 'A shared catalog of academic, public, and special libraries all over Colorado.',
-              'external' => true,
+        'name' => 'Prospector Catalog',
+        'description' => 'A shared catalog of academic, public, and special libraries all over Colorado.',
+        'external' => true,
+				'catalogType' => 'catalog'
 			);
 		}
 
@@ -171,22 +182,25 @@ class SearchSources{
 		if ($repeatCourseReserves){
 			//Mesa State
 			$searchOptions['course-reserves-course-name'] = array(
-              'name' => 'Course Reserves by Name or Number',
-              'description' => 'Search course reserves by course name or number',
-              'external' => true
+        'name' => 'Course Reserves by Name or Number',
+        'description' => 'Search course reserves by course name or number',
+        'external' => true,
+				'catalogType' => 'courseReserves'
 			);
 			$searchOptions['course-reserves-instructor'] = array(
-              'name' => 'Course Reserves by Instructor',
-              'description' => 'Search course reserves by professor, lecturer, or instructor name',
-              'external' => true
+        'name' => 'Course Reserves by Instructor',
+        'description' => 'Search course reserves by professor, lecturer, or instructor name',
+        'external' => true,
+				'catalogType' => 'courseReserves'
 			);
 		}
 
 		if ($repeatInWorldCat && !$interface->isMobile()){
 			$searchOptions['worldcat'] = array(
-              'name' => 'WorldCat',
-              'description' => 'A shared catalog of libraries all over the world.',
-              'external' => true,
+        'name' => 'WorldCat',
+        'description' => 'A shared catalog of libraries all over the world.',
+        'external' => true,
+				'catalogType' => 'catalog'
 			);
 		}
 
@@ -194,17 +208,19 @@ class SearchSources{
 		if (isset($library) && strlen($library->goldRushCode) > 0 && !$interface->isMobile()){
 			$searchOptions['goldrush'] = array(
 			//'link' => "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&amp;inst_code={$library->goldRushCode}&amp;search_type={$worldCatSearchType}&amp;search_term=".urlencode($lookfor),
-              'name' => 'Gold Rush Magazine Finder',
-              'description' => 'A catalog of online journals and full text articles.',
-              'external' => true,
+        'name' => 'Gold Rush Magazine Finder',
+        'description' => 'A catalog of online journals and full text articles.',
+        'external' => true,
+				'catalogType' => 'catalog'
 			);
 		}
 
 		if ($repeatInAmazon && !$interface->isMobile()){
 			$searchOptions['amazon'] = array(
-              'name' => 'Amazon',
-              'description' => 'Online retailer selling a wide variety of books, movies, music, and more.',
-              'external' => true,
+        'name' => 'Amazon',
+        'description' => 'Online retailer selling a wide variety of books, movies, music, and more.',
+        'external' => true,
+				'catalogType' => 'catalog'
 			);
 		}
 

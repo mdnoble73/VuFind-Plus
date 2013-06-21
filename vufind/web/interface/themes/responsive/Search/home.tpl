@@ -6,13 +6,11 @@
 				{include file='API/listWidgetTabs.tpl'}
 			</div>
 		{else}
-
-			<img id="largeLogo" src="{if $largeLogo}{$largeLogo}{else}{img filename="logo_large.png"}{/if}" alt='{$librarySystemName} Logo'/>
+			<img id="largeLogo" src="{if $largeLogo}{$largeLogo}{else}{img filename="logo_large.png"}{/if}" alt='{$librarySystemName} Logo' class="hidden-phone"/>
 		{/if}
 		
 		<div class="searchHomeForm">
-			<h3 id='homeSearchLabel'>Search the {$librarySystemName} Catalog</h3>
-			{include file="Search/searchbox.tpl"}
+			{include file="Search/searchbox.tpl" showAsBar="false"}
 		</div>
 
 	</div>

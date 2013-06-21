@@ -15,7 +15,7 @@ Globals.automaticTimeoutLengthLoggedOut = 0;
 var VuFind = VuFind || {};
 VuFind.initializeModalDialogs = function() {
 	$(".modalDialogTrigger").each(function(){
-		$(this).click(function(eventObject){
+		$(this).click(function(){
 			var trigger = $(this);
 			var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
 			var dialogDestination = trigger.attr("href");
@@ -335,10 +335,56 @@ VuFind.Ratings = {
 	}
 };
 
+VuFind.OverDrive = {
+	getOverDriveSummary: function(){
+		$.getJSON(Globals.path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
+			if (data.error){
+				// Unable to load overdrive summary
+			}else{
+				// Load checked out items
+				$("#checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
+				// Load available holds
+				$("#availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
+				// Load unavailable holds
+				$("#unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
+				// Load wishlist
+				$("#wishlistOverDrivePlaceholder").html(data.numWishlistItems);
+			}
+		});
+	}
+};
+
+VuFind.Searches = {
+	enableSearchTypes: function(){
+		var searchTypeElement = $("#searchSource");
+		var selectedSearchType = $(searchTypeElement.find(":selected"));
+		var catalogType = selectedSearchType.data("catalog_type");
+		if (catalogType == "catalog"){
+			$(".catalogType").show();
+			$(".genealogyType").hide();
+		}else{
+			$(".catalogType").hide();
+			$(".genealogyType").show();
+		}
+	},
+
+	processSearchForm: function(catalogType, searchType, searchFormId){
+		//Get the selected search type and
+		if (catalogType == 'catalog'){
+			$("#basicType").val(searchType);
+			$("#genealogyType").remove();
+		}else{
+			$("#genealogyType").val(searchType);
+			$("#basicType").remove();
+		}
+		$(searchFormId).submit();
+		return false;
+	}
+};
+
 $(document).ready(function(){
+	VuFind.Searches.enableSearchTypes();
 	VuFind.Ratings.initializeRaters();
 	VuFind.initializeModalDialogs();
-
-
 });
 

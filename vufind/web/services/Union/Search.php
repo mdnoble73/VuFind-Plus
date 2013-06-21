@@ -99,7 +99,6 @@ class Union_Search extends Action {
 				//Need to redirect to the appropriate search location with the new value for look for
 				$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
 				$lookfor = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : '';
-				$filters = isset($_REQUEST['filter']) ? $_REQUEST['filter'] : null;
 				$link = $searchSources->getExternalLink($searchSource, $type, $lookfor);
 				header('Location: ' . $link);
 				die();
@@ -127,15 +126,6 @@ class Union_Search extends Action {
 					$interface->assign('module', $module);
 					$action = 'Results';
 					$interface->assign('action', $action);
-					if ($searchSource == 'econtent'){
-						if (!isset($_REQUEST['shard'])){
-							$_SESSION['shards'] = array('eContent');
-						}
-					}else{
-						if (!isset($_REQUEST['shard'])){
-							$_SESSION['shards'] = array('eContent', 'Main Catalog');
-						}
-					}
 					$results = new Search_Results();
 					$results->launch();
 				}

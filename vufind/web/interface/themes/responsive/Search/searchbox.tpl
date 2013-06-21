@@ -1,4 +1,10 @@
-<div class="searchform well">
+{strip}
+<div class="searchform {if $showAsBar}navbar navbar-static-top{else}well{/if}">
+	{if $showAsBar}
+	<div class="navbar-inner">
+		<div class="container">
+	{/if}
+
 	{if $searchType == 'advanced'}
 		{translate text="Your search"} : "<b>{$lookfor|escape:"html"}</b>"
 		<br />
@@ -6,53 +12,75 @@
 		<a href="{$path}/Search/Advanced" class="small">{translate text="Start a new Advanced Search"}</a> |
 		<a href="{$path}" class="small">{translate text="Start a new Basic Search"}</a>
 	{else}
-		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-search">
-			<div>
-				<label for="searchSource">{translate text="Search"}</label>
-				<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='enableSearchTypes();'>
-					{foreach from=$searchSources item=searchOption key=searchKey}
-						<option value="{$searchKey}" {if $searchKey == $searchSource}selected="selected"{/if} title="{$searchOption.description}">{if $searchOption.external}* {/if}{$searchOption.name}</option>
-					{/foreach}
-				</select>
-				<label for="lookfor">{translate text="for"}</label>
-				<input id="lookfor" placeholder="Search term (blank to browse)" type="search" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." />
-				<label for="basicSearchTypes">{translate text="by"}</label>
-				<select name="basicType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style='display:none'{/if}>
-				{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
-					<option value="{$searchVal}"{if $basicSearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
-				{/foreach}
-				</select>
-				<select name="genealogyType" id="genealogySearchTypes" {if $searchSource != 'genealogy'}style='display:none'{/if}>
-				{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
-					<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
-				{/foreach}
-				</select>
+		{if $showAsBar}
+			<label for="lookfor" class="control-label"><a class="brand" href="#">Search</a></label>
+			<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</a>
+			<div class="nav-collapse collapse">
+		{/if}
+		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline {if $showAsBar}navbar-form{else}form-search{/if}">
+			<input type="hidden" name="basicType" id="basicType" value=""/>
+			<input type="hidden" name="genealogyType" id="genealogyType" value=""/>
+			<fieldset>
+				{if $showAsBar == false}
+				<legend>Search the {$librarySystemName} Catalog</legend>
+				{/if}
 
-				<div class="btn-group">
-					<a href="#" onclick="$('#searchForm').submit();return false;" id='searchBarFind' class="btn btn-primary">{translate text="Find"} <i class="icon-search icon-white"></i></a>
-					{if $showAdvancedSearchbox == 1}
-						<a href="{$path}/Search/Advanced" id="advancedSearch" class="btn">
-							<i class="icon-plus-sign"></i>
-						</a>
-					{/if}
-					{* Link to Search Tips Help *}
-					<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" id="searchTips" class="btn modalDialogTrigger">
-						<i class="icon-question-sign"></i>
-					</a>
+				<div id="search_box_group" class="">
+
+					<input class="input search-query" id="lookfor" placeholder="Search for" type="search" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." />
+
+					<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
+						{if $filterList}
+							<option data-catalog_type="existing" value="existing" title="{translate text="Existing Search"}">{translate text="in Existing Search Results"}</option>
+						{/if}
+						{foreach from=$searchSources item=searchOption key=searchKey}
+							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"{if $searchKey == $searchSource} selected="selected"{/if} title="{$searchOption.description}">{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}</option>
+						{/foreach}
+					</select>
+					<div id="search_button" class="btn-group">
+						<button id='searchBarFind' class="btn btn-primary">
+							{translate text="Find"}
+						</button>
+						<button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+							<span class="caret"></span>
+						</button>
+						<ul id="searchType" class="dropdown-menu text-left">
+							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
+								<li>
+									<a class="catalogType" href="#" onclick="return VuFind.Searches.processSearchForm('catalog', '{$searchVal}', '#searchForm')">{translate text="by"} {translate text=$searchDesc}</a>
+								</li>
+							{/foreach}
+							<li class="divider catalogType"></li>
+							{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
+								<li>
+									<a class="genealogyType" href="#" onclick="return VuFind.Searches.processSearchForm(('genealogy', '{$searchVal}', '#searchForm')">{translate text="by"} {translate text=$searchDesc}</a>
+								</li>
+							{/foreach}
+							<li class="divider genealogyType"></li>
+							{if $showAdvancedSearchbox == 1}
+								<li>
+									<a href="{$path}/Search/Advanced" id="advancedSearch">
+										<i class="icon-plus-sign"></i> {translate text="Advanced"}
+									</a>
+								</li>
+							{/if}
+
+							{* Link to Search Tips Help *}
+							<li>
+								<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" id="searchTips" class="modalDialogTrigger">
+									<i class="icon-question-sign"></i> {translate text='Search Tips'}
+								</a>
+							</li>
+						</ul>
+					</div>
 				</div>
 
-				{* Do we have any checkbox filters? *}
-				{assign var="hasCheckboxFilters" value="0"}
-				{if isset($checkboxFilters) && count($checkboxFilters) > 0}
-					{foreach from=$checkboxFilters item=current}
-						{if $current.selected}
-							{assign var="hasCheckboxFilters" value="1"}
-						{/if}
-					{/foreach}
-				{/if}
-				{if $filterList || $hasCheckboxFilters}
+				{if $filterList}
 					<div class="keepFilters">
-						<input type="checkbox" onclick="filterAll(this);" /> {translate text="basic_search_keep_filters"}
 						<div style="display:none;">
 						{foreach from=$filterList item=data key=field}
 							{foreach from=$data item=value}
@@ -67,7 +95,14 @@
 						</div>
 					</div>
 				{/if}
-			</div>
+			</fieldset>
 		</form>
 	{/if}
+
+	{if $showAsBar}
+				</div>{*nav-collapse*}
+			</div>
+		</div>
+	{/if}
 </div>
+{/strip}

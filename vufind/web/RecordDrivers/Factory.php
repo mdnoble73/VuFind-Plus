@@ -59,12 +59,18 @@ class RecordDriverFactory {
 		// Build the object:
 		require_once $path;
 		if (class_exists($driver)) {
+			disableErrorHandler();
 			$obj = new $driver($record);
+			if (PEAR_Singleton::isError($obj)){
+				global $logger;
+				$logger->log("Error loading record driver", PEAR_LOG_DEBUG);
+			}
+			enableErrorHandler();
 			return $obj;
 		}
 
 		// If we got here, something went very wrong:
-		PEAR_Singleton::raiseError(new PEAR_Error("Problem loading record driver: {$driver}"));
+		return new PEAR_Error("Problem loading record driver: {$driver}");
 	}
 }
 ?>

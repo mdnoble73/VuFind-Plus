@@ -21,7 +21,8 @@ vufind/web/images/covers/small/*
 vufind/web/images/covers/large/*
 vufind/web/files/original/*
 vufind/web/*.csv
-tests/*
+tests/conf/config.ini
+tests/selenium/*
 .idea/
 .settings/
 data-import

@@ -736,10 +736,11 @@ class IndexRecord implements RecordInterface
 		$resource = new Resource();
 		$resource->source = 'VuFind';
 		$resource->record_id = $id;
-		$resource->find(true);
-		$ratingData = $resource->getRatingData($user);
-		//print_r($ratingData);
-		$interface->assign('summRating', $ratingData);
+		if ($resource->find(true)){
+			$ratingData = $resource->getRatingData($user);
+			//print_r($ratingData);
+			$interface->assign('summRating', $ratingData);
+		}
 
 		//Description
 		$interface->assign('summDescription', $this->getDescription());

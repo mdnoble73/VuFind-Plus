@@ -476,4 +476,25 @@ class EcontentRecordDriver extends IndexRecord
 		return 'RecordDrivers/Econtent/supplementalResult.tpl';
 	}
 
+	function getDescription(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $interface;
+		$id = $this->getUniqueID();
+		//Bypass loading solr, etc if we already have loaded the descriptive info before
+		$descriptionArray = $memCache->get("record_description_{$id}");
+		if (!$descriptionArray){
+			require_once ROOT_DIR . '/services/EcontentRecord/Description.php';
+			$description = new EcontentRecord_Description(true, $id);
+			$descriptionArray = $description->loadDescription($this->eContentRecord);
+			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+		}
+		$interface->assign('description', $descriptionArray['description']);
+		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
+		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
+
+		return $interface->fetch('EcontentRecord/ajax-description-popup.tpl');
+	}
+
 }

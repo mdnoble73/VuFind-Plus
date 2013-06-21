@@ -77,5 +77,5 @@
 {/strip}
 
 <script type="text/javascript">
-getOverDriveSummary();
+	VuFind.OverDrive.getOverDriveSummary();
 </script>

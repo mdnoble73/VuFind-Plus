@@ -31,7 +31,7 @@ class Admin_Administrators extends ObjectEditor
 		return 'Administrators';
 	}
 	function getPageTitle(){
-		return 'Users';
+		return 'Administrators';
 	}
 	function getAllObjects(){
 		$admin = new User();
@@ -78,7 +78,7 @@ class Admin_Administrators extends ObjectEditor
 		$newAdmin->find();
 		if ($newAdmin->N == 1){
 			global $logger;
-			$logger->log(print_r($_REQUEST['roles'], TRUE));
+			//$logger->log(print_r($_REQUEST['roles'], TRUE));
 			if (isset($_REQUEST['roles'])){
 				$newAdmin->fetch();
 				$newAdmin->roles = $_REQUEST['roles'];

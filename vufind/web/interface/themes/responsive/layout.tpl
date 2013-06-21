@@ -9,8 +9,6 @@
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 
 		{* Include css as appropriate *}
-		<link href="{$path}/interface/themes/responsive/css/bootstrap.css" rel="stylesheet" media="screen">
-		<link href="{$path}/interface/themes/responsive/css/bootstrap-responsive.css" rel="stylesheet" media="screen">
 		<link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen">
 
 		{* Include correct javascript *}
@@ -38,7 +36,7 @@
 			{if $showTopSearchBox}
 				<div id='searchbar'>
 					{if $pageTemplate != 'advanced.tpl'}
-						{include file="searchbar.tpl"}
+						{include file="Search/searchbox.tpl" showAsBar="true"}
 					{/if}
 				</div>
 			{/if}
@@ -73,17 +71,9 @@
 		{* Extra javascript at end so the pages loose faster. *}
 		<script src="{$path}/interface/themes/responsive/js/rater.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/bootstrap.min.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-transition.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-alert.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-modal.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-dropdown.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-scrollspy.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-tab.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-tooltip.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-popover.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-button.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-collapse.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-carousel.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-typeahead.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
+		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
+		<script src="{$path}/ckeditor/ckeditor.js"></script>
 	</body>
 </html>

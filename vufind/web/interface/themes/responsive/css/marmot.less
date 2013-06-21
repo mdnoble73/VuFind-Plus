@@ -1,10 +1,33 @@
 /**
  * Variables for configuration, can be modified
  **/
+// Core variables and mixins
+@import "bootstrap/variables.less"; // Modify this for custom colors, font-sizes, etc
+
 @header-background: #255A8B;
 @header-color: #FBEADE;
 @searchbar-background: #EEEDF2;
 @footer-background: white;
+@navbarCollapseWidth: 480px;
+@navbarCollapseDesktopWidth: 481px;
+
+@import "bootstrap/bootstrap.less";
+@import "bootstrap/responsive.less";
+
+/**
+ * Basic Style overrides
+ */
+.expanded, .collapsed {
+  cursor: pointer;
+}
+
+.accordion-toggle:before {
+  content: "► ";
+}
+
+.accordian-toggle.collapsed:before {
+  content: "▼ ";
+}
 
 /**
  * Overall Page layout
@@ -18,43 +41,51 @@
   }
 }
 
-#searchbar {
-  background-color: @searchbar-background;
-  form{
-    margin-bottom: 0;
-    padding: 3px 5px;
+#search_box_group{
+  /* Append input to search box when larger than phone */
+  @media (max-width: 480px) {
+    #search_button{
+      padding-top: 5px;
+      width: 100%;
+    }
+    padding-top: 5px;
   }
-}
-
-.rounded-corners (@radius: 5px) {
-  -webkit-border-radius: @radius;
-  -moz-border-radius: @radius;
-  -ms-border-radius: @radius;
-  -o-border-radius: @radius;
-  border-radius: @radius;
+  @media (min-width: 480px) {
+    .input-append;
+  }
 }
 
 .footer{
   border-top: 2px solid @header-background;
   background-color: @footer-background;
 }
-/**
- * Style overrides
- */
-.expanded, .collapsed {
-  cursor: pointer;
+.footer-column{
+  @media (max-width: 767px) {
+    h4:before{
+      content: "▼ ";
+    }
+    h4.collapsed:before{
+      content: "► ";
+    }
+
+  }
+}
+.footerContents{
+  @media (min-width: 767px) {
+    .collapse.in;
+  }
 }
 
-.expanded:before {
-  content: "▼ ";
+#largeLogo{
+  padding: 20px 0 15px;
 }
 
-.collapsed:before {
-  content: "► ";
-}
+/** Third party imports **/
+@import "/interface/themes/default/css/ratings.css";
+@import "datepicker.css";
+@import "/interface/themes/responsive/css/bootstrapSwitch.css";
 
+/** Imports of functionality related to VuFind **/
 @import "help.less";
 @import "record.less";
 @import "results-list.less";
-@import "/interface/themes/default/css/ratings.css";
-
