@@ -10,7 +10,7 @@
 		{/if}
 		
 		<div class="searchHomeForm">
-			{include file="Search/searchbox.tpl" showAsBar="false"}
+			{include file="Search/searchbox.tpl" showAsBar=false}
 		</div>
 
 	</div>

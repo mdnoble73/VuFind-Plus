@@ -12,7 +12,7 @@ import org.vufind.VuFindTest;
 import java.util.List;
 
 /**
- * Description goes here
+ * Tests of the VuFind Header
  * VuFind-Plus
  * User: Mark Noble
  * Date: 6/21/13
@@ -23,7 +23,6 @@ public class Header extends VuFindTest {
 	@Override
 	public void runTests(WebDriver driver, Ini configIni, TestResults results, Logger logger) {
 		String testUrl = configIni.get("general", "testUrl");
-		logger.debug("Loading url " + testUrl);
 		driver.get(testUrl);
 		results.incTests();
 
@@ -52,6 +51,9 @@ public class Header extends VuFindTest {
 		}
 
 		//Login to make sure the login link disappears and we get a My Account and Logout Button
+		String login = configIni.get("users", "basic");
+		String[] loginValues = login.split(":");
+
 
 
 		//Should also get the name of the active user

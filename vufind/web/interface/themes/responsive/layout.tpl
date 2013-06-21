@@ -21,8 +21,12 @@
 			Globals.path = '{$path}';
 			Globals.url = '{$url}';
 			Globals.loggedIn = {$loggedIn};
+			{if $automaticTimeoutLength}
 			Globals.automaticTimeoutLength = {$automaticTimeoutLength};
+			{/if}
+			{if $automaticTimeoutLengthLoggedOut}
 			Globals.automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
+			{/if}
 		</script>
 
 		{if $includeAutoLogoutCode == true}
@@ -36,7 +40,7 @@
 			{if $showTopSearchBox}
 				<div id='searchbar'>
 					{if $pageTemplate != 'advanced.tpl'}
-						{include file="Search/searchbox.tpl" showAsBar="true"}
+						{include file="Search/searchbox.tpl" showAsBar=true}
 					{/if}
 				</div>
 			{/if}

@@ -11,6 +11,9 @@
 						<li class="">
 							<a href="{if $homeLink}{$homeLink}{else}{$path}/{/if}">Home</a>
 						</li>
+						<li class="logoutOptions hidden-phone" {if !$user} style="display: none;"{/if}>
+							<a id="myAccountNameLink" href="{$path}/MyResearch/Home">{$user->firstname|capitalize} {$user->lastname|capitalize}</a>
+						</li>
 						<li class="logoutOptions" {if !$user} style="display: none;"{/if}>
 							<a href="{$path}/MyResearch/Home">{translate text="Your Account"}</a>
 						</li>
@@ -19,7 +22,7 @@
 						</li>
 						<li class="loginOptions" {if $user} style="display: none;"{/if}>
 							{if $showLoginButton == 1}
-								<a id="headerLoginLink" href="{$path}/MyResearch/Home" class='loginLink'>{translate text="Login"}</a>
+								<a id="headerLoginLink" href="{$path}/MyResearch/AJAX?method=LoginForm" class='loginLink modalDialogTrigger' title='Login'>{translate text="Login"}</a>
 							{/if}
 						</li>
 						{if is_array($allLangs) && count($allLangs) > 1}
@@ -29,7 +32,6 @@
 										<a href="#">{translate text=$langName} <span class="caret"></span></a>
 									{/if}
 								{/foreach}
-
 							</li>
 							<ul class="dropdown-menu">
 								{foreach from=$allLangs key=langCode item=langName}

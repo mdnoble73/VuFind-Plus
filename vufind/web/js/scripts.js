@@ -558,13 +558,14 @@ function ajaxLogin(callback){
 function processAjaxLogin(){
 	var username = $("#username").val();
 	var password = $("#password").val();
+	var rememberMe = $("#rememberMe").val();
 	if (!username || !password){
 		alert("Please enter both the username and password");
 		return false;
 	}
-	var url = path + "/AJAX/JSON?method=loginUser"
+	var url = path + "/AJAX/JSON?method=loginUser";
 	$.ajax({url: url,
-			data: {username: username, password: password},
+			data: {username: username, password: password, rememberMe: rememberMe},
 			success: function(response){
 				if (response.result.success == true){
 					loggedIn = true;

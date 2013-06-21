@@ -2,8 +2,11 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
  * Description goes here
@@ -35,5 +38,21 @@ public abstract class VuFindTest {
 	}
 	protected void resizeToFullDesktop(WebDriver driver){
 		driver.manage().window().maximize();
+	}
+	protected void waitForModalDialogOpen(WebDriver driver){
+		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+			@Override
+			public Boolean apply(org.openqa.selenium.WebDriver webDriver) {
+				return webDriver.findElement(By.cssSelector("#modalDialog")).isDisplayed();
+			}
+		});
+	}
+	protected void waitForModalDialogClose(WebDriver driver){
+		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+			@Override
+			public Boolean apply(org.openqa.selenium.WebDriver webDriver) {
+				return !webDriver.findElement(By.cssSelector("#modalDialog")).isDisplayed();
+			}
+		});
 	}
 }

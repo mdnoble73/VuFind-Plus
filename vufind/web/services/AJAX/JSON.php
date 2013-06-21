@@ -119,7 +119,10 @@ class JSON extends Action {
 		if (!$user || PEAR_Singleton::isError($user)){
 			$user = UserAccount::login();
 			if (!$user || PEAR_Singleton::isError($user)){
-				return array('success'=>false);
+				return array(
+					'success'=>false,
+					'message'=>translate("Sorry that login information was not recognized, please try again.")
+				);
 			}
 		}
 

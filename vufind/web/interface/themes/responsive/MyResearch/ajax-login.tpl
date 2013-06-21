@@ -1,10 +1,6 @@
-{strip}
-<div id="page-content" class="content">
-	{if $message}<p class="text-error lead">{$message|translate}</p>{/if}
-	<div class="resulthead">
-		<h3>{translate text='Login to your account'}</h3>
-	</div>
-	<div id="loginFormWrapper">
+<div id="popupboxContent" class="content">
+	<div id='ajaxLoginForm'>
+		<p class="text-error text-center" id="loginError" style="display: none"></p>
 		<form method="post" action="{$path}/MyResearch/Home" id="loginForm" class="form-horizontal">
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='control-group'>
@@ -31,7 +27,7 @@
 							</label>
 						{/if}
 
-						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn"/>
+						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.processAjaxLogin()"/>
 						{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
 						{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
 						{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}"/>{/if}
@@ -45,14 +41,8 @@
 
 					</div>
 				</div>
-
-				{if $enableSelfRegistration == 1}
-					<a href='{$path}/MyResearch/SelfReg'>Register for a new Library Card</a>
-				{/if}
-
 			</div>
 		</form>
 	</div>
-	<script type="text/javascript">$('#username').focus();</script>
+	<script type="text/javascript">$('#username').focus().select();</script>
 </div>
-{/strip}

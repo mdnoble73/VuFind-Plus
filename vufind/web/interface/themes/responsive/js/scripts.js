@@ -30,6 +30,72 @@ VuFind.initializeModalDialogs = function() {
 	});
 };
 
+VuFind.pwdToText = function(fieldId){
+	var elem = document.getElementById(fieldId);
+	var input = document.createElement('input');
+	input.id = elem.id;
+	input.name = elem.name;
+	input.value = elem.value;
+	input.size = elem.size;
+	input.onfocus = elem.onfocus;
+	input.onblur = elem.onblur;
+	input.className = elem.className;
+	if (elem.type == 'text' ){
+		input.type = 'password';
+	} else {
+		input.type = 'text';
+	}
+
+	elem.parentNode.replaceChild(input, elem);
+	return input;
+};
+
+VuFind.Account = {
+	processAjaxLogin: function(){
+		var username = $("#username").val();
+		var password = $("#password").val();
+		var rememberMe = $("#rememberMe").val();
+		var loginErrorElem = $('#loginError');
+		if (!username || !password){
+			loginErrorElem.text("Please enter both your name and library card number");
+			loginErrorElem.show();
+			return false;
+		}
+		loginErrorElem.hide();
+		var url = Globals.path + "/AJAX/JSON?method=loginUser";
+		$.ajax({url: url,
+			data: {username: username, password: password, rememberMe: rememberMe},
+			success: function(response){
+				if (response.result.success == true){
+					loggedIn = true;
+					// Hide "log in" options and show "log out" options:
+					$('.loginOptions').hide();
+					$('.logoutOptions').show();
+					$('#loginOptions').hide();
+					$('#logoutOptions').show();
+					$('#myAccountNameLink').html(response.result.name);
+					$("#modalDialog").modal('hide');
+					Globals.loggedIn = true;
+					if (ajaxCallback  && typeof(ajaxCallback) === "function"){
+						ajaxCallback();
+					}
+				}else{
+					loginErrorElem.text(response.result.message);
+					loginErrorElem.show();
+				}
+			},
+			error: function(){
+				loginErrorElem.text("There was an error processing your login, please try again.");
+				loginErrorElem.show();
+			},
+			dataType: 'json',
+			type: 'post'
+		});
+
+		return false;
+	}
+};
+
 VuFind.ResultsList = {
 	statusList: [],
 	seriesList: [],
