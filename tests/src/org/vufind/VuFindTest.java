@@ -55,4 +55,12 @@ public abstract class VuFindTest {
 			}
 		});
 	}
+	protected void waitForElementVisible(WebDriver driver, final String cssSelector){
+		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+			@Override
+			public Boolean apply(org.openqa.selenium.WebDriver webDriver) {
+				return webDriver.findElement(By.cssSelector(cssSelector)).isDisplayed();
+			}
+		});
+	}
 }

@@ -31,16 +31,19 @@ public class Login extends VuFindTest {
 	private void testInvalidLogin(WebDriver driver, Ini configIni, TestResults results) {
 		//Test invalid login
 		results.incTests();
-		String invalidLogin = configIni.get("users", "basic");
+		String invalidLogin = configIni.get("users", "invalid");
 		String[] invalidValues = invalidLogin.split(":");
 		driver.findElement(By.cssSelector("#headerLoginLink")).click();
 		waitForModalDialogOpen(driver);
 
 		//Make sure the modal dialog opens
 		if (driver.findElement(By.cssSelector("#modalDialog")).isDisplayed()){
+			driver.findElement(By.cssSelector("#showPwd")).click();
 			driver.findElement(By.cssSelector("#username")).sendKeys(invalidValues[0]);
 			driver.findElement(By.cssSelector("#password")).sendKeys(invalidValues[1]);
 			driver.findElement(By.cssSelector("#loginFormSubmit")).click();
+
+			waitForElementVisible(driver, "#loginError");
 
 			//Make sure the error message shows properly
 			if (!driver.findElement(By.cssSelector("#loginError")).isDisplayed()){
@@ -61,7 +64,7 @@ public class Login extends VuFindTest {
 			results.addError(this.getClass().getCanonicalName() + ":testInvalidLogin", "Modal Dialog did not appear after clicking login link");
 		}
 		//Close the modal dialog
-		driver.findElement(By.cssSelector(".close")).click();
+		driver.findElement(By.cssSelector("#modalClose")).click();
 		waitForModalDialogClose(driver);
 	}
 

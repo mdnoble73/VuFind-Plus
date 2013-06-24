@@ -66,7 +66,7 @@
 
 			</div>
 			<div class="modal-footer">
-				<button class="btn" data-dismiss="modal">Close</button>
+				<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
 			</div>
 		</div>
 
