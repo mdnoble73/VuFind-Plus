@@ -35,10 +35,10 @@
 
 					<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
 						{if $filterList}
-							<option data-catalog_type="existing" value="existing" title="{translate text="Existing Search"}">{translate text="in Existing Search Results"}</option>
+							<option data-catalog_type="existing" value="existing" title="{translate text="Existing Search"}" selected="selected">{translate text="in Existing Search Results"}</option>
 						{/if}
 						{foreach from=$searchSources item=searchOption key=searchKey}
-							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"{if $searchKey == $searchSource} selected="selected"{/if} title="{$searchOption.description}">{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}</option>
+							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"{if $searchKey == $searchSource && !$filterList} selected="selected"{/if} title="{$searchOption.description}">{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}</option>
 						{/foreach}
 					</select>
 					<div id="search_button" class="btn-group">
@@ -84,12 +84,12 @@
 						<div style="display:none;">
 						{foreach from=$filterList item=data key=field}
 							{foreach from=$data item=value}
-								<input type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
+								<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
 							{/foreach}
 						{/foreach}
 						{foreach from=$checkboxFilters item=current}
 							{if $current.selected}
-								<input type="checkbox" name="filter[]" value="{$current.filter|escape}" />
+								<input class="existingFilter" type="checkbox" name="filter[]" value="{$current.filter|escape}" />
 							{/if}
 						{/foreach}
 						</div>

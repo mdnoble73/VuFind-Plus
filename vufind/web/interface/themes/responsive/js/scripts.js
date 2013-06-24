@@ -435,7 +435,10 @@ VuFind.Searches = {
 	},
 
 	processSearchForm: function(catalogType, searchType, searchFormId){
-		//Get the selected search type and
+		if (catalogType == 'existing'){
+			$(".existingFilter").prop('checked', true);
+		}
+		//Get the selected search type submit the form
 		if (catalogType == 'catalog'){
 			$("#basicType").val(searchType);
 			$("#genealogyType").remove();
