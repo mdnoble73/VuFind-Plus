@@ -77,6 +77,7 @@ class Record_AJAX extends Action {
 		flush();
 		echo($marcData->toRaw());
 	}
+
 	function getPurchaseOptions(){
 		global $interface;
 		if (isset($_REQUEST['id'])){

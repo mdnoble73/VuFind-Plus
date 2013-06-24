@@ -120,9 +120,10 @@ class Record_Purchase extends Action {
 		$stores = Library::getBookStores();
 		foreach ($stores as $store) {
 			$url = self::getPurchaseLinkForTitle($store->link, $title, $author);
-			$input = file_get_contents($url);
-			$regexp = $store->resultRegEx;
-			if(!preg_match($regexp, $input)) {
+			//Do not check to see if the title exists within the store
+			//$input = file_get_contents($url);
+			//$regexp = $store->resultRegEx;
+			//if(!preg_match($regexp, $input)) {
 				global $configArray;
 				$uploadedImage = $configArray['Site']['local'] . '/files/original/' . $store->image;
 				$uploadedImageURL = $configArray['Site']['path'] . '/files/original/' . $store->image;
@@ -132,7 +133,7 @@ class Record_Purchase extends Action {
 					'image' => (file_exists($uploadedImage) ? $uploadedImageURL : $store->image),
 					'storeName' => $store->storeName,
 				);
-			}
+			//}
 		}
 		return $purchaseLinks;
 	}
