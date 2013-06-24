@@ -760,7 +760,7 @@ class AJAX extends Action {
 					$title = $eContentRecord->title;
 					$author = $eContentRecord->author;
 					require_once ROOT_DIR . '/services/Record/Purchase.php';
-					$purchaseLinks = Purchase::getStoresForTitle($title, $author);
+					$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
 
 					if (count($purchaseLinks) > 0){
 						$interface->assign('purchaseLinks', $purchaseLinks);
