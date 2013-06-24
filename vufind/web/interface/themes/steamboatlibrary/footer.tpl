@@ -7,6 +7,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Week%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Juvenile+fiction%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Books for Older Children'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Music%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Music'}</a></li>
 		<li><a href='http://library.booksite.com/7359/nl/?list=CNL1'>{translate text='New Television'}</a></li>
+		<li><a href='http://www.literarysojourn.org/reading-list'>{translate text='Literary Sojourn'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='About Us'}</strong></p>
