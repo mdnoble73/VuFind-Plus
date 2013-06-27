@@ -115,7 +115,7 @@
 	$(document).ready(function() {literal} { {/literal}
 		doGetStatusSummaries();
 		{if $user}
-		doGetSaveStatuses();
+		//doGetSaveStatuses();
 		{/if}
 		doGetSeriesInfo();
 		{literal} }); {/literal}

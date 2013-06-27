@@ -26,7 +26,6 @@ class eContentHelp extends Action
 	function launch()
 	{
 		global $interface;
-		global $configArray;
 		$interface->setPageTitle('eContent Help');
 		$defaultFormat = "";
 
@@ -41,9 +40,6 @@ class eContentHelp extends Action
 				$eContentItem = new EContentItem();
 				$eContentItem->id = $_REQUEST['itemId'];
 				if ($eContentItem->find(true)){
-					$displayFormat = $eContentItem->getDisplayFormat();
-
-					$popupContent = "Sorry, there is not detailed help available for this format yet.";
 					if ($eContentItem->item_type == 'mp3'){
 						$defaultFormat = 'mp3';
 					}else if ($eContentItem->item_type == 'epub'){

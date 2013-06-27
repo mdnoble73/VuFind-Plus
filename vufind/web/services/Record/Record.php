@@ -30,7 +30,7 @@ require_once ROOT_DIR  . '/services/MyResearch/lib/Resource_tags.php';
 require_once ROOT_DIR  . '/services/MyResearch/lib/Tags.php';
 require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
 
-class Record_Record extends Action
+abstract class Record_Record extends Action
 {
 	public $id;
 

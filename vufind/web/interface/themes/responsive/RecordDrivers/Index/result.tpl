@@ -23,7 +23,7 @@
 		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 	</div>
 
-	<div class="resultDetails span6">
+	<div class="resultDetails span5">
 		<div class="resultItemLine1">
 			{if $summScore}({$summScore}) {/if}
 			<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
@@ -78,7 +78,7 @@
 		</div>
 	</div>
 
-	<div class="resultActions span2">
+	<div class="resultActions span3">
 		{include file='Record/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 
 	</div>

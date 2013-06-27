@@ -4,7 +4,7 @@
 	alert("{$title}");
 </script>
 {/if}
-<div id="page-content" class="content row-fluid">
+<div id="page-content" class="row-fluid">
 	<div id="sidebar" class="span3">
 		{include file="MyResearch/menu.tpl"}
 		{include file="Admin/menu.tpl"}
@@ -12,27 +12,11 @@
 
 	<div id="main-content" class="span9">
 		{if $user->cat_username}
-			{if $showStrands && $user->disableRecommendations == 0}
-				{* Display recommendations for the user *}
-				{assign var="scrollerName" value="Recommended"}
-				{assign var="wrapperId" value="recommended"}
-				{assign var="scrollerVariable" value="recommendedScroller"}
-				{assign var="scrollerTitle" value="Recommended for you"}
-				{include file='titleScroller.tpl'}
-
-				<script type="text/javascript">
-					var recommendedScroller;
-
-					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-					recommendedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
-				</script>
-			{/if}
-
 			{if $profile.web_note}
-				<div id="web_note">{$profile.web_note}</div>
+				<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
 			{/if}
 
-			<div class="myAccountTitle">{translate text='Holds Ready For Pickup'}</div>
+			<h3>{translate text='Holds Ready For Pickup'}</h3>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}

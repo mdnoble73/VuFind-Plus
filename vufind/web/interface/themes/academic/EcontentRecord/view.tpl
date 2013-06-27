@@ -79,9 +79,9 @@ function redrawSaveStatus() {literal}{{/literal}
 				{foreach from=$editions item=edition}
 					<div class="sidebarLabel">
 						{if $edition.recordtype == 'econtentRecord'}
-							<a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+							<a href="{$path}/EcontentRecord/{$edition.id|replace:'econtentRecord':''|escape:"url"}">{$edition.title|removeTrailingPunctuation|escape}</a>
 						{else}
-							<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+							<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|removeTrailingPunctuation|escape}</a>
 						{/if}
 					</div>
 					<div class="sidebarValue">
@@ -119,7 +119,7 @@ function redrawSaveStatus() {literal}{{/literal}
 						{else}
 							<span class="{$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">
 						{/if}
-						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|removeTrailingPunctuation|escape}</a>
 						</span>
 						<span style="font-size: 80%">
 						{if $similar.author}<br/>{translate text='By'}: {$similar.author|escape}{/if}
@@ -188,7 +188,7 @@ function redrawSaveStatus() {literal}{{/literal}
 
 			<div id='fullRecordTitleDetails'>
 				{* Display Title *}
-				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|regex_replace:"/(\/|:)$/":""|escape}{/if}
+				<div id='recordTitle'>{$eContentRecord->title|removeTrailingPunctuation|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|removeTrailingPunctuation|escape}{/if}
 				{if $user && $user->hasRole('epubAdmin')}
 				{if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
 				<span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>

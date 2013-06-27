@@ -39,9 +39,7 @@
 
 			{if $showTopSearchBox}
 				<div id='searchbar'>
-					{if $pageTemplate != 'advanced.tpl'}
-						{include file="Search/searchbox.tpl" showAsBar=true}
-					{/if}
+					{include file="Search/searchbox.tpl" showAsBar=true}
 				</div>
 			{/if}
 
@@ -63,7 +61,7 @@
 				<h3 id="modal-title"></h3>
 			</div>
 			<div class="modal-body">
-
+				<div id="modal-loading" class="text-center">Loading</br><img src="{img filename='loading_bar.gif'}" title="Loading"/></div>
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
@@ -79,5 +77,6 @@
 		<script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
 		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 	</body>
 </html>

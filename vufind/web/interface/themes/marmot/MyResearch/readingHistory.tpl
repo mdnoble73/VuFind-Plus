@@ -120,13 +120,13 @@
 												<div class="myAccountTitleDetails">
 													<div class="resultItemLine1">
 													{if $record.recordId}
-														<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}</a>
+														<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}</a>
 													{else}
-														{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}
+														{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
 													{/if}
 													{if $record.title2}
 														<div class="searchResultSectionInfo">
-															{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+															{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 														</div>
 													{/if}
 												</div>

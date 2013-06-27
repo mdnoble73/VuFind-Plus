@@ -50,8 +50,15 @@ VuFind.pwdToText = function(fieldId){
 	return input;
 };
 
+VuFind.toggleHiddenElementWithButton = function(button){
+	var hiddenElementName = $(button).data('hidden_element');
+	var hiddenElement = $(hiddenElementName);
+	hiddenElement.val($(button).hasClass('active') ? '1' : '0');
+	return false;
+};
+
 VuFind.Account = {
-	processAjaxLogin: function(){
+	processAjaxLogin: function(ajaxCallback){
 		var username = $("#username").val();
 		var password = $("#password").val();
 		var rememberMe = $("#rememberMe").val();
@@ -76,7 +83,7 @@ VuFind.Account = {
 					$('#myAccountNameLink').html(response.result.name);
 					$("#modalDialog").modal('hide');
 					Globals.loggedIn = true;
-					if (ajaxCallback  && typeof(ajaxCallback) === "function"){
+					if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
 						ajaxCallback();
 					}
 				}else{
@@ -408,19 +415,47 @@ VuFind.OverDrive = {
 				// Unable to load overdrive summary
 			}else{
 				// Load checked out items
-				$("#checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
+				$(".checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
 				// Load available holds
-				$("#availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
+				$(".availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
 				// Load unavailable holds
-				$("#unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
+				$(".unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
 				// Load wishlist
-				$("#wishlistOverDrivePlaceholder").html(data.numWishlistItems);
+				$(".wishlistOverDrivePlaceholder").html(data.numWishlistItems);
 			}
 		});
 	}
 };
 
 VuFind.Searches = {
+	searchGroups: [],
+
+	addAdvancedGroup: function(button){
+		var currentRow;
+		if (button == undefined){
+			currentRow = $(".advancedRow").last();
+		}else{
+			currentRow = $(button).closest(".advancedRow");
+		}
+
+		//Clone the current row and reset data and ids as needed.
+		var clonedData = currentRow.clone();
+		clonedData.find(".btn").removeClass('active');
+		clonedData.find('.lookfor').val("");
+		clonedData.insertAfter(currentRow);
+
+		VuFind.Searches.resetAdvancedRowIds();
+		return false;
+	},
+
+	deleteAdvancedGroup: function(button){
+		var currentRow = $(button).closest(".advancedRow");
+		currentRow.remove();
+
+		VuFind.Searches.resetAdvancedRowIds();
+		return false;
+	},
+
 	enableSearchTypes: function(){
 		var searchTypeElement = $("#searchSource");
 		var selectedSearchType = $(searchTypeElement.find(":selected"));
@@ -434,11 +469,95 @@ VuFind.Searches = {
 		}
 	},
 
-	processSearchForm: function(catalogType, searchType, searchFormId){
-		if (catalogType == 'existing'){
-			$(".existingFilter").prop('checked', true);
+	loadSearchGroups: function(){
+		var searchGroups = VuFind.Searches.searchGroups;
+		for (var i = 0; i < searchGroups.length; i++){
+			if (i > 0){
+				VuFind.Searches.addAdvancedGroup();
+			}
+			var searchGroup = searchGroups[i];
+			var groupIndex = i+1;
+			var searchGroupElement = $("#group" + groupIndex);
+			searchGroupElement.find(".groupStartInput").val(searchGroup.groupStart);
+			if (searchGroup.groupStart == 1){
+				searchGroupElement.find(".groupStartButton").addClass("active");
+			}
+			searchGroupElement.find(".searchType").val(searchGroup.searchType);
+			searchGroupElement.find(".lookfor").val(searchGroup.lookfor);
+			searchGroupElement.find(".groupEndInput").val(searchGroup.groupEnd);
+			if (searchGroup.groupEnd == 1){
+				searchGroupElement.find(".groupEndButton").addClass("active");
+			}
+			searchGroupElement.find(".joinOption").val(searchGroup.join);
 		}
+		if (searchGroups.length == 0){
+			VuFind.Searches.resetAdvancedRowIds();
+		}
+	},
+
+
+	processSearchForm: function(){
 		//Get the selected search type submit the form
+		var searchSource = $("#searchSource");
+		if (searchSource.val() == 'existing'){
+			$(".existingFilter").prop('checked', true);
+			var originalSearchSource = $("#existing_search_option").data('original_type');
+			searchSource.val(originalSearchSource);
+		}
+	},
+
+	resetAdvancedRowIds: function(){
+		var searchRows = $(".advancedRow");
+		searchRows.each(function(index, element){
+			var indexVal = index + 1;
+			var curRow = $(element);
+			curRow.attr("id", "group" + indexVal);
+			curRow.find(".groupStartInput")
+					.prop("name", "groupStart[" + indexVal + "]")
+					.attr("id", "groupStart" + indexVal + "Input");
+
+			curRow.find(".groupStartButton")
+					.data("hidden_element", "groupStart" + indexVal + "Input")
+					.attr("id", "groupStart" + indexVal);
+
+			curRow.find(".searchType")
+					.attr("name", "searchType[" + indexVal + "]");
+
+			curRow.find(".lookfor")
+					.attr("name", "lookfor[" + indexVal + "]");
+
+			curRow.find(".groupEndInput")
+					.prop("name", "groupEnd[" + indexVal + "]")
+					.attr("id", "groupEnd" + indexVal + "Input");
+
+			curRow.find(".groupEndButton")
+					.data("hidden_element", "groupEnd" + indexVal + "Input")
+					.attr("id", "groupEnd" + indexVal);
+
+			curRow.find(".joinOption")
+					.attr("name", "join[" + indexVal + "]");
+		});
+		if (searchRows.length == 1){
+			$(".deleteCriteria").hide();
+			$(".groupStartButton").hide();
+			$(".groupEndButton").hide();
+		}else{
+			$(".deleteCriteria").show();
+			$(".groupStartButton").show();
+			$(".groupEndButton").show();
+		}
+		var joinOptions = $(".joinOption");
+		joinOptions.show();
+		joinOptions.last().hide();
+	},
+
+	resetSearchType: function(){
+		if ($("#lookfor").val() == ""){
+			$("#searchSource").val($("#default_search_type").val());
+		}
+	},
+
+	updateSearchTypes: function(catalogType, searchType, searchFormId){
 		if (catalogType == 'catalog'){
 			$("#basicType").val(searchType);
 			$("#genealogyType").remove();
@@ -449,11 +568,35 @@ VuFind.Searches = {
 		$(searchFormId).submit();
 		return false;
 	}
+
+};
+
+VuFind.Prospector = {
+	getProspectorResults: function(prospectorNumTitlesToLoad, prospectorSavedSearchId){
+		var url = Globals.path + "/Search/AJAX";
+		var params = "method=getProspectorResults&prospectorNumTitlesToLoad=" + encodeURIComponent(prospectorNumTitlesToLoad) + "&prospectorSavedSearchId=" + encodeURIComponent(prospectorSavedSearchId);
+		var fullUrl = url + "?" + params;
+		$.ajax({
+			url: fullUrl,
+			success: function(data) {
+				var prospectorSearchResults = $(data).find("ProspectorSearchResults").text();
+				if (prospectorSearchResults) {
+					if (prospectorSearchResults.length > 0){
+						$("#prospectorSearchResultsPlaceholder").html(prospectorSearchResults);
+					}
+				}
+			}
+		});
+	}
 };
 
 $(document).ready(function(){
 	VuFind.Searches.enableSearchTypes();
 	VuFind.Ratings.initializeRaters();
 	VuFind.initializeModalDialogs();
+	var lookfor = $("#lookfor");
+	if (lookfor.length > 0){
+		lookfor.focus().select();
+	}
 });
 

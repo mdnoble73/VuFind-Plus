@@ -19,7 +19,7 @@
 		
 		{if $showHoldButton}
 			<input type="hidden" name="type" value="hold" />
-			<input type="submit" name="placeHolds" value="Request Selected Titles" class="requestSelectedItems"/>
+			<input type="submit" class="btn" name="placeHolds" value="Request Selected Titles" class="requestSelectedItems"/>
 		{/if}
 	</div>
 </form>
@@ -29,7 +29,7 @@
 		VuFind.ResultsList.loadStatusSummaries();
 		VuFind.ResultsList.initializeDescriptions();
 		{if $user}
-		doGetSaveStatuses();
+		//doGetSaveStatuses();
 		{/if}
 		VuFind.ResultsList.loadSeriesInfo();
 	{literal} }); {/literal}

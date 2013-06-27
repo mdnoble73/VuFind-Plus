@@ -1,7 +1,7 @@
 <div id="record{$summShortId|escape}">
 	<div class="resultIndex">{$resultIndex}</div>
 	<div class="selectTitle">
-		<input type="checkbox" name="selected[{$summShortId|escape:"url"}]" id="selected{$summShortId|escape:"url"}" class="titleSelect" {if $enableBookCart}onclick="toggleInBag('{$summId|escape:"url"}', '{$summTitle|regex_replace:"/(\/|:)$/":""|regex_replace:"/\"/":"&quot;"|escape:'javascript'}', this);"{/if} />&nbsp;
+		<input type="checkbox" name="selected[{$summShortId|escape:"url"}]" id="selected{$summShortId|escape:"url"}" class="titleSelect" {if $enableBookCart}onclick="toggleInBag('{$summId|escape:"url"}', '{$summTitle|removeTrailingPunctuation|regex_replace:"/\"/":"&quot;"|escape:'javascript'}', this);"{/if} />&nbsp;
 	</div>
 					
 	<div class="resultsList">
@@ -24,10 +24,10 @@
 		<div class="resultitem">
 			<div class="resultItemLine1">
 				{if $summScore}({$summScore}) {/if}
-				<a href="{$summUrl}" class="title">{if !$summTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+				<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
-					{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 					</div>
 				{/if}
 			</div>
@@ -108,11 +108,11 @@
 	<span class="Z3988"
 		style="display:none"
 		{if $summFormats=="Book"}
-			title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rfr_id=info%3Asid%2F{$coinsID}%3Agenerator&amp;rft.genre=book&amp;rft.btitle={$summTitle|regex_replace:"/(\/|:)$/":""|escape:"url"}&amp;rft.title={$summTitle|escape:"url"}&amp;rft.series={$record.series}&amp;rft.au={$record.author|escape:"url"}&amp;rft.date={$record.publishDate}&amp;rft.pub={$record.publisher|escape:"url"}&amp;rft.edition={$record.edition|escape:"url"}&amp;rft.isbn={$summISBN}">
+			title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rfr_id=info%3Asid%2F{$coinsID}%3Agenerator&amp;rft.genre=book&amp;rft.btitle={$summTitle|removeTrailingPunctuation|escape:"url"}&amp;rft.title={$summTitle|escape:"url"}&amp;rft.series={$record.series}&amp;rft.au={$record.author|escape:"url"}&amp;rft.date={$record.publishDate}&amp;rft.pub={$record.publisher|escape:"url"}&amp;rft.edition={$record.edition|escape:"url"}&amp;rft.isbn={$summISBN}">
 		{elseif $summFormats=="Journal"}
-			title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rfr_id=info%3Asid%2F{$coinsID}%3Agenerator&amp;rft.genre=article&amp;rft.title={$summTitle|regex_replace:"/(\/|:)$/":""|escape:"url"}&amp;rft.date={$record.publishDate}&amp;rft.issn={$record.issn}">
+			title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rfr_id=info%3Asid%2F{$coinsID}%3Agenerator&amp;rft.genre=article&amp;rft.title={$summTitle|removeTrailingPunctuation|escape:"url"}&amp;rft.date={$record.publishDate}&amp;rft.issn={$record.issn}">
 		{else}
-			title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Adc&amp;rfr_id=info%3Asid%2F{$coinsID}%3Agenerator&amp;rft.title={$summTitle|regex_replace:"/(\/|:)$/":""|escape:"url"}&amp;rft.creator={$record.author|escape:"url"}&amp;rft.date={$record.publishDate}&amp;rft.pub={$record.publisher|escape:"url"}&amp;rft.format={$summFormats}">
+			title="ctx_ver=Z39.88-2004&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Adc&amp;rfr_id=info%3Asid%2F{$coinsID}%3Agenerator&amp;rft.title={$summTitle|removeTrailingPunctuation|escape:"url"}&amp;rft.creator={$record.author|escape:"url"}&amp;rft.date={$record.publishDate}&amp;rft.pub={$record.publisher|escape:"url"}&amp;rft.format={$summFormats}">
 		{/if}
 	&nbsp;</span>
 	

@@ -19,21 +19,21 @@
 			<div class="myAccountLink">{translate text="Checked Out"}
 				<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyResearch/CheckedOut" id="checkedOutPrint">{translate text='Books, Movies &amp; Music'} ({$profile.numCheckedOut})</a></div>
 				<div class="myAccountLink{if $pageTemplate=="eContentCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentCheckedOut" id="checkedOutEContent">{translate text='eBooks and eAudio'} ({$profile.numEContentCheckedOut})</a></div>
-				<div class="myAccountLink{if $pageTemplate=="overDriveCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveCheckedOut" id="checkedOutOverDrive">{translate text='OverDrive'} (<span id="checkedOutItemsOverDrivePlaceholder">?</span>)</a></div>
+				<div class="myAccountLink{if $pageTemplate=="overDriveCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveCheckedOut" id="checkedOutOverDrive">{translate text='OverDrive'} (<span class="checkedOutItemsOverDrivePlaceholder">?</span>)</a></div>
 			</div>
 			<div class="myAccountLink">{translate text="Ready For Pickup"}
 				<div class="myAccountLink{if $pageTemplate=="availableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/Holds?section=available" id="availablePrint">{translate text='Books, Movies &amp; Music'} ({$profile.numHoldsAvailable})</a></div>
 				{if $hasProtectedEContent}
 				<div class="myAccountLink{if $pageTemplate=="eContentAvailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentHolds?section=available" id="availableEContent">{translate text='eBooks and eAudio'} ({$profile.numEContentAvailableHolds})</a></div>
 				{/if}
-				<div class="myAccountLink{if $pageTemplate=="overDriveAvailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds?section=available" id="availableOverDrive">{translate text='OverDrive'} (<span id="availableHoldsOverDrivePlaceholder">?</span>)</a></div>
+				<div class="myAccountLink{if $pageTemplate=="overDriveAvailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds?section=available" id="availableOverDrive">{translate text='OverDrive'} (<span class="availableHoldsOverDrivePlaceholder">?</span>)</a></div>
 			</div>
 			<div class="myAccountLink">{translate text="On Hold"}
 				<div class="myAccountLink{if $pageTemplate=="unavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/Holds?section=unavailable" id="unavailablePrint">{translate text='Books, Movies &amp; Music'} ({$profile.numHoldsRequested})</a></div>
 				{if $hasProtectedEContent}
 				<div class="myAccountLink{if $pageTemplate=="eContentUnavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentHolds?section=unavailable" id="unavailableEContent">{translate text='eBooks and eAudio'} ({$profile.numEContentUnavailableHolds})</a></div>
 				{/if}
-				<div class="myAccountLink{if $pageTemplate=="overDriveUnavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds?section=unavailable" id="unavailableOverDrive">{translate text='OverDrive'} (<span id="unavailableHoldsOverDrivePlaceholder">?</span>)</a></div>
+				<div class="myAccountLink{if $pageTemplate=="overDriveUnavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds?section=unavailable" id="unavailableOverDrive">{translate text='OverDrive'} (<span class="unavailableHoldsOverDrivePlaceholder">?</span>)</a></div>
 			</div>
 			{if $showFines}
 			<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyResearch/Fines">{translate text='Fines and Messages'}</a></div>

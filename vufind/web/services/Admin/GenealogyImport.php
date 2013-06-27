@@ -34,7 +34,7 @@ class GenealogyImport extends Admin_Admin{
         //1. Display form for the user to select the file to import
         //2. User submits the file to import
         //3. File is copied to an import location 
-        //4. System loads the total nummber of records in the file
+        //4. System loads the total number of records in the file
         //5. Total number of records in the file are stored in the session with the filename and current status
         //6. Information sent back to browser with number of records, etc. 
         //7. Browser does AJAX callbacks to run each batch and update progress bar when each finishes. (in JSON.php) 
@@ -61,7 +61,7 @@ class GenealogyImport extends Admin_Admin{
                     $_SESSION['genealogyImport']['filename'] = $destFullPath;
                     
                     $row = 0;
-                    $headers;
+                    $headers = null;
                     $numRecords = 0;
                     while (($data = fgetcsv($file, 0, ",", '"')) !== FALSE){
                         if ($row == 0){
@@ -84,7 +84,7 @@ class GenealogyImport extends Admin_Admin{
         }
         $interface->setTemplate('genealogyImport.tpl');
 
-        $interface->setPageTitle('Import Genalogy Information');
+        $interface->setPageTitle('Import Genealogy Information');
         $interface->display('layout.tpl');
     }
 

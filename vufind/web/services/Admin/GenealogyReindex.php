@@ -32,7 +32,7 @@ class GenealogyReindex extends Admin_Admin{
         //Because PHP will time out doing the full reindex, break up into chunks of 25 records at a time.
         //Process is as follows: 
         //1. Display form for the user to start the reindex process
-        //2. System loads the total nummber of records in the database
+        //2. System loads the total number of records in the database
         //5. Total number of records in the database are stored in the session with the filename and current status
         //6. Information sent back to browser with number of records, etc. 
         //7. Browser does AJAX callbacks to run each batch and update progress bar when each finishes. (in JSON.php) 
@@ -52,7 +52,7 @@ class GenealogyReindex extends Admin_Admin{
         }
         $interface->setTemplate('genealogyReindex.tpl');
 
-        $interface->setPageTitle('Reindex Genalogy Information');
+        $interface->setPageTitle('Reindex Genealogy Information');
         $interface->display('layout.tpl');
     }
 

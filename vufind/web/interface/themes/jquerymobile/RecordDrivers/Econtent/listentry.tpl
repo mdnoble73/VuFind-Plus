@@ -19,10 +19,10 @@
 
 <div class="resultDetails">
   <div class="resultItemLine1">
-	<a href="{$path}/EcontentRecord/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$listTitle|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$listTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	<a href="{$path}/EcontentRecord/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$listTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$listTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $listTitleStatement}
     <div class="searchResultSectionInfo">
-      {$listTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+      {$listTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
     </div>
     {/if}
   </div>

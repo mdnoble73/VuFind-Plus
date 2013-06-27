@@ -229,15 +229,17 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->initSort();
 		$this->initFilters();
 
-		//Marmot - search both ISBN-10 and ISBN-13
-		//Check to see if the search term looks like an ISBN10 or ISBN13
-		if (isset($_REQUEST['type']) && isset($_REQUEST['lookfor']) &&
-		($_REQUEST['type'] == 'ISN' || $_REQUEST['type'] == 'Keyword' || $_REQUEST['type'] == 'AllFields') &&
-		(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']) ||
-		preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']))) {
-			require_once(ROOT_DIR . '/sys/ISBN.php');
-			$isbn = new ISBN($_REQUEST['lookfor']);
-			$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+		if (isset($_REQUEST['lookfor']) && !is_array($_REQUEST['lookfor'])){
+			//Marmot - search both ISBN-10 and ISBN-13
+			//Check to see if the search term looks like an ISBN10 or ISBN13
+			if (isset($_REQUEST['type']) && isset($_REQUEST['lookfor']) &&
+			($_REQUEST['type'] == 'ISN' || $_REQUEST['type'] == 'Keyword' || $_REQUEST['type'] == 'AllFields') &&
+			(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']) ||
+			preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']))) {
+				require_once(ROOT_DIR . '/sys/ISBN.php');
+				$isbn = new ISBN($_REQUEST['lookfor']);
+				$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+			}
 		}
 
 		//********************

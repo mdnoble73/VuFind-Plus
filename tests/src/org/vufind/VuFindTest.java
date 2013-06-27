@@ -63,4 +63,28 @@ public abstract class VuFindTest {
 			}
 		});
 	}
+	protected void loginUser(WebDriver driver, Ini configIni, String userKey, TestResults results) {
+		//Test valid login
+		results.incTests();
+		String basicLogin = configIni.get("users", userKey);
+		String[] basicValues = basicLogin.split(":");
+		driver.findElement(By.cssSelector("#headerLoginLink")).click();
+		(new WebDriverWait(driver, 10)).until(new ExpectedCondition<Boolean>() {
+			@Override
+			public Boolean apply(WebDriver webDriver) {
+				return webDriver.findElement(By.cssSelector("#modalDialog")).isDisplayed();
+			}
+		});
+		//Make sure the modal dialog opens
+		if (driver.findElement(By.cssSelector("#modalDialog")).isDisplayed()){
+			driver.findElement(By.cssSelector("#username")).sendKeys(basicValues[0]);
+			driver.findElement(By.cssSelector("#password")).sendKeys(basicValues[1]);
+			driver.findElement(By.cssSelector("#loginFormSubmit")).click();
+			waitForModalDialogClose(driver);
+		}else{
+			results.addError(this.getClass().getCanonicalName()+ ":testValidLogin", "Modal Dialog did not appear after clicking login link");
+		}
+		//Logout
+		driver.findElement(By.cssSelector("#logoutLink")).click();
+	}
 }

@@ -29,6 +29,17 @@
   content: "▼ ";
 }
 
+.modal {
+  position: fixed;
+  left: 50%;
+  width: 80%;
+  margin-left: -40%;
+}
+
+.btn:active, .btn.active{
+  font-weight: bold;
+}
+
 /**
  * Overall Page layout
  */
@@ -52,6 +63,11 @@
   }
   @media (min-width: 480px) {
     .input-append;
+  }
+  #lookfor{
+    @media (min-width: 480px) {
+      .input-xlarge;
+    }
   }
 }
 

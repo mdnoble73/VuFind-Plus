@@ -98,10 +98,18 @@ class Suggestion extends Action
 		$interface->assign('email', $email);
 		$interface->assign('suggestion', $suggestion);
 
-		$interface->setPageTitle('Make a Suggestion');
-		$interface->assign('subTemplate', 'suggestion.tpl');
-		$interface->setTemplate('view-alt.tpl');
-		$interface->display('layout.tpl', 'Suggestion');
+		if (isset($_REQUEST['lightbox'])){
+			$interface->assign('popupTitle', 'Make a Suggestion');
+			$interface->assign('lightbox', true);
+			$popupContent = $interface->fetch('Help/suggestion.tpl');
+			$interface->assign('popupContent', $popupContent);
+			$interface->display('popup-wrapper.tpl');
+		}else{
+			$interface->assign('lightbox', false);
+			$interface->setPageTitle('Make a Suggestion');
+			$interface->setTemplate('suggestion.tpl');
+			$interface->display('layout.tpl');
+		}
 
 	}
 }

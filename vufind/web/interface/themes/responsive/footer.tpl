@@ -13,11 +13,11 @@
 				</div>
 				<div class="span3 footer-column" id="footer2"><h4 data-toggle="collapse" data-target="#footerContents2">{translate text='Search Options'}</h4>
 					<ul class="unstyled collapse footerContents" id="footerContents2">
-						<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
+						<li><a href="#searchForm" onclick="$('#lookfor').scrollTop();$('#lookfor').trigger('focus');return false;">{translate text='Standard Search'}</a></li>
 						{*
 						<li><a href="{$path}/Browse/Home">{translate text='Browse'}</a></li>
 						*}
-						<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
+						<li><a href="{$path}/Search/AdvancedPopup" title="{translate text='Advanced Search'}" class="modalDialogTrigger">{translate text='Advanced Search'}</a></li>
 						{if $user}
 							<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
 						{/if}
@@ -31,7 +31,7 @@
 						{if $enableMaterialsRequest}
 							<li><a href="{$path}/MaterialsRequest/NewRequest">{translate text='Suggest a Purchase'}</a></li>
 						{/if}
-						<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
+						<li><a href="{$path}/Help/Suggestion?lightbox" class="modalDialogTrigger" data-title="{translate text='Make a Suggestion'}">{translate text='Make a Suggestion'}</a></li>
 					</ul>
 				</div>
 		</div>

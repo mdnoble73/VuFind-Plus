@@ -41,9 +41,9 @@
 											{if !empty($record.recordId)}<a rel="external" href="{$path}/EcontentRecord/{$record.recordId|escape}">{/if}
 												<div class="result">
 													<h3>
-													{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}
+													{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
 													{if $record.title2}
-														<br/>{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+														<br/>{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 													{/if}
 													</h3>
 													{if $record.author}

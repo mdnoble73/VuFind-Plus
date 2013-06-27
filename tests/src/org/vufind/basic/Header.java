@@ -50,14 +50,13 @@ public class Header extends VuFindTest {
 			results.addError(this.getClass().getCanonicalName(), "Language toggle is not present");
 		}
 
-		//Login to make sure the login link disappears and we get a My Account and Logout Button
-		String login = configIni.get("users", "basic");
-		String[] loginValues = login.split(":");
+		loginUser(driver, configIni, "basic", results);
 
+		//Make sure the user name is shown
 
+		resizeToLandscapePhone(driver);
 
-		//Should also get the name of the active user
-
-
+		//Logout
+		driver.findElement(By.cssSelector("#logoutLink")).click();
 	}
 }

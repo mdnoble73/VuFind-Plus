@@ -19,7 +19,7 @@
 
 	</div>
 
-<div class="resultDetails span6">
+<div class="resultDetails span5">
 	<div class="resultItemLine1">
 	{if $summScore}({$summScore}) {/if}
 	<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
@@ -70,26 +70,23 @@
 	{/if}
 	</div>
 	
-	<div id = "holdingsEContentSummary{$summId|escape:"url"}" class="holdingsSummary">
+	<div id = "holdingsEContentSummary{$summId|escape:"url"}" class="holdingsSummary well well-small">
 		<div class="statusSummary" id="statusSummary{$summId|escape:"url"}">
 			<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
 		</div>
 	</div>
 </div>
 
-<div class="resultActions span2l">
+<div class="resultActions span3">
 	{include file='EcontentRecord/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 </div>
 
 
 <script type="text/javascript">
-	addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if}, '{$useUnscopedHoldingsSummary}');
+	VuFind.ResultsList.addIdToStatusList('{$summId|escape:"javascript"}', {if strcasecmp($source, 'OverDrive') == 0}'OverDrive'{else}'eContent'{/if}, '{$useUnscopedHoldingsSummary}');
 	{if $summISBN}
-	getSeriesInfo('{$summISBN}');
+	VuFind.ResultsList.addIdToSeriesList('{$summISBN}');
 	{/if}
-	$(document).ready(function(){literal} { {/literal}
-		resultDescription('{$summId}','{$summId}', 'eContent');
-	{literal} }); {/literal}
 </script>
 
 </div>

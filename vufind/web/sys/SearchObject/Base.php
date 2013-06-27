@@ -388,12 +388,27 @@ abstract class SearchObject_Base
 		switch ($this->searchType) {
 			// Advanced search
 			case $this->advancedSearchType:
-				$params[] = "join=" . urlencode($this->searchTerms[0]['join']);
-				for ($i = 0; $i < count($this->searchTerms); $i++) {
-					$params[] = "bool".$i."[]=" . urlencode($this->searchTerms[$i]['group'][0]['bool']);
-					for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
-						$params[] = "lookfor".$i."[]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
-						$params[] = "type".$i."[]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+				if (true){
+					$paramIndex = 0;
+					for ($i = 0; $i < count($this->searchTerms); $i++) {
+						for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
+							$paramIndex++;
+							$params[] = "lookfor[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
+							$params[] = "searchType[$paramIndex]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+							$params[] = "join[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['bool']);
+						}
+						if ($i > 0){
+							$params[] = "groupEnd[$paramIndex]=1";
+						}
+					}
+				}else{
+					$params[] = "join=" . urlencode($this->searchTerms[0]['join']);
+					for ($i = 0; $i < count($this->searchTerms); $i++) {
+						$params[] = "bool".$i."[]=" . urlencode($this->searchTerms[$i]['group'][0]['bool']);
+						for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
+							$params[] = "lookfor".$i."[]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
+							$params[] = "type".$i."[]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+						}
 					}
 				}
 				break;
@@ -431,10 +446,10 @@ abstract class SearchObject_Base
 		// to great lengths for compatibility.
 		if (is_array($_REQUEST['lookfor'])) {
 			if (count($_REQUEST['lookfor']) == 1) {
-				$_REQUEST['lookfor'] = strip_tags($_REQUEST['lookfor'][0]);
+				$_REQUEST['lookfor'] = strip_tags(reset($_REQUEST['lookfor']));
+				$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
 			} else {
-				PEAR_Singleton::RaiseError(new PEAR_Error("Unsupported search URL."));
-				die();
+				return false;
 			}
 		}
 
@@ -474,67 +489,100 @@ abstract class SearchObject_Base
 	protected function initAdvancedSearch()
 	{
 		$this->isAdvanced = true;
-		//********************
-		// Advanced Search logic
-		//  'lookfor0[]' 'type0[]'
-		//  'lookfor1[]' 'type1[]' ...
-		$this->searchType = $this->advancedSearchType;
-		$groupCount = 0;
-		// Loop through each search group
-		while (isset($_REQUEST['lookfor'.$groupCount])) {
-			$group = array();
-			// Loop through each term inside the group
-			for ($i = 0; $i < count($_REQUEST['lookfor'.$groupCount]); $i++) {
-				// Ignore advanced search fields with no lookup
-				if ($_REQUEST['lookfor'.$groupCount][$i] != '') {
-					// Use default fields if not set
-					if (isset($_REQUEST['type'.$groupCount][$i]) && $_REQUEST['type'.$groupCount][$i] != '') {
-						$type = strip_tags($_REQUEST['type'.$groupCount][$i]);
-					} else {
-						$type = $this->defaultIndex;
-					}
-
-					//Marmot - search both ISBN-10 and ISBN-13
-					//Check to see if the search term looks like an ISBN10 or ISBN13
-					$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
-					if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
-							(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
-							preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
-						require_once(ROOT_DIR . '/sys/ISBN.php');
-						$isbn = new ISBN($lookfor);
-						$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
-					}
-
-					// Add term to this group
+		if (isset($_REQUEST['lookfor'])){
+			if (is_array($_REQUEST['lookfor'])){
+				//Advanced search from popup form
+				$this->searchType = $this->advancedSearchType;
+				$openGroup = false;
+				$group = array();
+				foreach ($_REQUEST['lookfor'] as $index => $lookfor){
 					$group[] = array(
-                        'field'   => $type,
-                        'lookfor' => $lookfor,
-                        'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
+						'field'   => $_REQUEST['searchType'][$index],
+						'lookfor' => $lookfor,
+						'bool'    => $_REQUEST['join'][$index]
+					);
+					if ($_REQUEST['groupEnd'][$index] == 1){
+						// Add the completed group to the list
+						$this->searchTerms[] = array(
+							'group' => $group,
+							'join'  => $_REQUEST['join'][$index]
+						);
+						$group = array();
+					}
+				}
+				if (count($group) > 0){
+					// Add the completed group to the list
+					$this->searchTerms[] = array(
+						'group' => $group,
+						'join'  => $_REQUEST['join'][$index]
 					);
 				}
+			}else{
+
+			}
+		}else{
+			//********************
+			// Advanced Search logic
+			//  'lookfor0[]' 'type0[]'
+			//  'lookfor1[]' 'type1[]' ...
+			$this->searchType = $this->advancedSearchType;
+			$groupCount = 0;
+			// Loop through each search group
+			while (isset($_REQUEST['lookfor'.$groupCount])) {
+				$group = array();
+				// Loop through each term inside the group
+				for ($i = 0; $i < count($_REQUEST['lookfor'.$groupCount]); $i++) {
+					// Ignore advanced search fields with no lookup
+					if ($_REQUEST['lookfor'.$groupCount][$i] != '') {
+						// Use default fields if not set
+						if (isset($_REQUEST['type'.$groupCount][$i]) && $_REQUEST['type'.$groupCount][$i] != '') {
+							$type = strip_tags($_REQUEST['type'.$groupCount][$i]);
+						} else {
+							$type = $this->defaultIndex;
+						}
+
+						//Marmot - search both ISBN-10 and ISBN-13
+						//Check to see if the search term looks like an ISBN10 or ISBN13
+						$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
+						if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
+								(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
+								preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
+							require_once(ROOT_DIR . '/sys/ISBN.php');
+							$isbn = new ISBN($lookfor);
+							$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
+						}
+
+						// Add term to this group
+						$group[] = array(
+	                        'field'   => $type,
+	                        'lookfor' => $lookfor,
+	                        'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
+						);
+					}
+				}
+
+				// Make sure we aren't adding groups that had no terms
+				if (count($group) > 0) {
+					// Add the completed group to the list
+					$this->searchTerms[] = array(
+	                    'group' => $group,
+	                    'join'  => strip_tags($_REQUEST['join'])
+					);
+				}
+
+				// Increment
+				$groupCount++;
 			}
 
-			// Make sure we aren't adding groups that had no terms
-			if (count($group) > 0) {
-				// Add the completed group to the list
+			// Finally, if every advanced row was empty
+			if (count($this->searchTerms) == 0) {
+				// Treat it as an empty basic search
+				$this->searchType = $this->basicSearchType;
 				$this->searchTerms[] = array(
-                    'group' => $group,
-                    'join'  => strip_tags($_REQUEST['join'])
-				);
+	                'index'   => $this->defaultIndex,
+	                'lookfor' => ''
+	                );
 			}
-
-			// Increment
-			$groupCount++;
-		}
-
-		// Finally, if every advanced row was empty
-		if (count($this->searchTerms) == 0) {
-			// Treat it as an empty basic search
-			$this->searchType = $this->basicSearchType;
-			$this->searchTerms[] = array(
-                'index'   => $this->defaultIndex,
-                'lookfor' => ''
-                );
 		}
 	}
 
@@ -1301,6 +1349,7 @@ abstract class SearchObject_Base
 				return null;
 			}
 		}
+		return null;
 	}
 
 	/**

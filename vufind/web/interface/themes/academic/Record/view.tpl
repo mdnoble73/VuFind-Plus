@@ -89,7 +89,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							<span class="icon {$edition.format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span>
 						{/if}
 						<span>
-						<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						<a href="{$path}/Record/{$edition.id|escape:"url"}">{$edition.title|removeTrailingPunctuation|escape}</a>
 						</span>
 						{$edition.edition|escape}
 						{if $edition.publishDate}({$edition.publishDate.0|escape}){/if}
@@ -120,7 +120,7 @@ function redrawSaveStatus() {literal}{{/literal}
 							<span class="icon {$similar.format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span>
 						{/if}
 						<span>
-						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+						<a href="{$path}/Record/{$similar.id|escape:"url"}">{$similar.title|removeTrailingPunctuation|escape}</a>
 						</span>
 						{if $similar.author}
 							<span style="font-size: 80%">
@@ -162,7 +162,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			</div>
 			<div id='fullRecordTitleDetails'>	
 				{* Display Title *}
-				<div class='recordTitle'>{$recordTitleWithAuth|regex_replace:"/(\/|:)$/":""|escape}</div>
+				<div class='recordTitle'>{$recordTitleWithAuth|removeTrailingPunctuation|escape}</div>
 				
 				{* Display more information about the title*}
 				{if $mainAuthor}
@@ -338,8 +338,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				{* Display series information *}
 				{if $marcField|getvalue:'n' || $marcField|getvalue:'p'}
 					<div class='titleSeriesInformation'>
-					{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'|regex_replace:"/(\/|:)$/":""|escape}{/if}
-					{if $marcField|getvalue:'p'}{$marcField|getvalue:'p'|regex_replace:"/(\/|:)$/":""|escape}{/if}
+					{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'|removeTrailingPunctuation|escape}{/if}
+					{if $marcField|getvalue:'p'}{$marcField|getvalue:'p'|removeTrailingPunctuation|escape}{/if}
 					</div>
 				{/if}
 			</div>

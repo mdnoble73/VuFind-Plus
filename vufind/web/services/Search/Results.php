@@ -470,7 +470,7 @@ class Search_Results extends Action {
 		//Determine whether or not materials request functionality should be enabled
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
-		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
+		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());

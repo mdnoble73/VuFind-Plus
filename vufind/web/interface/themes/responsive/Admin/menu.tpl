@@ -2,7 +2,7 @@
 {strip}
 <div id="adminMenuAccordion" class="accordion">
 	{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-		{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'UserSuggestions', 'Bookstores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanDeterminers'))}
+		{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers'))}
 			{assign var="curSection" value=true}
 		{else}
 			{assign var="curSection" value=false}
@@ -37,7 +37,7 @@
 	{/if}
 
 	{if $user && $user->hasRole('userAdmin')}
-		{if in_array($action, array('Administrators', 'TransferAccountInfo', 'DBMaintenance', 'DBMaintenanceEContent', 'CronLog', 'ReindexLog', 'OverDriveExtract'))}
+		{if in_array($action, array('Administrators', 'TransferAccountInfo', 'DBMaintenance', 'DBMaintenanceEContent', 'CronLog', 'ReindexLog', 'OverDriveExtractLog'))}
 			{assign var="curSection" value=true}
 		{else}
 			{assign var="curSection" value=false}
@@ -54,14 +54,14 @@
 					<div class="adminMenuLink {if $action == "DBMaintenanceEContent"}active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 					<div class="adminMenuLink {if $action == "CronLog"}active{/if}"><a href="{$path}/Admin/CronLog">Cron Log</a></div>
 					<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
-		      <div class="adminMenuLink {if $action == "OverDriveExtract"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
+		      <div class="adminMenuLink {if $action == "OverDriveExtractLog"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
 				</div>
 			</div>
 		</div>
 	{/if}
 	
-	{if $user && ($user->hasRole('epubAdmin') || $user->hasRole('cataloging'))}
-		{if in_array($action, array('ListEPub', 'NewEPub', 'AttachEContent', 'AttachEContentLog'))}
+	{if $user && ($user->hasRole('epubAdmin'))}
+		{if in_array($action, array('AttachEContent', 'AttachEContentLog'))}
 			{assign var="curSection" value=true}
 		{else}
 			{assign var="curSection" value=false}
@@ -72,12 +72,11 @@
 			</div>
 			<div id="eContentMenu" class="accordion-body collapse {if $curSection}in{/if}">
 				<div class="accordion-inner">
-					<div class="adminMenuLink{if $action == "ListEPub"}active{/if}"><a href="{$path}/Search/Results?type=Keyword&amp;shard[]=eContent&amp;lookfor=">Search Existing eContent</a></div>
+					{*
 					<div class="adminMenuLink{if $action == "NewEPub"}active{/if}"><a href="{$path}/EcontentRecord/Edit">New eContent</a></div>
-					{if $user->hasRole('epubAdmin')}
+					*}
 					<div class="adminMenuLink{if $action == "AttachEContent"}active{/if}"><a href="{$path}/EContent/AttachEContent">Attach EContent To Records</a></div>
 					<div class="adminMenuLink{if $action == "AttachEContentLog"}active{/if}"><a href="{$path}/EContent/AttachEContentLog">EContent Attachment Log</a></div>
-					{/if}
 				</div>
 			</div>
 		</div>
@@ -105,7 +104,7 @@
 	{/if}
 	
 	{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
-		{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
+		{if $module == 'Circa'}
 			{assign var="curSection" value=true}
 		{else}
 			{assign var="curSection" value=false}
@@ -123,7 +122,7 @@
 	{/if}
 	
 	{if $user && $user->hasRole('genealogyContributor')}
-		{if in_array($action, array('GenealogyImport', 'GenealogyFixDates'))}
+		{if in_array($action, array('GenealogyImport', 'GenealogyFixDates', 'GenealogyReindex'))}
 			{assign var="curSection" value=true}
 		{else}
 			{assign var="curSection" value=false}
@@ -135,7 +134,7 @@
 			<div id="genealogyMenu" class="accordion-body collapse {if $curSection}in{/if}">
 				<div class="accordion-inner">
 					<div class="adminMenuLink{if $action == "GenealogyImport"}active{/if}"><a href="{$path}/Admin/GenealogyImport">Import Information</a></div>
-					<div class="adminMenuLink{if $action == "GenealogyFixDates"}active{/if}"><a href="{$path}/Admin/GenealogyFixDates">Fix Dates</a></div>
+					<div class="adminMenuLink{if $action == "GenealogyReindex"}active{/if}"><a href="{$path}/Admin/GenealogyReindex">Reindex</a></div>
 				</div>
 			</div>
 		</div>
@@ -193,7 +192,7 @@
 				<a href="#econtentReportMenu" class="accordion-toggle" data-toggle="collapse" data-parent="#adminMenuAccordion">eContent Reports</a>
 			</div>
 			<div id="econtentReportMenu" class="accordion-body collapse {if $curSection}in{/if}">
-				<div id="econtentReportMenu">
+				<div class="accordion-inner">
 					<div class="adminMenuLink{if $action == "EContentSummary"}active{/if}"><a href="{$path}/EContent/EContentSummary">Collection Summary</a></div>
 					<div class="adminMenuLink{if $action == "EContentCollection"}active{/if}"><a href="{$path}/EContent/EContentCollection">Collection Details</a></div>
 					{if $user->hasRole('epubAdmin')}

@@ -19,10 +19,10 @@
 
 	<div class="resultDetails">
 		<div class="resultItemLine1">
-		<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+		<a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" class="title">{if !$resource->title}{translate text='Title not available'}{else}{$resource->title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 		{if $listTitleStatement}
 			<div class="searchResultSectionInfo">
-				{$listTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+				{$listTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 			</div>
 			{/if}
 		</div>

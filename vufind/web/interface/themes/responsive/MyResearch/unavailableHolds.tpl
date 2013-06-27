@@ -11,27 +11,11 @@
 
 	<div id="main-content" class="span9">
 		{if $user->cat_username}
-			{if $showStrands && $user->disableRecommendations == 0}
-				{* Display recommendations for the user *}
-				{assign var="scrollerName" value="Recommended"}
-				{assign var="wrapperId" value="recommended"}
-				{assign var="scrollerVariable" value="recommendedScroller"}
-				{assign var="scrollerTitle" value="Recommended for you"}
-				{include file=titleScroller.tpl}
-
-				<script type="text/javascript">
-					var recommendedScroller;
-
-					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-					recommendedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
-				</script>
-			{/if}
-
 			{if $profile.web_note}
-				<div id="web_note">{$profile.web_note}</div>
+				<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
 			{/if}
 
-			<div class="myAccountTitle">{translate text='Titles On Hold'}</div>
+			<h3>{translate text='Titles On Hold'}</h3>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}
@@ -144,13 +128,13 @@
 											{if $record.recordId}
 											<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">
 											{/if}
-											{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}
+											{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 											{if $record.recordId}
 											</a>
 											{/if}
 											{if $record.title2}
 												<div class="searchResultSectionInfo">
-													{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+													{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 												</div>
 												{/if}
 										</div>
