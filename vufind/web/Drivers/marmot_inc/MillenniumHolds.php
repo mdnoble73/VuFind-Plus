@@ -160,8 +160,10 @@ class MillenniumHolds{
 							$canUpdate = true;
 						}
 					} else if ($freezeValue == 'on'){
-						if (!$holdForXNum['frozen'] && $holdForXNum['freezable']){
-							$canUpdate = true;
+						if ($holdForXNum['frozen'] == false){
+							if ($holdForXNum['freezeable'] == true){
+								$canUpdate = true;
+							}
 						}
 					} else if ($freezeValue == '' && isset($paddedLocation) && $holdForXNum['locationUpdateable']){
 						$canUpdate = true;
@@ -229,13 +231,13 @@ class MillenniumHolds{
 		//Load the page, but we don't need to do anything with the results.
 		curl_exec($curl_connection);
 
-		//Issue a get request with the information about what to do with the holds
+		//Issue a post request with the information about what to do with the holds
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $holdUpdateParams);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		$sResult = curl_exec($curl_connection);
-		//$holds = $this->parseHoldsPage($sresult);
+		//$holds = $this->parseHoldsPage($sResult);
 		//At this stage, we get messages if there were any errors freezing holds.
 
 		//Go back to the hold page to check make sure our hold was cancelled
