@@ -25,7 +25,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
-class MyResearch extends Action
+abstract class MyResearch extends Action
 {
 	protected $db;
 	protected $catalog;
