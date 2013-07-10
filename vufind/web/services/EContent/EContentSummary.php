@@ -46,7 +46,7 @@ class EContentSummary extends Admin_Admin
 	function loadCollectionSummary(){
 		$collectionSummary = array();
 		$epubFile = new EContentRecord();
-		$query = "SELECT COUNT(DISTINCT id) as numTitles FROM `{$epubFile->__table}`";
+		$query = "SELECT COUNT(DISTINCT id) as numTitles FROM `econtent_record` where status = 'active'";
 
 		$epubFile->query($query);
 		if ($epubFile->N > 0){
@@ -55,14 +55,14 @@ class EContentSummary extends Admin_Admin
 		}
 
 		$statsByDRM = new EContentRecord();
-		$query = "SELECT accessType, COUNT(DISTINCT id) as numTitles FROM `{$statsByDRM->__table}` GROUP BY accessType ORDER BY accessType ASC";
+		$query = "SELECT accessType, COUNT(DISTINCT id) as numTitles FROM `econtent_record` where status = 'active' GROUP BY accessType ORDER BY accessType ASC";
 		$statsByDRM->query($query);
 		while ($statsByDRM->fetch()){
 			$collectionSummary['statsByDRM'][$statsByDRM->accessType] = $statsByDRM->numTitles;
 		}
 
 		$statsBySource = new EContentRecord();
-		$query = "SELECT source, COUNT(DISTINCT id) as numTitles FROM `{$statsBySource->__table}` GROUP BY source ORDER BY source ASC";
+		$query = "SELECT source, COUNT(DISTINCT id) as numTitles FROM `econtent_record` where status = 'active' GROUP BY source ORDER BY source ASC";
 		$statsBySource->query($query);
 		while ($statsBySource->fetch()){
 			$collectionSummary['statsBySource'][$statsBySource->source] = $statsBySource->numTitles;
