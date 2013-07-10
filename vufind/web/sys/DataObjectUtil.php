@@ -323,6 +323,12 @@ class DataObjectUtil
 						$logger->log("Copied file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_INFO);
 					}else{
 						$logger->log("Could not copy file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_ERR);
+						if (!file_exists($_FILES[$propertyName]["tmp_name"])){
+							$logger->log("  Uploaded file did not exist", PEAR_LOG_ERR);
+						}
+						if (!is_writable($destFullPath)){
+							$logger->log("  Destination is not writable", PEAR_LOG_ERR);
+						}
 					}
 					//store the actual filename
 					$object->$propertyName = $destFileName;
