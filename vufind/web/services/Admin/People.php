@@ -45,7 +45,8 @@ class People extends ObjectEditor
 		return $objectList;
 	}
 	function getObjectStructure(){
-		return Person::getObjectStructure();
+		$person = new Person();
+		return $person->getObjectStructure();
 	}
 	function getPrimaryKeyColumn(){
 		return array('lastName', 'firstName', 'middleName', 'birthDate');
