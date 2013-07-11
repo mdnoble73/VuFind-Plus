@@ -17,7 +17,17 @@
 			<tbody>
 			{foreach from=$collectionSummary.statsByDRM key=hasDRM item=numTitles }
 			<tr>
-			<td>{if $hasDRM == 'free'}Free Titles{elseif $hasDRM == 'singleUse'}Single Use Titles{else}ACS Titles{/if}</td>
+			<td>
+				{if $hasDRM == 'free'}
+					Free Titles
+				{elseif $hasDRM == 'singleUse'}
+					Single Use Titles
+				{elseif $hasDRM == 'external'}
+					Externally Protected Titles
+				{else}
+					ACS Titles
+				{/if}
+			</td>
 			<td>{$numTitles}</td>
 			</tr>
 			{/foreach}

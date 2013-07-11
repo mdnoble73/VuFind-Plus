@@ -47,23 +47,25 @@ class Marriage extends DB_DataObject
 	}
 
 	function insert(){
-		parent::insert();
+		$ret = parent::insert();
 		//Load the person this is for, and update solr
 		if ($this->personId){
 			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = Person::staticGet('personId', $this->personId);
 			$person->saveToSolr();
 		}
+		return $ret;
 	}
 
 	function update(){
-		parent::update();
+		$ret = parent::update();
 		//Load the person this is for, and update solr
 		if ($this->personId){
 			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = Person::staticGet('personId', $this->personId);
 			$person->saveToSolr();
 		}
+		return $ret;
 	}
 
 	function delete(){
