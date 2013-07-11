@@ -458,7 +458,7 @@ class AdobeContentServer
 	 * Creates a quasi-unique nonce based on the start time and an incremented
 	 * counter
 	 *
-	 * @return a string containing the nonce
+	 * @return string - a string containing the nonce
 	 */
 	static $counter = 1;
 	static function makeNonce(){
@@ -473,7 +473,7 @@ class AdobeContentServer
 		$trans = new EPubTransaction();
 		$trans->userId = $userId;
 		$trans->recordId = $recordId;
-		$trans->itemId = $itemId;
+		//$trans->itemId = $itemId;
 		$trans->whereAdd('timeReturned = null');
 		if ($trans->find(true)){
 			if ($trans->userAcsId != null && strlen($trans->userAcsId) > 0){
