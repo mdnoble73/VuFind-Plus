@@ -234,9 +234,9 @@ class OverDriveDriver2 {
 		//Match holds
 		//Get the individual holds by splitting the section based on each <li class="mobile-four">
 		//Trim to the first li
-		$firstTitlePos = strpos($holdsSection, 'class="mobile-four"');
-		$holdsSection = substr($holdsSection, $firstTitlePos);
-		$heldTitles = preg_split('/<li .*?class="mobile-four">/', $holdsSection);
+		//$firstTitlePos = preg_match($holdsSection, '/<li .*?class="mobile-four">/');
+		//$holdsSection = substr($holdsSection, $firstTitlePos);
+		$heldTitles = preg_split('/<li[^>]*?class="mobile-four"[^>]*?>/', $holdsSection);
 		foreach ($heldTitles as $titleHtml){
 			//echo("\r\nSection " . $i++ . "\r\n$titleHtml");
 			if (preg_match('/<div class="coverID">.*?<a href="ContentDetails\\.htm\\?id=(.*?)">.*?<img class="lrgImg" src="(.*?)".*?<div class="trunc-title-line".*?title="(.*?)".*?<div class="trunc-author-line".*?title="(.*?)".*?<div class="(?:holds-info)?".*?>(.*)/si', $titleHtml, $holdInfo)){
