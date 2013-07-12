@@ -31,9 +31,10 @@
 				       size="30"
 				       value="{$lookfor|escape:"html"}"
 				       title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."
-				       onkeyup="VuFind.Searches.resetSearchType()"
-				       onclick="$(this).select()"{strip}
-								/>
+				       onkeyup="return VuFind.Searches.resetSearchType()"
+				       onclick="$(this).select()"
+							 autocomplete="off"
+								{strip}/>
 
 				<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
 					{if $filterList}
@@ -69,7 +70,7 @@
 						{/foreach}
 						<li class="divider genealogyType"></li>
 						{if $showAdvancedSearchbox == 1}
-							<li>
+							<li class="catalogType">
 								<a href="{$path}/Search/AdvancedPopup" id="advancedSearch" title="{translate text='Advanced Search'}" class="modalDialogTrigger">
 									<i class="icon-plus-sign"></i> {translate text="Advanced"}
 								</a>

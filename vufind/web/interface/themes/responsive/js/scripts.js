@@ -469,6 +469,31 @@ VuFind.Searches = {
 		}
 	},
 
+	lastSpellingTimer: undefined,
+	getSpellingSuggestion: function(query, process, isAdvanced){
+		if (VuFind.Searches.lastSpellingTimer != undefined){
+			clearTimeout(VuFind.Searches.lastSpellingTimer);
+			VuFind.Searches.lastSpellingTimer = undefined;
+		}
+
+		var url = Globals.path + "/Search/AJAX?method=GetAutoSuggestList&searchTerm=" + query;
+		//Get the search source
+		if (isAdvanced){
+			//Add the search type
+		}
+		VuFind.Searches.lastSpellingTimer = setTimeout(
+				function(){
+					$.get(url,
+							function(data){
+								process(data);
+							},
+							'json'
+					)
+				},
+			500
+		);
+	},
+
 	loadSearchGroups: function(){
 		var searchGroups = VuFind.Searches.searchGroups;
 		for (var i = 0; i < searchGroups.length; i++){
@@ -555,6 +580,7 @@ VuFind.Searches = {
 		if ($("#lookfor").val() == ""){
 			$("#searchSource").val($("#default_search_type").val());
 		}
+		return true;
 	},
 
 	updateSearchTypes: function(catalogType, searchType, searchFormId){
@@ -597,6 +623,13 @@ $(document).ready(function(){
 	var lookfor = $("#lookfor");
 	if (lookfor.length > 0){
 		lookfor.focus().select();
+		var typeaheadOptions = {
+			minLength: 3,
+			source: function(query, process){
+				VuFind.Searches.getSpellingSuggestion(query, process, false);
+			}
+		};
+		lookfor.typeahead(typeaheadOptions);
 	}
 });
 

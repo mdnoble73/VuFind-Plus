@@ -11,16 +11,21 @@
 						<input type="hidden" name="groupStart[1]" id="groupStart1Input" class="groupStartInput" title="Start Group"/>
 						<button id="groupStart1" data-toggle="button" data-hidden_element="#groupStart1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn groupStartButton">(</button>
 						<select name="searchType[1]" class="searchType">
+							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
+								<option value="{$searchVal}">{$searchDesc|translate}</option>
+							{/foreach}
+							<option value="">---</option>
 							{foreach from=$advSearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}">{$searchDesc|translate}</option>
 							{/foreach}
-							{foreach from=$facetList item="facet" key="filterName"}
-								<option value="{$filterName}">{$facet.label|translate}</option>
+							<option value="">---</option>
+							{foreach from=$facetList item="facetLabel" key="filterName"}
+								<option value="{$filterName}" data-is_facet="true">{$facetLabel|translate}</option>
 							{/foreach}
 						</select>
 					</div>
 					<div class="input-append">
-						<input type="text" name="lookfor[1]" class="lookfor" title="Search For" placeholder="Search for"/>
+						<input type="text" name="lookfor[1]" class="lookfor" title="Search For" placeholder="Search for" data-provide="typeahead" data-source='VuFind.Searches.getSpellingSuggestion();' autocomplete="off"/>
 						<input type="hidden" name="groupEnd[1]" id="groupEnd1Input" title="End Group" class="groupEndInput"/>
 						<button id="groupEnd1" data-toggle="button" data-hidden_element="#groupEnd1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn groupEndButton">)</button>
 					</div>

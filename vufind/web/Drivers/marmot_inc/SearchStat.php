@@ -60,7 +60,7 @@ class SearchStat extends DB_DataObject
 		//Don't suggest things to users that will result in them not getting any results
 		$searchStat->whereAdd("numResults > 0");
 		$splitPhrase = explode(' ', $phrase);
-		$rebuiltPhrase = implode(' % ', $splitPhrase);
+		$rebuiltPhrase = implode(' %', $splitPhrase);
 		if ($rebuiltPhrase)
 		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($rebuiltPhrase) ."%' or phrase sounds like '" . mysql_escape_string($rebuiltPhrase) ."')");
 		//$searchStat->groupBy('phrase');

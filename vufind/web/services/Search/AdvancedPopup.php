@@ -14,6 +14,7 @@ class AdvancedPopup extends Search_AdvancedBase {
 		global $interface;
 
 		// Create our search object
+		/** @var SearchObject_Solr|SearchObject_Base $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->initAdvancedFacets();
 		// We don't want this search in the search history
@@ -52,9 +53,25 @@ class AdvancedPopup extends Search_AdvancedBase {
 			$interface->assign('searchGroups', $searchGroups);
 		}
 
+		//Get basic search types
+		$basicSearchTypes = $searchObject->getBasicTypes();
+		$interface->assign('basicSearchTypes', $basicSearchTypes);
 		// Send search type settings to the template
-		$interface->assign('advSearchTypes', $searchObject->getAdvancedTypes());
+		$advSearchTypes = $searchObject->getAdvancedTypes();
+		//Remove any basic search types
+		foreach ($basicSearchTypes as $basicTypeKey => $basicType){
+			unset($advSearchTypes[$basicTypeKey]);
+		}
+		foreach ($advSearchTypes as $advSearchKey => $label){
+			$advSearchTypes[$advSearchKey] = translate($label);
+		}
+		natcasesort($advSearchTypes);
+		$interface->assign('advSearchTypes', $advSearchTypes);
 
+		foreach ($facetList as $facetKey => $facetData){
+			$facetList[$facetKey] = translate($facetData['label']);
+		}
+		natcasesort($facetList);
 		$interface->assign('facetList', $facetList);
 
 		$interface->assign('popupTitle', 'Advanced Search');
