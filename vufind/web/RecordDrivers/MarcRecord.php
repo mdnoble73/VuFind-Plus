@@ -461,7 +461,9 @@ class MarcRecord extends IndexRecord
 	 */
 	protected function getPlacesOfPublication()
 	{
-		return $this->getFieldArray('260');
+		$placesOfPublication = $this->getFieldArray('260', array('a'));
+		$placesOfPublication2 = $this->getFieldArray('264', array('a'));
+		return array_merge($placesOfPublication, $placesOfPublication2);
 	}
 
 	/**
