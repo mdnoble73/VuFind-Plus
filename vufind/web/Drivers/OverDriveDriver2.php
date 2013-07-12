@@ -147,7 +147,7 @@ class OverDriveDriver2 {
 		global $user;
 		$bookshelf = array();
 		$bookshelf['items'] = array();
-		if (preg_match_all('/<li class="mobile-four bookshelf-title-li".*?data-transaction="(.*?)".*?>.*?<div class="is-enhanced" data-transaction=".*?" title="(.*?)".*?<img.*?class="lrgImg" src="(.*?)".*?data-crid="(.*?)".*?<div.*?class="dwnld-container".*?>(.*?)<div class="expiration-date".*?<noscript>(.*?)<\/noscript>.*?data-earlyreturn="(.*?)"/si', $checkedOutSection, $bookshelfInfo, PREG_SET_ORDER)) {
+		if (preg_match_all('/<li[^>]*?class="mobile-four bookshelf-title-li".*?data-transaction="(.*?)".*?>.*?<div class="is-enhanced" data-transaction=".*?" title="(.*?)".*?<img.*?class="lrgImg" src="(.*?)".*?data-crid="(.*?)".*?<div.*?class="dwnld-container".*?>(.*?)<div class="expiration-date".*?<noscript>(.*?)<\/noscript>.*?data-earlyreturn="(.*?)"/si', $checkedOutSection, $bookshelfInfo, PREG_SET_ORDER)) {
 			//echo("\r\n");
 			//print_r($bookshelfInfo);
 			for ($i = 0; $i < count($bookshelfInfo); $i++){
@@ -234,9 +234,9 @@ class OverDriveDriver2 {
 		//Match holds
 		//Get the individual holds by splitting the section based on each <li class="mobile-four">
 		//Trim to the first li
-		$firstTitlePos = strpos($holdsSection, '<li class="mobile-four">');
-		$holdsSection = substr($holdsSection, $firstTitlePos);
-		$heldTitles = explode('<li class="mobile-four">', $holdsSection);
+		//$firstTitlePos = preg_match($holdsSection, '/<li .*?class="mobile-four">/');
+		//$holdsSection = substr($holdsSection, $firstTitlePos);
+		$heldTitles = preg_split('/<li[^>]*?class="mobile-four"[^>]*?>/', $holdsSection);
 		foreach ($heldTitles as $titleHtml){
 			//echo("\r\nSection " . $i++ . "\r\n$titleHtml");
 			if (preg_match('/<div class="coverID">.*?<a href="ContentDetails\\.htm\\?id=(.*?)">.*?<img class="lrgImg" src="(.*?)".*?<div class="trunc-title-line".*?title="(.*?)".*?<div class="trunc-author-line".*?title="(.*?)".*?<div class="(?:holds-info)?".*?>(.*)/si', $titleHtml, $holdInfo)){
@@ -264,7 +264,7 @@ class OverDriveDriver2 {
 
 				$holdDetails = $holdInfo[$grpCtr++];
 
-				if (preg_match('/<h6 class="holds-wait-position">(.*?)<\/h6>.*?<h6 class="holds-wait-email">(.*?)<\/h6>/si', $holdDetails, $holdDetailInfo)) {
+				if (preg_match('/<h6[^>]*?class="holds-wait-position"[^>]*?>(.*?)<\/h6>.*?<h6[^>]*?class="holds-wait-email"[^>]*?>(.*?)<\/h6>/si', $holdDetails, $holdDetailInfo)) {
 					$notificationInformation = $holdDetailInfo[1];
 					if (preg_match('/You are (?:patron|user) <b>(\\d+)<\/b> out of <b>(\\d+)<\/b> on the waiting list/si', $notificationInformation, $notifyInfo)) {
 						$hold['holdQueuePosition'] = $notifyInfo[1];
@@ -274,7 +274,7 @@ class OverDriveDriver2 {
 					}
 					$hold['notifyEmail'] = $holdDetailInfo[2];
 					$holds['unavailable'][] = $hold;
-				}elseif (preg_match('/<div id="borrowingPeriodHold"><div>(.*?)<\/div>.*?new Date \("(.*?)"\)/si', $holdDetails, $holdDetailInfo)){
+				}elseif (preg_match('/<div[^>]*?id="borrowingPeriodHold"[^>]*?><div>(.*?)<\/div>.*?new Date \("(.*?)"\)/si', $holdDetails, $holdDetailInfo)){
 					///print_r($holdDetails);
 					$hold['emailSent'] = $holdDetailInfo[2];
 					$hold['notificationDate'] = strtotime($hold['emailSent']);
