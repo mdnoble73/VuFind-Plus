@@ -267,7 +267,7 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, defaultLibraryFacet, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
 				Long libraryId = librarySystemFacetRS.getLong("libraryId");
@@ -1059,6 +1059,20 @@ public class MarcProcessor {
 
 	public LibraryIndexingInfo getLibraryIndexingInfo(Long libraryId) {
 		return libraryIndexingInfo.get(libraryId);
+	}
+
+	private HashMap<String, LibraryIndexingInfo> libraryIndexingInfoByCode = new HashMap<String, LibraryIndexingInfo>();
+	public LibraryIndexingInfo getLibraryIndexingInfoByCode(String locationCode) {
+		if (libraryIndexingInfoByCode.containsKey(locationCode)){
+			return libraryIndexingInfoByCode.get(locationCode);
+		}
+		for (LibraryIndexingInfo libraryInfo : libraryIndexingInfo.values()){
+			if (locationCode.startsWith(libraryInfo.getIlsCode())){
+				libraryIndexingInfoByCode.put(locationCode, libraryInfo);
+				return libraryInfo;
+			}
+		}
+		return null;
 	}
 
 	private HashMap<String, LocationIndexingInfo> locationIndexingInfoByCode = new HashMap<String, LocationIndexingInfo>();
