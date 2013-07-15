@@ -26,7 +26,6 @@ VuFind.initializeModalDialogs = function() {
 			});
 			return false;
 		});
-
 	});
 };
 
@@ -627,6 +626,24 @@ $(document).ready(function(){
 			minLength: 3,
 			source: function(query, process){
 				VuFind.Searches.getSpellingSuggestion(query, process, false);
+			},
+			matcher: function(item){
+				return true;
+			},
+			highlighter: function(item){
+				var query = this.query;
+				var queryParts = query.split(/[\W]+/);
+				for (var i = 0; i < queryParts.length; i++){
+					var index = item.indexOf(queryParts[i]);
+					if ( index >= 0 ){
+						item = item.substring(0,index) +
+								"<strong>" +
+								item.substring(index,index + queryParts[i].length) +
+								"</strong>" +
+								item.substring(index + queryParts[i].length);
+					}
+				}
+				return item;
 			}
 		};
 		lookfor.typeahead(typeaheadOptions);

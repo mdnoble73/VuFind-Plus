@@ -62,7 +62,7 @@ class SearchStat extends DB_DataObject
 		$splitPhrase = explode(' ', $phrase);
 		$rebuiltPhrase = implode(' %', $splitPhrase);
 		if ($rebuiltPhrase)
-		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($rebuiltPhrase) ."%' or phrase sounds like '" . mysql_escape_string($rebuiltPhrase) ."')");
+		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($rebuiltPhrase) ."%' or phrase sounds like '" . mysql_escape_string($phrase) ."')");
 		//$searchStat->groupBy('phrase');
 		$searchStat->orderBy("numResults DESC");
 		$searchStat->limit(0, 20);
