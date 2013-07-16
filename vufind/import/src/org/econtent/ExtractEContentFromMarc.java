@@ -1130,13 +1130,16 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				numRecordsAdded++;
 			}
 
-			if (!isAdvantageOnly && numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded > numOverDriveTitlesToLoadFromAPI){
+			if (!isAdvantageOnly && (numOverDriveTitlesToLoadFromAPI > 0) && (numRecordsAdded > numOverDriveTitlesToLoadFromAPI)){
 				continue;
 			}
-			if (isAdvantageOnly && numAdvantageRecordsAddedToLoadFromAPI > 0 && numAdvantageRecordsAdded > numAdvantageRecordsAddedToLoadFromAPI){
+			if (isAdvantageOnly && (numAdvantageRecordsAddedToLoadFromAPI > 0) && (numAdvantageRecordsAdded > numAdvantageRecordsAddedToLoadFromAPI)){
 				continue;
 			}
-			if (numOverDriveTitlesToLoadFromAPI > 0 && numRecordsAdded > numOverDriveTitlesToLoadFromAPI && numAdvantageRecordsAddedToLoadFromAPI > 0 && numAdvantageRecordsAdded > numAdvantageRecordsAddedToLoadFromAPI){
+			if ((numOverDriveTitlesToLoadFromAPI > 0)
+					&& (numRecordsAdded > numOverDriveTitlesToLoadFromAPI)
+					&& (numAdvantageRecordsAddedToLoadFromAPI > 0)
+					&& (numAdvantageRecordsAdded > numAdvantageRecordsAddedToLoadFromAPI)){
 				break;
 			}
 			results.incOverDriveNonMarcRecordsProcessed();
