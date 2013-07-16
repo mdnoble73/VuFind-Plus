@@ -167,7 +167,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}else{
 			numAdvantageRecordsAddedToLoadFromAPI = Integer.parseInt(numAdvantageRecordsAddedToLoadFromAPIVal);
 		}
-		results.addNote("numAdvantageRecordsAddedToLoadFromAPIVal = " + numAdvantageRecordsAddedToLoadFromAPIVal);
+		results.addNote("numAdvantageRecordsAddedToLoadFromAPIVal = " + numAdvantageRecordsAddedToLoadFromAPI);
 
 		try {
 			//Connect to the vufind database
